@@ -1,6 +1,8 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
+  healthRouter,
   zodiosCtx,
   sanitizeMiddleware,
 } from "pagopa-interop-commons";
@@ -9,7 +11,7 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/HealthRouter.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
 import { AuthorizationService } from "./services/authorizationService.js";
@@ -24,13 +26,14 @@ export async function createApp(service: AuthorizationService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
+  app.use(healthRouter(authorizationApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
   app.use(sanitizeMiddleware());
   app.use(authorizationRouter(zodiosCtx, service));
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

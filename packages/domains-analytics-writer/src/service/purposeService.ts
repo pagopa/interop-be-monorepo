@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
@@ -20,13 +24,19 @@ import { purposeRiskAnalysisFormRepo } from "../repository/purpose/purposeRiskAn
 import { purposeVersionRepo } from "../repository/purpose/purposeVersion.repository.js";
 import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersionDocument.repository.js";
 import { purposeRepo } from "../repository/purpose/purpose.repository.js";
+import { purposeVersionStampRepo } from "../repository/purpose/purposeVersionStamp.repository.js";
+import { purposeVersionSignedDocumentRepo } from "../repository/purpose/purposeVersionSignedDocument.repository.js";
 
 export function purposeServiceBuilder(db: DBContext) {
   const purposeRepository = purposeRepo(db.conn);
   const versionRepository = purposeVersionRepo(db.conn);
   const versionDocumentRepository = purposeVersionDocumentRepo(db.conn);
+  const versionStampRepository = purposeVersionStampRepo(db.conn);
   const formRepository = purposeRiskAnalysisFormRepo(db.conn);
   const answerRepository = purposeRiskAnalysisAnswerRepo(db.conn);
+  const signedVersionDocumentRepository = purposeVersionSignedDocumentRepo(
+    db.conn
+  );
 
   return {
     async upsertBatchPurpose(
@@ -44,11 +54,15 @@ export function purposeServiceBuilder(db: DBContext) {
             versionDocumentsSQL: batch.flatMap(
               (item) => item.versionDocumentsSQL
             ),
+            versionStampsSQL: batch.flatMap((item) => item.versionStampsSQL),
             riskAnalysisFormSQL: batch.flatMap(
               (item) => item.riskAnalysisFormSQL ?? []
             ),
             riskAnalysisAnswersSQL: batch.flatMap(
               (item) => item.riskAnalysisAnswersSQL ?? []
+            ),
+            versionSignedDocumentsSQL: batch.flatMap(
+              (item) => item.versionSignedDocumentsSQL
             ),
           };
 
@@ -73,6 +87,13 @@ export function purposeServiceBuilder(db: DBContext) {
               batchItems.versionDocumentsSQL
             );
           }
+          if (batchItems.versionStampsSQL.length) {
+            await versionStampRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.versionStampsSQL
+            );
+          }
           if (batchItems.riskAnalysisFormSQL.length) {
             await formRepository.insert(
               t,
@@ -87,6 +108,13 @@ export function purposeServiceBuilder(db: DBContext) {
               batchItems.riskAnalysisAnswersSQL
             );
           }
+          if (batchItems.versionSignedDocumentsSQL.length) {
+            await signedVersionDocumentRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.versionSignedDocumentsSQL
+            );
+          }
           genericLogger.info(
             `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
           );
@@ -95,8 +123,26 @@ export function purposeServiceBuilder(db: DBContext) {
         await purposeRepository.merge(t);
         await versionRepository.merge(t);
         await versionDocumentRepository.merge(t);
+        await versionStampRepository.merge(t);
         await formRepository.merge(t);
         await answerRepository.merge(t);
+        await signedVersionDocumentRepository.merge(t);
+      });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "purposeId",
+          [
+            PurposeDbTable.purpose_version_stamp,
+            PurposeDbTable.purpose_version_document,
+            PurposeDbTable.purpose_version,
+            PurposeDbTable.purpose_risk_analysis_answer,
+            PurposeDbTable.purpose_risk_analysis_form,
+            PurposeDbTable.purpose_version_signed_document,
+          ],
+          PurposeDbTable.purpose
+        );
       });
 
       genericLogger.info(
@@ -106,8 +152,10 @@ export function purposeServiceBuilder(db: DBContext) {
       await purposeRepository.clean();
       await versionRepository.clean();
       await versionDocumentRepository.clean();
+      await versionStampRepository.clean();
       await formRepository.clean();
       await answerRepository.clean();
+      await signedVersionDocumentRepository.clean();
       genericLogger.info(`Staging data cleaned`);
     },
 
@@ -149,6 +197,16 @@ export function purposeServiceBuilder(db: DBContext) {
         await versionRepository.merge(t);
         await versionDocumentRepository.merge(t);
       });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "purposeVersionId",
+          [PurposeDbTable.purpose_version_document],
+          PurposeDbTable.purpose_version
+        );
+      });
+
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
@@ -169,7 +227,9 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await purposeRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
+            `Staging deletion inserted for purposeIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
@@ -180,8 +240,10 @@ export function purposeServiceBuilder(db: DBContext) {
           [
             PurposeDbTable.purpose_version,
             PurposeDbTable.purpose_version_document,
+            PurposeDbTable.purpose_version_stamp,
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
+            PurposeDbTable.purpose_version_signed_document,
           ],
           DeletingDbTable.purpose_deleting_table
         );
@@ -205,19 +267,23 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await versionRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeVersionIds: ${batch.join(
-              ", "
-            )}`
+            `Staging deletion inserted for purposeVersionIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
-        await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
           "purposeVersionId",
-          [PurposeDbTable.purpose_version_document],
-          DeletingDbTable.purpose_deleting_table
+          [
+            PurposeDbTable.purpose_version_document,
+            PurposeDbTable.purpose_version_stamp,
+          ],
+          DeletingDbTable.purpose_deleting_table,
+          true
         );
+        await versionRepository.mergeDeleting(t);
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all purpose versions`
@@ -230,5 +296,3 @@ export function purposeServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type PurposeService = ReturnType<typeof purposeServiceBuilder>;

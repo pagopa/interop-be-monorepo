@@ -6,6 +6,7 @@ import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
@@ -30,14 +31,9 @@ export function tenantMailRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, TenantMailSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-            AND a.tenant_id = b.tenant_id
-            AND a.created_at = b.created_at
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["id", "tenantId", "createdAt"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -82,9 +78,7 @@ export function tenantMailRepository(conn: DBConnection) {
           deletingTableName,
           TenantMailDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
@@ -120,5 +114,3 @@ export function tenantMailRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantMailRepository = ReturnType<typeof tenantMailRepository>;

@@ -2,27 +2,30 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 
 describe("getEserviceDescriptor", () => {
-  const mockCatalogProcessResponseDescriptor =
-    getMockedApiEserviceDescriptor().data;
-  const mockCatalogProcessResponse = getMockedApiEservice({
-    descriptors: [
-      mockCatalogProcessResponseDescriptor,
-      getMockedApiEserviceDescriptor().data,
-    ],
-  });
+  const mockCatalogProcessResponseDescriptor = getMockedApiEserviceDescriptor();
+
+  const mockCatalogProcessResponse = getMockWithMetadata(
+    getMockedApiEservice({
+      descriptors: [
+        mockCatalogProcessResponseDescriptor,
+        getMockedApiEserviceDescriptor(),
+      ],
+    })
+  );
   const mockGetEservice = vi.fn().mockResolvedValue(mockCatalogProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {
@@ -62,7 +65,7 @@ describe("getEserviceDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceDescriptorResponse);
+    expect(result).toStrictEqual(m2mEserviceDescriptorResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

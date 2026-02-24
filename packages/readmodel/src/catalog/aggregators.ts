@@ -20,6 +20,7 @@ import {
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
+  RiskAnalysisForm,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -283,6 +284,11 @@ export const aggregateEservice = ({
           templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
         }
       : {}),
+    ...(eserviceSQL.personalData !== null
+      ? {
+          personalData: eserviceSQL.personalData,
+        }
+      : {}),
   };
   return {
     data: eservice,
@@ -369,12 +375,12 @@ const createEServiceSQLPropertyMap = <
     return acc;
   }, new Map<EServiceId, T[]>());
 
-export const aggregateRiskAnalysis = (
+export const aggregateRiskAnalysisForm = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
   answers:
     | EServiceRiskAnalysisAnswerSQL[]
     | EServiceTemplateRiskAnalysisAnswerSQL[]
-): RiskAnalysis => {
+): RiskAnalysisForm => {
   const { single: singleAnswers, multi: multiAnswers } = answers.reduce(
     (acc, answer) =>
       match(RiskAnalysisAnswerKind.parse(answer.kind))
@@ -407,19 +413,25 @@ export const aggregateRiskAnalysis = (
     }
   );
 
-  const riskAnalysis: RiskAnalysis = {
-    id: unsafeBrandId(riskAnalysisSQL.id),
-    name: riskAnalysisSQL.name,
-    createdAt: stringToDate(riskAnalysisSQL.createdAt),
-    riskAnalysisForm: {
-      version: riskAnalysisSQL.riskAnalysisFormVersion,
-      id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
-      singleAnswers,
-      multiAnswers,
-    },
+  return {
+    version: riskAnalysisSQL.riskAnalysisFormVersion,
+    id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
+    singleAnswers,
+    multiAnswers,
   };
-  return riskAnalysis;
 };
+
+export const aggregateRiskAnalysis = (
+  riskAnalysisSQL: EServiceRiskAnalysisSQL,
+  answers:
+    | EServiceRiskAnalysisAnswerSQL[]
+    | EServiceTemplateRiskAnalysisAnswerSQL[]
+): RiskAnalysis => ({
+  id: unsafeBrandId(riskAnalysisSQL.id),
+  name: riskAnalysisSQL.name,
+  createdAt: stringToDate(riskAnalysisSQL.createdAt),
+  riskAnalysisForm: aggregateRiskAnalysisForm(riskAnalysisSQL, answers),
+});
 
 export const attributesSQLtoAttributes = (
   attributesSQL:

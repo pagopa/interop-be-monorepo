@@ -24,7 +24,7 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   updateDescriptorVoucherLifespanInPlatformStateEntry,
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
-  writeCatalogEntry,
+  upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -56,22 +56,16 @@ export async function handleMessageV2(
             primaryKeyCurrent,
             dynamoDBClient
           );
-          if (existingCatalogEntryCurrent) {
-            if (existingCatalogEntryCurrent.version > msg.version) {
-              // Stops processing if the message is older than the catalog entry
-              logger.info(
-                `Skipping processing of entry ${existingCatalogEntryCurrent.PK} (the current descriptor). Reason: it already exists`
-              );
-              return Promise.resolve();
-            } else {
-              await updateDescriptorStateInPlatformStatesEntry(
-                dynamoDBClient,
-                primaryKeyCurrent,
-                descriptorStateToItemState(descriptor.state),
-                msg.version,
-                logger
-              );
-            }
+
+          if (
+            existingCatalogEntryCurrent &&
+            existingCatalogEntryCurrent.version > msg.version
+          ) {
+            // Stops processing if the message is older than the catalog entry
+            logger.info(
+              `Skipping processing of entry ${existingCatalogEntryCurrent.PK} (the current descriptor). Reason: it already exists`
+            );
+            return Promise.resolve();
           } else {
             const catalogEntry: PlatformStatesCatalogEntry = {
               PK: primaryKeyCurrent,
@@ -82,7 +76,11 @@ export async function handleMessageV2(
               updatedAt: new Date().toISOString(),
             };
 
-            await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
+            await upsertPlatformStatesCatalogEntry(
+              catalogEntry,
+              dynamoDBClient,
+              logger
+            );
           }
 
           // token-generation-states
@@ -213,58 +211,63 @@ export async function handleMessageV2(
         logger
       );
     })
-    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
-      const { eservice, descriptor } = parseEServiceAndDescriptor(
-        msg.data.eservice,
-        unsafeBrandId(msg.data.descriptorId),
-        message.type
-      );
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-      });
-      const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
-
-      if (!catalogEntry || catalogEntry.version > msg.version) {
-        logger.info(
-          `Skipping processing of entry ${primaryKey}. Reason: ${
-            !catalogEntry
-              ? "entry not found in platform-states"
-              : "a more recent entry already exists"
-          }`
+    .with(
+      { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      async (msg) => {
+        const { eservice, descriptor } = parseEServiceAndDescriptor(
+          msg.data.eservice,
+          unsafeBrandId(msg.data.descriptorId),
+          message.type
         );
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        });
+        const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
 
-        return Promise.resolve();
-      } else {
-        if (
-          descriptor.voucherLifespan !== catalogEntry.descriptorVoucherLifespan
-        ) {
-          await updateDescriptorVoucherLifespanInPlatformStateEntry(
-            dynamoDBClient,
-            primaryKey,
-            descriptor.voucherLifespan,
-            msg.version,
-            logger
-          );
-
-          // token-generation-states
-          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-            eserviceId: eservice.id,
-            descriptorId: descriptor.id,
-          });
-          await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
-            eserviceId_descriptorId,
-            descriptor.voucherLifespan,
-            dynamoDBClient,
-            logger
-          );
-        } else {
+        if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Platform-states and Token-generation-states. Skipping processing of entry ${primaryKey}. Reason: unchanged voucherLifespan`
+            `Skipping processing of entry ${primaryKey}. Reason: ${
+              !catalogEntry
+                ? "entry not found in platform-states"
+                : "a more recent entry already exists"
+            }`
           );
+
+          return Promise.resolve();
+        } else {
+          if (
+            descriptor.voucherLifespan !==
+            catalogEntry.descriptorVoucherLifespan
+          ) {
+            await updateDescriptorVoucherLifespanInPlatformStateEntry(
+              dynamoDBClient,
+              primaryKey,
+              descriptor.voucherLifespan,
+              msg.version,
+              logger
+            );
+
+            // token-generation-states
+            const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            });
+            await updateDescriptorVoucherLifespanInTokenGenerationStatesTable(
+              eserviceId_descriptorId,
+              descriptor.voucherLifespan,
+              dynamoDBClient,
+              logger
+            );
+          } else {
+            logger.info(
+              `Platform-states and Token-generation-states. Skipping processing of entry ${primaryKey}. Reason: unchanged voucherLifespan`
+            );
+          }
         }
       }
-    })
+    )
     .with(
       { type: "EServiceDeleted" },
       { type: "EServiceAdded" },
@@ -294,17 +297,20 @@ export async function handleMessageV2(
       { type: "EServiceNameUpdated" },
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
       { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+      { type: "EServiceSignalHubEnabled" },
+      { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       () => Promise.resolve()
     )
     .exhaustive();
 }
 
-export const parseEServiceAndDescriptor = (
+const parseEServiceAndDescriptor = (
   eserviceV2: EServiceV2 | undefined,
   descriptorId: DescriptorId,
   eventType: string

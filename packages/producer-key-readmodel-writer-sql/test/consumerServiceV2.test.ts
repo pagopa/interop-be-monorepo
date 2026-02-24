@@ -17,7 +17,10 @@ import {
 import { describe, expect, it } from "vitest";
 import { keyToProducerJWKKey } from "pagopa-interop-commons";
 import { handleMessageV2 } from "../src/producerKeyConsumerServiceV2.js";
-import { producerJWKKeyReadModelService, readModelService } from "./utils.js";
+import {
+  producerJWKKeyReadModelService,
+  producerJWKKeyWriterService,
+} from "./utils.js";
 
 describe("Events V2", () => {
   const key = crypto.generateKeyPairSync("rsa", {
@@ -53,7 +56,10 @@ describe("Events V2", () => {
       id: producerKeychainId,
       keys: [mockKey],
     };
-    await readModelService.upsertProducerJWKKey(producerKeychainJWKKey, 1);
+    await producerJWKKeyWriterService.upsertProducerJWKKey(
+      producerKeychainJWKKey,
+      1
+    );
 
     const addedKey: Key = {
       ...getMockKey(),
@@ -79,7 +85,7 @@ describe("Events V2", () => {
       log_date: new Date(),
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, producerJWKKeyWriterService);
 
     const retrievedKey =
       await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
@@ -109,7 +115,10 @@ describe("Events V2", () => {
       id: producerKeychainId,
       keys: [mockKey],
     };
-    await readModelService.upsertProducerJWKKey(producerKeychainJWKKey, 1);
+    await producerJWKKeyWriterService.upsertProducerJWKKey(
+      producerKeychainJWKKey,
+      1
+    );
 
     const updatedProducerKeychain = {
       ...mockProducerKeychain,
@@ -131,7 +140,7 @@ describe("Events V2", () => {
       log_date: new Date(),
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, producerJWKKeyWriterService);
 
     const retrievedKey =
       await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
@@ -164,8 +173,14 @@ describe("Events V2", () => {
       id: producerKeychainId,
       keys: [mockKey1, mockKey2],
     };
-    await readModelService.upsertProducerJWKKey(producerKeychainJWKKey1, 1);
-    await readModelService.upsertProducerJWKKey(producerKeychainJWKKey2, 1);
+    await producerJWKKeyWriterService.upsertProducerJWKKey(
+      producerKeychainJWKKey1,
+      1
+    );
+    await producerJWKKeyWriterService.upsertProducerJWKKey(
+      producerKeychainJWKKey2,
+      1
+    );
 
     const payload: ProducerKeychainDeletedV2 = {
       producerKeychain: toProducerKeychainV2(mockProducerKeychain),
@@ -182,7 +197,7 @@ describe("Events V2", () => {
       log_date: new Date(),
     };
 
-    await handleMessageV2(message, readModelService);
+    await handleMessageV2(message, producerJWKKeyWriterService);
 
     const retrievedKey1 =
       await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(

@@ -36,7 +36,7 @@ describe("createConsumerClient", () => {
     members: [organizationId],
   };
   it("should write on event-store for the creation of a consumer client", async () => {
-    const { client } = await authorizationService.createConsumerClient(
+    const client = await authorizationService.createConsumerClient(
       {
         clientSeed,
       },
@@ -74,5 +74,6 @@ describe("createConsumerClient", () => {
     };
 
     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(client).toEqual(expectedClient);
   });
 });

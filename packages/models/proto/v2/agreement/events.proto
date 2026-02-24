@@ -91,3 +91,11 @@ message AgreementArchivedByRevokedDelegationV2 {
   AgreementV2 agreement = 1;
   string delegationId = 2;
 }
+
+message AgreementContractGeneratedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSignedContractGeneratedV2 {
+  AgreementV2 agreement = 1;
+}

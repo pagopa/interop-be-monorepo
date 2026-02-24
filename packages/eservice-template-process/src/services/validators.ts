@@ -4,42 +4,42 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   operationForbidden,
-  Tenant,
   TenantId,
   eserviceMode,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftEServiceTemplateVersionAlreadyExists,
   templateNotInReceiveMode,
-  tenantKindNotFound,
   eserviceTemplateNotInDraftState,
   inconsistentDailyCalls,
   eserviceTemplateWithoutPublishedVersion,
+  eserviceTemplateDuplicate,
+  missingRiskAnalysis,
+  riskAnalysisValidationFailed,
+  riskAnalysisNotFound,
+  eServiceTemplateUpdateSameNameConflict,
+  eServiceTemplateUpdateSameDescriptionConflict,
 } from "../model/domain/errors.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
-  }
-}
-
-export function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (tenant.kind === undefined) {
-    throw tenantKindNotFound(tenant.id);
   }
 }
 
@@ -86,6 +86,14 @@ export function versionStatesNotAllowingDocumentOperations(
     )
     .with(eserviceTemplateVersionState.deprecated, () => true)
     .exhaustive();
+}
+
+export function versionStatesNotAllowingInterfaceOperations(
+  version: EServiceTemplateVersion
+): boolean {
+  return match(version.state)
+    .with(eserviceTemplateVersionState.draft, () => false)
+    .otherwise(() => true);
 }
 
 export function assertConsistentDailyCalls({
@@ -138,4 +146,69 @@ export function hasRoleToAccessDraftTemplateVersions(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export async function assertEServiceTemplateNameAvailable(
+  name: string,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const isEServiceTemplateNameAvailable =
+    await readModelService.isEServiceTemplateNameAvailable({
+      name,
+    });
+
+  if (!isEServiceTemplateNameAvailable) {
+    throw eserviceTemplateDuplicate(name);
+  }
+}
+
+export function assertRiskAnalysisIsValidForPublication(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (eserviceTemplate.riskAnalysis.length === 0) {
+    throw missingRiskAnalysis(eserviceTemplate.id);
+  }
+
+  eserviceTemplate.riskAnalysis.forEach((riskAnalysis) => {
+    const result = validateRiskAnalysis(
+      riskAnalysisFormToRiskAnalysisFormToValidate(
+        riskAnalysis.riskAnalysisForm
+      ),
+      false,
+      riskAnalysis.tenantKind,
+      new Date(),
+      eserviceTemplate.personalData
+    );
+
+    if (result.type === "invalid") {
+      throw riskAnalysisValidationFailed(result.issues);
+    }
+  });
+}
+
+export function assertRiskAnalysisExists(
+  eserviceTemplate: EServiceTemplate,
+  riskAnalysisId: RiskAnalysisId
+): void {
+  if (!eserviceTemplate.riskAnalysis.some((ra) => ra.id === riskAnalysisId)) {
+    throw riskAnalysisNotFound(eserviceTemplate.id, riskAnalysisId);
+  }
+}
+
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newName === eserviceTemplate.name) {
+    throw eServiceTemplateUpdateSameNameConflict(eserviceTemplate.id);
+  }
+}
+
+export function assertUpdatedDescriptionDiffersFromCurrent(
+  newDescription: string,
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (newDescription === eserviceTemplate.description) {
+    throw eServiceTemplateUpdateSameDescriptionConflict(eserviceTemplate.id);
+  }
 }

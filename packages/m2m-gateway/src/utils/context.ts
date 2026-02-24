@@ -14,9 +14,9 @@ export type Headers = {
   "X-Forwarded-For": string | undefined;
 };
 
-export type M2MGatewayAppContext = AppContext<
-  M2MAuthData | M2MAdminAuthData
-> & { headers: Headers };
+export type M2MGatewayAppContext<
+  A extends M2MAuthData | M2MAdminAuthData = M2MAdminAuthData
+> = AppContext<A> & { headers: Headers };
 /* ^ M2M Gateway can be called only with m2m or m2m-admin tokens.
 This is enforced by the audience check during authentication, and by the
 dedicated middleware that asserts that the auth data is one of these two. */

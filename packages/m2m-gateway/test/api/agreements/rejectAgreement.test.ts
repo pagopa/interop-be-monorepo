@@ -1,16 +1,17 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAgreement,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /agreements/:agreementId/reject router test", () => {
   const mockApiAgreement = getMockedApiAgreement({
@@ -22,12 +23,12 @@ describe("POST /agreements/:agreementId/reject router test", () => {
   };
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement, generateId());
 
   const makeRequest = async (
     token: string,
     body: m2mGatewayApi.AgreementRejection,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/reject`)
@@ -50,16 +51,19 @@ describe("POST /agreements/:agreementId/reject router test", () => {
     }
   );
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockAgreementService.rejectAgreement = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockRejectAgreementBody);
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockAgreementService.rejectAgreement = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockRejectAgreementBody);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.rejectAgreement = vi

@@ -1,0 +1,35 @@
+{
+  "name": "pagopa-interop-dpop-validation",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability utility to validate DPoP proofs",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "@aws-sdk/util-dynamodb": "catalog:",
+    "jose": "catalog:",
+    "ts-pattern": "5.2.0",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-models": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  getMockedApiAgreement,
+  getMockedApiDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,13 +16,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
-  getMockedApiAgreement,
+  testToM2mGatewayApiAgreement,
 } from "../../mockUtils.js";
 
 describe("createAgreement", () => {
@@ -24,11 +27,14 @@ describe("createAgreement", () => {
     m2mGatewayApi.AgreementSeed
   );
 
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.DRAFT,
-    eserviceId: mockAgreementSeed.eserviceId,
-    descriptorId: mockAgreementSeed.descriptorId,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.DRAFT,
+      eserviceId: mockAgreementSeed.eserviceId,
+      descriptorId: mockAgreementSeed.descriptorId,
+      stamps: {},
+    })
+  );
 
   const mockCreateAgreement = vi
     .fn()
@@ -37,6 +43,15 @@ describe("createAgreement", () => {
   const mockGetAgreement = vi.fn(
     mockPollingResponse(mockAgreementProcessResponse, 2)
   );
+
+  const mockDelegation = getMockedApiDelegation();
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [mockDelegation] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
   mockInteropBeClients.agreementProcessClient = {
     createAgreement: mockCreateAgreement,
@@ -51,13 +66,8 @@ describe("createAgreement", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
+      ...testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data),
+      delegationId: mockDelegation.id,
     };
 
     const result = await agreementService.createAgreement(
@@ -65,7 +75,7 @@ describe("createAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.createAgreement,
       body: mockAgreementSeed,
@@ -105,11 +115,11 @@ describe("createAgreement", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetAgreement.mockImplementation(
       mockPollingResponse(
         mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -119,10 +129,13 @@ describe("createAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-api-clients",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interop Api Clients",
   "main": "dist",
@@ -10,6 +11,7 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
+    "lint:openapi": "spectral lint ./open-api/!\\(selfcareV2ClientApi.yml\\|authorizationManagementApi.yaml\\|notifierApi.yml\\|apiGatewayApi.yml\\) --ruleset ../../.spectral.yaml",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
@@ -20,29 +22,26 @@
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
-    "@apidevtools/swagger-parser": "10.1.0",
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.14.6",
-    "@types/qs": "6.9.15",
-    "openapi-types": "12.1.3",
-    "handlebars": "4.7.7",
-    "openapi-zod-client": "1.18.3",
-    "openapi3-ts": "3.1.0",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5"
+    "@apidevtools/swagger-parser": "catalog:",
+    "@pagopa/eslint-config": "catalog:",
+    "@stoplight/spectral-cli": "catalog:",
+    "@types/node": "catalog:",
+    "@types/qs": "catalog:",
+    "dotenv-flow": "catalog:",
+    "openapi-types": "catalog:",
+    "handlebars": "catalog:",
+    "openapi-zod-client": "catalog:",
+    "openapi3-ts": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   },
   "dependencies": {
-    "@zodios/core": "10.9.6",
-    "axios": "1.8.2",
-    "axios-logger": "2.8.1",
+    "@zodios/core": "catalog:",
+    "axios": "catalog:",
+    "axios-logger": "catalog:",
     "pagopa-interop-commons": "workspace:*",
-    "qs": "6.12.3",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
-    "zod-validation-error": "3.3.0"
+    "qs": "catalog:",
+    "zod": "catalog:"
   }
 }

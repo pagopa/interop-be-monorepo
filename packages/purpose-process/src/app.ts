@@ -1,6 +1,8 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
   sanitizeMiddleware,
@@ -10,8 +12,8 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import purposeRouter from "./routers/PurposeRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 import { PurposeService } from "./services/purposeService.js";
 
@@ -27,7 +29,7 @@ export async function createApp(service: PurposeService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
+  app.use(healthRouter(purposeApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
@@ -35,6 +37,7 @@ export async function createApp(service: PurposeService) {
   app.use(loggerMiddleware(serviceName));
   app.use(sanitizeMiddleware());
   app.use(router);
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

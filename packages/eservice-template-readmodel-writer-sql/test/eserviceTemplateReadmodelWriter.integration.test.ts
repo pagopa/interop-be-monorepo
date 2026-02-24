@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockDocument,
@@ -22,7 +22,6 @@ import {
   EServiceTemplateEventEnvelope,
   EServiceTemplateRiskAnalysisAddedV2,
   EServiceTemplateRiskAnalysisDeletedV2,
-  RiskAnalysis,
   EServiceTemplateDeletedV2,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
@@ -32,15 +31,20 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplateRiskAnalysis,
+  tenantKind,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { eserviceTemplateReadModelService } from "./utils.js";
+import {
+  eserviceTemplateReadModelService,
+  eserviceTemplateWriterService,
+} from "./utils.js";
 
 describe("database test", async () => {
   describe("Events V2", async () => {
     const mockEServiceTemplate = getMockEServiceTemplate();
     it("EServiceTemplateDeleted", async () => {
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         mockEServiceTemplate,
         1
       );
@@ -57,7 +61,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -80,7 +84,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -94,7 +98,7 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateDraftUpdated", async () => {
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         mockEServiceTemplate,
         1
       );
@@ -117,7 +121,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -139,7 +143,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -161,7 +165,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -181,7 +185,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -203,7 +207,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -226,7 +230,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -252,7 +256,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -274,7 +278,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [publishedVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -301,7 +305,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -324,7 +328,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [suspendedEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -352,7 +356,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -373,7 +377,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -400,7 +404,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -422,7 +426,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [publishedEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -449,7 +453,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -471,7 +475,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -495,7 +499,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -517,7 +521,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -540,7 +544,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -562,7 +566,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -591,7 +595,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -613,7 +617,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -642,7 +646,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -664,7 +668,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -693,7 +697,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -715,7 +719,7 @@ describe("database test", async () => {
         ...mockEServiceTemplate,
         versions: [draftEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -739,7 +743,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -751,12 +755,14 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisAdded", async () => {
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         mockEServiceTemplate,
         1
       );
 
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const updatedEServiceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -774,7 +780,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -788,17 +794,19 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisUpdated", async () => {
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
 
-      const updatedRiskAnalysis: RiskAnalysis = {
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
         ...mockRiskAnalysis,
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,
@@ -828,7 +836,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -842,13 +850,15 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisDeleted", async () => {
-      const riskAnalysis = getMockValidRiskAnalysis("PA");
+      const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [riskAnalysis],
       };
 
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -870,7 +880,7 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
 
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
@@ -895,7 +905,7 @@ describe("database test", async () => {
         name: "previousName",
         versions: [publishedEServiceTemplateVersion],
       };
-      await eserviceTemplateReadModelService.upsertEServiceTemplate(
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
         eserviceTemplate,
         1
       );
@@ -915,11 +925,54 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, eserviceTemplateReadModelService);
+      await handleMessageV2(message, eserviceTemplateWriterService);
       const retrievedEservice =
         await eserviceTemplateReadModelService.getEServiceTemplateById(
           mockEServiceTemplate.id
         );
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
+    });
+
+    it("EServiceTemplatePersonalDataFlagUpdatedAfterPublication", async () => {
+      const publishedVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        interface: getMockDocument(),
+        state: eserviceTemplateVersionState.published,
+        publishedAt: new Date(),
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [publishedVersion],
+      };
+      await eserviceTemplateWriterService.upsertEServiceTemplate(
+        eserviceTemplate,
+        1
+      );
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate,
+        personalData: false,
+      };
+      const payload = {
+        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      };
+      const message: EServiceTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEServiceTemplate.id,
+        version: 2,
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(message, eserviceTemplateWriterService);
+
+      const retrievedEservice =
+        await eserviceTemplateReadModelService.getEServiceTemplateById(
+          mockEServiceTemplate.id
+        );
+
       expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
       expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });

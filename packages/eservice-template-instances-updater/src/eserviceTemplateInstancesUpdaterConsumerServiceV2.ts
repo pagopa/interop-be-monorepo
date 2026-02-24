@@ -4,11 +4,12 @@ import {
   CorrelationId,
   Descriptor,
   descriptorState,
+  Document,
   EService,
+  EServiceTemplate,
   EServiceTemplateEventEnvelope,
-  EServiceTemplateV2,
-  EServiceTemplateVersionV2,
-  fromEServiceTemplateVersionV2,
+  EServiceTemplateVersion,
+  fromEServiceTemplateV2,
   generateId,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -25,7 +26,7 @@ import {
 import { catalogApi } from "pagopa-interop-api-clients";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const { catalogProcess } = getInteropBeClients();
 
@@ -41,7 +42,7 @@ export async function handleMessageV2({
   refreshableToken: RefreshableInteropToken;
   partition: number;
   offset: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
 }): Promise<void> {
   const correlationId = decodedKafkaMessage.correlation_id
@@ -117,9 +118,7 @@ export async function handleMessageV2({
     .with({ type: "EServiceTemplateVersionAttributesUpdated" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
-      const attributes = fromEServiceTemplateVersionV2(
-        eserviceTemplateVersion
-      ).attributes;
+      const attributes = eserviceTemplateVersion.attributes;
 
       const updateTemplateInstanceDescriptorAttributes = async (
         instance: EService,
@@ -330,6 +329,43 @@ export async function handleMessageV2({
       );
     })
     .with(
+      {
+        type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+      },
+      async (msg) => {
+        const personalData = getTemplateFromEvent(msg).personalData;
+
+        if (personalData === undefined) {
+          throw missingKafkaMessageDataError(
+            "eserviceTemplate.personalData",
+            "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          );
+        }
+        const updateTemplateInstancePersonalData = async (
+          instance: EService,
+          headers: InteropHeaders
+        ): Promise<void> => {
+          await catalogProcess.client.setTemplateInstancePersonalDataFlag(
+            { personalData },
+            {
+              params: {
+                eServiceId: instance.id,
+              },
+              headers,
+            }
+          );
+        };
+
+        await commitUpdateToTemplateInstances(
+          msg,
+          refreshableToken,
+          correlationId,
+          readModelService,
+          updateTemplateInstancePersonalData
+        );
+      }
+    )
+    .with(
       { type: "EServiceTemplateAdded" },
       { type: "EServiceTemplateIntendedTargetUpdated" },
       { type: "EServiceTemplateDeleted" },
@@ -355,7 +391,7 @@ function getTemplateDocumentFromEvent(
   msg: EServiceTemplateEventEnvelope & {
     data: { documentId: string; eserviceTemplateVersionId: string };
   }
-): catalogApi.EServiceDoc {
+): Document {
   const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
   const doc = eserviceTemplateVersion.docs.find(
@@ -371,12 +407,12 @@ function getTemplateDocumentFromEvent(
 
 function getTemplateFromEvent(
   msg: EServiceTemplateEventEnvelope
-): EServiceTemplateV2 {
+): EServiceTemplate {
   if (!msg.data.eserviceTemplate) {
     throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
   }
 
-  return msg.data.eserviceTemplate;
+  return fromEServiceTemplateV2(msg.data.eserviceTemplate);
 }
 
 function retrieveTemplateInstanceDescriptors(
@@ -392,7 +428,7 @@ function getTemplateVersionFromEvent(
   msg: EServiceTemplateEventEnvelope & {
     data: { eserviceTemplateVersionId: string };
   }
-): EServiceTemplateVersionV2 {
+): EServiceTemplateVersion {
   const eserviceTemplate = getTemplateFromEvent(msg);
 
   const eserviceTemplateVersion = eserviceTemplate.versions.find(
@@ -410,7 +446,7 @@ async function commitUpdateToTemplateInstances(
   msg: EServiceTemplateEventEnvelope,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   action: (eservice: EService, headers: InteropHeaders) => Promise<void>
 ): Promise<void> {
   const token = (await refreshableToken.get()).serialized;
@@ -433,7 +469,7 @@ async function commitUpdateToTemplateInstances(
 }
 
 async function cloneDocument(
-  doc: catalogApi.EServiceDoc,
+  doc: Document,
   fileManager: FileManager,
   logger: Logger
 ): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {

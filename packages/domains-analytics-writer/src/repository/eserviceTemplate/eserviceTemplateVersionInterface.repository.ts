@@ -5,25 +5,17 @@ import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
-  generateMergeDeleteQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 
-import {
-  EserviceTemplateDbTable,
-  DeletingDbTable,
-} from "../../model/db/index.js";
-import {
-  EserviceTemplateInterfaceDeletingSchema,
-  EserviceTemplateVersionInterfaceSchema,
-} from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
+import { EserviceTemplateDbTable } from "../../model/db/index.js";
+import { EserviceTemplateVersionInterfaceSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
 
 export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = EserviceTemplateDbTable.eservice_template_version_interface;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.eservice_template_deleting_table;
-  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -38,12 +30,7 @@ export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
           EserviceTemplateVersionInterfaceSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -76,56 +63,5 @@ export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
         );
       }
     },
-
-    async insertDeleting(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: EserviceTemplateInterfaceDeletingSchema[]
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          deletingTableName,
-          EserviceTemplateInterfaceDeletingSchema
-        );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeDelQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableName,
-          ["id"]
-        );
-        await t.none(mergeDelQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging deleting staging into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
-    async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error truncating deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
   };
 }
-
-export type EserviceTemplateVersionInterfaceRepository = ReturnType<
-  typeof eserviceTemplateVersionInterfaceRepository
->;

@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -9,18 +10,19 @@ import {
 import {
   Attribute,
   AttributeId,
+  AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateVersionState,
   ListResult,
   Tenant,
   TenantId,
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
+  CompactOrganization,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -42,14 +44,9 @@ import {
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { match } from "ts-pattern";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
-
-export type GetEServiceTemplatesFilters = {
-  name?: string;
-  eserviceTemplatesIds: EServiceTemplateId[];
-  creatorsIds: TenantId[];
-  states: EServiceTemplateVersionState[];
-};
+import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -71,32 +68,39 @@ export function readModelServiceBuilderSQL({
         id
       );
     },
-    async getEServiceTemplateByNameAndCreatorId({
+    async isEServiceTemplateNameAvailable({
       name,
-      creatorId,
     }: {
       name: string;
-      creatorId: TenantId;
-    }): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateByFilter(
-        and(
-          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
+    }): Promise<boolean> {
+      const queryResult = await readModelDB
+        .select({
+          count: count(),
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .where(
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
             escapeRegExp(name)
           )
         )
-      );
+        .limit(1);
+
+      return (queryResult[0]?.count ?? 0) === 0;
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
     },
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       return (
         await attributeReadModelServiceSQL.getAttributesByFilter(
-          inArray(attributeInReadmodelAttribute.id, attributesIds)
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
         )
       ).map((a) => a.data);
     },
@@ -104,9 +108,10 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
-      const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
+      const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
+        filters;
 
       const subquery = readModelDB
         .select(
@@ -138,6 +143,26 @@ export function readModelServiceBuilderSQL({
                   eserviceTemplatesIds
                 )
               : undefined,
+            match(personalData)
+              .with("TRUE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  true
+                )
+              )
+              .with("FALSE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  false
+                )
+              )
+              .with("DEFINED", () =>
+                isNotNull(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData
+                )
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // CREATORS IDS FILTER
             creatorsIds.length > 0
               ? inArray(
@@ -286,7 +311,7 @@ export function readModelServiceBuilderSQL({
           .from(eserviceInReadmodelCatalog)
           .where(
             and(
-              eq(eserviceInReadmodelCatalog.name, newName),
+              ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
               inArray(
                 eserviceInReadmodelCatalog.producerId,
                 instanceProducerIds
@@ -301,7 +326,7 @@ export function readModelServiceBuilderSQL({
       name: string | undefined,
       limit: number,
       offset: number
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       const queryResult = await readModelDB
         .select(
           withTotalCount({
@@ -342,16 +367,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data: CompactOrganization[] = queryResult.map((d) => ({
+        id: unsafeBrandId(d.id),
+        name: d.name,
+      }));
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+      const result = z.array(CompactOrganization).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

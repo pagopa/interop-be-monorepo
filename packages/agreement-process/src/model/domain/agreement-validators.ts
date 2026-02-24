@@ -19,10 +19,13 @@ import {
   delegationKind,
   Delegation,
   delegationState,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
   M2MAdminAuthData,
   M2MAuthData,
+  ownership,
+  Ownership,
   UIAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -31,7 +34,7 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
-import { ReadModelService } from "../../services/readModelService.js";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
@@ -42,6 +45,7 @@ import {
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
+  tenantIsNotTheDelegate,
   notLatestEServiceDescriptor,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
@@ -76,9 +80,6 @@ export const agreementArchivableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
-export const agreementSubmittableStates: AgreementState[] = [
-  agreementState.draft,
-];
 
 export const agreementUpdatableStates: AgreementState[] = [
   agreementState.draft,
@@ -102,7 +103,7 @@ export const agreementClonableStates: AgreementState[] = [
   agreementState.rejected,
 ];
 
-export const agreementActivationFailureStates: AgreementState[] = [
+const agreementActivationFailureStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
   agreementState.missingCertifiedAttributes,
@@ -136,10 +137,10 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 /* ========= ASSERTIONS ========= */
 
 const assertRequesterIsConsumer = (
-  consumerId: TenantId,
+  agreement: Pick<Agreement, "consumerId">,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
-  if (authData.organizationId !== consumerId) {
+  if (authData.organizationId !== agreement.consumerId) {
     throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
@@ -153,25 +154,56 @@ const assertRequesterIsProducer = (
   }
 };
 
-export const assertRequesterCanActAsConsumerOrProducer = (
+export const getOrganizationRole = (
   agreement: Agreement,
-  authData: UIAuthData | M2MAdminAuthData,
-  activeDelegations: ActiveDelegations
-): void => {
-  try {
-    assertRequesterCanActAsConsumer(
-      agreement.consumerId,
-      agreement.eserviceId,
-      authData,
-      activeDelegations.consumerDelegation
-    );
-  } catch {
-    try {
-      assertRequesterCanActAsProducer(
+  delegationId: DelegationId | undefined,
+  activeDelegations: ActiveDelegations,
+  authData: UIAuthData | M2MAdminAuthData
+): Ownership => {
+  if (
+    agreement.producerId === agreement.consumerId &&
+    authData.organizationId === agreement.producerId
+  ) {
+    return ownership.SELF_CONSUMER;
+  }
+
+  if (delegationId) {
+    if (delegationId === activeDelegations.producerDelegation?.id) {
+      assertRequesterIsDelegateProducer(
         agreement,
         authData,
         activeDelegations.producerDelegation
       );
+      return ownership.PRODUCER;
+    } else if (delegationId === activeDelegations.consumerDelegation?.id) {
+      assertRequesterIsDelegateConsumer(
+        agreement,
+        authData,
+        activeDelegations.consumerDelegation
+      );
+      return ownership.CONSUMER;
+    } else {
+      throw tenantIsNotTheDelegate(authData.organizationId);
+    }
+  }
+
+  const hasDelegation =
+    (authData.organizationId === agreement.consumerId &&
+      activeDelegations.consumerDelegation) ||
+    (authData.organizationId === agreement.producerId &&
+      activeDelegations.producerDelegation);
+
+  if (hasDelegation) {
+    throw tenantIsNotTheDelegate(authData.organizationId);
+  }
+
+  try {
+    assertRequesterIsProducer(agreement, authData);
+    return ownership.PRODUCER;
+  } catch {
+    try {
+      assertRequesterIsConsumer(agreement, authData);
+      return ownership.CONSUMER;
     } catch {
       throw tenantNotAllowed(authData.organizationId);
     }
@@ -181,14 +213,14 @@ export const assertRequesterCanActAsConsumerOrProducer = (
 export const assertRequesterCanRetrieveAgreement = async (
   agreement: Agreement,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
   // the consumer, the producer, the consumer delegate, and the producer delegate.
   // Consumers and producers can retrieve agreements even if delegations exist.
 
   try {
-    assertRequesterIsConsumer(agreement.consumerId, authData);
+    assertRequesterIsConsumer(agreement, authData);
   } catch {
     try {
       assertRequesterIsProducer(agreement, authData);
@@ -204,8 +236,7 @@ export const assertRequesterCanRetrieveAgreement = async (
       } catch {
         try {
           assertRequesterIsDelegateConsumer(
-            agreement.consumerId,
-            agreement.eserviceId,
+            agreement,
             authData,
             await readModelService.getActiveConsumerDelegationByAgreement(
               agreement
@@ -290,15 +321,14 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  consumerId: TenantId,
-  eserviceId: EServiceId,
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
     activeConsumerDelegation?.delegateId !== authData.organizationId ||
-    activeConsumerDelegation?.delegatorId !== consumerId ||
-    activeConsumerDelegation?.eserviceId !== eserviceId ||
+    activeConsumerDelegation?.delegatorId !== agreement.consumerId ||
+    activeConsumerDelegation?.eserviceId !== agreement.eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
@@ -310,19 +340,17 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertRequesterCanActAsConsumer = (
-  consumerId: TenantId,
-  eserviceId: EServiceId,
+  agreement: Pick<Agreement, "consumerId" | "eserviceId">,
   authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
     // No active consumer delegation, the requester is authorized only if they are the consumer
-    assertRequesterIsConsumer(consumerId, authData);
+    assertRequesterIsConsumer(agreement, authData);
   } else {
     // Active consumer delegation, the requester is authorized only if they are the delegate
     assertRequesterIsDelegateConsumer(
-      consumerId,
-      eserviceId,
+      agreement,
       authData,
       activeConsumerDelegation
     );
@@ -387,7 +415,7 @@ export const validateCreationOnDescriptor = (
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
@@ -399,7 +427,7 @@ export const verifyCreationConflictingAgreements = async (
 
 export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   await verifyConflictingAgreements(
     agreement.consumerId,
@@ -431,11 +459,15 @@ export const validateSubmitOnDescriptor = async (
   return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
-export const validateActiveOrPendingAgreement = (
+export const validateActiveSuspendedOrPendingAgreement = (
   agreementId: AgreementId,
   state: AgreementState
 ): void => {
-  if (agreementState.active !== state && agreementState.pending !== state) {
+  if (
+    agreementState.active !== state &&
+    agreementState.pending !== state &&
+    agreementState.suspended !== state
+  ) {
     throw agreementSubmissionFailed(agreementId);
   }
 };
@@ -444,7 +476,7 @@ export const verifyConflictingAgreements = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   const agreements = await readModelService.getAllAgreements({
     consumerId,

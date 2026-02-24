@@ -6,7 +6,7 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",
   clientAssertionValidationFailed: "0002",
   clientAssertionSignatureValidationFailed: "0003",
@@ -15,6 +15,9 @@ export const errorCodes = {
   tokenGenerationStatesEntryNotFound: "0006",
   incompleteTokenGenerationStatesConsumerClient: "0007",
   platformStateValidationFailed: "0008",
+  dpopProofValidationFailed: "0009",
+  dpopProofSignatureValidationFailed: "0010",
+  dpopProofJtiAlreadyUsed: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -97,5 +100,35 @@ export function platformStateValidationFailed(
     detail: `Platform state validation failed - ${details}`,
     code: "platformStateValidationFailed",
     title: "Platform state validation failed",
+  });
+}
+
+export function dpopProofValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
+    code: "dpopProofValidationFailed",
+    title: "DPoP proof validation failed",
+  });
+}
+
+export function dpopProofSignatureValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
+    code: "dpopProofSignatureValidationFailed",
+    title: "DPoP proof signature validation failed",
+  });
+}
+
+export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof JTI ${jti} already in cache`,
+    code: "dpopProofJtiAlreadyUsed",
+    title: "DPoP proof JTI already in cache",
   });
 }

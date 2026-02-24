@@ -1,17 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAgreement,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   agreementNotInSuspendedState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /agreements/:agreementId/unsuspend router test", () => {
   const mockApiAgreement = getMockedApiAgreement({
@@ -19,15 +22,19 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
   });
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement, generateId());
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id,
+    body: m2mGatewayApi.DelegationRef | undefined = {
+      delegationId: generateId(),
+    }
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/unsuspend`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -45,6 +52,32 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     }
   );
 
+  it("Should return 200 when no body is passed", async () => {
+    mockAgreementService.unsuspendAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiAgreement.id, undefined);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MAgreementResponse);
+  });
+
+  it.each([
+    { delegationId: "INVALID ID" },
+    {
+      unsupportedField: "unsupportedValue",
+    },
+  ])("Should return 400 for incorrect value for body", async (body) => {
+    mockAgreementService.unsuspendAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiAgreement.id, body);
+    expect(res.status).toBe(400);
+  });
+
   it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
@@ -55,25 +88,24 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockAgreementService.unsuspendAgreement = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token);
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockAgreementService.unsuspendAgreement = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it("Should return 409 in case of agreementNotInSuspendedState error", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
-      .mockRejectedValue(
-        agreementNotInSuspendedState(mockApiAgreement.data.id)
-      );
+      .mockRejectedValue(agreementNotInSuspendedState(mockApiAgreement.id));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 

@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -13,19 +21,19 @@ import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   purposeVersionNotFound,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
+  testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion],
+    })
+  );
 
   const mockPurposeVersionSeed: m2mGatewayApi.PurposeVersionSeed = {
     dailyCalls: mockApiPurposeVersion.dailyCalls,
@@ -57,7 +65,10 @@ describe("createPurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockApiPurposeVersion);
+    const expectedApiPurposeVersion = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion
+    );
+    expect(result).toStrictEqual(expectedApiPurposeVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurposeVersion,
       body: mockPurposeVersionSeed,
@@ -73,7 +84,9 @@ describe("createPurposeVersion", () => {
   });
 
   it("Should throw purposeVersionNotFound in case of version missing in purpose returned by the process", async () => {
-    const invalidPurpose = getMockedApiPurpose({ versions: [] });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({ versions: [] })
+    );
     mockCreatePurposeVersion.mockResolvedValue({
       data: {
         purpose: invalidPurpose.data,
@@ -129,9 +142,9 @@ describe("createPurposeVersion", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetPurpose.mockImplementation(
-      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxAttempts + 1)
+      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxRetries + 1)
     );
 
     await expect(
@@ -141,10 +154,13 @@ describe("createPurposeVersion", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetPurpose).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

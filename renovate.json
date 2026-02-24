@@ -15,10 +15,10 @@
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": [
-        "@protobuf-ts"
-      ],
-      "groupName": "protobuf-ts monorepo"
+      "groupName": "protobuf-ts monorepo",
+      "matchPackageNames": [
+        "/@protobuf-ts/"
+      ]
     },
     {
       "enabled": true,
@@ -33,7 +33,7 @@
   "minor": {
     "enabled": true
   },
-  "npmrc": "save-prefix=\nstrict-peer-dependencies=false",
+  "npmrc": "save-prefix=\nauto-install-peers=false\nstrict-peer-dependencies=false",
   "patch": {
     "enabled": true
   },

@@ -5,6 +5,7 @@ import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceTemplateDbTable } from "../../model/db/index.js";
@@ -28,14 +29,14 @@ export function eserviceTemplateVersionAttributeRepository(conn: DBConnection) {
           EserviceTemplateVersionAttributeSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.attribute_id = b.attribute_id
-            AND a.version_id = b.version_id
-            AND a.group_id = b.group_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+
+        await t.none(
+          generateStagingDeleteQuery(tableName, [
+            "attributeId",
+            "versionId",
+            "groupId",
+          ])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -70,7 +71,3 @@ export function eserviceTemplateVersionAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceTemplateVersionAttributeRepository = ReturnType<
-  typeof eserviceTemplateVersionAttributeRepository
->;

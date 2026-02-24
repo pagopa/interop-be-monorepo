@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
-import { expect } from "vitest";
+import { afterEach, expect, inject } from "vitest";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
@@ -12,7 +13,17 @@ import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplate
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
+import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
+import { eventServiceBuilder } from "../src/services/eventService.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { m2mTestToken } from "./mockUtils.js";
+
+export const { cleanup, fileManager } = await setupTestContainersVitest(
+  undefined,
+  inject("fileManagerConfig")
+);
+
+afterEach(cleanup);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function mockPollingResponse<T>(
@@ -33,6 +44,28 @@ export function mockPollingResponse<T>(
       return Promise.reject(notFound);
     }
     return Promise.resolve(mockResponse);
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function mockDeletionPollingResponse<T>(
+  mockResponse: WithMaybeMetadata<T>,
+  respondeAfterNCalls = 1
+) {
+  let callCount = 1;
+  return async (): Promise<WithMaybeMetadata<T>> => {
+    if (callCount < respondeAfterNCalls) {
+      callCount++;
+      return Promise.resolve(mockResponse);
+    }
+    const notFound: AxiosError = new AxiosError(
+      "Resource not found",
+      "404",
+      undefined,
+      undefined,
+      { status: 404 } as AxiosResponse
+    );
+    return Promise.reject(notFound);
   };
 }
 
@@ -103,12 +136,30 @@ export function expectApiClientPostToHaveBeenCalledWith({
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
-export const purposeService = purposeServiceBuilder(mockInteropBeClients);
+export const purposeService = purposeServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
+export const purposeTemplateService = purposeTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
-export const eserviceTemplateService =
-  eserviceTemplateServiceBuilder(mockInteropBeClients);
+export const eserviceTemplateService = eserviceTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
-export const agreementService = agreementServiceBuilder(mockInteropBeClients);
-export const eserviceService = eserviceServiceBuilder(mockInteropBeClients);
+export const agreementService = agreementServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
+export const eserviceService = eserviceServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const keyService = keyServiceBuilder(mockInteropBeClients);
+export const producerKeychainService =
+  producerKeychainServiceBuilder(mockInteropBeClients);
+export const eventService = eventServiceBuilder(mockInteropBeClients);

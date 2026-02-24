@@ -15,11 +15,11 @@ import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
-  writePlatformPurposeEntry,
   getLastSuspendedOrActivatedPurposeVersion,
   updatePurposeDataInTokenGenStatesEntries,
   updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
   getLastArchivedPurposeVersion,
+  upsertPlatformStatesPurposeEntry,
 } from "./utils.js";
 
 export async function handleMessageV1(
@@ -40,34 +40,12 @@ export async function handleMessageV1(
         purpose.versions
       );
 
-      if (existingPurposeEntry) {
-        if (existingPurposeEntry.version > msg.version) {
-          // Stops processing if the message is older than the purpose entry
-          logger.info(
-            `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
-          );
-          return Promise.resolve();
-        } else {
-          // platform-states
-          await updatePurposeDataInPlatformStatesEntry({
-            dynamoDBClient,
-            primaryKey,
-            purposeState,
-            version: msg.version,
-            purposeVersionId: purposeVersion.id,
-            logger,
-          });
-
-          // token-generation-states
-          await updatePurposeDataInTokenGenStatesEntries({
-            dynamoDBClient,
-            purposeId: purpose.id,
-            purposeState,
-            purposeVersionId: purposeVersion.id,
-            purposeConsumerId: purpose.consumerId,
-            logger,
-          });
-        }
+      if (existingPurposeEntry && existingPurposeEntry.version > msg.version) {
+        // Stops processing if the message is older than the purpose entry
+        logger.info(
+          `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
+        );
+        return Promise.resolve();
       } else {
         // platform-states
         const purposeEntry: PlatformStatesPurposeEntry = {
@@ -79,7 +57,11 @@ export async function handleMessageV1(
           version: msg.version,
           updatedAt: new Date().toISOString(),
         };
-        await writePlatformPurposeEntry(dynamoDBClient, purposeEntry, logger);
+        await upsertPlatformStatesPurposeEntry(
+          dynamoDBClient,
+          purposeEntry,
+          logger
+        );
 
         // token-generation-states
         await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
@@ -163,7 +145,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parsePurpose = (
+const parsePurpose = (
   purposeV1: PurposeV1 | undefined,
   msgType: string
 ): Purpose => {

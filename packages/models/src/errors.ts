@@ -1,8 +1,9 @@
 /* eslint-disable max-classes-per-file */
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -12,6 +13,7 @@ const {
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -61,20 +63,20 @@ export class InternalError<T> extends Error {
   }
 }
 
-type ProblemError = {
-  code: string;
-  detail: string;
-};
+const ProblemError = z.strictObject({
+  code: z.string(),
+  detail: z.string(),
+});
 
-export type Problem = {
-  type: string;
-  status: number;
-  title: string;
-  correlationId?: string;
-  detail: string;
-  errors: ProblemError[];
-  toString: () => string;
-};
+export const ProblemSchema = z.strictObject({
+  type: z.string(),
+  status: z.number(),
+  title: z.string(),
+  correlationId: z.string().optional(),
+  detail: z.string().optional(),
+  errors: z.array(ProblemError).min(1).optional(),
+});
+export type Problem = z.infer<typeof ProblemSchema>;
 
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
@@ -94,8 +96,12 @@ const makeProblemLogString = (
   problem: Problem,
   originalError: unknown
 ): string => {
-  const errorsString = problem.errors.map((e) => e.detail).join(" - ");
-  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
+  const errorsString = problem.errors
+    ? ` - errors: ${problem.errors
+        .map((e) => `${e.code}, ${e.detail}`)
+        .join("; ")}`
+    : "";
+  return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
 type ProblemBuilderOptions = {
@@ -123,7 +129,7 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
-  const allErrors = { ...errorCodes, ...errors };
+  const allErrors = { ...commonErrorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
     const serviceNameParsed = ServiceName.safeParse(serviceName);
@@ -192,22 +198,26 @@ export function makeApiProblemBuilder<T extends string>(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
            as they are, without the need to explicitly handle them */
-        {
-          response: {
-            status: P.number,
-            data: {
-              type: "about:blank",
-              title: P.string,
+        P.intersection(
+          P.when((e): e is AxiosError<Problem> => isAxiosError(e)),
+          {
+            response: {
+              // Matching also AxiosError content to ensure data matches Problem type
               status: P.number,
-              detail: P.string,
-              errors: P.array({
-                code: P.string,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
                 detail: P.string,
-              }),
-              correlationId: P.string.optional(),
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
             },
-          },
-        },
+          }
+        ),
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
@@ -218,7 +228,8 @@ export function makeApiProblemBuilder<T extends string>(
 
             if (
               forceGenericProblemOn500 &&
-              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+              (e.response.status === HTTP_STATUS_INTERNAL_SERVER_ERROR ||
+                receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR)
             ) {
               logger.warn(
                 `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
@@ -232,9 +243,7 @@ export function makeApiProblemBuilder<T extends string>(
             logger.warn(
               makeProblemLogString(
                 genericProblem,
-                `${receivedProblem.title}, code ${
-                  receivedProblem.errors.at(0)?.code
-                }, ${receivedProblem.errors.at(0)?.detail}`
+                `${receivedProblem.title} - status ${receivedProblem.status}`
               )
             );
             return genericProblem;
@@ -242,7 +251,7 @@ export function makeApiProblemBuilder<T extends string>(
         }
       )
       .with(P.instanceOf(ZodError), (error) => {
-        // Zod errors shall always be catched and handled throwing
+        // Zod errors shall always be caught and handled throwing
         // an ApiError. If a ZodError arrives here we log it and
         // return a generic problem
         const zodError = fromZodError(error);
@@ -256,7 +265,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+export const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -285,7 +294,7 @@ const errorCodes = {
   invalidEserviceInterfaceFileDetected: "10010",
   openapiVersionNotRecognized: "10011",
   interfaceExtractingInfoError: "10012",
-  invalidInterfaceContentTypeDetected: "10013",
+  invalidContentTypeDetected: "10013",
   tokenVerificationFailed: "10014",
   invalidEserviceInterfaceData: "10015",
   soapFileParsingError: "10016",
@@ -297,9 +306,15 @@ const errorCodes = {
   fallbackApplicationAuditingFailed: "10022",
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
+  pollingMaxRetriesExceeded: "10025",
+  invalidServerUrl: "10026",
+  hyperlinkDetectionError: "10027",
+  badDPoPToken: "10028",
+  keyTypeNotAllowed: "10029",
+  invalidJWKClaim: "10030",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -395,6 +410,15 @@ export function tokenGenerationError(
   });
 }
 
+export function hyperlinkDetectionError(
+  text: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "hyperlinkDetectionError",
+    detail: `Hyperlink detection error for text ${text}`,
+  });
+}
+
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
@@ -403,21 +427,41 @@ export function kafkaMessageProcessError(
     streamId,
     eventType,
     eventVersion,
+    streamVersion,
+    correlationId,
+    serviceName,
   }: {
     offset: string;
     streamId?: string;
     eventType?: string;
     eventVersion?: number;
+    streamVersion?: number;
+    correlationId?: string;
+    serviceName?: string;
   },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
+  const serviceNamePrefix = serviceName ? `[${serviceName}] -` : "";
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const eventTypePrefix = eventType ? `[ET=${eventType}]` : "";
+  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+  const errorMessage = error ? `${parseErrorMessage(error)}` : "";
+
+  const prefixes = [
+    serviceNamePrefix,
+    correlationIdPrefix,
+    eventTypePrefix,
+    eventVersionPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
-      streamId ? ` - streamId ${streamId}` : ""
-    }${eventType ? ` - eventType ${eventType}` : ""}${
-      eventVersion ? ` - eventVersion ${eventVersion}` : ""
-    }. ${error ? parseErrorMessage(error) : ""}`,
+    detail: `${prefixes} Error handling Kafka message. Topic: ${topic}. Partition number: ${partition}. Offset: ${offset}. Message: ${errorMessage}`,
   });
 }
 
@@ -447,9 +491,10 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
-      "featureFlagNotEnabled",
+      "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -546,6 +591,12 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
   title: "Bad Bearer Token format",
 });
 
+export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad DPoP Token format in Authorization header`,
+  code: "badDPoPToken",
+  title: "Bad DPoP Token format",
+});
+
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Insufficient privileges`,
   code: "operationForbidden",
@@ -602,6 +653,24 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function invalidJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `JWK claims are invalid (missing or extra claims)`,
+    code: "invalidJWKClaim",
+    title: "Invalid JWK claims",
+  });
+}
+
+export function keyTypeNotAllowed(
+  kyt: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Key type ${kyt} is not allowed`,
+    code: "keyTypeNotAllowed",
+    title: "kty not allowed",
+  });
+}
+
 export function invalidPublicKey(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Public key is invalid`,
@@ -629,21 +698,27 @@ export function notAnRSAKey(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function invalidInterfaceFileDetected(
-  resourceId: string
-): ApiError<CommonErrorCodes> {
+export function invalidInterfaceFileDetected(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
   });
 }
 
-export function invalidInterfaceData(
-  resourceId: string
-): ApiError<CommonErrorCodes> {
+export function invalidInterfaceData(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    detail: `The interface data provided for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${resource.id} is invalid`,
     code: "invalidEserviceInterfaceData",
     title: "Invalid interface file data provided",
   });
@@ -682,6 +757,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
     title: "Error extracting info from interface file",
   });
 }
+
 export function interfaceExtractingSoapFiledError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {
@@ -692,14 +768,21 @@ export function interfaceExtractingSoapFiledError(
   });
 }
 
-export function invalidInterfaceContentTypeDetected(
-  eServiceId: string,
+export function invalidContentTypeDetected(
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  },
   contentType: string,
   technology: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
-    code: "invalidInterfaceContentTypeDetected",
+    detail: `The file uploaded for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${
+      resource.id
+    } has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidContentTypeDetected",
     title: "Invalid content type detected",
   });
 }
@@ -710,5 +793,39 @@ export function featureFlagNotEnabled(
     detail: `Feature flag ${featureFlag} is not enabled`,
     code: "featureFlagNotEnabled",
     title: "Feature flag not enabled",
+  });
+}
+
+export function pollingMaxRetriesExceeded(
+  retries: number,
+  retryDelayMs: number
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
+    code: "pollingMaxRetriesExceeded",
+    title: "Polling max retries exceeded",
+  });
+}
+
+export function invalidServerUrl(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} has invalid server URL`,
+    code: "invalidServerUrl",
+    title: "Invalid server URL",
+  });
+}
+
+export function invalidDocumentDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The document for Purpose template with ID ${resourceId} is invalid`,
+    code: "invalidContentTypeDetected",
+    title: "Invalid document detected",
   });
 }

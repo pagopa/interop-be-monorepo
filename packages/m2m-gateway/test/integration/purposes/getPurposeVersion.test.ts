@@ -6,23 +6,26 @@ import {
 } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
 
 describe("getPurposeVersion", () => {
   const mockApiPurposeVersionResponse = getMockedApiPurposeVersion();
-  const mockApiPurposeResponse = getMockedApiPurpose({
-    versions: [mockApiPurposeVersionResponse],
-  });
+  const mockApiPurposeResponse = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersionResponse],
+    })
+  );
 
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurposeResponse);
 
@@ -52,7 +55,7 @@ describe("getPurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MPurposeVersion);
+    expect(result).toStrictEqual(expectedM2MPurposeVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {

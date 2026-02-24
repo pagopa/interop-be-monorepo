@@ -1,0 +1,24 @@
+meta {
+  name: List eservice template version documents
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions/:versionId/documents?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

@@ -144,6 +144,7 @@ export const documentToApiDocument = (
   prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
+  uploadDate: document.uploadDate.toJSON(),
 });
 
 export const descriptorToApiDescriptor = (
@@ -206,4 +207,5 @@ export const eServiceToApiEService = (
   isConsumerDelegable: eservice.isConsumerDelegable,
   isClientAccessDelegable: eservice.isClientAccessDelegable,
   templateId: eservice.templateId,
+  personalData: eservice.personalData,
 });

@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/purpose-process/{{version}}"
+  - url: "/"
     description: This service is the purpose process
 security:
   - bearerAuth: []
@@ -55,19 +55,19 @@ paths:
         "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /internal/delegations/{delegationId}/purposes/{purposeId}/versions/{versionId}/archive:
@@ -103,19 +103,133 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: The purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The purpose version id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned Risk Analysis document to the purpose version
+      summary: Add unsigned Risk Analysis metadata to purpose version
+      tags:
+        - purpose
+      operationId: addUnsignedRiskAnalysisDocumentMetadata
+      requestBody:
+        description: The unsigned Risk Analysis document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeVersionDocument"
+      responses:
+        "204":
+          description: Risk Analysis metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or Purpose Version not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument/signed:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: The purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The purpose version id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of a signed Risk Analysis document to the purpose version
+      summary: Add signed Risk Analysis metadata to purpose version
+      tags:
+        - purpose
+      operationId: addSignedRiskAnalysisDocumentMetadata
+      requestBody:
+        description: The signed Risk Analysis document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeVersionSignedDocument"
+      responses:
+        "204":
+          description: Risk Analysis metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or Purpose Version not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes:
@@ -162,6 +276,14 @@ paths:
             default: []
           explode: false
         - in: query
+          name: clientId
+          description: client ID
+          allowEmptyValue: true
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
           name: states
           description: comma separated sequence of states
           schema:
@@ -200,7 +322,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -209,11 +331,11 @@ paths:
       operationId: createPurpose
       description: Creates the Purpose
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -221,19 +343,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -256,11 +378,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServicePurposeSeed"
+              $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -268,19 +393,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /reverse/purposes/{id}:
@@ -299,7 +424,7 @@ paths:
       tags:
         - purpose
       operationId: updateReversePurpose
-      description: Updates a Purpose of an EService
+      description: Updates a Purpose of an EService with Receive mode
       requestBody:
         content:
           application/json:
@@ -316,25 +441,72 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Duplicated purpose title
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      tags:
+        - purpose
+      operationId: patchUpdateReversePurpose
+      description: Partially update a Purpose of an EService with Receive mode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchReversePurposeUpdateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Duplicated purpose title
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{id}:
@@ -353,11 +525,11 @@ paths:
       operationId: getPurpose
       description: Retrieve the Purpose
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -365,7 +537,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -391,25 +563,72 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Duplicated purpose title
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      tags:
+        - purpose
+      operationId: patchUpdatePurpose
+      description: Partially update a Purpose if not yet activated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Duplicated purpose title
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -425,19 +644,19 @@ paths:
         "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions:
@@ -456,11 +675,11 @@ paths:
       operationId: createPurposeVersion
       description: Creates a draft Purpose Version
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose version created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -468,25 +687,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -515,23 +734,26 @@ paths:
       operationId: deletePurposeVersion
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Version cannot be deleted
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -546,6 +768,7 @@ paths:
       tags:
         - purpose
       summary: Get an Risk Analysis document
+      description: Retrieves a risk analysis document by id
       operationId: getRiskAnalysisDocument
       parameters:
         - name: purposeId
@@ -579,13 +802,65 @@ paths:
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Document Not Found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - purpose
+      summary: Get an Risk Analysis signed document
+      description: Retrieves a risk analysis signed document by id
+      operationId: getRiskAnalysisSignedDocument
+      parameters:
+        - name: purposeId
+          in: path
+          description: the purpose id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: versionId
+          in: path
+          description: the version Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Risk Analysis signed document retrieved
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeVersionDocument"
+        "403":
+          description: Organization not allowed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Document Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -600,7 +875,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}/reject:
@@ -633,19 +908,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: reject the purpose version by id
@@ -669,12 +944,17 @@ paths:
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -682,19 +962,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -728,19 +1008,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Purpose cannot be cloned
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -764,12 +1044,17 @@ paths:
     post:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -777,19 +1062,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -814,11 +1099,11 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Archived
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -826,19 +1111,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -866,13 +1151,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
@@ -904,13 +1189,130 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purpose
+      operationId: createPurposeFromTemplate
+      description: Creates the Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeFromTemplateSeed"
+        required: true
+      responses:
+        "200":
+          description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{purposeTemplateId}/purposes/{purposeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags:
+        - purpose
+      operationId: patchUpdatePurposeFromTemplate
+      description: Partially update a Purpose from a Purpose Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateFromTemplateContent"
+        required: true
+      responses:
+        "200":
+          description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
@@ -919,6 +1321,7 @@ components:
       description: The version number of the resource in the read model
       schema:
         type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header
@@ -927,6 +1330,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     RejectPurposeVersionPayload:
       type: object
       additionalProperties: false
@@ -956,6 +1367,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormConfigQuestionResponse"
+        expiration:
+          type: string
+          format: date-time
       required:
         - version
         - questions
@@ -1103,6 +1517,9 @@ components:
         delegationId:
           type: string
           format: uuid
+        purposeTemplateId:
+          type: string
+          format: uuid
       required:
         - id
         - eserviceId
@@ -1151,16 +1568,60 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
         - isFreeOfCharge
         - dailyCalls
+    PatchPurposeUpdateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+          nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PatchPurposeUpdateFromTemplateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for purpose update from template
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     ReversePurposeUpdateContent:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose update.
+      description: Contains the expected payload for reverse purpose update
       properties:
         title:
           type: string
@@ -1175,15 +1636,40 @@ components:
         freeOfChargeReason:
           type: string
         dailyCalls:
-          description: "maximum number of daily calls that this version can perform."
+          description: Maximum number of daily calls that this version can perform
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
       required:
         - title
         - description
         - isFreeOfCharge
         - dailyCalls
+    PatchReversePurposeUpdateContent:
+      type: object
+      additionalProperties: false
+      description: Contains the expected payload for reverse purpose update
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+          nullable: true
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     PurposeVersion:
       type: object
       additionalProperties: false
@@ -1209,11 +1695,14 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
         riskAnalysis:
           $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
+        signedContract:
+          $ref: "#/components/schemas/PurposeVersionSignedDocument"
       required:
         - id
         - state
@@ -1249,6 +1738,28 @@ components:
         createdAt:
           type: string
           format: date-time
+    PurposeVersionSignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - contentType
+        - path
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+        path:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
     PurposeCloneSeed:
       type: object
       additionalProperties: false
@@ -1258,15 +1769,19 @@ components:
           format: uuid
       required:
         - eserviceId
-    EServicePurposeSeed:
+    ReversePurposeSeed:
       type: object
       additionalProperties: false
       description: contains the expected payload for purpose creation.
       properties:
-        eServiceId:
+        eserviceId:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisId:
@@ -1287,13 +1802,46 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
-        - eServiceId
+        - eserviceId
         - consumerId
         - title
         - riskAnalysisId
         - description
         - isFreeOfCharge
+        - dailyCalls
+    PurposeFromTemplateSeed:
+      type: object
+      additionalProperties: false
+      description: contains the expected payload for purpose creation from a purpose template
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+        consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        dailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - eserviceId
+        - consumerId
+        - title
         - dailyCalls
     PurposeSeed:
       type: object
@@ -1304,6 +1852,10 @@ components:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The ID of the tenant that will consume the e-service. It can be:
+            - the ID of your tenant
+            - the ID of a tenant for which you are the consumer delegate
           type: string
           format: uuid
         riskAnalysisForm:
@@ -1323,6 +1875,8 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - eserviceId
         - consumerId
@@ -1341,7 +1895,8 @@ components:
           description: "maximum number of daily calls that this version can perform."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
+          maximum: 1000000000
     RiskAnalysisForm:
       type: object
       additionalProperties: false
@@ -1356,7 +1911,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
         riskAnalysisId:
           type: string
           format: uuid
@@ -1377,7 +1932,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
       required:
         - version
         - answers
@@ -1433,7 +1988,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

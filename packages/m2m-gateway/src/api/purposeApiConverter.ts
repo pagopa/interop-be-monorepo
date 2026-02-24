@@ -1,4 +1,8 @@
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  m2mGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,
@@ -11,11 +15,30 @@ export function toGetPurposesApiQueryParams(
     eservicesIds: params.eserviceIds,
     limit: params.limit,
     offset: params.offset,
+    consumersIds: params.consumerIds,
+    producersIds: [],
+    clientId: undefined,
+    states: params.states,
+    excludeDraft: false,
+    name: params.title,
+  };
+}
+
+export function toGetPurposesApiQueryParamsForClient(
+  params: {
+    clientId: string;
+  } & m2mGatewayApi.GetClientPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    eservicesIds: params.eserviceIds,
+    limit: params.limit,
+    offset: params.offset,
     consumersIds: [],
     producersIds: [],
-    states: [],
+    clientId: params.clientId,
+    states: params.states,
     excludeDraft: false,
-    name: undefined,
+    name: "",
   };
 }
 
@@ -51,9 +74,16 @@ export function toM2MGatewayApiPurpose(
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
-    currentVersion,
-    waitingForApprovalVersion,
-    rejectedVersion,
+    currentVersion: currentVersion
+      ? toM2mGatewayApiPurposeVersion(currentVersion)
+      : undefined,
+    waitingForApprovalVersion: waitingForApprovalVersion
+      ? toM2mGatewayApiPurposeVersion(waitingForApprovalVersion)
+      : undefined,
+    rejectedVersion: rejectedVersion
+      ? toM2mGatewayApiPurposeVersion(rejectedVersion)
+      : undefined,
+    purposeTemplateId: purpose.purposeTemplateId,
   };
 }
 
@@ -69,5 +99,23 @@ export function toM2mGatewayApiPurposeVersion(
     rejectionReason: version.rejectionReason,
     suspendedAt: version.suspendedAt,
     updatedAt: version.updatedAt,
+  };
+}
+
+export function toGetAgreementsApiQueryParamsForPurpose(
+  purpose: purposeApi.Purpose
+): agreementApi.GetAgreementsQueryParams {
+  return {
+    consumersIds: [purpose.consumerId],
+    eservicesIds: [purpose.eserviceId],
+    states: [
+      m2mGatewayApi.AgreementState.Values.ACTIVE,
+      m2mGatewayApi.AgreementState.Values.SUSPENDED,
+    ],
+    descriptorsIds: [],
+    producersIds: [],
+    showOnlyUpgradeable: false,
+    offset: 0,
+    limit: 1,
   };
 }

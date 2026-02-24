@@ -1,0 +1,32 @@
+meta {
+  name: Create Keys for a Client
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/clients/:clientId/keys
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+      "key": "{{keyEncodedPem}}",
+      "use": "ENC",
+      "alg": "RS256",
+      "name": "asdasasdasdad"
+  }
+}
+
+docs {
+  Creates one or more keys for the corresponding client.
+}

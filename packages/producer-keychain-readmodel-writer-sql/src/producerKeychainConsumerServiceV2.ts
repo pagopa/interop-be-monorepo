@@ -1,15 +1,15 @@
 import {
   AuthorizationEventEnvelopeV2,
   fromProducerKeychainV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { ProducerKeychainReadModelService } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
+import { ProducerKeychainWriterService } from "./producerKeychainWriterService.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  producerKeychainReadModelService: ProducerKeychainReadModelService
+  producerKeychainWriterService: ProducerKeychainWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -27,19 +27,17 @@ export async function handleMessageV2(
       async (message) => {
         const producerKeychain = message.data.producerKeychain;
         if (!producerKeychain) {
-          throw genericInternalError(
-            "ProducerKeychainAdded message without producerKeychain"
-          );
+          throw missingKafkaMessageDataError("producerKeychain", message.type);
         }
 
-        await producerKeychainReadModelService.upsertProducerKeychain(
+        await producerKeychainWriterService.upsertProducerKeychain(
           fromProducerKeychainV2(producerKeychain),
           message.version
         );
       }
     )
     .with({ type: "ProducerKeychainDeleted" }, async (message) => {
-      await producerKeychainReadModelService.deleteProducerKeychainById(
+      await producerKeychainWriterService.deleteProducerKeychainById(
         unsafeBrandId(message.data.producerKeychainId),
         message.version
       );

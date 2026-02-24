@@ -7,7 +7,7 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import puppeteer, { Browser } from "puppeteer";
-import { buildHTMLTemplateService } from "../index.js";
+import { buildHTMLTemplateService } from "../templating/htmlTemplateService.js";
 
 export interface PDFGenerator {
   generate: (

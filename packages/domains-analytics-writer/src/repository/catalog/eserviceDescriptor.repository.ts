@@ -2,21 +2,32 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
+import {
+  CatalogDbPartialTable,
+  CatalogDbTable,
+  DeletingDbTable,
+} from "../../model/db/index.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor;
+  const descriptorServerUrlsTableName =
+    CatalogDbPartialTable.descriptor_server_urls;
+  const stagingDescriptorServerUrlsTableName = `${CatalogDbPartialTable.descriptor_server_urls}_${config.mergeTableSuffix}`;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.catalog_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
@@ -31,12 +42,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         const cs = buildColumnSet(pgp, tableName, EserviceDescriptorSchema);
 
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-        DELETE FROM ${stagingTableName} a
-        USING ${stagingTableName} b
-        WHERE a.id = b.id
-        AND a.metadata_version < b.metadata_version;
-      `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -81,9 +87,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -116,9 +120,61 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         );
       }
     },
+
+    async insertServerUrls(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: EserviceDescriptorServerUrlsSchema[]
+    ): Promise<void> {
+      try {
+        const cs = buildColumnSet(
+          pgp,
+          descriptorServerUrlsTableName,
+          EserviceDescriptorServerUrlsSchema
+        );
+
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(
+          generateStagingDeleteQuery(
+            tableName,
+            ["id"],
+            descriptorServerUrlsTableName
+          )
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
+        );
+      }
+    },
+
+    async mergeServerUrls(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          EserviceDescriptorServerUrlsSchema,
+          schemaName,
+          tableName,
+          ["id"],
+          descriptorServerUrlsTableName
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDescriptorServerUrlsTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanServerUrls(): Promise<void> {
+      try {
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDescriptorServerUrlsTableName};`
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning deleting staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
+        );
+      }
+    },
   };
 }
-
-export type EserviceDescriptorRepository = ReturnType<
-  typeof eserviceDescriptorRepository
->;

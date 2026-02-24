@@ -3,6 +3,7 @@ syntax = "proto3";
 package eservice.template.v2;
 
 import "v2/eservice/eservice.proto";
+import "v2/tenant/tenant.proto";
 
 enum EServiceTemplateVersionStateV2 {
   DRAFT = 0;
@@ -29,6 +30,14 @@ message EServiceTemplateVersionV2 {
   optional int64 deprecatedAt = 15;
 }
 
+message EServiceTemplateRiskAnalysisV2 {
+  string id = 1;
+  string name = 2;
+  eservice.v2.EServiceRiskAnalysisFormV2 riskAnalysisForm = 3;
+  tenant.v2.TenantKindV2 tenantKind = 4;
+  int64 createdAt = 5;
+}
+
 message EServiceTemplateV2 {
   string id = 1;
   string creatorId = 2;
@@ -38,7 +47,8 @@ message EServiceTemplateV2 {
   eservice.v2.EServiceTechnologyV2 technology = 6;
   repeated EServiceTemplateVersionV2 versions = 7;
   int64 createdAt = 8;
-  repeated eservice.v2.EServiceRiskAnalysisV2 riskAnalysis = 9;
+  repeated EServiceTemplateRiskAnalysisV2 riskAnalysis = 9;
   eservice.v2.EServiceModeV2 mode = 10;
   optional bool isSignalHubEnabled = 11;
+  optional bool personalData = 12;
 }

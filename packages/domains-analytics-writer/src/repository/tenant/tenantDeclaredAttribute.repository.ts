@@ -5,6 +5,7 @@ import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { TenantDeclaredAttributeSchema } from "../../model/tenant/tenantDeclaredAttribute.js";
@@ -28,13 +29,9 @@ export function tenantDeclaredAttributeRepository(conn: DBConnection) {
           TenantDeclaredAttributeSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.attribute_id = b.attribute_id
-            AND a.tenant_id = b.tenant_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["attributeId", "tenantId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -69,7 +66,3 @@ export function tenantDeclaredAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantDeclaredAttributeRepository = ReturnType<
-  typeof tenantDeclaredAttributeRepository
->;

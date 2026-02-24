@@ -3,7 +3,10 @@ import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { AgreementDbTable } from "../../model/db/index.js";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementStampSchema } from "../../model/agreement/agreementStamp.js";
@@ -22,13 +25,9 @@ export function agreementStampRepo(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, AgreementStampSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.agreement_id = b.agreement_id
-            AND a.kind = b.kind
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["agreementId", "kind"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -63,5 +62,3 @@ export function agreementStampRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementStampRepo = ReturnType<typeof agreementStampRepo>;

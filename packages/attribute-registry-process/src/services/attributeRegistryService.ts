@@ -7,6 +7,7 @@ import {
   M2MAuthData,
   InternalAuthData,
   M2MAdminAuthData,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -19,6 +20,7 @@ import {
   AttributeKind,
   ListResult,
   TenantFeatureCertifier,
+  Tenant,
 } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
@@ -31,12 +33,23 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
+): Promise<Tenant> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
@@ -132,14 +145,23 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Attribute> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
       );
 
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
+      const origin = await retrieveOriginFromAuthData(
+        authData,
+        readModelService,
+        retrieveTenant
+      );
+      if (!config.producerAllowedOrigins.includes(origin)) {
+        throw originNotCompliant(origin);
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
@@ -167,20 +189,33 @@ export function attributeRegistryServiceBuilder(
         newDeclaredAttribute,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return newDeclaredAttribute;
+      return {
+        data: newDeclaredAttribute,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Attribute> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
       );
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
+
+      const origin = await retrieveOriginFromAuthData(
+        authData,
+        readModelService,
+        retrieveTenant
+      );
+      if (!config.producerAllowedOrigins.includes(origin)) {
+        throw originNotCompliant(origin);
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
@@ -208,9 +243,12 @@ export function attributeRegistryServiceBuilder(
         newVerifiedAttribute,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return newVerifiedAttribute;
+      return {
+        data: newVerifiedAttribute,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
 
     async createCertifiedAttribute(
@@ -318,7 +356,7 @@ export function attributeRegistryServiceBuilder(
 
 async function getCertifierId(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {

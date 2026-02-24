@@ -4,11 +4,15 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericError } from "pagopa-interop-models";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
-import { toBffCatalogApiEserviceRiskAnalysis } from "./catalogApiConverter.js";
+import {
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogTenant,
+} from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
-export function toBffCompactEServiceTemplateVersion(
+function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
 ): bffApi.CompactEServiceTemplateVersion {
   return {
@@ -36,7 +40,7 @@ export function toBffEServiceTemplateDetails(
     creator: toBffCompactOrganization(creator),
     mode: eserviceTemplate.mode,
     riskAnalysis: eserviceTemplate.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+      toBffEServiceTemplateApiEServiceTemplateRiskAnalysis
     ),
     versions: eserviceTemplate.versions.map(
       toBffCompactEServiceTemplateVersion
@@ -45,6 +49,7 @@ export function toBffEServiceTemplateDetails(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    personalData: eserviceTemplate.personalData,
   };
 }
 
@@ -66,13 +71,14 @@ export function toBffCatalogEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     description: eserviceTemplate.intendedTarget,
-    creator: toBffCompactOrganization(creator),
+    creator: toBffCatalogTenant(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
 }
 
 export function toBffProducerEServiceTemplate(
-  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  entityIdsWithUnreadNotifications: string[]
 ): bffApi.ProducerEServiceTemplate {
   const activeVersion = eserviceTemplate.versions.find(
     (v) =>
@@ -97,6 +103,9 @@ export function toBffProducerEServiceTemplate(
     draftVersion: draftVersion
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
+    hasUnreadNotifications: entityIdsWithUnreadNotifications?.includes(
+      eserviceTemplate.id
+    ),
   };
 }
 
@@ -121,5 +130,22 @@ export function toCatalogCreateEServiceTemplateSeed(
     version: {
       voucherLifespan: 60,
     },
+  };
+}
+
+function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
+  riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
+): bffApi.EServiceTemplateRiskAnalysis {
+  const tenantKind = riskAnalysis.tenantKind;
+  const rulesetExpiration = getRulesetExpiration(
+    tenantKind,
+    riskAnalysis.riskAnalysisForm.version
+  );
+  return {
+    ...toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      rulesetExpiration?.toJSON()
+    ),
+    tenantKind,
   };
 }

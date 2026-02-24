@@ -2,7 +2,10 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceDescriptorAttributeSchema } from "../../model/catalog/eserviceDescriptorAttribute.js";
@@ -26,14 +29,13 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           EserviceDescriptorAttributeSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.attribute_id = b.attribute_id
-            AND a.group_id = b.group_id
-            AND a.descriptor_id = b.descriptor_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, [
+            "attributeId",
+            "groupId",
+            "descriptorId",
+          ])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -47,7 +49,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           EserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          ["attributeId"]
+          ["attributeId", "groupId", "descriptorId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -68,7 +70,3 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorAttributeRepository = ReturnType<
-  typeof eserviceDescriptorAttributeRepository
->;

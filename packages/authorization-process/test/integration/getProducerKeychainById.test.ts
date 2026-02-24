@@ -10,6 +10,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockProducerKeychain,
+  sortProducerKeychain,
 } from "pagopa-interop-commons-test";
 import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
 import {
@@ -31,14 +32,16 @@ describe("getProducerKeychainById", async () => {
     };
     await addOneProducerKeychain(expectedProducerKeychain);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById(
-        {
-          producerKeychainId: expectedProducerKeychain.id,
-        },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      );
-    expect(producerKeychain).toEqual(expectedProducerKeychain);
+    const producerKeychain = await authorizationService.getProducerKeychainById(
+      {
+        producerKeychainId: expectedProducerKeychain.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
+    expect(sortProducerKeychain(producerKeychain)).toEqual({
+      data: sortProducerKeychain(expectedProducerKeychain),
+      metadata: { version: 0 },
+    });
   });
   it("should get from the readModel the producer keychain with the specified Id without users", async () => {
     const expectedProducerKeychainWithoutUser: ProducerKeychain = {
@@ -49,14 +52,17 @@ describe("getProducerKeychainById", async () => {
 
     await addOneProducerKeychain(expectedProducerKeychainWithoutUser);
 
-    const { producerKeychain } =
-      await authorizationService.getProducerKeychainById(
-        {
-          producerKeychainId: expectedProducerKeychainWithoutUser.id,
-        },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      );
-    expect(producerKeychain).toEqual(expectedProducerKeychainWithoutUser);
+    const producerKeychain = await authorizationService.getProducerKeychainById(
+      {
+        producerKeychainId: expectedProducerKeychainWithoutUser.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
+
+    expect(sortProducerKeychain(producerKeychain)).toEqual({
+      data: sortProducerKeychain(expectedProducerKeychainWithoutUser),
+      metadata: { version: 0 },
+    });
   });
   it("should throw producerKeychainNotFound if the producerKeychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());

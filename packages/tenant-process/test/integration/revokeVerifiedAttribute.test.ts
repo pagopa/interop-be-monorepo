@@ -133,14 +133,15 @@ describe("revokeVerifiedAttribute", async () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedTenant = await tenantService.revokeVerifiedAttribute(
-        {
-          tenantId: tenantWithVerifiedAttribute.id,
-          attributeId: verifiedAttribute.id,
-          agreementId: agreementEservice.id,
-        },
-        getMockContext({ authData })
-      );
+      const revokeVerifiedAttrReturn =
+        await tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId: verifiedAttribute.id,
+            agreementId: agreementEservice.id,
+          },
+          getMockContext({ authData })
+        );
 
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
@@ -180,8 +181,14 @@ describe("revokeVerifiedAttribute", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      expect(returnedTenant).toEqual(updatedTenant);
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+        attributeId: verifiedAttribute.id,
+      });
+      expect(revokeVerifiedAttrReturn).toEqual({
+        data: updatedTenant,
+        metadata: { version: 1 },
+      });
     }
   );
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {

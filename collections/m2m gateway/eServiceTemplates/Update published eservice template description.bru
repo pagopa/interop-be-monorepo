@@ -1,0 +1,27 @@
+meta {
+  name: Update published eservice template description
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/description
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+    "description": "Updated Description eserviceTemplate"
+  }
+}
+

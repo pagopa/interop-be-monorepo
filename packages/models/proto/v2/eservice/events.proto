@@ -162,10 +162,12 @@ message EServiceDescriptorAttributesUpdatedV2 {
 
 message EServiceNameUpdatedV2 {
     EServiceV2 eservice = 1;
+    optional string oldName = 2;
 }
 
 message EServiceNameUpdatedByTemplateUpdateV2 {
     EServiceV2 eservice = 1;
+    optional string oldName = 2;
 }
 
 message EServiceDescriptionUpdatedByTemplateUpdateV2 {
@@ -199,4 +201,20 @@ message EServiceDescriptorDocumentDeletedByTemplateUpdateV2 {
   string descriptorId = 1;
   string documentId = 2;
   EServiceV2 eservice = 3;
+}
+
+message EServiceSignalHubEnabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceSignalHubDisabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServicePersonalDataFlagUpdatedAfterPublicationV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
+  EServiceV2 eservice = 1;
 }

@@ -1,0 +1,29 @@
+meta {
+  name: Get Consumer Documents
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-agreement}}/agreements/:agreementId/consumer-documents?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
+
+vars:post-response {
+  documentId: res.body.results.at(-1).id
+}

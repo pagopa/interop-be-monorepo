@@ -14,6 +14,7 @@ import {
   randomArrayItem,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -21,13 +22,14 @@ import { match } from "ts-pattern";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceNotFound,
   eserviceNotInDraftState,
+  eserviceTemplateNameConflict,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId} authorization test", () => {
+describe("PUT /eservices/{eServiceId} router test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.draft,
@@ -38,6 +40,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     descriptors: [descriptor],
   };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
@@ -60,7 +63,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     isClientAccessDelegable,
   };
 
-  catalogService.updateEService = vi.fn().mockResolvedValue(mockEService);
+  catalogService.updateEService = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -95,7 +98,14 @@ describe("API /eservices/{eServiceId} authorization test", () => {
 
   it.each([
     {
-      error: eServiceNameDuplicate(mockEService.name),
+      error: eServiceNameDuplicateForProducer(
+        mockEService.name,
+        mockEService.producerId
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(mockEService.id),
       expectedStatus: 409,
     },
     {
@@ -121,7 +131,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateEService = vi.fn().mockRejectedValue(error);
+      catalogService.updateEService = vi.fn().mockRejectedValueOnce(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockEService.id);
@@ -139,9 +149,8 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     [{ isSignalHubEnabled: undefined }, mockEService.id],
     [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
     [{ ...eserviceSeed }, "invalidId"],
-    [{ ...eserviceSeed }, mockEService.id],
   ])(
-    "Should return 400 if passed invalid eService update params: %s (eServiceId: %s)",
+    "Should return 400 if passed invalid seed or e-service id (seed #%#)",
     async (body, eServiceId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

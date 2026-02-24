@@ -7,8 +7,13 @@ import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
+import {
+  DeletingDbTable,
+  ClientDbTable,
+  ClientDbTablePartialTable,
+} from "../../model/db/index.js";
 import {
   ClientKeySchema,
   ClientKeyDeletingSchema,
@@ -18,6 +23,8 @@ import {
 export function clientKeyRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = ClientDbTable.client_key;
+  const keyRelationshipTableName =
+    ClientDbTablePartialTable.key_relationship_migrated;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.client_key_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
@@ -31,13 +38,9 @@ export function clientKeyRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, ClientKeySchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.client_id = b.client_id
-            AND a.kid = b.kid
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["clientId", "kid"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -82,9 +85,7 @@ export function clientKeyRepository(conn: DBConnection) {
           deletingTableName,
           ClientKeyDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
@@ -99,6 +100,7 @@ export function clientKeyRepository(conn: DBConnection) {
           tableName,
           deletingTableName,
           ["clientId", "kid"],
+          false,
           false,
           ["deleted_at"]
         );
@@ -126,16 +128,19 @@ export function clientKeyRepository(conn: DBConnection) {
       records: ClientKeyUserMigrationSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, ClientKeyUserMigrationSchema);
+        const cs = buildColumnSet(
+          pgp,
+          keyRelationshipTableName,
+          ClientKeyUserMigrationSchema
+        );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.client_id = b.client_id
-            AND a.kid = b.kid
-            AND a.user_id = b.user_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(
+            tableName,
+            ["clientId", "kid", "userId"],
+            keyRelationshipTableName
+          )
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -160,5 +165,3 @@ export function clientKeyRepository(conn: DBConnection) {
     },
   };
 }
-
-export type ClientKeyRepository = ReturnType<typeof clientKeyRepository>;

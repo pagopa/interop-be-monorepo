@@ -3,7 +3,10 @@ import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import {
   generateMergeQuery,
   generateMergeDeleteQuery,
@@ -31,11 +34,7 @@ export function agreementRepo(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, AgreementSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -80,9 +79,7 @@ export function agreementRepo(conn: DBConnection) {
           deletingTableName,
           AgreementDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
@@ -96,7 +93,9 @@ export function agreementRepo(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -117,5 +116,3 @@ export function agreementRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementRepo = ReturnType<typeof agreementRepo>;

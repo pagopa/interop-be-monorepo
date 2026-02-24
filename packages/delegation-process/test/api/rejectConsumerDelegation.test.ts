@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Delegation,
   DelegationId,
@@ -18,6 +22,7 @@ import {
   incorrectState,
   operationRestrictedToDelegate,
 } from "../../src/model/domain/errors.js";
+import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
 
 describe("API POST /consumer/delegations/:delegationId/reject test", () => {
   const mockDelegation: Delegation = getMockDelegation({
@@ -27,11 +32,14 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
     rejectionReason: "reason",
   };
 
+  const serviceResponse = getMockWithMetadata(mockDelegation);
+  const apiDelegation = delegationApi.Delegation.parse(
+    delegationToApiDelegation(mockDelegation)
+  );
   beforeEach(() => {
-    delegationService.rejectConsumerDelegation = vi.fn().mockResolvedValue({
-      data: mockDelegation,
-      metadata: { version: 1 },
-    });
+    delegationService.rejectConsumerDelegation = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -56,6 +64,10 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiDelegation);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

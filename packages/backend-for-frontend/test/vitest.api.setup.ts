@@ -57,25 +57,38 @@ import {
   AppContext,
   RateLimiter,
   initFileManager,
+  rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import {
-  RateLimiterMiddleware,
-  createApp,
-  createServices,
-} from "../src/app.js";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  AuthorizationProcessClient,
-  CatalogProcessClient,
-  DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  PurposeProcessClient,
+  agreementApi,
+  attributeRegistryApi,
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+  notificationConfigApi,
+  purposeApi,
+  purposeTemplateApi,
+  SelfcareV2UsersClient,
   SelfcareV2InstitutionClient,
-  SelfcareV2UserClient,
+} from "pagopa-interop-api-clients";
+import type {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+import { createApp, createServices } from "../src/app.js";
 import { config } from "../src/config/config.js";
+
+export const mockRateLimiter: RateLimiter = {
+  rateLimitByOrganization: vi.fn().mockResolvedValue({
+    limitReached: false,
+    maxRequests: 100,
+    rateInterval: 1000,
+    remainingRequests: 99,
+  }),
+  getCountByOrganization: vi.fn(),
+  getBurstCountByOrganization: vi.fn(),
+};
 
 export const clients = {
   tenantProcessClient: {
@@ -83,28 +96,43 @@ export const clients = {
     tenantAttribute: {},
     selfcare: {},
   } as TenantProcessClient,
-  attributeProcessClient: {} as AttributeProcessClient,
-  catalogProcessClient: {} as CatalogProcessClient,
-  agreementProcessClient: {} as AgreementProcessClient,
-  purposeProcessClient: {} as PurposeProcessClient,
-  authorizationClient: {} as AuthorizationProcessClient,
+  attributeProcessClient: {} as attributeRegistryApi.AttributeProcessClient,
+  catalogProcessClient: {} as catalogApi.CatalogProcessClient,
+  agreementProcessClient: {} as agreementApi.AgreementProcessClient,
+  purposeProcessClient: {} as purposeApi.PurposeProcessClient,
+  purposeTemplateProcessClient:
+    {} as purposeTemplateApi.PurposeTemplateProcessClient,
+  authorizationClient: {
+    client: {},
+    producerKeychain: {},
+    token: {},
+  } as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
-  selfcareV2UserClient: {} as SelfcareV2UserClient,
-  delegationProcessClient: {} as DelegationProcessClient,
-  eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
+  selfcareV2UserClient: {} as SelfcareV2UsersClient,
+  delegationProcessClient: {
+    producer: {},
+    consumer: {},
+    delegation: {},
+  } as DelegationProcessClient,
+  eserviceTemplateProcessClient:
+    {} as eserviceTemplateApi.EServiceTemplateProcessClient,
+  notificationConfigProcessClient:
+    {} as notificationConfigApi.NotificationConfigProcessClient,
+  inAppNotificationManagerClient:
+    {} as inAppNotificationApi.InAppNotificationManagerClient,
 };
 
 const fileManager = initFileManager(config);
 const authorizationServiceAllowList: string[] = [];
-const redisRateLimiter = {} as RateLimiter;
-const rateLimiterMiddleware: RateLimiterMiddleware = (_req, _res, next): void =>
-  next();
 
 export const services = await createServices(
   clients,
   fileManager,
-  redisRateLimiter,
+  mockRateLimiter,
   authorizationServiceAllowList
 );
 
-export const api = await createApp(services, rateLimiterMiddleware);
+export const api = await createApp(
+  services,
+  rateLimiterMiddleware(mockRateLimiter)
+);

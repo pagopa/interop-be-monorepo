@@ -15,6 +15,7 @@ import {
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV1(
   messages: TenantEventEnvelopeV1[],
@@ -74,7 +75,6 @@ export async function handleTenantMessageV1(
           TenantMailDeletingSchema.parse({
             id: msg.data.mailId,
             tenantId: msg.data.tenantId,
-            deleted: true,
           } satisfies z.input<typeof TenantMailDeletingSchema>)
         );
       })
@@ -84,7 +84,6 @@ export async function handleTenantMessageV1(
             id: msg.data.tenantId,
             selfcareId: msg.data.selfcareId,
             metadataVersion: msg.version,
-            deleted: false,
           } satisfies z.input<typeof TenantSelfcareIdSchema>)
         );
       })
@@ -104,13 +103,20 @@ export async function handleTenantMessageV1(
   }
 
   if (deleteTenantBatch.length > 0) {
-    await tenantService.deleteBatchTenants(deleteTenantBatch, dbContext);
+    const distinctBatch = distinctByKeys(
+      deleteTenantBatch,
+      TenantDeletingSchema,
+      ["id"]
+    );
+    await tenantService.deleteBatchTenants(distinctBatch, dbContext);
   }
 
   if (deleteTenantMailBatch.length > 0) {
-    await tenantService.deleteBatchTenantMails(
+    const distinctBatch = distinctByKeys(
       deleteTenantMailBatch,
-      dbContext
+      TenantMailDeletingSchema,
+      ["id", "tenantId"]
     );
+    await tenantService.deleteBatchTenantMails(distinctBatch, dbContext);
   }
 }

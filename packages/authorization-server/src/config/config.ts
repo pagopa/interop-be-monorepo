@@ -9,6 +9,7 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagImprovedProducerVerificationClaimsConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  DPoPConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
@@ -41,11 +42,10 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
-  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig);
+  .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(DPoPConfig);
 
-export type AuthorizationServerConfig = z.infer<
-  typeof AuthorizationServerConfig
->;
+type AuthorizationServerConfig = z.infer<typeof AuthorizationServerConfig>;
 
 export const config: AuthorizationServerConfig =
   AuthorizationServerConfig.parse(process.env);

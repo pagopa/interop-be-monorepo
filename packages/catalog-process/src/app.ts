@@ -1,6 +1,8 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
   sanitizeMiddleware,
@@ -10,10 +12,11 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import eservicesRouter from "./routers/EServiceRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 import { CatalogService } from "./services/catalogService.js";
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: CatalogService) {
   const serviceName = modelsServiceName.CATALOG_PROCESS;
@@ -24,7 +27,7 @@ export async function createApp(service: CatalogService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
+  app.use(healthRouter(catalogApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
@@ -32,5 +35,7 @@ export async function createApp(service: CatalogService) {
   app.use(loggerMiddleware(serviceName));
   app.use(sanitizeMiddleware());
   app.use(eservicesRouter(zodiosCtx, service));
+  app.use(errorsToApiProblemsMiddleware);
+
   return app;
 }

@@ -8,18 +8,21 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eserviceTemplateNotFound,
+  eServiceTemplateUpdateSameDescriptionConflict,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API POST /templates/:templateId/description/update", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
   const description = {
     description: "description",
@@ -39,10 +42,14 @@ describe("API POST /templates/:templateId/description/update", () => {
   beforeEach(() => {
     eserviceTemplateService.updateEServiceTemplateDescription = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -98,6 +105,12 @@ describe("API POST /templates/:templateId/description/update", () => {
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: eServiceTemplateUpdateSameDescriptionConflict(
+        mockEserviceTemplate.id
+      ),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

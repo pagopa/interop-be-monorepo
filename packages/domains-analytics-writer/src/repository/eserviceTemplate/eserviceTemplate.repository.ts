@@ -6,6 +6,7 @@ import {
   buildColumnSet,
   generateMergeQuery,
   generateMergeDeleteQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
@@ -33,12 +34,7 @@ export function eserviceTemplateRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, EserviceTemplateSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -83,9 +79,7 @@ export function eserviceTemplateRepository(conn: DBConnection) {
           deletingTableName,
           EserviceTemplateDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -99,7 +93,9 @@ export function eserviceTemplateRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -120,7 +116,3 @@ export function eserviceTemplateRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceTemplateRepository = ReturnType<
-  typeof eserviceTemplateRepository
->;

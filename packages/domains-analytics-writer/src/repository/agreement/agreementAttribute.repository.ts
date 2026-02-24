@@ -2,7 +2,10 @@
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable } from "../../model/db/index.js";
@@ -22,13 +25,9 @@ export function agreementAttributeRepo(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, AgreementAttributeSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.agreement_id = b.agreement_id 
-            AND a.attribute_id = b.attribute_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["agreementId", "attributeId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -63,5 +62,3 @@ export function agreementAttributeRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementAttributeRepo = ReturnType<typeof agreementAttributeRepo>;

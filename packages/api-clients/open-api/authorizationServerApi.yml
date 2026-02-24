@@ -25,13 +25,15 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  "/authorization-server/token.oauth2":
+  "/token.oauth2":
     post:
       tags:
         - auth
       summary: Create a new access token
       description: Return the generated access token
       operationId: createToken
+      parameters:
+        - $ref: "#/components/parameters/DPoP"
       requestBody:
         required: true
         content:
@@ -50,14 +52,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/json:
@@ -67,36 +72,39 @@ paths:
           description: Bad request
           x-noqa: RFC6749
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           x-noqa: RFC6749
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /authorization-server/status:
+  /status:
     get:
       security: []
       summary: Returns the application status
@@ -112,6 +120,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  parameters:
+    DPoP:
+      in: header
+      name: DPoP
+      description: DPoP proof JWT that demonstrates proof of possession of a private key
+      required: false
+      schema:
+        type: string
+        format: jws
   schemas:
     AccessTokenRequest:
       type: object
@@ -139,6 +156,7 @@ components:
       description: Represents the token type
       enum:
         - Bearer
+        - DPoP
     ClientCredentialsResponse:
       type: object
       required:
@@ -194,7 +212,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

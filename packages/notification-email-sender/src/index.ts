@@ -3,12 +3,12 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerSES,
-  ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initSesMailManager,
   logger,
   Logger,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV2,
@@ -30,12 +30,12 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { createClient } from "redis";
 import { config } from "./config/config.js";
 import {
   NotificationEmailSenderService,
   notificationEmailSenderServiceBuilder,
 } from "./services/notificationEmailSenderService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 interface TopicHandlers {
@@ -50,20 +50,11 @@ const agreementReadModelServiceSQL =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
@@ -73,22 +64,29 @@ const sesEmailsenderData = {
   mail: config.senderMail,
 };
 
-const buildNotificationEmailSenderService = (
-  logger: Logger
-): NotificationEmailSenderService => {
-  const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
-    logger,
-    skipTooManyRequestsError: true,
-  });
+const redisClient = await createClient({
+  socket: {
+    host: config.redisNotificationEmailSenderHost,
+    port: config.redisNotificationEmailSenderPort,
+  },
+})
+  .on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`))
+  .connect();
 
-  return notificationEmailSenderServiceBuilder(
-    sesEmailManager,
-    sesEmailsenderData,
-    readModelService,
-    templateService,
-    interopFeBaseUrl
-  );
-};
+const buildNotificationEmailSenderService =
+  (): NotificationEmailSenderService => {
+    const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
+      skipTooManyRequestsError: true,
+    });
+
+    return notificationEmailSenderServiceBuilder(
+      sesEmailManager,
+      sesEmailsenderData,
+      readModelServiceSQL,
+      templateService,
+      interopFeBaseUrl
+    );
+  };
 
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
@@ -150,7 +148,11 @@ export async function handleCatalogMessage(
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
         ),
       },
       () => {
@@ -235,7 +237,9 @@ export async function handlePurposeMessage(
           "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          "RiskAnalysisDocumentGenerated",
+          "RiskAnalysisSignedDocumentGenerated"
         ),
       },
       () => {
@@ -303,7 +307,9 @@ export async function handleAgreementMessage(
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => {
@@ -317,6 +323,15 @@ export async function handleAgreementMessage(
 
 function processMessage(topicHandlers: TopicHandlers) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
+    const redisKey = `notification-email-sender-${messagePayload.topic}-${messagePayload.partition}-${messagePayload.message.offset}`;
+    const isAlreadyProcessed = await redisClient.get(redisKey);
+    if (isAlreadyProcessed) {
+      return;
+    }
+    await redisClient.set(redisKey, "true", {
+      EX: config.redisNotificationEmailSenderTtlSeconds,
+    });
+
     const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
 
     const { decodedMessage, handleMessage } = match(messagePayload.topic)
@@ -369,9 +384,16 @@ function processMessage(topicHandlers: TopicHandlers) {
     );
 
     const notificationEmailSenderService =
-      buildNotificationEmailSenderService(loggerInstance);
+      buildNotificationEmailSenderService();
 
-    await handleMessage(notificationEmailSenderService, loggerInstance);
+    try {
+      await handleMessage(notificationEmailSenderService, loggerInstance);
+    } catch (error) {
+      loggerInstance.error(
+        `Error processing message: ${error}. Message will be committed to prevent reprocessing.`
+      );
+      // Intentionally not re-throwing to ensure message gets committed
+    }
   };
 }
 
@@ -382,5 +404,6 @@ await runConsumer(
     catalogTopic: config.catalogTopic,
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
-  })
+  }),
+  "notification-email-sender"
 );

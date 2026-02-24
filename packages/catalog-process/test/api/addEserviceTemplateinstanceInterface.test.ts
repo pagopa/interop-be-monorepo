@@ -11,7 +11,7 @@ import {
   EServiceId,
   generateId,
   interfaceExtractingInfoError,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   operationForbidden,
   technology,
@@ -141,7 +141,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         {
-          error: invalidInterfaceFileDetected(eservice.id),
+          error: invalidInterfaceFileDetected({
+            id: eservice.id,
+            isEserviceTemplate: true,
+          }),
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
@@ -162,8 +165,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         { error: operationForbidden, expectedStatus: 403 },
         { error: eserviceInterfaceDataNotValid(), expectedStatus: 400 },
         {
-          error: invalidInterfaceContentTypeDetected(
-            eservice.id,
+          error: invalidContentTypeDetected(
+            {
+              id: eservice.id,
+              isEserviceTemplate: true,
+            },
             "invalid",
             eservice.technology
           ),

@@ -1,32 +1,34 @@
 {
   "private": true,
   "name": "root",
+  "license": "EUPL-1.2",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
-    "start:catalog-readmodel-writer": "turbo start --filter pagopa-interop-catalog-readmodel-writer",
+    "start:catalog-readmodel-writer-sql": "turbo start --filter pagopa-interop-catalog-readmodel-writer-sql",
     "start:catalog-platformstate-writer": "turbo start --filter pagopa-interop-catalog-platformstate-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
-    "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
+    "start:agreement-readmodel-writer-sql": "turbo start --filter pagopa-interop-agreement-readmodel-writer-sql",
     "start:agreement-platformstate-writer": "turbo start --filter pagopa-interop-agreement-platformstate-writer",
     "start:certified-email-sender": "turbo start --filter pagopa-interop-certified-email-sender",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
-    "start:attribute-readmodel-writer": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer",
     "start:attribute-readmodel-writer-sql": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer-sql",
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
-    "start:tenant-readmodel-writer": "turbo start --filter pagopa-interop-tenant-readmodel-writer",
+    "start:tenant-readmodel-writer-sql": "turbo start --filter pagopa-interop-tenant-readmodel-writer-sql",
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
-    "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
+    "start:purpose-readmodel-writer-sql": "turbo start --filter pagopa-interop-purpose-readmodel-writer-sql",
+    "start:purpose-template": "turbo start --filter pagopa-interop-purpose-template-process",
+    "start:purpose-template-readmodel-writer-sql": "turbo start --filter pagopa-interop-purpose-template-readmodel-writer-sql",
     "start:purpose-platformstate-writer": "turbo start --filter pagopa-interop-purpose-platformstate-writer",
     "start:authorization": "turbo start --filter pagopa-interop-authorization-process",
-    "start:client-readmodel-writer": "turbo start --filter pagopa-interop-client-readmodel-writer",
-    "start:key-readmodel-writer": "turbo start --filter pagopa-interop-key-readmodel-writer",
-    "start:producer-key-readmodel-writer": "turbo start --filter pagopa-interop-producer-key-readmodel-writer",
-    "start:producer-keychain-readmodel-writer": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer",
+    "start:client-readmodel-writer-sql": "turbo start --filter pagopa-interop-client-readmodel-writer-sql",
+    "start:key-readmodel-writer-sql": "turbo start --filter pagopa-interop-key-readmodel-writer-sql",
+    "start:producer-key-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-key-readmodel-writer-sql",
+    "start:producer-keychain-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer-sql",
     "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
@@ -34,19 +36,28 @@
     "start:pn-consumers": "turbo start --filter pagopa-interop-pn-consumers",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
     "start:delegation": "turbo start --filter pagopa-interop-delegation-process",
-    "start:delegation-readmodel-writer": "turbo start --filter pagopa-interop-delegation-readmodel-writer",
+    "start:delegation-readmodel-writer-sql": "turbo start --filter pagopa-interop-delegation-readmodel-writer-sql",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "start:client-purpose-updater": "turbo start --filter pagopa-interop-client-purpose-updater",
     "start:authorization-server": "turbo start --filter pagopa-interop-authorization-server",
     "start:token-details-persister": "turbo start --filter pagopa-interop-token-details-persister",
     "start:token-generation-readmodel-checker": "turbo start --filter pagopa-interop-token-generation-readmodel-checker",
     "start:process": "turbo start --concurrency 20 --filter pagopa-interop-*-process",
-    "start:readmodel-writer": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
+    "start:readmodel-writer-sql": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer-sql",
     "start:ipa-certified-attributes-importer": "turbo start --filter pagopa-interop-ipa-certified-attributes-importer",
     "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
-    "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
+    "start:eservice-template-readmodel-writer-sql": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer-sql",
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
+    "start:email-notification-dispatcher": "turbo start --filter pagopa-interop-email-notification-dispatcher",
+    "start:email-sender": "turbo start --filter pagopa-interop-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
+    "start:m2m-gateway-v3": "turbo start --filter pagopa-interop-m2m-gateway-v3",
+    "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
+    "start:notification-config": "turbo start --filter pagopa-interop-notification-config-process",
+    "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",
+    "start:notification-user-lifecycle": "turbo start --filter pagopa-interop-notification-user-lifecycle-consumer",
+    "start:in-app-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-notification-dispatcher",
+    "start:m2m-events": "turbo start --filter pagopa-interop-m2m-event-*",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",
@@ -54,10 +65,12 @@
     "check": "turbo check",
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",
     "lint:autofix": "turbo lint:autofix",
+    "lint:openapi": "turbo lint:openapi",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
+    "generate-db-models": "turbo generate-db-models",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",
@@ -65,12 +78,29 @@
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/strictest": "2.0.5",
-    "@tsconfig/node-lts": "20.1.3",
-    "turbo": "2.2.3"
+    "@tsconfig/node-lts": "catalog:",
+    "@tsconfig/strictest": "catalog:",
+    "knip": "catalog:",
+    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "turbo": "catalog:"
   },
   "config": {
     "protocVersion": "26.1"
   },
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "pnpm@10.29.3",
+  "packageRules": [
+    {
+      "enabled": true,
+      "matchDepTypes": [
+        "devDependencies"
+      ]
+    },
+    {
+      "enabled": true,
+      "matchDepTypes": [
+        "pnpm.catalog"
+      ]
+    }
+  ]
 }

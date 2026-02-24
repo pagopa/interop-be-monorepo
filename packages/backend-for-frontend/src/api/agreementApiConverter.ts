@@ -7,11 +7,13 @@ import {
 import { isAgreementUpgradable } from "../services/validators.js";
 
 export function toBffCompactOrganization(
-  organization: agreementApi.CompactOrganization
+  organization: agreementApi.CompactOrganization,
+  hasNotifications?: boolean
 ): bffApi.CompactOrganization {
   return {
     id: organization.id,
     name: organization.name,
+    hasUnreadNotifications: hasNotifications || false,
   };
 }
 
@@ -32,6 +34,7 @@ export function toBffCompactAgreement(
     id: agreement.id,
     state: agreement.state,
     canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+    consumerId: agreement.consumerId,
   };
 }
 

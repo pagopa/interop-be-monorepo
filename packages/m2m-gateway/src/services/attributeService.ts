@@ -6,29 +6,35 @@ import {
 
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
+import {
+  toGetCertifiedAttributesApiQueryParams,
+  toGetDeclaredAttributesApiQueryParams,
+  toGetVerifiedAttributesApiQueryParams,
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAttribute = (
     response: WithMaybeMetadata<attributeRegistryApi.Attribute>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<attributeRegistryApi.Attribute>> =>
+    pollResourceWithMetadata(() =>
       clients.attributeProcessClient.getAttributeById({
         params: { attributeId: response.data.id },
         headers,
       })
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -51,6 +57,44 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         mapThrownErrorsToNotFound: true,
       });
     },
+    async getDeclaredAttribute(
+      attributeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Retrieving declared attribute with id ${attributeId}`);
+
+      const response = await clients.attributeProcessClient.getAttributeById({
+        params: {
+          attributeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiDeclaredAttribute({
+        attribute: response.data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
+    },
+    async getVerifiedAttribute(
+      attributeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttribute> {
+      logger.info(`Retrieving verified attribute with id ${attributeId}`);
+
+      const response = await clients.attributeProcessClient.getAttributeById({
+        params: {
+          attributeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiVerifiedAttribute({
+        attribute: response.data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
+    },
     async createCertifiedAttribute(
       seed: m2mGatewayApi.CertifiedAttributeSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -67,6 +111,112 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollAttribute(response, headers);
 
       return toM2MGatewayApiCertifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
+    async createVerifiedAttribute(
+      seed: m2mGatewayApi.VerifiedAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttribute> {
+      logger.info(`Creating verified attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createVerifiedAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiVerifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
+    async getCertifiedAttributes(
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.CertifiedAttributes> {
+      logger.info(
+        `Retrieving certified attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetCertifiedAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiCertifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async getDeclaredAttributes(
+      { limit, offset }: m2mGatewayApi.GetDeclaredAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttributes> {
+      logger.info(
+        `Retrieving declared attributes with limit ${limit} and offset ${offset}`
+      );
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetDeclaredAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiDeclaredAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async getVerifiedAttributes(
+      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttributes> {
+      logger.info(
+        `Retrieving verified attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetVerifiedAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiVerifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async createDeclaredAttribute(
+      seed: m2mGatewayApi.DeclaredAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Creating declared attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createDeclaredAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiDeclaredAttribute({
         attribute: polledResource.data,
         logger,
       });

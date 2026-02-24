@@ -56,7 +56,7 @@ describe("update eService flags", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isConsumerDelegable: true,
       isClientAccessDelegable: false,
@@ -74,8 +74,13 @@ describe("update eService flags", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService isConsumerDelegable flag (true -> false)", async () => {
     const descriptor: Descriptor = {
@@ -98,7 +103,7 @@ describe("update eService flags", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
@@ -116,8 +121,13 @@ describe("update eService flags", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService isClientAccessDelegable flag (false -> true)", async () => {
     const descriptor: Descriptor = {
@@ -141,7 +151,7 @@ describe("update eService flags", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isConsumerDelegable: true,
       isClientAccessDelegable: true,
@@ -159,8 +169,13 @@ describe("update eService flags", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService isClientAccessDelegable flag (true -> false)", async () => {
     const descriptor: Descriptor = {
@@ -184,7 +199,7 @@ describe("update eService flags", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       isConsumerDelegable: true,
       isClientAccessDelegable: false,
@@ -202,8 +217,13 @@ describe("update eService flags", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();

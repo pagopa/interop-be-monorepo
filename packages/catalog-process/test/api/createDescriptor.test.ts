@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Attribute,
+  Descriptor,
   EService,
   EServiceId,
   generateId,
@@ -14,11 +15,13 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
-import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
   eServiceNotFound,
@@ -49,7 +52,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
   };
 
-  const newDescriptor = {
+  const newDescriptor: Descriptor = {
     ...mockDescriptor,
     version: "1",
     createdAt: new Date(),
@@ -67,11 +70,17 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     descriptors: [newDescriptor],
   };
 
-  const apiDescriptor = catalogApi.EServiceDescriptor.parse(
-    descriptorToApiDescriptor(newDescriptor)
-  );
+  const serviceResponse = getMockWithMetadata({
+    eservice,
+    createdDescriptorId: newDescriptor.id,
+  });
 
-  catalogService.createDescriptor = vi.fn().mockResolvedValue(newDescriptor);
+  const apiCreatedDescriptor = catalogApi.CreatedEServiceDescriptor.parse({
+    eservice: eServiceToApiEService(eservice),
+    createdDescriptorId: newDescriptor.id,
+  });
+
+  catalogService.createDescriptor = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -84,15 +93,21 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, eservice.id);
-
-      expect(res.body).toEqual(apiDescriptor);
+      expect(res.body).toEqual(apiCreatedDescriptor);
       expect(res.status).toBe(200);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -129,6 +144,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
   ])(

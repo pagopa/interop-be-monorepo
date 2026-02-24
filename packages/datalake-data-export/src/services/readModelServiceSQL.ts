@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   agreementState,
+  delegationState,
   descriptorState,
+  eserviceTemplateVersionState,
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -15,25 +19,36 @@ import {
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateAgreementArray,
+  aggregateDelegationsArray,
   aggregateEserviceArray,
+  aggregateEServiceTemplateArray,
   aggregatePurposeArray,
   aggregateTenantArray,
   toAgreementAggregatorArray,
+  toDelegationAggregatorArray,
   toEServiceAggregatorArray,
+  toEServiceTemplateAggregatorArray,
   toPurposeAggregatorArray,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
 import {
   ExportedAgreement,
+  ExportedDelegation,
   ExportedEService,
+  ExportedEServiceTemplate,
   ExportedPurpose,
   ExportedTenant,
 } from "../config/models/models.js";
@@ -141,6 +156,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           attribute: sql<null>`NULL`,
           consumerDocument: sql<null>`NULL`,
           contract: sql<null>`NULL`,
+          signedContract: sql<null>`NULL`,
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -187,8 +203,11 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purpose: purposeInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeRiskAnalysisForm: sql<null>`NULL`,
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))
@@ -205,10 +224,93 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult)).map(
         (purpose) => ExportedPurpose.parse(purpose.data)
+      );
+    },
+    async getDelegations(): Promise<ExportedDelegation[]> {
+      const queryResult = await readModelDB
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument: sql<null>`NULL`,
+          delegationSignedContractDocument: sql<null>`NULL`,
+        })
+        .from(delegationInReadmodelDelegation)
+        .leftJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .where(
+          ne(
+            delegationInReadmodelDelegation.state,
+            delegationState.waitingForApproval
+          )
+        );
+
+      return aggregateDelegationsArray(
+        toDelegationAggregatorArray(queryResult)
+      ).map((delegation) => ExportedDelegation.parse(delegation.data));
+    },
+    async getEServiceTemplates(): Promise<ExportedEServiceTemplate[]> {
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+          document: sql<null>`NULL`,
+          interface:
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          riskAnalysis: sql<null>`NULL`,
+          riskAnalysisAnswer: sql<null>`NULL`,
+          attribute: sql<null>`NULL`,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .where(
+          and(
+            ne(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+              eserviceTemplateVersionState.draft
+            )
+          )
+        );
+
+      return aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(queryResult)
+      ).map((eserviceTemplate) =>
+        ExportedEServiceTemplate.parse(eserviceTemplate.data)
       );
     },
   };

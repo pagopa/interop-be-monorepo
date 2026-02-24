@@ -3,7 +3,10 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeRiskAnalysisAnswerSchema } from "../../model/purpose/purposeRiskAnalysisAnswer.js";
@@ -27,13 +30,9 @@ export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
           PurposeRiskAnalysisAnswerSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.purpose_id = b.purpose_id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["id", "purposeId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -68,7 +67,3 @@ export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeRiskAnalysisAnswerRepo = ReturnType<
-  typeof purposeRiskAnalysisAnswerRepo
->;

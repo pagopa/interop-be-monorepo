@@ -14,7 +14,7 @@ import {
   PurposeDeletingSchema,
   PurposeItemsSchema,
 } from "../../model/purpose/purpose.js";
-import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handlePurposeMessageV2(
   messages: PurposeEventEnvelopeV2[],
@@ -24,7 +24,6 @@ export async function handlePurposeMessageV2(
 
   const upsertPurposeBatch: PurposeItemsSchema[] = [];
   const deletePurposeBatch: PurposeDeletingSchema[] = [];
-  const deleteVersionBatch: PurposeVersionDeletingSchema[] = [];
 
   for (const msg of messages) {
     match(msg)
@@ -46,7 +45,10 @@ export async function handlePurposeMessageV2(
             "PurposeVersionOverQuotaUnsuspended",
             "PurposeVersionRejected",
             "PurposeCloned",
-            "PurposeVersionArchivedByRevokedDelegation"
+            "PurposeVersionArchivedByRevokedDelegation",
+            "WaitingForApprovalPurposeVersionDeleted",
+            "RiskAnalysisDocumentGenerated",
+            "RiskAnalysisSignedDocumentGenerated"
           ),
         },
         (msg) => {
@@ -67,6 +69,8 @@ export async function handlePurposeMessageV2(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
+              versionStampsSQL: splitResult.versionStampsSQL,
+              versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }
@@ -92,28 +96,19 @@ export async function handlePurposeMessageV2(
             } satisfies z.input<typeof PurposeDeletingSchema>)
           );
         }
-      )
-      .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, (msg) => {
-        deleteVersionBatch.push(
-          PurposeVersionDeletingSchema.parse({
-            id: msg.data.versionId,
-            deleted: true,
-          } satisfies z.input<typeof PurposeDeletingSchema>)
-        );
-      })
-      .exhaustive();
+      );
   }
 
-  if (upsertPurposeBatch.length) {
+  if (upsertPurposeBatch.length > 0) {
     await purposeService.upsertBatchPurpose(dbContext, upsertPurposeBatch);
   }
-  if (deletePurposeBatch.length) {
-    await purposeService.deleteBatchPurpose(dbContext, deletePurposeBatch);
-  }
-  if (deleteVersionBatch.length) {
-    await purposeService.deleteBatchPurposeVersion(
-      dbContext,
-      deleteVersionBatch
+
+  if (deletePurposeBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deletePurposeBatch,
+      PurposeDeletingSchema,
+      ["id"]
     );
+    await purposeService.deleteBatchPurpose(dbContext, distinctBatch);
   }
 }

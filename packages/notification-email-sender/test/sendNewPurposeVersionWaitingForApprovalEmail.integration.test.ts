@@ -12,6 +12,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  EServiceId,
+  generateId,
   Purpose,
   Tenant,
   tenantMailKind,
@@ -34,29 +36,29 @@ import {
 } from "./utils.js";
 
 describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
-  it("should send an email to Consumer to contact email addresses", async () => {
+  it("should send an email to Producer to contact email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
-    const consumer: Tenant = {
+    const producerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const producer: Tenant = {
       ...getMockTenant(),
       name: "Jane Doe",
-      mails: [consumerEmail],
+      mails: [producerEmail],
     };
 
-    await addOneTenant(consumer);
+    await addOneTenant(producer);
 
     const descriptor = getMockDescriptor();
-    const eservice: EService = {
-      ...getMockEService(),
-      name: "EService",
-      descriptors: [descriptor],
-    };
+    const eservice: EService = getMockEService(
+      generateId<EServiceId>(),
+      producer.id,
+      [descriptor]
+    );
     await addOneEService(eservice);
 
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
-      consumerId: consumer.id,
+      consumerId: producer.id,
     };
     await addOnePurpose(purpose);
 
@@ -78,7 +80,7 @@ describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
         address: sesEmailSenderData.mail,
       },
       subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
-      to: [consumerEmail.address],
+      to: [producerEmail.address],
       html: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
         interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
         purposeName: purpose.title,
@@ -86,7 +88,10 @@ describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions,
+      expect.anything()
+    );
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`

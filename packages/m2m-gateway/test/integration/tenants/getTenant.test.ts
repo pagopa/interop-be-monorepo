@@ -2,18 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenant", () => {
-  const mockApiTenant = getMockedApiTenant();
+  const mockApiTenant = getMockWithMetadata(getMockedApiTenant());
 
   const mockGetTenant = vi.fn().mockResolvedValue(mockApiTenant);
 
@@ -48,7 +49,7 @@ describe("getTenant", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantResponse);
+    expect(result).toStrictEqual(m2mTenantResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {

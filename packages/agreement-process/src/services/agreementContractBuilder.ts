@@ -38,13 +38,13 @@ import {
   ActiveDelegations,
   AgreementContractPDFPayload,
 } from "../model/domain/models.js";
-import { ReadModelService } from "./readModelService.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 const AGREEMENT_CONTRACT_PRETTY_NAME = "Richiesta di fruizione";
 
-export type DelegationData = {
+type DelegationData = {
   delegation: Delegation;
   delegate: Tenant;
 };
@@ -61,7 +61,7 @@ const createAgreementDocumentName = (
 const getAttributesData = async (
   consumer: Tenant,
   agreement: Agreement,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<{
   certified: Array<{
     attribute: Attribute;
@@ -149,7 +149,7 @@ const getPdfPayload = async (
   producer: Tenant,
   producerDelegationData: DelegationData | undefined,
   consumerDelegationData: DelegationData | undefined,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<AgreementContractPDFPayload> => {
   const today = new Date();
 
@@ -228,7 +228,7 @@ const getPdfPayload = async (
 
 const buildDelegationData = async (
   delegation: Delegation,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<DelegationData> => {
   const delegate = await retrieveTenant(
     delegation.delegateId,
@@ -243,7 +243,7 @@ const buildDelegationData = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager,
   config: AgreementProcessConfig,

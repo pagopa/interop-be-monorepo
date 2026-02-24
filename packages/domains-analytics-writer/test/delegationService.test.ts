@@ -15,7 +15,6 @@ import {
   resetTargetTables,
   getManyFromDb,
   delegationTables,
-  getOneFromDb,
 } from "./utils.js";
 
 describe("Delegation messages consumers - handleDelegationMessageV2", () => {
@@ -40,7 +39,17 @@ describe("Delegation messages consumers - handleDelegationMessageV2", () => {
       activationContract: mockContract,
     };
 
-    const envelope: DelegationEventEnvelopeV2 = {
+    const msgDelegationMetaVersion1: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockDelegation.id,
+      version: 1,
+      type: "ProducerDelegationSubmitted",
+      event_version: 2,
+      data: { delegation: toDelegationV2(mockDelegation) },
+      log_date: new Date(),
+    };
+
+    const msgDelegationMetaVersion2: DelegationEventEnvelopeV2 = {
       sequence_num: 1,
       stream_id: mockDelegation.id,
       version: 2,
@@ -50,19 +59,23 @@ describe("Delegation messages consumers - handleDelegationMessageV2", () => {
       log_date: new Date(),
     };
 
-    await handleDelegationMessageV2([envelope], dbContext);
+    await handleDelegationMessageV2(
+      [msgDelegationMetaVersion1, msgDelegationMetaVersion2],
+      dbContext
+    );
 
-    const storedDelegation = await getOneFromDb(
+    const delegations = await getManyFromDb(
       dbContext,
       DelegationDbTable.delegation,
       {
         id: mockDelegation.id,
       }
     );
-    expect(storedDelegation).toBeDefined();
-    expect(storedDelegation.id).toBe(mockDelegation.id);
+    expect(delegations).toHaveLength(1);
+    expect(delegations[0]?.id).toBe(mockDelegation.id);
+    expect(delegations[0]?.metadataVersion).toBe(2);
 
-    const storedStamps = await getManyFromDb(
+    const stamps = await getManyFromDb(
       dbContext,
       DelegationDbTable.delegation_stamp,
       {
@@ -70,17 +83,17 @@ describe("Delegation messages consumers - handleDelegationMessageV2", () => {
       }
     );
 
-    expect(storedStamps).toHaveLength(1);
-    expect(storedStamps[0].delegationId).toBe(mockDelegation.id);
+    expect(stamps).toHaveLength(1);
+    expect(stamps[0].delegationId).toBe(mockDelegation.id);
 
-    const storedDocs = await getManyFromDb(
+    const docs = await getManyFromDb(
       dbContext,
       DelegationDbTable.delegation_contract_document,
       { delegationId: mockDelegation.id }
     );
 
-    expect(storedDocs).toHaveLength(1);
-    expect(storedDocs[0].delegationId).toBe(mockDelegation.id);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].delegationId).toBe(mockDelegation.id);
   });
 
   it("ProducerDelegationSubmitted: should throw error when delegation is missing", async () => {

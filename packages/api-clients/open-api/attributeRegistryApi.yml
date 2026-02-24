@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/attribute-registry-process/{{version}}"
+  - url: "/"
     description: This service is the attribute registry process
 security:
   - bearerAuth: []
@@ -26,6 +26,11 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: attribute
+    description: Attribute
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
 paths:
   "/certifiedAttributes":
     parameters:
@@ -36,11 +41,11 @@ paths:
         - attribute
       operationId: createCertifiedAttribute
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Certified attribute created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -48,19 +53,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -82,6 +87,9 @@ paths:
       responses:
         "200":
           description: Declared attribute created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -89,19 +97,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -123,6 +131,9 @@ paths:
       responses:
         "200":
           description: Verified attribute created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -130,19 +141,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -171,19 +182,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -218,6 +229,7 @@ paths:
           name: limit
           schema:
             type: integer
+            format: int32
             minimum: 1
             maximum: 50
           required: true
@@ -225,6 +237,7 @@ paths:
           name: offset
           schema:
             type: integer
+            format: int32
             minimum: 0
           required: true
         - in: query
@@ -246,7 +259,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/attributes/name/{name}":
@@ -264,7 +277,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeByName
@@ -306,7 +319,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeByOriginAndCode
@@ -326,11 +339,11 @@ paths:
       tags:
         - attribute
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Attribute data
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -338,7 +351,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeById
@@ -370,7 +383,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Returns the list of attributes indicated in the request
@@ -379,6 +392,7 @@ paths:
           name: limit
           schema:
             type: integer
+            format: int32
             minimum: 1
             maximum: 50
           required: true
@@ -386,6 +400,7 @@ paths:
           name: offset
           schema:
             type: integer
+            format: int32
             minimum: 0
           required: true
   /status:
@@ -399,7 +414,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
@@ -408,6 +423,7 @@ components:
       description: The version number of the resource in the read model
       schema:
         type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header
@@ -456,7 +472,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:
@@ -489,7 +504,7 @@ components:
           type: string
           description: identifies the unique code of this attribute on the origin registry
         kind:
-          description: Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          # Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
           $ref: "#/components/schemas/AttributeKind"
         description:
           type: string

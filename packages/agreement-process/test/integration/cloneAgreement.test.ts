@@ -140,7 +140,7 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const returnedAgreement = await agreementService.cloneAgreement(
+    const { data: returnedAgreement } = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
       getMockContext({ authData })
     );
@@ -192,6 +192,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({
@@ -288,7 +289,7 @@ describe("clone agreement", () => {
     };
     await addOneAgreement(anotherNonConflictingAgreement);
 
-    const returnedAgreement = await agreementService.cloneAgreement(
+    const { data: returnedAgreement } = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
       getMockContext({ authData })
     );
@@ -340,6 +341,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.suspendedAt;
     delete expectedAgreementCloned.updatedAt;
     delete expectedAgreementCloned.contract;
+    delete expectedAgreementCloned.signedContract;
     expectedAgreementCloned.stamps = {};
 
     expect(agreementClonedEventPayload).toMatchObject({

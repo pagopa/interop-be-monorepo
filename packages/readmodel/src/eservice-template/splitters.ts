@@ -6,9 +6,9 @@ import {
   EServiceAttribute,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
-  RiskAnalysis,
   riskAnalysisAnswerKind,
 } from "pagopa-interop-models";
 import {
@@ -38,7 +38,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
           riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: RiskAnalysis
+        currentRiskAnalysis: EServiceTemplateRiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
@@ -219,7 +219,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 };
 
 const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: RiskAnalysis,
+  riskAnalysis: EServiceTemplateRiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): {
@@ -234,6 +234,7 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
+    tenantKind: riskAnalysis.tenantKind,
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -324,4 +325,5 @@ const eserviceTemplateToEServiceTemplateSQL = (
   technology: eserviceTemplate.technology,
   mode: eserviceTemplate.mode,
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled ?? null,
+  personalData: eserviceTemplate.personalData ?? null,
 });

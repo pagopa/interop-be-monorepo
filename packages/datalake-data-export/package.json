@@ -1,11 +1,12 @@
 {
   "name": "pagopa-interop-datalake-data-export",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability Data Lake Data Export",
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
+    "test": "vitest --config vitest.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -15,26 +16,22 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "20.14.6",
-    "@pagopa/eslint-config": "3.0.0",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
+    "date-fns": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
-    "date-fns": "3.6.0",
-    "mongodb": "6.7.0",
-    "zod": "3.23.8"
+    "zod": "catalog:"
   }
 }

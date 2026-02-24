@@ -4,17 +4,13 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  agreementApi,
   apiGatewayApi,
-  purposeApi,
   catalogApi,
   delegationApi,
+  purposeApi,
 } from "pagopa-interop-api-clients";
-import {
-  AgreementProcessClient,
-  CatalogProcessClient,
-  DelegationProcessClient,
-  PurposeProcessClient,
-} from "../clients/clientsProvider.js";
+import { operationForbidden } from "pagopa-interop-models";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import {
   toApiGatewayPurpose,
@@ -31,7 +27,7 @@ import {
 import { getAllAgreements } from "./agreementService.js";
 
 export async function getAllPurposes(
-  purposeProcessClient: PurposeProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   ctx: WithLogger<ApiGatewayAppContext>,
   { eserviceId, consumerId }: apiGatewayApi.GetPurposesQueryParams
 ): Promise<apiGatewayApi.Purposes> {
@@ -56,7 +52,7 @@ export async function getAllPurposes(
 }
 
 const retrievePurpose = async (
-  purposeProcessClient: PurposeProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   purposeId: purposeApi.Purpose["id"]
 ): Promise<purposeApi.Purpose> =>
@@ -69,16 +65,20 @@ const retrievePurpose = async (
     })
     .catch((res) => {
       throw clientStatusCodeToError(res, {
+        403: operationForbidden,
         404: purposeNotFound(purposeId),
       });
     });
 
 const retrieveActiveProducerDelegationByEServiceId = async (
-  delegationProcessClient: DelegationProcessClient,
+  delegationProcessClient: Pick<
+    delegationApi.DelegationProcessClient,
+    "delegation"
+  >,
   headers: ApiGatewayAppContext["headers"],
   eserviceId: catalogApi.EService["id"]
 ): Promise<delegationApi.Delegation | undefined> => {
-  const result = await delegationProcessClient.getDelegations({
+  const result = await delegationProcessClient.delegation.getDelegations({
     headers,
     queries: {
       eserviceIds: [eserviceId],
@@ -96,10 +96,13 @@ const retrieveActiveProducerDelegationByEServiceId = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  delegationProcessClient: DelegationProcessClient
+  purposeProcessClient: purposeApi.PurposeProcessClient,
+  catalogProcessClient: catalogApi.CatalogProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  delegationProcessClient: Pick<
+    delegationApi.DelegationProcessClient,
+    "delegation"
+  >
 ) {
   return {
     getPurpose: async (

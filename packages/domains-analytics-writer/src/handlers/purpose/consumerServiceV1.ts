@@ -24,6 +24,7 @@ import {
   PurposeVersionDeletingSchema,
 } from "../../model/purpose/purposeVersion.js";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handlePurposeMessageV1(
   messages: PurposeEventEnvelopeV1[],
@@ -68,6 +69,8 @@ export async function handlePurposeMessageV1(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
+              versionStampsSQL: splitResult.versionStampsSQL,
+              versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }
@@ -105,7 +108,6 @@ export async function handlePurposeMessageV1(
         deleteVersionBatch.push(
           PurposeVersionDeletingSchema.parse({
             id: msg.data.versionId,
-            deleted: true,
           } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })
@@ -115,19 +117,29 @@ export async function handlePurposeMessageV1(
   if (upsertPurposeBatch.length) {
     await purposeService.upsertBatchPurpose(dbContext, upsertPurposeBatch);
   }
+
   if (upsertVersionBatch.length) {
     await purposeService.upsertBatchPurposeVersion(
       dbContext,
       upsertVersionBatch
     );
   }
-  if (deletePurposeBatch.length) {
-    await purposeService.deleteBatchPurpose(dbContext, deletePurposeBatch);
-  }
-  if (deleteVersionBatch.length) {
-    await purposeService.deleteBatchPurposeVersion(
-      dbContext,
-      deleteVersionBatch
+
+  if (deletePurposeBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deletePurposeBatch,
+      PurposeDeletingSchema,
+      ["id"]
     );
+    await purposeService.deleteBatchPurpose(dbContext, distinctBatch);
+  }
+
+  if (deleteVersionBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteVersionBatch,
+      PurposeVersionDeletingSchema,
+      ["id"]
+    );
+    await purposeService.deleteBatchPurposeVersion(dbContext, distinctBatch);
   }
 }

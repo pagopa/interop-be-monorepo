@@ -1,16 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import { getMockedApiTenant } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
@@ -25,7 +23,7 @@ describe("getTenants", () => {
   const mockApiTenant1 = getMockedApiTenant();
   const mockApiTenant2 = getMockedApiTenant();
 
-  const mockApiTenants = [mockApiTenant1.data, mockApiTenant2.data];
+  const mockApiTenants = [mockApiTenant1, mockApiTenant2];
 
   const mockTenantProcessResponse: WithMaybeMetadata<tenantApi.Tenants> = {
     data: {
@@ -50,31 +48,31 @@ describe("getTenants", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mTenantResponse1: m2mGatewayApi.Tenant = {
-      id: mockApiTenant1.data.id,
-      createdAt: mockApiTenant1.data.createdAt,
+      id: mockApiTenant1.id,
+      createdAt: mockApiTenant1.createdAt,
       externalId: {
-        origin: mockApiTenant1.data.externalId.origin,
-        value: mockApiTenant1.data.externalId.value,
+        origin: mockApiTenant1.externalId.origin,
+        value: mockApiTenant1.externalId.value,
       },
-      name: mockApiTenant1.data.name,
-      kind: mockApiTenant1.data.kind,
-      onboardedAt: mockApiTenant1.data.onboardedAt,
-      subUnitType: mockApiTenant1.data.subUnitType,
-      updatedAt: mockApiTenant1.data.updatedAt,
+      name: mockApiTenant1.name,
+      kind: mockApiTenant1.kind,
+      onboardedAt: mockApiTenant1.onboardedAt,
+      subUnitType: mockApiTenant1.subUnitType,
+      updatedAt: mockApiTenant1.updatedAt,
     };
 
     const m2mTenantResponse2: m2mGatewayApi.Tenant = {
-      id: mockApiTenant2.data.id,
-      createdAt: mockApiTenant2.data.createdAt,
+      id: mockApiTenant2.id,
+      createdAt: mockApiTenant2.createdAt,
       externalId: {
-        origin: mockApiTenant2.data.externalId.origin,
-        value: mockApiTenant2.data.externalId.value,
+        origin: mockApiTenant2.externalId.origin,
+        value: mockApiTenant2.externalId.value,
       },
-      name: mockApiTenant2.data.name,
-      kind: mockApiTenant2.data.kind,
-      onboardedAt: mockApiTenant2.data.onboardedAt,
-      subUnitType: mockApiTenant2.data.subUnitType,
-      updatedAt: mockApiTenant2.data.updatedAt,
+      name: mockApiTenant2.name,
+      kind: mockApiTenant2.kind,
+      onboardedAt: mockApiTenant2.onboardedAt,
+      subUnitType: mockApiTenant2.subUnitType,
+      updatedAt: mockApiTenant2.updatedAt,
     };
 
     const m2mTenantsResponse: m2mGatewayApi.Tenants = {
@@ -91,7 +89,7 @@ describe("getTenants", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
       queries: {

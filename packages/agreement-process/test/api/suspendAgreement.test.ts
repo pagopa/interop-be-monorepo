@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AgreementId, agreementState, generateId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  agreementState,
+  DelegationId,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockAgreement,
@@ -14,6 +19,7 @@ import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js"
 import {
   agreementNotFound,
   agreementNotInExpectedState,
+  tenantIsNotTheDelegate,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -33,12 +39,14 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: AgreementId = mockAgreement.id
+    agreementId: AgreementId = mockAgreement.id,
+    delegationId?: DelegationId
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .send({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -76,6 +84,7 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       ),
       expectedStatus: 400,
     },
+    { error: tenantIsNotTheDelegate(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -86,11 +95,14 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
     }
   );
 
-  it.each([{ agreementId: "invalid" as AgreementId }])(
+  it.each([
+    { agreementId: "invalid" as AgreementId },
+    { agreementId: mockAgreement.id, delegationId: "invalid" as DelegationId },
+  ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ agreementId }) => {
+    async ({ agreementId, delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId);
+      const res = await makeRequest(token, agreementId, delegationId);
       expect(res.status).toBe(400);
     }
   );

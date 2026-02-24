@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplate,
   EServiceTemplateId,
   generateId,
   operationForbidden,
@@ -8,6 +9,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -22,9 +24,15 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId", () => {
-  const mockEserviceTemplate = getMockEServiceTemplate();
+  const mockEserviceTemplate: EServiceTemplate = getMockEServiceTemplate();
 
-  const mockEserviceTemplateSeed =
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
+
+  const apiEserviceTemplate = eserviceTemplateApi.EServiceTemplate.parse(
+    eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
+  );
+
+  const mockEserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed =
     eserviceTemplateToApiUpdateEServiceTemplateSeed(mockEserviceTemplate);
 
   const eserviceTemplateName = "duplicate";
@@ -43,7 +51,7 @@ describe("API POST /templates/:templateId", () => {
   beforeEach(() => {
     eserviceTemplateService.updateEServiceTemplate = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(serviceResponse);
   });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
@@ -52,9 +60,7 @@ describe("API POST /templates/:templateId", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual(
-        eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
-      );
+      expect(res.body).toEqual(apiEserviceTemplate);
       expect(res.status).toBe(200);
     }
   );

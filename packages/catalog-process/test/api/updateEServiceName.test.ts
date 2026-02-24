@@ -13,14 +13,17 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceNameDuplicate,
+  eServiceUpdateSameNameConflict,
+  eServiceNameDuplicateForProducer,
   eServiceNotFound,
+  eserviceTemplateNameConflict,
   eserviceWithoutValidDescriptors,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -36,11 +39,14 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
     descriptors: [descriptor],
   };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
 
-  catalogService.updateEServiceName = vi.fn().mockResolvedValue(mockEService);
+  catalogService.updateEServiceName = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const mockEServiceNameUpdateSeed: catalogApi.EServiceNameUpdateSeed = {
     name: "New Name",
@@ -57,7 +63,11 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -65,6 +75,9 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
       const res = await makeRequest(token, mockEService.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toEqual(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -83,7 +96,14 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
       expectedStatus: 409,
     },
     {
-      error: eServiceNameDuplicate(mockEService.id),
+      error: eServiceNameDuplicateForProducer(
+        mockEService.id,
+        mockEService.producerId
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(mockEService.id),
       expectedStatus: 409,
     },
     {
@@ -101,6 +121,10 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
         mockEService.templateId!
       ),
       expectedStatus: 403,
+    },
+    {
+      error: eServiceUpdateSameNameConflict(mockEService.id),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

@@ -12,21 +12,22 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
+  selfcareUserEventType,
+  relationshipStatus,
+  BaseUsersEventPayload,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  selfcareUserEventType,
-  UsersEventPayload,
-  relationshipStatus,
-} from "../model/UsersEventPayload.js";
-import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
-import { ReadModelService } from "./readModelService.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  authorizationProcessClient: AuthorizationProcessClient,
-  readModelService: ReadModelService,
+  authorizationProcessClient: Pick<
+    authorizationApi.AuthorizationProcessClient,
+    "client"
+  >,
+  readModelService: ReadModelServiceSQL,
   productId: string
 ) {
   return {
@@ -64,7 +65,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
-        const userEventPayload = UsersEventPayload.parse(jsonPayload);
+        const userEventPayload = BaseUsersEventPayload.parse(jsonPayload);
 
         return match(userEventPayload)
           .with({ user: { userId: P.nullish } }, () => {

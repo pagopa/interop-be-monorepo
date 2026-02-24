@@ -38,7 +38,7 @@ import {
   htmlTemplateNotFound,
   tenantNotFound,
 } from "../models/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // Be careful to change this enum, it's used to find the html template files
 export const eventMailTemplateType = {
@@ -65,7 +65,7 @@ type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
 
 async function retrieveAgreementEservice(
   agreement: Agreement,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> {
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
@@ -78,7 +78,7 @@ async function retrieveAgreementEservice(
 
 async function retrieveTenant(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Tenant> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -101,9 +101,9 @@ function retrieveAgreementDescriptor(
   return descriptor;
 }
 
-export const retrieveEService = async (
+const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
@@ -155,7 +155,7 @@ function retrieveLatestPublishedDescriptor(eservice: EService): Descriptor {
 export function notificationEmailSenderServiceBuilder(
   sesEmailManager: EmailManagerSES,
   sesSenderData: { label: string; mail: string },
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   templateService: HtmlTemplateService,
   interopFeBaseUrl?: string
 ) {
@@ -207,7 +207,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} submission`);
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(`Email sent for agreement ${agreement.id} submission`);
       } catch (err) {
         logger.warn(
@@ -269,7 +269,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending email for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(
           `Email sent for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
@@ -329,7 +329,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} rejection`);
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(`Email sent for agreement ${agreement.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -346,22 +346,26 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
-      const [htmlTemplate, eservice, consumer] = await Promise.all([
+      const [htmlTemplate, eservice] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.newPurposeVersionWaitingForApprovalMailTemplate
         ),
         retrieveEService(purpose.eserviceId, readModelService),
-        retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
-      const consumerEmail = getLatestTenantMailOfKind(
-        consumer.mails,
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      const producerEmail = getLatestTenantMailOfKind(
+        producer.mails,
         tenantMailKind.ContactEmail
       );
 
-      if (!consumerEmail) {
+      if (!producerEmail) {
         logger.warn(
-          `Consumer email not found for purpose ${purpose.id}, skipping email`
+          `Producer email not found for purpose ${purpose.id}, skipping email`
         );
         return;
       }
@@ -369,7 +373,7 @@ export function notificationEmailSenderServiceBuilder(
       const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
-        to: [consumerEmail.address],
+        to: [producerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           purposeName: purpose.title,
@@ -381,7 +385,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(
           `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
@@ -398,22 +402,26 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
-      const [htmlTemplate, eservice, consumer] = await Promise.all([
+      const [htmlTemplate, eservice] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.purposeWaitingForApprovalMailTemplate
         ),
         retrieveEService(purpose.eserviceId, readModelService),
-        retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
-      const consumerEmail = getLatestTenantMailOfKind(
-        consumer.mails,
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      const producerEmail = getLatestTenantMailOfKind(
+        producer.mails,
         tenantMailKind.ContactEmail
       );
 
-      if (!consumerEmail) {
+      if (!producerEmail) {
         logger.warn(
-          `Consumer email not found for purpose ${purpose.id}, skipping email`
+          `Producer email not found for purpose ${purpose.id}, skipping email`
         );
         return;
       }
@@ -421,7 +429,7 @@ export function notificationEmailSenderServiceBuilder(
       const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
-        to: [consumerEmail.address],
+        to: [producerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           eserviceName: eservice.name,
@@ -432,7 +440,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Send an email with the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(
           `Email sent for the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
@@ -490,7 +498,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending an email for purpose ${purpose.id} rejection`);
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(`Email sent for purpose ${purpose.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -549,7 +557,7 @@ export function notificationEmailSenderServiceBuilder(
             logger.info(
               `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
-            await sesEmailManager.send(mailOptions);
+            await sesEmailManager.send(mailOptions, logger);
             logger.info(
               `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
@@ -607,7 +615,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email to activate the purpose version,  - Purpose ID: ${purpose.id}`
         );
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, logger);
         logger.info(
           `Activation email sent for purpose version - Purpose ID: ${purpose.id}`
         );

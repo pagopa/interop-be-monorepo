@@ -2,7 +2,10 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceRiskAnalysisAnswerSchema } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
@@ -26,13 +29,9 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           EserviceRiskAnalysisAnswerSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-            AND a.eservice_id = b.eservice_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["id", "eserviceId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -67,7 +66,3 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceRiskAnalysisAnswerRepository = ReturnType<
-  typeof eserviceRiskAnalysisAnswerRepository
->;

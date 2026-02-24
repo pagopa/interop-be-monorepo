@@ -2,18 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiEServiceTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEServiceTemplate,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceTemplate", () => {
-  const mockApiTemplate = getMockedApiEServiceTemplate();
+  const mockApiTemplate = getMockWithMetadata(getMockedApiEServiceTemplate());
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 
@@ -35,6 +36,7 @@ describe("getEserviceTemplate", () => {
       name: mockApiTemplate.data.name,
       technology: mockApiTemplate.data.technology,
       isSignalHubEnabled: mockApiTemplate.data.isSignalHubEnabled,
+      personalData: mockApiTemplate.data.personalData,
     };
 
     const result = await eserviceTemplateService.getEServiceTemplateById(
@@ -42,7 +44,7 @@ describe("getEserviceTemplate", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MTemplate);
+    expect(result).toStrictEqual(expectedM2MTemplate);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

@@ -10,8 +10,9 @@ import {
   generateToken,
   getMockEService,
   getMockPurpose,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -38,20 +39,22 @@ describe("API POST /reverse/purposes test", () => {
   );
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
+  const serviceResponse = getMockWithMetadata({
+    purpose: mockPurpose,
+    isRiskAnalysisValid,
+  });
 
-  const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
-  );
+  const apiResponse = purposeToApiPurpose(mockPurpose, isRiskAnalysisValid);
 
   beforeEach(() => {
     purposeService.createReversePurpose = vi
       .fn()
-      .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
     token: string,
-    body: purposeApi.EServicePurposeSeed = mockReversePurposeSeed
+    body: purposeApi.ReversePurposeSeed = mockReversePurposeSeed
   ) =>
     request(api)
       .post("/reverse/purposes")
@@ -59,15 +62,26 @@ describe("API POST /reverse/purposes test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body).toEqual(apiResponse);
-    expect(res.status).toBe(200);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.status).toBe(200);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -114,15 +128,12 @@ describe("API POST /reverse/purposes test", () => {
 
   it.each([
     { body: {} },
-    { body: { ...mockReversePurposeSeed, eServiceId: undefined } },
-    { body: { ...mockReversePurposeSeed, eServiceId: "invalid" } },
+    { body: { ...mockReversePurposeSeed, eserviceId: undefined } },
+    { body: { ...mockReversePurposeSeed, eserviceId: "invalid" } },
     { body: { ...mockReversePurposeSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as purposeApi.EServicePurposeSeed
-    );
+    const res = await makeRequest(token, body as purposeApi.ReversePurposeSeed);
     expect(res.status).toBe(400);
   });
 });

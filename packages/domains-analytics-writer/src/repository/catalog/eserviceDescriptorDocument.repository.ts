@@ -2,7 +2,10 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
@@ -34,12 +37,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           EserviceDescriptorDocumentSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -84,9 +82,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorDocumentDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -121,7 +117,3 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorDocumentRepository = ReturnType<
-  typeof eserviceDescriptorDocumentRepository
->;

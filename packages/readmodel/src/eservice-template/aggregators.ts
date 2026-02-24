@@ -5,10 +5,12 @@ import {
   EServiceMode,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   stringToDate,
   Technology,
+  TenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -24,11 +26,22 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import {
-  aggregateRiskAnalysis,
+  aggregateRiskAnalysisForm,
   attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+
+export const aggregateEServiceTemplateRiskAnalysis = (
+  riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL,
+  answers: EServiceTemplateRiskAnalysisAnswerSQL[]
+): EServiceTemplateRiskAnalysis => ({
+  id: unsafeBrandId(riskAnalysisSQL.id),
+  name: riskAnalysisSQL.name,
+  createdAt: stringToDate(riskAnalysisSQL.createdAt),
+  riskAnalysisForm: aggregateRiskAnalysisForm(riskAnalysisSQL, answers),
+  tenantKind: TenantKind.parse(riskAnalysisSQL.tenantKind),
+});
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
@@ -156,7 +169,7 @@ export const aggregateEServiceTemplate = ({
     new Map<string, EServiceTemplateRiskAnalysisAnswerSQL[]>()
   );
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
-    aggregateRiskAnalysis(
+    aggregateEServiceTemplateRiskAnalysis(
       ra,
       riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
@@ -174,6 +187,11 @@ export const aggregateEServiceTemplate = ({
     mode: EServiceMode.parse(eserviceTemplateSQL.mode),
     ...(eserviceTemplateSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }
+      : {}),
+    ...(eserviceTemplateSQL.personalData !== null
+      ? {
+          personalData: eserviceTemplateSQL.personalData,
+        }
       : {}),
   };
   return {

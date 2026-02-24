@@ -1,0 +1,36 @@
+meta {
+  name: Update draft reverse purpose
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw}}/reversePurposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{reversePurposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+      "title": "{{randomName}}",
+      "description": "updated description for purpose",
+      "isFreeOfCharge": false,
+      "freeOfChargeReason": null,
+      "dailyCalls": 999
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

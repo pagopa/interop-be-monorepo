@@ -7,6 +7,7 @@ import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
 import {
@@ -30,12 +31,7 @@ export function clientRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, ClientSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-            DELETE FROM ${stagingTableName} a
-            USING ${stagingTableName} b
-            WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
-          `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -76,9 +72,7 @@ export function clientRepository(conn: DBConnection) {
     ): Promise<void> {
       try {
         const cs = buildColumnSet(pgp, deletingTableName, ClientDeletingSchema);
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
@@ -92,7 +86,9 @@ export function clientRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

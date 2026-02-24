@@ -7,10 +7,19 @@ import {
   AttributeDbTableReadModel,
 } from "./attribute.js";
 import {
+  CatalogDbPartialTableConfig,
+  CatalogDbPartialTableReadModel,
+  CatalogDbTableConfig,
+  CatalogDbTableReadModel,
+} from "./catalog.js";
+import {
   ClientDbTableConfig,
   ClientDbTableReadModel,
+  ProducerKeychainDbTableConfig,
+  ProducerKeychainDbTableReadModel,
+  ClientDbTablePartialTableConfig,
+  ClientDbTablePartialTableReadModel,
 } from "./authorization.js";
-import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
 import {
   DelegationDbTableConfig,
   DelegationDbTableReadModel,
@@ -27,11 +36,17 @@ import {
   TenantDbTableReadModel,
   TenantDbPartialTableReadModel,
 } from "./tenant.js";
+import {
+  PurposeTemplateDbTableConfig,
+  PurposeTemplateDbTableReadModel,
+} from "./purposeTemplate.js";
 
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,
+  ...CatalogDbPartialTableConfig,
+  ...ClientDbTablePartialTableConfig,
 } as const;
-export type PartialDbTableSchemas = typeof PartialDbTable;
+type PartialDbTableSchemas = typeof PartialDbTable;
 export type PartialDbTable = keyof PartialDbTableSchemas;
 
 export const DomainDbTable = {
@@ -42,7 +57,9 @@ export const DomainDbTable = {
   ...DelegationDbTableConfig,
   ...TenantDbTableConfig,
   ...ClientDbTableConfig,
+  ...ProducerKeychainDbTableConfig,
   ...EserviceTemplateDbTableConfig,
+  ...PurposeTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
@@ -52,10 +69,10 @@ export const DbTable = {
   ...PartialDbTable,
   ...DeletingDbTableConfig,
 } as const;
-export type DbTableSchemas = typeof DbTable;
+type DbTableSchemas = typeof DbTable;
 export type DbTable = keyof DbTableSchemas;
 
-export const DomainDbTableReadModels = {
+const DomainDbTableReadModels = {
   ...AttributeDbTableReadModel,
   ...CatalogDbTableReadModel,
   ...AgreementDbTableReadModel,
@@ -63,14 +80,18 @@ export const DomainDbTableReadModels = {
   ...PurposeDbTableReadModel,
   ...TenantDbTableReadModel,
   ...ClientDbTableReadModel,
+  ...ProducerKeychainDbTableReadModel,
   ...EserviceTemplateDbTableReadModel,
+  ...PurposeTemplateDbTableReadModel,
 } as const;
-export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
+type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
-export const PartialDbTableReadModels = {
+const PartialDbTableReadModels = {
   ...TenantDbPartialTableReadModel,
+  ...CatalogDbPartialTableReadModel,
+  ...ClientDbTablePartialTableReadModel,
 } as const;
-export type PartialDbTableReadModels = typeof PartialDbTableReadModels;
+type PartialDbTableReadModels = typeof PartialDbTableReadModels;
 
 export const DbTableReadModels = {
   ...DomainDbTableReadModels,
@@ -88,3 +109,4 @@ export * from "./delegation.js";
 export * from "./tenant.js";
 export * from "./deleting.js";
 export * from "./eserviceTemplate.js";
+export * from "./purposeTemplate.js";

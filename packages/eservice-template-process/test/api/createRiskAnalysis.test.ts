@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplate,
   EServiceTemplateId,
-  TenantId,
   generateId,
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockValidRiskAnalysis,
+  getMockEServiceTemplate,
+  getMockValidEServiceTemplateRiskAnalysis,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -26,21 +28,35 @@ import {
   eserviceTemplateRiskAnalysisNameDuplicate,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API POST /templates/:templateId/riskAnalysis", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
 
-  const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-  const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+  const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+    tenantKind.PA
+  );
+  const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
-  const tenantId = generateId<TenantId>();
+
+  const mockEServiceTemplate: EServiceTemplate = getMockEServiceTemplate();
+
+  const serviceResponse = getMockWithMetadata({
+    eserviceTemplate: mockEServiceTemplate,
+    createdRiskAnalysisId: generateId(),
+  });
+
+  const apiResponse =
+    eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
+      eserviceTemplate:
+        eserviceTemplateToApiEServiceTemplate(mockEServiceTemplate),
+      createdRiskAnalysisId: serviceResponse.data.createdRiskAnalysisId,
+    });
 
   const makeRequest = async (
     token: string,
-    body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
+    body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed = riskAnalysisSeed,
     templateId: EServiceTemplateId = eserviceTemplateId
   ) =>
     request(api)
@@ -52,16 +68,24 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   beforeEach(() => {
     eserviceTemplateService.createRiskAnalysis = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -81,7 +105,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as eserviceTemplateApi.EServiceRiskAnalysisSeed
+      body as eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed
     );
 
     expect(res.status).toBe(400);
@@ -103,7 +127,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     {
       error: riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
-          code: "noRulesVersionFoundError",
+          code: "rulesVersionNotFoundError",
           detail: "no rule",
         }),
       ]),
@@ -116,14 +140,6 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     {
       error: eserviceTemplateRiskAnalysisNameDuplicate("risk"),
       expectedStatus: 409,
-    },
-    {
-      error: tenantNotFound(tenantId),
-      expectedStatus: 500,
-    },
-    {
-      error: tenantKindNotFound(tenantId),
-      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",

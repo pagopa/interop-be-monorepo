@@ -83,9 +83,13 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         context
       );
-      expect(result).toEqual({
-        ...eserviceTemplate,
-        versions: expect.arrayContaining(eserviceTemplate.versions),
+
+      expect(result).toStrictEqual({
+        data: {
+          ...eserviceTemplate,
+          versions: expect.arrayContaining(eserviceTemplate.versions),
+        },
+        metadata: { version: 0 },
       });
     }
   );
@@ -202,7 +206,7 @@ describe("getEServiceTemplateById", () => {
         },
       })
     );
-    expect(result.versions).toEqual([eserviceTemplateVersion]);
+    expect(result.data.versions).toEqual([eserviceTemplateVersion]);
   });
 
   it.each(getContextsAllowedToSeeDraftVersions(generateId()))(
@@ -229,7 +233,7 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         context
       );
-      expect(result.versions).toEqual([eserviceTemplateVersion]);
+      expect(result.data.versions).toEqual([eserviceTemplateVersion]);
     }
   );
 });

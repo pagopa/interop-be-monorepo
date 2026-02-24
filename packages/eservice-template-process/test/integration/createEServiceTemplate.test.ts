@@ -12,6 +12,7 @@ import {
   EServiceTemplate,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
@@ -52,14 +53,14 @@ describe("create eservice template", () => {
     expect(eserviceTemplate).toBeDefined();
 
     const eserviceTemplateCreationEvent = await readEventByStreamIdAndVersion(
-      eserviceTemplate.id,
+      eserviceTemplate.data.id,
       0,
       "eservice_template",
       postgresDB
     );
 
     expect(eserviceTemplateCreationEvent).toMatchObject({
-      stream_id: eserviceTemplate.id,
+      stream_id: eserviceTemplate.data.id,
       version: "0",
       type: "EServiceTemplateAdded",
       event_version: 2,
@@ -72,14 +73,15 @@ describe("create eservice template", () => {
 
     const expectedEserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
-      createdAt: eserviceTemplate.createdAt,
-      id: eserviceTemplate.id,
+      createdAt: eserviceTemplate.data.createdAt,
+      id: eserviceTemplate.data.id,
       versions: [
         {
           ...mockVersion,
-          agreementApprovalPolicy: undefined,
-          id: eserviceTemplate.versions[0].id,
-          createdAt: eserviceTemplate.versions[0].createdAt,
+          agreementApprovalPolicy:
+            eserviceTemplate.data.versions[0].agreementApprovalPolicy,
+          id: eserviceTemplate.data.versions[0].id,
+          createdAt: eserviceTemplate.data.versions[0].createdAt,
         },
       ],
       isSignalHubEnabled,
@@ -88,6 +90,11 @@ describe("create eservice template", () => {
     expect(eserviceCreationPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(expectedEserviceTemplate)
     );
+
+    expect(eserviceTemplate).toEqual({
+      data: expectedEserviceTemplate,
+      metadata: { version: 0 },
+    });
   });
 
   it("should throw originNotCompliant if the requester is not in the allowed origins", async () => {
@@ -106,6 +113,23 @@ describe("create eservice template", () => {
 
   it("should throw eserviceTemplateDuplicate if an eservice template with the same name already exists, case insensitive", async () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
+    await expect(
+      eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateDuplicate(mockEServiceTemplate.name)
+    );
+  });
+
+  it("should throw eserviceTemplateDuplicate if an eservice template with the same name with different creator already exists, case insensitive", async () => {
+    await addOneEServiceTemplate({
+      ...mockEServiceTemplate,
+      creatorId: generateId(),
+    });
     await expect(
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),

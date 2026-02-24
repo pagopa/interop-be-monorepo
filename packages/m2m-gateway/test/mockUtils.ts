@@ -1,265 +1,30 @@
 import {
-  attributeRegistryApi,
-  catalogApi,
-  delegationApi,
-  agreementApi,
-  purposeApi,
-  tenantApi,
-  authorizationApi,
-  m2mGatewayApi,
-  eserviceTemplateApi,
-} from "pagopa-interop-api-clients";
-import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
+  WithLogger,
+  systemRole,
+  genericLogger,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  M2MAdminAuthData,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
+  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
   TenantId,
-  WithMetadata,
   generateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import {
+  agreementApi,
+  authorizationApi,
+  catalogApi,
+  m2mEventApi,
+  m2mGatewayApi,
+  purposeApi,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
-
-export function getMockedApiPurposeVersion({
-  state,
-}: {
-  state?: purposeApi.PurposeVersionState;
-} = {}): purposeApi.PurposeVersion {
-  return {
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-    dailyCalls: generateMock(z.number().positive()),
-    state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
-  };
-}
-
-export function getMockedApiPurpose({
-  versions,
-}: {
-  versions?: purposeApi.PurposeVersion[];
-} = {}): WithMetadata<purposeApi.Purpose> {
-  return {
-    data: {
-      id: generateId(),
-      eserviceId: generateId(),
-      consumerId: generateId(),
-      versions: versions ?? [getMockedApiPurposeVersion()],
-      title: generateMock(z.string().length(10)),
-      description: generateMock(z.string().length(10)),
-      createdAt: new Date().toISOString(),
-      isRiskAnalysisValid: true,
-      isFreeOfCharge: true,
-      freeOfChargeReason: generateMock(z.string()),
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiDelegation({
-  kind,
-  eserviceId,
-  delegateId,
-  state,
-}: {
-  kind?: delegationApi.DelegationKind;
-  eserviceId?: string;
-  delegateId?: string;
-  state?: delegationApi.DelegationState;
-} = {}): WithMetadata<delegationApi.Delegation> {
-  return {
-    data: {
-      kind: kind ?? delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-      id: generateId(),
-      eserviceId: eserviceId ?? generateId(),
-      delegateId: delegateId ?? generateId(),
-      delegatorId: generateId(),
-      createdAt: new Date().toISOString(),
-      state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
-      stamps: {
-        submission: {
-          who: generateId(),
-          when: new Date().toISOString(),
-        },
-      },
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiAgreement({
-  state,
-  eserviceId,
-  descriptorId,
-}: {
-  state?: agreementApi.AgreementState;
-  eserviceId?: string;
-  descriptorId?: string;
-} = {}): WithMetadata<agreementApi.Agreement> {
-  return {
-    data: {
-      id: generateId(),
-      eserviceId: eserviceId ?? generateId(),
-      descriptorId: descriptorId ?? generateId(),
-      producerId: generateId(),
-      consumerId: generateId(),
-      state: state ?? agreementApi.AgreementState.Values.ACTIVE,
-      certifiedAttributes: generateMock(
-        z.array(agreementApi.CertifiedAttribute)
-      ),
-      declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
-      consumerDocuments: generateMock(z.array(agreementApi.Document)),
-      verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
-      createdAt: new Date().toISOString(),
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiTenant({
-  attributes,
-}: {
-  attributes?: tenantApi.TenantAttribute[];
-} = {}): WithMetadata<tenantApi.Tenant> {
-  return {
-    data: {
-      id: generateId(),
-      attributes:
-        attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
-      externalId: {
-        origin: generateMock(z.string()),
-        value: generateMock(z.string()),
-      },
-      name: generateMock(z.string()),
-      createdAt: new Date().toISOString(),
-      kind: tenantApi.TenantKind.Values.GSP,
-      mails: generateMock(z.array(tenantApi.Mail)),
-      features: generateMock(z.array(tenantApi.TenantFeature)),
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiAttribute({
-  kind,
-  code,
-  name,
-  description,
-}: {
-  kind?: attributeRegistryApi.AttributeKind;
-  code?: string;
-  name?: string;
-  description?: string;
-} = {}): WithMetadata<attributeRegistryApi.Attribute> {
-  return {
-    data: {
-      id: generateId(),
-      name: name ?? generateMock(z.string()),
-      description: description ?? generateMock(z.string()),
-      creationTime: new Date().toISOString(),
-      code: code ?? generateMock(z.string()),
-      origin: generateMock(z.string()),
-      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiClient({
-  kind: paramKind,
-}: {
-  kind?: authorizationApi.ClientKind;
-} = {}): WithMetadata<authorizationApi.Client> {
-  const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
-  return {
-    data: {
-      kind,
-      id: generateId(),
-      name: generateMock(z.string()),
-      description: generateMock(z.string()),
-      createdAt: new Date().toISOString(),
-      consumerId: generateId(),
-      purposes: [],
-      users: [],
-      adminId:
-        kind === authorizationApi.ClientKind.Values.API
-          ? generateId()
-          : undefined,
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiEservice({
-  descriptors,
-}: {
-  descriptors?: catalogApi.EServiceDescriptor[];
-} = {}): WithMetadata<catalogApi.EService> {
-  return {
-    data: {
-      id: generateId(),
-      name: generateMock(z.string().length(10)),
-      producerId: generateId(),
-      description: generateMock(z.string().length(10)),
-      technology: generateMock(catalogApi.EServiceTechnology),
-      descriptors:
-        descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
-      riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
-      mode: generateMock(catalogApi.EServiceMode),
-      isSignalHubEnabled: generateMock(z.boolean()),
-      isConsumerDelegable: generateMock(z.boolean()),
-      isClientAccessDelegable: generateMock(z.boolean()),
-      templateId: generateId(),
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
-
-export function getMockedApiEserviceDescriptor({
-  state,
-}: {
-  state?: catalogApi.EServiceDescriptorState;
-} = {}): WithMetadata<catalogApi.EServiceDescriptor> {
-  return {
-    data: {
-      id: generateId(),
-      version: generateMock(z.string()),
-      description: generateMock(z.string().length(10)),
-      audience: generateMock(z.array(z.string())),
-      voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-      dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-      dailyCallsTotal: generateMock(z.number().int().gte(1)),
-      interface: generateMock(catalogApi.EServiceDoc),
-      docs: generateMock(z.array(catalogApi.EServiceDoc)),
-      state: state ?? generateMock(catalogApi.EServiceDescriptorState),
-      agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
-      serverUrls: generateMock(z.array(z.string())),
-      publishedAt: new Date().toISOString(),
-      suspendedAt: new Date().toISOString(),
-      deprecatedAt: new Date().toISOString(),
-      archivedAt: new Date().toISOString(),
-      attributes: generateMock(catalogApi.Attributes),
-      rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
-      templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
-    },
-    metadata: {
-      version: 0,
-    },
-  };
-}
+import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
 export const m2mTestToken = generateMock(z.string().base64());
 
@@ -269,7 +34,7 @@ export const getMockM2MAdminAppContext = ({
 }: {
   organizationId?: TenantId;
   serviceName?: string;
-} = {}): WithLogger<M2MGatewayAppContext> => {
+} = {}): WithLogger<M2MGatewayAppContext<M2MAdminAuthData>> => {
   const correlationId = generateId<CorrelationId>();
   return {
     authData: {
@@ -277,6 +42,7 @@ export const getMockM2MAdminAppContext = ({
       organizationId: organizationId || generateId(),
       userId: generateId(),
       clientId: generateId(),
+      jti: generateId(),
     },
     serviceName: serviceName || generateMock(z.string()),
     spanId: generateId(),
@@ -291,108 +57,224 @@ export const getMockM2MAdminAppContext = ({
   };
 };
 
-export function getMockedApiEServiceTemplate({
-  versions,
+export function getMockDownloadedDocument({
+  mockFileName = "mockFileName.txt",
+  mockContentType = "text/plain",
+  mockFileContent = "This is a mock file content for testing purposes.\nIt simulates the content of an Eservice descriptor interface file.\nOn multiple lines.",
+  prettyName = "Mock File Name",
+  id = generateId(),
 }: {
-  versions?: eserviceTemplateApi.EServiceTemplateVersion[];
-} = {}): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
+  id?: string;
+  mockFileName?: string;
+  mockContentType?: string;
+  mockFileContent?: string;
+  prettyName?: string;
+} = {}): DownloadedDocument {
   return {
-    data: {
-      id: generateId(),
-      creatorId: generateId(),
-      description: generateMock(z.string().length(10)),
-      intendedTarget: generateMock(z.string().length(10)),
-      mode: generateMock(m2mGatewayApi.EServiceMode),
-      name: generateMock(z.string().length(10)),
-      technology: generateMock(m2mGatewayApi.EServiceTechnology),
-      versions: versions ?? [getMockedApiEserviceTemplateVersion()],
-      isSignalHubEnabled: generateMock(z.boolean().optional()),
-      riskAnalysis: [getMockedApiRiskAnalysis()],
-    },
-    metadata: {
-      version: 0,
-    },
+    id,
+    file: new File([Buffer.from(mockFileContent)], mockFileName, {
+      type: mockContentType,
+    }),
+    prettyName,
   };
 }
 
-export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): m2mGatewayApi.EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+});
+
+export const buildEserviceTemplateRiskAnalysisSeed = (
+  riskAnalysis: EServiceTemplateRiskAnalysis
+): m2mGatewayApi.EServiceTemplateRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+  tenantKind: riskAnalysis.tenantKind,
+});
+
+export function testToM2MEServiceRiskAnalysisAnswers(
+  riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
+): m2mGatewayApi.EServiceRiskAnalysis["riskAnalysisForm"]["answers"] {
+  const expectedSingleAnswers = riskAnalysisForm.singleAnswers.reduce<
+    Record<string, string[]>
+  >((singleAnswersMap, { key, value }) => {
+    if (value) {
+      singleAnswersMap[key] = [value];
+    }
+    return singleAnswersMap;
+  }, {});
+
+  const expectedMultiAnswers = riskAnalysisForm.multiAnswers.reduce<
+    Record<string, string[]>
+  >((multiAnswersMap, { key, values }) => {
+    if (values.length > 0) {
+      multiAnswersMap[key] = values;
+    }
+    return multiAnswersMap;
+  }, {});
+
   return {
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-    name: generateMock(z.string().length(10)),
-    riskAnalysisForm: {
-      id: generateId(),
-      multiAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          values: generateMock(z.array(z.string())),
-        },
-      ],
-      singleAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          value: generateMock(z.string()),
-        },
-      ],
-      version: "0",
-    },
+    ...expectedSingleAnswers,
+    ...expectedMultiAnswers,
   };
 }
 
-export function getMockedApiEserviceTemplateVersion({
-  state,
-}: {
-  state?: eserviceTemplateApi.EServiceTemplateVersionState;
-} = {}): eserviceTemplateApi.EServiceTemplateVersion {
-  return {
-    id: generateId(),
-    state: state ?? generateMock(m2mGatewayApi.EServiceTemplateVersionState),
-    voucherLifespan: generateMock(z.number().positive()),
-    version: 0,
-    attributes: {
-      certified: [[getMockedApiEServiceAttribute()]],
-      declared: [[getMockedApiEServiceAttribute()]],
-      verified: [[getMockedApiEServiceAttribute()]],
-    },
-    docs: [],
-  };
-}
+export const testToM2mGatewayApiPurposeVersion = (
+  version: purposeApi.PurposeVersion
+): m2mGatewayApi.PurposeVersion => ({
+  id: version.id,
+  createdAt: version.createdAt,
+  dailyCalls: version.dailyCalls,
+  state: version.state,
+  firstActivationAt: version.firstActivationAt,
+  rejectionReason: version.rejectionReason,
+  suspendedAt: version.suspendedAt,
+  updatedAt: version.updatedAt,
+});
 
-export function getMockedApiEServiceAttribute(): catalogApi.Attribute {
-  return {
-    id: generateId(),
-    explicitAttributeVerification: generateMock(z.boolean()),
-  };
-}
+export const testToM2mGatewayApiAgreement = (
+  agreement: agreementApi.Agreement
+): m2mGatewayApi.Agreement => ({
+  id: agreement.id,
+  eserviceId: agreement.eserviceId,
+  descriptorId: agreement.descriptorId,
+  producerId: agreement.producerId,
+  consumerId: agreement.consumerId,
+  delegationId: agreement.stamps.submission?.delegationId,
+  state: agreement.state,
+  suspendedByConsumer: agreement.suspendedByConsumer,
+  suspendedByProducer: agreement.suspendedByProducer,
+  suspendedByPlatform: agreement.suspendedByPlatform,
+  consumerNotes: agreement.consumerNotes,
+  rejectionReason: agreement.rejectionReason,
+  createdAt: agreement.createdAt,
+  updatedAt: agreement.updatedAt,
+  suspendedAt: agreement.suspendedAt,
+});
 
-export function getMockedApiEServiceDocument(): catalogApi.EServiceDoc {
-  return {
-    id: generateId(),
-    checksum: generateMock(z.string()),
-    contentType: generateMock(z.string()),
-    name: generateMock(z.string()),
-    path: generateMock(z.string()),
-    prettyName: generateMock(z.string()),
-    contacts: {
-      name: generateMock(z.string()),
-      email: generateMock(z.string().email()),
-      serverUrls: generateMock(z.array(z.string().url())),
-      termsAndConditionsUrl: generateMock(z.string().url()),
-      url: generateMock(z.string().url()),
-    },
-  };
-}
+export const testToM2mGatewayApiEService = (
+  eservice: catalogApi.EService
+): m2mGatewayApi.EService => ({
+  id: eservice.id,
+  producerId: eservice.producerId,
+  name: eservice.name,
+  description: eservice.description,
+  technology: eservice.technology,
+  mode: eservice.mode,
+  isSignalHubEnabled: eservice.isSignalHubEnabled,
+  isConsumerDelegable: eservice.isConsumerDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
+  templateId: eservice.templateId,
+  personalData: eservice.personalData,
+});
 
-export function getMockedApiCertifiedTenantAttribute({
-  revoked = false,
-}: {
-  revoked?: boolean;
-} = {}): tenantApi.CertifiedTenantAttribute {
-  return {
-    id: generateId(),
-    assignmentTimestamp: new Date().toISOString(),
-    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
-  };
-}
+export const testToM2mGatewayApiEServiceEvent = (
+  eserviceEvent: m2mEventApi.EServiceM2MEvent
+): m2mGatewayApi.EServiceEvent => ({
+  id: eserviceEvent.id,
+  eserviceId: eserviceEvent.eserviceId,
+  eventType: eserviceEvent.eventType,
+  eventTimestamp: eserviceEvent.eventTimestamp,
+  descriptorId: eserviceEvent.descriptorId,
+  producerDelegationId: eserviceEvent.producerDelegationId,
+});
+
+export const testToM2mGatewayApiEServiceTemplateEvent = (
+  eserviceTemplateEvent: m2mEventApi.EServiceTemplateM2MEvent
+): m2mGatewayApi.EServiceTemplateEvent => ({
+  id: eserviceTemplateEvent.id,
+  eventTimestamp: eserviceTemplateEvent.eventTimestamp,
+  eventType: eserviceTemplateEvent.eventType,
+  eserviceTemplateId: eserviceTemplateEvent.eserviceTemplateId,
+  eserviceTemplateVersionId: eserviceTemplateEvent.eserviceTemplateVersionId,
+});
+
+export const testToM2mGatewayApiPurpose = (
+  purpose: purposeApi.Purpose,
+  {
+    currentVersion,
+    waitingForApprovalVersion,
+    rejectedVersion,
+  }: {
+    currentVersion?: m2mGatewayApi.PurposeVersion;
+    waitingForApprovalVersion?: m2mGatewayApi.PurposeVersion;
+    rejectedVersion?: m2mGatewayApi.PurposeVersion;
+  }
+): m2mGatewayApi.Purpose => ({
+  id: purpose.id,
+  eserviceId: purpose.eserviceId,
+  consumerId: purpose.consumerId,
+  suspendedByConsumer: purpose.suspendedByConsumer,
+  suspendedByProducer: purpose.suspendedByProducer,
+  title: purpose.title,
+  description: purpose.description,
+  createdAt: purpose.createdAt,
+  updatedAt: purpose.updatedAt,
+  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
+  isFreeOfCharge: purpose.isFreeOfCharge,
+  freeOfChargeReason: purpose.freeOfChargeReason,
+  delegationId: purpose.delegationId,
+  currentVersion,
+  waitingForApprovalVersion,
+  rejectedVersion,
+  purposeTemplateId: purpose.purposeTemplateId,
+});
+
+export const testToM2MJWK = (
+  key: authorizationApi.JWKKey
+): m2mGatewayApi.JWK => ({
+  kid: key.kid,
+  kty: key.kty,
+  "x5t#S256": key["x5t#S256"],
+  alg: key.alg,
+  crv: key.crv,
+  d: key.d,
+  dp: key.dp,
+  dq: key.dq,
+  e: key.e,
+  k: key.k,
+  key_ops: key.key_ops,
+  n: key.n,
+  oth: key.oth,
+  p: key.p,
+  q: key.q,
+  qi: key.qi,
+  use: key.use,
+  x: key.x,
+  x5c: key.x5c,
+  x5t: key.x5t,
+  x5u: key.x5u,
+  y: key.y,
+});
+
+export const testToM2MKey = ({
+  clientId,
+  jwk,
+}: authorizationApi.ClientJWK): m2mGatewayApi.Key => ({
+  clientId,
+  jwk: testToM2MJWK(jwk),
+});
+
+export const testToM2MProducerKey = ({
+  jwk,
+  producerKeychainId,
+}: authorizationApi.ProducerJWK): m2mGatewayApi.ProducerKey => ({
+  producerKeychainId,
+  jwk: testToM2MJWK(jwk),
+});
+
+export const testToM2MRiskAnalysisTemplateAnswer = (
+  answer: purposeTemplateApi.RiskAnalysisTemplateAnswer
+): m2mGatewayApi.RiskAnalysisTemplateAnswer => ({
+  id: answer.id,
+  values: answer.values,
+  editable: answer.editable,
+  annotationText: answer.annotation ? answer.annotation.text : undefined,
+  suggestedValues: answer.suggestedValues,
+});

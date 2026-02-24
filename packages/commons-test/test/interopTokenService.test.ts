@@ -1,17 +1,19 @@
 import {
   AuthorizationServerTokenGenerationConfig,
-  CustomClaims,
   InteropTokenGenerator,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  UserClaims,
   UserRole,
   b64ByteUrlDecode,
+  calculateKid,
   dateToSeconds,
   systemRole,
   userRole,
 } from "pagopa-interop-commons";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  algorithm,
   ClientAssertionDigest,
   ClientId,
   DescriptorId,
@@ -22,7 +24,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { getMockSessionClaims } from "../src/testUtils.js";
+import { getMockDPoPProof, getMockSessionClaims } from "../src/testUtils.js";
 
 const deserializeJWT = (jwt: string): JSON =>
   b64ByteUrlDecode(jwt.split(".")[1]);
@@ -34,7 +36,7 @@ describe("Token Generator", () => {
   const authServerConfig: AuthorizationServerTokenGenerationConfig = {
     generatedInteropTokenKid: generateId(),
     generatedInteropTokenIssuer: "Interop Issuer",
-    generatedInteropTokenM2MAudience: "M2M Audience",
+    generatedInteropTokenM2MAudience: ["M2M Audience1", "M2M Audience2"],
     generatedInteropTokenM2MDurationSeconds: 1000,
   };
 
@@ -55,10 +57,10 @@ describe("Token Generator", () => {
 
   const verifyCustomClaims = (
     payload: JSON,
-    expectedClaims: CustomClaims
+    expectedClaims: UserClaims
   ): void => {
     expect(payload).toMatchObject({
-      "user-roles": expectedClaims["user-roles"],
+      "user-roles": expectedClaims["user-roles"].join(","),
       organizationId: expectedClaims.organizationId,
       selfcareId: expectedClaims.selfcareId,
       externalId: {
@@ -102,7 +104,7 @@ describe("Token Generator", () => {
         1000
       );
       expect(actualToken.header).toEqual({
-        alg: "RS256",
+        alg: algorithm.RS256,
         use: "sig",
         typ: "at+jwt",
         kid: sessionTokenGenerationConfig.generatedKid,
@@ -113,7 +115,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toMatchObject({
         jti: expect.any(String),
         iss: sessionTokenGenerationConfig.generatedIssuer,
-        aud: sessionTokenGenerationConfig.generatedAudience,
+        aud: sessionTokenGenerationConfig.generatedAudience.join(","),
         iat: mockTimeStamp,
         nbf: mockTimeStamp,
         exp:
@@ -145,7 +147,7 @@ describe("Token Generator", () => {
           1000
         );
         expect(actualToken.header).toEqual({
-          alg: "RS256",
+          alg: algorithm.RS256,
           use: "sig",
           typ: "at+jwt",
           kid: sessionTokenGenerationConfig.generatedKid,
@@ -156,7 +158,7 @@ describe("Token Generator", () => {
         expect(decodedActualToken).toMatchObject({
           jti: expect.any(String),
           iss: sessionTokenGenerationConfig.generatedIssuer,
-          aud: sessionTokenGenerationConfig.generatedAudience,
+          aud: sessionTokenGenerationConfig.generatedAudience.join(","),
           iat: mockTimeStamp,
           nbf: mockTimeStamp,
           exp:
@@ -198,7 +200,7 @@ describe("Token Generator", () => {
       });
 
       expect(actualToken.header).toEqual({
-        alg: "RS256",
+        alg: algorithm.RS256,
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -209,7 +211,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toMatchObject({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: authServerConfig.generatedInteropTokenM2MAudience,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
         client_id: subClientId,
         sub: subClientId,
         iat: mockTimeStamp,
@@ -238,7 +240,7 @@ describe("Token Generator", () => {
       });
 
       expect(actualToken.header).toEqual({
-        alg: "RS256",
+        alg: algorithm.RS256,
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -249,7 +251,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: authServerConfig.generatedInteropTokenM2MAudience,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
         client_id: subClientId,
         sub: subClientId,
         iat: mockTimeStamp,
@@ -260,6 +262,99 @@ describe("Token Generator", () => {
         organizationId: consumerId,
         adminId: adminClientId,
         role: systemRole.M2M_ADMIN_ROLE,
+      });
+    });
+  });
+
+  describe("Api JWT DPoP Token", () => {
+    it("should have M2M DPoP token claims", async () => {
+      const subClientId: ClientId = generateId();
+      const consumerId: TenantId = generateId();
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken = await interopTokenGenerator.generateInteropApiToken({
+        sub: subClientId,
+        consumerId,
+        clientAdminId: undefined,
+        dpopJWK: dpopProofJWT.header.jwk,
+      });
+
+      expect(actualToken.header).toEqual({
+        alg: algorithm.RS256,
+        use: "sig",
+        typ: "at+jwt",
+        kid: authServerConfig.generatedInteropTokenKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toMatchObject({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
+        client_id: subClientId,
+        sub: subClientId,
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp:
+          mockTimeStamp +
+          authServerConfig.generatedInteropTokenM2MDurationSeconds,
+        organizationId: consumerId,
+        cnf: {
+          jkt: calculateKid(dpopProofJWT?.header.jwk),
+        },
+      });
+    });
+
+    it("should have M2M-Admin DPoP token claims", async () => {
+      const subClientId: ClientId = generateId();
+      const consumerId: TenantId = generateId();
+      const adminClientId: UserId = generateId();
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken = await interopTokenGenerator.generateInteropApiToken({
+        sub: subClientId,
+        consumerId,
+        clientAdminId: adminClientId,
+        dpopJWK: dpopProofJWT.header.jwk,
+      });
+
+      expect(actualToken.header).toEqual({
+        alg: algorithm.RS256,
+        use: "sig",
+        typ: "at+jwt",
+        kid: authServerConfig.generatedInteropTokenKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toEqual({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
+        client_id: subClientId,
+        sub: subClientId,
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp:
+          mockTimeStamp +
+          authServerConfig.generatedInteropTokenM2MDurationSeconds,
+        organizationId: consumerId,
+        adminId: adminClientId,
+        role: systemRole.M2M_ADMIN_ROLE,
+        cnf: {
+          jkt: calculateKid(dpopProofJWT?.header.jwk),
+        },
       });
     });
   });
@@ -276,7 +371,7 @@ describe("Token Generator", () => {
       const tokenDurationInSeconds = 1000;
 
       const digest: ClientAssertionDigest = {
-        alg: "RS256",
+        alg: algorithm.RS256,
         value: "valid-digest-value",
       };
 
@@ -300,7 +395,7 @@ describe("Token Generator", () => {
         });
 
       expect(actualToken.header).toEqual({
-        alg: "RS256",
+        alg: algorithm.RS256,
         use: "sig",
         typ: "at+jwt",
         kid: authServerConfig.generatedInteropTokenKid,
@@ -312,7 +407,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: audience,
+        aud: audience.join(","),
         iat: mockTimeStamp,
         nbf: mockTimeStamp,
         exp: mockTimeStamp + tokenDurationInSeconds,
@@ -320,6 +415,69 @@ describe("Token Generator", () => {
         sub: subClientId,
         purposeId,
         digest,
+      });
+    });
+
+    it("should have Interop Consumer standard token claims and the DPoP thumbprint", async () => {
+      const subClientId: ClientId = generateId();
+      const audience = ["Audience1", "Audience2"];
+      const purposeId = generateId<PurposeId>();
+      const consumerId: TenantId = generateId();
+      const producerId: TenantId = generateId();
+      const eserviceId: EServiceId = generateId();
+      const descriptorId: DescriptorId = generateId();
+      const tokenDurationInSeconds = 1000;
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const digest: ClientAssertionDigest = {
+        alg: algorithm.RS256,
+        value: "valid-digest-value",
+      };
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken =
+        await interopTokenGenerator.generateInteropConsumerToken({
+          sub: subClientId,
+          audience,
+          purposeId,
+          tokenDurationInSeconds,
+          digest,
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+          featureFlagImprovedProducerVerificationClaims: false,
+          dpopJWK: dpopProofJWT?.header.jwk,
+        });
+
+      expect(actualToken.header).toEqual({
+        alg: algorithm.RS256,
+        use: "sig",
+        typ: "at+jwt",
+        kid: authServerConfig.generatedInteropTokenKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      // Interop Consumer token payload don't have custom claims
+      expect(decodedActualToken).toEqual({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: audience.join(","),
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp: mockTimeStamp + tokenDurationInSeconds,
+        client_id: subClientId,
+        sub: subClientId,
+        purposeId,
+        digest,
+        cnf: {
+          jkt: calculateKid(dpopProofJWT?.header.jwk),
+        },
       });
     });
   });
@@ -334,7 +492,7 @@ describe("Token Generator", () => {
       const actualToken = await interopTokenGenerator.generateInternalToken();
 
       expect(actualToken.header).toEqual({
-        alg: "RS256",
+        alg: algorithm.RS256,
         use: "sig",
         typ: "at+jwt",
         kid: interopTokenGenerationConfig.kid,
@@ -346,7 +504,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: interopTokenGenerationConfig.issuer,
-        aud: interopTokenGenerationConfig.audience,
+        aud: interopTokenGenerationConfig.audience.join(","),
         sub: interopTokenGenerationConfig.subject,
         iat: mockTimeStamp,
         nbf: mockTimeStamp,

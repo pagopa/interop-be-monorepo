@@ -1,5 +1,7 @@
 import {
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -9,7 +11,7 @@ import {
   applicationAuditAuthorizationServerEndMiddleware,
   applicationAuditBeginMiddleware,
 } from "pagopa-interop-application-audit";
-import healthRouter from "./routers/HealthRouter.js";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 import { config } from "./config/config.js";
 import { TokenService } from "./services/tokenService.js";
@@ -24,15 +26,18 @@ export async function createApp(service: TokenService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
-  app.use(contextMiddleware(serviceName, false));
-  app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(
-    await applicationAuditAuthorizationServerEndMiddleware(serviceName, config)
+    "/authorization-server",
+    healthRouter(authorizationServerApi.healthApi.api),
+    contextMiddleware(serviceName, false),
+    await applicationAuditBeginMiddleware(serviceName, config),
+    await applicationAuditAuthorizationServerEndMiddleware(serviceName, config),
+    express.urlencoded({ extended: true }),
+    loggerMiddleware(serviceName),
+    authorizationServerRouter(zodiosCtx, service)
   );
-  app.use(express.urlencoded({ extended: true }));
-  app.use(loggerMiddleware(serviceName));
-  app.use(authorizationServerRouter(zodiosCtx, service));
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

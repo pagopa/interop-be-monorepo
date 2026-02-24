@@ -1,21 +1,22 @@
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
-import { EService, toReadModelEService } from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../src/readModelService.js";
+import { EService } from "pagopa-interop-models";
+import { upsertEService } from "pagopa-interop-readmodel/testUtils";
+import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  inject("readModelConfig")
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
 );
 
 afterEach(cleanup);
 
-export const { agreements, clients, eservices, purposes } = readModelRepository;
-
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const readModelService = readModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
+  await upsertEService(readModelDB, eservice, 1);
 };

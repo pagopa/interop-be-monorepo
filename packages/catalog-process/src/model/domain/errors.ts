@@ -1,24 +1,27 @@
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  AttributeId,
   DelegationId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  EServiceTemplateVersionId,
   RiskAnalysisId,
   TenantId,
+  TenantKind,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   eServiceDescriptorNotFound: "0001",
   eServiceDescriptorWithoutInterface: "0002",
   notValidDescriptor: "0003",
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceNameDuplicate: "007",
+  eServiceNameDuplicateForProducer: "007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
@@ -49,6 +52,15 @@ export const errorCodes = {
   eserviceTemplateInterfaceNotFound: "0035",
   eserviceTemplateInterfaceDataNotValid: "0036",
   descriptorTemplateVersionNotFound: "0037",
+  templateMissingRequiredRiskAnalysis: "0038",
+  eserviceTemplateNameConflict: "0039",
+  checksumDuplicate: "0040",
+  attributeDuplicatedInGroup: "0041",
+  eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
+  missingPersonalDataFlag: "0043",
+  eServiceTemplateWithoutPersonalDataFlag: "0044",
+  eServiceUpdateSameDescriptionConflict: "0045",
+  eServiceUpdateSameNameConflict: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -63,13 +75,24 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNameDuplicate(
+export function eServiceNameDuplicateForProducer(
+  eserviceName: string,
+  producerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An EService with name ${eserviceName} already exists for producer ${producerId}`,
+    code: "eServiceNameDuplicateForProducer",
+    title: "Duplicated service name",
+  });
+}
+
+export function eserviceTemplateNameConflict(
   eserviceName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An EService with name ${eserviceName} already exists`,
-    code: "eServiceNameDuplicate",
-    title: "Duplicated service name",
+    detail: `An EService template with name ${eserviceName} already exists`,
+    code: "eserviceTemplateNameConflict",
+    title: "EService template name conflict",
   });
 }
 
@@ -423,5 +446,91 @@ export function descriptorTemplateVersionNotFound(
     detail: `Template version for instance descriptor ${descriptorId} of e-service ${eserviceId} not found in template ${eserviceTemplateId}`,
     code: "descriptorTemplateVersionNotFound",
     title: "Descriptor template version not found",
+  });
+}
+
+export function templateMissingRequiredRiskAnalysis(
+  templateId: EServiceTemplateId,
+  tenantId: TenantId,
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind}`,
+    code: "templateMissingRequiredRiskAnalysis",
+    title: "Missing required risk analysis",
+  });
+}
+
+export function checksumDuplicate(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with the same content already exists in descriptor ${descriptorId} of e-service ${eserviceId}`,
+    code: "checksumDuplicate",
+    title: "Duplicated checksum",
+  });
+}
+
+export function attributeDuplicatedInGroup(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} is duplicated in attribute group`,
+    code: "attributeDuplicatedInGroup",
+    title: "Duplicated attribute in group",
+  });
+}
+
+export function eservicePersonalDataFlagCanOnlyBeSetOnce(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `PersonalData flag has already been set for eService ${eserviceId}`,
+    code: "eservicePersonalDataFlagCanOnlyBeSetOnce",
+    title: "EService personalData flag can only be set once",
+  });
+}
+
+export function missingPersonalDataFlag(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
+    code: "missingPersonalDataFlag",
+    title: "EService personalData flag must be set before publication",
+  });
+}
+
+export function eServiceTemplateWithoutPersonalDataFlag(
+  eServiceTemplateId: EServiceTemplateId,
+  eServiceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template version ${eServiceTemplateVersionId} in eService Template ${eServiceTemplateId} cannot be instantiated because the personalData flag is not set`,
+    code: "eServiceTemplateWithoutPersonalDataFlag",
+    title:
+      "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function eServiceUpdateSameDescriptionConflict(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The description provided is the same as the current one for EService ${eserviceId}`,
+    code: "eServiceUpdateSameDescriptionConflict",
+    title: "Same eService description update conflict",
+  });
+}
+
+export function eServiceUpdateSameNameConflict(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The name provided is the same as the current one for EService ${eserviceId}`,
+    code: "eServiceUpdateSameNameConflict",
+    title: "Same EService name update conflict",
   });
 }

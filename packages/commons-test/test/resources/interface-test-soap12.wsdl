@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                 xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                 xmlns:tns="http://example.com/tst/definitions"
+                 targetNamespace="http://example.com/tst/definitions">
+
+    <wsdl:types>
+        <xsd:schema targetNamespace="http://example.com/tst/definitions">
+            <xsd:element name="TestRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="input" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="TestResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="output" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="doTestInput">
+        <wsdl:part name="body" element="tns:TestRequest"/>
+    </wsdl:message>
+    <wsdl:message name="doTestOutput">
+        <wsdl:part name="body" element="tns:TestResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="TestPortType">
+        <wsdl:operation name="doTest">
+            <wsdl:input message="tns:doTestInput"/>
+            <wsdl:output message="tns:doTestOutput"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="TestBinding" type="tns:TestPortType">
+        <soap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="doTest">
+            <soap12:operation soapAction="http://example.com/tst/doTest"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="TestService">
+        <wsdl:port name="TestPort" binding="tns:TestBinding">
+            <soap:address location="http://example.com/tst/service"/>
+        </wsdl:port>
+        <wsdl:port name="TestPort" binding="tns:12TestBinding">
+            <soap12:address location="http://example.com/tst/service-2"/>
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+               xmlns:tst="http://example.com/tst/definitions">
+   <soap:Header>
+      </soap:Header>
+   <soap:Body>
+      <tst:TestRequest>
+         <tst:input>Valore di test per l'operazione</tst:input>
+      </tst:TestRequest>
+   </soap:Body>
+</soap:Envelope>

@@ -6,6 +6,7 @@ import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
@@ -38,12 +39,7 @@ export function tenantRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, TenantSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -84,9 +80,7 @@ export function tenantRepository(conn: DBConnection) {
     ): Promise<void> {
       try {
         const cs = buildColumnSet(pgp, deletingTableName, TenantDeletingSchema);
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -100,7 +94,9 @@ export function tenantRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -132,12 +128,13 @@ export function tenantRepository(conn: DBConnection) {
           TenantSelfcareIdSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTenantSelfcareUpsertTableName} a
-          USING ${stagingTenantSelfcareUpsertTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(
+            tableName,
+            ["id"],
+            tenantSelfcareUpsertTableName
+          )
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTenantSelfcareUpsertTableName}: ${error}`
@@ -163,5 +160,3 @@ export function tenantRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantRepository = ReturnType<typeof tenantRepository>;

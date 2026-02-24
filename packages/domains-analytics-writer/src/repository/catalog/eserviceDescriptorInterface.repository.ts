@@ -2,14 +2,17 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
-  EserviceDescriptorInterfaceDeletingSchema,
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
@@ -18,7 +21,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_interface;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.catalog_deleting_table;
+  const deletingTableName =
+    DeletingDbTable.catalog_descriptor_interface_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
@@ -34,12 +38,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           EserviceDescriptorInterfaceSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -76,17 +75,15 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceDescriptorInterfaceDeletingSchema[]
+      records: EserviceDescriptorDocumentOrInterfaceDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceDescriptorInterfaceDeletingSchema
+          EserviceDescriptorDocumentOrInterfaceDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -94,8 +91,21 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+    async mergeDeleting(
+      t: ITask<unknown>,
+      idsToDelete: string[]
+    ): Promise<string[]> {
       try {
+        const idParams = idsToDelete.map((_, i) => `$${i + 1}`).join(", ");
+
+        const existingIds = await t.map<string>(
+          `SELECT id 
+          FROM ${schemaName}.${tableName}
+          WHERE id IN (${idParams})`,
+          idsToDelete,
+          (row) => row.id
+        );
+
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
@@ -103,6 +113,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           ["id"]
         );
         await t.none(mergeQuery);
+
+        return existingIds;
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
@@ -121,7 +133,3 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorInterfaceRepository = ReturnType<
-  typeof eserviceDescriptorInterfaceRepository
->;

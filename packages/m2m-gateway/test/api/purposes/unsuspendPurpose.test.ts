@@ -1,27 +1,40 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, PurposeId } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  PurposeId,
+} from "pagopa-interop-models";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingPurposeVersionWithState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes/:purposeId/unsuspend router test", () => {
   const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
-  const makeRequest = async (token: string, purposeId: string) =>
+  const makeRequest = async (
+    token: string,
+    purposeId: string,
+    body: m2mGatewayApi.DelegationRef | undefined = {
+      delegationId: generateId(),
+    }
+  ) =>
     request(api)
       .post(`${appBasePath}/purposes/${purposeId}/unsuspend`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -38,6 +51,32 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
       expect(res.body).toEqual(mockM2MPurposeResponse);
     }
   );
+
+  it("Should return 200 when no body is passed", async () => {
+    mockPurposeService.unsuspendPurpose = vi
+      .fn()
+      .mockResolvedValue(mockM2MPurposeResponse);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiPurpose.id, undefined);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MPurposeResponse);
+  });
+
+  it.each([
+    { delegationId: "INVALID ID" },
+    {
+      unsupportedField: "unsupportedValue",
+    },
+  ])("Should return 400 for incorrect value for body", async (body) => {
+    mockPurposeService.unsuspendPurpose = vi
+      .fn()
+      .mockResolvedValue(mockM2MPurposeResponse);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiPurpose.id, body);
+    expect(res.status).toBe(400);
+  });
 
   it("Should return 409 for missing suspended purpose version", async () => {
     mockPurposeService.unsuspendPurpose = vi
@@ -68,16 +107,19 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId());
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MPurposeResponse, createdAt: undefined },

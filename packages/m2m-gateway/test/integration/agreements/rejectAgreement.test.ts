@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,19 +17,18 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
-  getMockedApiAgreement,
+  testToM2mGatewayApiAgreement,
 } from "../../mockUtils.js";
 
 describe("rejectAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
 
   const mockRejectAgreementBody: m2mGatewayApi.AgreementRejection = {
     reason: "This is a test reason for rejection",
@@ -35,7 +41,7 @@ describe("rejectAgreement", () => {
   const mockGetAgreement = vi.fn(
     mockPollingResponse(
       mockAgreementProcessResponse,
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     )
   );
 
@@ -51,15 +57,8 @@ describe("rejectAgreement", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
-    };
+    const m2mAgreementResponse: m2mGatewayApi.Agreement =
+      testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
 
     const result = await agreementService.rejectAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
@@ -67,9 +66,9 @@ describe("rejectAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.rejectAgreement,
@@ -114,11 +113,11 @@ describe("rejectAgreement", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetAgreement.mockImplementation(
       mockPollingResponse(
         mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -129,10 +128,13 @@ describe("rejectAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

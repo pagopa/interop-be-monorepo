@@ -317,6 +317,7 @@ export const toCreateEventEServiceTemplateNameUpdated = (
   streamId: string,
   version: number,
   eserviceTemplate: EServiceTemplate,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceTemplateEvent> => ({
   streamId,
@@ -326,6 +327,7 @@ export const toCreateEventEServiceTemplateNameUpdated = (
     event_version: 2,
     data: {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+      oldName,
     },
   },
   correlationId,
@@ -468,3 +470,21 @@ export const toCreateEventEServiceTemplateVersionActivated = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication =
+  (
+    version: number,
+    eserviceTemplate: EServiceTemplate,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceTemplateEvent> => ({
+    streamId: eserviceTemplate.id,
+    version,
+    event: {
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+      event_version: 2,
+      data: {
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+      },
+    },
+    correlationId,
+  });

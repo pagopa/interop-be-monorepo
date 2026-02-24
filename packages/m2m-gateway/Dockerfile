@@ -1,9 +1,9 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS build
 
-RUN npm install -g corepack@0.31.0 && corepack enable
+RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -29,24 +29,29 @@ COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
-RUN pnpm build && \
-    rm -rf /app/node_modules/.modules.yaml && \
-    rm -rf /app/node_modules/.cache && \
-    mkdir /out && \
-    cp -a --parents -t /out \
-      node_modules packages/m2m-gateway/node_modules \
-      package*.json packages/m2m-gateway/package*.json \
-      packages/commons \
-      packages/models \
-      packages/api-clients  \
-      packages/application-audit \
-      packages/kafka-iam-auth \
-      packages/m2m-gateway/dist && \
-    find /out -exec touch -h --date=@0 {} \;
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
+  rm -rf /app/node_modules/.modules.yaml && \
+  rm -rf /app/node_modules/.cache && \
+  mkdir /out && \
+  cp -a --parents -t /out \
+  node_modules packages/m2m-gateway/node_modules \
+  package*.json packages/m2m-gateway/package*.json \
+  packages/commons \
+  packages/models \
+  packages/api-clients  \
+  packages/application-audit \
+  packages/kafka-iam-auth \
+  packages/m2m-gateway/dist && \
+  find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
 
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/m2m-gateway
 EXPOSE 3000

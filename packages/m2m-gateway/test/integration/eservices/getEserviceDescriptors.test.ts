@@ -2,42 +2,50 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceDescriptors", () => {
   const mockCatalogProcessDescriptor1 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor2 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor3 = getMockedApiEserviceDescriptor({
     state: "DEPRECATED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor4 = getMockedApiEserviceDescriptor({
     state: "PUBLISHED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor5 = getMockedApiEserviceDescriptor({
     state: "DRAFT",
-  }).data;
-  const mockCatalogProcessResponse = getMockedApiEservice({
-    descriptors: [
-      mockCatalogProcessDescriptor1,
-      mockCatalogProcessDescriptor2,
-      mockCatalogProcessDescriptor3,
-      mockCatalogProcessDescriptor4,
-      mockCatalogProcessDescriptor5,
-    ],
   });
+
+  const mockCatalogProcessResponse = getMockWithMetadata(
+    getMockedApiEservice({
+      descriptors: [
+        mockCatalogProcessDescriptor1,
+        mockCatalogProcessDescriptor2,
+        mockCatalogProcessDescriptor3,
+        mockCatalogProcessDescriptor4,
+        mockCatalogProcessDescriptor5,
+      ],
+    })
+  );
 
   const testToM2MGatewayApiDescriptor = (
     descriptor: catalogApi.EServiceDescriptor
@@ -106,7 +114,7 @@ describe("getEserviceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceDescriptorsResponse);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },
@@ -130,7 +138,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result).toEqual(m2mEserviceDescriptorsResponse1);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
 
     const m2mEserviceDescriptorsResponse2: m2mGatewayApi.EServiceDescriptors = {
       pagination: {
@@ -148,7 +156,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
+    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
 
     const m2mEserviceDescriptorsResponse3: m2mGatewayApi.EServiceDescriptors = {
       pagination: {
@@ -166,7 +174,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mEserviceDescriptorsResponse3);
+    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
   });
 
   it("Should apply filters (offset, limit, state)", async () => {
@@ -187,7 +195,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result).toEqual(m2mEserviceDescriptorsResponse1);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
 
     const m2mEserviceDescriptorsResponse2: m2mGatewayApi.EServiceDescriptors = {
       pagination: {
@@ -206,7 +214,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
+    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
     const m2mEserviceDescriptorsResponse3: m2mGatewayApi.EServiceDescriptors = {
       pagination: {
         offset: 0,
@@ -224,6 +232,6 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mEserviceDescriptorsResponse3);
+    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
   });
 });

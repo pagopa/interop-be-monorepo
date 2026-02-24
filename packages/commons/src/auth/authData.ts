@@ -1,133 +1,13 @@
 import {
+  SelfcareId,
   TenantId,
   UserId,
-  unsafeBrandId,
-  SelfcareId,
   ClientId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { z } from "zod";
-
-export const userRole = {
-  ADMIN_ROLE: "admin",
-  SECURITY_ROLE: "security",
-  API_ROLE: "api",
-  SUPPORT_ROLE: "support",
-} as const;
-
-export const UserRole = z.enum([
-  Object.values(userRole)[0],
-  ...Object.values(userRole).slice(1),
-]);
-export type UserRole = z.infer<typeof UserRole>;
-
-// System roles = special non-UI tokens
-export const systemRole = {
-  M2M_ROLE: "m2m",
-  M2M_ADMIN_ROLE: "m2m-admin",
-  INTERNAL_ROLE: "internal",
-  MAINTENANCE_ROLE: "maintenance",
-} as const;
-
-export const SystemRole = z.enum([
-  Object.values(systemRole)[0],
-  ...Object.values(systemRole).slice(1),
-]);
-export type SystemRole = z.infer<typeof SystemRole>;
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
-  z
-    .string()
-    .nonempty()
-    .transform((s: string) => s.split(","))
-    .pipe(z.array(t));
-
-const SharedStandardJWTClaims = z.object({
-  // All standard claims except "sub", which is not present in UI tokens
-  iss: z.string(),
-  aud: z.union([z.array(z.string()), CommaSeparatedStringToArray(z.string())]),
-  exp: z.number(),
-  nbf: z.number(),
-  iat: z.number(),
-  jti: z.string(),
-});
-
-const M2MAuthTokenCommonProps = SharedStandardJWTClaims.merge(
-  z.object({
-    organizationId: z.string().uuid(),
-    client_id: z.string().uuid(),
-    sub: z.string(),
-  })
-);
-
-export const M2MAuthToken = M2MAuthTokenCommonProps.merge(
-  z.object({
-    role: z.literal(systemRole.M2M_ROLE),
-  })
-);
-
-export const M2MAdminAuthToken = M2MAuthTokenCommonProps.merge(
-  z.object({
-    role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    adminId: z.string().uuid(),
-    // ^ ID of the admin user associated with the client
-  })
-);
-
-export const InternalAuthToken = SharedStandardJWTClaims.merge(
-  z.object({
-    role: z.literal(systemRole.INTERNAL_ROLE),
-    sub: z.string(),
-  })
-);
-
-export const MaintenanceAuthToken = SharedStandardJWTClaims.merge(
-  z.object({
-    role: z.literal(systemRole.MAINTENANCE_ROLE),
-    sub: z.string(),
-  })
-);
-
-export const UIAuthToken = SharedStandardJWTClaims.merge(
-  z.object({
-    // setting role to z.undefined() to make the discriminated union work.
-    // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
-    role: z.undefined(),
-    "user-roles": CommaSeparatedStringToArray(UserRole),
-    uid: z.string().uuid(),
-    organizationId: z.string().uuid(),
-    selfcareId: z.string().uuid(),
-    organization: z.object({
-      id: z.string().uuid(),
-      name: z.string(),
-      roles: z.array(
-        z.object({
-          partyRole: z.string().nullish(),
-          role: UserRole,
-        })
-      ),
-      fiscal_code: z.string().nullish(),
-      ipaCode: z.string().nullish(),
-    }),
-    externalId: z.object({
-      origin: z.string(),
-      value: z.string(),
-    }),
-    name: z.string().nullish(),
-    family_name: z.string().nullish(),
-    email: z.string().nullish(),
-  })
-);
-
-export const AuthToken = z.discriminatedUnion("role", [
-  M2MAuthToken,
-  M2MAdminAuthToken,
-  InternalAuthToken,
-  MaintenanceAuthToken,
-  UIAuthToken,
-]);
-export type AuthToken = z.infer<typeof AuthToken>;
+import { AuthTokenPayload } from "../interop-token/models.js";
+import { SystemRole, UserRole, systemRole } from "./roles.js";
 
 /* NOTE:
   The following type represents the data extracted from the JWT token.
@@ -141,6 +21,7 @@ export type UIAuthData = {
   userId: UserId;
   userRoles: UserRole[];
   selfcareId: SelfcareId;
+  jti: string;
   externalId: {
     value: string;
     origin: string;
@@ -150,6 +31,8 @@ export type UIAuthData = {
 export type M2MAuthData = {
   systemRole: Extract<SystemRole, "m2m">;
   organizationId: TenantId;
+  clientId: ClientId;
+  jti: string;
 };
 
 export type M2MAdminAuthData = {
@@ -157,14 +40,17 @@ export type M2MAdminAuthData = {
   organizationId: TenantId;
   userId: UserId;
   clientId: ClientId;
+  jti: string;
 };
 
 export type InternalAuthData = {
   systemRole: Extract<SystemRole, "internal">;
+  jti: string;
 };
 
 export type MaintenanceAuthData = {
   systemRole: Extract<SystemRole, "maintenance">;
+  jti: string;
 };
 
 export type AuthData =
@@ -174,24 +60,28 @@ export type AuthData =
   | InternalAuthData
   | MaintenanceAuthData;
 
-export const getAuthDataFromToken = (token: AuthToken): AuthData =>
-  match<AuthToken, AuthData>(token)
+export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
+  match<AuthTokenPayload, AuthData>(token)
     .with(
       { role: systemRole.INTERNAL_ROLE },
       { role: systemRole.MAINTENANCE_ROLE },
       (t) => ({
         systemRole: t.role,
+        jti: t.jti,
       })
     )
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      jti: t.jti,
     }))
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       clientId: unsafeBrandId<ClientId>(t.client_id),
       userId: unsafeBrandId<UserId>(t.adminId),
+      jti: t.jti,
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,
@@ -200,6 +90,7 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
       userRoles: t["user-roles"],
       selfcareId: unsafeBrandId<SelfcareId>(t.selfcareId),
       externalId: t.externalId,
+      jti: t.jti,
     }))
     .exhaustive();
 

@@ -4,12 +4,8 @@ import {
   Tenant,
   TenantEvent,
   TenantId,
-  toReadModelEService,
-  toReadModelTenant,
-  toReadModelAgreement,
   toTenantV2,
   Attribute,
-  toReadModelAttribute,
   Delegation,
 } from "pagopa-interop-models";
 import {
@@ -18,7 +14,6 @@ import {
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
@@ -32,15 +27,18 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import {
+  upsertAgreement,
+  upsertAttribute,
+  upsertDelegation,
+  upsertEService,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
-import { config } from "../src/config/config.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -56,15 +54,6 @@ afterEach(async () => {
   await cleanup();
 });
 
-export const {
-  agreements,
-  clients,
-  eservices,
-  attributes,
-  tenants,
-  delegations,
-} = readModelRepository;
-
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
@@ -74,8 +63,7 @@ const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(
+export const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
@@ -84,18 +72,9 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
-export const writeTenantInEventstore = async (
-  tenant: Tenant
-): Promise<void> => {
+const writeTenantInEventstore = async (tenant: Tenant): Promise<void> => {
   const tenantEvent: TenantEvent = {
     type: "TenantOnboarded",
     event_version: 2,
@@ -111,31 +90,26 @@ export const writeTenantInEventstore = async (
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant);
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastTenantEvent = async (

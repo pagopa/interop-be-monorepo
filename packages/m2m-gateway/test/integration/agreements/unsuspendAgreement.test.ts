@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -13,17 +21,19 @@ import { config } from "../../../src/config/config.js";
 import {
   agreementNotInSuspendedState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
-  getMockedApiAgreement,
   getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
 } from "../../mockUtils.js";
 
 describe("unsuspendAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.SUSPENDED,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.SUSPENDED,
+    })
+  );
+  const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -46,16 +56,22 @@ describe("unsuspendAgreement", () => {
   it("Should succeed and perform API clients calls", async () => {
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
 
-    await agreementService.unsuspendAgreement(
+    const m2mAgreementResponse: m2mGatewayApi.Agreement =
+      testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
+
+    const result = await agreementService.unsuspendAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
+      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
+      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
@@ -67,14 +83,17 @@ describe("unsuspendAgreement", () => {
   });
 
   it("Should throw agreementNotInSuspendedState in case of non-suspended agreement", async () => {
-    const mockAgreementNotSuspended = getMockedApiAgreement({
-      state: agreementApi.AgreementState.Values.ACTIVE,
-    });
+    const mockAgreementNotSuspended = getMockWithMetadata(
+      getMockedApiAgreement({
+        state: agreementApi.AgreementState.Values.ACTIVE,
+      })
+    );
     mockGetAgreement.mockResolvedValueOnce(mockAgreementNotSuspended);
 
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementNotSuspended.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -92,6 +111,7 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -108,32 +128,37 @@ describe("unsuspendAgreement", () => {
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     // The activate will first get the agreement, then perform the polling
     mockGetAgreement
       .mockResolvedValueOnce(mockAgreementProcessResponse)
       .mockImplementation(
         mockPollingResponse(
           mockAgreementProcessResponse,
-          config.defaultPollingMaxAttempts + 1
+          config.defaultPollingMaxRetries + 1
         )
       );
 
     await expect(
       agreementService.unsuspendAgreement(
         unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

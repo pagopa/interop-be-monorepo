@@ -1,0 +1,20 @@
+meta {
+  name: Mark notification as read
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-in-app-notification}}/notifications/:notificationId/markAsRead
+  body: none
+  auth: inherit
+}
+
+params:path {
+  notificationId: 2944aaca-7ee2-4de9-84af-e5d855ef8543
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -6,6 +6,9 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionId,
+  PurposeVersionSignedDocument,
+  PurposeVersionStamp,
+  PurposeVersionStampKind,
   riskAnalysisAnswerKind,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
@@ -16,7 +19,9 @@ import {
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
   PurposeVersionDocumentSQL,
+  PurposeVersionSignedDocumentSQL,
   PurposeVersionSQL,
+  PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitPurposeIntoObjectsSQL = (
@@ -35,6 +40,7 @@ export const splitPurposeIntoObjectsSQL = (
     freeOfChargeReason,
     riskAnalysisForm,
     versions,
+    purposeTemplateId,
     ...rest
   }: Purpose,
   version: number
@@ -57,6 +63,7 @@ export const splitPurposeIntoObjectsSQL = (
     updatedAt: dateToString(updatedAt),
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
+    purposeTemplateId: purposeTemplateId || null,
   };
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
@@ -65,27 +72,45 @@ export const splitPurposeIntoObjectsSQL = (
     version
   );
 
-  const { versionsSQL, versionDocumentsSQL } = versions.reduce(
+  const {
+    versionsSQL,
+    versionDocumentsSQL,
+    versionStampsSQL,
+    versionSignedDocumentsSQL,
+  } = versions.reduce(
     (
       acc: {
         versionsSQL: PurposeVersionSQL[];
         versionDocumentsSQL: PurposeVersionDocumentSQL[];
+        versionStampsSQL: PurposeVersionStampSQL[];
+        versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
       },
       currentPurposeVersion: PurposeVersion
     ) => {
-      const { versionSQL, versionDocumentSQL } =
-        splitPurposeVersionIntoObjectsSQL(id, currentPurposeVersion, version);
+      const {
+        versionSQL,
+        versionDocumentSQL,
+        versionStampsSQL: stampsSQL,
+        versionSignedDocumentSQL,
+      } = splitPurposeVersionIntoObjectsSQL(id, currentPurposeVersion, version);
       return {
         versionsSQL: [...acc.versionsSQL, versionSQL],
         versionDocumentsSQL: [
           ...acc.versionDocumentsSQL,
           ...(versionDocumentSQL ? [versionDocumentSQL] : []),
         ],
+        versionStampsSQL: [...acc.versionStampsSQL, ...stampsSQL],
+        versionSignedDocumentsSQL: [
+          ...acc.versionSignedDocumentsSQL,
+          ...(versionSignedDocumentSQL ? [versionSignedDocumentSQL] : []),
+        ],
       };
     },
     {
       versionsSQL: [],
       versionDocumentsSQL: [],
+      versionStampsSQL: [],
+      versionSignedDocumentsSQL: [],
     }
   );
 
@@ -95,6 +120,8 @@ export const splitPurposeIntoObjectsSQL = (
     riskAnalysisAnswersSQL: splitPurposeRiskAnalysisSQL?.riskAnalysisAnswersSQL,
     versionsSQL,
     versionDocumentsSQL,
+    versionStampsSQL,
+    versionSignedDocumentsSQL,
   };
 };
 
@@ -193,12 +220,16 @@ export const splitPurposeVersionIntoObjectsSQL = (
     firstActivationAt,
     suspendedAt,
     riskAnalysis,
+    stamps,
+    signedContract,
     ...rest
   }: PurposeVersion,
   metadataVersion: number
 ): {
   versionSQL: PurposeVersionSQL;
   versionDocumentSQL: PurposeVersionDocumentSQL | undefined;
+  versionStampsSQL: PurposeVersionStampSQL[];
+  versionSignedDocumentSQL: PurposeVersionSignedDocumentSQL | undefined;
 } => {
   void (rest satisfies Record<string, never>);
 
@@ -222,9 +253,48 @@ export const splitPurposeVersionIntoObjectsSQL = (
     metadataVersion
   );
 
+  const versionSignedDocumentSQL =
+    riskAnalysisToPurposeVersionSignedDocumentSQL(
+      signedContract,
+      purposeId,
+      id,
+      metadataVersion
+    );
+
+  const makeStampSQL = (
+    { who, when, ...stampRest }: PurposeVersionStamp,
+    purposeVersionId: PurposeVersionId,
+    metadataVersion: number,
+    kind: PurposeVersionStampKind
+  ): PurposeVersionStampSQL => {
+    void (stampRest satisfies Record<string, never>);
+
+    return {
+      purposeId,
+      purposeVersionId,
+      metadataVersion,
+      kind,
+      who,
+      when: dateToString(when),
+    };
+  };
+
+  const versionStampsSQL: PurposeVersionStampSQL[] = stamps
+    ? Object.entries(stamps)
+        .filter(
+          (entry): entry is [PurposeVersionStampKind, PurposeVersionStamp] => {
+            const [, stamp] = entry;
+            return stamp !== undefined;
+          }
+        )
+        .map(([key, stamp]) => makeStampSQL(stamp, id, metadataVersion, key))
+    : [];
+
   return {
     versionSQL,
     versionDocumentSQL,
+    versionStampsSQL,
+    versionSignedDocumentSQL,
   };
 };
 
@@ -249,5 +319,30 @@ const riskAnalysisToPurposeVersionDocumentSQL = (
     createdAt: dateToString(createdAt),
     contentType,
     path,
+  };
+};
+const riskAnalysisToPurposeVersionSignedDocumentSQL = (
+  versionDocument: PurposeVersionSignedDocument | undefined,
+  purposeId: PurposeId,
+  purposeVersionId: PurposeVersionId,
+  metadataVersion: number
+): PurposeVersionSignedDocumentSQL | undefined => {
+  if (!versionDocument) {
+    return undefined;
+  }
+
+  const { id, createdAt, contentType, path, signedAt, ...rest } =
+    versionDocument;
+  void (rest satisfies Record<string, never>);
+
+  return {
+    id,
+    metadataVersion,
+    purposeId,
+    purposeVersionId,
+    createdAt: dateToString(createdAt),
+    contentType,
+    path,
+    signedAt: dateToString(signedAt),
   };
 };

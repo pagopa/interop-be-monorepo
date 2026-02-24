@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
-  getMockAuthData,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -21,20 +21,19 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplateVersionPublishedV2,
   tenantKind,
-  RiskAnalysis,
   EServiceTemplateVersionId,
   eserviceMode,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
   eserviceTemplateNotFound,
+  missingPersonalDataFlag,
   eserviceTemplateVersionNotFound,
   missingRiskAnalysis,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
@@ -82,6 +81,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplateVersion,
         newerEServiceTemplateVersion,
       ],
+      personalData: false,
     };
 
     await addOneTenant({
@@ -261,63 +261,7 @@ describe("publishEServiceTemplateVersion", () => {
     );
   });
 
-  it("should throw tenantNotFound if the eservice template creator doesn't exist", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      state: descriptorState.draft,
-    };
-
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      versions: [eserviceTemplateVersion],
-    };
-
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.publishEServiceTemplateVersion(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
-  });
-
-  it("should throw tenantKindNotFound if the eservice template creator doesn't have a kind", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      state: descriptorState.draft,
-    };
-
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      versions: [eserviceTemplateVersion],
-    };
-
-    const tenant = {
-      ...getMockTenant(eserviceTemplate.creatorId),
-      kind: undefined,
-    };
-
-    await addOneTenant(tenant);
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.publishEServiceTemplateVersion(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(tenantKindNotFound(eserviceTemplate.creatorId));
-  });
-
-  it("should throw riskAnalysisValidationFailed if the eservice template mode is receive and doesn't have any risk analysis", async () => {
+  it("should throw missingRiskAnalysis if the eservice template mode is receive and doesn't have any risk analysis", async () => {
     const tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -357,8 +301,10 @@ describe("publishEServiceTemplateVersion", () => {
       kind: tenantKind.PA,
     };
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenant.kind);
-    const invalidRiskAnalysis: RiskAnalysis = {
+    const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenant.kind
+    );
+    const invalidRiskAnalysis: EServiceTemplateRiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,
@@ -392,7 +338,9 @@ describe("publishEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+      riskAnalysisValidationFailed([
+        rulesVersionNotFoundError(tenantKind.PA, "0"),
+      ])
     );
   });
 
@@ -414,20 +362,21 @@ describe("publishEServiceTemplateVersion", () => {
       riskAnalysis: [],
       creatorId: tenant.id,
       mode: eserviceMode.deliver,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      await eserviceTemplateService.publishEServiceTemplateVersion(
+      eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).equal(undefined);
+    ).resolves.not.toThrowError();
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't receive even if doesn't have a valid risk analysis", async () => {
@@ -436,8 +385,10 @@ describe("publishEServiceTemplateVersion", () => {
       kind: tenantKind.PA,
     };
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenant.kind);
-    const invalidRiskAnalysis: RiskAnalysis = {
+    const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenant.kind
+    );
+    const invalidRiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,
@@ -457,19 +408,48 @@ describe("publishEServiceTemplateVersion", () => {
       riskAnalysis: [invalidRiskAnalysis],
       creatorId: tenant.id,
       mode: eserviceMode.deliver,
+      personalData: false,
     };
 
     await addOneTenant(tenant);
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      await eserviceTemplateService.publishEServiceTemplateVersion(
+      eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).equal(undefined);
+    ).resolves.not.toThrowError();
+  });
+
+  it("should throw missingPersonalDataFlag if the template has personalData undefined", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: descriptorState.draft,
+      interface: getMockDocument(),
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      personalData: undefined,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      missingPersonalDataFlag(eserviceTemplate.id, eserviceTemplateVersion.id)
+    );
   });
 });

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
@@ -9,11 +13,11 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
-  getMockedApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
 describe("getPurpose", () => {
-  const mockApiPurposeResponse = getMockedApiPurpose();
+  const mockApiPurposeResponse = getMockWithMetadata(getMockedApiPurpose());
 
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurposeResponse);
 
@@ -26,6 +30,7 @@ describe("getPurpose", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const purposeVersion = mockApiPurposeResponse.data.versions[0];
     const expectedM2MPurpose: m2mGatewayApi.Purpose = {
       consumerId: mockApiPurposeResponse.data.consumerId,
       createdAt: mockApiPurposeResponse.data.createdAt,
@@ -35,7 +40,9 @@ describe("getPurpose", () => {
       isFreeOfCharge: mockApiPurposeResponse.data.isFreeOfCharge,
       isRiskAnalysisValid: mockApiPurposeResponse.data.isRiskAnalysisValid,
       title: mockApiPurposeResponse.data.title,
-      currentVersion: mockApiPurposeResponse.data.versions.at(0),
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
       delegationId: mockApiPurposeResponse.data.delegationId,
       freeOfChargeReason: mockApiPurposeResponse.data.freeOfChargeReason,
       rejectedVersion: undefined,
@@ -43,6 +50,7 @@ describe("getPurpose", () => {
       suspendedByProducer: undefined,
       updatedAt: mockApiPurposeResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
+      purposeTemplateId: mockApiPurposeResponse.data.purposeTemplateId,
     };
 
     const result = await purposeService.getPurpose(
@@ -50,7 +58,7 @@ describe("getPurpose", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {

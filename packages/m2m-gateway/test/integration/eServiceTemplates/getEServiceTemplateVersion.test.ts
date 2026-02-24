@@ -6,29 +6,33 @@ import {
 } from "pagopa-interop-models";
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiEServiceTemplate,
+  getMockedApiEserviceTemplateVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEServiceTemplate,
-  getMockedApiEserviceTemplateVersion,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
 describe("getEServiceTemplateVersion", () => {
   const mockApiTemplateVersion1 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
   });
+
   const mockApiTemplateVersion2 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DEPRECATED,
   });
 
-  const mockApiTemplate = getMockedApiEServiceTemplate({
-    versions: [mockApiTemplateVersion1, mockApiTemplateVersion2],
-  });
+  const mockApiTemplate = getMockWithMetadata(
+    getMockedApiEServiceTemplate({
+      versions: [mockApiTemplateVersion1, mockApiTemplateVersion2],
+    })
+  );
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 
@@ -61,7 +65,7 @@ describe("getEServiceTemplateVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MTemplateVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

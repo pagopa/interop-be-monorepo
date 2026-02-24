@@ -7,6 +7,7 @@ import { DelegationStampSchema } from "../../model/delegation/delegationStamp.js
 import {
   buildColumnSet,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DelegationDbTable } from "../../model/db/index.js";
 
@@ -24,13 +25,9 @@ export function delegationStampRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, DelegationStampSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-            DELETE FROM ${stagingTableName} a
-            USING ${stagingTableName} b
-            WHERE a.delegation_id = b.delegation_id
-              AND a.kind = b.kind
-              AND a.metadata_version < b.metadata_version;
-          `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["delegationId", "kind"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`

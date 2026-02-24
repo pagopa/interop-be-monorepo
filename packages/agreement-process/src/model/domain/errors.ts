@@ -13,7 +13,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
@@ -42,6 +42,7 @@ export const errorCodes = {
   tenantIsNotTheDelegateConsumer: "0028",
   tenantIsNotTheProducer: "0029",
   tenantIsNotTheDelegateProducer: "0030",
+  tenantIsNotTheDelegate: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -337,5 +338,15 @@ export function tenantIsNotTheDelegateProducer(
     }`,
     code: "tenantIsNotTheDelegateProducer",
     title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheDelegate(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate`,
+    code: "tenantIsNotTheDelegate",
+    title: "Tenant is not the delegate",
   });
 }

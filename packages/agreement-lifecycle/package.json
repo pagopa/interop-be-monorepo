@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-agreement-lifecycle",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability agreement lifecycle",
   "main": "dist",
@@ -17,15 +18,11 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
     "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "20.14.6",
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
-    "typescript": "5.4.5"
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }

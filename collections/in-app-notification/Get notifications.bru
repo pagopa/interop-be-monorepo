@@ -1,0 +1,22 @@
+meta {
+  name: Get notifications
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-in-app-notification}}/notifications?offset=0&limit=20
+  body: none
+  auth: inherit
+}
+
+params:query {
+  offset: 0
+  limit: 20
+  ~q: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

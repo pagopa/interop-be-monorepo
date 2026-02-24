@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { unsafeBrandId, WithMetadata } from "pagopa-interop-models";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -13,12 +23,11 @@ import { config } from "../../../src/config/config.js";
 import {
   missingPurposeVersionWithState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
 describe("activatePurposeVersion", () => {
@@ -28,9 +37,12 @@ describe("activatePurposeVersion", () => {
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    })
+  );
+  const mockDelegationRef = { delegationId: generateId() };
 
   const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
@@ -59,28 +71,25 @@ describe("activatePurposeVersion", () => {
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose.data.consumerId,
-      createdAt: mockApiPurpose.data.createdAt,
-      description: mockApiPurpose.data.description,
-      eserviceId: mockApiPurpose.data.eserviceId,
-      id: mockApiPurpose.data.id,
-      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
-      title: mockApiPurpose.data.title,
-      delegationId: mockApiPurpose.data.delegationId,
-      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
-      updatedAt: mockApiPurpose.data.updatedAt,
-      currentVersion: mockApiPurposeVersion1,
-      rejectedVersion: mockApiPurposeVersion2,
-    };
+    const purposeVersion1 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion1
+    );
+    const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion2
+    );
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
+      currentVersion: purposeVersion1,
+      rejectedVersion: purposeVersion2,
+      waitingForApprovalVersion: undefined,
+    });
 
     const purpose = await purposeService.activateDraftPurpose(
       unsafeBrandId(mockApiPurpose.data.id),
+      mockDelegationRef,
       getMockM2MAdminAppContext()
     );
 
-    expect(purpose).toEqual(expectedM2MPurpose);
+    expect(purpose).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.activatePurposeVersion,
@@ -88,6 +97,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockApiPurpose.data.id,
         versionId: mockApiPurposeVersion1.id,
       },
+      body: mockDelegationRef,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
@@ -99,19 +109,22 @@ describe("activatePurposeVersion", () => {
   });
 
   it("Should throw missingPurposeVersionWithState in case of missing active version to activate", async () => {
-    const invalidPurpose = getMockedApiPurpose({
-      versions: [
-        getMockedApiPurposeVersion({
-          state: purposeApi.PurposeVersionState.Enum.REJECTED,
-        }),
-      ],
-    });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          getMockedApiPurposeVersion({
+            state: purposeApi.PurposeVersionState.Enum.REJECTED,
+          }),
+        ],
+      })
+    );
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
     await expect(
       purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -131,6 +144,7 @@ describe("activatePurposeVersion", () => {
     await expect(
       purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -146,32 +160,34 @@ describe("activatePurposeVersion", () => {
     await expect(
       purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose
       .mockResolvedValueOnce(mockApiPurpose)
       .mockImplementation(
-        mockPollingResponse(
-          mockApiPurpose,
-          config.defaultPollingMaxAttempts + 1
-        )
+        mockPollingResponse(mockApiPurpose, config.defaultPollingMaxRetries + 1)
       );
 
     await expect(
       purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
+        mockDelegationRef,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetPurpose).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

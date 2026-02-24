@@ -37,7 +37,7 @@ describe("createConsumerClient", () => {
   };
   it("should write on event-store for the creation of a api client", async () => {
     const organizationId: TenantId = generateId();
-    const { client } = await authorizationService.createApiClient(
+    const client = await authorizationService.createApiClient(
       {
         clientSeed,
       },
@@ -75,5 +75,6 @@ describe("createConsumerClient", () => {
     };
 
     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(client).toEqual(expectedClient);
   });
 });

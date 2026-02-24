@@ -25,6 +25,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateDuplicate,
   instanceNameConflict,
+  eServiceTemplateUpdateSameNameConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -71,11 +72,12 @@ describe("updateEServiceTemplateName", () => {
       messageType: EServiceTemplateNameUpdatedV2,
       payload: writtenEvent.data,
     });
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      oldName: eserviceTemplate.name,
+    });
     expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
+      toEServiceTemplateV2(returnedEServiceTemplate.data)
     );
   });
 
@@ -158,7 +160,7 @@ describe("updateEServiceTemplateName", () => {
       versions: [eserviceTemplateVersion],
     };
 
-    const duplicateName = "eservice duplciate name";
+    const duplicateName = "eservice duplicate name";
 
     const eserviceTemplateWithSameName: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -174,6 +176,42 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
         updatedName,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(eserviceTemplateDuplicate(duplicateName));
+  });
+
+  it("should throw eserviceTemplateDuplicate is there is another eservice template with the same name by a different creator", async () => {
+    const creatorId = generateId<TenantId>();
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId,
+      versions: [eserviceTemplateVersion],
+    };
+
+    const duplicateName = "eservice duplicate name";
+
+    const eserviceTemplateWithSameName: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId: generateId<TenantId>(),
+      name: duplicateName,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEServiceTemplate(eserviceTemplateWithSameName);
+
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        duplicateName,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -221,5 +259,28 @@ describe("updateEServiceTemplateName", () => {
         })
       )
     ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
+  });
+
+  it("should throw eServiceTemplateUpdateSameNameConflict trying to update the name to the same value", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        eserviceTemplate.name,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eServiceTemplateUpdateSameNameConflict(eserviceTemplate.id)
+    );
   });
 });
