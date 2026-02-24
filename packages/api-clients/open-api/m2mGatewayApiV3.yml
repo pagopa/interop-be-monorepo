@@ -13219,11 +13219,13 @@ components:
     IntegrityRest02DigestHeader:
       schema:
         type: string
-        pattern: ^SHA-256=[a-zA-Z0-9]{64}$
+        # Base64 per l'hash SHA-256
+        # (43 chars valid + 1 symbol "=" as padding)
+        pattern: ^SHA-256=[a-zA-Z0-9+/]{43}=$
       description: |
         Digest of the body using the canonical JSON representation of the response body.
         The digest is calculated using the SHA-256 algorithm on the response body
-        exactly as it is sent to the client.
+        exactly as it is sent to the client, encoded in Base64 as per RFC 3230
     IntegrityRest02AgidJwtSignatureHeader:
       schema:
         type: string
