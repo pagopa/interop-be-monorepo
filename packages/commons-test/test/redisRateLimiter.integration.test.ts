@@ -35,7 +35,7 @@ describe("Redis rate limiter tests", () => {
   it("should rate limit requests by organizationId", async () => {
     const organizationId: TenantId = generateId();
     // wait 500 ms to ensure the redis is connected
-    await sleep(500);
+    await delay(500);
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
       0
