@@ -9,14 +9,13 @@ import { IntegrityRest02SignedHeader } from "../interop-token/models.js";
 export function buildIntegrityRest02SignedHeaders({
   res,
   digest,
+  contentType
 }: {
   res: Response;
   digest: string;
+  contentType: string;
 }): IntegrityRest02SignedHeader {
-  const contentType =
-    res.getHeader("Content-Type")?.toString() ?? "application/json";
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
-
   const headers: IntegrityRest02SignedHeader = {
     digest: `SHA-256=${digest}`,
     "content-type": contentType,

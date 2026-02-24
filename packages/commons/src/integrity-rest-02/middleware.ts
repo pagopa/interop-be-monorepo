@@ -54,12 +54,27 @@ export function integrityRest02Middleware(
         replacer,
         spaces,
       });
+
+      const contentType =
+        res.getHeader("Content-Type")?.toString() ?? "application/json";
+
+      console.log("contentType", contentType);
+
       const signedHeaders = buildIntegrityRest02SignedHeaders({
         res,
         digest,
+        contentType,
       });
 
+      console.log("signedHeaders", signedHeaders);
+
       const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
+
+      console.log("Generating token with", {
+        signedHeaders,
+        aud: clientId,
+        sub: correlationId,
+      });
 
       tokenGenerator
         .generateAgidIntegrityRest02Token({
@@ -70,6 +85,7 @@ export function integrityRest02Middleware(
         .then((agidSignature) => {
           res.setHeader("Digest", `SHA-256=${digest}`);
           res.setHeader("Agid-JWT-Signature", agidSignature);
+          res.setHeader("Content-Type", contentType);
           originalSend(body);
         })
         .catch((err) => {
@@ -78,6 +94,8 @@ export function integrityRest02Middleware(
 
       return res;
     };
+
+    console.log("Integrity REST 02 middleware applied---------------------------------------------");
 
     next();
   };

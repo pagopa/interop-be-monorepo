@@ -9979,6 +9979,8 @@ paths:
       responses:
         "204":
           description: User linked to the Client
+          content:
+            application/json: {}
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
