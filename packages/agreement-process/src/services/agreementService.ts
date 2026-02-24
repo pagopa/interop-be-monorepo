@@ -615,7 +615,6 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
-      const hasRelatedAgreements = agreements.length > 0;
       const updatedAgreement = {
         ...agreement.data,
         ...updateSeed,
