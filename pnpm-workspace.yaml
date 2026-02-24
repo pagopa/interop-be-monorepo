@@ -67,7 +67,7 @@ catalog:
   drizzle-zod: 0.7.1
   eslint: 8.57.1
   express: 4.20.0
-  fast-xml-parser: 5.3.4
+  fast-xml-parser: 5.3.6
   form-data-encoder: 4.1.0
   handlebars: 4.7.8
   html2json: 1.0.2
@@ -79,6 +79,7 @@ catalog:
   knip: 5.75.1
   lodash.isempty: 4.4.0
   lodash.isequal: 4.5.0
+  madge: 8.0.0
   mime: 4.0.7
   mkdirp: 3.0.1
   multer: 2.0.2
