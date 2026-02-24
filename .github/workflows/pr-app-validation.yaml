@@ -57,6 +57,7 @@ jobs:
   knip:
     name: Knip codebase audit
     runs-on: ubuntu-latest
+    needs: [formatting]
     permissions:
       contents: read
     steps:
