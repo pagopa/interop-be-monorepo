@@ -70,19 +70,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
-      - name: Run knip on changed packages
-        run: |
-          PACKAGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'packages/*' | cut -d'/' -f2 | sort -u)
-
-          if [ -z "$PACKAGES" ]; then
-            echo "No packages changed, skipping knip"
-            exit 0
-          fi
-
-          for pkg in $PACKAGES; do
-            echo "Running knip for workspace: packages/$pkg"
-            pnpm knip --workspace "packages/$pkg"
-          done
+      - name: Run knip
+        run: pnpm knip
 
   packages_sharding:
     name: Packages sharding
