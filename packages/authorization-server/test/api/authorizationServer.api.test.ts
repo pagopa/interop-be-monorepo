@@ -246,26 +246,18 @@ describe("POST /authorization-server/token.oauth2", async () => {
     const loggerSpy = vi.spyOn(interopCommons, "logger");
     const metadataClientId = generateId<ClientId>();
 
-    tokenService.generateToken = vi.fn().mockImplementation(
-      async (
-        _headers,
-        _body,
-        getCtx,
-        setCtxClientId,
-        _setCtxClientKind,
-        _setCtxOrganizationId
-      ) => {
-        setCtxClientId(metadataClientId);
-        getCtx();
+    tokenService.generateToken = vi.fn().mockImplementation(async (...args) => {
+      const [, , getCtx, setCtxClientId] = args;
+      setCtxClientId(metadataClientId);
+      getCtx();
 
-        return {
-          limitReached: true,
-          token: undefined,
-          rateLimiterStatus: {},
-          rateLimitedTenantId: generateId<TenantId>(),
-        };
-      }
-    );
+      return {
+        limitReached: true,
+        token: undefined,
+        rateLimiterStatus: {},
+        rateLimitedTenantId: generateId<TenantId>(),
+      };
+    });
 
     const res = await makeRequest();
 
