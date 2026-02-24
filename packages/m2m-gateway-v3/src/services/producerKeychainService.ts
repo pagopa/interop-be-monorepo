@@ -349,10 +349,25 @@ export function producerKeychainServiceBuilder(
     async addProducerKeychainUsers(
       producerKeychainId: ProducerKeychainId,
       userId: string,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
         `Adding user ${userId} to producer keychain with id ${producerKeychainId}`
+      );
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: authData.organizationId },
+          headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      await getSelfcareUserById(
+        clients,
+        userId,
+        tenant.selfcareId,
+        headers["X-Correlation-Id"]
       );
 
       const response =
