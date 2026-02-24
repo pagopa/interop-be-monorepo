@@ -27,6 +27,7 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   authorizationService.deleteClientKeyById = vi.fn().mockResolvedValue({});
