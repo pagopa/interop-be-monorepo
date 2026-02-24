@@ -102,7 +102,7 @@ describe("getProducerKeychains", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainsResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain
@@ -148,7 +148,7 @@ describe("getProducerKeychains", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainsResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain

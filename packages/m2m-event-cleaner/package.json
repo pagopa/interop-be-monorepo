@@ -17,23 +17,21 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "eslint": "8.57.1",
-    "@types/node": "20.14.2",
-    "@types/pg": "8.11.11",
+    "@pagopa/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-m2m-event-db-models": "workspace:*",
-    "pg": "8.13.1",
-    "zod": "3.23.8"
+    "pg": "catalog:",
+    "zod": "catalog:"
   }
 }

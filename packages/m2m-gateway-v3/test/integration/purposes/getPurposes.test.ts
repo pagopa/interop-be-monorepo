@@ -106,6 +106,7 @@ describe("getPurposes", () => {
         limit: mockParams.limit,
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
         name: undefined,

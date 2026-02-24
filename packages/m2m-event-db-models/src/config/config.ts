@@ -1,4 +1,3 @@
-import "dotenv-flow/config";
 import { defineConfig } from "drizzle-kit";
 import { M2MEventSQLDbConfig } from "pagopa-interop-commons";
 

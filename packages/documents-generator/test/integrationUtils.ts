@@ -41,7 +41,10 @@ const { cleanup, fileManager, readModelDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig")
 );
 
-afterEach(cleanup);
+afterEach(async () => {
+  vi.clearAllMocks();
+  await cleanup();
+});
 
 export { cleanup, fileManager };
 
