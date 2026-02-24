@@ -3368,7 +3368,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel: undefined, // TODO
+            instanceLabel: undefined,
           },
         },
         readModelService,
