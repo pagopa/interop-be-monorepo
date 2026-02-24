@@ -21,7 +21,7 @@ import {
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
-import { getSelfcareUserById } from "./userService.js";
+import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -363,11 +363,12 @@ export function producerKeychainServiceBuilder(
 
       assertTenantHasSelfcareId(tenant);
 
-      await getSelfcareUserById(
+      await getInstitutionUser(
         clients,
-        userId,
+        unsafeBrandId(userId),
         tenant.selfcareId,
-        headers["X-Correlation-Id"]
+        unsafeBrandId(tenant.id),
+        headers
       );
 
       const response =
