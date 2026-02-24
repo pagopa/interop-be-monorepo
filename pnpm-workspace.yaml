@@ -79,6 +79,7 @@ catalog:
   knip: 5.75.1
   lodash.isempty: 4.4.0
   lodash.isequal: 4.5.0
+  madge: 8.0.0
   mime: 4.0.7
   mkdirp: 3.0.1
   multer: 2.0.2

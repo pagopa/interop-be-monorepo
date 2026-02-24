@@ -92,10 +92,8 @@ import {
 import { match } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import {
-  activeDescriptorStates,
-  hasRoleToAccessInactiveDescriptors,
-} from "./validators.js";
+import { activeDescriptorStates } from "./descriptorStates.js";
+import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleTransactionType
@@ -866,5 +864,3 @@ export function readModelServiceBuilderSQL(
     },
   };
 }
-
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
