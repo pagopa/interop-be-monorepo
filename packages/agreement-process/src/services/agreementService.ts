@@ -111,7 +111,7 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateActivationOnDescriptor,
-  validateActiveOrPendingAgreement,
+  validateActiveSuspendedOrPendingAgreement,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
@@ -553,6 +553,20 @@ export function agreementServiceBuilder(
         nextStateByAttributes
       );
 
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.producerDelegation?.delegateId
+      );
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.consumerDelegation?.delegateId
+      );
+
       const setToMissingCertifiedAttributesByPlatformEvent =
         maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
           agreement,
@@ -574,15 +588,12 @@ export function agreementServiceBuilder(
 
       const newState = agreementStateByFlags(
         nextStateByAttributes,
-        // TODO this should actually recalculate flags and consider them
-        // in the calculation of the new state, otherwise a suspended agreement
-        // that was upgraded will become active - https://pagopa.atlassian.net/browse/IMN-626
-        undefined,
-        undefined,
+        suspendedByProducer,
+        suspendedByConsumer,
         suspendedByPlatform
       );
 
-      validateActiveOrPendingAgreement(agreement.data.id, newState);
+      validateActiveSuspendedOrPendingAgreement(agreement.data.id, newState);
 
       const updateSeed = createSubmissionUpdateAgreementSeed(
         descriptor,
@@ -647,15 +658,6 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        /*
-          This condition can only check if state is ACTIVE
-          at this point the SUSPENDED state is not available
-          after validateActiveOrPendingAgreement validation.
-
-          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
-          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
-          Remove the comment at that point.
-        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
