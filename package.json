@@ -73,12 +73,15 @@
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
-    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
+    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
+    "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
+    "madge": "catalog:",
+    "prettier": "catalog:",
     "eslint": "catalog:",
     "turbo": "catalog:"
   },

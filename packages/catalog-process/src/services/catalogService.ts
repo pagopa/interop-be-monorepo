@@ -181,7 +181,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,

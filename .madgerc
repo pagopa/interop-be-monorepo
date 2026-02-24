@@ -1,0 +1,10 @@
+{
+  "detectiveOptions": {
+    "es6": {
+      "skipTypeImports": true
+    },
+    "ts": {
+      "skipTypeImports": true
+    }
+  }
+}
