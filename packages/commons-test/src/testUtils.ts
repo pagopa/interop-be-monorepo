@@ -1384,8 +1384,8 @@ export const getMockContextM2MAdmin = ({
 });
 
 export const getMockSessionClaims = (
-  organizationId: SelfcareId = generateId(),
-  roles: UserRole[] = [userRole.ADMIN_ROLE]
+  roles: UserRole[] = [userRole.ADMIN_ROLE],
+  organizationId: SelfcareId = generateId()
 ): UIClaims => ({
   uid: generateId(),
   organization: {

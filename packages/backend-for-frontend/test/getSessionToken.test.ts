@@ -9,6 +9,7 @@ import {
   invalidClaim,
   SelfcareId,
   TenantId,
+  userRole,
 } from "pagopa-interop-models";
 import {
   getMockAuthData,
@@ -64,16 +65,19 @@ const rateLimiterStatus = {
 const verifyJwtTokenMockFn = vi.fn().mockImplementation((token: string) =>
   match(token)
     .with(validIdentityToken, () => ({
-      decoded: getMockSessionClaims(validSelfcareId),
+      decoded: getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
     }))
     .with(identityTokenTenantNotFound, () => ({
-      decoded: getMockSessionClaims(selfcareIdNotFound),
+      decoded: getMockSessionClaims([userRole.ADMIN_ROLE], selfcareIdNotFound),
     }))
     .with(identityTokenTenantLoginNotAllowed, () => ({
-      decoded: getMockSessionClaims(selfcareIdTokenLoginNotAllowed),
+      decoded: getMockSessionClaims(
+        [userRole.ADMIN_ROLE],
+        selfcareIdTokenLoginNotAllowed
+      ),
     }))
     .with(invalidTokenMissingUserRole, () => ({
-      decoded: getMockSessionClaims(validSelfcareId, []),
+      decoded: getMockSessionClaims([], validSelfcareId),
     }))
     .otherwise(() => ({
       error: JWT_PARSING_ERROR_MSG,
