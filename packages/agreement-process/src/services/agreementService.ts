@@ -648,12 +648,10 @@ export function agreementServiceBuilder(
         logger
       );
 
-      const isFirstActivation =
-        updatedAgreement.state === agreementState.active &&
-        !hasRelatedAgreements;
+      const isActivating = updatedAgreement.state === agreementState.active;
 
-      const submittedAgreement = await addContractOnFirstActivation(
-        isFirstActivation,
+      const submittedAgreement = await addContractAtCondition(
+        isActivating,
         contractBuilderInstance,
         eservice,
         consumer,
@@ -1396,7 +1394,7 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+      const updatedAgreement: Agreement = await addContractAtCondition(
         isFirstActivation,
         contractBuilderInstance,
         eservice,
@@ -1776,7 +1774,7 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
 }
 
 // eslint-disable-next-line max-params
-async function addContractOnFirstActivation(
+async function addContractAtCondition(
   isFirstActivation: boolean,
   contractBuilder: ContractBuilder,
   eservice: EService,
