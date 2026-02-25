@@ -4,6 +4,7 @@ import {
   fromFilesToBodyMiddleware,
   healthRouter,
   loggerMiddleware,
+  integrityRest02Middleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
@@ -14,6 +15,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
@@ -73,9 +75,10 @@ export type RateLimiterMiddleware = ReturnType<
 export async function createApp(
   services: M2MGatewayServices,
   rateLimiterMiddleware: RateLimiterMiddleware,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  kmsClient: KMSClient
 ) {
-  const serviceName = modelsServiceName.M2M_GATEWAY;
+  const serviceName = modelsServiceName.M2M_GATEWAY_V3;
   const {
     agreementService,
     attributeService,
@@ -115,6 +118,7 @@ export async function createApp(
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
+    integrityRest02Middleware(config, kmsClient),
     authenticationDPoPMiddleware(config, dynamoDBClient),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),

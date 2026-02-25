@@ -18,8 +18,7 @@ export const retrieveOriginFromAuthData = async (
     .with(
       { systemRole: authRole.M2M_ADMIN_ROLE },
       async ({ organizationId }) =>
-        (
-          await retrieveTenant(organizationId, readModelService)
-        ).externalId.origin
+        (await retrieveTenant(organizationId, readModelService)).externalId
+          .origin
     )
     .exhaustive();

@@ -14,7 +14,7 @@ type PreparedNdjsonFile = {
 };
 
 export const prepareNdjsonEventData = async <
-  T extends BaseEventData & { eventTimestamp: Date }
+  T extends BaseEventData & { eventTimestamp: Date },
 >(
   eventsToStoreArray: T[],
   logger: Logger

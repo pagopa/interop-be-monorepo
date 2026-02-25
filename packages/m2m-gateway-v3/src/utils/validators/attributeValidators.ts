@@ -5,7 +5,7 @@ import {
 } from "../../model/errors.js";
 
 export function assertAttributeKindIs<
-  K extends attributeRegistryApi.AttributeKind
+  K extends attributeRegistryApi.AttributeKind,
 >(
   attribute: attributeRegistryApi.Attribute,
   expectedKind: K

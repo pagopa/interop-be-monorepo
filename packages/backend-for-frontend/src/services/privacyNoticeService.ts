@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { bffApi } from "pagopa-interop-api-clients";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
+import { BffAppContext } from "../utilities/context.js";
 import {
   privacyNoticeNotFound,
   privacyNoticeNotFoundInConfiguration,
@@ -25,9 +26,9 @@ export function privacyNoticeServiceBuilder(
   return {
     async getPrivacyNotice(
       consentType: bffApi.ConsentType,
-      userId: string,
-      logger: Logger
+      { authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PrivacyNotice> {
+      const { userId } = authData;
       logger.info(`Retrieving privacy notice for consentType ${consentType}`);
 
       const privacyNoticeId = retrievePrivacyNoticeId(
@@ -72,10 +73,10 @@ export function privacyNoticeServiceBuilder(
 
     async acceptPrivacyNotice(
       consentType: bffApi.ConsentType,
-      userId: string,
       seed: bffApi.PrivacyNoticeSeed,
-      logger: Logger
+      { authData, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
+      const { userId } = authData;
       logger.info(`Accept privacy notices for consentType ${consentType}`);
 
       const privacyNoticeId = retrievePrivacyNoticeId(

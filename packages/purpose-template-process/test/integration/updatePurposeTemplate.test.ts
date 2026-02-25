@@ -605,32 +605,213 @@ describe("updatePurposeTemplate", () => {
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
 
-  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
-    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
-    async ({ freeOfChargeReason }) => {
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
+          ...purposeTemplateSeed,
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeTemplateApi.PurposeTemplateSeed;
+
       const purposeTemplate: PurposeTemplate = {
         ...existingPurposeTemplate,
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: "Some reason",
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
       };
 
       await addOnePurposeTemplate(purposeTemplate);
 
-      const isFreeOfCharge = false;
+      const updatePurposeTemplateResult =
+        await purposeTemplateService.updatePurposeTemplate(
+          existingPurposeTemplate.id,
+          cleanedSeed,
+          getMockContext({
+            authData: getMockAuthData(creatorId),
+          })
+        );
+
+      expect(updatePurposeTemplateResult).toEqual({
+        data: expect.objectContaining({
+          purposeIsFreeOfCharge: expected.purposeIsFreeOfCharge,
+          purposeFreeOfChargeReason: expected.purposeFreeOfChargeReason,
+        }),
+        metadata: { version: 1 },
+      });
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
       expect(
         purposeTemplateService.updatePurposeTemplate(
           purposeTemplate.id,
           {
             ...purposeTemplateSeed,
-            purposeIsFreeOfCharge: isFreeOfCharge,
-            purposeFreeOfChargeReason: freeOfChargeReason,
+            ...seed,
           },
           getMockContext({
             authData: getMockAuthData(purposeTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
-        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.purposeIsFreeOfCharge,
+          wrongUpdatedData.purposeFreeOfChargeReason
+        )
       );
     }
   );

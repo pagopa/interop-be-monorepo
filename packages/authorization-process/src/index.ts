@@ -10,6 +10,7 @@ import {
   producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
@@ -30,6 +31,7 @@ const clientJWKKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
 const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
@@ -41,6 +43,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 });
 
 const authorizationService = authorizationServiceBuilder(

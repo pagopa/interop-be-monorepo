@@ -28,6 +28,12 @@ export async function handlePurposeTemplateDocument(
         throw missingKafkaMessageDataError("purpose", msg.type);
       }
       const purposeTemplate = msg.data.purposeTemplate;
+
+      if (!purposeTemplate.purposeRiskAnalysisForm?.document) {
+        throw genericInternalError(
+          `Handle Purpose Template Document - riskAnalysis document not found for purpose template id: ${purposeTemplate.id}`
+        );
+      }
       const s3Key = purposeTemplate.purposeRiskAnalysisForm?.document?.path;
 
       logger.info(
@@ -81,7 +87,8 @@ export async function handlePurposeTemplateDocument(
           subObjectId: "",
           contentType,
           path: s3Key,
-          prettyname: "",
+          prettyname:
+            purposeTemplate.purposeRiskAnalysisForm.document.prettyName,
           fileName,
           version: msg.event_version,
           createdAt: purposeTemplate.createdAt,

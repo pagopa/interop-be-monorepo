@@ -429,7 +429,9 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
     getMockValidRiskAnalysisFormTemplate(producerTenantKind);
 
   const addAnnotationToAnswers = <
-    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+    T extends
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer,
   >(
     answers: T[]
   ): T[] =>
