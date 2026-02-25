@@ -1198,27 +1198,21 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposes/updatedDailyCalls:
+  /purposes/{purposeId}/getUpdateDailyCalls:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - purpose
       operationId: getUpdatedDailyCalls
-      description: Retrieve updated daily calls for a descriptor
-      parameters:
-        - in: query
-          name: eserviceId
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: descriptorId
-          required: true
-          schema:
-            type: string
-            format: uuid
+      description: Retrieve updated daily calls for a purpose
       responses:
         "200":
           description: Updated daily calls retrieved
@@ -1232,8 +1226,14 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
-          description: Descriptor Not Found
+          description: Purpose Not Found
           content:
             application/problem+json:
               schema:
@@ -1980,12 +1980,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        eserviceId:
-          type: string
-          format: uuid
-        descriptorId:
-          type: string
-          format: uuid
         updatedDailyCallsPerConsumer:
           type: integer
           format: int32
@@ -1995,8 +1989,6 @@ components:
           format: int32
           minimum: 0
       required:
-        - eserviceId
-        - descriptorId
         - updatedDailyCallsPerConsumer
         - updatedDailyCallsTotal
     CreatedPurposeVersion:

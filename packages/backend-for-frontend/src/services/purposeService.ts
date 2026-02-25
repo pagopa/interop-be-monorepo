@@ -10,7 +10,6 @@ import {
 import {
   CorrelationId,
   DelegationId,
-  DescriptorId,
   EServiceId,
   PurposeId,
   PurposeTemplateId,
@@ -936,18 +935,14 @@ export function purposeServiceBuilder(
       );
     },
     async getUpdatedDailyCalls(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
+      purposeId: PurposeId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.UpdatedDailyCallsResponse> {
-      logger.info(
-        `Retrieving updated daily calls for EService ${eserviceId} and Descriptor ${descriptorId}`
-      );
+      logger.info(`Retrieving updated daily calls for Purpose ${purposeId}`);
 
       return await purposeProcessClient.getUpdatedDailyCalls({
-        queries: {
-          eserviceId,
-          descriptorId,
+        params: {
+          purposeId,
         },
         headers,
       });

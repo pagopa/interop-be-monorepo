@@ -2,10 +2,10 @@
 import { describe, expect, it } from "vitest";
 import {
   Agreement,
-  DescriptorId,
   EService,
   EServiceId,
   Purpose,
+  PurposeId,
   TenantId,
   agreementState,
   descriptorState,
@@ -22,7 +22,10 @@ import {
   getMockPurposeVersion,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { descriptorNotFound } from "../../src/model/domain/errors.js";
+import {
+  purposeNotFound,
+  tenantIsNotTheConsumer,
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -92,25 +95,41 @@ describe("getUpdatedDailyCalls", () => {
     await addOnePurpose(otherConsumerPurpose);
 
     const result = await purposeService.getUpdatedDailyCalls({
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
+      purposeId: consumerPurpose.id,
       ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
     });
 
     expect(result).toEqual({
-      eserviceId: eservice.id,
-      descriptorId: descriptor.id,
       updatedDailyCallsPerConsumer: 50,
       updatedDailyCallsTotal: 850,
     });
   });
 
-  it("should throw descriptorNotFound if descriptor does not match active agreement", async () => {
+  it("should throw purposeNotFound if purpose does not exist", async () => {
     const consumerId: TenantId = generateId();
+    const nonExistentPurposeId: PurposeId = generateId();
+
+    await addOneTenant({ ...getMockTenant(consumerId) });
+
+    await expect(
+      purposeService.getUpdatedDailyCalls({
+        purposeId: nonExistentPurposeId,
+        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+      })
+    ).rejects.toThrowError(purposeNotFound(nonExistentPurposeId));
+  });
+
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
+    const consumerId: TenantId = generateId();
+    const anotherConsumerId: TenantId = generateId();
     const producerId: TenantId = generateId();
     const eserviceId: EServiceId = generateId();
 
-    const descriptor = getMockDescriptor(descriptorState.published);
+    const descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 1000,
+    };
     const eservice: EService = getMockEService(eserviceId, producerId, [
       descriptor,
     ]);
@@ -120,18 +139,30 @@ describe("getUpdatedDailyCalls", () => {
       producerId,
     };
 
+    const consumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 40,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+
     await addOneTenant({ ...getMockTenant(consumerId) });
+    await addOneTenant({ ...getMockTenant(anotherConsumerId) });
     await addOneEService(eservice);
     await addOneAgreement(agreement);
-
-    const wrongDescriptorId: DescriptorId = generateId();
+    await addOnePurpose(consumerPurpose);
 
     await expect(
       purposeService.getUpdatedDailyCalls({
-        eserviceId: eservice.id,
-        descriptorId: wrongDescriptorId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        purposeId: consumerPurpose.id,
+        ctx: getMockContext({ authData: getMockAuthData(anotherConsumerId) }),
       })
-    ).rejects.toThrowError(descriptorNotFound(eservice.id, wrongDescriptorId));
+    ).rejects.toThrowError(
+      tenantIsNotTheConsumer(anotherConsumerId, undefined)
+    );
   });
 });

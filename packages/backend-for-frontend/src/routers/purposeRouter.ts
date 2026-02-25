@@ -143,13 +143,12 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes/updatedDailyCalls", async (req, res) => {
+    .get("/purposes/:purposeId/getUpdateDailyCalls", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const result = await purposeService.getUpdatedDailyCalls(
-          unsafeBrandId(req.query.eserviceId),
-          unsafeBrandId(req.query.descriptorId),
+          unsafeBrandId(req.params.purposeId),
           ctx
         );
 
@@ -161,7 +160,7 @@ const purposeRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving updated daily calls for EService ${req.query.eserviceId} and Descriptor ${req.query.descriptorId}`
+          `Error retrieving updated daily calls for Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

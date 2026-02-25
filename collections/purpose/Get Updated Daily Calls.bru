@@ -5,14 +5,9 @@ meta {
 }
 
 get {
-  url: {{host-purpose}}/purposes/updatedDailyCalls?eserviceId=<string>&descriptorId=<string>
+  url: {{host-purpose}}/purposes/{{purposeId}}/getUpdateDailyCalls
   body: none
   auth: none 
-}
-
-params:query {
-  eserviceId: <string>
-  descriptorId: <string>
 }
 
 headers {

@@ -31,7 +31,6 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
-  DescriptorId,
   EService,
   EServiceId,
   ListResult,
@@ -67,7 +66,6 @@ import {
   agreementNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
-  descriptorNotFound,
   missingRiskAnalysis,
   notValidVersionState,
   purposeCannotBeCloned,
@@ -2015,36 +2013,31 @@ export function purposeServiceBuilder(
       );
     },
     async getUpdatedDailyCalls({
-      eserviceId,
-      descriptorId,
+      purposeId,
       ctx: { authData, logger },
     }: {
-      eserviceId: EServiceId;
-      descriptorId: DescriptorId;
+      purposeId: PurposeId;
       ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>;
     }): Promise<purposeApi.UpdatedDailyCallsResponse> {
-      logger.info(
-        `Retrieving updated daily calls for EService ${eserviceId} and Descriptor ${descriptorId}`
-      );
-      const consumerId = authData.organizationId;
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      if (eservice === undefined) {
-        throw eserviceNotFound(eserviceId);
+      logger.info(`Retrieving updated daily calls for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      if (purpose.data.consumerId !== authData.organizationId) {
+        throw tenantIsNotTheConsumer(
+          authData.organizationId,
+          purpose.data.delegationId
+        );
       }
-      const agreement = await retrieveActiveAgreement(
-        eservice.id,
-        consumerId,
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
         readModelService
       );
-      if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
-      }
-      if (agreement.descriptorId !== descriptorId) {
-        throw descriptorNotFound(eservice.id, descriptorId);
-      }
+
       const quotas = await getUpdatedQuotas(
         eservice,
-        consumerId,
+        purpose.data.consumerId,
         readModelService
       );
       const remainingDailyCallsPerConsumer = Math.max(
@@ -2056,8 +2049,6 @@ export function purposeServiceBuilder(
         quotas.maxDailyCallsTotal - quotas.currentTotalCalls
       );
       return {
-        eserviceId,
-        descriptorId,
         updatedDailyCallsPerConsumer: remainingDailyCallsPerConsumer,
         updatedDailyCallsTotal: remainingDailyCallsTotal,
       };

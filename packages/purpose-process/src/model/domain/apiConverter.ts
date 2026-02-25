@@ -258,8 +258,6 @@ export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
 export const updatedDailyCallsToApiUpdatedDailyCalls = (
   updatedDailyCalls: UpdatedDailyCalls
 ): purposeApi.UpdatedDailyCallsResponse => ({
-  eserviceId: updatedDailyCalls.eserviceId,
-  descriptorId: updatedDailyCalls.descriptorId,
   updatedDailyCallsPerConsumer: updatedDailyCalls.updatedDailyCallsPerConsumer,
   updatedDailyCallsTotal: updatedDailyCalls.updatedDailyCallsTotal,
 });
