@@ -90,7 +90,6 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
-  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -180,6 +179,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertValidDelegationFlags,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -521,9 +521,16 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
+  const eserviceId = generateId<EServiceId>();
+  assertValidDelegationFlags(
+    eserviceId,
+    seed.isConsumerDelegable,
+    seed.isClientAccessDelegable
+  );
+
   const creationDate = new Date();
   const newEService: EService = {
-    id: generateId(),
+    id: eserviceId,
     producerId: authData.organizationId,
     name: seed.name,
     description: seed.description,
@@ -972,6 +979,12 @@ export function catalogServiceBuilder(
 
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
+
+      assertValidDelegationFlags(
+        eserviceId,
+        eserviceSeed.isConsumerDelegable,
+        eserviceSeed.isClientAccessDelegable
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
@@ -2438,9 +2451,11 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      if (!isConsumerDelegable && isClientAccessDelegable) {
-        throw invalidEServiceFlags(eserviceId);
-      }
+      assertValidDelegationFlags(
+        eserviceId,
+        isConsumerDelegable,
+        isClientAccessDelegable
+      );
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -4086,6 +4101,12 @@ async function updateDraftEService(
       () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
     )
     .exhaustive();
+
+  assertValidDelegationFlags(
+    eserviceId,
+    updatedIsConsumerDelegable,
+    updatedIsClientAccessDelegable
+  );
 
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)

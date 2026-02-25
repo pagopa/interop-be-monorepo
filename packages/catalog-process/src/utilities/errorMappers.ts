@@ -24,6 +24,7 @@ export const createEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with("invalidEServiceFlags", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "eServiceNameDuplicateForProducer",
       "eserviceTemplateNameConflict",
@@ -71,6 +72,7 @@ export const updateEServiceErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotInDraftState",
+      "invalidEServiceFlags",
       "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -85,6 +87,7 @@ export const updateEServiceTemplateInstanceErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotInDraftState",
+      "invalidEServiceFlags",
       "eServiceNotAnInstance",
       () => HTTP_STATUS_BAD_REQUEST
     )

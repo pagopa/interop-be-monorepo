@@ -32,6 +32,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidEServiceFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -185,6 +186,16 @@ export function assertIsDraftDescriptor(descriptor: Descriptor): void {
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
     throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+export function assertValidDelegationFlags(
+  eserviceId: EServiceId,
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidEServiceFlags(eserviceId);
   }
 }
 
