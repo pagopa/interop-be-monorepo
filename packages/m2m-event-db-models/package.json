@@ -9,11 +9,9 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
-    "generate-db-models": "drizzle-kit pull --config=src/config/config.ts && pnpm format:write",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "generate-db-models": "drizzle-kit pull --config=src/config/config.ts && pnpm lint:autofix",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -28,7 +26,8 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
-    "prettier-plugin-organize-imports": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"
   }
 }

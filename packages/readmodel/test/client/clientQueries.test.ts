@@ -31,9 +31,8 @@ describe("Client queries", () => {
     });
 
     it("client not found", async () => {
-      const retrievedClient = await clientReadModelService.getClientById(
-        generateId()
-      );
+      const retrievedClient =
+        await clientReadModelService.getClientById(generateId());
       expect(retrievedClient).toBeUndefined();
     });
   });

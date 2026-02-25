@@ -21,7 +21,6 @@ catalog:
   "@aws-sdk/s3-request-presigner": 3.842.0
   "@aws-sdk/util-dynamodb": 3.840.0
   "@faker-js/faker": 8.4.1
-  "@pagopa/eslint-config": 3.0.0
   "@protobuf-ts/plugin": 2.9.4
   "@protobuf-ts/protoc": 2.9.4
   "@protobuf-ts/runtime": 2.9.4
@@ -65,9 +64,10 @@ catalog:
   drizzle-kit: 0.30.4
   drizzle-orm: 0.39.3
   drizzle-zod: 0.7.1
-  eslint: 8.57.1
+  "@pagopa/eslint-config": 5.1.2
+  eslint: 9.39.2
   express: 4.20.0
-  fast-xml-parser: 5.3.4
+  fast-xml-parser: 5.3.6
   form-data-encoder: 4.1.0
   handlebars: 4.7.8
   html2json: 1.0.2
@@ -79,6 +79,7 @@ catalog:
   knip: 5.75.1
   lodash.isempty: 4.4.0
   lodash.isequal: 4.5.0
+  madge: 8.0.0
   mime: 4.0.7
   mkdirp: 3.0.1
   multer: 2.0.2
@@ -90,9 +91,9 @@ catalog:
   p-limit: 6.2.0
   p-retry: 6.2.1
   pg: 8.13.1
-  pg-promise: 11.8.0
-  prettier: 2.8.8
+  prettier: 3.8.1
   prettier-plugin-organize-imports: 4.2.0
+  pg-promise: 11.8.0
   puppeteer: 22.11.2
   qs: 6.14.2
   rate-limiter-flexible: 5.0.5

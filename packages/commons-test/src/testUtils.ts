@@ -148,9 +148,7 @@ import * as jose from "jose";
 import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
-  return (
-    new Date(Number(timestamp)) && new Date(Number(timestamp)) <= new Date()
-  );
+  return new Date(Number(timestamp)) <= new Date();
 }
 
 export function randomSubArray<T>(array: T[]): T[] {
@@ -773,8 +771,8 @@ export const getMockPlatformStatesClientEntry = (
 
 export const getMockClientAssertion = async (props?: {
   standardClaimsOverride?: Partial<jose.JWTPayload>;
-  customClaims?: { [k: string]: unknown };
-  customHeader?: { [k: string]: unknown };
+  customClaims?: Record<string, unknown>;
+  customHeader?: Record<string, unknown>;
 }): Promise<{
   jws: string;
   clientAssertion: {
@@ -828,8 +826,8 @@ export const getMockClientAssertion = async (props?: {
 
 export const getMockDPoPProof = async (
   props?: {
-    customPayload?: { [k: string]: unknown };
-    customHeader?: { [k: string]: unknown };
+    customPayload?: Record<string, unknown>;
+    customHeader?: Record<string, unknown>;
   },
   alg: Algorithm = algorithm.ES256
 ): Promise<{
@@ -938,7 +936,7 @@ export const signJWT = async ({
 };
 
 export const addSomeRandomDelegations = async <
-  T extends { eserviceId: EServiceId }
+  T extends { eserviceId: EServiceId },
 >(
   domainObject: T,
   addOneDelegation: (delegation: Delegation) => Promise<void>
@@ -1051,7 +1049,7 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
 };
 
 export const sortAgreement = <
-  T extends Agreement | WithMetadata<Agreement> | undefined
+  T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
   agreement: T
 ): T => {
@@ -1090,7 +1088,7 @@ export const sortAgreement = <
 };
 
 export const sortPurpose = <
-  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined
+  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined,
 >(
   purpose: T
 ): T => {
@@ -1127,7 +1125,7 @@ const sortRiskAnalysisTemplateAnswers = <
     | RiskAnalysisTemplateSingleAnswer
     | RiskAnalysisTemplateSingleAnswerV2
     | RiskAnalysisTemplateMultiAnswer
-    | RiskAnalysisTemplateMultiAnswerV2
+    | RiskAnalysisTemplateMultiAnswerV2,
 >(
   answers: T[]
 ): T[] =>
@@ -1152,7 +1150,7 @@ export const sortPurposeTemplate = <
     | PurposeTemplate
     | PurposeTemplateV2
     | WithMetadata<PurposeTemplate>
-    | undefined
+    | undefined,
 >(
   purposeTemplate: T
 ): T => {
@@ -1212,7 +1210,7 @@ export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
 };
 
 export const sortProducerKeychain = <
-  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined,
 >(
   producerKeychain: T
 ): T => {
@@ -1262,7 +1260,7 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
 });
 
 export const sortAgreements = <
-  T extends Agreement | WithMetadata<Agreement> | undefined
+  T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
   agreements: T[]
 ): T[] => agreements.map(sortAgreement);
@@ -1288,7 +1286,7 @@ export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
 });
 
 export const sortEService = <
-  T extends EService | WithMetadata<EService> | undefined
+  T extends EService | WithMetadata<EService> | undefined,
 >(
   eservice: T
 ): T => {

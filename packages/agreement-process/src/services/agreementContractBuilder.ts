@@ -80,7 +80,7 @@ const getAttributesData = async (
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
-      | VerifiedTenantAttribute
+      | VerifiedTenantAttribute,
   >(
     type: TenantAttributeType
   ): Promise<

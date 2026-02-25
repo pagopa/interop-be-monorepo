@@ -13,7 +13,10 @@ const CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 export class SimpleCache<T> {
   private cacheEntry: CacheEntry<T> | null = null;
 
-  constructor(private logger: Logger, private cacheName: string) {}
+  constructor(
+    private logger: Logger,
+    private cacheName: string
+  ) {}
 
   public get(): T[] | null {
     if (!this.cacheEntry) {
