@@ -1,7 +1,7 @@
 import {
   AttributeId,
   NewNotification,
-  TenantEventEnvelopeV2,
+  TenantEventEnvelope,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -10,7 +10,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleCertifiedVerifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedVerifiedAttributeAssignedRevokedToAssignee.js";
 
 export async function handleTenantEvent(
-  decodedMessage: TenantEventEnvelopeV2,
+  decodedMessage: TenantEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -51,7 +51,12 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantCreated",
+          "TenantUpdated",
+          "TenantDeleted",
+          "SelfcareMappingCreated",
+          "SelfcareMappingDeleted"
         ),
       },
       () => {
