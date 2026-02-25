@@ -35,7 +35,8 @@ describe("DELETE /purpose/:purposeId router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockM2MAgreementResponse.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

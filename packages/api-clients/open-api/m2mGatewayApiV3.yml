@@ -210,8 +210,12 @@ paths:
       description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
       operationId: deleteAgreement
       responses:
-        "204":
+        "200":
           description: Agreement deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -13094,6 +13098,10 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the Template
+    EmptyObject:
+      type: object
+      additionalProperties: false
+      description: An empty object
   responses:
     TooManyRequests:
       description: Too Many Requests
