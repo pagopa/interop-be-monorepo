@@ -585,7 +585,7 @@ const eserviceTemplateRouter = (
               ctx
             );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(file, res, ctx);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

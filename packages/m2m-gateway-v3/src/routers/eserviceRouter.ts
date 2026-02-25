@@ -467,7 +467,7 @@ const eserviceRouter = (
             ctx
           );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(file, res, ctx);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -518,8 +518,7 @@ const eserviceRouter = (
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
-
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(file, res, ctx);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

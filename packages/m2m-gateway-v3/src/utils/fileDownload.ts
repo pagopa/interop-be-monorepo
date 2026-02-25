@@ -1,8 +1,16 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { FileManager, Logger } from "pagopa-interop-commons";
+import {
+  buildIntegrityRest02SignedHeaders,
+  FileManager,
+  InteropTokenGenerator,
+  Logger
+} from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
+import { M2MGatewayAppContext } from "./context.js";
+import { createHash } from "node:crypto";
+import { config } from "../config/config.js";
 
 export type DownloadedDocument = {
   id: string;
@@ -36,7 +44,8 @@ export async function downloadDocument(
 
 export async function sendDownloadedDocumentAsFormData(
   { id, file, prettyName }: DownloadedDocument,
-  res: Response
+  res: Response,
+  ctx: M2MGatewayAppContext
 ): Promise<Response> {
   const form = new FormData();
   form.set("file", file);
@@ -50,9 +59,28 @@ export async function sendDownloadedDocumentAsFormData(
 
   const encoder = new FormDataEncoder(form);
 
+  const hash = createHash('sha256');
+
+  for await (const chunk of encoder.encode()) {
+    hash.update(chunk);
+  }
+  const digest = hash.digest('base64');
+  const contentType = encoder.headers["Content-Type"];
+  const contentEncoding = res.getHeader("Content-Encoding")?.toString();
+
+  const tokenGenerator = new InteropTokenGenerator(config);
+  const agidSignature = await tokenGenerator.generateAgidIntegrityRest02Token({
+    signedHeaders: buildIntegrityRest02SignedHeaders({ digest, contentType, contentEncoding }),
+    aud: ctx.authData.clientId,
+    sub: res.getHeader("x-correlation-id") as string,
+  });
+
+  res.setHeader("Digest", `SHA-256=${digest}`);
+  res.setHeader("Agid-JWT-Signature", agidSignature);
   res.writeHead(200, encoder.headers);
 
   // Stream the multipart body and end the response when done
   await pipeline(Readable.from(encoder.encode()), res);
+
   return res;
 }

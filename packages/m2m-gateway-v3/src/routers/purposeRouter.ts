@@ -289,7 +289,7 @@ const purposeRouter = (
               ctx
             );
 
-          return sendDownloadedDocumentAsFormData(document, res);
+          return sendDownloadedDocumentAsFormData(document, res, ctx);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
