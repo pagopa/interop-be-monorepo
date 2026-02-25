@@ -4,7 +4,7 @@ import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
   items: T[],
-  totalCount?: number,
+  totalCount?: number
 ): ListResult<T> => ({
   results: items,
   totalCount: totalCount ?? 0,
@@ -18,15 +18,16 @@ export const ascLower = (column: Column): SQL => asc(lowerCase(column));
 export const withTotalCount = <
   P extends Record<string, Table | Column | SQL | SQL.Aliased>,
 >(
-  projection: P,
+  projection: P
 ): P & { totalCount: SQL.Aliased<number> } => ({
   ...projection,
   totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
 });
 
 export async function getTableTotalCount(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   db: { select: (...args: any[]) => any }, // NodePgDatabase,
-  query: PgSelect,
+  query: PgSelect
 ): Promise<number> {
   const totalCountResult = await db
     .select({ count: count() })

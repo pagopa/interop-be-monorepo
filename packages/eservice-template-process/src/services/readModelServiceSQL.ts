@@ -62,10 +62,10 @@ export function readModelServiceBuilderSQL({
 }) {
   return {
     async getEServiceTemplateById(
-      id: EServiceTemplateId,
+      id: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
       return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(
-        id,
+        id
       );
     },
     async isEServiceTemplateNameAvailable({
@@ -81,8 +81,8 @@ export function readModelServiceBuilderSQL({
         .where(
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name),
-          ),
+            escapeRegExp(name)
+          )
         )
         .limit(1);
 
@@ -93,14 +93,14 @@ export function readModelServiceBuilderSQL({
     },
     async getAttributesByIds(
       attributesIds: AttributeId[],
-      kind: AttributeKind,
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       return (
         await attributeReadModelServiceSQL.getAttributesByFilter(
           and(
             inArray(attributeInReadmodelAttribute.id, attributesIds),
-            eq(attributeInReadmodelAttribute.kind, kind),
-          ),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
         )
       ).map((a) => a.data);
     },
@@ -108,7 +108,7 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
         filters;
@@ -122,8 +122,8 @@ export function readModelServiceBuilderSQL({
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
-          ),
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
         )
         .where(
           and(
@@ -131,33 +131,33 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`,
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // IDS FILTER
             eserviceTemplatesIds.length > 0
               ? inArray(
                   eserviceTemplateInReadmodelEserviceTemplate.id,
-                  eserviceTemplatesIds,
+                  eserviceTemplatesIds
                 )
               : undefined,
             match(personalData)
               .with("TRUE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  true,
-                ),
+                  true
+                )
               )
               .with("FALSE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  false,
-                ),
+                  false
+                )
               )
               .with("DEFINED", () =>
                 isNotNull(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                ),
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData
+                )
               )
               .with(undefined, () => undefined)
               .exhaustive(),
@@ -165,14 +165,14 @@ export function readModelServiceBuilderSQL({
             creatorsIds.length > 0
               ? inArray(
                   eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                  creatorsIds,
+                  creatorsIds
                 )
               : undefined,
             // STATES FILTER
             states.length > 0
               ? inArray(
                   eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  states,
+                  states
                 )
               : undefined,
             // VISIBILITY FILTER
@@ -180,28 +180,28 @@ export function readModelServiceBuilderSQL({
               ? or(
                   eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                    authData.organizationId,
+                    authData.organizationId
                   ),
                   and(
                     ne(
                       eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                      eserviceTemplateVersionState.draft,
+                      eserviceTemplateVersionState.draft
                     ),
                     isNotNull(
-                      eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-                    ),
-                  ),
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                    )
+                  )
                 )
               : and(
                   ne(
                     eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                    eserviceTemplateVersionState.draft,
+                    eserviceTemplateVersionState.draft
                   ),
                   isNotNull(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-                  ),
-                ),
-          ),
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  )
+                )
+          )
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
@@ -230,66 +230,66 @@ export function readModelServiceBuilderSQL({
             subquery,
             eq(
               subquery.eserviceTemplateId,
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-            ),
+              eserviceTemplateInReadmodelEserviceTemplate.id
+            )
           )
           .leftJoin(
             eserviceTemplateVersionInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
-            ),
+              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+            )
           )
           .leftJoin(
             eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId,
-            ),
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+            )
           )
           .leftJoin(
             eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId,
-            ),
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+            )
           )
           .leftJoin(
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId,
-            ),
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+            )
           )
           .leftJoin(
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId,
-            ),
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+            )
           )
           .leftJoin(
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
             eq(
               eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId,
-            ),
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+            )
           )
           .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name)),
         getTableTotalCount(readModelDB, filterQuery),
       ]);
 
       const eserviceTemplates = aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult),
+        toEServiceTemplateAggregatorArray(queryResult)
       );
       return createListResult(
         eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
-        totalCount,
+        totalCount
       );
     },
     async checkNameConflictInstances(
       eserviceTemplate: EServiceTemplate,
-      newName: string,
+      newName: string
     ): Promise<boolean> {
       const queryResult = await readModelDB.transaction(async (tx) => {
         const instanceProducerIds = (
@@ -300,8 +300,8 @@ export function readModelServiceBuilderSQL({
             .from(eserviceInReadmodelCatalog)
             .where(
               and(
-                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id),
-              ),
+                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
+              )
             )
             .groupBy(eserviceInReadmodelCatalog.producerId)
         ).map((d) => d.producerId);
@@ -316,9 +316,9 @@ export function readModelServiceBuilderSQL({
               ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
               inArray(
                 eserviceInReadmodelCatalog.producerId,
-                instanceProducerIds,
-              ),
-            ),
+                instanceProducerIds
+              )
+            )
           );
       });
 
@@ -327,7 +327,7 @@ export function readModelServiceBuilderSQL({
     async getCreators(
       name: string | undefined,
       limit: number,
-      offset: number,
+      offset: number
     ): Promise<ListResult<CompactOrganization>> {
       const baseQuery = readModelDB
         .select({
@@ -339,28 +339,28 @@ export function readModelServiceBuilderSQL({
           eserviceTemplateInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-            tenantInReadmodelTenant.id,
-          ),
+            tenantInReadmodelTenant.id
+          )
         )
         .innerJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
-          ),
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
         )
         .where(
           // E-SERVICE TEMPLATE FILTER
           and(
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-              eserviceTemplateVersionState.published,
+              eserviceTemplateVersionState.published
             ),
             // TENANT FILTER
             name
               ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
-              : undefined,
-          ),
+              : undefined
+          )
         )
         .groupBy(tenantInReadmodelTenant.id)
         .orderBy(ascLower(tenantInReadmodelTenant.name))
@@ -381,8 +381,8 @@ export function readModelServiceBuilderSQL({
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse compact organization items: result ${JSON.stringify(
-            result,
-          )} - data ${JSON.stringify(data)} `,
+            result
+          )} - data ${JSON.stringify(data)} `
         );
       }
 

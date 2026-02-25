@@ -60,7 +60,7 @@ export function readModelServiceBuilderSQL({
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        totalCount,
+        totalCount
       );
     },
     async getAttributesByKindsNameOrigin({
@@ -87,13 +87,13 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`,
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             origin
               ? eq(attributeInReadmodelAttribute.origin, origin)
-              : undefined,
-          ),
+              : undefined
+          )
         )
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .$dynamic();
@@ -107,19 +107,19 @@ export function readModelServiceBuilderSQL({
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        totalCount,
+        totalCount
       );
     },
     async getAttributeById(
-      id: AttributeId,
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeById(id);
     },
     async getAttributeByName(
-      name: string,
+      name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeByFilter(
-        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name)),
+        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
       );
     },
     async getAttributeByOriginAndCode({
@@ -132,19 +132,19 @@ export function readModelServiceBuilderSQL({
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
           eq(attributeInReadmodelAttribute.origin, escapeRegExp(origin)),
-          eq(attributeInReadmodelAttribute.code, escapeRegExp(code)),
-        ),
+          eq(attributeInReadmodelAttribute.code, escapeRegExp(code))
+        )
       );
     },
     async getAttributeByCodeAndName(
       code: string,
-      name: string,
+      name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
           ilike(attributeInReadmodelAttribute.code, escapeRegExp(code)),
-          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name)),
-        ),
+          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
+        )
       );
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {

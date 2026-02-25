@@ -105,13 +105,13 @@ export function readModelServiceBuilderSQL({
 }) {
   return {
     async getClientById(
-      id: ClientId,
+      id: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
       return clientReadModelServiceSQL.getClientById(id);
     },
     async getClients(
       filters: GetClientsFilters,
-      { offset, limit }: { offset: number; limit: number },
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Client>> {
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
@@ -122,14 +122,14 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .leftJoin(
           clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId),
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
         )
         .leftJoin(
           clientPurposeInReadmodelClient,
           eq(
             clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId,
-          ),
+            clientPurposeInReadmodelClient.clientId
+          )
         )
         .where(
           and(
@@ -150,8 +150,8 @@ export function readModelServiceBuilderSQL({
               ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
               : undefined,
             // KIND FILTER
-            kind ? eq(clientInReadmodelClient.kind, kind) : undefined,
-          ),
+            kind ? eq(clientInReadmodelClient.kind, kind) : undefined
+          )
         )
         .groupBy(clientInReadmodelClient.id)
         .orderBy(ascLower(clientInReadmodelClient.name))
@@ -170,25 +170,22 @@ export function readModelServiceBuilderSQL({
           .from(clientInReadmodelClient)
           .innerJoin(
             subquery,
-            eq(clientInReadmodelClient.id, subquery.clientId),
+            eq(clientInReadmodelClient.id, subquery.clientId)
           )
           .leftJoin(
             clientUserInReadmodelClient,
-            eq(
-              clientInReadmodelClient.id,
-              clientUserInReadmodelClient.clientId,
-            ),
+            eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
           )
           .leftJoin(
             clientPurposeInReadmodelClient,
             eq(
               clientInReadmodelClient.id,
-              clientPurposeInReadmodelClient.clientId,
-            ),
+              clientPurposeInReadmodelClient.clientId
+            )
           )
           .leftJoin(
             clientKeyInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId),
+            eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
           )
           .orderBy(ascLower(clientInReadmodelClient.name)),
         getTableTotalCount(readModelDB, filterQuery),
@@ -196,13 +193,13 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
-          (c) => c.data,
+          (c) => c.data
         ),
         totalCount,
       };
     },
     async getClientsRelatedToPurpose(
-      purposeId: PurposeId,
+      purposeId: PurposeId
     ): Promise<Array<WithMetadata<Client>>> {
       const subquery = readModelDB
         .select({
@@ -214,10 +211,10 @@ export function readModelServiceBuilderSQL({
           and(
             eq(
               clientInReadmodelClient.id,
-              clientPurposeInReadmodelClient.clientId,
+              clientPurposeInReadmodelClient.clientId
             ),
-            eq(clientPurposeInReadmodelClient.purposeId, purposeId),
-          ),
+            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          )
         )
         .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId))
         .groupBy(clientInReadmodelClient.id)
@@ -234,24 +231,24 @@ export function readModelServiceBuilderSQL({
         .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
         .leftJoin(
           clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId),
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
         )
         .leftJoin(
           clientPurposeInReadmodelClient,
           eq(
             clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId,
-          ),
+            clientPurposeInReadmodelClient.clientId
+          )
         )
         .leftJoin(
           clientKeyInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId),
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         );
 
       return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
     async getEServiceById(
-      eserviceId: EServiceId,
+      eserviceId: EServiceId
     ): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(eserviceId))
         ?.data;
@@ -261,7 +258,7 @@ export function readModelServiceBuilderSQL({
     },
     async getActiveOrSuspendedAgreement(
       eserviceId: EServiceId,
-      consumerId: TenantId,
+      consumerId: TenantId
     ): Promise<Agreement | undefined> {
       return (
         await agreementReadModelServiceSQL.getAgreementByFilter(
@@ -271,8 +268,8 @@ export function readModelServiceBuilderSQL({
             inArray(agreementInReadmodelAgreement.state, [
               agreementState.active,
               agreementState.suspended,
-            ]),
-          ),
+            ])
+          )
         )
       )?.data;
     },
@@ -304,7 +301,7 @@ export function readModelServiceBuilderSQL({
     },
     async getProducerKeychains(
       filters: GetProducerKeychainsFilters,
-      { offset, limit }: { offset: number; limit: number },
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<ProducerKeychain>> {
       const { name, userIds, producerId, eserviceId } = filters;
 
@@ -317,15 +314,15 @@ export function readModelServiceBuilderSQL({
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId,
-          ),
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+          )
         )
         .leftJoin(
           producerKeychainEserviceInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
-          ),
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+          )
         )
         .where(
           and(
@@ -333,31 +330,31 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   producerKeychainInReadmodelProducerKeychain.name,
-                  `%${escapeRegExp(name)}%`,
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // USERS FILTER
             userIds.length > 0
               ? inArray(
                   producerKeychainUserInReadmodelProducerKeychain.userId,
-                  userIds,
+                  userIds
                 )
               : undefined,
             // PRODUCER FILTER
             producerId
               ? eq(
                   producerKeychainInReadmodelProducerKeychain.producerId,
-                  producerId,
+                  producerId
                 )
               : undefined,
             // E-SERVICE FILTER
             eserviceId
               ? eq(
                   producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
-                  eserviceId,
+                  eserviceId
                 )
-              : undefined,
-          ),
+              : undefined
+          )
         )
         .groupBy(producerKeychainInReadmodelProducerKeychain.id)
         .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
@@ -380,29 +377,29 @@ export function readModelServiceBuilderSQL({
             subquery,
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              subquery.producerKeychainId,
-            ),
+              subquery.producerKeychainId
+            )
           )
           .leftJoin(
             producerKeychainUserInReadmodelProducerKeychain,
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainUserInReadmodelProducerKeychain.producerKeychainId,
-            ),
+              producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+            )
           )
           .leftJoin(
             producerKeychainEserviceInReadmodelProducerKeychain,
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
-            ),
+              producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+            )
           )
           .leftJoin(
             producerKeychainKeyInReadmodelProducerKeychain,
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId,
-            ),
+              producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+            )
           )
           .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name)),
         getTableTotalCount(readModelDB, filterQuery),
@@ -410,16 +407,16 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: aggregateProducerKeychainArray(
-          toProducerKeychainAggregatorArray(queryResult),
+          toProducerKeychainAggregatorArray(queryResult)
         ).map((p) => p.data),
         totalCount,
       };
     },
     async getProducerKeychainById(
-      id: ProducerKeychainId,
+      id: ProducerKeychainId
     ): Promise<WithMetadata<ProducerKeychain> | undefined> {
       return await producerKeychainReadModelServiceSQL.getProducerKeychainById(
-        id,
+        id
       );
     },
     async getProducerKeychainKeyByKid(kid: string): Promise<Key | undefined> {
@@ -444,7 +441,7 @@ export function readModelServiceBuilderSQL({
       };
     },
     async getActiveConsumerDelegationById(
-      id: DelegationId,
+      id: DelegationId
     ): Promise<Delegation | undefined> {
       return (
         await delegationReadModelServiceSQL.getDelegationByFilter(
@@ -453,18 +450,18 @@ export function readModelServiceBuilderSQL({
             eq(delegationInReadmodelDelegation.state, delegationState.active),
             eq(
               delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedConsumer,
-            ),
-          ),
+              delegationKind.delegatedConsumer
+            )
+          )
         )
       )?.data;
     },
     async getClientJWKByKId(
-      kId: ClientJWKKey["kid"],
+      kId: ClientJWKKey["kid"]
     ): Promise<ClientJWKKey | undefined> {
       const clientKey =
         await clientJWKKeyReadModelServiceSQL.getClientJWKKeyByFilter(
-          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
         );
 
       if (!clientKey?.data) {
@@ -475,19 +472,19 @@ export function readModelServiceBuilderSQL({
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse client key: result ${JSON.stringify(
-            parseResult,
-          )} - data ${JSON.stringify(clientKey)}`,
+            parseResult
+          )} - data ${JSON.stringify(clientKey)}`
         );
       }
 
       return parseResult.data;
     },
     async getProducerJWKByKId(
-      kId: ProducerJWKKey["kid"],
+      kId: ProducerJWKKey["kid"]
     ): Promise<ProducerJWKKey | undefined> {
       const producerKey =
         await producerJWKKeyReadModelServiceSQL.getProducerJWKKeyByFilter(
-          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kId),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kId)
         );
 
       if (!producerKey?.data) {
@@ -498,8 +495,8 @@ export function readModelServiceBuilderSQL({
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse producer key: result ${JSON.stringify(
-            parseResult,
-          )} - data ${JSON.stringify(producerKey)}`,
+            parseResult
+          )} - data ${JSON.stringify(producerKey)}`
         );
       }
 
