@@ -1864,6 +1864,17 @@ export function catalogServiceBuilder(
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
       const tentantsIds = Array.from(tenantsMap.keys());
 
+      if (producerName && tentantsIds.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            offset,
+            limit,
+            totalCount: 0,
+          },
+        };
+      }
+
       const defaultStates: catalogApi.EServiceDescriptorState[] = [
         catalogApi.EServiceDescriptorState.Values.PUBLISHED,
         catalogApi.EServiceDescriptorState.Values.SUSPENDED,
