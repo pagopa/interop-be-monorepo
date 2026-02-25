@@ -32,7 +32,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -190,12 +190,11 @@ export function assertIsReceiveEservice(eservice: EService): void {
 }
 
 export function assertValidDelegationFlags(
-  eserviceId: EServiceId,
   isConsumerDelegable: boolean | undefined,
   isClientAccessDelegable: boolean | undefined
 ): void {
   if (isConsumerDelegable === false && isClientAccessDelegable === true) {
-    throw invalidEServiceFlags(eserviceId);
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
   }
 }
 

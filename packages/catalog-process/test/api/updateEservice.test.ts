@@ -26,7 +26,7 @@ import {
   eServiceNotFound,
   eserviceNotInDraftState,
   eserviceTemplateNameConflict,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -130,7 +130,7 @@ describe("PUT /eservices/{eServiceId} router test", () => {
       expectedStatus: 400,
     },
     {
-      error: invalidEServiceFlags(mockEService.id),
+      error: invalidDelegationFlags(false, true),
       expectedStatus: 400,
     },
   ])(

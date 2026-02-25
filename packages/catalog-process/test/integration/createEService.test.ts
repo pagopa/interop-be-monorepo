@@ -21,7 +21,7 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
 import {
@@ -238,7 +238,7 @@ describe("create eservice", () => {
     );
   });
 
-  it("should throw invalidEServiceFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
 
     await expect(
@@ -256,7 +256,7 @@ describe("create eservice", () => {
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
-      code: invalidEServiceFlags(mockEService.id).code,
+      code: invalidDelegationFlags(false, true).code,
     });
   });
 

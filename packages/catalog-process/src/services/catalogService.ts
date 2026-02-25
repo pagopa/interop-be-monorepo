@@ -523,7 +523,6 @@ async function innerCreateEService(
 
   const eserviceId = generateId<EServiceId>();
   assertValidDelegationFlags(
-    eserviceId,
     seed.isConsumerDelegable,
     seed.isClientAccessDelegable
   );
@@ -981,7 +980,6 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       assertValidDelegationFlags(
-        eserviceId,
         eserviceSeed.isConsumerDelegable,
         eserviceSeed.isClientAccessDelegable
       );
@@ -2451,11 +2449,7 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      assertValidDelegationFlags(
-        eserviceId,
-        isConsumerDelegable,
-        isClientAccessDelegable
-      );
+      assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -4103,7 +4097,6 @@ async function updateDraftEService(
     .exhaustive();
 
   assertValidDelegationFlags(
-    eserviceId,
     updatedIsConsumerDelegable,
     updatedIsClientAccessDelegable
   );
