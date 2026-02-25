@@ -22,6 +22,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  buildInstanceName,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -2922,9 +2923,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const updatedInstanceName = eservice.data.instanceLabel
-        ? `${updatedTemplateName} - ${eservice.data.instanceLabel}`
-        : updatedTemplateName;
+      const updatedInstanceName = buildInstanceName(
+        updatedTemplateName,
+        eservice.data.instanceLabel
+      );
 
       if (updatedInstanceName === eservice.data.name) {
         return;
@@ -3347,10 +3349,7 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const instanceName =
-        seed.instanceLabel === undefined
-          ? template.name
-          : `${template.name} - ${seed.instanceLabel}`;
+      const instanceName = buildInstanceName(template.name, seed.instanceLabel);
 
       await assertEServiceNameAvailableForProducer(
         instanceName,
@@ -3710,9 +3709,10 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const updatedInstanceName = instanceLabel
-        ? `${template.name} - ${instanceLabel}`
-        : template.name;
+      const updatedInstanceName = buildInstanceName(
+        template.name,
+        instanceLabel
+      );
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
