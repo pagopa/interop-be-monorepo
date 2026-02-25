@@ -1198,7 +1198,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposes/{purposeId}/getUpdateDailyCalls:
+  /purposes/{purposeId}/updatedDailyCalls:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId

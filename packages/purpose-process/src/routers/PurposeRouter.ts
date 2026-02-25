@@ -239,7 +239,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes/:purposeId/getUpdateDailyCalls", async (req, res) => {
+    .get("/purposes/:purposeId/updatedDailyCalls", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {

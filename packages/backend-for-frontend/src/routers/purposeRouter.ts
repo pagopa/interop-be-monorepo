@@ -143,7 +143,7 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes/:purposeId/getUpdateDailyCalls", async (req, res) => {
+    .get("/purposes/:purposeId/updatedDailyCalls", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
