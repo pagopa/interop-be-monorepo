@@ -23,16 +23,18 @@ export const ANAC_ENABLED_CODE = "anac_abilitato";
 export const ANAC_ASSIGNED_CODE = "anac_incaricato";
 export const ANAC_IN_VALIDATION_CODE = "anac_in_convalida";
 
+type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
 export async function importAttributes(
   sftpClient: SftpClient,
   readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   anacTenantId: string,
   logger: Logger,
   correlationId: CorrelationId
@@ -83,10 +85,7 @@ async function processFileContent(
   fileContent: string,
   attributes: AnacAttributes,
   recordsBatchSize: number,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<string[]> {
@@ -169,10 +168,7 @@ async function unassignMissingOrgsAttributes(
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
   attributes: AnacAttributes,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ) {
@@ -281,10 +277,7 @@ const prepareTenantsProcessor = (
   refreshableToken: RefreshableInteropToken,
   attributes: AnacAttributes,
   readModel: ReadModelQueriesSQL,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ) =>
@@ -397,10 +390,7 @@ async function assignAttribute(
   tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
   readModel: ReadModelQueriesSQL,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -438,10 +428,7 @@ async function unassignAttribute(
   tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
   readModel: ReadModelQueriesSQL,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  },
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
