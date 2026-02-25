@@ -84,9 +84,9 @@ describe("addProducerKeychainUsers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue([
-      mockSelfcareInstitutionUsers,
-    ]);
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue(
+      mockSelfcareInstitutionUsers
+    );
     mockAddProducerKeychainUsers.mockResolvedValue(
       mockAuthorizationProcessResponse
     );
