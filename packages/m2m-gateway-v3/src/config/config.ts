@@ -2,9 +2,12 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  DPoPConfig,
   FileManagerConfig,
+  JWTConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
+  IntegrityRest02SignatureConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -148,6 +151,9 @@ const M2MGatewayConfigV3 = CommonHTTPServiceConfig.and(
   .and(SelfCareClientConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FileManagerConfig)
+  .and(DPoPConfig)
+  .and(JWTConfig)
+  .and(IntegrityRest02SignatureConfig)
   .and(
     z
       .object({

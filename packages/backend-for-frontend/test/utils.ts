@@ -31,6 +31,7 @@ export const getBffMockContext = (
   logger: genericLogger,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const catalogErrorCodes = {
   eserviceTemplateInterfaceNotFound: "0035",
   eserviceTemplateInterfaceDataNotValid: "0036",

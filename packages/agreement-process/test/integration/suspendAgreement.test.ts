@@ -403,10 +403,10 @@ describe("suspend agreement", () => {
     const expectedSuspensionFlags = {
       suspendedByConsumer: isConsumer
         ? true
-        : agreement.suspendedByConsumer ?? false,
+        : (agreement.suspendedByConsumer ?? false),
       suspendedByProducer: !isConsumer
         ? true
-        : agreement.suspendedByProducer ?? false,
+        : (agreement.suspendedByProducer ?? false),
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,

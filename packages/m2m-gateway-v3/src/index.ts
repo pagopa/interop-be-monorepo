@@ -4,6 +4,8 @@ import {
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
 } from "pagopa-interop-commons";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { config } from "./config/config.js";
 import { M2MGatewayServices, RateLimiterMiddleware, createApp } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -23,6 +25,9 @@ import { userServiceBuilder } from "./services/userService.js";
 
 const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
+
+const dynamoDBClient = new DynamoDBClient();
+const kmsClient = new KMSClient();
 
 const services: M2MGatewayServices = {
   agreementService: agreementServiceBuilder(clients, fileManager),
@@ -52,6 +57,11 @@ const redisRateLimiter = await initRedisRateLimiter({
 const rateLimiterMiddleware: RateLimiterMiddleware =
   rateLimiterMiddlewareBuilder(redisRateLimiter);
 
-const app = await createApp(services, rateLimiterMiddleware);
+const app = await createApp(
+  services,
+  rateLimiterMiddleware,
+  dynamoDBClient,
+  kmsClient
+);
 
 startServer(app, config);

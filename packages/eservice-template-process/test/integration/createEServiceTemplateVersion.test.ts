@@ -146,8 +146,9 @@ describe("createEServiceTemplateVersion", async () => {
     };
     const expectedEServiceTemplateAfterDocumentAddition: EServiceTemplate = {
       ...expectedEServiceTemplateAfterVersionCreation,
-      versions: expectedEServiceTemplateAfterVersionCreation.versions.map((d) =>
-        d.id === newVersion.id ? { ...newVersion, docs: [mockDocument] } : d
+      versions: expectedEServiceTemplateAfterVersionCreation.versions.map(
+        (d) =>
+          d.id === newVersion.id ? { ...newVersion, docs: [mockDocument] } : d
       ),
     };
 
