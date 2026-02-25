@@ -1,7 +1,10 @@
 import { isNotNull } from "drizzle-orm";
 import pLimit from "p-limit";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import {
+  generateId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+} from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   tenantInReadmodelTenant,
@@ -76,29 +79,57 @@ type DiffResult = {
   };
 };
 
+/**
+ * Derives the expected origin and originId from SelfCare data,
+ * applying the same transformations used by the onboarding consumer:
+ * - origin: SCP/PRV/PT institution types get a suffix appended
+ * - originId: non-IPA origins prefer taxCode over originId
+ */
+function deriveExpectedExternalId(institution: {
+  origin?: string;
+  originId?: string;
+  institutionType?: string;
+  taxCode?: string;
+}): { origin: string | undefined; originId: string | undefined } {
+  const suffixedTypes = ["SCP", "PRV", "PT"];
+  const origin =
+    institution.origin &&
+    institution.institutionType &&
+    suffixedTypes.includes(institution.institutionType)
+      ? `${institution.origin}-${institution.institutionType}`
+      : institution.origin;
+
+  const originId =
+    institution.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+      ? institution.originId
+      : institution.taxCode || institution.originId;
+
+  return { origin, originId };
+}
+
 function checkOriginMismatches(
   dbOrigin: string,
   dbOriginId: string,
-  selfcareOrigin: string | undefined,
-  selfcareOriginId: string | undefined
+  expectedOrigin: string | undefined,
+  expectedOriginId: string | undefined
 ): TenantOriginMismatch[] {
   const mismatches: TenantOriginMismatch[] = [];
 
-  if (dbOrigin !== selfcareOrigin) {
+  if (dbOrigin !== expectedOrigin) {
     // eslint-disable-next-line functional/immutable-data
     mismatches.push({
       field: "origin",
       dbValue: dbOrigin,
-      selfcareValue: selfcareOrigin,
+      selfcareValue: expectedOrigin,
     });
   }
 
-  if (dbOriginId !== selfcareOriginId) {
+  if (dbOriginId !== expectedOriginId) {
     // eslint-disable-next-line functional/immutable-data
     mismatches.push({
       field: "originId",
       dbValue: dbOriginId,
-      selfcareValue: selfcareOriginId,
+      selfcareValue: expectedOriginId,
     });
   }
 
@@ -210,11 +241,13 @@ export async function checkDifferences(
       }),
     ]);
 
+    const expectedExternalId = deriveExpectedExternalId(institutionData);
+
     const tenantDataMismatches = checkOriginMismatches(
       tenant.externalIdOrigin,
       tenant.externalIdValue,
-      institutionData.origin,
-      institutionData.originId
+      expectedExternalId.origin,
+      expectedExternalId.originId
     );
 
     const mergedSelfcareUsers = mergeUsersByIdWithRoles(
