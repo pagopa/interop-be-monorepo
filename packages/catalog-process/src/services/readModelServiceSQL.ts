@@ -861,7 +861,7 @@ export function readModelServiceBuilderSQL(
               contentType: doc.contentType,
               checksum: doc.checksum,
               uploadDate: stringToDate(doc.uploadDate),
-            } satisfies Document),
+            }) satisfies Document,
         ),
         totalCount,
       );

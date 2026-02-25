@@ -1,5 +1,4 @@
 import { sql, asc, SQL, Column, Table, count } from "drizzle-orm";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { PgSelect } from "drizzle-orm/pg-core";
 import { ListResult } from "pagopa-interop-models";
 
@@ -26,7 +25,7 @@ export const withTotalCount = <
 });
 
 export async function getTableTotalCount(
-  db: NodePgDatabase,
+  db: { select: (...args: any[]) => any }, // NodePgDatabase,
   query: PgSelect,
 ): Promise<number> {
   const totalCountResult = await db

@@ -889,7 +889,7 @@ export function readModelServiceBuilderSQL(
               prettyName: doc.prettyName,
               contentType: doc.contentType,
               createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument),
+            }) satisfies AgreementDocument,
         ),
         totalCount,
       );
