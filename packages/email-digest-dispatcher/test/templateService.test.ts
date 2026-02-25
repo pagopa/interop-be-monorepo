@@ -35,7 +35,7 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Richieste di fruizione inoltrate");
     expect(compiledHtml).toContain("Finalità inoltrate");
     expect(compiledHtml).toContain("Richieste di fruizione che hai ricevuto");
-    expect(compiledHtml).toContain("Finalità che hai ricevuto");
+    expect(compiledHtml).toContain("Finalità ricevute");
     expect(compiledHtml).toContain("Richieste di delega");
     expect(compiledHtml).toContain("inoltrate come delegante");
     expect(compiledHtml).toContain("ricevute come delegato");
