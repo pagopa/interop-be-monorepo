@@ -1755,7 +1755,7 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
 
 // eslint-disable-next-line max-params
 async function addContractAtCondition(
-  isFirstActivation: boolean,
+  condition: boolean,
   contractBuilder: ContractBuilder,
   eservice: EService,
   consumer: Tenant,
