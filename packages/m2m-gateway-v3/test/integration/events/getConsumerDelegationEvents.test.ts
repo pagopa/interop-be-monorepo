@@ -48,7 +48,7 @@ describe("getConsumerDelegationEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetConsumerDelegationM2MEvents,
         queries: {

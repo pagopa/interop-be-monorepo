@@ -46,6 +46,7 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test"
       )
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

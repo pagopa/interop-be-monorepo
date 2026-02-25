@@ -33,7 +33,7 @@ import {
   InteropJwtInternalPayload,
   InteropJwtApiDPoPPayload,
   AgidIntegrityRest02TokenPayload,
-  IntegrityRest02SignedHeader,
+  IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -334,7 +334,7 @@ export class InteropTokenGenerator {
     aud,
     sub,
   }: {
-    signedHeaders: IntegrityRest02SignedHeader;
+    signedHeaders: IntegrityRest02SignedHeaders;
     aud: string | undefined;
     sub: string | undefined;
   }): Promise<string> {

@@ -395,7 +395,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
         const key = await authorizationService.createKey(
           {
@@ -477,7 +477,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
         await authorizationService.deleteClientKeyById(
           {
@@ -885,7 +885,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
         const key = await authorizationService.createProducerKeychainKey(
           {
@@ -984,7 +984,7 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           await authorizationService.removeProducerKeychainKeyById(
             {

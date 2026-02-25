@@ -1,5 +1,6 @@
 import { Response } from "express";
-import { IntegrityRest02SignedHeader } from "../interop-token/models.js";
+import { IntegrityRest02SignedHeaders } from "../interop-token/models.js";
+
 /**
  * Build signed headers for Integrity REST 02 responses.
  *
@@ -12,15 +13,21 @@ export function buildIntegrityRest02SignedHeaders({
 }: {
   res: Response;
   digest: string;
-}): IntegrityRest02SignedHeader {
-  const contentType = res.getHeader("Content-Type")?.toString() ?? "";
+}): IntegrityRest02SignedHeaders {
+  const contentType = res.getHeader("Content-Type")?.toString();
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
-  const headers: IntegrityRest02SignedHeader = {
-    digest: `SHA-256=${digest}`,
-    "content-type": contentType,
-    ...(contentEncoding ? { "content-encoding": contentEncoding } : {}),
-  };
+  const headers: IntegrityRest02SignedHeaders = [
+    { digest: `SHA-256=${digest}` },
+  ];
+  if (contentType) {
+    // eslint-disable-next-line functional/immutable-data
+    headers.push({ "content-type": contentType });
+  }
+  if (contentEncoding) {
+    // eslint-disable-next-line functional/immutable-data
+    headers.push({ "content-encoding": contentEncoding });
+  }
 
-  return IntegrityRest02SignedHeader.parse(headers);
+  return IntegrityRest02SignedHeaders.parse(headers);
 }

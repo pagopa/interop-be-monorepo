@@ -7,7 +7,10 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEServiceTemplateEvent,
+} from "../../mockUtils.js";
 
 describe("getEServiceTemplateEvents integration", () => {
   const events: m2mEventApi.EServiceTemplateM2MEvent[] = [
@@ -39,7 +42,7 @@ describe("getEServiceTemplateEvents integration", () => {
     "Should succeed and perform API clients calls",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApiV3.EServiceTemplateEvents = {
-        events,
+        events: events.map(testToM2mGatewayApiEServiceTemplateEvent),
       };
       const result = await eventService.getEServiceTemplateEvents(
         {
@@ -48,7 +51,7 @@ describe("getEServiceTemplateEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetEServiceTemplateM2MEvents,
         queries: {

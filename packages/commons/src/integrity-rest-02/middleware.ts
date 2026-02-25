@@ -26,6 +26,9 @@ interface RequestWithMaybeContext extends Request {
  * This middleware uses the "json replacer" and "json spaces" options from the response object to ensure
  * that the body is converted to a canonical JSON representation.
  *
+ * Also note that, to have the Digest and Agid-JWT-Signature headers set on the response even if the
+ * authorisation is not successful, this middleware needs to be _before_ the authentication middleware.
+ *
  * @param config - The token generation configuration.
  * @param kmsClient - The KMS client.
  * @returns The middleware function.

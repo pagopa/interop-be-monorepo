@@ -444,7 +444,11 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
@@ -844,7 +848,11 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Key> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -853,12 +861,17 @@ export function authorizationServiceBuilder(
         clientId,
         client.data.keys.length + 1
       );
+
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
+
       if (!client.data.users.includes(authData.userId)) {
-        throw userNotFound(authData.userId, authData.selfcareId);
+        throw userNotFound(authData.userId, selfcareId);
       }
 
       await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
+        selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
@@ -1249,7 +1262,11 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
@@ -1265,12 +1282,16 @@ export function authorizationServiceBuilder(
         producerKeychain.data.keys.length + 1
       );
 
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
+
       if (!producerKeychain.data.users.includes(authData.userId)) {
-        throw userNotFound(authData.userId, authData.selfcareId);
+        throw userNotFound(authData.userId, selfcareId);
       }
 
       await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
+        selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
@@ -1316,7 +1337,11 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(
         `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
