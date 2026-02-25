@@ -36,12 +36,14 @@ describe("addProducerKeychainUsers", () => {
     selfcareId: undefined,
   });
 
-  const mockSelfcareUser = {
-    id: linkUser.userId,
-    name: "Mario",
-    surname: "Rossi",
-    roles: [],
-  };
+  const mockSelfcareInstitutionUsers = [
+    {
+      id: linkUser.userId,
+      name: "Mario",
+      surname: "Rossi",
+      roles: ["admin"],
+    },
+  ];
 
   const mockAuthorizationProcessResponse = getMockWithMetadata({
     ...getMockedApiFullProducerKeychain(),
@@ -57,7 +59,7 @@ describe("addProducerKeychainUsers", () => {
   );
 
   const mockGetTenant = vi.fn();
-  const mockGetUserInfoUsingGET = vi.fn();
+  const mockGetInstitutionUsersByProductUsingGET = vi.fn();
 
   mockInteropBeClients.authorizationClient = {
     producerKeychain: {
@@ -73,15 +75,18 @@ describe("addProducerKeychainUsers", () => {
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
   mockInteropBeClients.selfcareClient = {
-    user: {
-      getUserInfoUsingGET: mockGetUserInfoUsingGET,
+    institution: {
+      getInstitutionUsersByProductUsingGET:
+        mockGetInstitutionUsersByProductUsingGET,
     },
   } as unknown as PagoPAInteropBeClients["selfcareClient"];
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetTenant.mockResolvedValue(mockTenantWithMetadata);
-    mockGetUserInfoUsingGET.mockResolvedValue(mockSelfcareUser);
+    mockGetInstitutionUsersByProductUsingGET.mockResolvedValue([
+      mockSelfcareInstitutionUsers,
+    ]);
     mockAddProducerKeychainUsers.mockResolvedValue(
       mockAuthorizationProcessResponse
     );
@@ -121,11 +126,11 @@ describe("addProducerKeychainUsers", () => {
         .getProducerKeychain
     ).toHaveBeenCalledTimes(2);
     expect(mockGetTenant).toHaveBeenCalledTimes(1);
-    expect(mockGetUserInfoUsingGET).toHaveBeenCalledTimes(1);
+    expect(mockGetInstitutionUsersByProductUsingGET).toHaveBeenCalledTimes(1);
   });
 
   it("Should throw userNotFound if the user does not exist in selfcare", async () => {
-    mockGetUserInfoUsingGET.mockRejectedValueOnce(
+    mockGetInstitutionUsersByProductUsingGET.mockRejectedValueOnce(
       userNotFound(unsafeBrandId(linkUser.userId), tenantId)
     );
 
@@ -141,7 +146,7 @@ describe("addProducerKeychainUsers", () => {
 
     await expect(callService()).rejects.toThrowError();
 
-    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+    expect(mockGetInstitutionUsersByProductUsingGET).not.toHaveBeenCalled();
     expect(mockAddProducerKeychainUsers).not.toHaveBeenCalled();
   });
 
