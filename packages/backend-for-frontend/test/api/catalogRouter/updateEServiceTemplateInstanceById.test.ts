@@ -12,6 +12,7 @@ import {
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { invalidDelegationFlags } from "../../../src/model/errors.js";
 
 describe("API POST /templates/eservices/:eServiceId", () => {
   const mockUpdateEServiceDescriptorTemplateInstanceSeed =
@@ -69,13 +70,6 @@ describe("API POST /templates/eservices/:eServiceId", () => {
         isConsumerDelegable: "invalid",
       },
     },
-    {
-      body: {
-        ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
-        isConsumerDelegable: false,
-        isClientAccessDelegable: true,
-      },
-    },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ eServiceId, body }) => {
@@ -88,4 +82,19 @@ describe("API POST /templates/eservices/:eServiceId", () => {
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 400 if isClientAccessDelegable is true and isConsumerDelegable is false", async () => {
+    clients.catalogProcessClient.updateEServiceTemplateInstanceById = vi
+      .fn()
+      .mockRejectedValueOnce(invalidDelegationFlags(false, true));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, {
+      ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
+      isConsumerDelegable: false,
+      isClientAccessDelegable: true,
+    });
+
+    expect(res.status).toBe(400);
+  });
 });
