@@ -34,7 +34,7 @@ describe("API /events/clients test", () => {
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
           clientId: e.clientId,
-        } as m2mEventApi.ClientM2MEvent)
+        }) as m2mEventApi.ClientM2MEvent
     ),
   };
 

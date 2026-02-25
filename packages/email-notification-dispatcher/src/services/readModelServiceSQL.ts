@@ -74,9 +74,9 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantsById(tenantIds: TenantId[]): Promise<Tenant[]> {
       return await readModelDB.transaction(async (tx) =>
-        (
-          await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx)
-        ).map((tenantWithMetadata) => tenantWithMetadata.data)
+        (await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx)).map(
+          (tenantWithMetadata) => tenantWithMetadata.data
+        )
       );
     },
     async getAgreementsByEserviceId(

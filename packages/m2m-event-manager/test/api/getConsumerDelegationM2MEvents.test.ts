@@ -31,7 +31,7 @@ describe("API /events/consumerDelegations test", () => {
             eventType: toApiConsumerDelegationM2MEventType(e.eventType),
             eventTimestamp: e.eventTimestamp.toJSON(),
             delegationId: e.delegationId,
-          } as m2mEventApi.ConsumerDelegationM2MEvent)
+          }) as m2mEventApi.ConsumerDelegationM2MEvent
       ),
     };
 

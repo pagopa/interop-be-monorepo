@@ -87,8 +87,8 @@ export function inAppNotificationServiceBuilder(
         unread === undefined
           ? undefined
           : unread
-          ? isNull(notification.readAt)
-          : isNotNull(notification.readAt);
+            ? isNull(notification.readAt)
+            : isNotNull(notification.readAt);
 
       const notifications = await db
         .select(withTotalCount(getTableColumns(notification)))

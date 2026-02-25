@@ -209,7 +209,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       type InvalidCase = [
         body: unknown,
         eServiceId: EServiceId | string,
-        descriptorId: DescriptorId | string
+        descriptorId: DescriptorId | string,
       ];
 
       const invalidCases: InvalidCase[] = [

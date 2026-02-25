@@ -164,9 +164,8 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueriesSQL,
   ivassTenantId: string
 ): Promise<IvassAttributes> {
-  const ivassTenant: IvassReadModelTenant = await readModel.getTenantById(
-    ivassTenantId
-  );
+  const ivassTenant: IvassReadModelTenant =
+    await readModel.getTenantById(ivassTenantId);
   const certifier = ivassTenant.features.find(
     (f) => f.type === "PersistentCertifier"
   );

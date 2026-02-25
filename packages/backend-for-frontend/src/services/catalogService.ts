@@ -166,12 +166,12 @@ const checkNewTemplateVersionAvailable = (
 
   return Boolean(
     eserviceTemplateVersion &&
-      eserviceTemplate?.versions.some(
-        (v) =>
-          v.version > eserviceTemplateVersion?.version &&
-          v.state ===
-            eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
-      )
+    eserviceTemplate?.versions.some(
+      (v) =>
+        v.version > eserviceTemplateVersion?.version &&
+        v.state ===
+          eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+    )
   );
 };
 

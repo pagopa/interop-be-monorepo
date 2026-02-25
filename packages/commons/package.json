@@ -10,10 +10,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
     "check": "tsc --project tsconfig.check.json",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
@@ -63,7 +61,8 @@
     "@types/node": "catalog:",
     "@types/nodemailer": "catalog:",
     "cpx2": "catalog:",
-    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"
   }
 }

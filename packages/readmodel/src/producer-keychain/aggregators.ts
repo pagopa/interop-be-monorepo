@@ -92,7 +92,7 @@ const createProducerKeychainSQLPropertyMap = <
   T extends
     | ProducerKeychainUserSQL
     | ProducerKeychainEServiceSQL
-    | ProducerKeychainKeySQL
+    | ProducerKeychainKeySQL,
 >(
   items: T[]
 ): Map<ProducerKeychainId, T[]> =>

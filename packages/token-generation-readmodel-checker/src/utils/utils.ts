@@ -108,7 +108,7 @@ export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
 }
 
 function getIdFromPlatformStatesPK<
-  T extends PurposeId | AgreementId | ClientId
+  T extends PurposeId | AgreementId | ClientId,
 >(
   pk:
     | PlatformStatesPurposePK

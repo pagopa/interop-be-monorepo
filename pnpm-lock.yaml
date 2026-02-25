@@ -37,8 +37,8 @@ catalogs:
       specifier: 8.4.1
       version: 8.4.1
     '@pagopa/eslint-config':
-      specifier: 3.0.0
-      version: 3.0.0
+      specifier: 5.1.2
+      version: 5.1.2
     '@protobuf-ts/plugin':
       specifier: 2.9.4
       version: 2.9.4
@@ -169,8 +169,8 @@ catalogs:
       specifier: 0.7.1
       version: 0.7.1
     eslint:
-      specifier: 8.57.1
-      version: 8.57.1
+      specifier: 9.39.2
+      version: 9.39.2
     express:
       specifier: 4.20.0
       version: 4.20.0
@@ -250,11 +250,8 @@ catalogs:
       specifier: 11.8.0
       version: 11.8.0
     prettier:
-      specifier: 2.8.8
-      version: 2.8.8
-    prettier-plugin-organize-imports:
-      specifier: 4.2.0
-      version: 4.2.0
+      specifier: 3.8.1
+      version: 3.8.1
     puppeteer:
       specifier: 22.11.2
       version: 22.11.2
@@ -328,7 +325,7 @@ importers:
         version: 2.0.5
       eslint:
         specifier: 'catalog:'
-        version: 8.57.1
+        version: 9.39.2(jiti@2.6.1)
       knip:
         specifier: 'catalog:'
         version: 5.75.1(@types/node@20.19.9)(typescript@5.9.3)
@@ -337,7 +334,7 @@ importers:
         version: 8.0.0(typescript@5.9.3)
       prettier:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 3.8.1
       turbo:
         specifier: 'catalog:'
         version: 2.2.3
@@ -351,6 +348,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -382,12 +385,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -425,15 +431,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -498,9 +507,6 @@ importers:
       '@faker-js/faker':
         specifier: 'catalog:'
         version: 8.4.1
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -516,12 +522,15 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       puppeteer:
         specifier: 'catalog:'
         version: 22.11.2(typescript@5.4.5)
@@ -577,18 +586,18 @@ importers:
       '@faker-js/faker':
         specifier: 'catalog:'
         version: 8.4.1
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -632,21 +641,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/ssh2-sftp-client':
         specifier: 'catalog:'
         version: 9.0.5
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -681,9 +690,6 @@ importers:
       '@apidevtools/swagger-parser':
         specifier: 'catalog:'
         version: 10.1.1(openapi-types@12.1.3)
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@stoplight/spectral-cli':
         specifier: 'catalog:'
         version: 6.15.0
@@ -696,6 +702,9 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       handlebars:
         specifier: 'catalog:'
         version: 4.7.8
@@ -708,6 +717,9 @@ importers:
       openapi3-ts:
         specifier: 'catalog:'
         version: 3.1.0
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -760,21 +772,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -809,9 +821,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -837,18 +852,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       testcontainers:
         specifier: 'catalog:'
         version: 10.9.0
@@ -907,9 +922,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -919,12 +931,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -971,18 +986,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1032,12 +1047,15 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1078,15 +1096,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1142,9 +1163,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -1154,12 +1172,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -1227,9 +1248,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -1239,12 +1257,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -1327,9 +1348,6 @@ importers:
       '@anatine/zod-mock':
         specifier: 'catalog:'
         version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
         specifier: 'catalog:'
         version: 0.5.7
@@ -1345,12 +1363,15 @@ importers:
       '@types/swagger-ui-express':
         specifier: 'catalog:'
         version: 4.1.8
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -1391,12 +1412,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1434,18 +1458,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1501,9 +1525,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -1513,9 +1534,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -1562,18 +1589,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1614,9 +1644,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -1626,12 +1653,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1672,15 +1702,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1715,12 +1745,15 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       jsonwebtoken:
         specifier: 'catalog:'
         version: 9.0.2
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -1755,15 +1788,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1807,15 +1843,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1955,9 +1994,12 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -1982,9 +2024,6 @@ importers:
       '@faker-js/faker':
         specifier: 'catalog:'
         version: 8.4.1
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@protobuf-ts/runtime':
         specifier: 'catalog:'
         version: 2.9.4
@@ -2015,6 +2054,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       jose:
         specifier: 'catalog:'
         version: 5.9.4
@@ -2027,6 +2069,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -2039,9 +2084,6 @@ importers:
       pg-promise:
         specifier: 'catalog:'
         version: 11.8.0
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
       testcontainers:
         specifier: 'catalog:'
         version: 10.9.0
@@ -2088,12 +2130,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2128,15 +2173,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2174,15 +2222,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2229,18 +2277,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2278,15 +2326,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2336,9 +2384,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -2351,12 +2396,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       puppeteer:
         specifier: 'catalog:'
         version: 22.11.2(typescript@5.4.5)
@@ -2406,18 +2454,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2470,9 +2518,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -2482,9 +2527,15 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       puppeteer:
         specifier: 'catalog:'
         version: 22.11.2(typescript@5.4.5)
@@ -2525,18 +2576,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2589,18 +2640,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       camelcase-keys:
         specifier: 'catalog:'
         version: 9.1.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2638,6 +2692,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -2684,6 +2744,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2730,9 +2796,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -2742,12 +2805,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2794,9 +2860,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -2806,12 +2869,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2855,18 +2921,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2922,12 +2988,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -2974,15 +3043,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3020,15 +3092,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3081,9 +3153,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -3093,9 +3162,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -3142,15 +3217,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3160,6 +3238,15 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5)
+
+  packages/eslint-config:
+    dependencies:
+      '@pagopa/eslint-config':
+        specifier: 'catalog:'
+        version: 5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))
+      prettier:
+        specifier: 'catalog:'
+        version: 3.8.1
 
   packages/events-signer:
     dependencies:
@@ -3194,9 +3281,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
         specifier: 'catalog:'
         version: 0.5.7
@@ -3212,12 +3296,15 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3252,24 +3339,24 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3298,6 +3385,12 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -3341,21 +3434,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3408,9 +3501,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -3426,9 +3516,15 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -3478,12 +3574,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3533,21 +3632,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
         specifier: 'catalog:'
         version: 0.5.7
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3572,13 +3671,16 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
     devDependencies:
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -3616,18 +3718,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3680,9 +3782,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/json-diff':
         specifier: 'catalog:'
         version: 1.0.3
@@ -3692,15 +3791,18 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       lodash.isequal:
         specifier: 'catalog:'
         version: 4.5.0
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3732,18 +3834,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -3781,9 +3886,12 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
-      prettier-plugin-organize-imports:
+      eslint:
         specifier: 'catalog:'
-        version: 4.2.0(prettier@2.8.8)(typescript@5.4.5)
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -3830,18 +3938,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3894,9 +4005,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -3912,12 +4020,15 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -3976,9 +4087,6 @@ importers:
       '@anatine/zod-mock':
         specifier: 'catalog:'
         version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -3991,12 +4099,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -4064,9 +4175,6 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -4079,12 +4187,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -4125,12 +4236,15 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       mkdirp:
         specifier: 'catalog:'
         version: 3.0.1
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsc-esm-fix:
         specifier: 'catalog:'
         version: 2.20.27
@@ -4177,9 +4291,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -4189,12 +4300,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -4241,15 +4355,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4299,9 +4416,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -4314,9 +4428,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4357,15 +4477,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4421,15 +4544,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4467,21 +4593,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       kafkajs:
         specifier: 'catalog:'
         version: 2.2.4
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       testcontainers:
         specifier: 'catalog:'
         version: 10.9.0
@@ -4525,9 +4651,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/html2json':
         specifier: 'catalog:'
         version: 1.0.4
@@ -4537,9 +4660,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4571,18 +4697,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4617,18 +4743,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4672,15 +4798,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4724,18 +4853,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4773,12 +4902,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4816,18 +4948,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -4886,9 +5018,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -4901,12 +5030,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       puppeteer:
         specifier: 'catalog:'
         version: 22.11.2(typescript@5.4.5)
@@ -4956,15 +5088,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5002,15 +5137,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5063,9 +5198,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -5078,9 +5210,15 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -5127,18 +5265,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5179,9 +5317,15 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
@@ -5216,6 +5360,12 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.30.4
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
@@ -5259,15 +5409,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5308,12 +5458,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5360,9 +5513,15 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5400,15 +5559,15 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      prettier:
+      eslint:
         specifier: 'catalog:'
-        version: 2.8.8
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5461,9 +5620,6 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -5473,12 +5629,15 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       supertest:
         specifier: 'catalog:'
         version: 7.0.0
@@ -5528,21 +5687,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5574,18 +5733,18 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
-      prettier:
-        specifier: 'catalog:'
-        version: 2.8.8
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -5632,18 +5791,21 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 'catalog:'
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/json-diff':
         specifier: 'catalog:'
         version: 1.0.3
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -6111,10 +6273,6 @@ packages:
 
   '@emnapi/wasi-threads@1.1.0':
     resolution: {integrity: sha512-WI0DdZ8xFSbgMjR1sFsKABJ/C5OnRrjT06JXbZKexJGrDuPTzZdDYfFlsgcCXCyf+suG5QU2e/y1Wo2V/OapLQ==}
-
-  '@es-joy/jsdoccomment@0.36.1':
-    resolution: {integrity: sha512-922xqFsTpHs6D0BUiG4toiyPOMc8/jafnWKxz1KWgS4XzKPy2qXf1Pe6UFuNSCQqt6tOuhAWXBNuuyUhJmw9Vg==}
-    engines: {node: ^14 || ^16 || ^17 || ^18 || ^19}
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
@@ -6694,23 +6852,47 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eslint-community/eslint-utils@4.4.0':
-    resolution: {integrity: sha512-1/sA4dwrzBAyeUoQ6oxahHKmrZvsnLCg4RfxW3ZFGGmQkSNQPFNLV9CUEFQP1x9EYXHTo5p6xdhZM1Ne9p/AfA==}
+  '@eslint-community/eslint-utils@4.9.1':
+    resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
 
-  '@eslint-community/regexpp@4.11.0':
-    resolution: {integrity: sha512-G/M/tIiMrTAxEWRfLfQJMmGNX28IxBg4PBz8XqQhqUHLFI6TL2htpIB1iQCj144V5ee/JaKyT9/WZ0MGZWfA7A==}
+  '@eslint-community/regexpp@4.12.2':
+    resolution: {integrity: sha512-EriSTlt5OC9/7SXkRSCAhfSxxoSUgBm33OH+IkwbdpgoqsSsUg7y3uh+IICI/Qg4BBWr3U2i39RpmycbxMq4ew==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
-  '@eslint/eslintrc@2.1.4':
-    resolution: {integrity: sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@eslint/config-array@0.21.1':
+    resolution: {integrity: sha512-aw1gNayWpdI/jSYVgzN5pL0cfzU02GT3NBpeT/DXbx1/1x7ZKxFPd9bwrzygx/qiwIQiJ1sw/zD8qY/kRvlGHA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/js@8.57.1':
-    resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@eslint/config-helpers@0.4.2':
+    resolution: {integrity: sha512-gBrxN88gOIf3R7ja5K9slwNayVcZgK6SOUORm2uBzTeIEfeVaIhOpCtTox3P6R7o2jLFwLFTLnC7kU/RGcYEgw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/core@0.17.0':
+    resolution: {integrity: sha512-yL/sLrpmtDaFEiUj1osRP4TI2MDz1AddJL+jZ7KSqvBuliN4xqYY54IfdN8qD8Toa6g1iloph1fxQNkjOxrrpQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/eslintrc@3.3.4':
+    resolution: {integrity: sha512-4h4MVF8pmBsncB60r0wSJiIeUKTSD4m7FmTFThG8RHlsg9ajqckLm9OraguFGZE4vVdpiI1Q4+hFnisopmG6gQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/js@9.39.2':
+    resolution: {integrity: sha512-q1mjIoW1VX4IvSocvM/vbTiveKC4k9eLrajNEuSsmjymSDEbpGddtpfOoN7YGAqBK3NG+uqo8ia4PDTt8buCYA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/js@9.39.3':
+    resolution: {integrity: sha512-1B1VkCq6FuUNlQvlBYb+1jDu/gV297TIs/OeiaSR9l1H27SVW55ONE1e1Vp16NqP683+xEGzxYtv4XCiDPaQiw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/object-schema@2.1.7':
+    resolution: {integrity: sha512-VtAOaymWVfZcmZbp6E2mympDIHvyjXs/12LqWYjVw6qjrfF+VK+fyG33kChz3nnK+SU5/NeHOqrTEHS8sXO3OA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/plugin-kit@0.4.1':
+    resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@ewoudenberg/difflib@0.1.0':
     resolution: {integrity: sha512-OU5P5mJyD3OoWYMWY+yIgwvgNS9cFAU10f+DDuvtogcWQOoJIsQ4Hy2McSfUfhKjq8L0FuWVb4Rt7kgA+XK86A==}
@@ -6719,18 +6901,21 @@ packages:
     resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
 
-  '@humanwhocodes/config-array@0.13.0':
-    resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
-    engines: {node: '>=10.10.0'}
-    deprecated: Use @eslint/config-array instead
+  '@humanfs/core@0.19.1':
+    resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
+    engines: {node: '>=18.18.0'}
+
+  '@humanfs/node@0.16.7':
+    resolution: {integrity: sha512-/zUx+yOsIrG4Y43Eh2peDeKCxlRt/gET6aHfaKpuq267qXdYDFViVHfMaLyygZOnl0kGWxFIgsBy8QFuTLUXEQ==}
+    engines: {node: '>=18.18.0'}
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
     engines: {node: '>=12.22'}
 
-  '@humanwhocodes/object-schema@2.0.3':
-    resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
-    deprecated: Use @eslint/object-schema instead
+  '@humanwhocodes/retry@0.4.3':
+    resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
+    engines: {node: '>=18.18'}
 
   '@isaacs/balanced-match@4.0.1':
     resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
@@ -7016,8 +7201,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@pagopa/eslint-config@3.0.0':
-    resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
+  '@pagopa/eslint-config@5.1.2':
+    resolution: {integrity: sha512-7Byb+K51xcWKjk9oWDU0GeHPpdRm3Y1zgLSP0NZ0wnijxmD4GGe3DNLMhbu3q7MOCrHbbJXWR4jqR3BqE6P7dw==}
+    peerDependencies:
+      eslint: ^9.39.2
 
   '@pagopa/interop-outbound-models@1.7.0':
     resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
@@ -7031,6 +7218,10 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@pkgr/core@0.2.9':
+    resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
+    engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
   '@protobuf-ts/plugin-framework@2.9.4':
     resolution: {integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==}
@@ -7829,9 +8020,6 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/json5@0.0.29':
-    resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
-
   '@types/jsonwebtoken@9.0.10':
     resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
 
@@ -7886,9 +8074,6 @@ packages:
   '@types/sarif@2.1.7':
     resolution: {integrity: sha512-kRz0VEkJqWLf1LLVN4pT1cg1Z9wAuvI6L97V3m2f5B76Tg8d413ddvLBPTEHAZJlnn4XSvu0FkZtViCQGVyrXQ==}
 
-  '@types/semver@7.5.8':
-    resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
-
   '@types/send@0.17.4':
     resolution: {integrity: sha512-x2EM6TJOybec7c52BX0ZspPodMsQUd5L6PRwOunVyVUhXiBSKf3AezDL8Dgvgt5o0UfKNfuA0eMLr2wLT4AiBA==}
 
@@ -7934,26 +8119,20 @@ packages:
   '@types/yauzl@2.10.3':
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
 
-  '@typescript-eslint/eslint-plugin@5.62.0':
-    resolution: {integrity: sha512-TiZzBSJja/LbhNPvk6yc0JrX9XqhQ0hdh6M2svYfsHGejaKFIAGd9MQ+ERIMzLGlN/kZoYIgdxFV0PuljTKXag==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/eslint-plugin@8.56.1':
+    resolution: {integrity: sha512-Jz9ZztpB37dNC+HU2HI28Bs9QXpzCz+y/twHOwhyrIRdbuVDxSytJNDl6z/aAKlaRIwC7y8wJdkBv7FxYGgi0A==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      '@typescript-eslint/parser': ^5.0.0
-      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+      '@typescript-eslint/parser': ^8.56.1
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/parser@5.62.0':
-    resolution: {integrity: sha512-VlJEV0fOQ7BExOsHYAGrgbEiZoi8D+Bl2+f6V2RrXerRSylnp+ZBHmPvaIa8cz0Ajx7WO7Z5RqfgYg7ED1nRhA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/parser@8.56.1':
+    resolution: {integrity: sha512-klQbnPAAiGYFyI02+znpBRLyjL4/BrBd0nyWkdC0s/6xFLkXYQ8OoRrSkqacS1ddVxf/LDyODIKbQ5TgKAf/Fg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
   '@typescript-eslint/project-service@8.54.0':
     resolution: {integrity: sha512-YPf+rvJ1s7MyiWM4uTRhE4DvBXrEV+d8oC3P9Y2eT7S+HBS0clybdMIPnhiATi9vZOYDc7OQ1L/i6ga6NFYK/g==}
@@ -7961,9 +8140,15 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/scope-manager@5.62.0':
-    resolution: {integrity: sha512-VXuvVvZeQCQb5Zgf4HAxc04q5j+WrNAtNh9OwCsCgpKqESMTu3tF/jhZ3xG6T4NZwWl65Bg8KuS2uEvhSfLl0w==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/project-service@8.56.1':
+    resolution: {integrity: sha512-TAdqQTzHNNvlVFfR+hu2PDJrURiwKsUvxFn1M0h95BB8ah5jejas08jUWG4dBA68jDMI988IvtfdAI53JzEHOQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      typescript: '>=4.8.4 <6.0.0'
+
+  '@typescript-eslint/scope-manager@8.56.1':
+    resolution: {integrity: sha512-YAi4VDKcIZp0O4tz/haYKhmIDZFEUPOreKbfdAN3SzUDMcPhJ8QI99xQXqX+HoUVq8cs85eRKnD+rne2UAnj2w==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@typescript-eslint/tsconfig-utils@8.54.0':
     resolution: {integrity: sha512-dRgOyT2hPk/JwxNMZDsIXDgyl9axdJI3ogZ2XWhBPsnZUv+hPesa5iuhdYt2gzwA9t8RE5ytOJ6xB0moV0Ujvw==}
@@ -7971,32 +8156,26 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/type-utils@5.62.0':
-    resolution: {integrity: sha512-xsSQreu+VnfbqQpW5vnCJdq1Z3Q0U31qiWmRhr98ONQmcp/yhiPJFPq8MXiJVLiksmOKSjIldZzkebzHuCGzew==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/tsconfig-utils@8.56.1':
+    resolution: {integrity: sha512-qOtCYzKEeyr3aR9f28mPJqBty7+DBqsdd63eO0yyDwc6vgThj2UjWfJIcsFeSucYydqcuudMOprZ+x1SpF3ZuQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: '*'
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+      typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/types@5.62.0':
-    resolution: {integrity: sha512-87NVngcbVXUahrRTqIK27gD2t5Cu1yuCXxbLcFtCzZGlfyVWWh8mLHkoxzjsB6DDNnvdL+fW8MiwPEJyGJQDgQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/type-utils@8.56.1':
+    resolution: {integrity: sha512-yB/7dxi7MgTtGhZdaHCemf7PuwrHMenHjmzgUW1aJpO+bBU43OycnM3Wn+DdvDO/8zzA9HlhaJ0AUGuvri4oGg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
   '@typescript-eslint/types@8.54.0':
     resolution: {integrity: sha512-PDUI9R1BVjqu7AUDsRBbKMtwmjWcn4J3le+5LpcFgWULN3LvHC5rkc9gCVxbrsrGmO1jfPybN5s6h4Jy+OnkAA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@typescript-eslint/typescript-estree@5.62.0':
-    resolution: {integrity: sha512-CmcQ6uY7b9y694lKdRB8FEel7JbU/40iSAPomu++SjLMntB+2Leay2LO6i8VnJk58MtE9/nQSFIH6jpyRWyYzA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
+  '@typescript-eslint/types@8.56.1':
+    resolution: {integrity: sha512-dbMkdIUkIkchgGDIv7KLUpa0Mda4IYjo4IAMJUZ+3xNoUXxMsk9YtKpTHSChRS85o+H9ftm51gsK1dZReY9CVw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@typescript-eslint/typescript-estree@8.54.0':
     resolution: {integrity: sha512-BUwcskRaPvTk6fzVWgDPdUndLjB87KYDrN5EYGetnktoeAvPtO4ONHlAZDnj5VFnUANg0Sjm7j4usBlnoVMHwA==}
@@ -8004,22 +8183,39 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/utils@5.62.0':
-    resolution: {integrity: sha512-n8oxjeb5aIbPFEtmQxQYOLI0i9n5ySBEY/ZEHHZqKQSFnxio1rv6dthascc9dLuwrL0RC5mPCxB7vnAVGAYWAQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/typescript-estree@8.56.1':
+    resolution: {integrity: sha512-qzUL1qgalIvKWAf9C1HpvBjif+Vm6rcT5wZd4VoMb9+Km3iS3Cv9DY6dMRMDtPnwRAFyAi7YXJpTIEXLvdfPxg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
-  '@typescript-eslint/visitor-keys@5.62.0':
-    resolution: {integrity: sha512-07ny+LHRzQXepkGg6w0mFY41fVUNBrL2Roj/++7V1txKugfjm/Ci/qSND03r2RhlJhJYMcTn9AhhSSqQp0Ysyw==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  '@typescript-eslint/utils@8.56.1':
+    resolution: {integrity: sha512-HPAVNIME3tABJ61siYlHzSWCGtOoeP2RTIaHXFMPqjrQKCGB9OgUVdiNgH7TJS2JNIQ5qQ4RsAUDuGaGme/KOA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
   '@typescript-eslint/visitor-keys@8.54.0':
     resolution: {integrity: sha512-VFlhGSl4opC0bprJiItPQ1RfUhGDIBokcPwaFH4yiBCaNPeld/9VeXbiPO1cLyorQi1G1vL+ecBk1x8o1axORA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ungap/structured-clone@1.2.0':
-    resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
+  '@typescript-eslint/visitor-keys@8.56.1':
+    resolution: {integrity: sha512-KiROIzYdEV85YygXw6BI/Dx4fnBlFQu6Mq4QE4MOH9fFnhohw6wX/OAvDY2/C+ut0I3RSPKenvZJIVYqJNkhEw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@vitest/eslint-plugin@1.6.9':
+    resolution: {integrity: sha512-9WfPx1OwJ19QLCSRLkqVO7//1WcWnK3fE/3fJhKMAmDe8+9G4rB47xCNIIeCq3FdEzkIoLTfDlwDlPBaUTMhow==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      eslint: '>=8.57.0'
+      typescript: '>=5.0.0'
+      vitest: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      vitest:
+        optional: true
 
   '@vitest/expect@4.0.18':
     resolution: {integrity: sha512-8sCWUyckXXYvx4opfzVY03EOiYVxyNrHS5QxX3DAIi5dpJAAkyJezHCP77VMX4HKA2LDT/Jpfo8i2r5BE3GnQQ==}
@@ -8098,18 +8294,10 @@ packages:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
     engines: {node: '>= 0.6'}
 
-  acorn-jsx@2.0.1:
-    resolution: {integrity: sha512-rbNtu2WkMJAZNnw2rh35whZO2e2N8Q1Dp4PBf/pKJAals6uFbPvVgVcKZ8poUnrkF50thOea1ApmF8W56apnwA==}
-
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
       acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
-
-  acorn@2.7.0:
-    resolution: {integrity: sha512-pXK8ez/pVjqFdAgBkF1YPVRacuLQ9EXBKaKWaeh58WNfMkCmZhOZzu+NtKSPD5PHmCCHheQ5cD29qM1K4QTxIg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -8142,6 +8330,9 @@ packages:
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
+
+  ajv@6.14.0:
+    resolution: {integrity: sha512-IWrosm/yrn43eiKqkfkHis7QioDleaXQHdDVPKg0FSwwd/DuvyX79TZnFOnYpB7dcsFAMmtFztZuXPDvSePkFw==}
 
   ajv@8.17.1:
     resolution: {integrity: sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==}
@@ -8204,37 +8395,6 @@ packages:
 
   array-flatten@1.1.1:
     resolution: {integrity: sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==}
-
-  array-includes@3.1.8:
-    resolution: {integrity: sha512-itaWrbYbqpGXkGhZPGUulwnhVf5Hpy1xiCFsGqyIGglbBxmG5vSjxQen3/WGOjPpNEv1RtBLKxbmVXm8HpJStQ==}
-    engines: {node: '>= 0.4'}
-
-  array-union@2.1.0:
-    resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
-    engines: {node: '>=8'}
-
-  array.prototype.findlast@1.2.5:
-    resolution: {integrity: sha512-CVvd6FHg1Z3POpBLxO6E6zr+rSKEQ9L6rZHAaY7lLfhKsWYUBBOuMs0e9o24oopj6H+geRCX0YJ+TJLBK2eHyQ==}
-    engines: {node: '>= 0.4'}
-
-  array.prototype.findlastindex@1.2.5:
-    resolution: {integrity: sha512-zfETvRFA8o7EiNn++N5f/kaCw221hrpGsDmcpndVupkPzEc1Wuf3VgC0qby1BbHs7f5DVYjgtEU2LLh5bqeGfQ==}
-    engines: {node: '>= 0.4'}
-
-  array.prototype.flat@1.3.2:
-    resolution: {integrity: sha512-djYB+Zx2vLewY8RWlNCUdHjDXs2XOgm602S9E7P/UpHgfeHL00cRiIF+IN/G/aUJ7kGPb6yO/ErDI5V2s8iycA==}
-    engines: {node: '>= 0.4'}
-
-  array.prototype.flatmap@1.3.2:
-    resolution: {integrity: sha512-Ewyx0c9PmpcsByhSW4r+9zDU7sGjFc86qf/kKtuSCRdhfbk0SNLLkaT5qvcHnRGgc5NP/ly/y+qkXkqONX54CQ==}
-    engines: {node: '>= 0.4'}
-
-  array.prototype.toreversed@1.1.2:
-    resolution: {integrity: sha512-wwDCoT4Ck4Cz7sLtgUmzR5UV3YF5mFHUlbChCzZBQZ+0m2cl/DH3tKgvphv1nKgFsJ48oCSg6p91q2Vm0I/ZMA==}
-
-  array.prototype.tosorted@1.1.4:
-    resolution: {integrity: sha512-p6Fx8B7b7ZhL/gmUsAy0D15WhvDccw3mnGNbZpi3pmeJdxtWsj2jEaI4Y6oo3XiHfzuSgPwKc04MYt6KgvC/wA==}
-    engines: {node: '>= 0.4'}
 
   arraybuffer.prototype.slice@1.0.4:
     resolution: {integrity: sha512-BNoCY6SXXPQ7gF2opIP4GBE+Xw7U+pHMYKuzjgCN3GwiaIR09UUeKfheyIry77QtrCBlC0KK0q5/TER/tYh3PQ==}
@@ -8305,6 +8465,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  balanced-match@4.0.4:
+    resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
+    engines: {node: 18 || 20 || >=22}
+
   bare-events@2.4.2:
     resolution: {integrity: sha512-qMKFd2qG/36aA4GwvKq8MxnPgCQAmBWmSyLWsJcbn8v03wvIPQ/hG1Ms8bPzndZxMDoHpxez5VOS+gC9Yi24/Q==}
 
@@ -8351,6 +8515,10 @@ packages:
 
   brace-expansion@2.0.1:
     resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
+
+  brace-expansion@5.0.3:
+    resolution: {integrity: sha512-fy6KJm2RawA5RcHkLa1z/ScpBeA762UF9KmZQxwIbDtRJrgLzM10depAiEQ+CXYcoiqW1/m96OAAoke2nE9EeA==}
+    engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -8514,10 +8682,6 @@ packages:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
     engines: {node: '>= 10'}
 
-  comment-parser@1.3.1:
-    resolution: {integrity: sha512-B52sN2VNghyq5ofvUsqZjmk6YkihBX5vMSChmSK9v4ShjKf3Vk5Xcmgpw4o+iIgtrnM/u5FiMpz9VKb8lpBveA==}
-    engines: {node: '>= 12.0.0'}
-
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
@@ -8542,9 +8706,6 @@ packages:
   connection-string@4.4.0:
     resolution: {integrity: sha512-D4xsUjSoE8m/B5yMOvCIHY+2ME6FIZhCq0NzBBT57Q8BuL7ArFhBK04osOfReoW4KFr5ztzFwWRdmnv9rCvu2w==}
     engines: {node: '>=14'}
-
-  console-assert@1.0.0:
-    resolution: {integrity: sha512-YtowQtZLdzPUlXL+kxMEBclXVOrWzR/+9TAUbIdgnjCkRW8+Dj0y4ajMJtOoQFXEubMONX0fkFS3SNLxx4FQRA==}
 
   content-disposition@0.5.4:
     resolution: {integrity: sha512-FveZTNuGw04cxlAiWbzi6zTAL/lhehaWbTtgluJh4/E95DqMwTmha3KZN1aAWA8cFIhHzMZUvLevkw5Rqk+tSQ==}
@@ -8600,10 +8761,6 @@ packages:
   crc32-stream@6.0.0:
     resolution: {integrity: sha512-piICUB6ei4IlTv1+653yq5+KoqfBYmj9bw6LqXoOneTMDXk5nM1qt12mFW1caG3LlJXEKW1Bp0WggEmIfQB34g==}
     engines: {node: '>= 14'}
-
-  create-eslint-index@1.0.0:
-    resolution: {integrity: sha512-nXvJjnfDytOOaPOonX0h0a1ggMoqrhdekGeZkD6hkcWYvlCWhU719tKFVh8eU04CnMwu3uwe1JjwuUF2C3k2qg==}
-    engines: {node: '>=4.0.0'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -8664,14 +8821,6 @@ packages:
       supports-color:
         optional: true
 
-  debug@3.2.7:
-    resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -8705,10 +8854,6 @@ packages:
 
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
-
-  deepmerge-ts@4.3.0:
-    resolution: {integrity: sha512-if3ZYdkD2dClhnXR5reKtG98cwyaRT1NeugQoAPTTfsOpV9kqyeiBF9Qa5RHjemb3KzD5ulqygv6ED3t5j9eJw==}
-    engines: {node: '>=12.4.0'}
 
   defaults@1.0.4:
     resolution: {integrity: sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A==}
@@ -8817,14 +8962,6 @@ packages:
   dockerode@3.3.5:
     resolution: {integrity: sha512-/0YNa3ZDNeLr/tSckmD69+Gq+qVNhvKfAHNeZJBnp7EOP6RGKV8ORrJHkUn20So5wU+xxT7+1n5u8PjHbfjbSA==}
     engines: {node: '>= 8.0'}
-
-  doctrine@2.1.0:
-    resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
-    engines: {node: '>=0.10.0'}
-
-  doctrine@3.0.0:
-    resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
-    engines: {node: '>=6.0.0'}
 
   dotenv-flow@4.1.0:
     resolution: {integrity: sha512-0cwP9jpQBQfyHwvE0cRhraZMkdV45TQedA8AAUZMsFzvmLcQyc1HPv+oX0OOYwLFjIlvgVepQ+WuQHbqDaHJZg==}
@@ -9011,10 +9148,6 @@ packages:
     resolution: {integrity: sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==}
     engines: {node: '>= 0.4'}
 
-  es-iterator-helpers@1.0.19:
-    resolution: {integrity: sha512-zoMwbCcH5hwUkKJkT8kDIBZSz9I6mVG//+lDCinLCGov4+r7NIy0ld8o03M0cJxl2spVf6ESYVS6/gpIfq1FFw==}
-    engines: {node: '>= 0.4'}
-
   es-module-lexer@1.7.0:
     resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
 
@@ -9025,9 +9158,6 @@ packages:
   es-set-tostringtag@2.1.0:
     resolution: {integrity: sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==}
     engines: {node: '>= 0.4'}
-
-  es-shim-unscopables@1.0.2:
-    resolution: {integrity: sha512-J3yBRXCzDu4ULnQwxyToo/OjdMx6akgVC7K6few0a7F/0wLtmKKN7I73AH5T2836UuXRqN7Qg+IIUw/+YJksRw==}
 
   es-to-primitive@1.3.0:
     resolution: {integrity: sha512-w+5mJ3GuFL+NjVtJlvydShqE1eN3h3PbI7/5LAsYJP/2qtuMXjfL2LpHSRqo4b4eSF5K/DH1JXKUAHSB2UW50g==}
@@ -9078,114 +9208,35 @@ packages:
     engines: {node: '>=6.0'}
     hasBin: true
 
-  eslint-ast-utils@1.1.0:
-    resolution: {integrity: sha512-otzzTim2/1+lVrlH19EfQQJEhVJSu0zOb9ygb3iapN6UlyaDtyRq4b5U1FuW0v1lRa9Fp/GJyHkSwm6NqABgCA==}
-    engines: {node: '>=4'}
-
-  eslint-config-prettier@8.10.0:
-    resolution: {integrity: sha512-SM8AMJdeQqRYT9O9zguiruQZaN7+z+E4eAP9oiLNGKMtomwaB1E9dcgUD6ZAn/eQAb52USbvezbiljfZUhbJcg==}
+  eslint-config-prettier@10.1.8:
+    resolution: {integrity: sha512-82GZUjRS0p/jganf6q1rEO25VSoHH0hKPCTrgillPjdI/3bgBhAE1QzHrHTizjpRvy6pGAvKjDJtk2pF9NDq8w==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
 
-  eslint-import-resolver-node@0.3.9:
-    resolution: {integrity: sha512-WFj2isz22JahUv+B788TlO3N6zL3nNJGU8CcZbPZvVEkBPaJdCV4vy5wyghty5ROFbCRnm132v8BScu5/1BQ8g==}
-
-  eslint-module-utils@2.8.1:
-    resolution: {integrity: sha512-rXDXR3h7cs7dy9RNpUlQf80nX31XWJEyGq1tRMo+6GsO5VmTe4UTwtmonAD4ZkAsrfMVDA2wlGJ3790Ys+D49Q==}
-    engines: {node: '>=4'}
+  eslint-plugin-perfectionist@4.15.1:
+    resolution: {integrity: sha512-MHF0cBoOG0XyBf7G0EAFCuJJu4I18wy0zAoT1OHfx2o6EOx1EFTIzr2HGeuZa1kDcusoX0xJ9V7oZmaeFd773Q==}
+    engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      '@typescript-eslint/parser': '*'
-      eslint: '*'
-      eslint-import-resolver-node: '*'
-      eslint-import-resolver-typescript: '*'
-      eslint-import-resolver-webpack: '*'
+      eslint: '>=8.45.0'
+
+  eslint-plugin-prettier@5.5.5:
+    resolution: {integrity: sha512-hscXkbqUZ2sPithAuLm5MXL+Wph+U7wHngPBv9OMWwlP8iaflyxpjTYZkmdgB4/vPIhemRlBEoLrH7UC1n7aUw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      '@types/eslint': '>=8.0.0'
+      eslint: '>=8.0.0'
+      eslint-config-prettier: '>= 7.0.0 <10.0.0 || >=10.1.0'
+      prettier: '>=3.0.0'
     peerDependenciesMeta:
-      '@typescript-eslint/parser':
+      '@types/eslint':
         optional: true
-      eslint:
-        optional: true
-      eslint-import-resolver-node:
-        optional: true
-      eslint-import-resolver-typescript:
-        optional: true
-      eslint-import-resolver-webpack:
-        optional: true
-
-  eslint-plugin-extra-rules@0.0.0-development:
-    resolution: {integrity: sha512-Lib5tzYuLE8IneAYm8LY5oFhAaQ40IgO8BemKZGBpmZgQwgG7zzKLHs+pvUcgn5cjdoPdbZMcr2vTYmuss2l/g==}
-    engines: {node: '> 0.10.*'}
-
-  eslint-plugin-fp@2.3.0:
-    resolution: {integrity: sha512-3n2oHibwoIxAht9/+ZaTldhI6brXORgl8oNXqZd+d9xuAQt2SBJ2/aml0oQRMWvXrgsz2WG6wfC++NjzSG3prA==}
-    engines: {node: '>=4.0.0'}
-    peerDependencies:
-      eslint: '>=3'
-
-  eslint-plugin-functional@4.4.1:
-    resolution: {integrity: sha512-YhSfHS52Si62Sn126g9wGx+XnWMoWhwEt6ctVXfcJj+xMUiggjOqUVMca7fuLNzX8jYiNBIeU1Y0teHGePZ3NA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    peerDependencies:
-      eslint: ^8.0.0
-      tsutils: ^3.0.0
-      typescript: ^3.4.1 || ^4.0.0
-    peerDependenciesMeta:
-      tsutils:
-        optional: true
-      typescript:
-        optional: true
-
-  eslint-plugin-import@2.29.1:
-    resolution: {integrity: sha512-BbPC0cuExzhiMo4Ff1BTVwHpjjv28C5R+btTOGaCRC7UEz801up0JadwkeSk5Ued6TG34uaczuVuH6qyy5YUxw==}
-    engines: {node: '>=4'}
-    peerDependencies:
-      '@typescript-eslint/parser': '*'
-      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
-    peerDependenciesMeta:
-      '@typescript-eslint/parser':
-        optional: true
-
-  eslint-plugin-jsdoc@39.9.1:
-    resolution: {integrity: sha512-Rq2QY6BZP2meNIs48aZ3GlIlJgBqFCmR55+UBvaDkA3ZNQ0SvQXOs2QKkubakEijV8UbIVbVZKsOVN8G3MuqZw==}
-    engines: {node: ^14 || ^16 || ^17 || ^18 || ^19}
-    peerDependencies:
-      eslint: ^7.0.0 || ^8.0.0
-
-  eslint-plugin-prefer-arrow@1.2.3:
-    resolution: {integrity: sha512-J9I5PKCOJretVuiZRGvPQxCbllxGAV/viI20JO3LYblAodofBxyMnZAJ+WGeClHgANnSJberTNoFWWjrWKBuXQ==}
-    peerDependencies:
-      eslint: '>=2.0.0'
-
-  eslint-plugin-prettier@4.2.1:
-    resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
-    engines: {node: '>=12.0.0'}
-    peerDependencies:
-      eslint: '>=7.28.0'
-      eslint-config-prettier: '*'
-      prettier: '>=2.0.0'
-    peerDependenciesMeta:
       eslint-config-prettier:
         optional: true
 
-  eslint-plugin-react@7.34.3:
-    resolution: {integrity: sha512-aoW4MV891jkUulwDApQbPYTVZmeuSyFrudpbTAQuj5Fv8VL+o6df2xIGpw8B0hPjAaih1/Fb0om9grCdyFYemA==}
-    engines: {node: '>=4'}
-    peerDependencies:
-      eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-
-  eslint-plugin-sonarjs@0.13.0:
-    resolution: {integrity: sha512-t3m7ta0EspzDxSOZh3cEOJIJVZgN/TlJYaBGnQlK6W/PZNbWep8q4RQskkJkA7/zwNpX0BaoEOSUUrqaADVoqA==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      eslint: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-
-  eslint-scope@5.1.1:
-    resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
-    engines: {node: '>=8.0.0'}
-
-  eslint-scope@7.2.2:
-    resolution: {integrity: sha512-dOt21O7lTMhDM+X9mB4GX+DZrZtCUJPL/wlcTqxyrx5IvO0IYtILdtrQGQp+8n5S0gwSVmOf9NQrjMOgfQZlIg==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  eslint-scope@8.4.0:
+    resolution: {integrity: sha512-sNXOfKCn74rt8RICKMvJS7XKV/Xk9kA7DyJr8mJik3S7Cwgy3qlkkmyS2uQB3jiJg6VNdZd/pDBJu0nvG2NlTg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   eslint-visitor-keys@3.4.3:
     resolution: {integrity: sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==}
@@ -9195,20 +9246,23 @@ packages:
     resolution: {integrity: sha512-Uhdk5sfqcee/9H/rCOJikYz67o0a2Tw2hGRPOG2Y1R2dg7brRe1uG0yaNQDHu+TO/uQPF/5eCapvYSmHUjt7JQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  eslint@8.57.1:
-    resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-    hasBin: true
+  eslint-visitor-keys@5.0.1:
+    resolution: {integrity: sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  espree@3.0.0-alpha-1:
-    resolution: {integrity: sha512-HIv6P6qCt3ciLWri1KrO7EPigKPetBZwfCf0o9TuAxRBEPoUUisCepsZqvM76xRfQf2sheO4BC5R/w3UKhwx4w==}
-    engines: {node: '>=0.10.0'}
+  eslint@9.39.2:
+    resolution: {integrity: sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     hasBin: true
+    peerDependencies:
+      jiti: '*'
+    peerDependenciesMeta:
+      jiti:
+        optional: true
 
-  espree@9.6.1:
-    resolution: {integrity: sha512-oruZaFkjorTpF32kDSI5/75ViwGeZginGGy2NoOSg3Q9bnwlnmDm4HLnkl0RE3n+njDXR037aY1+x58Z/zFdwQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  espree@10.4.0:
+    resolution: {integrity: sha512-j6PAQ2uUr79PZhBjP5C5fhl8e39FmRnOjsD5lGnWrFU8i2G776tBK7+nP8KuQUTTyAZUwfQqXAgrVH5MbH9CYQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   esprima@4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
@@ -9221,10 +9275,6 @@ packages:
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
-    engines: {node: '>=4.0'}
-
-  estraverse@4.3.0:
-    resolution: {integrity: sha512-39nnKffWz8xN1BU/2c79n9nB9HDzo0niYUqx6xyqUnyoAnQyyWpOTdZEeiCch8BBu515t4wp9ZmgVfVhn9EBpw==}
     engines: {node: '>=4.0'}
 
   estraverse@5.3.0:
@@ -9340,9 +9390,9 @@ packages:
   fecha@4.2.3:
     resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
 
-  file-entry-cache@6.0.1:
-    resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
-    engines: {node: ^10.12.0 || >=12.0.0}
+  file-entry-cache@8.0.0:
+    resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
+    engines: {node: '>=16.0.0'}
 
   filing-cabinet@5.0.3:
     resolution: {integrity: sha512-PlPcMwVWg60NQkhvfoxZs4wEHjhlOO/y7OAm4sKM60o1Z9nttRY4mcdQxp/iZ+kg/Vv6Hw1OAaTbYVM9DA9pYg==}
@@ -9364,9 +9414,9 @@ packages:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
 
-  flat-cache@3.2.0:
-    resolution: {integrity: sha512-CYcENa+FtcUKLmhhqyctpclsq7QF38pKjZHsGNiSQF5r4FtoKDWabFDl3hzaEQMvT1LHEysw5twgLvpYYb4vbw==}
-    engines: {node: ^10.12.0 || >=12.0.0}
+  flat-cache@4.0.1:
+    resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
+    engines: {node: '>=16'}
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
@@ -9524,17 +9574,13 @@ packages:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
     engines: {node: '>=4'}
 
-  globals@13.24.0:
-    resolution: {integrity: sha512-AhO5QUcj8llrbG09iWhPU2B204J1xnPeL8kQmVorSsy+Sjj1sk8gIyh6cUocGmH4L0UuhAJy+hJMRA4mgA4mFQ==}
-    engines: {node: '>=8'}
+  globals@14.0.0:
+    resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
 
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
-
-  globby@11.1.0:
-    resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
-    engines: {node: '>=10'}
 
   globby@13.2.2:
     resolution: {integrity: sha512-Y1zNGV+pzQdh7H39l9zgB4PJqjRNqydvdYCDG4HFXM4XuvSaQQlEc91IU1yALL8gUTDomgBAfz3XJdmUS+oo0w==}
@@ -9551,9 +9597,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  graphemer@1.4.0:
-    resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
   handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
@@ -9625,6 +9668,10 @@ packages:
 
   ignore@5.3.1:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
+    engines: {node: '>= 4'}
+
+  ignore@7.0.5:
+    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
 
   immer@9.0.21:
@@ -9746,10 +9793,6 @@ packages:
     resolution: {integrity: sha512-l4RyHgRqGN4Y3+9JHVrNqO+tN0rV5My76uW5/nuO4K1b6vw5G8d/cmFjP9tRfEsdhZNt0IFdZuK/c2Vr4Nb+Qg==}
     engines: {node: '>=0.10.0'}
 
-  is-path-inside@3.0.3:
-    resolution: {integrity: sha512-Fd4gABb+ycGAmKou8eMftCupSir5lRxqf4aD/vd0cD2qc4HL07OjCeuHMr8Ro4CoMaeCKDB0/ECBOVWjTwUvPQ==}
-    engines: {node: '>=8'}
-
   is-reference@1.2.1:
     resolution: {integrity: sha512-U82MsXXiFIrjCK4otLT+o2NA2Cd2g5MLoOVXUZjIOhLurrRxpEXzI8O0KZHr3IjLvlAH1kTPYSuqer5T9ZVBKQ==}
 
@@ -9817,9 +9860,6 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  iterator.prototype@1.1.2:
-    resolution: {integrity: sha512-DR33HMMr8EzwuRL8Y9D3u2BMj8+RqSE850jfGu59kS7tbmPLzGkZmVSfyCFSDxuZiEY6Rzt3T2NA/qU+NwVj1w==}
-
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
@@ -9846,10 +9886,6 @@ packages:
 
   jsbn@1.1.0:
     resolution: {integrity: sha512-4bYVV3aAMtDTTu4+xsDYa6sy9GyJ69/amsu9sYF2zqjiEoZA5xJi3BrfX3uY+/IekIu7MwdObdbDWpoZdBv3/A==}
-
-  jsdoc-type-pratt-parser@3.1.0:
-    resolution: {integrity: sha512-MgtD0ZiCDk9B+eI73BextfRrVQl0oyzRG8B2BjORts6jbunj4ScKPcyXGTbB6eXL4y9TzxCm6hyeLq/2ASzNdw==}
-    engines: {node: '>=12.0.0'}
 
   jsep@1.4.0:
     resolution: {integrity: sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==}
@@ -9879,10 +9915,6 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
-  json5@1.0.2:
-    resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
-    hasBin: true
-
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
@@ -9906,10 +9938,6 @@ packages:
   jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
     engines: {node: '>=12', npm: '>=6'}
-
-  jsx-ast-utils@3.3.5:
-    resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
-    engines: {node: '>=4.0'}
 
   just-extend@6.2.0:
     resolution: {integrity: sha512-cYofQu2Xpom82S6qD778jBDpwvvy39s1l/hrYij2u9AMdQcGRpaBu6kY4mVhuno5kJVi1DAz4aiphA2WI1/OAw==}
@@ -10017,9 +10045,6 @@ packages:
   lodash.union@4.6.0:
     resolution: {integrity: sha512-c4pB2CdGrGdjMKYLA+XiRDO7Y0PRQbm/Gzg8qMj+QH+pFVAoTp5sBpO0odL3FjoPCGjK96p6qsP+yQoiLoOBcw==}
 
-  lodash.zip@4.2.0:
-    resolution: {integrity: sha512-C7IOaBBK/0gMORRBd8OETNx3kmOkgIWIPvyDpZSCTwUrpYmgZwJkjZeOD8ww4xbOUOs4/attY+pciKvadNfFbg==}
-
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
@@ -10030,10 +10055,6 @@ packages:
   logform@2.6.0:
     resolution: {integrity: sha512-1ulHeNPp6k/LD8H91o7VYFBng5i1BDE7HoKxVbZiGFidS1Rj65qcywLxX+pVfAPoQJEjRdvKcusKwOupHCVOVQ==}
     engines: {node: '>= 12.0.0'}
-
-  loose-envify@1.4.0:
-    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
-    hasBin: true
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -10137,8 +10158,15 @@ packages:
     resolution: {integrity: sha512-IPZ167aShDZZUMdRk66cyQAW3qr0WzbHkPdMYa8bzZhlHhO3jALbKdxcaak7W9FfT2rZNpQuUu4Od7ILEpXSaw==}
     engines: {node: 20 || >=22}
 
+  minimatch@10.2.2:
+    resolution: {integrity: sha512-+G4CpNBxa5MprY+04MbgOw1v7So6n5JY166pFi9KfYwT78fxScCeSNQSNzp6dpPSW2rONOps6Ocam1wFhCgoVw==}
+    engines: {node: 18 || 20 || >=22}
+
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
+
+  minimatch@3.1.3:
+    resolution: {integrity: sha512-M2GCs7Vk83NxkUyQV1bkABc4yxgz9kILhHImZiBPAZ9ybuvCb0/H7lEl5XvIg3g+9d4eNotkZA5IWwYl0tibaA==}
 
   minimatch@5.1.6:
     resolution: {integrity: sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==}
@@ -10209,11 +10237,12 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  natural-compare-lite@1.4.0:
-    resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
-
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  natural-orderby@5.0.0:
+    resolution: {integrity: sha512-kKHJhxwpR/Okycz4HhQKKlhWe4ASEfPgkSWNmKFHd7+ezuQlxkA5cM3+XkBPvm1gmHen3w53qsYAv+8GwRrBlg==}
+    engines: {node: '>=18'}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -10275,26 +10304,6 @@ packages:
 
   object.assign@4.1.7:
     resolution: {integrity: sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw==}
-    engines: {node: '>= 0.4'}
-
-  object.entries@1.1.8:
-    resolution: {integrity: sha512-cmopxi8VwRIAw/fkijJohSfpef5PdN0pMQJN6VC/ZKvn0LIknWD8KtgY6KlQdEc4tIjcQ3HxSMmnvtzIscdaYQ==}
-    engines: {node: '>= 0.4'}
-
-  object.fromentries@2.0.8:
-    resolution: {integrity: sha512-k6E21FzySsSK5a21KRADBd/NGneRegFO5pLHfdQLpRDETUNJueLXs3WCzyQ3tFRDYgbq3KHGXfTbi2bs8WQ6rQ==}
-    engines: {node: '>= 0.4'}
-
-  object.groupby@1.0.3:
-    resolution: {integrity: sha512-+Lhy3TQTuzXI5hevh8sBGqbmurHbbIjAi0Z4S63nthVLmLxfbj4T54a4CfZrXIrt9iP4mVAPYMo/v99taj3wjQ==}
-    engines: {node: '>= 0.4'}
-
-  object.hasown@1.1.4:
-    resolution: {integrity: sha512-FZ9LZt9/RHzGySlBARE3VF+gE26TxR38SdmqOqliuTnl9wrKulaQs+4dee1V+Io8VfxqzAfHu6YuRgUy8OHoTg==}
-    engines: {node: '>= 0.4'}
-
-  object.values@1.2.0:
-    resolution: {integrity: sha512-yBYjY9QX2hnRmZHAjG/f13MzmBzxzYgQhFrke06TTyKY5zSTEqkOeukBzIdVA3j3ulu8Qa3MbVFShV7T2RmGtQ==}
     engines: {node: '>= 0.4'}
 
   obliterator@1.6.1:
@@ -10583,23 +10592,18 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier-linter-helpers@1.0.0:
-    resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
+  prettier-linter-helpers@1.0.1:
+    resolution: {integrity: sha512-SxToR7P8Y2lWmv/kTzVLC1t/GDI2WGjMwNhLLE9qtH8Q13C+aEmuRlzDst4Up4s0Wc8sF2M+J57iB3cMLqftfg==}
     engines: {node: '>=6.0.0'}
-
-  prettier-plugin-organize-imports@4.2.0:
-    resolution: {integrity: sha512-Zdy27UhlmyvATZi67BTnLcKTo8fm6Oik59Sz6H64PgZJVs6NJpPD1mT240mmJn62c98/QaL+r3kx9Q3gRpDajg==}
-    peerDependencies:
-      prettier: '>=2.0'
-      typescript: '>=2.9'
-      vue-tsc: ^2.1.0 || 3
-    peerDependenciesMeta:
-      vue-tsc:
-        optional: true
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
+    hasBin: true
+
+  prettier@3.8.1:
+    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+    engines: {node: '>=14'}
     hasBin: true
 
   pretty-ms@7.0.1:
@@ -10623,9 +10627,6 @@ packages:
   promise-retry@2.0.1:
     resolution: {integrity: sha512-y+WKFlBR8BGXnsNlIHFGPZmyDf3DFMoLhaflAnyZgV6rG6xu+JwesTo2Q9R6XwYmtmwAFCkAk3e35jEdoeh/3g==}
     engines: {node: '>=10'}
-
-  prop-types@15.8.1:
-    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
   proper-lockfile@4.1.2:
     resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
@@ -10687,9 +10688,6 @@ packages:
   quote-unquote@1.0.0:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
 
-  quote@0.4.0:
-    resolution: {integrity: sha512-KHp3y3xDjuBhRx+tYKOgzPnVHMRlgpn2rU450GcU4PL24r1H6ls/hfPrxDwX2pvYMlwODHI2l8WwgoV69x5rUQ==}
-
   randexp@0.5.3:
     resolution: {integrity: sha512-U+5l2KrcMNOUPYvazA3h5ekF80FHTUG+87SEAmHZmolh1M+i/WyTCxVzmi+tidIa1tM4BSe8g2Y/D3loWDjj+w==}
     engines: {node: '>=4'}
@@ -10708,9 +10706,6 @@ packages:
   rc@1.2.8:
     resolution: {integrity: sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==}
     hasBin: true
-
-  react-is@16.13.1:
-    resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -10736,10 +10731,6 @@ packages:
   regexp.prototype.flags@1.5.4:
     resolution: {integrity: sha512-dYqgNSZbDwkaJ2ceRd9ojCGjBq+mOm9LmtXnAnEGyHhN/5R7iDW2TRw3h+o/jCFxus3P2LfWIIiwowAjANm7IA==}
     engines: {node: '>= 0.4'}
-
-  req-all@0.1.0:
-    resolution: {integrity: sha512-ZdvPr8uXy9ujX3KujwE2P1HWkMYgogIhqeAeyb47MqWjSfyxERSm0TNbN/IapCCmWDufXab04AYrRgObaJCJ6Q==}
-    engines: {node: '>=4'}
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
@@ -10778,10 +10769,6 @@ packages:
     engines: {node: '>= 0.4'}
     hasBin: true
 
-  resolve@2.0.0-next.5:
-    resolution: {integrity: sha512-U7WjGVG9sH8tvjW5SmGbQuui75FiyjAX72HX15DwBBwF9dNiQZRQAg9nnPhYy+TUnE0+VcrttuvNI8oSxZcocA==}
-    hasBin: true
-
   restore-cursor@3.1.0:
     resolution: {integrity: sha512-l+sSefzHpj5qimhFSE5a8nufZYAM3sBSVMAPtYkmC+4EH2anSGaEMXSD0izRQbu9nfyQ9y5JrVmp7E8oZrUjvA==}
     engines: {node: '>=8'}
@@ -10801,11 +10788,6 @@ packages:
   reusify@1.0.4:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
-
-  rimraf@3.0.2:
-    resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
-    hasBin: true
 
   rollup@2.79.2:
     resolution: {integrity: sha512-fS6iqSPZDs3dr/y7Od6y5nha8dW1YnbgtsyotCVvoFGKbERG++CVRFv1meyGDE1SNItQA8BrnCw7ScdAhRJ3XQ==}
@@ -10941,10 +10923,6 @@ packages:
   sinon@16.1.3:
     resolution: {integrity: sha512-mjnWWeyxcAf9nC0bXcPmiDut+oE8HYridTNzBbF98AYVLmWwGRp2ISEpyhYflG1ifILT+eNn3BmKUJPxjXUPlA==}
 
-  slash@3.0.0:
-    resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
-    engines: {node: '>=8'}
-
   slash@4.0.0:
     resolution: {integrity: sha512-3dOsAHXXUkQTpOYcoAxLIorMTp4gIQr5IW3iVb7A7lFIp0VHhnynm9izx6TssdrIcVIESAlVjtnO2K8bg+Coew==}
     engines: {node: '>=12'}
@@ -10979,15 +10957,6 @@ packages:
   sourcemap-codec@1.4.8:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
     deprecated: Please use @jridgewell/sourcemap-codec instead
-
-  spdx-exceptions@2.5.0:
-    resolution: {integrity: sha512-PiU42r+xO4UbUS1buo3LPJkjlO7430Xn5SVAhdpzzsPHsjbYVflnnFdATgabnLude+Cqu25p6N+g2lw/PFsa4w==}
-
-  spdx-expression-parse@3.0.1:
-    resolution: {integrity: sha512-cbqHunsQWnJNE6KhVSMsMeH5H/L9EpymbzqTQ3uLwNCLZ1Q481oWaofqH7nO6V07xlXwY6PhQdQ2IedWx/ZK4Q==}
-
-  spdx-license-ids@3.0.18:
-    resolution: {integrity: sha512-xxRs31BqRYHwiMzudOrpSiHtZ8i/GeionCBDSilhYRj+9gIcI8wCZTlXZKu9vZIVqViP3dcp9qE5G6AlIaD+TQ==}
 
   spex@3.3.0:
     resolution: {integrity: sha512-VNiXjFp6R4ldPbVRYbpxlD35yRHceecVXlct1J4/X80KuuPnW2AXMq3sGwhnJOhKkUsOxAT6nRGfGE5pocVw5w==}
@@ -11054,10 +11023,6 @@ packages:
   string-width@5.1.2:
     resolution: {integrity: sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA==}
     engines: {node: '>=12'}
-
-  string.prototype.matchall@4.0.11:
-    resolution: {integrity: sha512-NUdh0aDavY2og7IbBPenWqR9exH+E26Sv8e0/eTe1tltDGZL+GtBkDAnnyBtmekfK6/Dq3MkcGtzXFEd1LQrtg==}
-    engines: {node: '>= 0.4'}
 
   string.prototype.trim@1.2.10:
     resolution: {integrity: sha512-Rs66F0P/1kedk5lyYyH9uBzuiI/kNRmwJAR9quK6VOtIpZ2G+hMZd+HQbbv25MgCA6gEffoMZYxlTod4WcdrKA==}
@@ -11149,6 +11114,10 @@ packages:
     engines: {node: '>= v0.10.32'}
     peerDependencies:
       express: '>=4.0.0 || >=5.0.0-beta'
+
+  synckit@0.11.12:
+    resolution: {integrity: sha512-Bh7QjT8/SuKUIfObSXNHNSK6WHo6J1tHCqJsuaFDP7gP0fkzSfTxI8y85JrppZ0h8l0maIgc2tfuZQ6/t3GtnQ==}
+    engines: {node: ^14.18.0 || >=16.0.0}
 
   tanu@0.1.13:
     resolution: {integrity: sha512-UbRmX7ccZ4wMVOY/Uw+7ji4VOkEYSYJG1+I4qzbnn4qh/jtvVbrm6BFnF12NQQ4+jGv21wKmjb1iFyUSVnBWcQ==}
@@ -11247,9 +11216,6 @@ packages:
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  tsconfig-paths@3.15.0:
-    resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
-
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
     engines: {node: '>=6'}
@@ -11259,12 +11225,6 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
-  tsutils@3.21.0:
-    resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
-    engines: {node: '>= 6'}
-    peerDependencies:
-      typescript: '>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta'
 
   tsx@4.19.1:
     resolution: {integrity: sha512-0flMz1lh74BR4wOvBjuh9olbnwqCPc35OOlfyzHba0Dc+QNUeWX/Gq2YTbnwcWPO3BMd8fkzRVrHcsR+a7z7rA==}
@@ -11320,10 +11280,6 @@ packages:
     resolution: {integrity: sha512-Acylog8/luQ8L7il+geoSxhEkazvkslg7PSNKOX59mbB9cOveP5aq9h74Y7YU8yDpJwetzQQrfIwtf4Wp4LKcw==}
     engines: {node: '>=4'}
 
-  type-fest@0.20.2:
-    resolution: {integrity: sha512-Ne+eE4r0/iWnpAxD852z3A+N0Bt5RN//NjJwRd2VFHEmrywxf5vsZlh4R6lixl6B+wz/8d+maTSAkN1FIkI3LQ==}
-    engines: {node: '>=10'}
-
   type-fest@3.13.1:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
@@ -11355,6 +11311,13 @@ packages:
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
+  typescript-eslint@8.56.1:
+    resolution: {integrity: sha512-U4lM6pjmBX7J5wk4szltF7I1cGBHXZopnAXCMXb3+fZ3B/0Z3hq3wS/CCUB2NZBNAExK92mCU2tEohWuwVMsDQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.0.0'
+
   typescript@3.9.10:
     resolution: {integrity: sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==}
     engines: {node: '>=4.2.0'}
@@ -11367,6 +11330,11 @@ packages:
 
   typescript@5.4.5:
     resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -13098,12 +13066,6 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@es-joy/jsdoccomment@0.36.1':
-    dependencies:
-      comment-parser: 1.3.1
-      esquery: 1.5.0
-      jsdoc-type-pratt-parser: 3.1.0
-
   '@esbuild-kit/core-utils@3.3.2':
     dependencies:
       esbuild: 0.18.20
@@ -13399,28 +13361,53 @@ snapshots:
   '@esbuild/win32-x64@0.27.2':
     optional: true
 
-  '@eslint-community/eslint-utils@4.4.0(eslint@8.57.1)':
+  '@eslint-community/eslint-utils@4.9.1(eslint@9.39.2(jiti@2.6.1))':
     dependencies:
-      eslint: 8.57.1
+      eslint: 9.39.2(jiti@2.6.1)
       eslint-visitor-keys: 3.4.3
 
-  '@eslint-community/regexpp@4.11.0': {}
+  '@eslint-community/regexpp@4.12.2': {}
 
-  '@eslint/eslintrc@2.1.4':
+  '@eslint/config-array@0.21.1':
     dependencies:
-      ajv: 6.12.6
+      '@eslint/object-schema': 2.1.7
       debug: 4.4.3
-      espree: 9.6.1
-      globals: 13.24.0
+      minimatch: 3.1.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@eslint/config-helpers@0.4.2':
+    dependencies:
+      '@eslint/core': 0.17.0
+
+  '@eslint/core@0.17.0':
+    dependencies:
+      '@types/json-schema': 7.0.15
+
+  '@eslint/eslintrc@3.3.4':
+    dependencies:
+      ajv: 6.14.0
+      debug: 4.4.3
+      espree: 10.4.0
+      globals: 14.0.0
       ignore: 5.3.1
       import-fresh: 3.3.0
       js-yaml: 4.1.1
-      minimatch: 3.1.2
+      minimatch: 3.1.3
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
-  '@eslint/js@8.57.1': {}
+  '@eslint/js@9.39.2': {}
+
+  '@eslint/js@9.39.3': {}
+
+  '@eslint/object-schema@2.1.7': {}
+
+  '@eslint/plugin-kit@0.4.1':
+    dependencies:
+      '@eslint/core': 0.17.0
+      levn: 0.4.1
 
   '@ewoudenberg/difflib@0.1.0':
     dependencies:
@@ -13428,17 +13415,16 @@ snapshots:
 
   '@faker-js/faker@8.4.1': {}
 
-  '@humanwhocodes/config-array@0.13.0':
+  '@humanfs/core@0.19.1': {}
+
+  '@humanfs/node@0.16.7':
     dependencies:
-      '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.3
-      minimatch: 3.1.2
-    transitivePeerDependencies:
-      - supports-color
+      '@humanfs/core': 0.19.1
+      '@humanwhocodes/retry': 0.4.3
 
   '@humanwhocodes/module-importer@1.0.1': {}
 
-  '@humanwhocodes/object-schema@2.0.3': {}
+  '@humanwhocodes/retry@0.4.3': {}
 
   '@isaacs/balanced-match@4.0.1': {}
 
@@ -13719,28 +13705,21 @@ snapshots:
   '@oxc-resolver/binding-win32-x64-msvc@11.16.0':
     optional: true
 
-  '@pagopa/eslint-config@3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)':
+  '@pagopa/eslint-config@5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))':
     dependencies:
-      '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      eslint: 8.57.1
-      eslint-config-prettier: 8.10.0(eslint@8.57.1)
-      eslint-plugin-extra-rules: 0.0.0-development
-      eslint-plugin-fp: 2.3.0(eslint@8.57.1)
-      eslint-plugin-functional: 4.4.1(eslint@8.57.1)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)
-      eslint-plugin-jsdoc: 39.9.1(eslint@8.57.1)
-      eslint-plugin-prefer-arrow: 1.2.3(eslint@8.57.1)
-      eslint-plugin-prettier: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
-      eslint-plugin-react: 7.34.3(eslint@8.57.1)
-      eslint-plugin-sonarjs: 0.13.0(eslint@8.57.1)
-      prettier: 2.8.8
+      '@eslint/js': 9.39.3
+      '@vitest/eslint-plugin': 1.6.9(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))
+      eslint: 9.39.2(jiti@2.6.1)
+      eslint-config-prettier: 10.1.8(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-perfectionist: 4.15.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      eslint-plugin-prettier: 5.5.5(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
+      typescript: 5.8.3
+      typescript-eslint: 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
     transitivePeerDependencies:
-      - eslint-import-resolver-typescript
-      - eslint-import-resolver-webpack
+      - '@types/eslint'
+      - prettier
       - supports-color
-      - tsutils
-      - typescript
+      - vitest
 
   '@pagopa/interop-outbound-models@1.7.0':
     dependencies:
@@ -13762,6 +13741,8 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@pkgr/core@0.2.9': {}
 
   '@protobuf-ts/plugin-framework@2.9.4':
     dependencies:
@@ -14917,8 +14898,6 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/json5@0.0.29': {}
-
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
@@ -14975,8 +14954,6 @@ snapshots:
   '@types/retry@0.12.2': {}
 
   '@types/sarif@2.1.7': {}
-
-  '@types/semver@7.5.8': {}
 
   '@types/send@0.17.4':
     dependencies:
@@ -15040,34 +15017,31 @@ snapshots:
       '@types/node': 20.19.9
     optional: true
 
-  '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)':
+  '@typescript-eslint/eslint-plugin@8.56.1(@typescript-eslint/parser@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)':
     dependencies:
-      '@eslint-community/regexpp': 4.11.0
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      '@typescript-eslint/scope-manager': 5.62.0
-      '@typescript-eslint/type-utils': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      debug: 4.4.3
-      eslint: 8.57.1
-      graphemer: 1.4.0
-      ignore: 5.3.1
-      natural-compare-lite: 1.4.0
-      semver: 7.7.3
-      tsutils: 3.21.0(typescript@5.4.5)
-    optionalDependencies:
-      typescript: 5.4.5
+      '@eslint-community/regexpp': 4.12.2
+      '@typescript-eslint/parser': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/scope-manager': 8.56.1
+      '@typescript-eslint/type-utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/visitor-keys': 8.56.1
+      eslint: 9.39.2(jiti@2.6.1)
+      ignore: 7.0.5
+      natural-compare: 1.4.0
+      ts-api-utils: 2.4.0(typescript@5.8.3)
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5)':
+  '@typescript-eslint/parser@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/scope-manager': 5.62.0
-      '@typescript-eslint/types': 5.62.0
-      '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.4.5)
+      '@typescript-eslint/scope-manager': 8.56.1
+      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/typescript-estree': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/visitor-keys': 8.56.1
       debug: 4.4.3
-      eslint: 8.57.1
-    optionalDependencies:
-      typescript: 5.4.5
+      eslint: 9.39.2(jiti@2.6.1)
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
 
@@ -15080,44 +15054,43 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/scope-manager@5.62.0':
+  '@typescript-eslint/project-service@8.56.1(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/types': 5.62.0
-      '@typescript-eslint/visitor-keys': 5.62.0
+      '@typescript-eslint/tsconfig-utils': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/types': 8.56.1
+      debug: 4.4.3
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/scope-manager@8.56.1':
+    dependencies:
+      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/visitor-keys': 8.56.1
 
   '@typescript-eslint/tsconfig-utils@8.54.0(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
 
-  '@typescript-eslint/type-utils@5.62.0(eslint@8.57.1)(typescript@5.4.5)':
+  '@typescript-eslint/tsconfig-utils@8.56.1(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.4.5)
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
+      typescript: 5.8.3
+
+  '@typescript-eslint/type-utils@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)':
+    dependencies:
+      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/typescript-estree': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
       debug: 4.4.3
-      eslint: 8.57.1
-      tsutils: 3.21.0(typescript@5.4.5)
-    optionalDependencies:
-      typescript: 5.4.5
+      eslint: 9.39.2(jiti@2.6.1)
+      ts-api-utils: 2.4.0(typescript@5.8.3)
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
-
-  '@typescript-eslint/types@5.62.0': {}
 
   '@typescript-eslint/types@8.54.0': {}
 
-  '@typescript-eslint/typescript-estree@5.62.0(typescript@5.4.5)':
-    dependencies:
-      '@typescript-eslint/types': 5.62.0
-      '@typescript-eslint/visitor-keys': 5.62.0
-      debug: 4.4.3
-      globby: 11.1.0
-      is-glob: 4.0.3
-      semver: 7.7.3
-      tsutils: 3.21.0(typescript@5.4.5)
-    optionalDependencies:
-      typescript: 5.4.5
-    transitivePeerDependencies:
-      - supports-color
+  '@typescript-eslint/types@8.56.1': {}
 
   '@typescript-eslint/typescript-estree@8.54.0(typescript@5.9.3)':
     dependencies:
@@ -15134,32 +15107,52 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@5.62.0(eslint@8.57.1)(typescript@5.4.5)':
+  '@typescript-eslint/typescript-estree@8.56.1(typescript@5.8.3)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.1)
-      '@types/json-schema': 7.0.15
-      '@types/semver': 7.5.8
-      '@typescript-eslint/scope-manager': 5.62.0
-      '@typescript-eslint/types': 5.62.0
-      '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.4.5)
-      eslint: 8.57.1
-      eslint-scope: 5.1.1
+      '@typescript-eslint/project-service': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/tsconfig-utils': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/visitor-keys': 8.56.1
+      debug: 4.4.3
+      minimatch: 10.2.2
       semver: 7.7.3
+      tinyglobby: 0.2.15
+      ts-api-utils: 2.4.0(typescript@5.8.3)
+      typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
-      - typescript
 
-  '@typescript-eslint/visitor-keys@5.62.0':
+  '@typescript-eslint/utils@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/types': 5.62.0
-      eslint-visitor-keys: 3.4.3
+      '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.2(jiti@2.6.1))
+      '@typescript-eslint/scope-manager': 8.56.1
+      '@typescript-eslint/types': 8.56.1
+      '@typescript-eslint/typescript-estree': 8.56.1(typescript@5.8.3)
+      eslint: 9.39.2(jiti@2.6.1)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
 
   '@typescript-eslint/visitor-keys@8.54.0':
     dependencies:
       '@typescript-eslint/types': 8.54.0
       eslint-visitor-keys: 4.2.1
 
-  '@ungap/structured-clone@1.2.0': {}
+  '@typescript-eslint/visitor-keys@8.56.1':
+    dependencies:
+      '@typescript-eslint/types': 8.56.1
+      eslint-visitor-keys: 5.0.1
+
+  '@vitest/eslint-plugin@1.6.9(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))':
+    dependencies:
+      '@typescript-eslint/scope-manager': 8.56.1
+      '@typescript-eslint/utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      eslint: 9.39.2(jiti@2.6.1)
+    optionalDependencies:
+      typescript: 5.8.3
+      vitest: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5)
+    transitivePeerDependencies:
+      - supports-color
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -15258,15 +15251,9 @@ snapshots:
       mime-types: 2.1.35
       negotiator: 0.6.3
 
-  acorn-jsx@2.0.1:
-    dependencies:
-      acorn: 2.7.0
-
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
       acorn: 8.15.0
-
-  acorn@2.7.0: {}
 
   acorn@8.15.0: {}
 
@@ -15291,6 +15278,13 @@ snapshots:
       ajv: 8.17.1
 
   ajv@6.12.6:
+    dependencies:
+      fast-deep-equal: 3.1.3
+      fast-json-stable-stringify: 2.1.0
+      json-schema-traverse: 0.4.1
+      uri-js: 4.4.1
+
+  ajv@6.14.0:
     dependencies:
       fast-deep-equal: 3.1.3
       fast-json-stable-stringify: 2.1.0
@@ -15389,64 +15383,6 @@ snapshots:
 
   array-flatten@1.1.1: {}
 
-  array-includes@3.1.8:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-object-atoms: 1.1.1
-      get-intrinsic: 1.3.0
-      is-string: 1.1.1
-
-  array-union@2.1.0: {}
-
-  array.prototype.findlast@1.2.5:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-errors: 1.3.0
-      es-object-atoms: 1.1.1
-      es-shim-unscopables: 1.0.2
-
-  array.prototype.findlastindex@1.2.5:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-errors: 1.3.0
-      es-object-atoms: 1.1.1
-      es-shim-unscopables: 1.0.2
-
-  array.prototype.flat@1.3.2:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-shim-unscopables: 1.0.2
-
-  array.prototype.flatmap@1.3.2:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-shim-unscopables: 1.0.2
-
-  array.prototype.toreversed@1.1.2:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-shim-unscopables: 1.0.2
-
-  array.prototype.tosorted@1.1.4:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-errors: 1.3.0
-      es-shim-unscopables: 1.0.2
-
   arraybuffer.prototype.slice@1.0.4:
     dependencies:
       array-buffer-byte-length: 1.0.2
@@ -15528,6 +15464,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  balanced-match@4.0.4: {}
+
   bare-events@2.4.2:
     optional: true
 
@@ -15596,6 +15534,10 @@ snapshots:
   brace-expansion@2.0.1:
     dependencies:
       balanced-match: 1.0.2
+
+  brace-expansion@5.0.3:
+    dependencies:
+      balanced-match: 4.0.4
 
   braces@3.0.3:
     dependencies:
@@ -15754,8 +15696,6 @@ snapshots:
 
   commander@7.2.0: {}
 
-  comment-parser@1.3.1: {}
-
   commondir@1.0.1: {}
 
   component-emitter@1.3.1: {}
@@ -15785,8 +15725,6 @@ snapshots:
       typedarray: 0.0.6
 
   connection-string@4.4.0: {}
-
-  console-assert@1.0.0: {}
 
   content-disposition@0.5.4:
     dependencies:
@@ -15849,10 +15787,6 @@ snapshots:
       crc-32: 1.2.2
       readable-stream: 4.7.0
 
-  create-eslint-index@1.0.0:
-    dependencies:
-      lodash.get: 4.4.2
-
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -15908,10 +15842,6 @@ snapshots:
     dependencies:
       ms: 2.0.0
 
-  debug@3.2.7:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.3.4:
     dependencies:
       ms: 2.1.2
@@ -15927,8 +15857,6 @@ snapshots:
   deep-extend@0.6.0: {}
 
   deep-is@0.1.4: {}
-
-  deepmerge-ts@4.3.0: {}
 
   defaults@1.0.4:
     dependencies:
@@ -16060,14 +15988,6 @@ snapshots:
       tar-fs: 2.0.1
     transitivePeerDependencies:
       - supports-color
-
-  doctrine@2.1.0:
-    dependencies:
-      esutils: 2.0.3
-
-  doctrine@3.0.0:
-    dependencies:
-      esutils: 2.0.3
 
   dotenv-flow@4.1.0:
     dependencies:
@@ -16219,23 +16139,6 @@ snapshots:
 
   es-errors@1.3.0: {}
 
-  es-iterator-helpers@1.0.19:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-errors: 1.3.0
-      es-set-tostringtag: 2.1.0
-      function-bind: 1.1.2
-      get-intrinsic: 1.3.0
-      globalthis: 1.0.4
-      has-property-descriptors: 1.0.2
-      has-proto: 1.2.0
-      has-symbols: 1.1.0
-      internal-slot: 1.1.0
-      iterator.prototype: 1.1.2
-      safe-array-concat: 1.1.3
-
   es-module-lexer@1.7.0: {}
 
   es-object-atoms@1.1.1:
@@ -16247,10 +16150,6 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.2
-
-  es-shim-unscopables@1.0.2:
-    dependencies:
       hasown: 2.0.2
 
   es-to-primitive@1.3.0:
@@ -16389,144 +16288,30 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
-  eslint-ast-utils@1.1.0:
+  eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
-      lodash.get: 4.4.2
-      lodash.zip: 4.2.0
+      eslint: 9.39.2(jiti@2.6.1)
 
-  eslint-config-prettier@8.10.0(eslint@8.57.1):
+  eslint-plugin-perfectionist@4.15.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3):
     dependencies:
-      eslint: 8.57.1
-
-  eslint-import-resolver-node@0.3.9:
-    dependencies:
-      debug: 3.2.7
-      is-core-module: 2.16.1
-      resolve: 1.22.11
+      '@typescript-eslint/types': 8.54.0
+      '@typescript-eslint/utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      eslint: 9.39.2(jiti@2.6.1)
+      natural-orderby: 5.0.0
     transitivePeerDependencies:
       - supports-color
+      - typescript
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1):
+  eslint-plugin-prettier@5.5.5(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1):
     dependencies:
-      debug: 3.2.7
+      eslint: 9.39.2(jiti@2.6.1)
+      prettier: 3.8.1
+      prettier-linter-helpers: 1.0.1
+      synckit: 0.11.12
     optionalDependencies:
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      eslint: 8.57.1
-      eslint-import-resolver-node: 0.3.9
-    transitivePeerDependencies:
-      - supports-color
+      eslint-config-prettier: 10.1.8(eslint@9.39.2(jiti@2.6.1))
 
-  eslint-plugin-extra-rules@0.0.0-development:
-    dependencies:
-      console-assert: 1.0.0
-      espree: 3.0.0-alpha-1
-      quote: 0.4.0
-
-  eslint-plugin-fp@2.3.0(eslint@8.57.1):
-    dependencies:
-      create-eslint-index: 1.0.0
-      eslint: 8.57.1
-      eslint-ast-utils: 1.1.0
-      lodash: 4.17.21
-      req-all: 0.1.0
-
-  eslint-plugin-functional@4.4.1(eslint@8.57.1)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5):
-    dependencies:
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-      deepmerge-ts: 4.3.0
-      escape-string-regexp: 4.0.0
-      eslint: 8.57.1
-      semver: 7.7.3
-    optionalDependencies:
-      tsutils: 3.21.0(typescript@5.4.5)
-      typescript: 5.4.5
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1):
-    dependencies:
-      array-includes: 3.1.8
-      array.prototype.findlastindex: 1.2.5
-      array.prototype.flat: 1.3.2
-      array.prototype.flatmap: 1.3.2
-      debug: 3.2.7
-      doctrine: 2.1.0
-      eslint: 8.57.1
-      eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1)
-      hasown: 2.0.2
-      is-core-module: 2.16.1
-      is-glob: 4.0.3
-      minimatch: 3.1.2
-      object.fromentries: 2.0.8
-      object.groupby: 1.0.3
-      object.values: 1.2.0
-      semver: 6.3.1
-      tsconfig-paths: 3.15.0
-    optionalDependencies:
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
-    transitivePeerDependencies:
-      - eslint-import-resolver-typescript
-      - eslint-import-resolver-webpack
-      - supports-color
-
-  eslint-plugin-jsdoc@39.9.1(eslint@8.57.1):
-    dependencies:
-      '@es-joy/jsdoccomment': 0.36.1
-      comment-parser: 1.3.1
-      debug: 4.4.3
-      escape-string-regexp: 4.0.0
-      eslint: 8.57.1
-      esquery: 1.5.0
-      semver: 7.7.3
-      spdx-expression-parse: 3.0.1
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-plugin-prefer-arrow@1.2.3(eslint@8.57.1):
-    dependencies:
-      eslint: 8.57.1
-
-  eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8):
-    dependencies:
-      eslint: 8.57.1
-      prettier: 2.8.8
-      prettier-linter-helpers: 1.0.0
-    optionalDependencies:
-      eslint-config-prettier: 8.10.0(eslint@8.57.1)
-
-  eslint-plugin-react@7.34.3(eslint@8.57.1):
-    dependencies:
-      array-includes: 3.1.8
-      array.prototype.findlast: 1.2.5
-      array.prototype.flatmap: 1.3.2
-      array.prototype.toreversed: 1.1.2
-      array.prototype.tosorted: 1.1.4
-      doctrine: 2.1.0
-      es-iterator-helpers: 1.0.19
-      eslint: 8.57.1
-      estraverse: 5.3.0
-      jsx-ast-utils: 3.3.5
-      minimatch: 3.1.2
-      object.entries: 1.1.8
-      object.fromentries: 2.0.8
-      object.hasown: 1.1.4
-      object.values: 1.2.0
-      prop-types: 15.8.1
-      resolve: 2.0.0-next.5
-      semver: 6.3.1
-      string.prototype.matchall: 4.0.11
-
-  eslint-plugin-sonarjs@0.13.0(eslint@8.57.1):
-    dependencies:
-      eslint: 8.57.1
-
-  eslint-scope@5.1.1:
-    dependencies:
-      esrecurse: 4.3.0
-      estraverse: 4.3.0
-
-  eslint-scope@7.2.2:
+  eslint-scope@8.4.0:
     dependencies:
       esrecurse: 4.3.0
       estraverse: 5.3.0
@@ -16535,59 +16320,54 @@ snapshots:
 
   eslint-visitor-keys@4.2.1: {}
 
-  eslint@8.57.1:
+  eslint-visitor-keys@5.0.1: {}
+
+  eslint@9.39.2(jiti@2.6.1):
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.1)
-      '@eslint-community/regexpp': 4.11.0
-      '@eslint/eslintrc': 2.1.4
-      '@eslint/js': 8.57.1
-      '@humanwhocodes/config-array': 0.13.0
+      '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.2(jiti@2.6.1))
+      '@eslint-community/regexpp': 4.12.2
+      '@eslint/config-array': 0.21.1
+      '@eslint/config-helpers': 0.4.2
+      '@eslint/core': 0.17.0
+      '@eslint/eslintrc': 3.3.4
+      '@eslint/js': 9.39.2
+      '@eslint/plugin-kit': 0.4.1
+      '@humanfs/node': 0.16.7
       '@humanwhocodes/module-importer': 1.0.1
-      '@nodelib/fs.walk': 1.2.8
-      '@ungap/structured-clone': 1.2.0
+      '@humanwhocodes/retry': 0.4.3
+      '@types/estree': 1.0.8
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
       debug: 4.4.3
-      doctrine: 3.0.0
       escape-string-regexp: 4.0.0
-      eslint-scope: 7.2.2
-      eslint-visitor-keys: 3.4.3
-      espree: 9.6.1
+      eslint-scope: 8.4.0
+      eslint-visitor-keys: 4.2.1
+      espree: 10.4.0
       esquery: 1.5.0
       esutils: 2.0.3
       fast-deep-equal: 3.1.3
-      file-entry-cache: 6.0.1
+      file-entry-cache: 8.0.0
       find-up: 5.0.0
       glob-parent: 6.0.2
-      globals: 13.24.0
-      graphemer: 1.4.0
       ignore: 5.3.1
       imurmurhash: 0.1.4
       is-glob: 4.0.3
-      is-path-inside: 3.0.3
-      js-yaml: 4.1.1
       json-stable-stringify-without-jsonify: 1.0.1
-      levn: 0.4.1
       lodash.merge: 4.6.2
       minimatch: 3.1.2
       natural-compare: 1.4.0
       optionator: 0.9.4
-      strip-ansi: 6.0.1
-      text-table: 0.2.0
+    optionalDependencies:
+      jiti: 2.6.1
     transitivePeerDependencies:
       - supports-color
 
-  espree@3.0.0-alpha-1:
-    dependencies:
-      acorn: 2.7.0
-      acorn-jsx: 2.0.1
-
-  espree@9.6.1:
+  espree@10.4.0:
     dependencies:
       acorn: 8.15.0
       acorn-jsx: 5.3.2(acorn@8.15.0)
-      eslint-visitor-keys: 3.4.3
+      eslint-visitor-keys: 4.2.1
 
   esprima@4.0.1: {}
 
@@ -16598,8 +16378,6 @@ snapshots:
   esrecurse@4.3.0:
     dependencies:
       estraverse: 5.3.0
-
-  estraverse@4.3.0: {}
 
   estraverse@5.3.0: {}
 
@@ -16733,9 +16511,9 @@ snapshots:
 
   fecha@4.2.3: {}
 
-  file-entry-cache@6.0.1:
+  file-entry-cache@8.0.0:
     dependencies:
-      flat-cache: 3.2.0
+      flat-cache: 4.0.1
 
   filing-cabinet@5.0.3:
     dependencies:
@@ -16774,11 +16552,10 @@ snapshots:
       locate-path: 6.0.0
       path-exists: 4.0.0
 
-  flat-cache@3.2.0:
+  flat-cache@4.0.1:
     dependencies:
       flatted: 3.3.1
       keyv: 4.5.4
-      rimraf: 3.0.2
 
   flatted@3.3.1: {}
 
@@ -16953,23 +16730,12 @@ snapshots:
 
   globals@11.12.0: {}
 
-  globals@13.24.0:
-    dependencies:
-      type-fest: 0.20.2
+  globals@14.0.0: {}
 
   globalthis@1.0.4:
     dependencies:
       define-properties: 1.2.1
       gopd: 1.2.0
-
-  globby@11.1.0:
-    dependencies:
-      array-union: 2.1.0
-      dir-glob: 3.0.1
-      fast-glob: 3.3.3
-      ignore: 5.3.1
-      merge2: 1.4.1
-      slash: 3.0.0
 
   globby@13.2.2:
     dependencies:
@@ -16986,8 +16752,6 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
-
-  graphemer@1.4.0: {}
 
   handlebars@4.7.8:
     dependencies:
@@ -17059,6 +16823,8 @@ snapshots:
   ieee754@1.2.1: {}
 
   ignore@5.3.1: {}
+
+  ignore@7.0.5: {}
 
   immer@9.0.21: {}
 
@@ -17164,8 +16930,6 @@ snapshots:
 
   is-obj@1.0.1: {}
 
-  is-path-inside@3.0.3: {}
-
   is-reference@1.2.1:
     dependencies:
       '@types/estree': 1.0.8
@@ -17225,14 +16989,6 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  iterator.prototype@1.1.2:
-    dependencies:
-      define-properties: 1.2.1
-      get-intrinsic: 1.3.0
-      has-symbols: 1.1.0
-      reflect.getprototypeof: 1.0.10
-      set-function-name: 2.0.2
-
   jackspeak@3.4.3:
     dependencies:
       '@isaacs/cliui': 8.0.2
@@ -17257,8 +17013,6 @@ snapshots:
 
   jsbn@1.1.0: {}
 
-  jsdoc-type-pratt-parser@3.1.0: {}
-
   jsep@1.4.0: {}
 
   jsesc@2.5.2: {}
@@ -17278,10 +17032,6 @@ snapshots:
   json-schema-traverse@1.0.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
-
-  json5@1.0.2:
-    dependencies:
-      minimist: 1.2.8
 
   json5@2.2.3: {}
 
@@ -17313,13 +17063,6 @@ snapshots:
       lodash.once: 4.1.1
       ms: 2.1.3
       semver: 7.7.3
-
-  jsx-ast-utils@3.3.5:
-    dependencies:
-      array-includes: 3.1.8
-      array.prototype.flat: 1.3.2
-      object.assign: 4.1.7
-      object.values: 1.2.0
 
   just-extend@6.2.0: {}
 
@@ -17423,8 +17166,6 @@ snapshots:
 
   lodash.union@4.6.0: {}
 
-  lodash.zip@4.2.0: {}
-
   lodash@4.17.21: {}
 
   log-symbols@4.1.0:
@@ -17440,10 +17181,6 @@ snapshots:
       ms: 2.1.3
       safe-stable-stringify: 2.4.3
       triple-beam: 1.4.1
-
-  loose-envify@1.4.0:
-    dependencies:
-      js-tokens: 4.0.0
 
   lru-cache@10.4.3: {}
 
@@ -17530,7 +17267,15 @@ snapshots:
     dependencies:
       '@isaacs/brace-expansion': 5.0.0
 
+  minimatch@10.2.2:
+    dependencies:
+      brace-expansion: 5.0.3
+
   minimatch@3.1.2:
+    dependencies:
+      brace-expansion: 1.1.11
+
+  minimatch@3.1.3:
     dependencies:
       brace-expansion: 1.1.11
 
@@ -17595,9 +17340,9 @@ snapshots:
 
   nanoid@3.3.11: {}
 
-  natural-compare-lite@1.4.0: {}
-
   natural-compare@1.4.0: {}
+
+  natural-orderby@5.0.0: {}
 
   negotiator@0.6.3: {}
 
@@ -17656,37 +17401,6 @@ snapshots:
       es-object-atoms: 1.1.1
       has-symbols: 1.1.0
       object-keys: 1.1.1
-
-  object.entries@1.1.8:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-object-atoms: 1.1.1
-
-  object.fromentries@2.0.8:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-object-atoms: 1.1.1
-
-  object.groupby@1.0.3:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-
-  object.hasown@1.1.4:
-    dependencies:
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-object-atoms: 1.1.1
-
-  object.values@1.2.0:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-object-atoms: 1.1.1
 
   obliterator@1.6.1: {}
 
@@ -18034,16 +17748,13 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-linter-helpers@1.0.0:
+  prettier-linter-helpers@1.0.1:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier-plugin-organize-imports@4.2.0(prettier@2.8.8)(typescript@5.4.5):
-    dependencies:
-      prettier: 2.8.8
-      typescript: 5.4.5
-
   prettier@2.8.8: {}
+
+  prettier@3.8.1: {}
 
   pretty-ms@7.0.1:
     dependencies:
@@ -18061,12 +17772,6 @@ snapshots:
     dependencies:
       err-code: 2.0.3
       retry: 0.12.0
-
-  prop-types@15.8.1:
-    dependencies:
-      loose-envify: 1.4.0
-      object-assign: 4.1.1
-      react-is: 16.13.1
 
   proper-lockfile@4.1.2:
     dependencies:
@@ -18149,8 +17854,6 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  quote@0.4.0: {}
-
   randexp@0.5.3:
     dependencies:
       drange: 1.1.1
@@ -18173,8 +17876,6 @@ snapshots:
       ini: 1.3.8
       minimist: 1.2.8
       strip-json-comments: 2.0.1
-
-  react-is@16.13.1: {}
 
   readable-stream@2.3.8:
     dependencies:
@@ -18233,8 +17934,6 @@ snapshots:
       gopd: 1.2.0
       set-function-name: 2.0.2
 
-  req-all@0.1.0: {}
-
   require-directory@2.1.1: {}
 
   require-from-string@2.0.2: {}
@@ -18260,12 +17959,6 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
-  resolve@2.0.0-next.5:
-    dependencies:
-      is-core-module: 2.16.1
-      path-parse: 1.0.7
-      supports-preserve-symlinks-flag: 1.0.0
-
   restore-cursor@3.1.0:
     dependencies:
       onetime: 5.1.2
@@ -18278,10 +17971,6 @@ snapshots:
   retry@0.13.1: {}
 
   reusify@1.0.4: {}
-
-  rimraf@3.0.2:
-    dependencies:
-      glob: 7.2.3
 
   rollup@2.79.2:
     optionalDependencies:
@@ -18492,8 +18181,6 @@ snapshots:
       nise: 5.1.9
       supports-color: 7.2.0
 
-  slash@3.0.0: {}
-
   slash@4.0.0: {}
 
   smart-buffer@4.2.0: {}
@@ -18523,15 +18210,6 @@ snapshots:
   source-map@0.6.1: {}
 
   sourcemap-codec@1.4.8: {}
-
-  spdx-exceptions@2.5.0: {}
-
-  spdx-expression-parse@3.0.1:
-    dependencies:
-      spdx-exceptions: 2.5.0
-      spdx-license-ids: 3.0.18
-
-  spdx-license-ids@3.0.18: {}
 
   spex@3.3.0: {}
 
@@ -18605,21 +18283,6 @@ snapshots:
       eastasianwidth: 0.2.0
       emoji-regex: 9.2.2
       strip-ansi: 7.1.0
-
-  string.prototype.matchall@4.0.11:
-    dependencies:
-      call-bind: 1.0.8
-      define-properties: 1.2.1
-      es-abstract: 1.24.0
-      es-errors: 1.3.0
-      es-object-atoms: 1.1.1
-      get-intrinsic: 1.3.0
-      gopd: 1.2.0
-      has-symbols: 1.1.0
-      internal-slot: 1.1.0
-      regexp.prototype.flags: 1.5.4
-      set-function-name: 2.0.2
-      side-channel: 1.1.0
 
   string.prototype.trim@1.2.10:
     dependencies:
@@ -18726,6 +18389,10 @@ snapshots:
       express: 4.20.0
       swagger-ui-dist: 5.25.2
 
+  synckit@0.11.12:
+    dependencies:
+      '@pkgr/core': 0.2.9
+
   tanu@0.1.13:
     dependencies:
       tslib: 2.8.1
@@ -18826,6 +18493,10 @@ snapshots:
 
   triple-beam@1.4.1: {}
 
+  ts-api-utils@2.4.0(typescript@5.8.3):
+    dependencies:
+      typescript: 5.8.3
+
   ts-api-utils@2.4.0(typescript@5.9.3):
     dependencies:
       typescript: 5.9.3
@@ -18850,13 +18521,6 @@ snapshots:
       meow: 12.1.1
       tslib: 2.8.1
 
-  tsconfig-paths@3.15.0:
-    dependencies:
-      '@types/json5': 0.0.29
-      json5: 1.0.2
-      minimist: 1.2.8
-      strip-bom: 3.0.0
-
   tsconfig-paths@4.2.0:
     dependencies:
       json5: 2.2.3
@@ -18866,11 +18530,6 @@ snapshots:
   tslib@1.14.1: {}
 
   tslib@2.8.1: {}
-
-  tsutils@3.21.0(typescript@5.4.5):
-    dependencies:
-      tslib: 1.14.1
-      typescript: 5.4.5
 
   tsx@4.19.1:
     dependencies:
@@ -18916,8 +18575,6 @@ snapshots:
 
   type-detect@4.1.0: {}
 
-  type-fest@0.20.2: {}
-
   type-fest@3.13.1: {}
 
   type-fest@4.41.0: {}
@@ -18962,11 +18619,24 @@ snapshots:
 
   typedarray@0.0.6: {}
 
+  typescript-eslint@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3):
+    dependencies:
+      '@typescript-eslint/eslint-plugin': 8.56.1(@typescript-eslint/parser@8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/typescript-estree': 8.56.1(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.56.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
+      eslint: 9.39.2(jiti@2.6.1)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+
   typescript@3.9.10: {}
 
   typescript@4.9.5: {}
 
   typescript@5.4.5: {}
+
+  typescript@5.8.3: {}
 
   typescript@5.9.3: {}
 

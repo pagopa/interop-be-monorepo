@@ -85,7 +85,7 @@ const getAttributesData = async (
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
-      | VerifiedTenantAttribute
+      | VerifiedTenantAttribute,
   >(
     type: TenantAttributeType
   ): Promise<
@@ -329,9 +329,7 @@ export const agreementContractBuilder = (
 function assertStampExists<S extends keyof AgreementStamps>(
   stamps: AgreementStamps,
   stamp: S
-): asserts stamps is AgreementStamps & {
-  [key in S]: AgreementStamp;
-} {
+): asserts stamps is AgreementStamps & Record<S, AgreementStamp> {
   if (!stamps[stamp]) {
     throw agreementStampNotFound(stamp);
   }
