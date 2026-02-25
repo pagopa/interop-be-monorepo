@@ -27,7 +27,7 @@ describe("DELETE /eservices/:eserviceId/descriptors/:descriptorId/documents/:doc
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockEserviceService.deleteEServiceDescriptorDocument = vi
         .fn()
@@ -39,7 +39,8 @@ describe("DELETE /eservices/:eserviceId/descriptors/:descriptorId/documents/:doc
         descriptorId,
         documentId
       );
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEserviceService.deleteEServiceDescriptorDocument
       ).toHaveBeenCalledWith(
