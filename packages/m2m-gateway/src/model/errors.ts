@@ -57,6 +57,7 @@ const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
+  clientNotFound: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -245,6 +246,15 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+export function clientNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
 
