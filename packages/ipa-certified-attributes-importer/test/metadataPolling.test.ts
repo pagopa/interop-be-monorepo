@@ -52,6 +52,10 @@ describe("IPA metadata polling", () => {
   } as unknown as Logger;
 
   const headers = {} as InteropHeaders;
+  const pollingConfig = {
+    defaultPollingMaxRetries: 1,
+    defaultPollingRetryDelay: 1,
+  };
 
   const tenantProcessClient = {
     internalUpsertTenant: internalUpsertTenantMock,
@@ -83,7 +87,8 @@ describe("IPA metadata polling", () => {
       tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
-      logger
+      logger,
+      pollingConfig
     );
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
@@ -105,7 +110,8 @@ describe("IPA metadata polling", () => {
       tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
-      logger
+      logger,
+      pollingConfig
     );
 
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
@@ -130,7 +136,8 @@ describe("IPA metadata polling", () => {
         tenantProcessClient as never,
         readModelServiceSQL as never,
         headers,
-        logger
+        logger,
+        pollingConfig
       )
     ).rejects.toThrowError(pollingError);
 
@@ -155,11 +162,67 @@ describe("IPA metadata polling", () => {
       tenantProcessClient as never,
       readModelServiceSQL as never,
       headers,
-      logger
+      logger,
+      pollingConfig
     );
 
     expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
     expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("should skip polling after revoke when metadata version is missing", async () => {
+    internalRevokeCertifiedAttributeMock.mockResolvedValue({
+      metadata: undefined,
+    });
+
+    await revokeAttributes(
+      [
+        {
+          tOrigin: "IPA",
+          tExternalId: "123",
+          aOrigin: "IPA",
+          aCode: "A1",
+        },
+      ],
+      tenantProcessClient as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig
+    );
+
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("should fail revoke when polling reaches max retries", async () => {
+    internalRevokeCertifiedAttributeMock.mockResolvedValue({
+      metadata: { version: 5 },
+    });
+
+    const pollingError = new Error("pollingMaxRetriesExceeded");
+    waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
+
+    await expect(
+      revokeAttributes(
+        [
+          {
+            tOrigin: "IPA",
+            tExternalId: "123",
+            aOrigin: "IPA",
+            aCode: "A1",
+          },
+        ],
+        tenantProcessClient as never,
+        readModelServiceSQL as never,
+        headers,
+        logger,
+        pollingConfig
+      )
+    ).rejects.toThrowError(pollingError);
+
+    expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
   });
 });

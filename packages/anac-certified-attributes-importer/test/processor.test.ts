@@ -195,6 +195,66 @@ describe("ANAC Certified Attributes Importer", () => {
     expect(getTenantByIdWithMetadataSpy).toBeCalled();
   });
 
+  it("should fail if polling max retries are reached after revoke", async () => {
+    const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
+0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,FALSE,FALSE,FALSE`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "ipa_code_123" },
+        attributes: [],
+      },
+    ];
+
+    const tenantsWithAttribute: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "missing_from_csv" },
+        attributes: [
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
+          },
+        ],
+      },
+    ];
+
+    vi.spyOn(sftpClientMock, "downloadCSV").mockImplementation(
+      downloadCSVMockGenerator(csvFileContent)
+    );
+
+    vi.spyOn(readModelQueriesMock, "getPATenants").mockImplementation(
+      getTenantsMockGenerator((_) => readModelTenants)
+    );
+
+    vi.spyOn(readModelQueriesMock, "getTenantsWithAttributes").mockImplementation(
+      getTenantsMockGenerator((_) => tenantsWithAttribute)
+    );
+
+    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce(5);
+
+    await expect(
+      importAttributes(
+        sftpClientMock,
+        readModelQueriesMock,
+        tenantProcessMock,
+        refreshableTokenMock,
+        10,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
+        "anac-tenant-id",
+        genericLogger,
+        generateId()
+      )
+    ).rejects.toThrowError();
+
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
+  });
+
   it("should succeed, assigning only missing attributes", async () => {
     const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
 0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,TRUE,TRUE,TRUE`;
