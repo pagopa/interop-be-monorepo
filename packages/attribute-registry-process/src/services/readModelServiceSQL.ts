@@ -2,7 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeKind,
@@ -44,19 +44,23 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
+      const baseQuery = readModelDB
+        .select(getTableColumns(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+        .$dynamic();
+
+      const [queryResult, totalCount] = await Promise.all([
+        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, baseQuery),
+      ]);
 
       const attributes = aggregateAttributeArray(queryResult);
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        totalCount,
       );
     },
     async getAttributesByKindsNameOrigin({
@@ -72,8 +76,8 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
+      const baseQuery = readModelDB
+        .select(getTableColumns(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(
           and(
@@ -83,35 +87,39 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`,
                 )
               : undefined,
             origin
               ? eq(attributeInReadmodelAttribute.origin, origin)
-              : undefined
-          )
+              : undefined,
+          ),
         )
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+        .$dynamic();
+
+      const [queryResult, totalCount] = await Promise.all([
+        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, baseQuery),
+      ]);
 
       const attributes = aggregateAttributeArray(queryResult);
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        totalCount,
       );
     },
     async getAttributeById(
-      id: AttributeId
+      id: AttributeId,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeById(id);
     },
     async getAttributeByName(
-      name: string
+      name: string,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeByFilter(
-        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
+        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name)),
       );
     },
     async getAttributeByOriginAndCode({
@@ -124,19 +132,19 @@ export function readModelServiceBuilderSQL({
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
           eq(attributeInReadmodelAttribute.origin, escapeRegExp(origin)),
-          eq(attributeInReadmodelAttribute.code, escapeRegExp(code))
-        )
+          eq(attributeInReadmodelAttribute.code, escapeRegExp(code)),
+        ),
       );
     },
     async getAttributeByCodeAndName(
       code: string,
-      name: string
+      name: string,
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
           ilike(attributeInReadmodelAttribute.code, escapeRegExp(code)),
-          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
-        )
+          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name)),
+        ),
       );
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {

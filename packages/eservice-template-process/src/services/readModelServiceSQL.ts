@@ -5,7 +5,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
-  withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -62,10 +62,10 @@ export function readModelServiceBuilderSQL({
 }) {
   return {
     async getEServiceTemplateById(
-      id: EServiceTemplateId
+      id: EServiceTemplateId,
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
       return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(
-        id
+        id,
       );
     },
     async isEServiceTemplateNameAvailable({
@@ -81,8 +81,8 @@ export function readModelServiceBuilderSQL({
         .where(
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
-          )
+            escapeRegExp(name),
+          ),
         )
         .limit(1);
 
@@ -93,14 +93,14 @@ export function readModelServiceBuilderSQL({
     },
     async getAttributesByIds(
       attributesIds: AttributeId[],
-      kind: AttributeKind
+      kind: AttributeKind,
     ): Promise<Attribute[]> {
       return (
         await attributeReadModelServiceSQL.getAttributesByFilter(
           and(
             inArray(attributeInReadmodelAttribute.id, attributesIds),
-            eq(attributeInReadmodelAttribute.kind, kind)
-          )
+            eq(attributeInReadmodelAttribute.kind, kind),
+          ),
         )
       ).map((a) => a.data);
     },
@@ -108,24 +108,22 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
         filters;
 
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          })
-        )
+      const filterQuery = readModelDB
+        .select({
+          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+        })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+          ),
         )
         .where(
           and(
@@ -133,33 +131,33 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`,
                 )
               : undefined,
             // IDS FILTER
             eserviceTemplatesIds.length > 0
               ? inArray(
                   eserviceTemplateInReadmodelEserviceTemplate.id,
-                  eserviceTemplatesIds
+                  eserviceTemplatesIds,
                 )
               : undefined,
             match(personalData)
               .with("TRUE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  true
-                )
+                  true,
+                ),
               )
               .with("FALSE", () =>
                 eq(
                   eserviceTemplateInReadmodelEserviceTemplate.personalData,
-                  false
-                )
+                  false,
+                ),
               )
               .with("DEFINED", () =>
                 isNotNull(
-                  eserviceTemplateInReadmodelEserviceTemplate.personalData
-                )
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                ),
               )
               .with(undefined, () => undefined)
               .exhaustive(),
@@ -167,14 +165,14 @@ export function readModelServiceBuilderSQL({
             creatorsIds.length > 0
               ? inArray(
                   eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                  creatorsIds
+                  creatorsIds,
                 )
               : undefined,
             // STATES FILTER
             states.length > 0
               ? inArray(
                   eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  states
+                  states,
                 )
               : undefined,
             // VISIBILITY FILTER
@@ -182,112 +180,116 @@ export function readModelServiceBuilderSQL({
               ? or(
                   eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                    authData.organizationId
+                    authData.organizationId,
                   ),
                   and(
                     ne(
                       eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                      eserviceTemplateVersionState.draft
+                      eserviceTemplateVersionState.draft,
                     ),
                     isNotNull(
-                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
-                    )
-                  )
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                    ),
+                  ),
                 )
               : and(
                   ne(
                     eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                    eserviceTemplateVersionState.draft
+                    eserviceTemplateVersionState.draft,
                   ),
                   isNotNull(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
-                  )
-                )
-          )
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+                  ),
+                ),
+          ),
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+        .$dynamic();
 
-      const queryResult = await readModelDB
-        .select({
-          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-          interface:
+      const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
+
+      const [queryResult, totalCount] = await Promise.all([
+        readModelDB
+          .select({
+            eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+            version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+            interface:
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+            document:
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+            attribute:
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+            riskAnalysis:
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+            riskAnalysisAnswer:
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          })
+          .from(eserviceTemplateInReadmodelEserviceTemplate)
+          .innerJoin(
+            subquery,
+            eq(
+              subquery.eserviceTemplateId,
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+            ),
+          )
+          .leftJoin(
+            eserviceTemplateVersionInReadmodelEserviceTemplate,
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+            ),
+          )
+          .leftJoin(
             eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          attribute:
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId,
+            ),
+          )
+          .leftJoin(
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId,
+            ),
+          )
+          .leftJoin(
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          riskAnalysisAnswer:
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId,
+            ),
+          )
+          .leftJoin(
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId,
+            ),
+          )
+          .leftJoin(
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          totalCount: subquery.totalCount,
-        })
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .innerJoin(
-          subquery,
-          eq(
-            subquery.eserviceTemplateId,
-            eserviceTemplateInReadmodelEserviceTemplate.id
+            eq(
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId,
+            ),
           )
-        )
-        .leftJoin(
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-          )
-        )
-        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
+          .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name)),
+        getTableTotalCount(readModelDB, filterQuery),
+      ]);
 
       const eserviceTemplates = aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
+        toEServiceTemplateAggregatorArray(queryResult),
       );
       return createListResult(
         eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
-        queryResult[0]?.totalCount ?? 0
+        totalCount,
       );
     },
     async checkNameConflictInstances(
       eserviceTemplate: EServiceTemplate,
-      newName: string
+      newName: string,
     ): Promise<boolean> {
       const queryResult = await readModelDB.transaction(async (tx) => {
         const instanceProducerIds = (
@@ -298,8 +300,8 @@ export function readModelServiceBuilderSQL({
             .from(eserviceInReadmodelCatalog)
             .where(
               and(
-                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
-              )
+                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id),
+              ),
             )
             .groupBy(eserviceInReadmodelCatalog.producerId)
         ).map((d) => d.producerId);
@@ -314,9 +316,9 @@ export function readModelServiceBuilderSQL({
               ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
               inArray(
                 eserviceInReadmodelCatalog.producerId,
-                instanceProducerIds
-              )
-            )
+                instanceProducerIds,
+              ),
+            ),
           );
       });
 
@@ -325,47 +327,49 @@ export function readModelServiceBuilderSQL({
     async getCreators(
       name: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
     ): Promise<ListResult<CompactOrganization>> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-        )
+      const baseQuery = readModelDB
+        .select({
+          id: tenantInReadmodelTenant.id,
+          name: tenantInReadmodelTenant.name,
+        })
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-            tenantInReadmodelTenant.id
-          )
+            tenantInReadmodelTenant.id,
+          ),
         )
         .innerJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+          ),
         )
         .where(
           // E-SERVICE TEMPLATE FILTER
           and(
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-              eserviceTemplateVersionState.published
+              eserviceTemplateVersionState.published,
             ),
             // TENANT FILTER
             name
               ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
-              : undefined
-          )
+              : undefined,
+          ),
         )
         .groupBy(tenantInReadmodelTenant.id)
         .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset);
+        .$dynamic();
+
+      const [queryResult, totalCount] = await Promise.all([
+        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, baseQuery),
+      ]);
 
       const data: CompactOrganization[] = queryResult.map((d) => ({
         id: unsafeBrandId(d.id),
@@ -377,12 +381,12 @@ export function readModelServiceBuilderSQL({
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse compact organization items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+            result,
+          )} - data ${JSON.stringify(data)} `,
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
+      return createListResult(result.data, totalCount);
     },
   };
 }
