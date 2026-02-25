@@ -4,12 +4,11 @@ import { createHash } from "node:crypto";
 import {
   buildIntegrityRest02SignedHeaders,
   FileManager,
-  InteropTokenGenerator,
   Logger,
 } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
-import { config } from "../config/config.js";
+import { getIntoropTokenGenerator } from "./tokenGenerator.js";
 
 export type DownloadedDocument = {
   id: string;
@@ -67,7 +66,7 @@ export async function sendDownloadedDocumentAsFormData(
   const contentType = encoder.headers["Content-Type"];
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
-  const tokenGenerator = new InteropTokenGenerator(config);
+  const tokenGenerator = getIntoropTokenGenerator();
   const agidSignature = await tokenGenerator.generateAgidIntegrityRest02Token({
     signedHeaders: buildIntegrityRest02SignedHeaders({
       digest,
