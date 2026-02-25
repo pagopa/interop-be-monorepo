@@ -1766,7 +1766,7 @@ async function addContractAtCondition(
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
-    isFirstActivation
+    condition
   ) {
     logger.info(
       `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
