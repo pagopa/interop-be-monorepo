@@ -132,9 +132,8 @@ const rateLimiterMock = {
 } as unknown as RateLimiter;
 
 // Using dynamic import to ensure that the pagopa-interop-commons mock is applied
-const { authorizationServiceBuilder } = await import(
-  "../src/services/authorizationService.js"
-);
+const { authorizationServiceBuilder } =
+  await import("../src/services/authorizationService.js");
 
 const authorizationService = authorizationServiceBuilder(
   interopTokenGeneratorMock,
