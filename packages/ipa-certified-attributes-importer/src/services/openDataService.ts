@@ -4,6 +4,7 @@ import { PUBLIC_ADMINISTRATIONS_TYPOLOGY } from "pagopa-interop-models";
 import {
   Category,
   Institution,
+  OpenDataConfig,
   getAllCategories,
   getAllInstitutions,
 } from "./openDataExtractor.js";
@@ -48,8 +49,12 @@ export type RegistryData = {
   attributes: InternalCertifiedAttribute[];
 };
 
-async function loadOpenData(): Promise<OpenData> {
-  const institutions = await getAllInstitutions("Agency", new Map());
+async function loadOpenData(openDataConfig: OpenDataConfig): Promise<OpenData> {
+  const institutions = await getAllInstitutions(
+    "Agency",
+    new Map(),
+    openDataConfig
+  );
 
   const institutionsDetails = new Map(
     institutions.map((institution) => [
@@ -61,11 +66,11 @@ async function loadOpenData(): Promise<OpenData> {
     ])
   );
 
-  const aoo = await getAllInstitutions("AOO", institutionsDetails);
+  const aoo = await getAllInstitutions("AOO", institutionsDetails, openDataConfig);
 
-  const uo = await getAllInstitutions("UO", institutionsDetails);
+  const uo = await getAllInstitutions("UO", institutionsDetails, openDataConfig);
 
-  const categories = await getAllCategories();
+  const categories = await getAllCategories(openDataConfig);
 
   return {
     institutions,
@@ -122,8 +127,10 @@ async function loadCertifiedAttributes(
   return [...attributeSeedsCategories, ...attributeSeedsInstitutions];
 }
 
-export async function getRegistryData(): Promise<RegistryData> {
-  const openData = await loadOpenData();
+export async function getRegistryData(
+  openDataConfig: OpenDataConfig
+): Promise<RegistryData> {
+  const openData = await loadOpenData(openDataConfig);
 
   const allInstitutions = [
     ...openData.institutions,

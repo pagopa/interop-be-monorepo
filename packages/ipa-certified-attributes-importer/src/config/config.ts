@@ -26,7 +26,7 @@ type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
+export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(TokenGenerationConfig)
@@ -59,9 +59,11 @@ const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-type IPACertifiedAttributesImporterConfig = z.infer<
+export type IPACertifiedAttributesImporterConfig = z.infer<
   typeof IPACertifiedAttributesImporterConfig
 >;
 
-export const config: IPACertifiedAttributesImporterConfig =
-  IPACertifiedAttributesImporterConfig.parse(process.env);
+export const parseIPACertifiedAttributesImporterConfig = (
+  env: NodeJS.ProcessEnv
+): IPACertifiedAttributesImporterConfig =>
+  IPACertifiedAttributesImporterConfig.parse(env);

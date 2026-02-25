@@ -21,7 +21,6 @@ import {
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { config } from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -42,10 +41,17 @@ export type TenantProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof tenantApi.createInternalApiClient>
 >;
 
-export function createTenantProcessClient(): TenantProcessClient {
+export type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
+export function createTenantProcessClient(
+  tenantProcessUrl: string
+): TenantProcessClient {
   return createZodiosClientEnhancedWithMetadata(
     tenantApi.createInternalApiClient,
-    config.tenantProcessUrl
+    tenantProcessUrl
   );
 }
 
@@ -94,7 +100,8 @@ async function checkAttributesPresence(
 
 export function getTenantUpsertData(
   registryData: RegistryData,
-  platformTenants: Tenant[]
+  platformTenants: Tenant[],
+  economicAccountCompaniesAllowlist: string[]
 ): TenantSeed[] {
   // Create a set of all existing tenant external IDs for quick lookup.
   // This is used to filter out institutions from the registry that don't
@@ -166,7 +173,7 @@ export function getTenantUpsertData(
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           originId: P.when((originId) =>
-            config.economicAccountCompaniesAllowlist.includes(originId)
+            economicAccountCompaniesAllowlist.includes(originId)
           ),
         },
         // 3. If the institution is a new SCEC with the S01G category from IPA.
@@ -210,10 +217,12 @@ export async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
   readModelService: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  attributeRegistryUrl: string,
+  attributeCreationWaitTime: number
 ): Promise<void> {
   const client = attributeRegistryApi.createAttributeApiClient(
-    config.attributeRegistryUrl
+    attributeRegistryUrl
   );
 
   for (const attribute of newAttributes) {
@@ -228,7 +237,7 @@ export async function createNewAttributes(
   // wait until every event reaches the read model store
   do {
     loggerInstance.info("Waiting for attributes to be created");
-    await delay(config.attributeCreationWaitTime);
+    await delay(attributeCreationWaitTime);
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
 
@@ -332,7 +341,8 @@ export async function assignNewAttributes(
   tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
 ): Promise<void> {
   for (const attributeToAssign of attributesToAssign) {
     loggerInstance.info(
@@ -357,10 +367,7 @@ export async function assignNewAttributes(
       response.metadata?.version,
       `tenant ${attributeToAssign.externalId.value}`,
       loggerInstance,
-      {
-        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
-        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-      }
+      pollingConfig
     );
   }
 }
@@ -457,7 +464,8 @@ export async function revokeAttributes(
   tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
 ): Promise<void> {
   for (const a of attributesToRevoke) {
     loggerInstance.info(
@@ -485,10 +493,7 @@ export async function revokeAttributes(
       response.metadata?.version,
       `tenant ${a.tExternalId}`,
       loggerInstance,
-      {
-        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
-        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-      }
+      pollingConfig
     );
   }
 }

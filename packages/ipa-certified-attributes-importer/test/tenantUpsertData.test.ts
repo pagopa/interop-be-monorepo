@@ -14,8 +14,9 @@ import {
   getTenantUpsertData,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { Institution } from "../src/services/openDataExtractor.js";
-import { config } from "../src/config/config.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
+
+const economicAccountCompaniesAllowlist: string[] = [];
 
 const registryData = {
   institutions: [...agency, ...aoo, ...uo],
@@ -38,7 +39,11 @@ describe("TenantUpsertData", async () => {
   it("should return an empty list if there isn't any matching tenant in the platform", async () => {
     const platformTenant: Tenant[] = [getMockTenant(), getMockTenant()];
 
-    const upsertData = getTenantUpsertData(registryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      registryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     expect(upsertData).toEqual([]);
   });
@@ -55,7 +60,11 @@ describe("TenantUpsertData", async () => {
       name: i.description,
     }));
 
-    const upsertData = getTenantUpsertData(registryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      registryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     expect(upsertData.length).toEqual(platformTenant.length);
 
@@ -66,9 +75,7 @@ describe("TenantUpsertData", async () => {
         const isGpsTenant =
           institution.kind === PUBLIC_SERVICES_MANAGERS_TYPOLOGY ||
           (institution.kind === ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY &&
-            config.economicAccountCompaniesAllowlist.includes(
-              institution.originId
-            ));
+            economicAccountCompaniesAllowlist.includes(institution.originId));
 
         if (isGpsTenant) {
           // eslint-disable-next-line functional/immutable-data
@@ -140,7 +147,11 @@ describe("TenantUpsertData", async () => {
       attributes: registryData.attributes,
     };
 
-    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      testRegistryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     const upsertEntry = findUpsertDataEntryForInstitution(
       upsertData,
@@ -192,7 +203,11 @@ describe("TenantUpsertData", async () => {
       attributes: registryData.attributes,
     };
 
-    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      testRegistryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     const upsertEntry = findUpsertDataEntryForInstitution(
       upsertData,
@@ -240,7 +255,11 @@ describe("TenantUpsertData", async () => {
       attributes: registryData.attributes,
     };
 
-    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      testRegistryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     const upsertEntry = findUpsertDataEntryForInstitution(
       upsertData,
@@ -292,7 +311,11 @@ describe("TenantUpsertData", async () => {
         attributes: registryData.attributes,
       };
 
-      const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+      const upsertData = getTenantUpsertData(
+        testRegistryData,
+        platformTenant,
+        economicAccountCompaniesAllowlist
+      );
 
       const upsertEntry = findUpsertDataEntryForInstitution(
         upsertData,
@@ -345,7 +368,11 @@ describe("TenantUpsertData", async () => {
         attributes: registryData.attributes,
       };
 
-      const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+      const upsertData = getTenantUpsertData(
+        testRegistryData,
+        platformTenant,
+        economicAccountCompaniesAllowlist
+      );
 
       const upsertEntry = findUpsertDataEntryForInstitution(
         upsertData,
@@ -396,7 +423,11 @@ describe("TenantUpsertData", async () => {
       attributes: registryData.attributes,
     };
 
-    const upsertData = getTenantUpsertData(testRegistryData, platformTenant);
+    const upsertData = getTenantUpsertData(
+      testRegistryData,
+      platformTenant,
+      economicAccountCompaniesAllowlist
+    );
 
     const upsertEntry = findUpsertDataEntryForInstitution(
       upsertData,
