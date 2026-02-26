@@ -1,0 +1,16 @@
+meta {
+  name: Get Updated Daily Calls
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{host-purpose}}/purposes/{{purposeId}}/updatedDailyCalls
+  body: none
+  auth: none 
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

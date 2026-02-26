@@ -27,6 +27,7 @@ import {
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
+  updatedDailyCallsToApiUpdatedDailyCalls,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PurposeService } from "../services/purposeService.js";
@@ -45,6 +46,7 @@ import {
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
+  getUpdatedDailyCallsErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
@@ -232,6 +234,33 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           updateReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposes/:purposeId/updatedDailyCalls", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const result = await purposeService.getUpdatedDailyCalls({
+          purposeId: unsafeBrandId(req.params.purposeId),
+          ctx,
+        });
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.UpdatedDailyCallsResponse.parse(
+              updatedDailyCallsToApiUpdatedDailyCalls(result)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getUpdatedDailyCallsErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
