@@ -161,111 +161,143 @@ describe("create eService from template", () => {
     );
   });
 
-  it("should write on event-store for the creation of an eService from a template (with instanceLabel)", async () => {
-    const publishedVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.published,
-    };
-    const eServiceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [publishedVersion],
-      personalData: false,
-    };
-
-    const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
-      kind: tenantKind.PA,
-    };
-
-    await addOneTenant(tenant);
-    await addOneEServiceTemplate(eServiceTemplate);
-
-    const eService = await catalogService.createEServiceInstanceFromTemplate(
-      eServiceTemplate.id,
-      { instanceLabel: "test" },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eService).toBeDefined();
-
-    const eServiceCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
-      0,
-      "catalog",
-      postgresDB
-    );
-    const descriptorCreationEvent = await readLastEserviceEvent(eService.id);
-
-    expect(eServiceCreationEvent).toMatchObject({
-      stream_id: eService.id,
-      version: "0",
-      type: "EServiceAdded",
-      event_version: 2,
-    });
-    expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eService.id,
-      version: "1",
-      type: "EServiceDescriptorAdded",
-      event_version: 2,
-    });
-
-    const eServiceCreationPayload = decodeProtobufPayload({
-      messageType: EServiceAddedV2,
-      payload: eServiceCreationEvent.data,
-    });
-    const descriptorCreationPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorAddedV2,
-      payload: descriptorCreationEvent.data,
-    });
-
-    const expectedEService: EService = {
-      ...mockEService,
-      description: eServiceTemplate.description,
-      name: `${eServiceTemplate.name} - test`,
-      createdAt: eService.createdAt,
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
-      isConsumerDelegable: false,
-      isClientAccessDelegable: false,
-      templateId: eServiceTemplate.id,
-      personalData: eServiceTemplate.personalData,
+  it.each([
+    {
+      instanceLabel: undefined as string | undefined,
+      description: "without instanceLabel",
+    },
+    {
       instanceLabel: "test",
-    };
+      description: 'with instanceLabel "test"',
+    },
+  ])(
+    "should write on event-store for the creation of an eService from a template ($description) when another instance already exists",
+    async ({ instanceLabel }) => {
+      const publishedVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eServiceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [publishedVersion],
+        personalData: false,
+      };
 
-    const expectedEServiceWithDescriptor: EService = {
-      ...mockEService,
-      description: eServiceTemplate.description,
-      name: `${eServiceTemplate.name} - test`,
-      createdAt: new Date(),
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
-      isClientAccessDelegable: false,
-      isConsumerDelegable: false,
-      templateId: eServiceTemplate.id,
-      personalData: eServiceTemplate.personalData,
-      instanceLabel: "test",
-      descriptors: [
-        {
-          ...mockDescriptor,
-          description: publishedVersion.description,
-          id: eService.descriptors[0].id,
-          createdAt: new Date(),
-          serverUrls: [],
-          audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersionRef: { id: publishedVersion.id },
-        },
-      ],
-    };
+      const tenant: Tenant = {
+        ...getMockTenant(mockEService.producerId),
+        kind: tenantKind.PA,
+      };
 
-    expect(eServiceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEService)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEServiceWithDescriptor)
-    );
-  });
+      await addOneTenant(tenant);
+      await addOneEServiceTemplate(eServiceTemplate);
+
+      // Add an existing instance with label "istanza 0001" to verify no conflict
+      const existingInstance: EService = {
+        ...getMockEService(
+          undefined,
+          mockEService.producerId,
+          [],
+          eServiceTemplate.id
+        ),
+        name: `${eServiceTemplate.name} - istanza 0001`,
+        instanceLabel: "istanza 0001",
+      };
+      await addOneEService(existingInstance);
+
+      const expectedName =
+        instanceLabel !== undefined
+          ? `${eServiceTemplate.name} - ${instanceLabel}`
+          : eServiceTemplate.name;
+
+      const eService = await catalogService.createEServiceInstanceFromTemplate(
+        eServiceTemplate.id,
+        { instanceLabel },
+        getMockContext({
+          authData: getMockAuthData(mockEService.producerId),
+        })
+      );
+
+      expect(eService).toBeDefined();
+
+      const eServiceCreationEvent = await readEventByStreamIdAndVersion(
+        eService.id,
+        0,
+        "catalog",
+        postgresDB
+      );
+      const descriptorCreationEvent = await readLastEserviceEvent(eService.id);
+
+      expect(eServiceCreationEvent).toMatchObject({
+        stream_id: eService.id,
+        version: "0",
+        type: "EServiceAdded",
+        event_version: 2,
+      });
+      expect(descriptorCreationEvent).toMatchObject({
+        stream_id: eService.id,
+        version: "1",
+        type: "EServiceDescriptorAdded",
+        event_version: 2,
+      });
+
+      const eServiceCreationPayload = decodeProtobufPayload({
+        messageType: EServiceAddedV2,
+        payload: eServiceCreationEvent.data,
+      });
+      const descriptorCreationPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAddedV2,
+        payload: descriptorCreationEvent.data,
+      });
+
+      const expectedEService: EService = {
+        ...mockEService,
+        description: eServiceTemplate.description,
+        name: expectedName,
+        createdAt: eService.createdAt,
+        id: eService.id,
+        isSignalHubEnabled: eService.isSignalHubEnabled,
+        isConsumerDelegable: false,
+        isClientAccessDelegable: false,
+        templateId: eServiceTemplate.id,
+        personalData: eServiceTemplate.personalData,
+        ...(instanceLabel !== undefined ? { instanceLabel } : {}),
+      };
+
+      const expectedEServiceWithDescriptor: EService = {
+        ...mockEService,
+        description: eServiceTemplate.description,
+        name: expectedName,
+        createdAt: new Date(),
+        id: eService.id,
+        isSignalHubEnabled: eService.isSignalHubEnabled,
+        isClientAccessDelegable: false,
+        isConsumerDelegable: false,
+        templateId: eServiceTemplate.id,
+        personalData: eServiceTemplate.personalData,
+        ...(instanceLabel !== undefined ? { instanceLabel } : {}),
+        descriptors: [
+          {
+            ...mockDescriptor,
+            description: publishedVersion.description,
+            id: eService.descriptors[0].id,
+            createdAt: new Date(),
+            serverUrls: [],
+            audience: [],
+            dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
+            dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+            templateVersionRef: { id: publishedVersion.id },
+          },
+        ],
+      };
+
+      expect(eServiceCreationPayload.eservice).toEqual(
+        toEServiceV2(expectedEService)
+      );
+      expect(descriptorCreationPayload.eservice).toEqual(
+        toEServiceV2(expectedEServiceWithDescriptor)
+      );
+    }
+  );
 
   it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user is a PA", async () => {
     const tenant: Tenant = {
