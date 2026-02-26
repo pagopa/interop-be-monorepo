@@ -2,11 +2,16 @@ import { describe, it, expect, vi } from "vitest";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  TenantId,
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("POST /producerKeychains/:producerKeychainId/users router test", () => {
@@ -27,7 +32,7 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       const producerKeychainId = generateId();
       mockProducerKeychainService.addProducerKeychainUsers = vi.fn();
@@ -35,7 +40,8 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
       const token = generateToken(role);
       const res = await makeRequest(token, producerKeychainId, linkUser);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(res.body).toEqual({});
       expect(
         mockProducerKeychainService.addProducerKeychainUsers
@@ -79,6 +85,18 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 404 if the user does not exist", async () => {
+    const userId = unsafeBrandId(linkUser.userId);
+    const tenantId = generateId<TenantId>();
+    mockProducerKeychainService.addProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(userNotFound(userId, tenantId));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), linkUser);
+
+    expect(res.status).toBe(404);
+  });
 
   it.each([
     missingMetadata(),

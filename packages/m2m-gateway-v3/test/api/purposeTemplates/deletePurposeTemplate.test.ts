@@ -23,14 +23,15 @@ describe("DELETE /purposeTemplates/:purposeTemplateId router test", () => {
   const mockApiPurposeTemplate = getMockedApiPurposeTemplate();
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeTemplateService.deletePurposeTemplate = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockApiPurposeTemplate.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

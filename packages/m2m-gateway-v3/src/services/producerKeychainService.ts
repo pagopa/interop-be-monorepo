@@ -21,7 +21,7 @@ import {
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
-import { getSelfcareUserById } from "./userService.js";
+import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -349,10 +349,26 @@ export function producerKeychainServiceBuilder(
     async addProducerKeychainUsers(
       producerKeychainId: ProducerKeychainId,
       userId: string,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
         `Adding user ${userId} to producer keychain with id ${producerKeychainId}`
+      );
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: authData.organizationId },
+          headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      await getInstitutionUser(
+        clients,
+        unsafeBrandId(userId),
+        tenant.selfcareId,
+        unsafeBrandId(tenant.id),
+        headers
       );
 
       const response =

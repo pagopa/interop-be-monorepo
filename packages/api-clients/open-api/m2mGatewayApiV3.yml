@@ -210,8 +210,12 @@ paths:
       description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
       operationId: deleteAgreement
       responses:
-        "204":
+        "200":
           description: Agreement deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -757,8 +761,12 @@ paths:
       description: Delete a specific Consumer Document from the specified Agreement
       operationId: deleteAgreementConsumerDocument
       responses:
-        "204":
+        "200":
           description: Consumer Document deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1729,8 +1737,12 @@ paths:
               $ref: "#/components/schemas/ClientAddPurpose"
         required: true
       responses:
-        "204":
+        "200":
           description: Client linked to the Purpose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1775,8 +1787,12 @@ paths:
       description: Unlink a Client from a Purpose, removing the association between them
       operationId: removeClientPurpose
       responses:
-        "204":
+        "200":
           description: Client unlinked from the Purpose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1903,8 +1919,12 @@ paths:
       description: Given a client and key identifiers it deletes the corresponding key, if any
       operationId: deleteClientKeyById
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2079,8 +2099,12 @@ paths:
               $ref: "#/components/schemas/ProducerKeychainAddEService"
         required: true
       responses:
-        "204":
+        "200":
           description: Producer Keychain linked to the E-Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2126,8 +2150,12 @@ paths:
       description: Unlink an E-Service from a Producer Keychain, removing the association between them
       operationId: removeProducerKeychainEService
       responses:
-        "204":
+        "200":
           description: E-Service unlinked from the Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2256,8 +2284,12 @@ paths:
       description: "Given a producer keychain and key identifiers it deletes the corresponding key, if any"
       operationId: deleteProducerKeychainKeyById
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2535,8 +2567,12 @@ paths:
       operationId: deleteEService
       description: Delete an E-Service in Draft state
       responses:
-        "204":
+        "200":
           description: E-Service deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2943,8 +2979,12 @@ paths:
         Delete an E-Service Descriptor in Draft state.
         It is not possible to delete the last remaining Descriptor for an E-Service.
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3175,8 +3215,12 @@ paths:
       description: Delete a specific Document for the specified E-Service Descriptor
       operationId: deleteEServiceDescriptorDocument
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3297,8 +3341,12 @@ paths:
         The Descriptor must be in Draft state.
       operationId: deleteEServiceDescriptorInterface
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor interface deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3713,8 +3761,12 @@ paths:
         The E-Service must be in Draft state and in Receive mode.
       operationId: deleteEServiceRiskAnalysis
       responses:
-        "204":
+        "200":
           description: E-Service Risk Analysis deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3918,8 +3970,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Certified Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3978,8 +4034,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Declared Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4038,8 +4098,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Verified Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4100,8 +4164,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorCertifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Certified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4160,8 +4228,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorVerifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Verified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4220,8 +4292,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorDeclaredAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Declared Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4597,8 +4673,12 @@ paths:
       operationId: deleteEServiceTemplate
       description: Delete an E-Service Template in Draft state
       responses:
-        "204":
+        "200":
           description: E-Service Template deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4952,8 +5032,12 @@ paths:
         It is not possible to delete the last remaining Version for a Template.
       operationId: deleteDraftEServiceTemplateVersion
       responses:
-        "204":
+        "200":
           description: E-Service Template Version deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5277,8 +5361,12 @@ paths:
       description: Delete a specific Document for the specified E-Service Template Version
       operationId: deleteEServiceTemplateVersionDocument
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5441,8 +5529,12 @@ paths:
         The E-Service Template must be in Draft state and in Receive mode.
       operationId: deleteEServiceTemplateRiskAnalysis
       responses:
-        "204":
+        "200":
           description: E-Service Template Risk Analysis deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5707,8 +5799,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Certified Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5768,8 +5864,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Declared Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5829,8 +5929,12 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Verified Attribute assigned to the Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5892,8 +5996,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionCertifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Certified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5953,8 +6061,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionVerifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Verified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6014,8 +6126,12 @@ paths:
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionDeclaredAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Declared Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6432,8 +6548,12 @@ paths:
       description: Delete Purpose. Only purposes with one version can be deleted. The version must be in Draft or WaitingForApproval state
       operationId: deletePurpose
       responses:
-        "204":
+        "200":
           description: Purpose deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6651,8 +6771,12 @@ paths:
       description: Delete a Purpose Version in waiting for approval or draft state
       operationId: deletePurposeVersion
       responses:
-        "204":
+        "200":
           description: Purpose Version deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -7948,8 +8072,12 @@ paths:
       description: Delete a Purpose Template that is in Draft state
       operationId: deletePurposeTemplate
       responses:
-        "204":
+        "200":
           description: Purpose Template deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8243,8 +8371,12 @@ paths:
       description: Delete the Document of a Risk Analysis Form Template Answer Annotation
       operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
-        "204":
+        "200":
           description: Risk Analysis Form Template Answer Annotation Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8419,8 +8551,12 @@ paths:
               $ref: "#/components/schemas/PurposeTemplateLinkEService"
         required: true
       responses:
-        "204":
+        "200":
           description: E-Services linked to Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8463,8 +8599,12 @@ paths:
       description: Unlink an E-Service From a Purpose Template that is in Draft or Active state
       operationId: removePurposeTemplateEService
       responses:
-        "204":
+        "200":
           description: E-Service unlinked from Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9362,8 +9502,12 @@ paths:
               $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
-        "204":
+        "200":
           description: User linked to the Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9407,8 +9551,12 @@ paths:
       tags:
         - clients
       responses:
-        "204":
+        "200":
           description: User unlinked from Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9492,8 +9640,12 @@ paths:
               $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
-        "204":
+        "200":
           description: User linked to the Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9537,8 +9689,12 @@ paths:
       tags:
         - producerKeychains
       responses:
-        "204":
+        "200":
           description: User unlinked from Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -13094,6 +13250,10 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the Template
+    VoidObject:
+      type: object
+      additionalProperties: false
+      description: An empty object
   responses:
     TooManyRequests:
       description: Too Many Requests

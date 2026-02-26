@@ -12,6 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ProducerKeychainService } from "../services/producerKeychainService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getUserErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -149,7 +150,7 @@ const producerKeychainRouter = (
           req.body,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -173,7 +174,7 @@ const producerKeychainRouter = (
             unsafeBrandId(req.params.eserviceId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -196,7 +197,7 @@ const producerKeychainRouter = (
           req.params.keyId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -240,11 +241,11 @@ const producerKeychainRouter = (
           req.body.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getUserErrorMapper,
           ctx,
           `Error adding user to producer keychain with id ${req.params.keychainId}`
         );
@@ -263,7 +264,7 @@ const producerKeychainRouter = (
             req.params.userId,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
