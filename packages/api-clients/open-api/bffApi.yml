@@ -7083,7 +7083,7 @@ paths:
       tags:
         - eservices
       summary: Retrieves EService template instances
-      description: Retrieves EService template instances
+      description: Retrieves EService template instances, from the template creator side
       operationId: getEServiceTemplateInstances
       parameters:
         - name: templateId
