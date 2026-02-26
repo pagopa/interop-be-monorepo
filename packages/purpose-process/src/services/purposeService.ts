@@ -2017,18 +2017,17 @@ export function purposeServiceBuilder(
       ctx: { authData, logger },
     }: {
       purposeId: PurposeId;
-      ctx: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
     }): Promise<purposeApi.UpdatedDailyCallsResponse> {
       logger.info(`Retrieving updated daily calls for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      if (purpose.data.consumerId !== authData.organizationId) {
-        throw tenantIsNotTheConsumer(
-          authData.organizationId,
-          purpose.data.delegationId
-        );
-      }
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
 
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
