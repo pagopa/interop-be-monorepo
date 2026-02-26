@@ -1,7 +1,4 @@
-import {
-  AgreementEventEnvelopeV2,
-  NewNotification,
-} from "pagopa-interop-models";
+import { AgreementEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -10,11 +7,15 @@ import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedU
 import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
 
 export async function handleAgreementEvent(
-  decodedMessage: AgreementEventEnvelopeV2,
+  decodedMessage: AgreementEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       P.union(
         { type: "AgreementSuspendedByConsumer" },
