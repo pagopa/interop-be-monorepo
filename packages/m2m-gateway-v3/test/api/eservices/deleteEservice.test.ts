@@ -25,13 +25,14 @@ describe("DELETE /eservices/{eserviceId} router test", () => {
   const mockM2MEserviceResponse = toM2MGatewayApiEService(mockApiEservice);
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockEserviceService.deleteEService = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockM2MEserviceResponse.id);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

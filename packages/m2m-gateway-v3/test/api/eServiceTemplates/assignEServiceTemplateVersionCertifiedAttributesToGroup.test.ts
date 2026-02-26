@@ -75,7 +75,7 @@ describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAtt
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 and assign certified attributes to group for user with role %s",
+    "Should return 200 and assign certified attributes to group for user with role %s",
     async (role) => {
       mockEServiceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup =
         vi.fn().mockResolvedValue(mockResponse);
@@ -89,7 +89,8 @@ describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/certifiedAtt
         mockAttributeSeed
       );
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEServiceTemplateService.assignEServiceTemplateVersionCertifiedAttributesToGroup
       ).toHaveBeenCalledWith(

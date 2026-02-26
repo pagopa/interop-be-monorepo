@@ -42,12 +42,6 @@ describe("integrityRest02Middleware", () => {
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
   // ^ using GET /certifiedAttributes/:attributeId as a dummy endpoint to test the middleware
-  const makeEmptyRequest = async (token: string) =>
-    request(api)
-      .delete(`${appBasePath}/clients/${generateId()}/purposes/${generateId()}`)
-      .set("Authorization", `DPoP ${token}`)
-      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
-      .send();
 
   mockAttributeService.getCertifiedAttribute = vi.fn().mockResolvedValue(
     toM2MGatewayApiCertifiedAttribute({
@@ -171,9 +165,7 @@ describe("integrityRest02Middleware", () => {
     expect(res2.headers.digest).toBe(`SHA-256=${digest2}`);
   });
 
-  it("Should still return the digest header if the body is empty", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeEmptyRequest(token);
+  it("Empty body, null and undefined should all be the same digest", async () => {
     const emptyStringDigest = calculateIntegrityRest02DigestFromBody({
       body: "",
     });
@@ -185,27 +177,9 @@ describe("integrityRest02Middleware", () => {
     });
     const expectedDigest = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
 
-    expect(res.status).toBe(204);
-    expect(res.headers).toHaveProperty("digest");
-    expect(res.headers.digest).toBe(`SHA-256=${emptyStringDigest}`);
-    expect(res.headers.digest).toBe(`SHA-256=${nullBodyDigest}`);
-    expect(res.headers.digest).toBe(`SHA-256=${undefinedBodyDigest}`);
-    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
-
-    // Response should not have content-type header
-    expect(res.headers).not.toHaveProperty("content-type");
-
-    const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
-    expect(decoded).toHaveProperty("signed_headers");
-    const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
-      decoded.signed_headers
-    );
-    expect(signedHeadersParse.success).toBe(true);
-    const signedHeaders = signedHeadersParse.data;
-    expect(signedHeaders.length).toBeGreaterThanOrEqual(1);
-    expect(signedHeaders).toContainEqual({
-      digest: `SHA-256=${emptyStringDigest}`,
-    });
+    expect(emptyStringDigest).toBe(expectedDigest);
+    expect(nullBodyDigest).toBe(expectedDigest);
+    expect(undefinedBodyDigest).toBe(expectedDigest);
   });
 
   it("should have a digest if there is a 400 error", async () => {

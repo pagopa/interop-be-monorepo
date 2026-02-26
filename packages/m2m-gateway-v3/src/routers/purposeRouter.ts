@@ -332,7 +332,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -375,7 +375,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
