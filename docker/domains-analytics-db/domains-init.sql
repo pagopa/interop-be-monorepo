@@ -27,6 +27,7 @@ CREATE TABLE domains.eservice (
   is_client_access_delegable BOOLEAN,
   template_id VARCHAR(36),
   personal_data BOOLEAN,
+  instance_label VARCHAR(2048),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
