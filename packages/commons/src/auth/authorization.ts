@@ -211,7 +211,7 @@ function isUserRole(role: AuthRole): role is UserRole {
  * was missing an admin user.
  * Throw a more meaningful error message in this case.
  */
-function throwMeaningfulMessageForM2MCalls(
+export function throwMeaningfulMessageForM2MCalls(
   authData: AuthData,
   permittedRoles: AuthRole[]
 ): void {

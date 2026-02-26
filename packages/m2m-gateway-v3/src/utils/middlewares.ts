@@ -1,10 +1,8 @@
 import { constants } from "http2";
 import {
   AppContext,
-  AuthData,
   ExpressContext,
   M2MAdminAuthData,
-  SystemRole,
   fromAppContext,
   jwtsFromAuthAndDPoPHeaders,
   readAuthDataFromJwtToken,
@@ -12,6 +10,7 @@ import {
   JWTConfig,
   DPoPConfig,
   verifyJwtDPoPToken,
+  throwMeaningfulMessageForM2MCalls,
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
@@ -39,20 +38,6 @@ async function validateM2MAdminUserId(
   if (clientAdminId !== authData.userId) {
     throw unauthorizedError(
       `User ${authData.userId} is not the adminId associated to client ${authData.clientId}`
-    );
-  }
-}
-
-function throwMeaningfulMessageForM2MCalls(
-  authData: AuthData,
-  permittedRoles: SystemRole[]
-): void {
-  if (
-    authData.systemRole === systemRole.M2M_ROLE &&
-    permittedRoles.includes(systemRole.M2M_ADMIN_ROLE)
-  ) {
-    throw unauthorizedError(
-      `Admin user not set for Client ${authData.clientId} with M2M role. In case it is already set, regenerate the m2m token.`
     );
   }
 }
