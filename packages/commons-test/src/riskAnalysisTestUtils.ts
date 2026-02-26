@@ -356,13 +356,15 @@ export const getMockValidRiskAnalysis = (
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis3_1_Pa,
-        generateMock(z.string())
+        generateMock(z.string()),
+        producerTenantKind
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Private,
-        generateMock(z.string())
+        generateMock(z.string()),
+        producerTenantKind
       )
     )
     .exhaustive();
@@ -374,13 +376,15 @@ export const getMockExpiredRiskAnalysis = (
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Pa_Expired,
-        generateMock(z.string())
+        generateMock(z.string()),
+        producerTenantKind
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis1_0_Private_Expired,
-        generateMock(z.string())
+        generateMock(z.string()),
+        producerTenantKind
       )
     )
     .exhaustive();
