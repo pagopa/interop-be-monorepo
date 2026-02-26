@@ -12,7 +12,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { updatedDailyCallsToApiUpdatedDailyCalls } from "../../src/model/domain/apiConverter.js";
 
-describe("API GET /purposes/{purposeId}/getUpdateDailyCalls test", () => {
+describe("API GET /purposes/{purposeId}/updatedDailyCalls test", () => {
   const purposeId: PurposeId = generateId();
 
   const apiResponse = purposeApi.UpdatedDailyCallsResponse.parse(
@@ -35,7 +35,7 @@ describe("API GET /purposes/{purposeId}/getUpdateDailyCalls test", () => {
     }
   ) =>
     request(api)
-      .get(`/purposes/${params.purposeId}/getUpdateDailyCalls`)
+      .get(`/purposes/${params.purposeId}/updatedDailyCalls`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
