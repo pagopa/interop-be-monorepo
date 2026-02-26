@@ -168,7 +168,7 @@ describe("ANAC Certified Attributes Importer", () => {
       localDownloadCSVMock
     );
 
-    vi.spyOn(readModelQueriesMock, "getPATenants").mockImplementation(
+    getPATenantsSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => readModelTenants)
     );
 
@@ -224,11 +224,11 @@ describe("ANAC Certified Attributes Importer", () => {
       downloadCSVMockGenerator(csvFileContent)
     );
 
-    vi.spyOn(readModelQueriesMock, "getPATenants").mockImplementation(
+    getPATenantsSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => readModelTenants)
     );
 
-    vi.spyOn(readModelQueriesMock, "getTenantsWithAttributes").mockImplementation(
+    getTenantsWithAttributesSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => tenantsWithAttribute)
     );
 
