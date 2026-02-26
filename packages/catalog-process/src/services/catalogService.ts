@@ -22,7 +22,6 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
-  buildInstanceName,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
