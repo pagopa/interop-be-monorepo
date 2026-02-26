@@ -1817,7 +1817,7 @@ export function catalogServiceBuilder(
         descriptorId: eService.descriptors[0].id,
       };
     },
-    getEServiceTemplateInstancesForCreator: async (
+    getEServiceTemplateInstances: async (
       eServiceTemplateId: EServiceTemplateId,
       producerName: string | undefined,
       states: bffApi.EServiceDescriptorState[],
