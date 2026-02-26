@@ -10,6 +10,7 @@ import {
   toDocumentV2,
   toEServiceAttributeV2,
   toEServiceModeV2,
+  toRiskAnalysisFormV2,
   toEServiceTechnologyV2,
 } from "../eservice/protobufConverterToV2.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
@@ -67,6 +68,7 @@ export const toEServiceTemplateRiskAnalysisV2 = (
 ): EServiceTemplateRiskAnalysisV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
+  riskAnalysisForm: toRiskAnalysisFormV2(input.riskAnalysisForm),
   tenantKind: toTenantKindV2(input.tenantKind),
 });
 

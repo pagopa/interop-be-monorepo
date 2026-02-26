@@ -34,6 +34,7 @@ import {
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
 } from "./eservice.js";
+import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2
@@ -165,6 +166,8 @@ export const fromRiskAnalysisFormV2 = (
   return {
     ...input,
     id: unsafeBrandId(input.id),
+    tenantKind:
+      input.tenantKind != null ? fromTenantKindV2(input.tenantKind) : undefined,
     singleAnswers: input.singleAnswers.map((a) => ({
       ...a,
       id: unsafeBrandId(a.id),
