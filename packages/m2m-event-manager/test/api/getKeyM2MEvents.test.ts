@@ -22,7 +22,7 @@ describe("API /events/keys test", () => {
           eventType: testToUpperSnakeCase(e.eventType),
           kid: e.kid,
           clientId: e.clientId,
-        } as m2mEventApi.KeyM2MEvent)
+        }) as m2mEventApi.KeyM2MEvent
     ),
   };
 

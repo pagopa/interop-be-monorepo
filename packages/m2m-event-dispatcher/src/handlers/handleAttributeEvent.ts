@@ -40,11 +40,5 @@ export async function handleAttributeEvent(
         );
       }
     )
-    .with(
-      {
-        type: P.union("MaintenanceAttributeDeleted"),
-      },
-      () => Promise.resolve(void 0)
-    )
     .exhaustive();
 }

@@ -260,7 +260,7 @@ const createEServiceTemplateSQLPropertyMap = <
     | EServiceTemplateVersionDocumentSQL
     | EServiceTemplateVersionAttributeSQL
     | EServiceTemplateRiskAnalysisSQL
-    | EServiceTemplateRiskAnalysisAnswerSQL
+    | EServiceTemplateRiskAnalysisAnswerSQL,
 >(
   items: T[]
 ): Map<EServiceTemplateId, T[]> =>

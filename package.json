@@ -66,8 +66,6 @@
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",
     "lint:autofix": "turbo lint:autofix",
     "lint:openapi": "turbo lint:openapi",
-    "format:check": "turbo format:check",
-    "format:write": "turbo format:write",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
     "generate-db-models": "turbo generate-db-models",
@@ -75,12 +73,14 @@
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
-    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
+    "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
+    "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
+    "madge": "catalog:",
     "prettier": "catalog:",
     "eslint": "catalog:",
     "turbo": "catalog:"

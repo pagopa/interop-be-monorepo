@@ -223,9 +223,8 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueriesSQL,
   anacTenantId: string
 ): Promise<AnacAttributes> {
-  const anacTenant: AnacReadModelTenant = await readModel.getTenantById(
-    anacTenantId
-  );
+  const anacTenant: AnacReadModelTenant =
+    await readModel.getTenantById(anacTenantId);
   const certifier = anacTenant.features.find(
     (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   );

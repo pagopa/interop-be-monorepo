@@ -129,9 +129,8 @@ export function digestDataServiceBuilder(
 
     // Cache miss - fetch from database
     logger.info("Cache miss - fetching new e-services from database");
-    const fetchedData = await readModelService.getNewEservices(
-      priorityProducerIds
-    );
+    const fetchedData =
+      await readModelService.getNewEservices(priorityProducerIds);
 
     // Store in cache
     newEservicesCache.set(fetchedData);

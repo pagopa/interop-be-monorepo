@@ -134,9 +134,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(instanceToUpdate2);
     await addOneEService(instanceToUpdate3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -197,9 +196,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(instanceToUpdate2);
     await addOneEService(instanceToUpdate3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -316,9 +314,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -427,9 +424,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -565,9 +561,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const clonedPath = "clonedPath";
     copyDocumentFn.mockResolvedValue(clonedPath);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -708,9 +703,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -858,9 +852,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -930,9 +923,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(instanceToUpdate2);
     await addOneEService(instanceToUpdate3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -1002,9 +994,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -1038,9 +1029,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await expect(
       handleMessageV2({

@@ -240,10 +240,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"
-          ? consumerUsers
-          : expectedAudience === "both"
-          ? [...producerUsers, ...consumerUsers]
-          : [];
+            ? consumerUsers
+            : expectedAudience === "both"
+              ? [...producerUsers, ...consumerUsers]
+              : [];
 
       expect(notifications).toHaveLength(expectedUsers.length);
 

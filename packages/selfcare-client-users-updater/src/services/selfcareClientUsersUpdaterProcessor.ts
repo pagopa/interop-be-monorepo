@@ -88,9 +88,8 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
                 payload.institutionId
               );
               const token = (await refreshableToken.get()).serialized;
-              const tenantId = await readModelService.getTenantIdBySelfcareId(
-                selfcareId
-              );
+              const tenantId =
+                await readModelService.getTenantIdBySelfcareId(selfcareId);
 
               if (!tenantId) {
                 loggerInstance.warn(
