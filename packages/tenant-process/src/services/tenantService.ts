@@ -1074,11 +1074,13 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
-        return { version: tenantToModify.metadata.version + 2 };
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
       } else {
         const event = await repository.createEvent(
           tenantCertifiedAttributeAssignedEvent
@@ -1161,11 +1163,13 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
-        return { version: tenantToModify.metadata.version + 2 };
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
       } else {
         const event = await repository.createEvent(
           tenantCertifiedAttributeRevokedEvent
