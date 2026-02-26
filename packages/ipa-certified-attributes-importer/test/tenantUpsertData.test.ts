@@ -223,6 +223,57 @@ describe("TenantUpsertData", async () => {
       code: expect.any(String),
     });
   });
+
+  it("should assign the GPS attribute to a normal SCEC when present in allowlist", async () => {
+    const mockInstitution: Institution = {
+      id: "mockId2",
+      origin: "IPA",
+      originId: "test-normal-SCEC",
+      description: "Test normal SCEC",
+      kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+      classification: "Agency",
+      category: "S01",
+    };
+
+    const platformTenant: Tenant[] = [
+      {
+        id: generateId<TenantId>(),
+        selfcareId: mockInstitution.description,
+        externalId: {
+          origin: mockInstitution.origin,
+          value: mockInstitution.originId,
+        },
+        features: [],
+        attributes: [],
+        createdAt: new Date(),
+        mails: [],
+        name: mockInstitution.description,
+      },
+    ];
+
+    const testRegistryData = {
+      institutions: [...registryData.institutions, mockInstitution],
+      attributes: registryData.attributes,
+    };
+
+    const allowlist = [mockInstitution.originId];
+    const upsertData = getTenantUpsertData(
+      testRegistryData,
+      platformTenant,
+      allowlist
+    );
+
+    const upsertEntry = findUpsertDataEntryForInstitution(
+      upsertData,
+      mockInstitution
+    );
+
+    expect(upsertEntry?.attributes).toContainEqual({
+      origin: mockInstitution.origin,
+      code: PUBLIC_SERVICES_MANAGERS,
+    });
+  });
+
   it("should assign only the name attribute (no category) to a GPS SCEC (Agency)", async () => {
     const mockInstitution: Institution = {
       id: "mockId2",
