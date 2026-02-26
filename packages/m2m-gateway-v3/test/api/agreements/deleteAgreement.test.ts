@@ -28,14 +28,15 @@ describe("DELETE /purpose/:purposeId router test", () => {
   );
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.deleteAgreementById = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockM2MAgreementResponse.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

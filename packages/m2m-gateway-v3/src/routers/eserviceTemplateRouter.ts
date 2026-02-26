@@ -143,7 +143,7 @@ const eserviceTemplateRouter = (
           unsafeBrandId(req.params.templateId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -274,7 +274,7 @@ const eserviceTemplateRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -611,7 +611,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -693,7 +693,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -904,7 +904,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -929,7 +929,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -954,7 +954,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -979,7 +979,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1004,7 +1004,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1030,7 +1030,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
