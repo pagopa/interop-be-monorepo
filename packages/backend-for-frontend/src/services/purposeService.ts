@@ -157,6 +157,7 @@ export function purposeServiceBuilder(
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
       purpose.consumerId,
+      true,
       eservice,
       headers
     );
@@ -279,6 +280,7 @@ export function purposeServiceBuilder(
         id: latestAgreement.id,
         state: latestAgreement.state,
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
+        consumerId: latestAgreement.consumerId,
       },
       currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),
@@ -821,27 +823,16 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const agreement = await getLatestAgreement(
-        agreementProcessClient,
-        purpose.consumerId,
-        eservice,
-        headers
-      );
-
-      if (!agreement) {
-        throw agreementNotFound(unsafeBrandId(purpose.consumerId));
-      }
-
       const [consumer, producer] = await Promise.all([
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.consumerId,
+            id: purpose.consumerId,
           },
           headers,
         }),
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.producerId,
+            id: eservice.producerId,
           },
           headers,
         }),

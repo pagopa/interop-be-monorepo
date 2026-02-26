@@ -21,6 +21,7 @@ import {
   unsafeBrandId,
   AgreementDocumentId,
   stringToDate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -53,20 +54,11 @@ import {
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
+import { CompactEService } from "../model/domain/models.js";
 import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
-
-type AgreementQueryFilters = {
-  producerId?: TenantId | TenantId[];
-  consumerId?: TenantId | TenantId[];
-  eserviceId?: EServiceId | EServiceId[];
-  descriptorId?: DescriptorId | DescriptorId[];
-  agreementStates?: AgreementState[];
-  attributeId?: AttributeId | AttributeId[];
-  showOnlyUpgradeable?: boolean;
-};
+  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
+} from "./readModelService.js";
 
 type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
@@ -281,12 +273,12 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  withDelegationFilter: boolean | undefined
+  exactConsumerIdMatch: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        withDelegationFilter
+        !exactConsumerIdMatch
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -331,10 +323,12 @@ const getAgreementsFilters = <
       }
 >({
   filters,
+  exactConsumerIdMatch,
   requesterId,
   withVisibilityAndDelegationFilters,
 }: {
   filters: AgreementQueryFilters;
+  exactConsumerIdMatch: boolean;
 } & T): SQL | undefined => {
   const {
     producerIds,
@@ -350,7 +344,7 @@ const getAgreementsFilters = <
       ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
+    getConsumerIdsFilter(consumerIds, exactConsumerIdMatch),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -370,7 +364,7 @@ export function readModelServiceBuilderSQL(
   return {
     async getAgreements(
       requesterId: TenantId,
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
@@ -407,6 +401,7 @@ export function readModelServiceBuilderSQL(
           .where(
             getAgreementsFilters({
               filters,
+              exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
               requesterId,
               withVisibilityAndDelegationFilters: true,
             })
@@ -567,6 +562,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
+            exactConsumerIdMatch: true,
           })
         )
         .groupBy(
@@ -691,7 +687,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },
@@ -731,7 +727,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },
@@ -765,7 +761,7 @@ export function readModelServiceBuilderSQL(
             and(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
+              getConsumerIdsFilter(consumerIds, false),
               getVisibilityFilter(requesterId)
             )
           )

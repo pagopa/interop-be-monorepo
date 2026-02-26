@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
@@ -20,12 +20,13 @@ describe("POST /clients/:clientId/purposes router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/purposes`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       const clientId = generateId();
       mockClientService.addClientPurpose = vi.fn();
@@ -33,7 +34,8 @@ describe("POST /clients/:clientId/purposes router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, clientId, mockSeed);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(res.body).toEqual({});
       expect(mockClientService.addClientPurpose).toHaveBeenCalledWith(
         clientId,

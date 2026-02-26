@@ -13,7 +13,11 @@ describe("compressJson", () => {
     const entries = zip.getEntries();
 
     expect(entries[0].entryName).toBe(fileName);
-    expect(zip.readFile(entries[0]).toString()).toBe("binary data content");
+    const fileBuffer = zip.readFile(entries[0]);
+    if (!fileBuffer) {
+      throw new Error("Expected zipped file content to be readable");
+    }
+    expect(fileBuffer.toString()).toBe("binary data content");
   });
 
   it("should handle large datasets", async () => {

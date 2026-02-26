@@ -20,7 +20,10 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("updatePublishedEServiceDelegation", () => {
   const mockEService = getMockedApiEservice();
@@ -58,20 +61,10 @@ describe("updatePublishedEServiceDelegation", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEService: m2mGatewayApi.EService = {
-      id: mockEService.id,
-      name: mockEService.name,
-      producerId: mockEService.producerId,
-      description: mockEService.description,
-      technology: mockEService.technology,
-      mode: mockEService.mode,
-      isSignalHubEnabled: mockEService.isSignalHubEnabled,
-      isClientAccessDelegable: mockEService.isClientAccessDelegable,
-      isConsumerDelegable: mockEService.isConsumerDelegable,
-      templateId: mockEService.templateId,
-    };
+    const expectedM2MEService: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockEService);
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,
@@ -111,20 +104,10 @@ describe("updatePublishedEServiceDelegation", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEService: m2mGatewayApi.EService = {
-      id: mockEService.id,
-      name: mockEService.name,
-      producerId: mockEService.producerId,
-      description: mockEService.description,
-      technology: mockEService.technology,
-      mode: mockEService.mode,
-      isSignalHubEnabled: mockEService.isSignalHubEnabled,
-      isClientAccessDelegable: mockEService.isClientAccessDelegable,
-      isConsumerDelegable: mockEService.isConsumerDelegable,
-      templateId: mockEService.templateId,
-    };
+    const expectedM2MEService: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockEService);
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,

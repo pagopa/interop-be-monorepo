@@ -1,0 +1,25 @@
+meta {
+  name: Add producerKeychain users
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:producerKeychainId/users
+  body: json
+  auth: none
+}
+
+params:path {
+  producerKeychainId: {{producerKeychainId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "userIds": ["{{userId1}}", "{{userId2}}"]
+  }
+}

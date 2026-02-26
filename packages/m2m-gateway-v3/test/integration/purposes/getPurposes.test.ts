@@ -7,7 +7,10 @@ import {
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
@@ -43,6 +46,7 @@ describe("getPurposes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const purposeVersion1 = mockApiPurpose1.versions.at(0);
     const expectedM2MPurpose1: m2mGatewayApiV3.Purpose = {
       consumerId: mockApiPurpose1.consumerId,
       createdAt: mockApiPurpose1.createdAt,
@@ -52,7 +56,9 @@ describe("getPurposes", () => {
       isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
       isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
       title: mockApiPurpose1.title,
-      currentVersion: mockApiPurpose1.versions.at(0),
+      currentVersion: purposeVersion1
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
+        : undefined,
       delegationId: mockApiPurpose1.delegationId,
       freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
       rejectedVersion: undefined,
@@ -63,6 +69,7 @@ describe("getPurposes", () => {
       purposeTemplateId: mockApiPurpose1.purposeTemplateId,
     };
 
+    const purposeVersion2 = mockApiPurpose2.versions.at(0);
     const expectedM2MPurpose2: m2mGatewayApiV3.Purpose = {
       consumerId: mockApiPurpose2.consumerId,
       createdAt: mockApiPurpose2.createdAt,
@@ -72,7 +79,9 @@ describe("getPurposes", () => {
       isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
       isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
       title: mockApiPurpose2.title,
-      currentVersion: mockApiPurpose2.versions.at(0),
+      currentVersion: purposeVersion2
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
+        : undefined,
       delegationId: mockApiPurpose2.delegationId,
       freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
       rejectedVersion: undefined,
@@ -97,7 +106,7 @@ describe("getPurposes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toStrictEqual(m2mPurposeResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
       queries: {
@@ -106,6 +115,7 @@ describe("getPurposes", () => {
         limit: mockParams.limit,
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
         name: undefined,

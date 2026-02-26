@@ -56,6 +56,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(

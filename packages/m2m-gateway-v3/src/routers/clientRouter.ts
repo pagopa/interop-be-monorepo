@@ -95,7 +95,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -117,7 +117,7 @@ const clientRouter = (
           unsafeBrandId(req.params.purposeId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -181,13 +181,78 @@ const clientRouter = (
           req.params.keyId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
           `Error deleting key with id ${req.params.keyId} for client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/clients/:clientId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const users = await clientService.getClientUsers(
+          req.params.clientId,
+          ctx,
+          req.query
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Users.parse(users));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving users of client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/clients/:clientId/users", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await clientService.addClientUsers(
+          unsafeBrandId(req.params.clientId),
+          req.body.userId,
+          ctx
+        );
+        return res.status(200).send({});
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding user to client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/clients/:clientId/users/:userId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        await clientService.removeClientUser(
+          unsafeBrandId(req.params.clientId),
+          req.params.userId,
+          ctx
+        );
+        return res.status(200).send({});
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

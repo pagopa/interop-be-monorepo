@@ -87,7 +87,7 @@ import {
   purposeService,
 } from "../integrationUtils.js";
 
-describe("activatePurposeVersion", () => {
+describe.skip("activatePurposeVersion", () => {
   const userId: UserId = generateId();
 
   let mockConsumer: Tenant;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
@@ -16,12 +16,13 @@ describe("DELETE /producerKeychains/:keychainId/keys/:keyId router test", () => 
   ) =>
     request(api)
       .delete(`${appBasePath}/producerKeychains/${keychainId}/keys/${keyId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       const keyIdToDelete = generateId();
       const keychainId = generateId();
@@ -30,7 +31,8 @@ describe("DELETE /producerKeychains/:keychainId/keys/:keyId router test", () => 
       const token = generateToken(role);
       const res = await makeRequest(token, keychainId, keyIdToDelete);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(res.body).toEqual({});
       expect(
         mockProducerKeychainService.deleteProducerKeychainKey

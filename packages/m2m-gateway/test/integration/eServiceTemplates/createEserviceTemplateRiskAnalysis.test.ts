@@ -84,7 +84,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       },
       tenantKind: mockRiskAnalysis.tenantKind,
     };
-    expect(result).toEqual(expectedRiskAnalysis);
+    expect(result).toStrictEqual(expectedRiskAnalysis);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

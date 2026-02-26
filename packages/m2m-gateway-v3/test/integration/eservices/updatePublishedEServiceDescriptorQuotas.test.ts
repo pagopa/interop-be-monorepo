@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -29,7 +29,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
   });
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
-  const mockSeed: m2mGatewayApi.EServiceDescriptorQuotasUpdateSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed = {
     voucherLifespan: 3600,
     dailyCallsPerConsumer: 1000,
     dailyCallsTotal: 10000,
@@ -64,7 +64,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
         getMockM2MAdminAppContext()
       );
 
-    const expectedM2MDescriptor: m2mGatewayApi.EServiceDescriptor = {
+    const expectedM2MDescriptor: m2mGatewayApiV3.EServiceDescriptor = {
       id: mockDescriptor.id,
       version: mockDescriptor.version,
       description: mockDescriptor.description,
@@ -82,7 +82,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       templateVersionId: mockDescriptor.templateVersionRef?.id,
     };
 
-    expect(result).toEqual(expectedM2MDescriptor);
+    expect(result).toStrictEqual(expectedM2MDescriptor);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.updateDescriptor,
       params: {
@@ -136,7 +136,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
         getMockM2MAdminAppContext()
       );
 
-    const expectedM2MDescriptor: m2mGatewayApi.EServiceDescriptor = {
+    const expectedM2MDescriptor: m2mGatewayApiV3.EServiceDescriptor = {
       id: mockDescriptor.id,
       version: mockDescriptor.version,
       description: mockDescriptor.description,
@@ -154,7 +154,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       templateVersionId: mockDescriptor.templateVersionRef?.id,
     };
 
-    expect(result).toEqual(expectedM2MDescriptor);
+    expect(result).toStrictEqual(expectedM2MDescriptor);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.updateDescriptor,
       params: {

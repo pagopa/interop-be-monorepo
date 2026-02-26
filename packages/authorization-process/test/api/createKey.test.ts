@@ -70,6 +70,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
