@@ -7,22 +7,21 @@ import { EachMessagePayload } from "kafkajs";
 import {
   buildHTMLTemplateService,
   decodeKafkaMessage,
-  isV1KafkaMessage,
   logger,
 } from "pagopa-interop-commons";
 import {
-  AgreementEventV2,
+  AgreementEvent,
+  AuthorizationEvent,
   CorrelationId,
-  EServiceEventV2,
   DelegationEventV2,
+  EServiceEvent,
+  EServiceTemplateEventV2,
+  EmailNotificationMessagePayload,
+  PurposeEvent,
+  TenantEvent,
   generateId,
   genericInternalError,
-  PurposeEventV2,
   unsafeBrandId,
-  AuthorizationEventV2,
-  EmailNotificationMessagePayload,
-  TenantEventV2,
-  EServiceTemplateEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -121,19 +120,6 @@ function processMessage(topicHandlers: TopicNames) {
         params: HandlerParams<T>
       ) => Promise<EmailNotificationMessagePayload[]>
     ): Promise<EmailNotificationMessagePayload[]> => {
-      if (isV1KafkaMessage(messagePayload.message)) {
-        const eventType = JSON.parse(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          messagePayload.message.value!.toString()
-        )?.after?.type;
-        logger({
-          serviceName: "email-notification-dispatcher",
-        }).info(
-          `Skipping V1 event ${eventType} - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
-        );
-        return Promise.resolve([]);
-      }
-
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType
@@ -165,23 +151,21 @@ function processMessage(topicHandlers: TopicNames) {
 
     const emailNotificationPayloads = await match(messagePayload.topic)
       .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
+        handleWith(EServiceEvent, handleEServiceEvent)
       )
       .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
+        handleWith(AgreementEvent, handleAgreementEvent)
       )
       .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
+        handleWith(PurposeEvent, handlePurposeEvent)
       )
       .with(delegationTopic, async () =>
         handleWith(DelegationEventV2, handleDelegationEvent)
       )
       .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+        handleWith(AuthorizationEvent, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
-      )
+      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )
