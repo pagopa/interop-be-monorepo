@@ -87,6 +87,7 @@ describe("E-service splitter", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      instanceLabel,
     };
 
     const {
