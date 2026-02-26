@@ -981,7 +981,10 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const instanceName = buildInstanceName(template.name, eserviceSeed.instanceLabel);
+      const instanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: eserviceSeed.instanceLabel,
+      });
 
       if (instanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -2920,10 +2923,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const updatedInstanceName = buildInstanceName(
-        updatedTemplateName,
-        eservice.data.instanceLabel
-      );
+      const updatedInstanceName = buildInstanceName({
+        templateName: updatedTemplateName,
+        instanceLabel: eservice.data.instanceLabel,
+      });
 
       if (updatedInstanceName === eservice.data.name) {
         return;
@@ -3346,7 +3349,10 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const instanceName = buildInstanceName(template.name, seed.instanceLabel);
+      const instanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: seed.instanceLabel,
+      });
 
       await assertEServiceNameAvailableForProducer(
         instanceName,
@@ -3706,10 +3712,10 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const updatedInstanceName = buildInstanceName(
-        template.name,
-        instanceLabel
-      );
+      const updatedInstanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -4319,10 +4325,13 @@ async function updateDraftDescriptor(
  * - instanceLabel: maxLength 12
  * - eservice name (result): maxLength 60
  */
-const buildInstanceName = (
-  templateName: string,
-  instanceLabel: string | undefined
-): string =>
+const buildInstanceName = ({
+  templateName,
+  instanceLabel,
+}: {
+  templateName: string;
+  instanceLabel: string | undefined;
+}): string =>
   instanceLabel ? `${templateName} - ${instanceLabel}` : templateName;
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
