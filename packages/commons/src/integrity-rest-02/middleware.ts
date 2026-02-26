@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Request, Response, NextFunction } from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { IntegrityRest02SignatureConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
+import { IntegrityRest02SignedHeaders } from "../interop-token/models.js";
 import {
   calculateIntegrityRest02DigestFromBody,
   JsonReplacer,
@@ -57,13 +59,23 @@ export function integrityRest02Middleware(
         replacer,
         spaces,
       });
-      const contentType = res.getHeader("Content-Type")?.toString();
+
+      const header = res.getHeader("Content-Type");
+
+      const contentType =
+        header?.toString() ??
+        (() => {
+          throw new Error(
+            `Content-Type header not found for response to ${req.originalUrl}`
+          );
+        })();
       const contentEncoding = res.getHeader("Content-Encoding")?.toString();
-      const signedHeaders = buildIntegrityRest02SignedHeaders({
-        digest,
-        contentType,
-        contentEncoding,
-      });
+      const signedHeaders: IntegrityRest02SignedHeaders =
+        buildIntegrityRest02SignedHeaders({
+          digest,
+          contentType,
+          contentEncoding,
+        });
 
       const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
 
