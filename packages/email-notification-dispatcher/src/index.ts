@@ -7,6 +7,7 @@ import { EachMessagePayload } from "kafkajs";
 import {
   buildHTMLTemplateService,
   decodeKafkaMessage,
+  isV1KafkaMessage,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -120,6 +121,19 @@ function processMessage(topicHandlers: TopicNames) {
         params: HandlerParams<T>
       ) => Promise<EmailNotificationMessagePayload[]>
     ): Promise<EmailNotificationMessagePayload[]> => {
+      if (isV1KafkaMessage(messagePayload.message)) {
+        const eventType = JSON.parse(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          messagePayload.message.value!.toString()
+        )?.after?.type;
+        logger({
+          serviceName: "email-notification-dispatcher",
+        }).info(
+          `Skipping V1 event ${eventType} - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+        );
+        return Promise.resolve([]);
+      }
+
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType

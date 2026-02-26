@@ -1,7 +1,12 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
-import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
+import {
+  decodeKafkaMessage,
+  isV1KafkaMessage,
+  Logger,
+  logger,
+} from "pagopa-interop-commons";
 import {
   AgreementEventV2,
   AuthorizationEventV2,
@@ -114,6 +119,19 @@ function processMessage(topicNames: TopicNames) {
         readModelService: ReadModelServiceSQL
       ) => Promise<NewNotification[]>
     ): Promise<NewNotification[]> => {
+      if (isV1KafkaMessage(messagePayload.message)) {
+        const eventType = JSON.parse(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          messagePayload.message.value!.toString()
+        )?.after?.type;
+        logger({
+          serviceName: "in-app-notification-dispatcher",
+        }).info(
+          `Skipping V1 event ${eventType} - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+        );
+        return Promise.resolve([]);
+      }
+
       const decodedMessage = decodeKafkaMessage(
         messagePayload.message,
         eventType

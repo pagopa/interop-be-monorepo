@@ -3,6 +3,15 @@ import { z } from "zod";
 import { KafkaMessage } from "kafkajs";
 import { Message } from "pagopa-interop-models";
 
+export function isV1KafkaMessage(message: KafkaMessage): boolean {
+  const rawValue = message.value;
+  if (rawValue == null) {
+    return false;
+  }
+  const parsed = JSON.parse(rawValue.toString());
+  return parsed?.after?.event_version === 1;
+}
+
 /**
  * Decodes a Kafka message using the provided event schema.
  *
