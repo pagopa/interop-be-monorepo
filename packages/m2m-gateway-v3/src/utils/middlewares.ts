@@ -78,9 +78,9 @@ export function m2mAuthDataValidationMiddleware(
               systemRole.M2M_ROLE,
             ]);
             throw unauthorizedError(
-              `Invalid role ${
+              `Access denied: the role '${
                 authData.systemRole ?? authData.userRoles
-              } for this operation`
+              }' does not have the necessary permissions for M2M operations.`
             );
           }
         )
