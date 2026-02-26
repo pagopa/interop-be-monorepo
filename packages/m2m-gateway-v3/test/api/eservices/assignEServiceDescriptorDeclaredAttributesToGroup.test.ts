@@ -76,7 +76,7 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttrib
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and assign declared attributes group for user with role %s",
+    "Should return 200 and assign declared attributes group for user with role %s",
     async (role) => {
       mockEserviceService.assignEServiceDescriptorDeclaredAttributesToGroup = vi
         .fn()
@@ -91,7 +91,8 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/declaredAttrib
         mockAttributeSeed
       );
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEserviceService.assignEServiceDescriptorDeclaredAttributesToGroup
       ).toHaveBeenCalledWith(

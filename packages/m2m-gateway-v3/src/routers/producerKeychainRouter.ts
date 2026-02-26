@@ -150,7 +150,7 @@ const producerKeychainRouter = (
           req.body,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -174,7 +174,7 @@ const producerKeychainRouter = (
             unsafeBrandId(req.params.eserviceId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -197,7 +197,7 @@ const producerKeychainRouter = (
           req.params.keyId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -241,7 +241,7 @@ const producerKeychainRouter = (
           req.body.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -264,7 +264,7 @@ const producerKeychainRouter = (
             req.params.userId,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
