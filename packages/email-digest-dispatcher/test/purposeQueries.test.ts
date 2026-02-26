@@ -4,22 +4,32 @@ import {
   getMockTenant,
   getMockEService,
   getMockDescriptor,
+  getMockDelegation,
 } from "pagopa-interop-commons-test";
 import {
+  Delegation,
   descriptorState,
   EService,
   purposeVersionState,
+  delegationKind,
+  delegationState,
   TenantId,
 } from "pagopa-interop-models";
+import { upsertDelegation } from "pagopa-interop-readmodel/testUtils";
 import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
   createPurposeWithVersion,
   daysAgo,
+  readModelDB,
   readModelService,
   TEST_TIME_WINDOWS,
 } from "./integrationUtils.js";
+
+const addOneDelegation = async (delegation: Delegation): Promise<void> => {
+  await upsertDelegation(readModelDB, delegation, 0);
+};
 
 /**
  * Creates a mock EService with a published descriptor
@@ -60,7 +70,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.active,
-        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -83,7 +93,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.active,
-        actionDate
+        actionDate,
       );
       await addOnePurpose(purpose);
 
@@ -108,7 +118,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.rejected,
-        actionDate
+        actionDate,
       );
       await addOnePurpose(purpose);
 
@@ -133,7 +143,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.waitingForApproval,
-        actionDate
+        actionDate,
       );
       await addOnePurpose(purpose);
 
@@ -159,7 +169,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.draft,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -181,7 +191,7 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.suspended,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -203,19 +213,19 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.active,
-        daysAgo(3)
+        daysAgo(3),
       );
       const rejectedPurpose = createPurposeWithVersion(
         consumer.id,
         eservice.id,
         purposeVersionState.rejected,
-        daysAgo(2)
+        daysAgo(2),
       );
       const waitingPurpose = createPurposeWithVersion(
         consumer.id,
         eservice.id,
         purposeVersionState.waitingForApproval,
-        daysAgo(1)
+        daysAgo(1),
       );
 
       await addOnePurpose(activePurpose);
@@ -227,10 +237,10 @@ describe("ReadModelService - getSentPurposes", async () => {
       expect(results.length).toBe(3);
       expect(results.map((r) => r.state)).toContain(purposeVersionState.active);
       expect(results.map((r) => r.state)).toContain(
-        purposeVersionState.rejected
+        purposeVersionState.rejected,
       );
       expect(results.map((r) => r.state)).toContain(
-        purposeVersionState.waitingForApproval
+        purposeVersionState.waitingForApproval,
       );
     });
   });
@@ -256,7 +266,7 @@ describe("ReadModelService - getSentPurposes", async () => {
             consumer.id,
             eservice.id,
             state,
-            daysAgo(i + 1)
+            daysAgo(i + 1),
           );
           await addOnePurpose(purpose);
         }
@@ -265,13 +275,13 @@ describe("ReadModelService - getSentPurposes", async () => {
       const results = await readModelService.getSentPurposes(consumer.id);
 
       const activeResults = results.filter(
-        (r) => r.state === purposeVersionState.active
+        (r) => r.state === purposeVersionState.active,
       );
       const rejectedResults = results.filter(
-        (r) => r.state === purposeVersionState.rejected
+        (r) => r.state === purposeVersionState.rejected,
       );
       const waitingResults = results.filter(
-        (r) => r.state === purposeVersionState.waitingForApproval
+        (r) => r.state === purposeVersionState.waitingForApproval,
       );
 
       expect(activeResults.length).toBe(5);
@@ -297,13 +307,13 @@ describe("ReadModelService - getSentPurposes", async () => {
         consumer1.id,
         eservice.id,
         purposeVersionState.active,
-        daysAgo(2)
+        daysAgo(2),
       );
       const purpose2 = createPurposeWithVersion(
         consumer2.id,
         eservice.id,
         purposeVersionState.active,
-        daysAgo(2)
+        daysAgo(2),
       );
 
       await addOnePurpose(purpose1);
@@ -338,7 +348,7 @@ describe("ReadModelService - getSentPurposes", async () => {
           consumer.id,
           eservice.id,
           purposeVersionState.active,
-          actionDate
+          actionDate,
         );
         await addOnePurpose(purpose);
       }
@@ -356,7 +366,7 @@ describe("ReadModelService - getSentPurposes", async () => {
           consumer.id,
           eservice.id,
           purposeVersionState.rejected,
-          actionDate
+          actionDate,
         );
         await addOnePurpose(purpose);
       }
@@ -374,7 +384,7 @@ describe("ReadModelService - getSentPurposes", async () => {
           consumer.id,
           eservice.id,
           purposeVersionState.waitingForApproval,
-          actionDate
+          actionDate,
         );
         await addOnePurpose(purpose);
       }
@@ -382,13 +392,13 @@ describe("ReadModelService - getSentPurposes", async () => {
       const results = await readModelService.getSentPurposes(consumer.id);
 
       const activeResults = results.filter(
-        (r) => r.state === purposeVersionState.active
+        (r) => r.state === purposeVersionState.active,
       );
       const rejectedResults = results.filter(
-        (r) => r.state === purposeVersionState.rejected
+        (r) => r.state === purposeVersionState.rejected,
       );
       const waitingResults = results.filter(
-        (r) => r.state === purposeVersionState.waitingForApproval
+        (r) => r.state === purposeVersionState.waitingForApproval,
       );
 
       // Active: 7 total, limited to 5 returned
@@ -430,7 +440,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.active,
-        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -453,7 +463,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.active,
-        actionDate
+        actionDate,
       );
       await addOnePurpose(purpose);
 
@@ -478,7 +488,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.waitingForApproval,
-        actionDate
+        actionDate,
       );
       await addOnePurpose(purpose);
 
@@ -504,7 +514,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.rejected,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -526,7 +536,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.draft,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -548,7 +558,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice.id,
         purposeVersionState.suspended,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -558,12 +568,12 @@ describe("ReadModelService - getReceivedPurposes", async () => {
     });
   });
 
-  describe("Consumer exclusion", () => {
-    it("should not return purposes where producer is also the consumer", async () => {
+  describe("Autofruizione (self-consumption)", () => {
+    it("should return purposes where producer is also the consumer", async () => {
       const tenant = getMockTenant();
       await addOneTenant(tenant);
 
-      // Tenant is both producer and consumer
+      // Tenant is both producer and consumer (autofruizione)
       const eservice = createMockEServiceWithDescriptor(tenant.id);
       await addOneEService(eservice);
 
@@ -571,13 +581,14 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         tenant.id, // consumer is same as producer
         eservice.id,
         purposeVersionState.active,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
       const results = await readModelService.getReceivedPurposes(tenant.id);
 
-      expect(results).toEqual([]);
+      expect(results.length).toBe(1);
+      expect(results[0].consumerId).toBe(tenant.id);
     });
 
     it("should return purposes from different consumers", async () => {
@@ -593,7 +604,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id, // different from producer
         eservice.id,
         purposeVersionState.active,
-        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE)
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
       );
       await addOnePurpose(purpose);
 
@@ -625,7 +636,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
             consumer.id,
             eservice.id,
             state,
-            daysAgo(i + 1)
+            daysAgo(i + 1),
           );
           await addOnePurpose(purpose);
         }
@@ -634,10 +645,10 @@ describe("ReadModelService - getReceivedPurposes", async () => {
       const results = await readModelService.getReceivedPurposes(producer.id);
 
       const activeResults = results.filter(
-        (r) => r.state === purposeVersionState.active
+        (r) => r.state === purposeVersionState.active,
       );
       const waitingResults = results.filter(
-        (r) => r.state === purposeVersionState.waitingForApproval
+        (r) => r.state === purposeVersionState.waitingForApproval,
       );
 
       expect(activeResults.length).toBe(5);
@@ -664,13 +675,13 @@ describe("ReadModelService - getReceivedPurposes", async () => {
         consumer.id,
         eservice1.id,
         purposeVersionState.active,
-        daysAgo(2)
+        daysAgo(2),
       );
       const purpose2 = createPurposeWithVersion(
         consumer.id,
         eservice2.id,
         purposeVersionState.active,
-        daysAgo(2)
+        daysAgo(2),
       );
 
       await addOnePurpose(purpose1);
@@ -705,7 +716,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
           consumer.id,
           eservice.id,
           purposeVersionState.active,
-          actionDate
+          actionDate,
         );
         await addOnePurpose(purpose);
       }
@@ -721,7 +732,7 @@ describe("ReadModelService - getReceivedPurposes", async () => {
           consumer.id,
           eservice.id,
           purposeVersionState.waitingForApproval,
-          actionDate
+          actionDate,
         );
         await addOnePurpose(purpose);
       }
@@ -729,10 +740,10 @@ describe("ReadModelService - getReceivedPurposes", async () => {
       const results = await readModelService.getReceivedPurposes(producer.id);
 
       const activeResults = results.filter(
-        (r) => r.state === purposeVersionState.active
+        (r) => r.state === purposeVersionState.active,
       );
       const waitingResults = results.filter(
-        (r) => r.state === purposeVersionState.waitingForApproval
+        (r) => r.state === purposeVersionState.waitingForApproval,
       );
 
       // Active: 7 total, limited to 5 returned
@@ -742,6 +753,144 @@ describe("ReadModelService - getReceivedPurposes", async () => {
       // WaitingForApproval: 4 total, all returned
       expect(waitingResults.length).toBe(waitingCount);
       expect(waitingResults[0].totalCount).toBe(waitingCount);
+    });
+  });
+
+  describe("Producer delegation", () => {
+    it("should return purposes on delegator's eservice when caller is the delegate", async () => {
+      const delegator = getMockTenant();
+      const delegate = getMockTenant();
+      const consumer = getMockTenant();
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneTenant(consumer);
+
+      const eservice = createMockEServiceWithDescriptor(delegator.id);
+      await addOneEService(eservice);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+
+      const purpose = createPurposeWithVersion(
+        consumer.id,
+        eservice.id,
+        purposeVersionState.active,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      );
+      await addOnePurpose(purpose);
+
+      const results = await readModelService.getReceivedPurposes(delegate.id);
+
+      expect(results.length).toBe(1);
+      expect(results[0].purposeId).toBe(purpose.id);
+      expect(results[0].consumerId).toBe(consumer.id);
+    });
+
+    it("should return purposes when delegate is also the consumer (delegated autofruizione)", async () => {
+      const delegator = getMockTenant();
+      const delegate = getMockTenant();
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+
+      const eservice = createMockEServiceWithDescriptor(delegator.id);
+      await addOneEService(eservice);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+
+      // Delegate is also the consumer — the core bug scenario
+      const purpose = createPurposeWithVersion(
+        delegate.id,
+        eservice.id,
+        purposeVersionState.active,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      );
+      await addOnePurpose(purpose);
+
+      const results = await readModelService.getReceivedPurposes(delegate.id);
+
+      expect(results.length).toBe(1);
+      expect(results[0].purposeId).toBe(purpose.id);
+      expect(results[0].consumerId).toBe(delegate.id);
+    });
+
+    it("should not return purposes when delegation is revoked", async () => {
+      const delegator = getMockTenant();
+      const delegate = getMockTenant();
+      const consumer = getMockTenant();
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneTenant(consumer);
+
+      const eservice = createMockEServiceWithDescriptor(delegator.id);
+      await addOneEService(eservice);
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+        state: delegationState.revoked,
+      });
+      await addOneDelegation(delegation);
+
+      const purpose = createPurposeWithVersion(
+        consumer.id,
+        eservice.id,
+        purposeVersionState.active,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      );
+      await addOnePurpose(purpose);
+
+      const results = await readModelService.getReceivedPurposes(delegate.id);
+
+      expect(results).toEqual([]);
+    });
+
+    it("should not return purposes via consumer delegation", async () => {
+      const producer = getMockTenant();
+      const delegate = getMockTenant();
+      const consumer = getMockTenant();
+      await addOneTenant(producer);
+      await addOneTenant(delegate);
+      await addOneTenant(consumer);
+
+      const eservice = createMockEServiceWithDescriptor(producer.id);
+      await addOneEService(eservice);
+
+      // Consumer delegation should NOT grant received-purpose visibility
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegatorId: consumer.id,
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+
+      const purpose = createPurposeWithVersion(
+        consumer.id,
+        eservice.id,
+        purposeVersionState.active,
+        daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE),
+      );
+      await addOnePurpose(purpose);
+
+      const results = await readModelService.getReceivedPurposes(delegate.id);
+
+      expect(results).toEqual([]);
     });
   });
 });
