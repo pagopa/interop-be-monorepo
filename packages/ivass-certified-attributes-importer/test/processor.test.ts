@@ -154,7 +154,7 @@ describe("IVASS Certified Attributes Importer", () => {
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    vi.spyOn(readModelQueriesMock, "getIVASSTenants").mockImplementation(
+    getIVASSTenantsSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => readModelTenants)
     );
 
@@ -197,17 +197,22 @@ describe("IVASS Certified Attributes Importer", () => {
       {
         ...persistentTenant,
         externalId: { origin: "IVASS", value: "not_in_csv" },
-        attributes: [{ ...persistentTenantAttribute }],
+        attributes: [
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+          },
+        ],
       },
     ];
 
     const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
-    vi.spyOn(readModelQueriesMock, "getIVASSTenants").mockImplementation(
+    getIVASSTenantsSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => readModelTenants)
     );
 
-    vi.spyOn(readModelQueriesMock, "getTenantsWithAttributes").mockImplementation(
+    getTenantsWithAttributesSpy.mockImplementationOnce(
       getTenantsMockGenerator((_) => tenantsWithAttribute)
     );
 
