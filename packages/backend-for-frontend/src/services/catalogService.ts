@@ -1850,7 +1850,7 @@ export function catalogServiceBuilder(
         : [];
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
-      const tentantsIds = Array.from(tenantsMap.keys());
+      const tenantsIds = Array.from(tenantsMap.keys());
 
       const defaultStates: catalogApi.EServiceDescriptorState[] = [
         catalogApi.EServiceDescriptorState.Values.PUBLISHED,
@@ -1862,7 +1862,7 @@ export function catalogServiceBuilder(
       const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
         queries: {
-          producersIds: tentantsIds,
+          producersIds: tenantsIds,
           templatesIds: [eServiceTemplateId],
           states: states.length === 0 ? defaultStates : states,
           offset,
