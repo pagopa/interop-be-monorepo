@@ -141,7 +141,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceSignalHubEnabled",
                   "EServiceSignalHubDisabled",
                   "EServicePersonalDataFlagUpdatedAfterPublication",
-                  "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+                  "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+                  "EServiceInstanceLabelUpdated"
                 ),
                 async () => [
                   {
