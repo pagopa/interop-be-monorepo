@@ -28,7 +28,7 @@ describe("DELETE /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answ
       .send();
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument =
         vi.fn();
@@ -36,7 +36,8 @@ describe("DELETE /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answ
       const token = generateToken(role);
       const res = await makeRequest(token);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

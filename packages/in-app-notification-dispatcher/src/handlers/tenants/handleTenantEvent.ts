@@ -1,7 +1,7 @@
 import {
   AttributeId,
   NewNotification,
-  TenantEventEnvelopeV2,
+  TenantEventEnvelope,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -10,11 +10,15 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleCertifiedVerifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedVerifiedAttributeAssignedRevokedToAssignee.js";
 
 export async function handleTenantEvent(
-  decodedMessage: TenantEventEnvelopeV2,
+  decodedMessage: TenantEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union(

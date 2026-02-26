@@ -79,7 +79,7 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -309,7 +309,11 @@ const agreementRouter = (
             ctx
           );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -330,7 +334,11 @@ const agreementRouter = (
           ctx
         );
 
-        return sendDownloadedDocumentAsFormData(file, res);
+        return sendDownloadedDocumentAsFormData(
+          file,
+          res,
+          ctx.authData.clientId
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -354,7 +362,7 @@ const agreementRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
