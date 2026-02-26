@@ -79,7 +79,9 @@ try {
 
   const token = (await refreshableToken.get()).serialized;
   const headers = getInteropHeaders({ token, correlationId });
-  const tenantProcessClient = createTenantProcessClient(config.tenantProcessUrl);
+  const tenantProcessClient = createTenantProcessClient(
+    config.tenantProcessUrl
+  );
 
   await createNewAttributes(
     newAttributes,

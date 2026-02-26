@@ -66,9 +66,17 @@ async function loadOpenData(openDataConfig: OpenDataConfig): Promise<OpenData> {
     ])
   );
 
-  const aoo = await getAllInstitutions("AOO", institutionsDetails, openDataConfig);
+  const aoo = await getAllInstitutions(
+    "AOO",
+    institutionsDetails,
+    openDataConfig
+  );
 
-  const uo = await getAllInstitutions("UO", institutionsDetails, openDataConfig);
+  const uo = await getAllInstitutions(
+    "UO",
+    institutionsDetails,
+    openDataConfig
+  );
 
   const categories = await getAllCategories(openDataConfig);
 

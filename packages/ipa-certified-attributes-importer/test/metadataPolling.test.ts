@@ -39,9 +39,8 @@ vi.mock("pagopa-interop-commons", async () => {
   };
 });
 
-const { assignNewAttributes, revokeAttributes } = await import(
-  "../src/services/ipaCertifiedAttributesImporterService.js"
-);
+const { assignNewAttributes, revokeAttributes } =
+  await import("../src/services/ipaCertifiedAttributesImporterService.js");
 
 describe("IPA metadata polling", () => {
   const logger = {

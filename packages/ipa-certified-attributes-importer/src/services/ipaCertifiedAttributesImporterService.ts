@@ -221,9 +221,8 @@ export async function createNewAttributes(
   attributeRegistryUrl: string,
   attributeCreationWaitTime: number
 ): Promise<void> {
-  const client = attributeRegistryApi.createAttributeApiClient(
-    attributeRegistryUrl
-  );
+  const client =
+    attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
   for (const attribute of newAttributes) {
     loggerInstance.info(
