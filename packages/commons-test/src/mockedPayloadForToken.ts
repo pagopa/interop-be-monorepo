@@ -217,7 +217,7 @@ type GeneratedDPoPBundle = {
   dpopProof: string;
   expiredDpopProof: string;
   dpopProofWithWrongAth: string;
-  dpopPoroofWithoutAth: string;
+  dpopProofWithoutAth: string;
   dpopPublicJwk: JWK;
   authServerPublicJwk: JWK;
   authServerPublicKeyPem: string;
@@ -399,7 +399,7 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .sign(dpopPrivateKey);
 
   // 5d) Create DPoP proof without ath
-  const dpopPoroofWithoutAth = await new SignJWT({
+  const dpopProofWithoutAth = await new SignJWT({
     htm: htm ?? "GET",
     htu,
   })
@@ -421,7 +421,7 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     dpopProof,
     expiredDpopProof,
     dpopProofWithWrongAth,
-    dpopPoroofWithoutAth,
+    dpopProofWithoutAth,
     dpopPublicJwk,
     authServerPublicJwk,
     authServerPublicKeyPem,

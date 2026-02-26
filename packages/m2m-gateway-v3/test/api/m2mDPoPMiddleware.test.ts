@@ -239,7 +239,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", "Bearer " + mockDPoPData.accessToken)
+      .set("Authorization", `Bearer ${mockDPoPData.accessToken}`)
       .set("DPoP", mockDPoPData.dpopProof);
 
     expect(res.body.title).toEqual("Bad DPoP Token format");
@@ -252,7 +252,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", "dpop " + mockDPoPData.accessToken)
+      .set("Authorization", `dpop ${mockDPoPData.accessToken}`)
       .set("DPoP", mockDPoPData.dpopProof);
 
     expect(res.body).toEqual({ authData: mockDPoPData.expectedAuthData });
@@ -264,7 +264,7 @@ describe("authenticationDPoPMiddleware", () => {
 
     const res = await request(app)
       .get("/test")
-      .set("Authorization", "Bearer " + mockDPoPData.accessToken);
+      .set("Authorization", `Bearer ${mockDPoPData.accessToken}`);
 
     expect(res.body.title).toEqual("Bad DPoP Token format");
     expect(res.status).toBe(400);
@@ -317,7 +317,7 @@ describe("authenticationDPoPMiddleware", () => {
     const res = await request(app)
       .get("/test")
       .set("Authorization", `DPoP ${mockDPoPData.accessTokenWithoutCnf}`)
-      .set("DPoP", `DPoP ${mockDPoPData.dpopProof}`);
+      .set("DPoP", mockDPoPData.dpopProof);
 
     expect(res.body.title).toEqual("Token verification failed");
     expect(res.status).toBe(401);
@@ -420,7 +420,7 @@ describe("authenticationDPoPMiddleware", () => {
     const res = await request(app)
       .get("/test")
       .set("Authorization", `DPoP ${mockDPoPData.expiredAccessToken}`)
-      .set("DPoP", `DPoP ${mockDPoPData.dpopPoroofWithoutAth}`);
+      .set("DPoP", `DPoP ${mockDPoPData.dpopProofWithoutAth}`);
 
     expect(res.body.title).toEqual("Token verification failed");
     expect(res.status).toBe(401);
