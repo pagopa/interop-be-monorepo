@@ -1939,15 +1939,7 @@ export function catalogServiceBuilder(
 
         tenantsMap.set(eservice.producerId, producer);
 
-        return {
-          id: eservice.id,
-          name: eservice.name,
-          producerId: producer.id,
-          producerName: producer.name,
-          latestDescriptor: eservice.descriptors.at(-1),
-          descriptors: eservice.descriptors,
-          instanceLabel: eservice.instanceLabel,
-        };
+        return toBffEServiceTemplateInstance(eservice, producer, true);
       };
 
       return {
