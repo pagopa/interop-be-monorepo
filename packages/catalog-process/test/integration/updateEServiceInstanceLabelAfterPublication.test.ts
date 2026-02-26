@@ -36,158 +36,79 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("update E-service instanceLabel after publication", async () => {
-  it("should write on event-store for the update of the E-service instanceLabel (undefined -> 'my label')", async () => {
-    const template: EServiceTemplate = getMockEServiceTemplate();
+  it.each<{
+    description: string;
+    currentLabel: string | undefined;
+    newLabel: string | undefined;
+  }>([
+    {
+      description: "undefined -> 'my label'",
+      currentLabel: undefined,
+      newLabel: "my label",
+    },
+    {
+      description: "'old label' -> 'new label'",
+      currentLabel: "old label",
+      newLabel: "new label",
+    },
+    {
+      description: "'old label' -> undefined",
+      currentLabel: "old label",
+      newLabel: undefined,
+    },
+  ])(
+    "should write on event-store for the update of the E-service instanceLabel ($description)",
+    async ({ currentLabel, newLabel }) => {
+      const template: EServiceTemplate = getMockEServiceTemplate();
 
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.published),
+        interface: getMockDocument(),
+      };
 
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      templateId: template.id,
-      name: template.name,
-      instanceLabel: undefined,
-    };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+        templateId: template.id,
+        name: currentLabel
+          ? `${template.name} - ${currentLabel}`
+          : template.name,
+        instanceLabel: currentLabel,
+      };
 
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
+      await addOneEServiceTemplate(template);
+      await addOneEService(eservice);
 
-    const newLabel = "my label";
+      const returnedEService =
+        await catalogService.updateEServiceInstanceLabelAfterPublication(
+          eservice.id,
+          newLabel,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
 
-    const returnedEService =
-      await catalogService.updateEServiceInstanceLabelAfterPublication(
-        eservice.id,
-        newLabel,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
+      const updatedEService: EService = {
+        ...eservice,
+        name: newLabel ? `${template.name} - ${newLabel}` : template.name,
+        instanceLabel: newLabel,
+      };
 
-    const updatedEService: EService = {
-      ...eservice,
-      name: `${template.name} - ${newLabel}`,
-      instanceLabel: newLabel,
-    };
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceInstanceLabelUpdated",
+        event_version: 2,
+      });
 
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceInstanceLabelUpdated",
-      event_version: 2,
-    });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceInstanceLabelUpdatedV2,
+        payload: writtenEvent.data,
+      });
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceInstanceLabelUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-  });
-
-  it("should write on event-store for the update of the E-service instanceLabel ('old label' -> 'new label')", async () => {
-    const template: EServiceTemplate = getMockEServiceTemplate();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
-
-    const oldLabel = "old label";
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      templateId: template.id,
-      name: `${template.name} - ${oldLabel}`,
-      instanceLabel: oldLabel,
-    };
-
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
-
-    const newLabel = "new label";
-
-    const returnedEService =
-      await catalogService.updateEServiceInstanceLabelAfterPublication(
-        eservice.id,
-        newLabel,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
-
-    const updatedEService: EService = {
-      ...eservice,
-      name: `${template.name} - ${newLabel}`,
-      instanceLabel: newLabel,
-    };
-
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceInstanceLabelUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceInstanceLabelUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-  });
-
-  it("should write on event-store for the update of the E-service instanceLabel ('old label' -> undefined)", async () => {
-    const template: EServiceTemplate = getMockEServiceTemplate();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
-
-    const oldLabel = "old label";
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      templateId: template.id,
-      name: `${template.name} - ${oldLabel}`,
-      instanceLabel: oldLabel,
-    };
-
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
-
-    const returnedEService =
-      await catalogService.updateEServiceInstanceLabelAfterPublication(
-        eservice.id,
-        undefined,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
-
-    const updatedEService: EService = {
-      ...eservice,
-      name: template.name,
-      instanceLabel: undefined,
-    };
-
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceInstanceLabelUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceInstanceLabelUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-  });
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    }
+  );
 
   it("should allow a delegate producer to update the instanceLabel", async () => {
     const template: EServiceTemplate = getMockEServiceTemplate();
