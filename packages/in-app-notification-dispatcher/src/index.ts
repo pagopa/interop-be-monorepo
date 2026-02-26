@@ -19,7 +19,7 @@ import {
   genericInternalError,
   NewNotification,
   PurposeEventV2,
-  TenantEvent,
+  TenantEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -169,7 +169,9 @@ function processMessage(topicNames: TopicNames) {
       .with(authorizationTopic, async () =>
         handleWith(AuthorizationEventV2, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
+      )
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )

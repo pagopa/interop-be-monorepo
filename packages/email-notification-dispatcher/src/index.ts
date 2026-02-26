@@ -21,7 +21,7 @@ import {
   unsafeBrandId,
   AuthorizationEventV2,
   EmailNotificationMessagePayload,
-  TenantEvent,
+  TenantEventV2,
   EServiceTemplateEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -179,7 +179,9 @@ function processMessage(topicHandlers: TopicNames) {
       .with(authorizationTopic, async () =>
         handleWith(AuthorizationEventV2, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
+      .with(tenantTopic, async () =>
+        handleWith(TenantEventV2, handleTenantEvent)
+      )
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )
