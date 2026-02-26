@@ -5,7 +5,6 @@ import {
   genericLogger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   M2MAdminAuthData,
-  integrityRest02Middleware,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -25,8 +24,6 @@ import {
   purposeApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import express, { Request, Response } from "express";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -289,54 +286,3 @@ export const getMockm2mGatewayApiV3User = (): m2mGatewayApiV3.User => ({
   familyName: generateMock(z.string()),
   roles: [authRole.M2M_ADMIN_ROLE],
 });
-
-export function buildTestApp(kmsClient: KMSClient) {
-  const app = express();
-
-  // minimal ctx bootstrap middleware
-  app.use((req: Request & { ctx?: unknown }, _res, next) => {
-    req.ctx = {
-      correlationId: "test",
-      serviceName: "test",
-      logger: {
-        info: () => undefined,
-        warn: () => undefined,
-        error: () => undefined,
-      },
-      rateLimiter: undefined,
-    };
-    next();
-  });
-
-  // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
-  app.use(
-    // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
-    integrityRest02Middleware(
-      {
-        integrityRestSignatureIssuer: "test-issuer",
-        integrityRestSignatureKid: "test-kid",
-        integrityRestSignatureSecondsDuration: 300,
-      },
-      kmsClient
-    )
-  );
-
-  type RequestWithCtx = Request & {
-    ctx?: {
-      authData?: unknown;
-    };
-  };
-
-  // codeql[js/missing-rate-limiting]: test-only fake API, not exposed in production
-  app.get("/test", (req: RequestWithCtx, res: Response) => {
-    req.ctx = {
-      ...req.ctx,
-      authData: {
-        clientId: "7247c54f-10d5-487c-936d-54111059100b",
-      },
-    };
-    res.setHeader("X-Correlation-id", "test");
-    res.status(204).send();
-  });
-  return app;
-}

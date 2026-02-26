@@ -12,14 +12,16 @@ export function buildIntegrityRest02SignedHeaders({
   contentEncoding,
 }: {
   digest: string;
-  contentType: string;
+  contentType?: string | undefined;
   contentEncoding?: string | undefined;
 }): IntegrityRest02SignedHeaders {
   const headers: IntegrityRest02SignedHeaders = [
     { digest: `SHA-256=${digest}` },
-    { "content-type": contentType },
   ];
-
+  if (contentType) {
+    // eslint-disable-next-line functional/immutable-data
+    headers.push({ "content-type": contentType });
+  }
   if (contentEncoding) {
     // eslint-disable-next-line functional/immutable-data
     headers.push({ "content-encoding": contentEncoding });

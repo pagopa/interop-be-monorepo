@@ -18,11 +18,9 @@ import {
   api,
   mockAttributeService,
   mockClientService,
-  mockKmsClient,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
-import { buildTestApp } from "../mockUtils.js";
 
 function decodeJwtPayload(token: string): { [k: string]: unknown } {
   const [, payload] = token.split(".");
@@ -206,16 +204,5 @@ describe("integrityRest02Middleware", () => {
       body: res.text,
     });
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
-  });
-
-  it("should throw content type not found error", async () => {
-    const app = buildTestApp(mockKmsClient);
-
-    const res = await request(app).get("/test");
-
-    expect(res.status).toBe(500);
-    expect(res.text).toContain(
-      "Content-Type header not found for response to /test"
-    );
   });
 });
