@@ -23,7 +23,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@pagopa/interop-outbound-models": "1.8.9",
+    "@pagopa/interop-outbound-models": "1.7.0",
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",
