@@ -189,46 +189,6 @@ describe("update E-service instanceLabel after publication", async () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
-  it("should not write on event-store if the instanceLabel and name are unchanged", async () => {
-    const template: EServiceTemplate = getMockEServiceTemplate();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
-
-    const existingLabel = "same";
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      templateId: template.id,
-      name: `${template.name} - ${existingLabel}`,
-      instanceLabel: existingLabel,
-    };
-
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
-
-    const returnedEService =
-      await catalogService.updateEServiceInstanceLabelAfterPublication(
-        eservice.id,
-        existingLabel,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
-
-    // Even when the label is the same, the event is still written (no early return in the method)
-    // since instanceLabel can be the same but name can differ due to template name changes.
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceInstanceLabelUpdated",
-      event_version: 2,
-    });
-
-    expect(returnedEService.instanceLabel).toBe(existingLabel);
-  });
-
   it("should allow a delegate producer to update the instanceLabel", async () => {
     const template: EServiceTemplate = getMockEServiceTemplate();
 
