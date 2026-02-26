@@ -1896,7 +1896,7 @@ export function catalogServiceBuilder(
         },
       };
     },
-    getEServiceTemplateInstancesForProducer: async (
+    getMyEServiceTemplateInstances: async (
       eServiceTemplateId: EServiceTemplateId,
       offset: number,
       limit: number,
