@@ -25,14 +25,15 @@ describe("DELETE /agreements/:agreementId/consumerDocuments/:documentId router t
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.deleteAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValue(undefined);
       const token = generateToken(role);
       const res = await makeRequest(token, agreementId, documentId);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockAgreementService.deleteAgreementConsumerDocument
       ).toHaveBeenCalledWith(agreementId, documentId, expect.any(Object));

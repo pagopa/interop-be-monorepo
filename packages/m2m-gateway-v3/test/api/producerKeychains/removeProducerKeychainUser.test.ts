@@ -24,7 +24,7 @@ describe("DELETE /producerKeychains/:producerKeychainId/users/:userId router tes
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       const userIdToRemove = generateId();
       const producerKeychainId = generateId();
@@ -33,7 +33,8 @@ describe("DELETE /producerKeychains/:producerKeychainId/users/:userId router tes
       const token = generateToken(role);
       const res = await makeRequest(token, producerKeychainId, userIdToRemove);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(res.body).toEqual({});
       expect(
         mockProducerKeychainService.removeProducerKeychainUser

@@ -1,4 +1,3 @@
-import { Response } from "express";
 import { IntegrityRest02SignedHeaders } from "../interop-token/models.js";
 
 /**
@@ -8,15 +7,14 @@ import { IntegrityRest02SignedHeaders } from "../interop-token/models.js";
  * will need to be used in the `signed_headers` parameter of the Agid-JWT-Signature.
  */
 export function buildIntegrityRest02SignedHeaders({
-  res,
   digest,
+  contentType,
+  contentEncoding,
 }: {
-  res: Response;
   digest: string;
+  contentType?: string | undefined;
+  contentEncoding?: string | undefined;
 }): IntegrityRest02SignedHeaders {
-  const contentType = res.getHeader("Content-Type")?.toString();
-  const contentEncoding = res.getHeader("Content-Encoding")?.toString();
-
   const headers: IntegrityRest02SignedHeaders = [
     { digest: `SHA-256=${digest}` },
   ];

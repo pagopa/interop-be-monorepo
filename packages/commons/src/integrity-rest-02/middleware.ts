@@ -57,9 +57,12 @@ export function integrityRest02Middleware(
         replacer,
         spaces,
       });
+      const contentType = res.getHeader("Content-Type")?.toString();
+      const contentEncoding = res.getHeader("Content-Encoding")?.toString();
       const signedHeaders = buildIntegrityRest02SignedHeaders({
-        res,
         digest,
+        contentType,
+        contentEncoding,
       });
 
       const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
