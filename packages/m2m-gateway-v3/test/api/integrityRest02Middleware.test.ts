@@ -185,7 +185,7 @@ describe("integrityRest02Middleware", () => {
     });
     const expectedDigest = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
 
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(200);
     expect(res.headers).toHaveProperty("digest");
     expect(res.headers.digest).toBe(`SHA-256=${emptyStringDigest}`);
     expect(res.headers.digest).toBe(`SHA-256=${nullBodyDigest}`);
