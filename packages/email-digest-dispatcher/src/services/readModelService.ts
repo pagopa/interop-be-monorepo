@@ -1,6 +1,5 @@
 import {
   eq,
-  ne,
   desc,
   asc,
   and,
@@ -33,6 +32,7 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -55,6 +55,11 @@ import {
   delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import { config } from "../config/config.js";
+
+const activeProducerDelegations = alias(
+  delegationInReadmodelDelegation,
+  "activeProducerDelegations",
+);
 
 const SECTION_LIST_LIMIT = 5;
 
@@ -217,7 +222,7 @@ type DelegationQueryResult<T extends string = string> = {
  */
 function processDelegationResults<T extends string>(
   results: Array<DelegationQueryResult<T>>,
-  sectionLimit: number
+  sectionLimit: number,
 ): Array<
   BaseDelegation & { state: DelegationState; counterpartyId: TenantId }
 > {
@@ -242,7 +247,7 @@ function processDelegationResults<T extends string>(
         counterpartyId: unsafeBrandId<TenantId>(row.counterpartyId),
         totalCount,
       }));
-    }
+    },
   );
 }
 
@@ -255,7 +260,7 @@ async function getCachedEntities<K, V>(
   cache: Map<K, V>,
   fetchFn: (uncachedIds: K[]) => Promise<Map<K, V>>,
   logger: Logger,
-  entityName: string
+  entityName: string,
 ): Promise<Map<K, V>> {
   if (ids.length === 0) {
     return new Map();
@@ -271,7 +276,7 @@ async function getCachedEntities<K, V>(
     logger.info(
       `Retrieving ${uncachedIds.length} ${entityName} by IDs (${
         ids.length - uncachedIds.length
-      } from cache)`
+      } from cache)`,
     );
     const fetched = await fetchFn(uncachedIds);
 
@@ -282,7 +287,7 @@ async function getCachedEntities<K, V>(
     return new Map([...cachedEntries, ...fetched.entries()]);
   } else {
     logger.info(
-      `Retrieved ${ids.length} ${entityName} from cache (no DB query needed)`
+      `Retrieved ${ids.length} ${entityName} from cache (no DB query needed)`,
     );
   }
 
@@ -295,10 +300,10 @@ async function getCachedEntities<K, V>(
  */
 function groupAndMapPurposeResults<
   TInput extends BasePurposeQueryResult,
-  TOutput
+  TOutput,
 >(
   results: TInput[],
-  mapRow: (row: TInput, state: string, totalCount: number) => TOutput
+  mapRow: (row: TInput, state: string, totalCount: number) => TOutput,
 ): TOutput[] {
   const groupedByState = results.reduce((acc, row) => {
     const stateResults = acc.get(row.state) ?? [];
@@ -312,12 +317,12 @@ function groupAndMapPurposeResults<
       return stateResults
         .slice(0, SECTION_LIST_LIMIT)
         .map((row) => mapRow(row, state, totalCount));
-    }
+    },
   );
 }
 
 function groupAndMapSentPurposeResults(
-  results: BasePurposeQueryResult[]
+  results: BasePurposeQueryResult[],
 ): SentPurpose[] {
   return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
     purposeId: unsafeBrandId<PurposeId>(row.purposeId),
@@ -330,7 +335,7 @@ function groupAndMapSentPurposeResults(
 }
 
 function groupAndMapReceivedPurposeResults(
-  results: ReceivedPurposeQueryResult[]
+  results: ReceivedPurposeQueryResult[],
 ): ReceivedPurpose[] {
   return groupAndMapPurposeResults(results, (row, state, totalCount) => ({
     purposeId: unsafeBrandId<PurposeId>(row.purposeId),
@@ -347,7 +352,7 @@ function groupAndMapReceivedPurposeResults(
 export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
   const dateThreshold = new Date();
   dateThreshold.setHours(
-    dateThreshold.getHours() - config.digestFrequencyHours
+    dateThreshold.getHours() - config.digestFrequencyHours,
   );
 
   // Request-scoped caches to avoid duplicate DB lookups for the same IDs
@@ -360,14 +365,14 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Returns the list of new e-services published in the last TIME_INTERVAL_IN_DAYS days
      */
     async getNewEservices(
-      priorityProducerIds: TenantId[]
+      priorityProducerIds: TenantId[],
     ): Promise<NewEservice[]> {
       logger.info(
-        `Retrieving new e-services published since ${dateThreshold.toISOString()}`
+        `Retrieving new e-services published since ${dateThreshold.toISOString()}`,
       );
       const priorityField = inArray(
         eserviceInReadmodelCatalog.producerId,
-        priorityProducerIds
+        priorityProducerIds,
       );
 
       const results = await db
@@ -378,46 +383,46 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceName: eserviceInReadmodelCatalog.name,
             eserviceProducerId: eserviceInReadmodelCatalog.producerId,
             agreementCount: count(agreementInReadmodelAgreement.id).as(
-              "agreementCount"
+              "agreementCount",
             ),
-          })
+          }),
         )
         .from(eserviceDescriptorInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+          ),
         )
         .leftJoin(
           agreementInReadmodelAgreement,
           eq(
             eserviceInReadmodelCatalog.id,
-            agreementInReadmodelAgreement.eserviceId
-          )
+            agreementInReadmodelAgreement.eserviceId,
+          ),
         )
         .where(
           and(
             eq(eserviceDescriptorInReadmodelCatalog.state, "Published"),
             gte(
               eserviceDescriptorInReadmodelCatalog.publishedAt,
-              dateThreshold.toISOString()
+              dateThreshold.toISOString(),
             ),
-            isNotNull(eserviceDescriptorInReadmodelCatalog.publishedAt)
-          )
+            isNotNull(eserviceDescriptorInReadmodelCatalog.publishedAt),
+          ),
         )
         .groupBy(
           eserviceInReadmodelCatalog.id,
           eserviceDescriptorInReadmodelCatalog.id,
           eserviceDescriptorInReadmodelCatalog.publishedAt,
           eserviceInReadmodelCatalog.name,
-          eserviceInReadmodelCatalog.producerId
+          eserviceInReadmodelCatalog.producerId,
         )
         .orderBy(
           desc(priorityField),
           desc(count(agreementInReadmodelAgreement.id)),
-          asc(eserviceDescriptorInReadmodelCatalog.publishedAt)
+          asc(eserviceDescriptorInReadmodelCatalog.publishedAt),
         )
         .limit(SECTION_LIST_LIMIT);
 
@@ -426,7 +431,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       return results.map((row) => ({
         eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
         eserviceDescriptorId: unsafeBrandId<DescriptorId>(
-          row.eserviceDescriptorId
+          row.eserviceDescriptorId,
         ),
         eserviceName: row.eserviceName,
         eserviceProducerId: unsafeBrandId<TenantId>(row.eserviceProducerId),
@@ -440,12 +445,12 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      */
     async getNewVersionEservices(consumerId: TenantId): Promise<NewEservice[]> {
       logger.info(
-        `Retrieving new versions of e-services for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+        `Retrieving new versions of e-services for consumer ${consumerId} since ${dateThreshold.toISOString()}`,
       );
       // Create proper aliases for the same table
       const agreementDesc = alias(
         eserviceDescriptorInReadmodelCatalog,
-        "agreement_desc"
+        "agreement_desc",
       );
       const newDesc = alias(eserviceDescriptorInReadmodelCatalog, "new_desc");
 
@@ -458,7 +463,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           newVersion: newDesc.version,
           agreementVersion: agreementDesc.version,
           agreementCount: count(agreementInReadmodelAgreement.id).as(
-            "agreementCount"
+            "agreementCount",
           ),
         })
         .from(agreementInReadmodelAgreement)
@@ -466,16 +471,16 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog,
           eq(
             agreementInReadmodelAgreement.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
+            eserviceInReadmodelCatalog.id,
+          ),
         )
         .innerJoin(
           agreementDesc,
-          eq(agreementInReadmodelAgreement.descriptorId, agreementDesc.id)
+          eq(agreementInReadmodelAgreement.descriptorId, agreementDesc.id),
         )
         .innerJoin(
           newDesc,
-          eq(agreementInReadmodelAgreement.eserviceId, newDesc.eserviceId)
+          eq(agreementInReadmodelAgreement.eserviceId, newDesc.eserviceId),
         )
         .where(
           and(
@@ -483,8 +488,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eq(agreementInReadmodelAgreement.state, "Active"),
             eq(newDesc.state, "Published"),
             gte(newDesc.publishedAt, dateThreshold.toISOString()),
-            isNotNull(newDesc.publishedAt)
-          )
+            isNotNull(newDesc.publishedAt),
+          ),
         )
         .groupBy(
           eserviceInReadmodelCatalog.id,
@@ -492,7 +497,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           newDesc.version,
           agreementDesc.version,
           eserviceInReadmodelCatalog.name,
-          eserviceInReadmodelCatalog.producerId
+          eserviceInReadmodelCatalog.producerId,
         );
 
       // Filter results where newVersion > agreementVersion (as integers) and limit to 5
@@ -509,13 +514,13 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .slice(0, SECTION_LIST_LIMIT);
 
       logger.info(
-        `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
+        `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`,
       );
 
       return filteredResults.map((row) => ({
         eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
         eserviceDescriptorId: unsafeBrandId<DescriptorId>(
-          row.eserviceDescriptorId
+          row.eserviceDescriptorId,
         ),
         eserviceName: row.eserviceName,
         eserviceProducerId: unsafeBrandId<TenantId>(row.eserviceProducerId),
@@ -525,24 +530,24 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     async getNewEserviceTemplates(
-      consumerId: TenantId
+      consumerId: TenantId,
     ): Promise<NewEserviceTemplate[]> {
       logger.info(
-        `Retrieving new e-service templates for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+        `Retrieving new e-service templates for consumer ${consumerId} since ${dateThreshold.toISOString()}`,
       );
       const templateVersionUsed = alias(
         eserviceTemplateVersionInReadmodelEserviceTemplate,
-        "template_version_used"
+        "template_version_used",
       );
       const templateVersionNew = alias(
         eserviceTemplateVersionInReadmodelEserviceTemplate,
-        "template_version_new"
+        "template_version_new",
       );
       const templateUsage = db
         .select({
           templateId: eserviceInReadmodelCatalog.templateId,
           templateUsageCount: count(eserviceInReadmodelCatalog.id).as(
-            "templateUsageCount"
+            "templateUsageCount",
           ),
         })
         .from(eserviceInReadmodelCatalog)
@@ -561,56 +566,56 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceTemplateProducerId:
               eserviceTemplateInReadmodelEserviceTemplate.creatorId,
             templateUsageCount: templateUsage.templateUsageCount,
-          })
+          }),
         )
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
+            eserviceInReadmodelCatalog.id,
+          ),
         )
         .innerJoin(
           eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           eq(
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId,
-            eserviceDescriptorInReadmodelCatalog.id
-          )
+            eserviceDescriptorInReadmodelCatalog.id,
+          ),
         )
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceInReadmodelCatalog.templateId
-          )
+            eserviceInReadmodelCatalog.templateId,
+          ),
         )
         .innerJoin(
           templateVersionUsed,
           and(
             eq(
               templateVersionUsed.id,
-              eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceTemplateVersionId
+              eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceTemplateVersionId,
             ),
             eq(
               templateVersionUsed.eserviceTemplateId,
-              eserviceTemplateInReadmodelEserviceTemplate.id
-            )
-          )
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+            ),
+          ),
         )
         .innerJoin(
           templateVersionNew,
           eq(
             templateVersionNew.eserviceTemplateId,
-            eserviceTemplateInReadmodelEserviceTemplate.id
-          )
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+          ),
         )
         .innerJoin(
           templateUsage,
           eq(
             templateUsage.templateId,
-            eserviceTemplateInReadmodelEserviceTemplate.id
-          )
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+          ),
         )
         .where(
           and(
@@ -618,8 +623,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eq(templateVersionNew.state, "Published"),
             gt(templateVersionNew.version, templateVersionUsed.version),
             gte(templateVersionNew.createdAt, dateThreshold.toISOString()),
-            isNotNull(templateVersionNew.createdAt)
-          )
+            isNotNull(templateVersionNew.createdAt),
+          ),
         )
         .groupBy(
           eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -627,11 +632,11 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceTemplateInReadmodelEserviceTemplate.creatorId,
           templateUsage.templateUsageCount,
           templateVersionNew.id,
-          templateVersionNew.createdAt
+          templateVersionNew.createdAt,
         )
         .orderBy(
           desc(templateUsage.templateUsageCount),
-          asc(templateVersionNew.createdAt)
+          asc(templateVersionNew.createdAt),
         );
 
       // Apply logic to select earliest version per template and limit to 5 templates
@@ -643,11 +648,11 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       }
       const filteredResults = Array.from(templateMap.values()).slice(
         0,
-        SECTION_LIST_LIMIT
+        SECTION_LIST_LIMIT,
       );
 
       logger.info(
-        `Retrieved ${filteredResults.length} new e-service templates for consumer ${consumerId}`
+        `Retrieved ${filteredResults.length} new e-service templates for consumer ${consumerId}`,
       );
 
       return filteredResults.map((row) => ({
@@ -655,7 +660,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceTemplateVersionId: row.templateVersionId,
         eserviceTemplateName: row.eserviceTemplateName,
         eserviceTemplateProducerId: unsafeBrandId<TenantId>(
-          row.eserviceTemplateProducerId
+          row.eserviceTemplateProducerId,
         ),
         totalCount: row.totalCount,
       }));
@@ -667,16 +672,16 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Returns the latest published template version for each template.
      */
     async getPopularEserviceTemplates(
-      creatorId: TenantId
+      creatorId: TenantId,
     ): Promise<PopularEserviceTemplate[]> {
       logger.info(
-        `Retrieving popular eservice templates for creator ${creatorId} since ${dateThreshold.toISOString()}`
+        `Retrieving popular eservice templates for creator ${creatorId} since ${dateThreshold.toISOString()}`,
       );
 
       // Alias for the subquery to get the latest published template version
       const latestVersionSubquery = alias(
         eserviceTemplateVersionInReadmodelEserviceTemplate,
-        "latest_version_subquery"
+        "latest_version_subquery",
       );
 
       const results = await db
@@ -690,9 +695,9 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceTemplateCreatorId:
               eserviceTemplateInReadmodelEserviceTemplate.creatorId,
             instances: countDistinct(eserviceInReadmodelCatalog.id).as(
-              "instances"
+              "instances",
             ),
-          })
+          }),
         )
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(
@@ -700,34 +705,34 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           and(
             eq(
               eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceInReadmodelCatalog.templateId
+              eserviceInReadmodelCatalog.templateId,
             ),
             gte(
               eserviceInReadmodelCatalog.createdAt,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .innerJoin(
           eserviceDescriptorInReadmodelCatalog,
           and(
             eq(
               eserviceInReadmodelCatalog.id,
-              eserviceDescriptorInReadmodelCatalog.eserviceId
+              eserviceDescriptorInReadmodelCatalog.eserviceId,
             ),
-            eq(eserviceDescriptorInReadmodelCatalog.state, "Published")
-          )
+            eq(eserviceDescriptorInReadmodelCatalog.state, "Published"),
+          ),
         )
         .innerJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           and(
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
-              eserviceTemplateInReadmodelEserviceTemplate.id
+              eserviceTemplateInReadmodelEserviceTemplate.id,
             ),
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-              "Published"
+              "Published",
             ),
             eq(
               eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -738,30 +743,30 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
                   and(
                     eq(
                       latestVersionSubquery.eserviceTemplateId,
-                      eserviceTemplateInReadmodelEserviceTemplate.id
+                      eserviceTemplateInReadmodelEserviceTemplate.id,
                     ),
-                    eq(latestVersionSubquery.state, "Published")
-                  )
+                    eq(latestVersionSubquery.state, "Published"),
+                  ),
                 )
                 .orderBy(desc(latestVersionSubquery.version))
-                .limit(1)
-            )
-          )
+                .limit(1),
+            ),
+          ),
         )
         .where(
-          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId)
+          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
         )
         .groupBy(
           eserviceTemplateInReadmodelEserviceTemplate.id,
           eserviceTemplateVersionInReadmodelEserviceTemplate.id,
           eserviceTemplateInReadmodelEserviceTemplate.name,
-          eserviceTemplateInReadmodelEserviceTemplate.creatorId
+          eserviceTemplateInReadmodelEserviceTemplate.creatorId,
         )
         .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`
+        `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`,
       );
 
       return results.map((row) => ({
@@ -769,7 +774,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceTemplateVersionId: row.eserviceTemplateVersionId,
         eserviceTemplateName: row.eserviceTemplateName,
         eserviceTemplateCreatorId: unsafeBrandId<TenantId>(
-          row.eserviceTemplateCreatorId
+          row.eserviceTemplateCreatorId,
         ),
         instances: row.instances,
         totalCount: row.totalCount,
@@ -786,7 +791,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      */
     async getSentAgreements(consumerId: TenantId): Promise<SentAgreement[]> {
       logger.info(
-        `Retrieving sent agreements for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+        `Retrieving sent agreements for consumer ${consumerId} since ${dateThreshold.toISOString()}`,
       );
 
       // Single query fetching all three states with their corresponding stamp kinds
@@ -804,40 +809,40 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           agreementStampInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
+            agreementStampInReadmodelAgreement.agreementId,
+          ),
         )
         .where(
           and(
             eq(agreementInReadmodelAgreement.consumerId, consumerId),
             gte(
               agreementStampInReadmodelAgreement.when,
-              dateThreshold.toISOString()
+              dateThreshold.toISOString(),
             ),
             or(
               and(
                 eq(agreementInReadmodelAgreement.state, agreementState.active),
-                eq(agreementStampInReadmodelAgreement.kind, "activation")
+                eq(agreementStampInReadmodelAgreement.kind, "activation"),
               ),
               and(
                 eq(
                   agreementInReadmodelAgreement.state,
-                  agreementState.rejected
+                  agreementState.rejected,
                 ),
-                eq(agreementStampInReadmodelAgreement.kind, "rejection")
+                eq(agreementStampInReadmodelAgreement.kind, "rejection"),
               ),
               and(
                 eq(
                   agreementInReadmodelAgreement.state,
-                  agreementState.suspended
+                  agreementState.suspended,
                 ),
                 eq(
                   agreementStampInReadmodelAgreement.kind,
-                  "suspensionByProducer"
-                )
-              )
-            )
-          )
+                  "suspensionByProducer",
+                ),
+              ),
+            ),
+          ),
         )
         .orderBy(asc(agreementStampInReadmodelAgreement.when));
 
@@ -860,11 +865,11 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             actionDate: row.actionDate,
             totalCount,
           }));
-        }
+        },
       );
 
       logger.info(
-        `Retrieved ${allResults.length} sent agreements for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`
+        `Retrieved ${allResults.length} sent agreements for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`,
       );
 
       return allResults;
@@ -876,10 +881,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Limited to 5 results.
      */
     async getReceivedAgreements(
-      producerId: TenantId
+      producerId: TenantId,
     ): Promise<ReceivedAgreement[]> {
       logger.info(
-        `Retrieving received agreements for producer ${producerId} since ${dateThreshold.toISOString()}`
+        `Retrieving received agreements for producer ${producerId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -895,8 +900,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           agreementStampInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
+            agreementStampInReadmodelAgreement.agreementId,
+          ),
         )
         .where(
           and(
@@ -905,16 +910,16 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eq(agreementInReadmodelAgreement.state, agreementState.pending),
             gte(
               agreementStampInReadmodelAgreement.when,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .orderBy(asc(agreementStampInReadmodelAgreement.when));
 
       const totalCount = results.length;
 
       logger.info(
-        `Retrieved ${results.length} received agreements for tenant ${producerId}`
+        `Retrieved ${results.length} received agreements for tenant ${producerId}`,
       );
 
       return results.slice(0, SECTION_LIST_LIMIT).map((row) => ({
@@ -936,7 +941,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      */
     async getSentDelegations(delegatorId: TenantId): Promise<SentDelegation[]> {
       logger.info(
-        `Retrieving sent delegations for delegator ${delegatorId} since ${dateThreshold.toISOString()}`
+        `Retrieving sent delegations for delegator ${delegatorId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -954,15 +959,15 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
-            delegationInReadmodelDelegation.eserviceId
-          )
+            delegationInReadmodelDelegation.eserviceId,
+          ),
         )
         .innerJoin(
           delegationStampInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
-            delegationStampInReadmodelDelegation.delegationId
-          )
+            delegationStampInReadmodelDelegation.delegationId,
+          ),
         )
         .where(
           and(
@@ -971,33 +976,33 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
               and(
                 eq(
                   delegationInReadmodelDelegation.state,
-                  delegationState.active
+                  delegationState.active,
                 ),
-                eq(delegationStampInReadmodelDelegation.kind, "activation")
+                eq(delegationStampInReadmodelDelegation.kind, "activation"),
               ),
               and(
                 eq(
                   delegationInReadmodelDelegation.state,
-                  delegationState.rejected
+                  delegationState.rejected,
                 ),
-                eq(delegationStampInReadmodelDelegation.kind, "rejection")
-              )
+                eq(delegationStampInReadmodelDelegation.kind, "rejection"),
+              ),
             ),
             gte(
               delegationStampInReadmodelDelegation.when,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .orderBy(asc(delegationStampInReadmodelDelegation.when));
 
       const processedResults = processDelegationResults(
         results,
-        SECTION_LIST_LIMIT
+        SECTION_LIST_LIMIT,
       );
 
       logger.info(
-        `Retrieved ${processedResults.length} sent delegations for delegator ${delegatorId} (up to ${SECTION_LIST_LIMIT} per state)`
+        `Retrieved ${processedResults.length} sent delegations for delegator ${delegatorId} (up to ${SECTION_LIST_LIMIT} per state)`,
       );
 
       return processedResults.map((r) => ({
@@ -1020,10 +1025,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Limited to 5 per state.
      */
     async getReceivedDelegations(
-      delegateId: TenantId
+      delegateId: TenantId,
     ): Promise<ReceivedDelegation[]> {
       logger.info(
-        `Retrieving received delegations for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+        `Retrieving received delegations for delegate ${delegateId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -1041,15 +1046,15 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
-            delegationInReadmodelDelegation.eserviceId
-          )
+            delegationInReadmodelDelegation.eserviceId,
+          ),
         )
         .innerJoin(
           delegationStampInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
-            delegationStampInReadmodelDelegation.delegationId
-          )
+            delegationStampInReadmodelDelegation.delegationId,
+          ),
         )
         .where(
           and(
@@ -1058,33 +1063,33 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
               and(
                 eq(
                   delegationInReadmodelDelegation.state,
-                  delegationState.waitingForApproval
+                  delegationState.waitingForApproval,
                 ),
-                eq(delegationStampInReadmodelDelegation.kind, "submission")
+                eq(delegationStampInReadmodelDelegation.kind, "submission"),
               ),
               and(
                 eq(
                   delegationInReadmodelDelegation.state,
-                  delegationState.revoked
+                  delegationState.revoked,
                 ),
-                eq(delegationStampInReadmodelDelegation.kind, "revocation")
-              )
+                eq(delegationStampInReadmodelDelegation.kind, "revocation"),
+              ),
             ),
             gte(
               delegationStampInReadmodelDelegation.when,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .orderBy(asc(delegationStampInReadmodelDelegation.when));
 
       const processedResults = processDelegationResults(
         results,
-        SECTION_LIST_LIMIT
+        SECTION_LIST_LIMIT,
       );
 
       logger.info(
-        `Retrieved ${processedResults.length} received delegations for delegate ${delegateId} (up to ${SECTION_LIST_LIMIT} per state)`
+        `Retrieved ${processedResults.length} received delegations for delegate ${delegateId} (up to ${SECTION_LIST_LIMIT} per state)`,
       );
 
       return processedResults.map((r) => ({
@@ -1104,7 +1109,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Uses request-scoped caching to avoid duplicate lookups.
      */
     async getTenantsByIds(
-      tenantIds: TenantId[]
+      tenantIds: TenantId[],
     ): Promise<Map<TenantId, TenantData>> {
       return getCachedEntities(
         tenantIds,
@@ -1123,11 +1128,11 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             tenants.map((tenant) => [
               unsafeBrandId<TenantId>(tenant.id),
               { name: tenant.name, selfcareId: tenant.selfcareId },
-            ])
+            ]),
           );
         },
         logger,
-        "tenant data"
+        "tenant data",
       );
     },
 
@@ -1135,10 +1140,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Returns verified assigned attributes for a tenant in the last configured frequency hours
      */
     async getVerifiedAssignedAttributes(
-      tenantId: TenantId
+      tenantId: TenantId,
     ): Promise<VerifiedAssignedAttribute[]> {
       logger.info(
-        `Retrieving verified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+        `Retrieving verified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -1147,35 +1152,37 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             attributeName: attributeInReadmodelAttribute.name,
             verifierId:
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
-          })
+          }),
         )
         .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
           eq(
             tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
-            attributeInReadmodelAttribute.id
-          )
+            attributeInReadmodelAttribute.id,
+          ),
         )
         .where(
           and(
             eq(
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantId
+              tenantId,
             ),
             gte(
               tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .orderBy(
-          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
+          asc(
+            tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
+          ),
         )
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} verified assigned attributes for tenant ${tenantId}`
+        `Retrieved ${results.length} verified assigned attributes for tenant ${tenantId}`,
       );
 
       return results.map((row) => ({
@@ -1190,10 +1197,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Returns verified revoked attributes for a tenant in the last configured frequency hours
      */
     async getVerifiedRevokedAttributes(
-      tenantId: TenantId
+      tenantId: TenantId,
     ): Promise<VerifiedRevokedAttribute[]> {
       logger.info(
-        `Retrieving verified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+        `Retrieving verified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -1202,35 +1209,35 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             attributeName: attributeInReadmodelAttribute.name,
             revokerId:
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
-          })
+          }),
         )
         .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
           eq(
             tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
-            attributeInReadmodelAttribute.id
-          )
+            attributeInReadmodelAttribute.id,
+          ),
         )
         .where(
           and(
             eq(
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantId
+              tenantId,
             ),
             gte(
               tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .orderBy(
-          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
+          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate),
         )
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} verified revoked attributes for tenant ${tenantId}`
+        `Retrieved ${results.length} verified revoked attributes for tenant ${tenantId}`,
       );
 
       return results.map((row) => ({
@@ -1246,42 +1253,42 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Assigned: assignment_timestamp >= threshold AND revocation_timestamp IS NULL
      */
     async getCertifiedAssignedAttributes(
-      tenantId: TenantId
+      tenantId: TenantId,
     ): Promise<CertifiedAssignedAttribute[]> {
       logger.info(
-        `Retrieving certified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+        `Retrieving certified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
-          })
+          }),
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
           eq(
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeInReadmodelAttribute.id
-          )
+            attributeInReadmodelAttribute.id,
+          ),
         )
         .where(
           and(
             eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
             gte(
               tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
-              dateThreshold.toISOString()
+              dateThreshold.toISOString(),
             ),
             isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
-            )
-          )
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
+            ),
+          ),
         )
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} certified assigned attributes for tenant ${tenantId}`
+        `Retrieved ${results.length} certified assigned attributes for tenant ${tenantId}`,
       );
 
       return results.map((row) => ({
@@ -1296,39 +1303,39 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Revoked: revocation_timestamp >= threshold
      */
     async getCertifiedRevokedAttributes(
-      tenantId: TenantId
+      tenantId: TenantId,
     ): Promise<CertifiedRevokedAttribute[]> {
       logger.info(
-        `Retrieving certified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
+        `Retrieving certified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
-          })
+          }),
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
           eq(
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeInReadmodelAttribute.id
-          )
+            attributeInReadmodelAttribute.id,
+          ),
         )
         .where(
           and(
             eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
             gte(
               tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
-              dateThreshold.toISOString()
-            )
-          )
+              dateThreshold.toISOString(),
+            ),
+          ),
         )
         .limit(5);
 
       logger.info(
-        `Retrieved ${results.length} certified revoked attributes for tenant ${tenantId}`
+        `Retrieved ${results.length} certified revoked attributes for tenant ${tenantId}`,
       );
 
       return results.map((row) => ({
@@ -1343,7 +1350,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Uses request-scoped caching to avoid duplicate lookups.
      */
     async getEServicesByIds(
-      eserviceIds: EServiceId[]
+      eserviceIds: EServiceId[],
     ): Promise<Map<EServiceId, string>> {
       return getCachedEntities(
         eserviceIds,
@@ -1361,11 +1368,11 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eservices.map((eservice) => [
               unsafeBrandId<EServiceId>(eservice.id),
               eservice.name,
-            ])
+            ]),
           );
         },
         logger,
-        "e-services"
+        "e-services",
       );
     },
 
@@ -1375,7 +1382,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      */
     async getSentPurposes(consumerId: TenantId): Promise<SentPurpose[]> {
       logger.info(
-        `Retrieving sent purposes for consumer ${consumerId} since ${dateThreshold.toISOString()}`
+        `Retrieving sent purposes for consumer ${consumerId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -1393,13 +1400,13 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           and(
             eq(
               purposeInReadmodelPurpose.id,
-              purposeVersionInReadmodelPurpose.purposeId
+              purposeVersionInReadmodelPurpose.purposeId,
             ),
             eq(
               purposeInReadmodelPurpose.metadataVersion,
-              purposeVersionInReadmodelPurpose.metadataVersion
-            )
-          )
+              purposeVersionInReadmodelPurpose.metadataVersion,
+            ),
+          ),
         )
         .where(
           and(
@@ -1407,60 +1414,60 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             or(
               gte(
                 purposeVersionInReadmodelPurpose.updatedAt,
-                dateThreshold.toISOString()
+                dateThreshold.toISOString(),
               ),
               and(
                 isNull(purposeVersionInReadmodelPurpose.updatedAt),
                 gte(
                   purposeVersionInReadmodelPurpose.createdAt,
-                  dateThreshold.toISOString()
-                )
-              )
+                  dateThreshold.toISOString(),
+                ),
+              ),
             ),
             or(
               eq(
                 purposeVersionInReadmodelPurpose.state,
-                purposeVersionState.active
+                purposeVersionState.active,
               ),
               eq(
                 purposeVersionInReadmodelPurpose.state,
-                purposeVersionState.rejected
+                purposeVersionState.rejected,
               ),
               eq(
                 purposeVersionInReadmodelPurpose.state,
-                purposeVersionState.waitingForApproval
-              )
-            )
-          )
+                purposeVersionState.waitingForApproval,
+              ),
+            ),
+          ),
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
           desc(
-            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
-          )
+            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
+          ),
         );
 
       const allResults = groupAndMapSentPurposeResults(results);
 
       logger.info(
-        `Retrieved ${allResults.length} sent purposes for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`
+        `Retrieved ${allResults.length} sent purposes for consumer ${consumerId} (up to ${SECTION_LIST_LIMIT} per state)`,
       );
 
       return allResults;
     },
 
     /**
-     * Returns purposes received by the producer tenant (via e-service ownership)
-     * that are in Active or WaitingForApproval state.
-     * Excludes purposes where the tenant is also the consumer (to avoid duplicates).
+     * Returns purposes received by the producer tenant (via e-service ownership
+     * or active producer delegation) that are in Active or WaitingForApproval state.
+     * Includes autofruizione purposes (where tenant is both producer and consumer).
      * Includes consumer name via join with tenant table.
      * Limited to 5 per state.
      */
     async getReceivedPurposes(
-      producerId: TenantId
+      producerId: TenantId,
     ): Promise<ReceivedPurpose[]> {
       logger.info(
-        `Retrieving received purposes for producer ${producerId} since ${dateThreshold.toISOString()}`
+        `Retrieving received purposes for producer ${producerId} since ${dateThreshold.toISOString()}`,
       );
 
       const results = await db
@@ -1479,66 +1486,85 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           and(
             eq(
               purposeInReadmodelPurpose.id,
-              purposeVersionInReadmodelPurpose.purposeId
+              purposeVersionInReadmodelPurpose.purposeId,
             ),
             eq(
               purposeInReadmodelPurpose.metadataVersion,
-              purposeVersionInReadmodelPurpose.metadataVersion
-            )
-          )
+              purposeVersionInReadmodelPurpose.metadataVersion,
+            ),
+          ),
         )
         .innerJoin(
           eserviceInReadmodelCatalog,
           eq(
             purposeInReadmodelPurpose.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
+            eserviceInReadmodelCatalog.id,
+          ),
+        )
+        .leftJoin(
+          activeProducerDelegations,
+          and(
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              activeProducerDelegations.eserviceId,
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer,
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              eserviceInReadmodelCatalog.producerId,
+            ),
+          ),
         )
         .innerJoin(
           tenantInReadmodelTenant,
-          eq(purposeInReadmodelPurpose.consumerId, tenantInReadmodelTenant.id)
+          eq(purposeInReadmodelPurpose.consumerId, tenantInReadmodelTenant.id),
         )
         .where(
           and(
-            eq(eserviceInReadmodelCatalog.producerId, producerId),
-            // Exclude purposes where tenant is also the consumer (avoid duplicates)
-            ne(purposeInReadmodelPurpose.consumerId, producerId),
+            or(
+              eq(eserviceInReadmodelCatalog.producerId, producerId),
+              eq(activeProducerDelegations.delegateId, producerId),
+            ),
             or(
               gte(
                 purposeVersionInReadmodelPurpose.updatedAt,
-                dateThreshold.toISOString()
+                dateThreshold.toISOString(),
               ),
               and(
                 isNull(purposeVersionInReadmodelPurpose.updatedAt),
                 gte(
                   purposeVersionInReadmodelPurpose.createdAt,
-                  dateThreshold.toISOString()
-                )
-              )
+                  dateThreshold.toISOString(),
+                ),
+              ),
             ),
             or(
               eq(
                 purposeVersionInReadmodelPurpose.state,
-                purposeVersionState.active
+                purposeVersionState.active,
               ),
               eq(
                 purposeVersionInReadmodelPurpose.state,
-                purposeVersionState.waitingForApproval
-              )
-            )
-          )
+                purposeVersionState.waitingForApproval,
+              ),
+            ),
+          ),
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
           desc(
-            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
-          )
+            sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`,
+          ),
         );
 
       const allResults = groupAndMapReceivedPurposeResults(results);
 
       logger.info(
-        `Retrieved ${allResults.length} received purposes for producer ${producerId} (up to ${SECTION_LIST_LIMIT} per state)`
+        `Retrieved ${allResults.length} received purposes for producer ${producerId} (up to ${SECTION_LIST_LIMIT} per state)`,
       );
 
       return allResults;
@@ -1549,14 +1575,14 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
      * Returns a map of eserviceId to descriptorId.
      */
     async getLatestPublishedDescriptorIds(
-      eserviceIds: EServiceId[]
+      eserviceIds: EServiceId[],
     ): Promise<Map<EServiceId, DescriptorId>> {
       if (eserviceIds.length === 0) {
         return new Map();
       }
 
       logger.info(
-        `Retrieving latest published descriptor IDs for ${eserviceIds.length} e-services`
+        `Retrieving latest published descriptor IDs for ${eserviceIds.length} e-services`,
       );
 
       const results = await db
@@ -1570,10 +1596,10 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           and(
             inArray(
               eserviceDescriptorInReadmodelCatalog.eserviceId,
-              eserviceIds
+              eserviceIds,
             ),
-            eq(eserviceDescriptorInReadmodelCatalog.state, "Published")
-          )
+            eq(eserviceDescriptorInReadmodelCatalog.state, "Published"),
+          ),
         )
         .orderBy(desc(eserviceDescriptorInReadmodelCatalog.version));
 
@@ -1584,7 +1610,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         if (!descriptorMap.has(eserviceId)) {
           descriptorMap.set(
             eserviceId,
-            unsafeBrandId<DescriptorId>(row.descriptorId)
+            unsafeBrandId<DescriptorId>(row.descriptorId),
           );
         }
       }
@@ -1608,8 +1634,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           eq(
             userNotificationConfigInReadmodelNotificationConfig.emailDigestPreference,
-            true
-          )
+            true,
+          ),
         );
 
       return queryResult.map((row) => ({
