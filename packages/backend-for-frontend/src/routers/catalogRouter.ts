@@ -1032,14 +1032,15 @@ const catalogRouter = (
       const { producerName, states, offset, limit } = req.query;
 
       try {
-        const result = await catalogService.getEServiceTemplateInstances(
-          unsafeBrandId(templateId),
-          producerName,
-          states,
-          offset,
-          limit,
-          ctx
-        );
+        const result =
+          await catalogService.getEServiceTemplateInstancesForCreator(
+            unsafeBrandId(templateId),
+            producerName,
+            states,
+            offset,
+            limit,
+            ctx
+          );
         return res
           .status(200)
           .send(bffApi.EServiceTemplateInstances.parse(result));

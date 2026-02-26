@@ -1817,7 +1817,7 @@ export function catalogServiceBuilder(
         descriptorId: eService.descriptors[0].id,
       };
     },
-    getEServiceTemplateInstances: async (
+    getEServiceTemplateInstancesForCreator: async (
       eServiceTemplateId: EServiceTemplateId,
       producerName: string | undefined,
       states: bffApi.EServiceDescriptorState[],
@@ -1889,6 +1889,71 @@ export function catalogServiceBuilder(
 
       return {
         results: await Promise.all(results.map(enhanceTemplateInstance)),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
+    },
+    getEServiceTemplateInstancesForProducer: async (
+      eServiceTemplateId: EServiceTemplateId,
+      offset: number,
+      limit: number,
+      { logger, headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateInstances> => {
+      logger.info(
+        `Retrieving EService template ${eServiceTemplateId} instances for the producer, with offset=${offset} limit=${limit}`
+      );
+
+      // This assures that the template exists
+      await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        eserviceTemplateProcessClient,
+        headers
+      );
+
+      const { results, totalCount } = await catalogProcessClient.getEServices({
+        headers,
+        queries: {
+          producersIds: [authData.organizationId],
+          templatesIds: [eServiceTemplateId],
+          offset,
+          limit,
+        },
+      });
+
+      const tenantsMap = new Map<string, tenantApi.Tenant>();
+
+      const enhanceTemplateInstanceForProducer = async (
+        eservice: catalogApi.EService
+      ): Promise<bffApi.EServiceTemplateInstance> => {
+        const producer =
+          tenantsMap.get(eservice.producerId) ??
+          (await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: {
+              id: eservice.producerId,
+            },
+          }));
+
+        tenantsMap.set(eservice.producerId, producer);
+
+        return {
+          id: eservice.id,
+          name: eservice.name,
+          producerId: producer.id,
+          producerName: producer.name,
+          latestDescriptor: eservice.descriptors.at(-1),
+          descriptors: eservice.descriptors,
+          instanceLabel: eservice.instanceLabel,
+        };
+      };
+
+      return {
+        results: await Promise.all(
+          results.map(enhanceTemplateInstanceForProducer)
+        ),
         pagination: {
           offset,
           limit,
