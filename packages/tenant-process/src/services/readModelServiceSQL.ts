@@ -113,9 +113,9 @@ export function readModelServiceBuilderSQL(
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .$dynamic();
 
-        const [queryResult, totalCount] = await Promise.all([
-          baseQuery.limit(limit).offset(offset),
+        const [totalCount, queryResult] = await Promise.all([
           getTableTotalCount(tx, baseQuery),
+          baseQuery.limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -256,9 +256,9 @@ export function readModelServiceBuilderSQL(
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .$dynamic();
 
-        const [queryResult, totalCount] = await Promise.all([
-          baseQuery.limit(limit).offset(offset),
+        const [totalCount, queryResult] = await Promise.all([
           getTableTotalCount(tx, baseQuery),
+          baseQuery.limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -312,9 +312,9 @@ export function readModelServiceBuilderSQL(
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .$dynamic();
 
-        const [queryResult, totalCount] = await Promise.all([
-          baseQuery.limit(limit).offset(offset),
+        const [totalCount, queryResult] = await Promise.all([
           getTableTotalCount(tx, baseQuery),
+          baseQuery.limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -429,9 +429,9 @@ export function readModelServiceBuilderSQL(
         )
         .$dynamic();
 
-      const [res, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, res] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -533,9 +533,9 @@ export function readModelServiceBuilderSQL(
         )
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.offset(offset).limit(limit),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.offset(offset).limit(limit),
       ]);
 
       return createListResult(
@@ -593,9 +593,9 @@ export function readModelServiceBuilderSQL(
         )
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.offset(offset).limit(limit),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.offset(offset).limit(limit),
       ]);
 
       return createListResult(

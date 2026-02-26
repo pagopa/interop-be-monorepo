@@ -51,9 +51,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);
@@ -98,9 +98,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);

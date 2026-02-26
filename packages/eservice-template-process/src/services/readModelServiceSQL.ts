@@ -366,9 +366,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       const data: CompactOrganization[] = queryResult.map((d) => ({

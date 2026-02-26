@@ -690,9 +690,9 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
 
-      const [resultSet, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -732,9 +732,9 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
 
-      const [resultSet, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -779,9 +779,9 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
 
-      const [resultSet, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -873,9 +873,9 @@ export function readModelServiceBuilderSQL(
         .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
         .$dynamic();
 
-      const [resultsSet, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, resultsSet] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(

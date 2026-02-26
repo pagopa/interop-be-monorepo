@@ -256,9 +256,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(tenantInReadmodelTenant.name)
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(filters.limit).offset(filters.offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(filters.limit).offset(filters.offset),
       ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
@@ -343,9 +343,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(tenantInReadmodelTenant.name)
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(filters.limit).offset(filters.offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(filters.limit).offset(filters.offset),
       ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
@@ -429,9 +429,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(eserviceInReadmodelCatalog.name)
         .$dynamic();
 
-      const [queryResult, totalCount] = await Promise.all([
-        baseQuery.limit(filters.limit).offset(filters.offset),
+      const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, baseQuery),
+        baseQuery.limit(filters.limit).offset(filters.offset),
       ]);
 
       const data: delegationApi.CompactEService[] = queryResult.map((e) => ({

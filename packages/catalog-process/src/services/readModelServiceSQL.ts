@@ -615,9 +615,9 @@ export function readModelServiceBuilderSQL(
         )
         .$dynamic();
 
-      const [res, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, res] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       const consumers: Consumer[] = res.map((row) => ({
@@ -842,9 +842,9 @@ export function readModelServiceBuilderSQL(
         .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
         .$dynamic();
 
-      const [resultsSet, totalCount] = await Promise.all([
-        baseQuery.limit(limit).offset(offset),
+      const [totalCount, resultsSet] = await Promise.all([
         getTableTotalCount(readmodelDB, baseQuery),
+        baseQuery.limit(limit).offset(offset),
       ]);
 
       return createListResult(
