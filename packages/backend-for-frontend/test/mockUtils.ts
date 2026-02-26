@@ -459,8 +459,8 @@ export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
   // eslint-disable-next-line sonarjs/no-identical-functions
   (): bffApi.UpdateEServiceTemplateInstanceSeed => ({
     isSignalHubEnabled: generateMock(z.boolean().optional()),
-    isConsumerDelegable: true,
-    isClientAccessDelegable: false,
+    isClientAccessDelegable: generateMock(z.boolean().optional()),
+    isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiUpdateEServiceTemplateInstanceDescriptorQuotas =
