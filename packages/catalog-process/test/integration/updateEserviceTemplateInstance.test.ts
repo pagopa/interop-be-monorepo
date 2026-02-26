@@ -74,6 +74,7 @@ describe("update eService Instance", () => {
           isSignalHubEnabled,
           isConsumerDelegable,
           isClientAccessDelegable,
+          instanceLabel: updatedInstanceLabel,
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
