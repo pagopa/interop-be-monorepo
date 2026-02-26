@@ -981,9 +981,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const instanceName = eserviceSeed.instanceLabel
-        ? `${template.name} - ${eserviceSeed.instanceLabel}`
-        : template.name;
+      const instanceName = buildInstanceName(template.name, eserviceSeed.instanceLabel);
 
       if (instanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
