@@ -5,6 +5,7 @@ import {
   healthRouter,
   loggerMiddleware,
   zodiosCtx,
+  sanitizeMiddleware,
 } from "pagopa-interop-commons";
 import {
   applicationAuditBeginMiddleware,
@@ -34,6 +35,7 @@ export async function createApp(service: PurposeService) {
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
+  app.use(sanitizeMiddleware());
   app.use(router);
   app.use(errorsToApiProblemsMiddleware);
 
