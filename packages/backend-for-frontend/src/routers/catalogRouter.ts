@@ -1053,6 +1053,31 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/templates/:templateId/myInstances", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { templateId } = req.params;
+      const { offset, limit } = req.query;
+
+      try {
+        const result = await catalogService.getMyEServiceTemplateInstances(
+          unsafeBrandId(templateId),
+          offset,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.EServiceTemplateInstances.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getEServiceTemplateInstancesErrorMapper,
+          ctx,
+          `Error retrieving eservice template ${templateId} instances`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices/names/availability", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { name } = req.query;

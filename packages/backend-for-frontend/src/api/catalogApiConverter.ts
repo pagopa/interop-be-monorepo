@@ -427,20 +427,23 @@ export function toCompactProducerDescriptor(
 
 export function toBffEServiceTemplateInstance(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
+  producer: tenantApi.Tenant,
+  showAllDescriptors: boolean = false
 ): bffApi.EServiceTemplateInstance {
-  const validDescriptors = [...eservice.descriptors]
-    .filter(isValidDescriptor)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .map(toCompactDescriptor);
+  const descriptorsToInclude = showAllDescriptors
+    ? [...eservice.descriptors]
+    : [...eservice.descriptors]
+        .filter(isValidDescriptor)
+        .sort((a, b) => Number(a.version) - Number(b.version))
+        .map(toCompactDescriptor);
 
   return {
     id: eservice.id,
     name: eservice.name,
     producerId: producer.id,
     producerName: producer.name,
-    latestDescriptor: validDescriptors.at(-1),
-    descriptors: validDescriptors,
+    latestDescriptor: descriptorsToInclude.at(-1),
+    descriptors: descriptorsToInclude,
     instanceLabel: eservice.instanceLabel,
   };
 }
