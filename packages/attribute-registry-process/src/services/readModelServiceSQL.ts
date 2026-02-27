@@ -44,16 +44,17 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const baseQuery = readModelDB
-        .select(getTableColumns(attributeInReadmodelAttribute))
-        .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .$dynamic();
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(getTableColumns(attributeInReadmodelAttribute))
+          .from(attributeInReadmodelAttribute)
+          .where(inArray(attributeInReadmodelAttribute.id, ids))
+          .orderBy(ascLower(attributeInReadmodelAttribute.name))
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);
@@ -76,31 +77,32 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const baseQuery = readModelDB
-        .select(getTableColumns(attributeInReadmodelAttribute))
-        .from(attributeInReadmodelAttribute)
-        .where(
-          and(
-            kinds.length > 0
-              ? inArray(attributeInReadmodelAttribute.kind, kinds)
-              : undefined,
-            name
-              ? ilike(
-                  attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            origin
-              ? eq(attributeInReadmodelAttribute.origin, origin)
-              : undefined
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(getTableColumns(attributeInReadmodelAttribute))
+          .from(attributeInReadmodelAttribute)
+          .where(
+            and(
+              kinds.length > 0
+                ? inArray(attributeInReadmodelAttribute.kind, kinds)
+                : undefined,
+              name
+                ? ilike(
+                    attributeInReadmodelAttribute.name,
+                    `%${escapeRegExp(name)}%`
+                  )
+                : undefined,
+              origin
+                ? eq(attributeInReadmodelAttribute.origin, origin)
+                : undefined
+            )
           )
-        )
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .$dynamic();
+          .orderBy(ascLower(attributeInReadmodelAttribute.name))
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);

@@ -258,15 +258,115 @@ export function readModelServiceBuilderSQL({
       const { producersIds, consumersIds, purposesIds, ...otherFilters } =
         filters;
 
-      const filterQuery = addDelegationJoins(
+      const buildFilterQuery = () =>
+        addDelegationJoins(
+          readModelDB
+            .select({ purposeId: purposeInReadmodelPurpose.id })
+            .from(purposeInReadmodelPurpose)
+            .leftJoin(
+              purposeVersionInReadmodelPurpose,
+              eq(
+                purposeInReadmodelPurpose.id,
+                purposeVersionInReadmodelPurpose.purposeId
+              )
+            )
+            .leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                purposeInReadmodelPurpose.eserviceId,
+                eserviceInReadmodelCatalog.id
+              )
+            )
+            .where(
+              and(
+                getProducerIdsFilter(producersIds),
+                getConsumerIdsFilter(consumersIds),
+                getVisibilityFilter(requesterId),
+                getPurposesIdsFilter(purposesIds),
+                ...getPurposesFilters(readModelDB, otherFilters)
+              )
+            )
+            .groupBy(purposeInReadmodelPurpose.id)
+            .orderBy(ascLower(purposeInReadmodelPurpose.title))
+            .$dynamic()
+        );
+
+      const subquery = buildFilterQuery()
+        .limit(limit)
+        .offset(offset)
+        .as("subquery");
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildFilterQuery()),
         readModelDB
-          .select({ purposeId: purposeInReadmodelPurpose.id })
+          .select({
+            purpose: purposeInReadmodelPurpose,
+            purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
+            purposeRiskAnalysisAnswer:
+              purposeRiskAnalysisAnswerInReadmodelPurpose,
+            purposeVersion: purposeVersionInReadmodelPurpose,
+            purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+            purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+            purposeVersionSignedDocument:
+              purposeVersionSignedDocumentInReadmodelPurpose,
+          })
           .from(purposeInReadmodelPurpose)
+          .innerJoin(
+            subquery,
+            eq(purposeInReadmodelPurpose.id, subquery.purposeId)
+          )
+          .leftJoin(
+            purposeRiskAnalysisFormInReadmodelPurpose,
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeRiskAnalysisFormInReadmodelPurpose.purposeId
+            )
+          )
+          .leftJoin(
+            purposeRiskAnalysisAnswerInReadmodelPurpose,
+            and(
+              eq(
+                purposeInReadmodelPurpose.id,
+                purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
+              ),
+              eq(
+                purposeRiskAnalysisFormInReadmodelPurpose.id,
+                purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+              )
+            )
+          )
           .leftJoin(
             purposeVersionInReadmodelPurpose,
             eq(
               purposeInReadmodelPurpose.id,
               purposeVersionInReadmodelPurpose.purposeId
+            )
+          )
+          .leftJoin(
+            purposeVersionDocumentInReadmodelPurpose,
+            eq(
+              purposeVersionInReadmodelPurpose.id,
+              purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+            )
+          )
+          .leftJoin(
+            purposeVersionStampInReadmodelPurpose,
+            eq(
+              purposeVersionInReadmodelPurpose.id,
+              purposeVersionStampInReadmodelPurpose.purposeVersionId
+            )
+          )
+          .leftJoin(
+            purposeVersionSignedDocumentInReadmodelPurpose,
+            eq(
+              purposeVersionInReadmodelPurpose.id,
+              purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+            )
+          )
+          .leftJoin(
+            delegationInReadmodelDelegation,
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              delegationInReadmodelDelegation.eserviceId
             )
           )
           .leftJoin(
@@ -276,105 +376,7 @@ export function readModelServiceBuilderSQL({
               eserviceInReadmodelCatalog.id
             )
           )
-          .where(
-            and(
-              getProducerIdsFilter(producersIds),
-              getConsumerIdsFilter(consumersIds),
-              getVisibilityFilter(requesterId),
-              getPurposesIdsFilter(purposesIds),
-              ...getPurposesFilters(readModelDB, otherFilters)
-            )
-          )
-          .groupBy(purposeInReadmodelPurpose.id)
-          .orderBy(ascLower(purposeInReadmodelPurpose.title))
-          .$dynamic()
-      );
-
-      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
-      const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-      const queryResultPromise = readModelDB
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
-          purposeVersionSignedDocument:
-            purposeVersionSignedDocumentInReadmodelPurpose,
-        })
-        .from(purposeInReadmodelPurpose)
-        .innerJoin(
-          subquery,
-          eq(purposeInReadmodelPurpose.id, subquery.purposeId)
-        )
-        .leftJoin(
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          and(
-            eq(
-              purposeInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
-            ),
-            eq(
-              purposeRiskAnalysisFormInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-            )
-          )
-        )
-        .leftJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionStampInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionStampInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionSignedDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
-        )
-        .orderBy(ascLower(purposeInReadmodelPurpose.title));
-      const [totalCount, queryResult] = await Promise.all([
-        totalCountPromise,
-        queryResultPromise,
+          .orderBy(ascLower(purposeInReadmodelPurpose.title)),
       ]);
 
       const purposes = aggregatePurposeArray(

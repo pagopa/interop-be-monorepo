@@ -665,34 +665,35 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const baseQuery = addDelegationJoins(
-        readmodelDB
-          .select({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-          .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.consumerId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, consumerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, consumerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .$dynamic()
-      );
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic()
+        );
 
       const [totalCount, resultSet] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -707,34 +708,35 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const baseQuery = addDelegationJoins(
-        readmodelDB
-          .select({
-            id: tenantInReadmodelTenant.id,
-            name: tenantInReadmodelTenant.name,
-          })
-          .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.producerId
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
+              id: tenantInReadmodelTenant.id,
+              name: tenantInReadmodelTenant.name,
+            })
+            .from(tenantInReadmodelTenant)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.producerId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, producerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, producerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .$dynamic()
-      );
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic()
+        );
 
       const [totalCount, resultSet] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -752,36 +754,37 @@ export function readModelServiceBuilderSQL(
       const { consumerIds, producerIds, eserviceName } = filters;
       const withDelegationFilter = true;
 
-      const baseQuery = addDelegationJoins(
-        readmodelDB
-          .select({
-            id: eserviceInReadmodelCatalog.id,
-            name: eserviceInReadmodelCatalog.name,
-          })
-          .from(eserviceInReadmodelCatalog)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              eserviceInReadmodelCatalog.id,
-              agreementInReadmodelAgreement.eserviceId
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
+              id: eserviceInReadmodelCatalog.id,
+              name: eserviceInReadmodelCatalog.name,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                agreementInReadmodelAgreement.eserviceId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-              getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+                getProducerIdsFilter(producerIds, withDelegationFilter),
+                getConsumerIdsFilter(consumerIds, withDelegationFilter),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(eserviceInReadmodelCatalog.id)
-          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
-          .$dynamic()
-      );
+            .groupBy(eserviceInReadmodelCatalog.id)
+            .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+            .$dynamic()
+        );
 
       const [totalCount, resultSet] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -853,29 +856,31 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<AgreementDocument>> {
-      const baseQuery = readmodelDB
-        .select({
-          id: agreementConsumerDocumentInReadmodelAgreement.id,
-          path: agreementConsumerDocumentInReadmodelAgreement.path,
-          name: agreementConsumerDocumentInReadmodelAgreement.name,
-          prettyName: agreementConsumerDocumentInReadmodelAgreement.prettyName,
-          contentType:
-            agreementConsumerDocumentInReadmodelAgreement.contentType,
-          createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
-        })
-        .from(agreementConsumerDocumentInReadmodelAgreement)
-        .where(
-          eq(
-            agreementConsumerDocumentInReadmodelAgreement.agreementId,
-            agreementId
+      const buildBaseQuery = () =>
+        readmodelDB
+          .select({
+            id: agreementConsumerDocumentInReadmodelAgreement.id,
+            path: agreementConsumerDocumentInReadmodelAgreement.path,
+            name: agreementConsumerDocumentInReadmodelAgreement.name,
+            prettyName:
+              agreementConsumerDocumentInReadmodelAgreement.prettyName,
+            contentType:
+              agreementConsumerDocumentInReadmodelAgreement.contentType,
+            createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
+          })
+          .from(agreementConsumerDocumentInReadmodelAgreement)
+          .where(
+            eq(
+              agreementConsumerDocumentInReadmodelAgreement.agreementId,
+              agreementId
+            )
           )
-        )
-        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
-        .$dynamic();
+          .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
+          .$dynamic();
 
       const [totalCount, resultsSet] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(

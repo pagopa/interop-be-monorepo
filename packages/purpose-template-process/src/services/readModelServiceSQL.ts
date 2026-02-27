@@ -218,106 +218,108 @@ export function readModelServiceBuilderSQL({
       { limit, offset }: { limit: number; offset: number },
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
-      const filterQuery = readModelDB
-        .select({
-          purposeTemplateId: purposeTemplateInReadmodelPurposeTemplate.id,
-        })
-        .from(purposeTemplateInReadmodelPurposeTemplate)
-        .leftJoin(
-          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateInReadmodelPurposeTemplate.id,
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+      const buildFilterQuery = () =>
+        readModelDB
+          .select({
+            purposeTemplateId: purposeTemplateInReadmodelPurposeTemplate.id,
+          })
+          .from(purposeTemplateInReadmodelPurposeTemplate)
+          .leftJoin(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+            )
           )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
-          )
-        )
-        .where(getPurposeTemplatesFilters(filters, authData))
-        .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-        .orderBy(
-          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-        )
-        .$dynamic();
-
-      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
-      const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-      const queryResultPromise = readModelDB
-        .select({
-          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
-          purposeRiskAnalysisFormTemplate:
+          .leftJoin(
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateAnswer:
-            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateAnswerAnnotation:
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateDocument:
-            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
-          purposeRiskAnalysisTemplateSignedDocument:
-            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
-        })
-        .from(purposeTemplateInReadmodelPurposeTemplate)
-        .innerJoin(
-          subquery,
-          eq(
-            purposeTemplateInReadmodelPurposeTemplate.id,
-            subquery.purposeTemplateId
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+            )
           )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          .where(getPurposeTemplatesFilters(filters, authData))
+          .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
+          .orderBy(
+            ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
           )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-          )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-          )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
-          )
-        )
-        .orderBy(
-          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-        );
+          .$dynamic();
+
+      const subquery = buildFilterQuery()
+        .limit(limit)
+        .offset(offset)
+        .as("subquery");
       const [totalCount, queryResult] = await Promise.all([
-        totalCountPromise,
-        queryResultPromise,
+        getTableTotalCount(readModelDB, buildFilterQuery()),
+        readModelDB
+          .select({
+            purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+            purposeRiskAnalysisFormTemplate:
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+            purposeRiskAnalysisTemplateAnswer:
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+            purposeRiskAnalysisTemplateAnswerAnnotation:
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+            purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+            purposeRiskAnalysisTemplateDocument:
+              purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+            purposeRiskAnalysisTemplateSignedDocument:
+              purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          })
+          .from(purposeTemplateInReadmodelPurposeTemplate)
+          .innerJoin(
+            subquery,
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              subquery.purposeTemplateId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+            )
+          )
+          .leftJoin(
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+              purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+            )
+          )
+          .orderBy(
+            ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+          ),
       ]);
 
       const purposeTemplates = aggregatePurposeTemplateArray(
@@ -405,44 +407,45 @@ export function readModelServiceBuilderSQL({
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
       }>
     > {
-      const baseQuery = readModelDB
-        .select({
-          answerId:
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
-          ...getTableColumns(
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-          ),
-        })
-        .from(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
-        )
-        .innerJoin(
-          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-          eq(
-            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
-            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
-          )
-        )
-        .where(
-          and(
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
+            answerId:
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId,
+            ...getTableColumns(
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
             ),
+          })
+          .from(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate
+          )
+          .innerJoin(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
             eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId,
+              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id
             )
           )
-        )
-        .orderBy(
-          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
-        )
-        .$dynamic();
+          .where(
+            and(
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              eq(
+                purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+                purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+              )
+            )
+          )
+          .orderBy(
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.createdAt
+          )
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const results: Array<{
@@ -500,45 +503,46 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<EServiceDescriptorPurposeTemplate>> {
       const { purposeTemplateId, producerIds, eserviceName } = filters;
 
-      const baseQuery = readModelDB
-        .select(
-          getTableColumns(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(
+            getTableColumns(
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+            )
           )
-        )
-        .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
-        )
-        .where(
-          and(
+          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+          .innerJoin(
+            eserviceInReadmodelCatalog,
             eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            producerIds.length > 0
-              ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
-              : undefined,
-            eserviceName
-              ? ilike(
-                  eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(eserviceName)}%`
-                )
-              : undefined
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+              eserviceInReadmodelCatalog.id
+            )
           )
-        )
-        .orderBy(
-          purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.createdAt
-        )
-        .$dynamic();
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              producerIds.length > 0
+                ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
+                : undefined,
+              eserviceName
+                ? ilike(
+                    eserviceInReadmodelCatalog.name,
+                    `%${escapeRegExp(eserviceName)}%`
+                  )
+                : undefined
+            )
+          )
+          .orderBy(
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.createdAt
+          )
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const purposeTemplateEServiceDescriptors =
@@ -603,42 +607,43 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<purposeTemplateApi.CompactOrganization>> {
-      const baseQuery = readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-        })
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          purposeTemplateInReadmodelPurposeTemplate,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              purposeTemplateInReadmodelPurposeTemplate.creatorId
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            purposeTemplateInReadmodelPurposeTemplate,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                purposeTemplateInReadmodelPurposeTemplate.creatorId
+              )
             )
           )
-        )
-        .where(
-          and(
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.state,
-              purposeTemplateState.published
-            ),
-            creatorName
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(creatorName)}%`
-                )
-              : undefined
+          .where(
+            and(
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.state,
+                purposeTemplateState.published
+              ),
+              creatorName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeRegExp(creatorName)}%`
+                  )
+                : undefined
+            )
           )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .$dynamic();
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(ascLower(tenantInReadmodelTenant.name))
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(

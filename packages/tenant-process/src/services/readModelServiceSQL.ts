@@ -78,44 +78,51 @@ export function readModelServiceBuilderSQL(
       limit,
     }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const baseQuery = tx
-          .selectDistinct({
-            tenantId: tenantInReadmodelTenant.id,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          })
-          .from(tenantInReadmodelTenant)
-          .leftJoin(
-            tenantFeatureInReadmodelTenant,
-            and(
-              eq(
-                tenantInReadmodelTenant.id,
-                tenantFeatureInReadmodelTenant.tenantId
+        const buildBaseQuery = () =>
+          tx
+            .selectDistinct({
+              tenantId: tenantInReadmodelTenant.id,
+              nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+            })
+            .from(tenantInReadmodelTenant)
+            .leftJoin(
+              tenantFeatureInReadmodelTenant,
+              and(
+                eq(
+                  tenantInReadmodelTenant.id,
+                  tenantFeatureInReadmodelTenant.tenantId
+                )
               )
             )
-          )
-          .where(
-            and(
-              features.length > 0
-                ? inArray(tenantFeatureInReadmodelTenant.kind, features)
-                : undefined,
-              name
-                ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
-                : undefined,
-              externalIdOrigin
-                ? eq(tenantInReadmodelTenant.externalIdOrigin, externalIdOrigin)
-                : undefined,
-              externalIdValue
-                ? eq(tenantInReadmodelTenant.externalIdValue, externalIdValue)
-                : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId)
+            .where(
+              and(
+                features.length > 0
+                  ? inArray(tenantFeatureInReadmodelTenant.kind, features)
+                  : undefined,
+                name
+                  ? ilike(
+                      tenantInReadmodelTenant.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined,
+                externalIdOrigin
+                  ? eq(
+                      tenantInReadmodelTenant.externalIdOrigin,
+                      externalIdOrigin
+                    )
+                  : undefined,
+                externalIdValue
+                  ? eq(tenantInReadmodelTenant.externalIdValue, externalIdValue)
+                  : undefined,
+                isNotNull(tenantInReadmodelTenant.selfcareId)
+              )
             )
-          )
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .$dynamic();
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic();
 
         const [totalCount, queryResult] = await Promise.all([
-          getTableTotalCount(tx, baseQuery),
-          baseQuery.limit(limit).offset(offset),
+          getTableTotalCount(tx, buildBaseQuery()),
+          buildBaseQuery().limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -222,43 +229,44 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const baseQuery = tx
-          .select({
-            tenantId: tenantInReadmodelTenant.id,
-          })
-          .from(tenantInReadmodelTenant)
-          .innerJoin(
-            agreementInReadmodelAgreement,
-            and(
-              eq(
-                tenantInReadmodelTenant.id,
-                agreementInReadmodelAgreement.consumerId
-              ),
-              eq(agreementInReadmodelAgreement.producerId, producerId),
-              inArray(agreementInReadmodelAgreement.state, [
-                agreementState.active,
-                agreementState.suspended,
-              ])
+        const buildBaseQuery = () =>
+          tx
+            .select({
+              tenantId: tenantInReadmodelTenant.id,
+            })
+            .from(tenantInReadmodelTenant)
+            .innerJoin(
+              agreementInReadmodelAgreement,
+              and(
+                eq(
+                  tenantInReadmodelTenant.id,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                eq(agreementInReadmodelAgreement.producerId, producerId),
+                inArray(agreementInReadmodelAgreement.state, [
+                  agreementState.active,
+                  agreementState.suspended,
+                ])
+              )
             )
-          )
-          .where(
-            and(
-              consumerName
-                ? ilike(
-                    tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(consumerName)}%`
-                  )
-                : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId)
+            .where(
+              and(
+                consumerName
+                  ? ilike(
+                      tenantInReadmodelTenant.name,
+                      `%${escapeRegExp(consumerName)}%`
+                    )
+                  : undefined,
+                isNotNull(tenantInReadmodelTenant.selfcareId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .$dynamic();
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic();
 
         const [totalCount, queryResult] = await Promise.all([
-          getTableTotalCount(tx, baseQuery),
-          baseQuery.limit(limit).offset(offset),
+          getTableTotalCount(tx, buildBaseQuery()),
+          buildBaseQuery().limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -283,38 +291,39 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       return await readModelDB.transaction(async (tx) => {
-        const baseQuery = tx
-          .select({
-            tenantId: tenantInReadmodelTenant.id,
-          })
-          .from(tenantInReadmodelTenant)
-          .innerJoin(
-            eserviceInReadmodelCatalog,
-            and(
-              eq(
-                tenantInReadmodelTenant.id,
-                eserviceInReadmodelCatalog.producerId
+        const buildBaseQuery = () =>
+          tx
+            .select({
+              tenantId: tenantInReadmodelTenant.id,
+            })
+            .from(tenantInReadmodelTenant)
+            .innerJoin(
+              eserviceInReadmodelCatalog,
+              and(
+                eq(
+                  tenantInReadmodelTenant.id,
+                  eserviceInReadmodelCatalog.producerId
+                )
               )
             )
-          )
-          .where(
-            and(
-              producerName
-                ? ilike(
-                    tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(producerName)}%`
-                  )
-                : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId)
+            .where(
+              and(
+                producerName
+                  ? ilike(
+                      tenantInReadmodelTenant.name,
+                      `%${escapeRegExp(producerName)}%`
+                    )
+                  : undefined,
+                isNotNull(tenantInReadmodelTenant.selfcareId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .$dynamic();
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic();
 
         const [totalCount, queryResult] = await Promise.all([
-          getTableTotalCount(tx, baseQuery),
-          baseQuery.limit(limit).offset(offset),
+          getTableTotalCount(tx, buildBaseQuery()),
+          buildBaseQuery().limit(limit).offset(offset),
         ]);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
@@ -393,45 +402,46 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
-      const baseQuery = readModelDB
-        .selectDistinct({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
-          attributeName: attributeInReadmodelAttribute.name,
-        })
-        .from(tenantCertifiedAttributeInReadmodelTenant)
-        .innerJoin(
-          attributeInReadmodelAttribute,
-          and(
-            eq(
-              tenantCertifiedAttributeInReadmodelTenant.attributeId,
-              attributeInReadmodelAttribute.id
-            ),
-            eq(attributeInReadmodelAttribute.origin, certifierId),
-            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
-            isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+      const buildBaseQuery = () =>
+        readModelDB
+          .selectDistinct({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+            attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeName: attributeInReadmodelAttribute.name,
+          })
+          .from(tenantCertifiedAttributeInReadmodelTenant)
+          .innerJoin(
+            attributeInReadmodelAttribute,
+            and(
+              eq(
+                tenantCertifiedAttributeInReadmodelTenant.attributeId,
+                attributeInReadmodelAttribute.id
+              ),
+              eq(attributeInReadmodelAttribute.origin, certifierId),
+              eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
+              isNull(
+                tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+              )
             )
           )
-        )
-        .innerJoin(
-          tenantInReadmodelTenant,
-          eq(
-            tenantCertifiedAttributeInReadmodelTenant.tenantId,
-            tenantInReadmodelTenant.id
+          .innerJoin(
+            tenantInReadmodelTenant,
+            eq(
+              tenantCertifiedAttributeInReadmodelTenant.tenantId,
+              tenantInReadmodelTenant.id
+            )
           )
-        )
-        .orderBy(
-          ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name
-        )
-        .$dynamic();
+          .orderBy(
+            ascLower(tenantInReadmodelTenant.name),
+            attributeInReadmodelAttribute.name
+          )
+          .$dynamic();
 
       const [totalCount, res] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(
@@ -502,40 +512,43 @@ export function readModelServiceBuilderSQL(
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantVerifier>> {
-      const baseQuery = readModelDB
-        .select({
-          verifierId:
-            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
-          verificationDate:
-            tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
-          expirationDate:
-            tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
-          extensionDate:
-            tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
-          delegationId:
-            tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
-        })
-        .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
-        .where(
-          and(
-            eq(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantId
-            ),
-            eq(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
-              attributeId
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
+            verifierId:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifierId,
+            verificationDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
+            expirationDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.expirationDate,
+            extensionDate:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
+            delegationId:
+              tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
+          })
+          .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+          .where(
+            and(
+              eq(
+                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+                tenantId
+              ),
+              eq(
+                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
+                attributeId
+              )
             )
           )
-        )
-        .orderBy(
-          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
-        )
-        .$dynamic();
+          .orderBy(
+            asc(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate
+            )
+          )
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.offset(offset).limit(limit),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().offset(offset).limit(limit),
       ]);
 
       return createListResult(
@@ -560,42 +573,43 @@ export function readModelServiceBuilderSQL(
       attributeId: AttributeId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantRevoker>> {
-      const baseQuery = readModelDB
-        .select({
-          revokerId:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
-          verificationDate:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
-          expirationDate:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
-          extensionDate:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
-          revocationDate:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
-          delegationId:
-            tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
-        })
-        .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
-        .where(
-          and(
-            eq(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantId
-            ),
-            eq(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
-              attributeId
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
+            revokerId:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantRevokerId,
+            verificationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.verificationDate,
+            expirationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.expirationDate,
+            extensionDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.extensionDate,
+            revocationDate:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
+            delegationId:
+              tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
+          })
+          .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+          .where(
+            and(
+              eq(
+                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+                tenantId
+              ),
+              eq(
+                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
+                attributeId
+              )
             )
           )
-        )
-        .orderBy(
-          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
-        )
-        .$dynamic();
+          .orderBy(
+            asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
+          )
+          .$dynamic();
 
       const [totalCount, queryResult] = await Promise.all([
-        getTableTotalCount(readModelDB, baseQuery),
-        baseQuery.offset(offset).limit(limit),
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().offset(offset).limit(limit),
       ]);
 
       return createListResult(

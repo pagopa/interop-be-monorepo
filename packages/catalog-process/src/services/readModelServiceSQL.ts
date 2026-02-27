@@ -578,46 +578,47 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      const baseQuery = readmodelDB
-        .selectDistinctOn([tenantInReadmodelTenant.id], {
-          tenant: tenantInReadmodelTenant,
-          agreement: agreementInReadmodelAgreement,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-        })
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
+      const buildBaseQuery = () =>
+        readmodelDB
+          .selectDistinctOn([tenantInReadmodelTenant.id], {
+            tenant: tenantInReadmodelTenant,
+            agreement: agreementInReadmodelAgreement,
+            descriptor: eserviceDescriptorInReadmodelCatalog,
+          })
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.consumerId
+              ),
+              inArray(agreementInReadmodelAgreement.state, [
+                agreementState.active,
+                agreementState.suspended,
+              ])
+            )
           )
-        )
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          and(
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
-            ),
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.published,
-              descriptorState.deprecated,
-              descriptorState.suspended,
-            ])
+          .innerJoin(
+            eserviceDescriptorInReadmodelCatalog,
+            and(
+              eq(
+                agreementInReadmodelAgreement.descriptorId,
+                eserviceDescriptorInReadmodelCatalog.id
+              ),
+              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+              inArray(eserviceDescriptorInReadmodelCatalog.state, [
+                descriptorState.published,
+                descriptorState.deprecated,
+                descriptorState.suspended,
+              ])
+            )
           )
-        )
-        .$dynamic();
+          .$dynamic();
 
       const [totalCount, res] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       const consumers: Consumer[] = res.map((row) => ({
@@ -816,35 +817,37 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Document>> {
-      const baseQuery = readmodelDB
-        .select({
-          id: eserviceDescriptorDocumentInReadmodelCatalog.id,
-          path: eserviceDescriptorDocumentInReadmodelCatalog.path,
-          name: eserviceDescriptorDocumentInReadmodelCatalog.name,
-          prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
-          contentType: eserviceDescriptorDocumentInReadmodelCatalog.contentType,
-          checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
-          uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
-        })
-        .from(eserviceDescriptorDocumentInReadmodelCatalog)
-        .where(
-          and(
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
-              eserviceId
-            ),
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
-              descriptorId
+      const buildBaseQuery = () =>
+        readmodelDB
+          .select({
+            id: eserviceDescriptorDocumentInReadmodelCatalog.id,
+            path: eserviceDescriptorDocumentInReadmodelCatalog.path,
+            name: eserviceDescriptorDocumentInReadmodelCatalog.name,
+            prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
+            contentType:
+              eserviceDescriptorDocumentInReadmodelCatalog.contentType,
+            checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
+            uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
+          })
+          .from(eserviceDescriptorDocumentInReadmodelCatalog)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
+                eserviceId
+              ),
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+                descriptorId
+              )
             )
           )
-        )
-        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
-        .$dynamic();
+          .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
+          .$dynamic();
 
       const [totalCount, resultsSet] = await Promise.all([
-        getTableTotalCount(readmodelDB, baseQuery),
-        baseQuery.limit(limit).offset(offset),
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
       ]);
 
       return createListResult(
