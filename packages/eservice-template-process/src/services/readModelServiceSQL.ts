@@ -207,77 +207,75 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
         .$dynamic();
 
+      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
 
-      const [queryResult, totalCount] = await Promise.all([
-        readModelDB
-          .select({
-            eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-            version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-            interface:
-              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-            document:
-              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-            attribute:
-              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-            riskAnalysis:
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-            riskAnalysisAnswer:
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          })
-          .from(eserviceTemplateInReadmodelEserviceTemplate)
-          .innerJoin(
-            subquery,
-            eq(
-              subquery.eserviceTemplateId,
-              eserviceTemplateInReadmodelEserviceTemplate.id
-            )
-          )
-          .leftJoin(
-            eserviceTemplateVersionInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-            )
-          )
-          .leftJoin(
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+          interface:
             eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
+          document:
             eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
+          attribute:
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
+          riskAnalysis:
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-            )
-          )
-          .leftJoin(
+          riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-            )
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          subquery,
+          eq(
+            subquery.eserviceTemplateId,
+            eserviceTemplateInReadmodelEserviceTemplate.id
           )
-          .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name)),
-        getTableTotalCount(readModelDB, filterQuery),
-      ]);
+        )
+        .leftJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+          )
+        )
+        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
 
       const eserviceTemplates = aggregateEServiceTemplateArray(
         toEServiceTemplateAggregatorArray(queryResult)

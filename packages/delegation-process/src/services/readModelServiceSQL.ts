@@ -158,47 +158,45 @@ export function readModelServiceBuilderSQL({
         .orderBy(delegationInReadmodelDelegation.createdAt)
         .$dynamic();
 
+      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
 
-      const [queryResult, totalCount] = await Promise.all([
-        readModelDB
-          .select({
-            delegation: delegationInReadmodelDelegation,
-            delegationStamp: delegationStampInReadmodelDelegation,
-            delegationContractDocument:
-              delegationContractDocumentInReadmodelDelegation,
-            delegationSignedContractDocument:
-              delegationSignedContractDocumentInReadmodelDelegation,
-          })
-          .from(delegationInReadmodelDelegation)
-          .innerJoin(
-            subquery,
-            eq(delegationInReadmodelDelegation.id, subquery.delegationId)
-          )
-          .leftJoin(
-            delegationStampInReadmodelDelegation,
-            eq(
-              delegationInReadmodelDelegation.id,
-              delegationStampInReadmodelDelegation.delegationId
-            )
-          )
-          .leftJoin(
+      const queryResult = await readModelDB
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
-            eq(
-              delegationInReadmodelDelegation.id,
-              delegationContractDocumentInReadmodelDelegation.delegationId
-            )
-          )
-          .leftJoin(
+          delegationSignedContractDocument:
             delegationSignedContractDocumentInReadmodelDelegation,
-            eq(
-              delegationInReadmodelDelegation.id,
-              delegationSignedContractDocumentInReadmodelDelegation.delegationId
-            )
+        })
+        .from(delegationInReadmodelDelegation)
+        .innerJoin(
+          subquery,
+          eq(delegationInReadmodelDelegation.id, subquery.delegationId)
+        )
+        .leftJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
           )
-          .orderBy(delegationInReadmodelDelegation.createdAt),
-        getTableTotalCount(readModelDB, filterQuery),
-      ]);
+        )
+        .leftJoin(
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
+        .orderBy(delegationInReadmodelDelegation.createdAt);
 
       const delegations = aggregateDelegationArray(
         toDelegationAggregatorArray(queryResult)

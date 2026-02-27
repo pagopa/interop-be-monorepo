@@ -244,80 +244,78 @@ export function readModelServiceBuilderSQL({
         )
         .$dynamic();
 
+      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
 
-      const [queryResult, totalCount] = await Promise.all([
-        readModelDB
-          .select({
-            purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
-            purposeRiskAnalysisFormTemplate:
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-            purposeRiskAnalysisTemplateAnswer:
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-            purposeRiskAnalysisTemplateAnswerAnnotation:
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-            purposeRiskAnalysisTemplateAnswerAnnotationDocument:
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-            purposeRiskAnalysisTemplateDocument:
-              purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
-            purposeRiskAnalysisTemplateSignedDocument:
-              purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
-          })
-          .from(purposeTemplateInReadmodelPurposeTemplate)
-          .innerJoin(
-            subquery,
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              subquery.purposeTemplateId
-            )
-          )
-          .leftJoin(
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate:
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
-            )
-          )
-          .leftJoin(
+          purposeRiskAnalysisTemplateAnswer:
             purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
-          )
-          .leftJoin(
+          purposeRiskAnalysisTemplateAnswerAnnotation:
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
-            )
-          )
-          .leftJoin(
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
-            )
-          )
-          .leftJoin(
+          purposeRiskAnalysisTemplateDocument:
             purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
-          )
-          .leftJoin(
+          purposeRiskAnalysisTemplateSignedDocument:
             purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
-              purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
-            )
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .innerJoin(
+          subquery,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            subquery.purposeTemplateId
           )
-          .orderBy(
-            ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-          ),
-        getTableTotalCount(readModelDB, filterQuery),
-      ]);
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        );
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)

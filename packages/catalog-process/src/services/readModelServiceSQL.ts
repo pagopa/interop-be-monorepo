@@ -438,7 +438,8 @@ export function readModelServiceBuilderSQL(
 
         const ids = (await idsSQLquery).map((result) => result.id);
 
-        const [queryResult, totalCount] = await Promise.all([
+        const [totalCount, queryResult] = await Promise.all([
+          buildQuery(totalCountQuery),
           tx
             .select({
               eservice: eserviceInReadmodelCatalog,
@@ -517,7 +518,6 @@ export function readModelServiceBuilderSQL(
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
-          buildQuery(totalCountQuery),
         ]);
 
         const eservices = aggregateEserviceArray(
