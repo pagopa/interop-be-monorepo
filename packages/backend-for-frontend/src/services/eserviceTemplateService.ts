@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import {
   bffApi,
   attributeRegistryApi,
-  catalogApi,
   eserviceTemplateApi,
   inAppNotificationApi,
   tenantApi,
@@ -50,7 +49,6 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
-  catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
