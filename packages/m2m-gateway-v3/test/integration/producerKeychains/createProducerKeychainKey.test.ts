@@ -2,18 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
-  getMockedApiProducerJWK,
+  getMockedApiFullProducerKeychain,
   getMockedApiKey,
+  getMockedApiProducerJWK,
 } from "pagopa-interop-commons-test";
-import { generateId, ProducerKeychainId } from "pagopa-interop-models";
+import { ProducerKeychainId, generateId } from "pagopa-interop-models";
 import {
-  producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
-  mockInteropBeClients as mockInteropBeProducerKeychains,
+  mockInteropBeClients,
+  producerKeychainService,
+  mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("createProducerKeychainKey", () => {
   const producerKeychainId = generateId<ProducerKeychainId>();
@@ -21,30 +23,34 @@ describe("createProducerKeychainKey", () => {
     producerKeychainId,
   }).jwk;
 
-  const mockApiProducerKeychainKey = getMockedApiKey({
-    kid: mockApiProducerKeychainJWK.kid,
-  });
-
-  const mockApiProducerKeychainKeyWithMetadata = getMockWithMetadata(
-    mockApiProducerKeychainKey
+  const mockApiProducerKeychainKey = getMockWithMetadata(
+    getMockedApiKey({
+      kid: mockApiProducerKeychainJWK.kid,
+    })
   );
 
-  const mockCreateProducerKeychainKey = vi
-    .fn()
-    .mockResolvedValue(mockApiProducerKeychainKeyWithMetadata);
+  const mockApiProducerKeychain = getMockedApiFullProducerKeychain();
+  const mockApiProducerKeychainWithMetadata = getMockWithMetadata(
+    mockApiProducerKeychain
+  );
 
-  const mockGetProducerKeychainKeyById = vi
-    .fn()
-    .mockResolvedValue(mockApiProducerKeychainKeyWithMetadata);
+  mockApiProducerKeychainWithMetadata.metadata.version =
+    mockApiProducerKeychainKey.metadata.version + 1;
 
   const mockGetJWKByKid = vi.fn(() =>
     Promise.resolve(getMockWithMetadata({ jwk: mockApiProducerKeychainJWK }))
   );
 
-  mockInteropBeProducerKeychains.authorizationClient = {
+  const mockCreateProducerKeychainKey = vi
+    .fn()
+    .mockResolvedValue(mockApiProducerKeychainKey);
+
+  const mockGetProducerKeychain = vi.fn();
+
+  mockInteropBeClients.authorizationClient = {
     producerKeychain: {
       createProducerKey: mockCreateProducerKeychainKey,
-      getProducerKeyById: mockGetProducerKeychainKeyById,
+      getProducerKeychain: mockGetProducerKeychain,
     },
     key: {
       getJWKByKid: mockGetJWKByKid,
@@ -84,25 +90,21 @@ describe("createProducerKeychainKey", () => {
   };
 
   beforeEach(() => {
-    mockCreateProducerKeychainKey.mockClear();
-    mockGetJWKByKid.mockClear();
+    vi.clearAllMocks();
+    mockGetProducerKeychain.mockImplementation(
+      mockPollingResponse(mockApiProducerKeychainWithMetadata, 1)
+    );
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mClientJWKsResponse: m2mGatewayApiV3.JWK = expectedM2MJWK;
-
+  it("Should succeed and perform API producerKeychains calls", async () => {
     const result = await producerKeychainService.createProducerKeychainKey(
       producerKeychainId,
       keySeed,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual({
-      producerKeychainId,
-      jwk: m2mClientJWKsResponse,
-    });
+    expect(result).toEqual({ jwk: expectedM2MJWK, producerKeychainId });
 
-    // Create
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockCreateProducerKeychainKey,
       params: {
@@ -111,16 +113,15 @@ describe("createProducerKeychainKey", () => {
       body: keySeed,
     });
 
-    // Polling
+    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(2);
+
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetProducerKeychainKeyById,
+      mockGet: mockGetProducerKeychain,
       params: {
-        keyId: mockApiProducerKeychainKey.kid,
         producerKeychainId,
       },
     });
 
-    // Get JWK
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetJWKByKid,
       params: {
