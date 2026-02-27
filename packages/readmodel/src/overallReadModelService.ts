@@ -109,7 +109,15 @@ import {
 } from "./purpose/aggregators.js";
 import { aggregateTenantArray } from "./tenant/aggregators.js";
 import { aggregateProducerJWKKeyArray } from "./producer-jwk-key/aggregators.js";
-import { aggregateClientArray, aggregateClientJWKKeyArray, aggregateProducerKeychainArray, aggregatePurposeTemplateArray, toClientAggregatorArray, toProducerKeychainAggregatorArray, toPurposeTemplateAggregatorArray } from "./index.js";
+import {
+  aggregateClientArray,
+  aggregateClientJWKKeyArray,
+  aggregateProducerKeychainArray,
+  aggregatePurposeTemplateArray,
+  toClientAggregatorArray,
+  toProducerKeychainAggregatorArray,
+  toPurposeTemplateAggregatorArray,
+} from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
@@ -188,10 +196,10 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-            )
+          eq(
+            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          )
         );
 
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
@@ -306,7 +314,8 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-          purposeVersionSignedDocument: purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
@@ -504,7 +513,8 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
-            delegationSignedContractDocument: delegationSignedContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(
@@ -526,7 +536,7 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           eq(
             delegationInReadmodelDelegation.id,
             delegationSignedContractDocumentInReadmodelDelegation.delegationId
-          ) 
+          )
         );
 
       return aggregateDelegationsArray(

@@ -9,9 +9,7 @@ import { DelegationDbTableConfig } from "./delegation.js";
 import { PurposeDbTableConfig } from "./purpose.js";
 import { EserviceTemplateDbTableConfig } from "./eserviceTemplate.js";
 import { TenantDbTableConfig } from "./tenant.js";
-import {
-  PurposeTemplateDbTableConfig,
-} from "./purposeTemplate.js";
+import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,
