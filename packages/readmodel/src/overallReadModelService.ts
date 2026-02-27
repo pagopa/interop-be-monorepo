@@ -11,6 +11,7 @@ import {
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -57,6 +58,13 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
@@ -101,7 +109,7 @@ import {
 } from "./purpose/aggregators.js";
 import { aggregateTenantArray } from "./tenant/aggregators.js";
 import { aggregateProducerJWKKeyArray } from "./producer-jwk-key/aggregators.js";
-import { aggregateClientArray, aggregateClientJWKKeyArray, aggregateProducerKeychainArray, toClientAggregatorArray, toProducerKeychainAggregatorArray } from "./index.js";
+import { aggregateClientArray, aggregateClientJWKKeyArray, aggregateProducerKeychainArray, aggregatePurposeTemplateArray, toClientAggregatorArray, toProducerKeychainAggregatorArray, toPurposeTemplateAggregatorArray } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
@@ -523,6 +531,73 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
 
       return aggregateDelegationsArray(
         toDelegationAggregatorArray(queryResult)
+      );
+    },
+    async getAllPurposeTemplates(): Promise<
+      Array<WithMetadata<PurposeTemplate>>
+    > {
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate:
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswer:
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotation:
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
       );
     },
   };
