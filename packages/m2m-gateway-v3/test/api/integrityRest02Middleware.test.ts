@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
+import express, { Request, Response, Express } from "express";
 import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
@@ -11,6 +12,7 @@ import {
   genericLogger,
   calculateIntegrityRest02DigestFromBody,
   IntegrityRest02SignedHeaders,
+  integrityRest02Middleware,
 } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -18,6 +20,7 @@ import {
   api,
   mockAttributeService,
   mockClientService,
+  mockKmsClient,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
@@ -32,6 +35,42 @@ function decodeJwtPayload(token: string): { [k: string]: unknown } {
   const decoded = Buffer.from(payload, "base64url").toString("utf8");
 
   return JSON.parse(decoded);
+}
+
+function makeDummyApi(): Express {
+  const app = express();
+
+  // minimal ctx bootstrap middleware
+  app.use((req: Request & { ctx?: unknown }, _res, next) => {
+    req.ctx = {
+      correlationId: "test",
+      serviceName: "test",
+      logger: {
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+      },
+      rateLimiter: undefined,
+    };
+    next();
+  });
+
+  app.use(
+    integrityRest02Middleware(
+      {
+        integrityRestSignatureKid: "ffcc9b5b-4612-49b1-9374-9d203a3834f2",
+        integrityRestSignatureIssuer: "test",
+        integrityRestSignatureSecondsDuration: 100,
+      },
+      mockKmsClient
+    )
+  );
+
+  app.get("/test/204", (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
+  return app;
 }
 
 describe("integrityRest02Middleware", () => {
@@ -204,5 +243,16 @@ describe("integrityRest02Middleware", () => {
       body: res.text,
     });
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+  });
+
+  it("Should return 500 if the response is 204", async () => {
+    const app = makeDummyApi();
+    const res = await request(app).get(`/test/204`).send();
+    expect(res.status).toBe(500);
+    expect(res.text).toMatch(
+      /Integrity REST 02 middleware should not be used for responses with status code [2-3]04 as they must not have a body/gi
+    );
+    expect(res.headers.digest).toBeUndefined();
+    expect(res.headers["agid-jwt-signature"]).toBeUndefined();
   });
 });
