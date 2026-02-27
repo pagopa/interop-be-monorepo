@@ -180,16 +180,10 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          and(
             eq(
               eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
               eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-            ),
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
-          )
         );
 
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
