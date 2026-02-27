@@ -132,6 +132,17 @@ paths:
             default: []
           explode: false
         - in: query
+          name: personalData
+          description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+          required: false
+          schema:
+            type: string
+            description: Filter e-services by personal data
+            enum:
+              - "TRUE"
+              - "FALSE"
+              - DEFINED
+        - in: query
           name: offset
           required: true
           schema:
@@ -145,7 +156,7 @@ paths:
             type: integer
             format: int32
             minimum: 1
-            maximum: 50
+            maximum: 200
       responses:
         "200":
           description: A list of E-Service
@@ -178,8 +189,8 @@ paths:
         "200":
           description: EService created
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -199,6 +210,13 @@ paths:
   /eservices/{eServiceId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: The E-Service id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       security:
         - bearerAuth: []
@@ -207,13 +225,6 @@ paths:
       summary: Get an e-service
       operationId: getEServiceById
       description: Retrieves an E-Service by its ID
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           description: E-Service retrieved
@@ -222,8 +233,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/EService"
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "404":
           description: E-Service not found
           content:
@@ -241,16 +252,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates e-service general information
-      operationId: updateEServiceById
-      description: Updates the general information of the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id to update
-          required: true
-          schema:
-            type: string
+      summary: Updates Draft E-Service general information
+      operationId: updateDraftEServiceById
+      description: Updates the general information of the specified Draft E-Service
       requestBody:
         description: An E-Service update seed containing the possible updatable fields
         required: true
@@ -265,14 +269,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service not found
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates Draft E-Service general information
+      operationId: patchUpdateDraftEServiceById
+      description: Partially updates the general information of the specified Draft E-Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
@@ -518,10 +582,13 @@ paths:
       responses:
         "200":
           description: EService Descriptor created.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptor"
+                $ref: "#/components/schemas/CreatedEServiceDescriptor"
         "400":
           description: Invalid input
           content:
@@ -581,6 +648,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: The E-Service id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The Descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       security:
         - bearerAuth: []
@@ -604,6 +685,9 @@ paths:
             type: string
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: E-Service draft Descriptor deleted
         "400":
           description: Invalid input
@@ -622,22 +706,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates a draft descriptor
+      summary: Updates a Draft Descriptor
       operationId: updateDraftDescriptor
-      description: Updates a draft descriptor for the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: The E-Service id
-          required: true
-          schema:
-            type: string
-        - name: descriptorId
-          in: path
-          description: The Descriptor Id
-          required: true
-          schema:
-            type: string
+      description: Updates a Draft Descriptor for the specified E-Service
       requestBody:
         description: An E-Service Descriptor seed
         content:
@@ -647,13 +718,62 @@ paths:
         required: true
       responses:
         "200":
-          description: EService with draft descriptor updated.
+          description: E-Service with Draft Descriptor updated
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Partially updates a Draft Descriptor
+      operationId: patchUpdateDraftDescriptor
+      description: Partially updates a Draft Descriptor for the specified E-Service
+      requestBody:
+        description: A partial E-Service Descriptor seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceDescriptorSeed"
+        required: true
+      responses:
+        "200":
+          description: E-Service with Draft Descriptor updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:
@@ -740,8 +860,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -786,8 +906,8 @@ paths:
         "200":
           description: E-Service Descriptor suspended
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -822,18 +942,20 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: E-Service Descriptor activated
           headers:
-              X-Metadata-Version:
-                $ref: "#/components/headers/MetadataVersionHeader"
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -846,6 +968,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -972,6 +1100,9 @@ paths:
       responses:
         "200":
           description: EService descriptor updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1055,6 +1186,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -1063,21 +1208,6 @@ paths:
       summary: Add new e-service document
       operationId: createEServiceDocument
       description: Adds a new document to the specified E-Service
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1109,6 +1239,55 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a list of e-service documents
+      operationId: getEServiceDocuments
+      description: Retrieves a list of documents for the specified E-Service
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: EService documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDocs"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
           content:
             application/problem+json:
               schema:
@@ -1453,8 +1632,21 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
-        "204":
-          description: EService Risk Analysis created.
+        "200":
+          description: EService Risk Analysis created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedEServiceRiskAnalysis"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -1467,8 +1659,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1552,6 +1744,9 @@ paths:
             format: uuid
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: EService Risk Analysis deleted.
         "403":
           description: Forbidden
@@ -1600,6 +1795,9 @@ paths:
       responses:
         "200":
           description: EService description updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1651,6 +1849,9 @@ paths:
       responses:
         "200":
           description: EService flags updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1708,6 +1909,9 @@ paths:
       responses:
         "200":
           description: EService name updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1739,6 +1943,7 @@ paths:
       tags:
         - process
       summary: Enable/disable SignalHub for an e-service
+      description: Enable or disable SignalHub for an e-service
       operationId: updateEServiceSignalHubFlag
       parameters:
         - name: eServiceId
@@ -1758,6 +1963,9 @@ paths:
       responses:
         "200":
           description: EService SignalHub flag updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1765,25 +1973,82 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Set personalData flag for an eservice after publication
+      operationId: updateEServicePersonalDataFlagAfterPublication
+      description: Set personalData flag for an eservice after publication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: EService personalData flag updated
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
@@ -1813,8 +2078,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: New delegated e-service version approved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
@@ -1867,8 +2139,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: New delegated e-service version rejected
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
@@ -1923,6 +2202,9 @@ paths:
       responses:
         "200":
           description: EService descriptor attributes updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -2013,6 +2295,43 @@ paths:
       responses:
         "204":
           description: E-Service description updated
+        "404":
+          description: E-Service Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/templates/eservices/{eServiceId}/personalDataFlag:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - process
+      requestBody:
+        description: A payload containing a boolean that describes the personalData flag
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      operationId: setTemplateInstancePersonalDataFlag
+      description: Update the personalData flag of a template instance after a template update
+      responses:
+        "204":
+          description: E-Service personalData flag updated
         "404":
           description: E-Service Not Found
           content:
@@ -2413,6 +2732,8 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2440,6 +2761,33 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        personalData:
+          type: boolean
+    PatchUpdateEServiceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        personalData:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -2536,6 +2884,18 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+    CreatedEServiceDescriptor:
+      type: object
+      additionalProperties: false
+      required:
+        - eservice
+        - createdDescriptorId
+      properties:
+        eservice:
+          $ref: "#/components/schemas/EService"
+        createdDescriptorId:
+          type: string
+          format: uuid
     EServiceInstanceDescriptorSeed:
       required:
         - audience
@@ -2606,6 +2966,41 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+    PatchUpdateEServiceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/PatchAttributesSeed"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -2751,6 +3146,26 @@ components:
         - certified
         - declared
         - verified
+    PatchAttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
     AttributeSeed:
       type: object
       additionalProperties: false
@@ -2843,6 +3258,21 @@ components:
         isClientAccessDelegable:
           type: boolean
         templateId:
+          type: string
+          format: uuid
+        personalData:
+          type: boolean
+
+    CreatedEServiceRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - eservice
+        - createdRiskAnalysisId
+      properties:
+        eservice:
+          $ref: "#/components/schemas/EService"
+        createdRiskAnalysisId:
           type: string
           format: uuid
     EServiceTemplateVersionRef:
@@ -3063,6 +3493,20 @@ components:
           format: date-time
         contacts:
           $ref: "#/components/schemas/DescriptorInterfaceContacts"
+    EServiceDocs:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptionUpdateSeed:
       type: object
       additionalProperties: false
@@ -3102,6 +3546,14 @@ components:
           type: boolean
       required:
         - isSignalHubEnabled
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
     EServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3351,7 +3803,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

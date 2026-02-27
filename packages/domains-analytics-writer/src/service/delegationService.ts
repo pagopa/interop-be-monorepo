@@ -9,11 +9,15 @@ import { delegationStampRepository } from "../repository/delegation/delegationSt
 import { delegationContractDocumentRepository } from "../repository/delegation/delegationContractDocument.repository.js";
 import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
 import { DelegationDbTable } from "../model/db/delegation.js";
+import { delegationSignedContractDocumentRepository } from "../repository/delegation/delegationSignedContractDocument.repository.js";
 
 export function delegationServiceBuilder(dbContext: DBContext) {
   const delegationRepo = delegationRepository(dbContext.conn);
   const stampRepo = delegationStampRepository(dbContext.conn);
   const contractDocumentRepo = delegationContractDocumentRepository(
+    dbContext.conn
+  );
+  const signedContractDocumentRepo = delegationSignedContractDocumentRepository(
     dbContext.conn
   );
 
@@ -32,6 +36,9 @@ export function delegationServiceBuilder(dbContext: DBContext) {
             stampsSQL: batch.flatMap((item) => item.stampsSQL),
             contractDocumentsSQL: batch.flatMap(
               (item) => item.contractDocumentsSQL
+            ),
+            contractSignedDocumentsSQL: batch.flatMap(
+              (item) => item.contractSignedDocumentsSQL
             ),
           };
 
@@ -52,6 +59,13 @@ export function delegationServiceBuilder(dbContext: DBContext) {
               batchItems.contractDocumentsSQL
             );
           }
+          if (batchItems.contractSignedDocumentsSQL.length) {
+            await signedContractDocumentRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.contractSignedDocumentsSQL
+            );
+          }
 
           genericLogger.info(
             `Staging delegation batch inserted: ${batch
@@ -63,6 +77,7 @@ export function delegationServiceBuilder(dbContext: DBContext) {
         await delegationRepo.merge(t);
         await stampRepo.merge(t);
         await contractDocumentRepo.merge(t);
+        await signedContractDocumentRepo.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -72,6 +87,7 @@ export function delegationServiceBuilder(dbContext: DBContext) {
           [
             DelegationDbTable.delegation_contract_document,
             DelegationDbTable.delegation_stamp,
+            DelegationDbTable.delegation_signed_contract_document,
           ],
           DelegationDbTable.delegation
         );
@@ -84,10 +100,9 @@ export function delegationServiceBuilder(dbContext: DBContext) {
       await delegationRepo.clean();
       await stampRepo.clean();
       await contractDocumentRepo.clean();
+      await signedContractDocumentRepo.clean();
 
       genericLogger.info(`Staging data cleaned for delegation tables`);
     },
   };
 }
-
-export type DelegationService = ReturnType<typeof delegationServiceBuilder>;

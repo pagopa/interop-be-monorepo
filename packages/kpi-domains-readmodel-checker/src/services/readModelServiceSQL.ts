@@ -11,6 +11,7 @@ import {
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -33,12 +34,15 @@ import {
   toDelegationAggregatorArray,
   aggregateEServiceTemplateArray,
   toEServiceTemplateAggregatorArray,
+  aggregatePurposeTemplateArray,
+  toPurposeTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   clientInReadmodelClient,
@@ -48,6 +52,7 @@ import {
   clientUserInReadmodelClient,
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
+  delegationSignedContractDocumentInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
@@ -74,8 +79,17 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   TenantCertifiedAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
@@ -301,6 +315,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -334,6 +351,22 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          // 5
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          // 6
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
@@ -347,6 +380,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -379,6 +413,14 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 5
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 
@@ -488,6 +530,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(
@@ -505,10 +549,85 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
           )
+        )
+        .leftJoin(
+          // 3
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
+          )
         );
 
       return aggregateDelegationsArray(
         toDelegationAggregatorArray(queryResult)
+      );
+    },
+    async getAllPurposeTemplates(): Promise<
+      Array<WithMetadata<PurposeTemplate>>
+    > {
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate:
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswer:
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotation:
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument:
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.answerId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
       );
     },
   };

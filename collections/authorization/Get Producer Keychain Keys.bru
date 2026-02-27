@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-authorization}}/producerKeychains/:producerKeychainId/keys
+  url: {{host-authorization}}/producerKeychains/:producerKeychainId/keys?offset=0&limit=10
   body: none
   auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
 }
 
 params:path {

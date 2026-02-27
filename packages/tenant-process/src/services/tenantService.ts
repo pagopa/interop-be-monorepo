@@ -108,11 +108,11 @@ import {
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
@@ -128,7 +128,7 @@ const retrieveTenantByExternalId = async ({
 }: {
   tenantOrigin: string;
   tenantExternalId: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantByExternalId({
     origin: tenantOrigin,
@@ -140,9 +140,9 @@ const retrieveTenantByExternalId = async ({
   return tenant;
 };
 
-export async function retrieveAttribute(
+async function retrieveAttribute(
   attributeId: AttributeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
   if (!attribute) {
@@ -154,7 +154,7 @@ export async function retrieveAttribute(
 async function retrieveTenantVerifiedAttribute(
   tenantId: TenantId,
   attributeId: AttributeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<{ tenant: WithMetadata<Tenant> }> {
   const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -177,7 +177,7 @@ async function retrieveCertifiedAttribute({
 }: {
   attributeOrigin: string;
   attributeExternalId: string;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<Attribute> {
   const attribute = await readModelService.getAttributeByOriginAndCode({
     origin: attributeOrigin,
@@ -192,7 +192,7 @@ async function retrieveCertifiedAttribute({
 
 async function retrieveAgreement(
   agreementId: AgreementId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<Agreement> {
   const agreement = await readModelService.getAgreementById(agreementId);
   if (!agreement) {
@@ -204,7 +204,7 @@ async function retrieveAgreement(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
   return {
@@ -419,10 +419,14 @@ export function tenantServiceBuilder(
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
           createdAt: new Date(),
-          kind:
-            getTenantKind([], tenantSeed.externalId) === tenantKind.SCP
-              ? tenantKind.SCP
-              : undefined,
+          kind: match(getTenantKind([], tenantSeed.externalId))
+            /**
+             * If the tenant kind is SCP or PRIVATE, set the kind straight away.
+             * If not, the kind will be evaluated when certified attributes are added.
+             */
+            .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
+            .with(tenantKind.GSP, tenantKind.PA, () => undefined)
+            .exhaustive(),
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
@@ -433,8 +437,12 @@ export function tenantServiceBuilder(
 
     async revokeDeclaredAttribute(
       { attributeId }: { attributeId: AttributeId },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Tenant> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
       );
@@ -465,7 +473,7 @@ export function tenantServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
           requesterTenant.metadata.version,
           updatedTenant,
@@ -473,7 +481,10 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
-      return updatedTenant;
+      return {
+        data: updatedTenant,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async addCertifiedAttribute(
@@ -557,14 +568,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
       const { newVersion } = await repository.createEvent(
@@ -580,8 +588,12 @@ export function tenantServiceBuilder(
       {
         tenantAttributeSeed,
       }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Tenant> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       const { tenant, delegationId } = await match(
         tenantAttributeSeed.delegationId
       )
@@ -598,9 +610,8 @@ export function tenantServiceBuilder(
         })
         .otherwise(async (seedDelegationId) => {
           const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation = await readModelService.getActiveConsumerDelegation(
-            delegationId
-          );
+          const delegation =
+            await readModelService.getActiveConsumerDelegation(delegationId);
 
           if (!delegation) {
             throw delegationNotFound(delegationId);
@@ -651,7 +662,7 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
           tenant.metadata.version,
           updatedTenant,
@@ -660,7 +671,10 @@ export function tenantServiceBuilder(
         )
       );
 
-      return updatedTenant;
+      return {
+        data: updatedTenant,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async revokeCertifiedAttributeById(
@@ -757,14 +771,11 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-        const newVersion = Math.max(
-          0,
-          ...createdEvents.map((event) => event.newVersion)
-        );
-
         return {
           data: updatedTenant,
-          metadata: { version: newVersion },
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
         };
       }
 
@@ -789,8 +800,12 @@ export function tenantServiceBuilder(
         agreementId: AgreementId;
         expirationDate?: string;
       },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Tenant> {
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
       );
@@ -863,7 +878,7 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventTenantVerifiedAttributeAssigned(
           targetTenant.metadata.version,
           updatedTenant,
@@ -871,7 +886,10 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
-      return updatedTenant;
+      return {
+        data: updatedTenant,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async revokeVerifiedAttribute(
@@ -884,8 +902,12 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         agreementId: AgreementId;
       },
-      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Tenant> {
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
       );
@@ -974,7 +996,7 @@ export function tenantServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventTenantVerifiedAttributeRevoked(
           targetTenant.metadata.version,
           updatedTenant,
@@ -983,7 +1005,10 @@ export function tenantServiceBuilder(
         )
       );
 
-      return updatedTenant;
+      return {
+        data: updatedTenant,
+        metadata: { version: event.newVersion },
+      };
     },
 
     async internalAssignCertifiedAttribute(
@@ -1433,7 +1458,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: externalId.origin,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =
@@ -1506,11 +1531,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1540,7 +1564,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: certifierId,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =
@@ -1612,11 +1636,10 @@ export function tenantServiceBuilder(
           tenantWithUpdatedKind,
           correlationId
         );
-
-        await repository.createEvents([...events, tenantKindUpdatedEvent]);
-      } else {
-        await repository.createEvents([...events]);
+        // eslint-disable-next-line functional/immutable-data
+        events.push(tenantKindUpdatedEvent);
       }
+      await repository.createEvents(events);
 
       return tenantWithUpdatedKind;
     },
@@ -1910,7 +1933,7 @@ export function tenantServiceBuilder(
   };
 }
 
-export function assignTenantDelegatedProducerFeature({
+function assignTenantDelegatedProducerFeature({
   tenant,
   correlationId,
   logger,
@@ -1945,7 +1968,7 @@ export function assignTenantDelegatedProducerFeature({
   return { event, updatedTenant };
 }
 
-export function removeTenantDelegatedProducerFeature({
+function removeTenantDelegatedProducerFeature({
   tenant,
   correlationId,
   logger,
@@ -1979,7 +2002,7 @@ export function removeTenantDelegatedProducerFeature({
   return { event, updatedTenant };
 }
 
-export function assignTenantDelegatedConsumerFeature({
+function assignTenantDelegatedConsumerFeature({
   tenant,
   correlationId,
   logger,
@@ -2014,7 +2037,7 @@ export function assignTenantDelegatedConsumerFeature({
   return { event, updatedTenant };
 }
 
-export function removeTenantDelegatedConsumerFeature({
+function removeTenantDelegatedConsumerFeature({
   tenant,
   correlationId,
   logger,

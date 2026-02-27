@@ -1,14 +1,14 @@
-import { pgSchema, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
-
-export const notificationSchema = pgSchema("notification");
+import { notificationSchema } from "./pgSchema.js";
 
 export const notification = notificationSchema.table("notification", {
   id: uuid().primaryKey().notNull(),
   userId: uuid("user_id").notNull(),
   tenantId: uuid("tenant_id").notNull(),
   body: varchar("body").notNull(),
-  deepLink: varchar("deep_link").notNull(),
+  notificationType: varchar("notification_type").notNull(),
+  entityId: varchar("entity_id").notNull(),
   readAt: timestamp("read_at", {
     withTimezone: true,
     mode: "string",

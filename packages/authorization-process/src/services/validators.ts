@@ -21,6 +21,7 @@ import {
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
+  Tenant,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
@@ -37,9 +38,10 @@ import {
   clientKindNotAllowed,
   clientAdminIdNotFound,
   tenantNotAllowedOnClient,
+  missingSelfcareId,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -113,7 +115,7 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertOrganizationIsProducerKeychainProducer = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   producerKeychain: ProducerKeychain
 ): void => {
   if (producerKeychain.producerId !== authData.organizationId) {
@@ -143,7 +145,7 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 };
 
 export const assertOrganizationIsEServiceProducer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   eservice: EService
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
@@ -153,7 +155,7 @@ export const assertOrganizationIsEServiceProducer = (
 
 export const assertKeyDoesNotAlreadyExist = async (
   kid: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   const [clientKey, producerKey] = await Promise.all([
     readModelService.getClientKeyByKid(kid),
@@ -205,5 +207,13 @@ export function assertJwkKtyIsDefined(
 ): asserts jwk is JsonWebKey & { kty: NonNullable<JsonWebKey["kty"]> } {
   if (jwk.kty === undefined) {
     throw genericError("JWK must have a 'kty' property");
+  }
+}
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
   }
 }

@@ -27,6 +27,7 @@ import {
   genericInternalError,
   ClientJWKKey,
   ProducerJWKKey,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
@@ -39,6 +40,7 @@ import {
   ProducerJWKKeyReadModelService,
   ProducerKeychainReadModelService,
   PurposeReadModelService,
+  TenantReadModelService,
   toClientAggregatorArray,
   toProducerKeychainAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -59,17 +61,17 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export type GetClientsFilters = {
-  name?: string;
+  name: string | undefined;
   userIds: UserId[];
-  consumerId: TenantId;
+  consumerId: TenantId | undefined;
   purposeId: PurposeId | undefined;
-  kind?: ClientKind;
+  kind: ClientKind | undefined;
 };
 
 export type GetProducerKeychainsFilters = {
-  name?: string;
+  name: string | undefined;
   userIds: UserId[];
-  producerId: TenantId;
+  producerId: TenantId | undefined;
   eserviceId: EServiceId | undefined;
 };
 
@@ -84,6 +86,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   clientReadModelServiceSQL: ClientReadModelService;
@@ -94,6 +97,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   clientJWKKeyReadModelServiceSQL: ClientJWKKeyReadModelService;
   producerJWKKeyReadModelServiceSQL: ProducerJWKKeyReadModelService;
+  tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
     async getClientById(
@@ -136,7 +140,9 @@ export function readModelServiceBuilderSQL({
               ? inArray(clientUserInReadmodelClient.userId, userIds)
               : undefined,
             // CONSUMER FILTER
-            eq(clientInReadmodelClient.consumerId, consumerId),
+            consumerId
+              ? eq(clientInReadmodelClient.consumerId, consumerId)
+              : undefined,
             // PURPOSE FILTER
             purposeId
               ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
@@ -329,11 +335,13 @@ export function readModelServiceBuilderSQL({
                   userIds
                 )
               : undefined,
-            // CONSUMER FILTER
-            eq(
-              producerKeychainInReadmodelProducerKeychain.producerId,
-              producerId
-            ),
+            // PRODUCER FILTER
+            producerId
+              ? eq(
+                  producerKeychainInReadmodelProducerKeychain.producerId,
+                  producerId
+                )
+              : undefined,
             // E-SERVICE FILTER
             eserviceId
               ? eq(
@@ -485,6 +493,9 @@ export function readModelServiceBuilderSQL({
       }
 
       return parseResult.data;
+    },
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
+      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
   };
 }

@@ -1,0 +1,28 @@
+meta {
+  name: Unlink Eservices from Purpose Template
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/unlinkEservices
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "eserviceIds": [
+      ""
+    ]
+  }
+}

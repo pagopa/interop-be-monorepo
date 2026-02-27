@@ -1,0 +1,21 @@
+meta {
+  name: Revoke tenant certified attribute
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{host-m2m-gw}}/tenants/:tenantId/certifiedAttributes/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+

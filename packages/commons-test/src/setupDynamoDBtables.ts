@@ -7,6 +7,7 @@ import {
   DeleteTableCommand,
   DeleteTableInput,
   DynamoDBClient,
+  UpdateTimeToLiveCommand,
 } from "@aws-sdk/client-dynamodb";
 
 export const buildDynamoDBTables = async (
@@ -47,6 +48,27 @@ export const buildDynamoDBTables = async (
     dpopCacheTableDefinition
   );
   await dynamoDBClient.send(dpopCacheCreationCommand);
+
+  const signatureReferencesSchemaPath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../docker/dynamo-db/schema/signature-references-dynamo-db.json"
+  );
+  const signatureReferencesTableDefinition: CreateTableInput = JSON.parse(
+    fs.readFileSync(signatureReferencesSchemaPath, "utf8")
+  );
+  const signatureReferencesCreationCommand = new CreateTableCommand(
+    signatureReferencesTableDefinition
+  );
+  await dynamoDBClient.send(signatureReferencesCreationCommand);
+  const ttlCommand = new UpdateTimeToLiveCommand({
+    TableName: signatureReferencesTableDefinition.TableName,
+    TimeToLiveSpecification: {
+      Enabled: true,
+      AttributeName: "ttl",
+    },
+  });
+
+  await dynamoDBClient.send(ttlCommand);
 };
 
 export const deleteDynamoDBTables = async (
@@ -72,4 +94,12 @@ export const deleteDynamoDBTables = async (
   await dynamoDBClient.send(tokenGenStatesDeleteCommand);
   const dpopCacheDeleteCommand = new DeleteTableCommand(dpopCacheDeleteInput);
   await dynamoDBClient.send(dpopCacheDeleteCommand);
+
+  const signatureReferencesDeleteInput: DeleteTableInput = {
+    TableName: "SignatureReferencesTable",
+  };
+  const signatureReferencesDeleteCommand = new DeleteTableCommand(
+    signatureReferencesDeleteInput
+  );
+  await dynamoDBClient.send(signatureReferencesDeleteCommand);
 };

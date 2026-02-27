@@ -1,5 +1,6 @@
 import {
   NotificationConfig,
+  NotificationType,
   stringToDate,
   TenantNotificationConfig,
   unsafeBrandId,
@@ -7,8 +8,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
-  TenantEnabledNotificationSQL,
-  TenantNotificationConfigItemsSQL,
   TenantNotificationConfigSQL,
   UserEnabledInAppNotificationSQL,
   UserEnabledEmailNotificationSQL,
@@ -16,31 +15,26 @@ import {
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
-import { NotificationType } from "./utils.js";
 
-export const aggregateTenantNotificationConfig = ({
-  tenantNotificationConfigSQL,
-  enabledNotificationsSQL,
-}: TenantNotificationConfigItemsSQL): WithMetadata<TenantNotificationConfig> => {
-  const { id, metadataVersion, tenantId, createdAt, updatedAt, ...rest } =
-    tenantNotificationConfigSQL;
+export const aggregateTenantNotificationConfig = (
+  tenantNotificationConfigSQL: TenantNotificationConfigSQL
+): WithMetadata<TenantNotificationConfig> => {
+  const {
+    id,
+    metadataVersion,
+    tenantId,
+    enabled,
+    createdAt,
+    updatedAt,
+    ...rest
+  } = tenantNotificationConfigSQL;
   void (rest satisfies Record<string, never>);
-
-  const enabledNotifications = enabledNotificationsSQL.map((r) =>
-    NotificationType.parse(r.notificationType)
-  );
-
-  const config: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished"
-    ),
-  };
 
   return {
     data: {
       id: unsafeBrandId(id),
       tenantId: unsafeBrandId(tenantId),
-      config,
+      enabled,
       createdAt: stringToDate(createdAt),
       ...(updatedAt ? { updatedAt: stringToDate(updatedAt) } : {}),
     },
@@ -58,6 +52,10 @@ export const aggregateUserNotificationConfig = ({
     metadataVersion,
     userId,
     tenantId,
+    userRoles: userRolesSQL,
+    inAppNotificationPreference,
+    emailNotificationPreference,
+    emailDigestPreference,
     createdAt,
     updatedAt,
     ...rest
@@ -70,15 +68,162 @@ export const aggregateUserNotificationConfig = ({
   const enabledEmailNotifications = enabledEmailNotificationsSQL.map((r) =>
     NotificationType.parse(r.notificationType)
   );
+  const userRoles = UserNotificationConfig.shape.userRoles.parse(userRolesSQL);
 
   const inAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledInAppNotifications.includes(
-      "newEServiceVersionPublished"
+    agreementSuspendedUnsuspendedToProducer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
+    ),
+    agreementManagementToProducer: enabledInAppNotifications.includes(
+      "agreementManagementToProducer"
+    ),
+    clientAddedRemovedToProducer: enabledInAppNotifications.includes(
+      "clientAddedRemovedToProducer"
+    ),
+    purposeStatusChangedToProducer: enabledInAppNotifications.includes(
+      "purposeStatusChangedToProducer"
+    ),
+    templateStatusChangedToProducer: enabledInAppNotifications.includes(
+      "templateStatusChangedToProducer"
+    ),
+    agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
+    eserviceStateChangedToConsumer: enabledInAppNotifications.includes(
+      "eserviceStateChangedToConsumer"
+    ),
+    agreementActivatedRejectedToConsumer: enabledInAppNotifications.includes(
+      "agreementActivatedRejectedToConsumer"
+    ),
+    purposeActivatedRejectedToConsumer: enabledInAppNotifications.includes(
+      "purposeActivatedRejectedToConsumer"
+    ),
+    purposeSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
+      "purposeSuspendedUnsuspendedToConsumer"
+    ),
+    newEserviceTemplateVersionToInstantiator:
+      enabledInAppNotifications.includes(
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledInAppNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
+      ),
+    eserviceTemplateStatusChangedToInstantiator:
+      enabledInAppNotifications.includes(
+        "eserviceTemplateStatusChangedToInstantiator"
+      ),
+    delegationApprovedRejectedToDelegator: enabledInAppNotifications.includes(
+      "delegationApprovedRejectedToDelegator"
+    ),
+    eserviceNewVersionSubmittedToDelegator: enabledInAppNotifications.includes(
+      "eserviceNewVersionSubmittedToDelegator"
+    ),
+    eserviceNewVersionApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceNewVersionApprovedRejectedToDelegate"
+      ),
+    delegationSubmittedRevokedToDelegate: enabledInAppNotifications.includes(
+      "delegationSubmittedRevokedToDelegate"
+    ),
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      enabledInAppNotifications.includes(
+        "certifiedVerifiedAttributeAssignedRevokedToAssignee"
+      ),
+    clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
+    ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledInAppNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
+    producerKeychainKeyAddedDeletedToClientUsers:
+      enabledInAppNotifications.includes(
+        "producerKeychainKeyAddedDeletedToClientUsers"
+      ),
+    purposeQuotaAdjustmentRequestToProducer: enabledInAppNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
     ),
   };
   const emailConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledEmailNotifications.includes(
-      "newEServiceVersionPublished"
+    agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToProducer"
+    ),
+    agreementManagementToProducer: enabledEmailNotifications.includes(
+      "agreementManagementToProducer"
+    ),
+    clientAddedRemovedToProducer: enabledEmailNotifications.includes(
+      "clientAddedRemovedToProducer"
+    ),
+    purposeStatusChangedToProducer: enabledEmailNotifications.includes(
+      "purposeStatusChangedToProducer"
+    ),
+    templateStatusChangedToProducer: enabledEmailNotifications.includes(
+      "templateStatusChangedToProducer"
+    ),
+    agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
+      "agreementSuspendedUnsuspendedToConsumer"
+    ),
+    eserviceStateChangedToConsumer: enabledEmailNotifications.includes(
+      "eserviceStateChangedToConsumer"
+    ),
+    agreementActivatedRejectedToConsumer: enabledEmailNotifications.includes(
+      "agreementActivatedRejectedToConsumer"
+    ),
+    purposeActivatedRejectedToConsumer: enabledEmailNotifications.includes(
+      "purposeActivatedRejectedToConsumer"
+    ),
+    purposeSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
+      "purposeSuspendedUnsuspendedToConsumer"
+    ),
+    newEserviceTemplateVersionToInstantiator:
+      enabledEmailNotifications.includes(
+        "newEserviceTemplateVersionToInstantiator"
+      ),
+    eserviceTemplateNameChangedToInstantiator:
+      enabledEmailNotifications.includes(
+        "eserviceTemplateNameChangedToInstantiator"
+      ),
+    eserviceTemplateStatusChangedToInstantiator:
+      enabledEmailNotifications.includes(
+        "eserviceTemplateStatusChangedToInstantiator"
+      ),
+    delegationApprovedRejectedToDelegator: enabledEmailNotifications.includes(
+      "delegationApprovedRejectedToDelegator"
+    ),
+    eserviceNewVersionSubmittedToDelegator: enabledEmailNotifications.includes(
+      "eserviceNewVersionSubmittedToDelegator"
+    ),
+    eserviceNewVersionApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceNewVersionApprovedRejectedToDelegate"
+      ),
+    delegationSubmittedRevokedToDelegate: enabledEmailNotifications.includes(
+      "delegationSubmittedRevokedToDelegate"
+    ),
+    certifiedVerifiedAttributeAssignedRevokedToAssignee:
+      enabledEmailNotifications.includes(
+        "certifiedVerifiedAttributeAssignedRevokedToAssignee"
+      ),
+    clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
+      "clientKeyAddedDeletedToClientUsers"
+    ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledEmailNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
+    producerKeychainKeyAddedDeletedToClientUsers:
+      enabledEmailNotifications.includes(
+        "producerKeychainKeyAddedDeletedToClientUsers"
+      ),
+    purposeQuotaAdjustmentRequestToProducer: enabledEmailNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
     ),
   };
 
@@ -87,76 +232,16 @@ export const aggregateUserNotificationConfig = ({
       id: unsafeBrandId(id),
       userId: unsafeBrandId(userId),
       tenantId: unsafeBrandId(tenantId),
+      userRoles,
+      inAppNotificationPreference,
+      emailNotificationPreference,
+      emailDigestPreference,
       inAppConfig,
       emailConfig,
       createdAt: stringToDate(createdAt),
       ...(updatedAt ? { updatedAt: stringToDate(updatedAt) } : {}),
     },
     metadata: { version: metadataVersion },
-  };
-};
-
-export const toTenantNotificationConfigAggregator = (
-  queryRes: Array<{
-    tenantNotificationConfig: TenantNotificationConfigSQL;
-    enabledNotification: TenantEnabledNotificationSQL | null;
-  }>
-): TenantNotificationConfigItemsSQL => {
-  const { tenantNotificationConfigsSQL, enabledNotificationsSQL } =
-    toTenantNotificationConfigAggregatorArray(queryRes);
-
-  throwIfMultiple(tenantNotificationConfigsSQL, "tenant notification config");
-
-  return {
-    tenantNotificationConfigSQL: tenantNotificationConfigsSQL[0],
-    enabledNotificationsSQL,
-  };
-};
-
-export const toTenantNotificationConfigAggregatorArray = (
-  queryRes: Array<{
-    tenantNotificationConfig: TenantNotificationConfigSQL;
-    enabledNotification: TenantEnabledNotificationSQL | null;
-  }>
-): {
-  tenantNotificationConfigsSQL: TenantNotificationConfigSQL[];
-  enabledNotificationsSQL: TenantEnabledNotificationSQL[];
-} => {
-  const tenantNotificationConfigIdSet = new Set<string>();
-  const tenantNotificationConfigsSQL: TenantNotificationConfigSQL[] = [];
-
-  const enabledNotificationIdSet = new Set<string>();
-  const enabledNotificationsSQL: TenantEnabledNotificationSQL[] = [];
-
-  queryRes.forEach((row) => {
-    const tenantNotificationConfigSQL = row.tenantNotificationConfig;
-    if (!tenantNotificationConfigIdSet.has(tenantNotificationConfigSQL.id)) {
-      tenantNotificationConfigIdSet.add(tenantNotificationConfigSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      tenantNotificationConfigsSQL.push(tenantNotificationConfigSQL);
-    }
-
-    const enabledNotificationSQL = row.enabledNotification;
-    const enabledNotificationPK = enabledNotificationSQL
-      ? makeUniqueKey([
-          enabledNotificationSQL.tenantNotificationConfigId,
-          enabledNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledNotificationSQL &&
-      enabledNotificationPK &&
-      !enabledNotificationIdSet.has(enabledNotificationPK)
-    ) {
-      enabledNotificationIdSet.add(enabledNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledNotificationsSQL.push(enabledNotificationSQL);
-    }
-  });
-
-  return {
-    tenantNotificationConfigsSQL,
-    enabledNotificationsSQL,
   };
 };
 

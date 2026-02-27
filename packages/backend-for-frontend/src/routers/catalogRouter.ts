@@ -66,6 +66,7 @@ const catalogRouter = (
           req.query.q,
           req.query.consumersIds,
           req.query.delegated,
+          req.query.personalData,
           req.query.offset,
           req.query.limit,
           ctx
@@ -730,6 +731,25 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating signalhub for eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.updateEServicePersonalDataFlag(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error setting personalData flag for eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

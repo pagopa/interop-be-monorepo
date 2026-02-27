@@ -188,6 +188,11 @@ export const aggregateEServiceTemplate = ({
     ...(eserviceTemplateSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }
       : {}),
+    ...(eserviceTemplateSQL.personalData !== null
+      ? {
+          personalData: eserviceTemplateSQL.personalData,
+        }
+      : {}),
   };
   return {
     data: eserviceTemplate,
@@ -255,7 +260,7 @@ const createEServiceTemplateSQLPropertyMap = <
     | EServiceTemplateVersionDocumentSQL
     | EServiceTemplateVersionAttributeSQL
     | EServiceTemplateRiskAnalysisSQL
-    | EServiceTemplateRiskAnalysisAnswerSQL
+    | EServiceTemplateRiskAnalysisAnswerSQL,
 >(
   items: T[]
 ): Map<EServiceTemplateId, T[]> =>

@@ -6,18 +6,19 @@ import {
 import request from "supertest";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { missingMetadata } from "../../../src/model/errors.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /eservices router test", () => {
   const mockApiEservice = getMockedApiEservice();
 
   const mockApiEserviceWithDescriptor: m2mGatewayApi.DescriptorSeedForEServiceCreation =
     {
-      audience: [],
+      audience: ["audience"],
       voucherLifespan: 1000,
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 100,
@@ -39,12 +40,11 @@ describe("POST /eservices router test", () => {
     request(api)
       .post(`${appBasePath}/eservices`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockEserviceService.createEService = vi
         .fn()
@@ -53,7 +53,7 @@ describe("POST /eservices router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEserviceSeed);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MEserviceResponse);
     }
   );
@@ -105,8 +105,28 @@ describe("POST /eservices router test", () => {
         agreementApprovalPolicy: "invalid agreementApprovalPolicy",
       },
     },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: undefined,
+      },
+    },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: [],
+      },
+    },
+    {
+      ...mockEserviceSeed,
+      descriptor: {
+        audience: ["audience1", "audience2"],
+        // We currently do not support multiple audiences for consistency with front-end
+      },
+    },
+    { ...mockEserviceSeed, personalData: "invalidValue" },
   ])(
-    "Should return 400 if passed an invalid Eservice seed: %s",
+    "Should return 400 if passed an invalid Eservice seed (seed #%#)",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, body as m2mGatewayApi.EServiceSeed);
@@ -115,14 +135,17 @@ describe("POST /eservices router test", () => {
     }
   );
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockEserviceService.createEService = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockEserviceSeed);
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.createEService = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockEserviceSeed);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 });

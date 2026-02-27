@@ -16,11 +16,13 @@ import {
   unsafeBrandId,
   DelegationId,
   emptyErrorMapper,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
+  apiAgreementSignedDocumentToAgreementSignedDocument,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
@@ -43,6 +45,8 @@ import {
   computeAgreementsStateErrorMapper,
   verifyTenantCertifiedAttributesErrorMapper,
   getAgreementConsumerDocumentsErrorMapper,
+  generateAgreementDocumentsErrorMapper,
+  generateAgreementSignedDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -558,6 +562,59 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveAgreementErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/internal/agreement/:agreementId/contract", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const { agreementId } = req.params;
+        const agreementContract = AgreementDocument.parse(req.body);
+        await agreementService.internalAddAgreementContract(
+          unsafeBrandId(agreementId),
+          agreementContract,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          generateAgreementDocumentsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/internal/agreement/:agreementId/signedContract",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { agreementId } = req.params;
+          const agreementContract =
+            apiAgreementSignedDocumentToAgreementSignedDocument(req.body);
+
+          await agreementService.internalAddAgreementSignedContract(
+            unsafeBrandId(agreementId),
+            agreementContract,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            generateAgreementSignedDocumentsErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

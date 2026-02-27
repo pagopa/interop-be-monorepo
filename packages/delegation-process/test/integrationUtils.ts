@@ -1,12 +1,10 @@
 /* eslint-disable functional/no-let */
 import {
   ReadEvent,
-  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   StoredEvent,
   writeInEventstore,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -16,9 +14,6 @@ import {
   EService,
   Tenant,
   toDelegationV2,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
 import {
@@ -39,30 +34,19 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { config } from "../src/config/config.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, postgresDB, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
-
-export const { delegations, agreements, eservices, tenants } =
-  readModelRepository;
 
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
@@ -71,20 +55,13 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -110,7 +87,7 @@ export const delegationService = delegationServiceBuilder(
   fileManager
 );
 
-export const writeSubmitDelegationInEventstore = async (
+const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
 ): Promise<void> => {
   const createProducerDelegationEvent: DelegationEvent = {
@@ -135,39 +112,20 @@ export const readLastDelegationEvent = async (
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
 
-export const readDelegationEventByVersion = async (
-  delegationId: DelegationId,
-  version: number
-): Promise<ReadEvent<DelegationEvent>> =>
-  await readEventByStreamIdAndVersion(
-    delegationId,
-    version,
-    "delegation",
-    postgresDB
-  );
-
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeSubmitDelegationInEventstore(delegation);
-  await writeInReadmodel(delegation, delegations);
-
   await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-
   await upsertTenant(readModelDB, tenant, 0);
 };
 export const addOneEservice = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
   await upsertAgreement(readModelDB, agreement, 0);
 };

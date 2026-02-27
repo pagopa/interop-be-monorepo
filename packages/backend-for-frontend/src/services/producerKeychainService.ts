@@ -8,33 +8,38 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { decorateKey } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients
 ) {
-  const { authorizationClient, selfcareV2UserClient } = apiClients;
+  const {
+    authorizationClient,
+    selfcareV2UserClient,
+    inAppNotificationManagerClient,
+  } = apiClients;
 
   return {
     async getProducerKeychains(
       {
         limit,
         offset,
-        producerId,
         userIds,
         name,
         eserviceId,
       }: {
-        producerId: string;
         offset: number;
         limit: number;
         userIds: string[];
         name?: string;
         eserviceId?: string;
       },
-      { logger, headers }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactProducerKeychains> {
+      const { logger, headers, authData } = ctx;
       logger.info(`Retrieving producer keychains`);
 
       const producerKeychains =
@@ -43,15 +48,26 @@ export function producerKeychainServiceBuilder(
             offset,
             limit,
             userIds,
-            producerId,
+            producerId: authData.organizationId,
             name,
             eserviceId,
           },
           headers,
         });
 
+      const notifications = await filterUnreadNotifications(
+        inAppNotificationManagerClient,
+        producerKeychains.results.map((pk) => pk.id),
+        ctx
+      );
+
+      const enrichedKeychains = producerKeychains.results.map((pk) => ({
+        ...pk,
+        hasUnreadNotifications: notifications.includes(pk.id),
+      }));
+
       return {
-        results: producerKeychains.results.map(toBffApiCompactProducerKeychain),
+        results: enrichedKeychains.map(toBffApiCompactProducerKeychain),
         pagination: {
           limit,
           offset,
@@ -128,7 +144,7 @@ export function producerKeychainServiceBuilder(
         `Removing e-service ${eserviceId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.removeProducerKeychainEService(
+      await authorizationClient.producerKeychain.removeProducerKeychainEService(
         undefined,
         {
           params: { producerKeychainId, eserviceId },
@@ -151,18 +167,27 @@ export function producerKeychainServiceBuilder(
       });
     },
     async getProducerKeys(
-      producerKeychainId: string,
-      userIds: string[],
+      {
+        producerKeychainId,
+        userIds,
+        limit,
+        offset,
+      }: {
+        producerKeychainId: string;
+        userIds: string[];
+        limit: number;
+        offset: number;
+      },
       { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of producer keychain ${producerKeychainId}`);
 
       const selfcareId = authData.selfcareId;
 
-      const [{ keys }, { users }] = await Promise.all([
+      const [{ keys, totalCount }, keychain] = await Promise.all([
         authorizationClient.producerKeychain.getProducerKeys({
           params: { producerKeychainId },
-          queries: { userIds },
+          queries: { userIds, limit, offset },
           headers,
         }),
         authorizationClient.producerKeychain.getProducerKeychain({
@@ -171,13 +196,28 @@ export function producerKeychainServiceBuilder(
         }),
       ]);
 
+      assertProducerKeychainVisibilityIsFull(keychain);
+
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
-          decorateKey(selfcareV2UserClient, k, selfcareId, users, correlationId)
+          decorateKey(
+            selfcareV2UserClient,
+            k,
+            selfcareId,
+            keychain.users,
+            correlationId
+          )
         )
       );
 
-      return { keys: decoratedKeys };
+      return {
+        keys: decoratedKeys,
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
     },
     async getProducerKeyById(
       producerKeychainId: string,
@@ -190,7 +230,7 @@ export function producerKeychainServiceBuilder(
 
       const selfcareId = authData.selfcareId;
 
-      const [key, { users }] = await Promise.all([
+      const [key, keychain] = await Promise.all([
         authorizationClient.producerKeychain.getProducerKeyById({
           params: { producerKeychainId, keyId },
           headers,
@@ -201,11 +241,13 @@ export function producerKeychainServiceBuilder(
         }),
       ]);
 
+      assertProducerKeychainVisibilityIsFull(keychain);
+
       return decorateKey(
         selfcareV2UserClient,
         key,
         selfcareId,
-        users,
+        keychain.users,
         correlationId
       );
     },
@@ -281,7 +323,7 @@ export function producerKeychainServiceBuilder(
         `Removing user ${userId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.removeProducerKeychainUser(
+      await authorizationClient.producerKeychain.removeProducerKeychainUser(
         undefined,
         {
           params: { producerKeychainId, userId },
@@ -319,6 +361,7 @@ async function enhanceProducerKeychain(
   producerKeychain: authorizationApi.ProducerKeychain,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.ProducerKeychain> {
+  assertProducerKeychainVisibilityIsFull(producerKeychain);
   const producer = await apiClients.tenantProcessClient.tenant.getTenant({
     params: { id: producerKeychain.producerId },
     headers: ctx.headers,

@@ -9,10 +9,10 @@ import {
 } from "../config/models/models.js";
 import { arrayToNdjson, splitArrayIntoChunks } from "../utils/helperUtils.js";
 
-export type ExportedData = [
+type ExportedData = [
   collection: ExportedCollection,
   ndjsonFiles: string[],
-  count: number
+  count: number,
 ];
 
 const generateNdjsonFiles = (

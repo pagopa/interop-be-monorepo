@@ -13,13 +13,19 @@ import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { expectedUserIdAndOrganizationId } from "../utils.js";
-import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
+import {
+  notificationConfigNotAllowedForUserRoles,
+  userNotificationConfigNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API POST /userNotificationConfigs test", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
   const notificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
+      inAppNotificationPreference: true,
+      emailNotificationPreference: true,
+      emailDigestPreference: false,
       inAppConfig: getMockNotificationConfig(),
       emailConfig: getMockNotificationConfig(),
     };
@@ -48,7 +54,11 @@ describe("API POST /userNotificationConfigs test", () => {
       .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -66,20 +76,32 @@ describe("API POST /userNotificationConfigs test", () => {
     }
   );
 
-  it("Should return 404 for userNotificationConfigNotFound", async () => {
-    notificationConfigService.updateUserNotificationConfig = vi
-      .fn()
-      .mockRejectedValue(userNotificationConfigNotFound(userId, tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-    expect(
-      notificationConfigService.updateUserNotificationConfig
-    ).toHaveBeenCalledWith(
-      notificationConfigSeed,
-      expectedUserIdAndOrganizationId(userId, tenantId)
-    );
-  });
+  it.each([
+    {
+      error: userNotificationConfigNotFound(userId, tenantId),
+      expectedStatus: 404,
+    },
+    {
+      error: notificationConfigNotAllowedForUserRoles(userId, tenantId),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      notificationConfigService.updateUserNotificationConfig = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+      expect(
+        notificationConfigService.updateUserNotificationConfig
+      ).toHaveBeenCalledWith(
+        notificationConfigSeed,
+        expectedUserIdAndOrganizationId(userId, tenantId)
+      );
+    }
+  );
 
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
@@ -101,7 +123,16 @@ describe("API POST /userNotificationConfigs test", () => {
         ...notificationConfigSeed,
         inAppConfig: {
           ...notificationConfigSeed.inAppConfig,
-          newEServiceVersionPublished: "invalid",
+          agreementSuspendedUnsuspendedToProducer: undefined,
+        },
+      },
+    },
+    {
+      body: {
+        ...notificationConfigSeed,
+        inAppConfig: {
+          ...notificationConfigSeed.inAppConfig,
+          agreementSuspendedUnsuspendedToProducer: "invalid",
         },
       },
     },

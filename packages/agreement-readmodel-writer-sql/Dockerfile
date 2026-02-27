@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS build
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS build
 
 RUN corepack enable
 
@@ -29,7 +29,8 @@ COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
@@ -44,9 +45,13 @@ RUN pnpm build && \
   packages/agreement-readmodel-writer-sql/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:ef358d9fa0734e2c3b42482aa352c28a59245bc3d32e07ef57810cf8ba9092c5 AS final
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
 
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/agreement-readmodel-writer-sql
 EXPOSE 3000

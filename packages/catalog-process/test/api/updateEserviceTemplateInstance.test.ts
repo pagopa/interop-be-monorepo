@@ -26,6 +26,7 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   eserviceNotInDraftState,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 
 describe("API /templates/eservices/{eServiceId} authorization test", () => {
@@ -115,6 +116,10 @@ describe("API /templates/eservices/{eServiceId} authorization test", () => {
     },
     {
       error: eServiceNotAnInstance(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidDelegationFlags(false, true),
       expectedStatus: 400,
     },
   ])(

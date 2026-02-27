@@ -1,7 +1,9 @@
 import {
   authenticationMiddleware,
   contextMiddleware,
+  errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
+  healthRouter,
   loggerMiddleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
@@ -12,16 +14,19 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import express from "express";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
-import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
+import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
+import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import { DelegationService } from "./services/delegationService.js";
 import { AgreementService } from "./services/agreementService.js";
@@ -30,10 +35,14 @@ import { ClientService } from "./services/clientService.js";
 import { EserviceService } from "./services/eserviceService.js";
 import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
+import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
 import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
+import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
+import { EventService } from "./services/eventService.js";
+import eventRouter from "./routers/eventRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -43,8 +52,11 @@ export type M2MGatewayServices = {
   eserviceService: EserviceService;
   eserviceTemplateService: EserviceTemplateService;
   purposeService: PurposeService;
+  purposeTemplateService: PurposeTemplateService;
   tenantService: TenantService;
   keyService: KeyService;
+  producerKeychainService: ProducerKeychainService;
+  eventService: EventService;
 };
 
 export type RateLimiterMiddleware = ReturnType<
@@ -65,11 +77,17 @@ export async function createApp(
     eserviceService,
     eserviceTemplateService,
     purposeService,
+    purposeTemplateService,
     tenantService,
     keyService,
+    producerKeychainService,
+    eventService,
   } = services;
 
   const app = zodiosCtx.app();
+  app.use(
+    express.json({ type: ["application/json", "application/merge-patch+json"] })
+  );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
@@ -85,7 +103,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(m2mGatewayApi.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
@@ -96,13 +114,18 @@ export async function createApp(
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),
     purposeRouter(zodiosCtx, purposeService),
+    purposeTemplateRouter(zodiosCtx, purposeTemplateService),
     agreementRouter(zodiosCtx, agreementService),
     tenantRouter(zodiosCtx, tenantService),
     delegationRouter(zodiosCtx, delegationService),
     eserviceTemplateRouter(zodiosCtx, eserviceTemplateService),
     clientRouter(zodiosCtx, clientService),
-    keyRouter(zodiosCtx, keyService)
+    producerKeychainRouter(zodiosCtx, producerKeychainService),
+    keyRouter(zodiosCtx, keyService),
+    eventRouter(zodiosCtx, eventService)
   );
+
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }

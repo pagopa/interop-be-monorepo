@@ -1,0 +1,22 @@
+meta {
+  name: Update Tenant Notification Config
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/tenantNotificationConfigs
+  body: json
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "enabled": true
+  }
+}

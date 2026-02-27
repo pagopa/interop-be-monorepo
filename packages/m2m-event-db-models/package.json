@@ -1,0 +1,33 @@
+{
+  "name": "pagopa-interop-m2m-event-db-models",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "private": true,
+  "description": "PagoPA Interoperability M2M Event DB Models",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "generate-db-models": "drizzle-kit pull --config=src/config/config.ts && pnpm lint:autofix",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

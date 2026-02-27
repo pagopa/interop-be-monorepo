@@ -4,46 +4,41 @@ import {
   generateId,
   ProducerKeychain,
   ProducerKeychainId,
-  TenantId,
   UserId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   userWithoutSecurityPrivileges,
+  tenantNotFound,
+  missingSelfcareId,
 } from "../../src/model/domain/errors.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
-  const producerId: TenantId = generateId();
   const users: UserId[] = [generateId()];
   const userIdsToAdd: UserId[] = [generateId(), generateId()];
 
-  const mockProducerKeychain: ProducerKeychain = {
-    ...getMockProducerKeychain(),
-    producerId,
-    users,
-  };
+  const mockProducerKeychain: WithMetadata<ProducerKeychain> =
+    getMockWithMetadata({
+      ...getMockProducerKeychain(),
+      users,
+    });
 
-  const apiProducerKeyChain = producerKeychainToApiProducerKeychain(
-    mockProducerKeychain,
-    {
-      showUsers: true,
-    }
-  );
-
-  authorizationService.addProducerKeychainUsers = vi.fn().mockResolvedValue({
-    producerKeychain: mockProducerKeychain,
-    showUsers: true,
-  });
+  const serviceResponse = mockProducerKeychain;
+  authorizationService.addProducerKeychainUsers = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -56,34 +51,32 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       .set("X-Correlation-Id", generateId())
       .send({ userIds });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockProducerKeychain.id);
+      const res = await makeRequest(token, mockProducerKeychain.data.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiProducerKeyChain);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain.data)
+      );
     }
   );
 
-  it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
-  )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
-
   it.each([
     {
-      error: producerKeychainNotFound(mockProducerKeychain.id),
+      error: producerKeychainNotFound(mockProducerKeychain.data.id),
       expectedStatus: 404,
     },
     {
       error: tenantNotAllowedOnProducerKeychain(
         generateId(),
-        mockProducerKeychain.id
+        mockProducerKeychain.data.id
       ),
       expectedStatus: 403,
     },
@@ -93,10 +86,18 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     },
     {
       error: producerKeychainUserAlreadyAssigned(
-        mockProducerKeychain.id,
+        mockProducerKeychain.data.id,
         users[0]
       ),
       expectedStatus: 400,
+    },
+    {
+      error: tenantNotFound(generateId()),
+      expectedStatus: 500,
+    },
+    {
+      error: missingSelfcareId(generateId()),
+      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -106,7 +107,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockProducerKeychain.id);
+      const res = await makeRequest(token, mockProducerKeychain.data.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
@@ -114,7 +115,10 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
   it.each([
     {},
     { producerKeychainId: "invalidId", userIds: userIdsToAdd },
-    { producerKeychainId: mockProducerKeychain.id, userIds: ["invalidId"] },
+    {
+      producerKeychainId: mockProducerKeychain.data.id,
+      userIds: ["invalidId"],
+    },
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, userIds }) => {

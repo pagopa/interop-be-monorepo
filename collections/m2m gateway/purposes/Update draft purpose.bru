@@ -1,0 +1,62 @@
+meta {
+  name: Update draft purpose
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw}}/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+      "title": "{{randomName}}",
+      "description": "updated description for purpose",
+      "isFreeOfCharge": true,
+      "freeOfChargeReason": "a new free of charge reason",
+      "dailyCalls": 200,
+      "riskAnalysisForm": {
+          "version": "3.0",
+          "answers": {
+              "purpose": ["INSTITUTIONAL"],
+              "institutionalPurpose": ["Another updated purpose"],
+              "personalDataTypes": ["OTHER"],
+              "otherPersonalDataTypes": ["some other data types"],
+              "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+              "legalObligationReference": ["somethingLegal"],
+              "legalBasisPublicInterest": ["RULE_OF_LAW"],
+              "ruleOfLawText": ["TheLaw"],
+              "knowsDataQuantity": ["YES"],
+              "dataQuantity": ["QUANTITY_500_TO_1000"],
+              "deliveryMethod": ["ANONYMOUS"],
+              "policyProvided": ["NO"],
+              "confirmPricipleIntegrityAndDiscretion": ["true"],
+              "reasonPolicyNotProvided": ["Because"],
+              "doneDpia": ["NO"],
+              "dataDownload": ["YES"],
+              "confirmDataRetentionPeriod": ["true"],
+              "purposePursuit": ["MERE_CORRECTNESS"],
+              "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+              "usesThirdPartyData": ["NO"],
+              "declarationConfirmGDPR": ["true"]
+          }
+      }
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

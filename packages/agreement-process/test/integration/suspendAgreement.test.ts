@@ -403,10 +403,10 @@ describe("suspend agreement", () => {
     const expectedSuspensionFlags = {
       suspendedByConsumer: isConsumer
         ? true
-        : agreement.suspendedByConsumer ?? false,
+        : (agreement.suspendedByConsumer ?? false),
       suspendedByProducer: !isConsumer
         ? true
-        : agreement.suspendedByProducer ?? false,
+        : (agreement.suspendedByProducer ?? false),
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
@@ -602,6 +602,7 @@ describe("suspend agreement", () => {
       state: randomArrayItem(agreementSuspendableStates),
     };
     await addOneAgreement(agreement);
+    await addOneTenant(getMockTenant(agreement.consumerId));
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(

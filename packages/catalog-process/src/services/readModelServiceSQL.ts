@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -28,6 +29,11 @@ import {
   DescriptorState,
   delegationState,
   delegationKind,
+  Document,
+  unsafeBrandId,
+  EServiceDocumentId,
+  stringToDate,
+  AttributeKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -64,9 +70,12 @@ import {
   tenantInReadmodelTenant,
   eserviceTemplateInReadmodelEserviceTemplate,
   DrizzleTransactionType,
+  agreementSignedContractInReadmodelAgreement,
+  delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
+  asc,
   count,
   countDistinct,
   desc,
@@ -74,6 +83,7 @@ import {
   exists,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   notExists,
   or,
@@ -82,10 +92,8 @@ import {
 import { match } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import {
-  activeDescriptorStates,
-  hasRoleToAccessInactiveDescriptors,
-} from "./validators.js";
+import { activeDescriptorStates } from "./descriptorStates.js";
+import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleTransactionType
@@ -118,7 +126,7 @@ export function readModelServiceBuilderSQL(
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
-      authData: UIAuthData | M2MAuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -137,6 +145,7 @@ export function readModelServiceBuilderSQL(
         isClientAccessDelegable,
         delegated,
         templatesIds,
+        personalData,
       } = filters;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -227,7 +236,19 @@ export function readModelServiceBuilderSQL(
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
-                  : undefined
+                  : undefined,
+                match(personalData)
+                  .with("TRUE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, true)
+                  )
+                  .with("FALSE", () =>
+                    eq(eserviceInReadmodelCatalog.personalData, false)
+                  )
+                  .with("DEFINED", () =>
+                    isNotNull(eserviceInReadmodelCatalog.personalData)
+                  )
+                  .with(undefined, () => undefined)
+                  .exhaustive()
               )
             )
             .as("subqueryWithEserviceFilters");
@@ -630,6 +651,7 @@ export function readModelServiceBuilderSQL(
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(
@@ -678,6 +700,13 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
           )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
+          )
         );
 
       const queryResult = limit ? await query.limit(limit) : await query;
@@ -688,12 +717,18 @@ export function readModelServiceBuilderSQL(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       const res = await readmodelDB
         .select()
         .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, attributesIds))
+        .where(
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
+        )
         .orderBy(attributeInReadmodelAttribute.name);
 
       const attributes = aggregateAttributeArray(res);
@@ -722,6 +757,8 @@ export function readModelServiceBuilderSQL(
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+          delegationSignedContractDocument:
+            delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .where(
@@ -750,6 +787,13 @@ export function readModelServiceBuilderSQL(
             delegationContractDocumentInReadmodelDelegation.delegationId
           )
         )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
+          )
+        )
         .orderBy(desc(delegationInReadmodelDelegation.createdAt));
 
       if (queryResult.length === 0) {
@@ -765,7 +809,58 @@ export function readModelServiceBuilderSQL(
         await eserviceTemplateReadModelService.getEServiceTemplateById(id);
       return templateWithMetadata?.data;
     },
+    async getEServiceDescriptorDocuments(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Document>> {
+      const resultsSet = await readmodelDB
+        .select(
+          withTotalCount({
+            id: eserviceDescriptorDocumentInReadmodelCatalog.id,
+            path: eserviceDescriptorDocumentInReadmodelCatalog.path,
+            name: eserviceDescriptorDocumentInReadmodelCatalog.name,
+            prettyName: eserviceDescriptorDocumentInReadmodelCatalog.prettyName,
+            contentType:
+              eserviceDescriptorDocumentInReadmodelCatalog.contentType,
+            checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
+            uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
+          })
+        )
+        .from(eserviceDescriptorDocumentInReadmodelCatalog)
+        .where(
+          and(
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
+              eserviceId
+            ),
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+              descriptorId
+            )
+          )
+        )
+        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
+        .limit(limit)
+        .offset(offset)
+        .$dynamic();
+
+      return createListResult(
+        resultsSet.map(
+          (doc) =>
+            ({
+              id: unsafeBrandId<EServiceDocumentId>(doc.id),
+              path: doc.path,
+              name: doc.name,
+              prettyName: doc.prettyName,
+              contentType: doc.contentType,
+              checksum: doc.checksum,
+              uploadDate: stringToDate(doc.uploadDate),
+            }) satisfies Document
+        ),
+        resultsSet[0]?.totalCount
+      );
+    },
   };
 }
-
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

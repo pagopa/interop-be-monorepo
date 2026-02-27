@@ -11,6 +11,7 @@ export const InAppNotificationDBConfig = z
       .enum(["true", "false"])
       .transform((value) => value === "true")
       .default("false"),
+    IN_APP_NOTIFICATION_DB_SCHEMA: z.string().default("notification"),
   })
   .transform((c) => ({
     inAppNotificationDBHost: c.IN_APP_NOTIFICATION_DB_HOST,
@@ -19,6 +20,7 @@ export const InAppNotificationDBConfig = z
     inAppNotificationDBPassword: c.IN_APP_NOTIFICATION_DB_PASSWORD,
     inAppNotificationDBPort: c.IN_APP_NOTIFICATION_DB_PORT,
     inAppNotificationDBUseSSL: c.IN_APP_NOTIFICATION_DB_USE_SSL,
+    inAppNotificationDBSchema: c.IN_APP_NOTIFICATION_DB_SCHEMA,
   }));
 
 export type InAppNotificationDBConfig = z.infer<

@@ -2,42 +2,37 @@
   "name": "pagopa-interop-notification-tenant-lifecycle-consumer",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability tenant consumer service that creates/deletes notification configs for onboarded/deleted tenants",
   "main": "dist",
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.4",
+    "@types/node": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "2.8.8",
-    "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.1"
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "@protobuf-ts/runtime": "2.9.4",
-    "axios": "1.8.2",
-    "connection-string": "4.4.0",
-    "dotenv-flow": "4.1.0",
-    "kafkajs": "2.2.4",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "kafka-iam-auth": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

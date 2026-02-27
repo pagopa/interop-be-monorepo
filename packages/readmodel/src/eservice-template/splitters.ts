@@ -325,4 +325,5 @@ const eserviceTemplateToEServiceTemplateSQL = (
   technology: eserviceTemplate.technology,
   mode: eserviceTemplate.mode,
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled ?? null,
+  personalData: eserviceTemplate.personalData ?? null,
 });

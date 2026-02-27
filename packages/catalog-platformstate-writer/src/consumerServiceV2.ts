@@ -303,12 +303,14 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
       { type: "EServiceSignalHubEnabled" },
       { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       () => Promise.resolve()
     )
     .exhaustive();
 }
 
-export const parseEServiceAndDescriptor = (
+const parseEServiceAndDescriptor = (
   eserviceV2: EServiceV2 | undefined,
   descriptorId: DescriptorId,
   eventType: string

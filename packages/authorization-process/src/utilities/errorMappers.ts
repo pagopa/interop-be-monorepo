@@ -32,6 +32,7 @@ export const createApiClientErrorMapper = (
 export const getClientsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const getClientsWithKeysErrorMapper = getClientsErrorMapper;
 
 export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -89,8 +90,9 @@ export const addClientUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("clientUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingSelfcareId", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientAdminErrorMapper = (
@@ -245,6 +247,11 @@ export const addProducerKeychainUserErrorMapper = (
     )
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingSelfcareId",
+      "tenantNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeProducerKeychainUserErrorMapper = (

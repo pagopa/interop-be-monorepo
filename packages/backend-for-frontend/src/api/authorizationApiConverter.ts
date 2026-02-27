@@ -1,22 +1,29 @@
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getSelfcareCompactUserById } from "../services/selfcareService.js";
-import { SelfcareV2UserClient } from "../clients/clientsProvider.js";
-import { assertClientVisibilityIsFull } from "../services/validators.js";
+import {
+  assertClientVisibilityIsFull,
+  assertProducerKeychainVisibilityIsFull,
+} from "../services/validators.js";
 
 export const toBffApiCompactProducerKeychain = (
-  input: authorizationApi.ProducerKeychain
-): bffApi.CompactProducerKeychain => ({
-  hasKeys: input.keys.length > 0,
-  id: input.id,
-  name: input.name,
-});
+  keychain: authorizationApi.ProducerKeychain
+): bffApi.CompactProducerKeychain => {
+  assertProducerKeychainVisibilityIsFull(keychain);
+  return {
+    hasKeys: keychain.keys.length > 0,
+    id: keychain.id,
+    name: keychain.name,
+  };
+};
 
 export const toBffApiCompactClient = async (
-  selfcareClient: SelfcareV2UserClient,
+  selfcareClient: SelfcareV2UsersClient,
   { client, keys }: authorizationApi.ClientWithKeys,
   selfcareId: string,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  hasNotifications?: boolean
 ): Promise<bffApi.CompactClient> => {
   assertClientVisibilityIsFull(client);
   return {
@@ -31,6 +38,7 @@ export const toBffApiCompactClient = async (
           correlationId
         )
       : undefined,
+    hasUnreadNotifications: hasNotifications || false,
   };
 };
 

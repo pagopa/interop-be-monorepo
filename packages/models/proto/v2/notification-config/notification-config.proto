@@ -3,13 +3,39 @@ syntax = "proto3";
 package notification.config.v2;
 
 message NotificationConfigV2 {
-  bool newEServiceVersionPublished = 1;
+  bool agreementSuspendedUnsuspendedToProducer = 1;
+  bool agreementManagementToProducer = 2;
+  bool clientAddedRemovedToProducer = 3;
+  bool purposeStatusChangedToProducer = 4;
+  bool templateStatusChangedToProducer = 5;
+
+  bool agreementSuspendedUnsuspendedToConsumer = 6;
+  bool eserviceStateChangedToConsumer = 7;
+  bool agreementActivatedRejectedToConsumer = 8;
+  bool purposeActivatedRejectedToConsumer = 10;
+  bool purposeSuspendedUnsuspendedToConsumer = 11;
+  bool newEserviceTemplateVersionToInstantiator = 12;
+  bool eserviceTemplateNameChangedToInstantiator = 13;
+  bool eserviceTemplateStatusChangedToInstantiator = 14;
+
+  bool delegationApprovedRejectedToDelegator = 15;
+  bool eserviceNewVersionSubmittedToDelegator = 16;
+  bool eserviceNewVersionApprovedRejectedToDelegate = 17;
+  bool delegationSubmittedRevokedToDelegate = 18;
+
+  bool certifiedVerifiedAttributeAssignedRevokedToAssignee = 19;
+
+  bool clientKeyAddedDeletedToClientUsers = 20;
+  bool producerKeychainKeyAddedDeletedToClientUsers = 21;
+  bool purposeQuotaAdjustmentRequestToProducer = 22;
+  bool purposeOverQuotaStateToConsumer = 23;
+  bool clientKeyConsumerAddedDeletedToClientUsers = 24;
 }
 
 message TenantNotificationConfigV2 {
   string id = 1;
   string tenantId = 2;
-  NotificationConfigV2 config = 3;
+  bool enabled = 3;
   int64 createdAt = 4;
   optional int64 updatedAt = 5;
 }
@@ -22,4 +48,15 @@ message UserNotificationConfigV2 {
   NotificationConfigV2 emailConfig = 5;
   int64 createdAt = 6;
   optional int64 updatedAt = 7;
+  bool inAppNotificationPreference = 8;
+  bool emailNotificationPreference = 9;
+  repeated UserRoleV2 userRoles = 10;
+  bool emailDigestPreference = 11;
+}
+
+enum UserRoleV2 {
+  ADMIN = 0;
+  SECURITY = 1;
+  API = 2;
+  SUPPORT = 3;
 }

@@ -18,6 +18,7 @@ import {
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
 import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes/:purposeId/versions router test", () => {
   const mockPurposeVersion = getMockedApiPurposeVersion();
@@ -41,7 +42,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.createPurposeVersion = vi
         .fn()
@@ -95,7 +96,10 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       unsafeBrandId(mockPurpose.id),
       mockPurposeVersion.id
     ),
-    pollingMaxRetriesExceeded(3, 10),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
   ])("Should return 500 in case of $code error", async (error) => {
     mockPurposeService.createPurposeVersion = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

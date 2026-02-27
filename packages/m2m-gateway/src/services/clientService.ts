@@ -10,13 +10,16 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertClientVisibilityIsFull } from "../utils/validators/validators.js";
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
-import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
+import {
+  toGetPurposesApiQueryParamsForClient,
+  toM2MGatewayApiPurpose,
+} from "../api/purposeApiConverter.js";
 import { toM2MJWK } from "../api/keysApiConverter.js";
+import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -124,7 +127,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getClientPurposes(
       clientId: ClientId,
-      { limit, offset }: m2mGatewayApi.GetClientPurposesQueryParams,
+      {
+        limit,
+        offset,
+        eserviceIds,
+        states,
+      }: m2mGatewayApi.GetClientPurposesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> {
       logger.info(`Retrieving purposes for client with id ${clientId}`);
@@ -133,24 +141,39 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       assertClientVisibilityIsFull(client);
 
-      const paginatedPurposeIds = client.purposes.slice(offset, offset + limit);
+      const clientPurposesIds = client.purposes;
 
-      const paginatedPurposes = await Promise.all(
-        paginatedPurposeIds.map((purposeId) =>
-          clients.purposeProcessClient
-            .getPurpose({
-              params: { id: purposeId },
-              headers,
-            })
-            .then(({ data: purpose }) => purpose)
-        )
-      );
+      if (clientPurposesIds.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            limit,
+            offset,
+            totalCount: 0,
+          },
+        };
+      }
+
+      const queries = toGetPurposesApiQueryParamsForClient({
+        limit,
+        offset,
+        eserviceIds,
+        states,
+        clientId,
+      });
+
+      const { data } = await clients.purposeProcessClient.getPurposes({
+        queries,
+        headers,
+      });
+
+      const { results: paginatedPurposes, totalCount } = data;
 
       return {
         pagination: {
           limit,
           offset,
-          totalCount: client.purposes.length,
+          totalCount,
         },
         results: paginatedPurposes.map(toM2MGatewayApiPurpose),
       };

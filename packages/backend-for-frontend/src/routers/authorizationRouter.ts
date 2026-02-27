@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -9,7 +10,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   ApiError,
-  emptyErrorMapper,
   genericError,
   tooManyRequestsError,
 } from "pagopa-interop-models";
@@ -17,6 +17,9 @@ import { makeApiProblem } from "../model/errors.js";
 import { AuthorizationService } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { getSessionTokenErrorMapper } from "../utilities/errorMappers.js";
+
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
 const authorizationRouter = (
   ctx: ZodiosContext,
@@ -53,9 +56,13 @@ const authorizationRouter = (
             error instanceof ApiError ? error.detail : error
           }. Returning a generic error response.`
         );
+        const statusCode =
+          error instanceof ApiError
+            ? getSessionTokenErrorMapper(error)
+            : HTTP_STATUS_INTERNAL_SERVER_ERROR;
         const errorRes = makeApiProblem(
           genericError("Error creating a session token"),
-          emptyErrorMapper,
+          () => statusCode,
           ctx,
           "Error creating a session token"
         );

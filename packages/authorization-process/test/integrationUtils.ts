@@ -3,7 +3,6 @@ import {
   StoredEvent,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
@@ -21,11 +20,6 @@ import {
   Purpose,
   toClientV2,
   toProducerKeychainV2,
-  toReadModelAgreement,
-  toReadModelClient,
-  toReadModelEService,
-  toReadModelProducerKeychain,
-  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
@@ -48,14 +42,11 @@ import {
   upsertProducerKeychain,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
-import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     inject("eventStoreConfig"),
     undefined,
     undefined,
@@ -66,37 +57,21 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
 
 afterEach(cleanup);
 
-export const {
-  agreements,
-  clients,
-  eservices,
-  keys,
-  purposes,
-  tenants,
-  producerKeychains,
-  delegations,
-  producerKeys,
-} = readModelRepository;
-
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
-export const catalogReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
+const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
-export const delegationReadModelServiceSQL =
+const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-export const clientJWKKeyReadModelServiceSQL =
+const clientJWKKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
-export const producerJWKKeyReadModelServiceSQL =
+const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -107,12 +82,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
 });
-export const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 export const selfcareV2Client: SelfcareV2InstitutionClient =
   {} as SelfcareV2InstitutionClient;
@@ -123,9 +92,7 @@ export const authorizationService = authorizationServiceBuilder(
   selfcareV2Client
 );
 
-export const writeClientInEventstore = async (
-  client: Client
-): Promise<void> => {
+const writeClientInEventstore = async (client: Client): Promise<void> => {
   const authorizationEvent: AuthorizationEvent = {
     type: "ClientAdded",
     event_version: 2,
@@ -142,43 +109,31 @@ export const writeClientInEventstore = async (
 };
 
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
-  await writeInReadmodel(key, keys);
-
   await upsertClientJWKKey(readModelDB, key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
-  await writeInReadmodel(key, producerKeys);
-
   await upsertProducerJWKKey(readModelDB, key, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
-  await writeInReadmodel(toReadModelClient(client), clients);
-
   await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
-
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
-export const writeProducerKeychainInEventstore = async (
+const writeProducerKeychainInEventstore = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
   const authorizationEvent: AuthorizationEvent = {
@@ -200,19 +155,12 @@ export const addOneProducerKeychain = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
   await writeProducerKeychainInEventstore(producerKeychain);
-  await writeInReadmodel(
-    toReadModelProducerKeychain(producerKeychain),
-    producerKeychains
-  );
-
   await upsertProducerKeychain(readModelDB, producerKeychain, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-
   await upsertDelegation(readModelDB, delegation, 0);
 };
 

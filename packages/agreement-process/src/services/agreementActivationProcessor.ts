@@ -38,7 +38,7 @@ import {
 } from "../model/domain/toEvent.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function createActivationUpdateAgreementSeed({
   isFirstActivation,
@@ -245,7 +245,7 @@ export const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await readModelService.getAllAgreements({
@@ -269,7 +269,7 @@ export const archiveRelatedToAgreements = async (
   );
 };
 
-export function maybeCreateSuspensionByPlatformEvents(
+function maybeCreateSuspensionByPlatformEvents(
   updatedAgreement: Agreement,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,

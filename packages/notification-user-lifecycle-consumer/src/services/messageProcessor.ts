@@ -1,17 +1,18 @@
-import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import { delay, logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   genericInternalError,
   generateId,
   CorrelationId,
+  TenantId,
 } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { isAxiosError } from "axios";
 import { UsersEventPayload } from "../model/UsersEventPayload.js";
+import { userRoleToApiUserRole } from "../model/apiConverter.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { UserServiceSQL } from "./userServiceSQL.js";
 
 function jsonSafeParse(json: string): unknown {
   try {
@@ -25,7 +26,6 @@ function jsonSafeParse(json: string): unknown {
 export async function processUserEvent(
   payload: UsersEventPayload,
   readModelServiceSQL: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -35,9 +35,23 @@ export async function processUserEvent(
 ): Promise<void> {
   const userId = payload.user.userId;
   const institutionId = payload.institutionId;
-  const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
-    institutionId
-  );
+  const productRole = payload.user.productRole;
+
+  // eslint-disable-next-line functional/no-let
+  let tenantId: TenantId | undefined;
+  // eslint-disable-next-line functional/no-let
+  for (let attempt = 0; attempt < config.tenantLookupMaxRetries; attempt++) {
+    tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(institutionId);
+    if (tenantId) {
+      break;
+    }
+    loggerInstance.warn(
+      `Tenant not found for selfcareId ${institutionId}, attempt ${
+        attempt + 1
+      }/${config.tenantLookupMaxRetries}`
+    );
+    await delay(config.tenantLookupRetryDelayMs);
+  }
 
   if (!tenantId) {
     throw genericInternalError(
@@ -45,26 +59,19 @@ export async function processUserEvent(
     );
   }
 
-  const userData = {
-    userId,
-    tenantId,
-    institutionId,
-    name: payload.user.name,
-    familyName: payload.user.familyName,
-    email: payload.user.email,
-    productRole: payload.user.productRole,
-  };
-
   await match(payload.eventType)
-    .with("add", async () => {
-      loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
+    .with("add", "update", async () => {
+      loggerInstance.info(
+        `Received ${payload.eventType} for user id ${userId} in tenant ${tenantId} with role ${productRole}`
+      );
 
       try {
         const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.createUserDefaultNotificationConfig(
+        await notificationConfigProcessClient.ensureUserNotificationConfigExistsWithRoles(
           {
             userId,
             tenantId,
+            userRoles: [userRoleToApiUserRole(productRole)],
           },
           {
             headers: {
@@ -74,32 +81,24 @@ export async function processUserEvent(
           }
         );
       } catch (err) {
-        if (isAxiosError(err) && err.response?.status === 409) {
-          loggerInstance.info(
-            `Notification config for user ${userId} and tenant ${tenantId} already exists, skipping creation`
-          );
-        } else {
-          throw genericInternalError(
-            `Error creating default notification config for user ${userId} and tenant ${tenantId}. Reason: ${err}`
-          );
-        }
+        throw genericInternalError(
+          `Error in request to ensure a notification config exists for user ${userId} in tenant ${tenantId} with role ${productRole}. Reason: ${err}`
+        );
       }
-      return userServiceSQL.insertUser(userData);
-    })
-    .with("update", async () => {
-      loggerInstance.info(`Update user id ${userId} from tenant ${tenantId}`);
-      return userServiceSQL.updateUser(userData);
     })
     .with("delete", async () => {
-      loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
+      loggerInstance.info(
+        `Removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}`
+      );
       try {
         const { serialized } = await refreshableToken.get();
-        await notificationConfigProcessClient.deleteUserNotificationConfig(
+        await notificationConfigProcessClient.removeUserNotificationConfigRole(
           undefined,
           {
             params: {
               userId,
               tenantId,
+              userRole: userRoleToApiUserRole(productRole),
             },
             headers: {
               "X-Correlation-Id": correlationId,
@@ -110,22 +109,20 @@ export async function processUserEvent(
       } catch (err) {
         if (isAxiosError(err) && err.response?.status === 404) {
           loggerInstance.info(
-            `Notification config for user ${userId} and tenant ${tenantId} not found, skipping deletion`
+            `Notification config for user ${userId} and tenant ${tenantId} not found or role ${productRole} already missing, nothing to be done`
           );
         } else {
           throw genericInternalError(
-            `Error deleting default notification config for user ${userId} and tenant ${tenantId}. Reason: ${err}`
+            `Error removing role ${productRole} from notification config for user ${userId} in tenant ${tenantId}. Reason: ${err}`
           );
         }
       }
-      return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
 }
 
 export function messageProcessorBuilder(
   readModelServiceSQL: ReadModelServiceSQL,
-  userServiceSQL: UserServiceSQL,
   notificationConfigProcessClient: ReturnType<
     typeof notificationConfigApi.createProcessApiClient
   >,
@@ -169,7 +166,6 @@ export function messageProcessorBuilder(
         await processUserEvent(
           userEventPayload.data,
           readModelServiceSQL,
-          userServiceSQL,
           notificationConfigProcessClient,
           refreshableToken,
           loggerInstance,
@@ -186,5 +182,3 @@ export function messageProcessorBuilder(
     },
   };
 }
-
-export type MessageProcessor = ReturnType<typeof messageProcessorBuilder>;

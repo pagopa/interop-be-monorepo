@@ -8,6 +8,7 @@ import {
   getMockClient,
   getMockContext,
   getMockKey,
+  sortClient,
 } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
@@ -46,11 +47,14 @@ describe("getKeyWithClientByKeyId", async () => {
     );
 
     const expectedResult = {
-      client: mockClient,
+      client: sortClient(mockClient),
       jwk,
       kid: mockKey1.kid,
     };
-    expect(result).toEqual(expectedResult);
+    expect({
+      ...result,
+      client: sortClient(result.client),
+    } satisfies typeof result).toEqual(expectedResult);
   });
 
   it("should throw clientNotFound if the client doesn't exist", async () => {

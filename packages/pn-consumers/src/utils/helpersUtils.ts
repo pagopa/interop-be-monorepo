@@ -51,8 +51,8 @@ export function toCsvDataRow(purpose: Purpose, logger: Logger): PNDataCSVRow {
   const state: StatoFinalitaMigliore = activeVersion
     ? "Attivo"
     : suspendedVersion
-    ? "Sospeso"
-    : "In attesa di attivazione";
+      ? "Sospeso"
+      : "In attesa di attivazione";
 
   return PNDataCSVRow.parse({
     nome_comune: purpose.consumerName,

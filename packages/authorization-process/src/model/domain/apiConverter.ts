@@ -19,7 +19,7 @@ import {
 import { match } from "ts-pattern";
 import { assertJwkKtyIsDefined } from "../../services/validators.js";
 
-export const clientKindToApiClientKind = (
+const clientKindToApiClientKind = (
   kind: ClientKind
 ): authorizationApi.ClientKind =>
   match<ClientKind, authorizationApi.ClientKind>(kind)
@@ -35,7 +35,7 @@ export const apiClientKindToClientKind = (
     .with("API", () => clientKind.api)
     .exhaustive();
 
-export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
+const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
   match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
@@ -84,15 +84,15 @@ export function clientToApiClient(
   return clientToApiFullVisibilityClient(client);
 }
 
-export function producerKeychainToApiProducerKeychain(
-  producerKeychain: ProducerKeychain,
-  { showUsers }: { showUsers: boolean }
-): authorizationApi.ProducerKeychain {
+export function producerKeychainToApiFullVisibilityProducerKeychain(
+  producerKeychain: ProducerKeychain
+): authorizationApi.FullProducerKeychain {
   return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
     id: producerKeychain.id,
     name: producerKeychain.name,
     producerId: producerKeychain.producerId,
-    users: showUsers ? producerKeychain.users : [],
+    users: producerKeychain.users,
     createdAt: producerKeychain.createdAt.toJSON(),
     eservices: producerKeychain.eservices,
     description: producerKeychain.description,
@@ -100,7 +100,22 @@ export function producerKeychainToApiProducerKeychain(
   };
 }
 
-export function jsonWebKeyToApiJWKKey(
+export function producerKeychainToApiProducerKeychain(
+  producerKeychain: ProducerKeychain,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.ProducerKeychain {
+  if (authData.organizationId !== producerKeychain.producerId) {
+    return {
+      visibility: authorizationApi.Visibility.Enum.PARTIAL,
+      id: producerKeychain.id,
+      producerId: producerKeychain.producerId,
+    } satisfies authorizationApi.PartialProducerKeychain;
+  }
+
+  return producerKeychainToApiFullVisibilityProducerKeychain(producerKeychain);
+}
+
+function jsonWebKeyToApiJWKKey(
   jwk: JsonWebKey,
   kid: string
 ): authorizationApi.JWKKey {

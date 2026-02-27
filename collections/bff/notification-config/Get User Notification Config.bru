@@ -1,0 +1,15 @@
+meta {
+  name: Get User Notification Config
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-bff}}/userNotificationConfigs
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

@@ -1,5 +1,3 @@
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
 import { describe, expect, it } from "vitest";
 import {
   NotificationConfigEventEnvelope,
@@ -10,15 +8,20 @@ import {
   UserNotificationConfig,
   UserNotificationConfigCreatedV2,
   UserNotificationConfigDeletedV2,
+  UserNotificationConfigRoleAddedV2,
+  UserNotificationConfigRoleRemovedV2,
   UserNotificationConfigUpdatedV2,
   generateId,
   toTenantNotificationConfigV2,
   toUserNotificationConfigV2,
+  toUserRoleV2,
+  userRole,
 } from "pagopa-interop-models";
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   notificationConfigReadModelService,
@@ -45,7 +48,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -76,7 +83,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -91,13 +102,8 @@ describe("database test", async () => {
     });
 
     it("TenantNotificationConfigUpdated", async () => {
-      const tenantNotificationConfig: TenantNotificationConfig = {
-        id: generateId(),
-        tenantId: generateId(),
-        config: { newEServiceVersionPublished: false },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
-      };
+      const tenantNotificationConfig: TenantNotificationConfig =
+        getMockTenantNotificationConfig();
       await notificationConfigReadModelWriteService.upsertTenantNotificationConfig(
         tenantNotificationConfig,
         1
@@ -105,7 +111,7 @@ describe("database test", async () => {
 
       const updatedTenantNotificationConfig: TenantNotificationConfig = {
         ...tenantNotificationConfig,
-        config: { newEServiceVersionPublished: true },
+        enabled: !tenantNotificationConfig.enabled,
       };
 
       const payload: TenantNotificationConfigUpdatedV2 = {
@@ -123,7 +129,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -137,24 +147,116 @@ describe("database test", async () => {
     });
 
     it("UserNotificationConfigUpdated", async () => {
-      const userNotificationConfig: UserNotificationConfig = {
-        id: generateId(),
-        userId: generateId(),
-        tenantId: generateId(),
-        inAppConfig: { newEServiceVersionPublished: false },
-        emailConfig: { newEServiceVersionPublished: true },
-        createdAt: generateMock(z.coerce.date()),
-        updatedAt: generateMock(z.coerce.date().optional()),
-      };
+      const userNotificationConfig: UserNotificationConfig =
+        getMockUserNotificationConfig();
       await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
         userNotificationConfig,
         1
       );
 
+      const {
+        inAppConfig: initialInAppConfig,
+        emailConfig: initialEmailConfig,
+      } = userNotificationConfig;
+
       const updatedUserNotificationConfig: UserNotificationConfig = {
         ...userNotificationConfig,
-        inAppConfig: { newEServiceVersionPublished: true },
-        emailConfig: { newEServiceVersionPublished: false },
+        inAppConfig: {
+          agreementSuspendedUnsuspendedToProducer:
+            !initialInAppConfig.agreementSuspendedUnsuspendedToProducer,
+          agreementManagementToProducer:
+            !initialInAppConfig.agreementManagementToProducer,
+          clientAddedRemovedToProducer:
+            !initialInAppConfig.clientAddedRemovedToProducer,
+          purposeStatusChangedToProducer:
+            !initialInAppConfig.purposeStatusChangedToProducer,
+          templateStatusChangedToProducer:
+            !initialInAppConfig.templateStatusChangedToProducer,
+          agreementSuspendedUnsuspendedToConsumer:
+            !initialInAppConfig.agreementSuspendedUnsuspendedToConsumer,
+          eserviceStateChangedToConsumer:
+            !initialInAppConfig.eserviceStateChangedToConsumer,
+          agreementActivatedRejectedToConsumer:
+            !initialInAppConfig.agreementActivatedRejectedToConsumer,
+          purposeActivatedRejectedToConsumer:
+            !initialInAppConfig.purposeActivatedRejectedToConsumer,
+          purposeSuspendedUnsuspendedToConsumer:
+            !initialInAppConfig.purposeSuspendedUnsuspendedToConsumer,
+          newEserviceTemplateVersionToInstantiator:
+            !initialInAppConfig.newEserviceTemplateVersionToInstantiator,
+          eserviceTemplateNameChangedToInstantiator:
+            !initialInAppConfig.eserviceTemplateNameChangedToInstantiator,
+          eserviceTemplateStatusChangedToInstantiator:
+            !initialInAppConfig.eserviceTemplateStatusChangedToInstantiator,
+          delegationApprovedRejectedToDelegator:
+            !initialInAppConfig.delegationApprovedRejectedToDelegator,
+          eserviceNewVersionSubmittedToDelegator:
+            !initialInAppConfig.eserviceNewVersionSubmittedToDelegator,
+          eserviceNewVersionApprovedRejectedToDelegate:
+            !initialInAppConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          delegationSubmittedRevokedToDelegate:
+            !initialInAppConfig.delegationSubmittedRevokedToDelegate,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee:
+            !initialInAppConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
+          clientKeyAddedDeletedToClientUsers:
+            !initialInAppConfig.clientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
+            !initialInAppConfig.clientKeyConsumerAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            !initialInAppConfig.producerKeychainKeyAddedDeletedToClientUsers,
+          purposeQuotaAdjustmentRequestToProducer:
+            !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
+          purposeOverQuotaStateToConsumer:
+            !initialInAppConfig.purposeOverQuotaStateToConsumer,
+        },
+        emailConfig: {
+          agreementSuspendedUnsuspendedToProducer:
+            !initialEmailConfig.agreementSuspendedUnsuspendedToProducer,
+          agreementManagementToProducer:
+            !initialEmailConfig.agreementManagementToProducer,
+          clientAddedRemovedToProducer:
+            !initialEmailConfig.clientAddedRemovedToProducer,
+          purposeStatusChangedToProducer:
+            !initialEmailConfig.purposeStatusChangedToProducer,
+          templateStatusChangedToProducer:
+            !initialEmailConfig.templateStatusChangedToProducer,
+          agreementSuspendedUnsuspendedToConsumer:
+            !initialEmailConfig.agreementSuspendedUnsuspendedToConsumer,
+          eserviceStateChangedToConsumer:
+            !initialEmailConfig.eserviceStateChangedToConsumer,
+          agreementActivatedRejectedToConsumer:
+            !initialEmailConfig.agreementActivatedRejectedToConsumer,
+          purposeActivatedRejectedToConsumer:
+            !initialEmailConfig.purposeActivatedRejectedToConsumer,
+          purposeSuspendedUnsuspendedToConsumer:
+            !initialEmailConfig.purposeSuspendedUnsuspendedToConsumer,
+          newEserviceTemplateVersionToInstantiator:
+            !initialEmailConfig.newEserviceTemplateVersionToInstantiator,
+          eserviceTemplateNameChangedToInstantiator:
+            !initialEmailConfig.eserviceTemplateNameChangedToInstantiator,
+          eserviceTemplateStatusChangedToInstantiator:
+            !initialEmailConfig.eserviceTemplateStatusChangedToInstantiator,
+          delegationApprovedRejectedToDelegator:
+            !initialEmailConfig.delegationApprovedRejectedToDelegator,
+          eserviceNewVersionSubmittedToDelegator:
+            !initialEmailConfig.eserviceNewVersionSubmittedToDelegator,
+          eserviceNewVersionApprovedRejectedToDelegate:
+            !initialEmailConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          delegationSubmittedRevokedToDelegate:
+            !initialEmailConfig.delegationSubmittedRevokedToDelegate,
+          certifiedVerifiedAttributeAssignedRevokedToAssignee:
+            !initialEmailConfig.certifiedVerifiedAttributeAssignedRevokedToAssignee,
+          clientKeyAddedDeletedToClientUsers:
+            !initialEmailConfig.clientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
+            !initialEmailConfig.clientKeyConsumerAddedDeletedToClientUsers,
+          producerKeychainKeyAddedDeletedToClientUsers:
+            !initialEmailConfig.producerKeychainKeyAddedDeletedToClientUsers,
+          purposeQuotaAdjustmentRequestToProducer:
+            !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
+          purposeOverQuotaStateToConsumer:
+            !initialEmailConfig.purposeOverQuotaStateToConsumer,
+        },
       };
 
       const payload: UserNotificationConfigUpdatedV2 = {
@@ -172,7 +274,109 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: updatedUserNotificationConfig,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("UserNotificationConfigRoleAdded", async () => {
+      const userNotificationConfig: UserNotificationConfig = {
+        ...getMockUserNotificationConfig(),
+        userRoles: [userRole.API_ROLE],
+      };
+      await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+        userNotificationConfig,
+        1
+      );
+
+      const updatedUserNotificationConfig: UserNotificationConfig = {
+        ...userNotificationConfig,
+        userRoles: [userRole.API_ROLE, userRole.SECURITY_ROLE],
+      };
+
+      const payload: UserNotificationConfigRoleAddedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          updatedUserNotificationConfig
+        ),
+        userRole: toUserRoleV2(userRole.SECURITY_ROLE),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 2,
+        type: "UserNotificationConfigRoleAdded",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+
+      expect(retrievedConfig).toStrictEqual({
+        data: updatedUserNotificationConfig,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("UserNotificationConfigRoleRemoved", async () => {
+      const userNotificationConfig: UserNotificationConfig = {
+        ...getMockUserNotificationConfig(),
+        userRoles: [userRole.API_ROLE, userRole.SECURITY_ROLE],
+      };
+      await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+        userNotificationConfig,
+        1
+      );
+
+      const updatedUserNotificationConfig: UserNotificationConfig = {
+        ...userNotificationConfig,
+        userRoles: [userRole.API_ROLE],
+      };
+
+      const payload: UserNotificationConfigRoleRemovedV2 = {
+        userNotificationConfig: toUserNotificationConfigV2(
+          updatedUserNotificationConfig
+        ),
+        userRole: toUserRoleV2(userRole.SECURITY_ROLE),
+      };
+
+      const message: NotificationConfigEventEnvelope = {
+        sequence_num: 1,
+        stream_id: userNotificationConfig.id,
+        version: 2,
+        type: "UserNotificationConfigRoleRemoved",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -208,7 +412,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -240,7 +448,11 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV2(message, notificationConfigReadModelWriteService);
+      await handleMessageV2(
+        message,
+        notificationConfigReadModelWriteService,
+        genericLogger
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
@@ -249,6 +461,195 @@ describe("database test", async () => {
         );
 
       expect(retrievedConfig).toBeUndefined();
+    });
+
+    describe("UserNotificationConfigCreated merge scenarios", () => {
+      it("should merge roles when creating config with different ID but same userId+tenantId - keeps OLD id", async () => {
+        const existingConfig: UserNotificationConfig = {
+          ...getMockUserNotificationConfig(),
+          userRoles: [userRole.API_ROLE],
+        };
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        const newConfig: UserNotificationConfig = {
+          ...existingConfig,
+          id: generateId(),
+          userRoles: [userRole.SECURITY_ROLE],
+          createdAt: new Date(),
+        };
+
+        const payload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const message: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          message,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        const retrievedConfig =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+
+        expect(retrievedConfig).toBeDefined();
+        expect(retrievedConfig?.data.id).toBe(existingConfig.id);
+        expect(retrievedConfig?.data.userRoles).toEqual(
+          expect.arrayContaining([userRole.API_ROLE, userRole.SECURITY_ROLE])
+        );
+        expect(retrievedConfig?.data.userRoles).toHaveLength(2);
+        expect(retrievedConfig?.metadata.version).toBe(1);
+        expect(retrievedConfig?.data.updatedAt).toEqual(newConfig.createdAt);
+      });
+
+      it("should throw error when Created event arrives with same ID as existing record", async () => {
+        const existingConfig = getMockUserNotificationConfig();
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        const payload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(existingConfig),
+        };
+
+        const message: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: existingConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        };
+
+        await expect(
+          handleMessageV2(
+            message,
+            notificationConfigReadModelWriteService,
+            genericLogger
+          )
+        ).rejects.toThrow(
+          `UserNotificationConfigCreated received for existing id ${existingConfig.id}`
+        );
+      });
+
+      it("should delete record with old ID, and delete for new ID should be no-op", async () => {
+        const existingConfig: UserNotificationConfig = {
+          ...getMockUserNotificationConfig(),
+          userRoles: [userRole.API_ROLE],
+        };
+        await notificationConfigReadModelWriteService.upsertUserNotificationConfig(
+          existingConfig,
+          1
+        );
+
+        const newId = generateId<typeof existingConfig.id>();
+        const newConfig: UserNotificationConfig = {
+          ...existingConfig,
+          id: newId,
+          userRoles: [userRole.SECURITY_ROLE],
+          createdAt: new Date(),
+        };
+
+        const createPayload: UserNotificationConfigCreatedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const createMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 0,
+          type: "UserNotificationConfigCreated",
+          event_version: 2,
+          data: createPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          createMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        const retrievedConfigAfterCreate =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfigAfterCreate).toBeDefined();
+        expect(retrievedConfigAfterCreate?.data.id).toBe(existingConfig.id);
+
+        const deleteNewPayload: UserNotificationConfigDeletedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(newConfig),
+        };
+
+        const deleteNewMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: newConfig.id,
+          version: 1,
+          type: "UserNotificationConfigDeleted",
+          event_version: 2,
+          data: deleteNewPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          deleteNewMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        const retrievedConfigAfterDeleteNew =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfigAfterDeleteNew).toBeDefined();
+        expect(retrievedConfigAfterDeleteNew?.data.id).toBe(existingConfig.id);
+
+        const deleteOldPayload: UserNotificationConfigDeletedV2 = {
+          userNotificationConfig: toUserNotificationConfigV2(existingConfig),
+        };
+
+        const deleteOldMessage: NotificationConfigEventEnvelope = {
+          sequence_num: 1,
+          stream_id: existingConfig.id,
+          version: 2,
+          type: "UserNotificationConfigDeleted",
+          event_version: 2,
+          data: deleteOldPayload,
+          log_date: new Date(),
+        };
+
+        await handleMessageV2(
+          deleteOldMessage,
+          notificationConfigReadModelWriteService,
+          genericLogger
+        );
+
+        const retrievedConfigAfterDeleteOld =
+          await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+            existingConfig.userId,
+            existingConfig.tenantId
+          );
+        expect(retrievedConfigAfterDeleteOld).toBeUndefined();
+      });
     });
   });
 });

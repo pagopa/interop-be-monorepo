@@ -1,0 +1,119 @@
+CREATE SCHEMA IF NOT EXISTS readmodel_purpose_template;
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template (
+  id UUID,
+  metadata_version INTEGER NOT NULL,
+  target_description VARCHAR NOT NULL,
+  target_tenant_kind VARCHAR NOT NULL,
+  creator_id UUID NOT NULL,
+  state VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  purpose_title VARCHAR NOT NULL,
+  purpose_description VARCHAR NOT NULL,
+  purpose_is_free_of_charge BOOLEAN NOT NULL,
+  purpose_free_of_charge_reason VARCHAR,
+  purpose_daily_calls INTEGER,
+  handles_personal_data BOOLEAN NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_eservice_descriptor (
+  metadata_version INTEGER NOT NULL,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  eservice_id UUID NOT NULL,
+  descriptor_id UUID NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (purpose_template_id, eservice_id),
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_form (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  version VARCHAR NOT NULL,
+  UNIQUE (purpose_template_id),
+  PRIMARY KEY (id),
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_form (id) ON DELETE CASCADE,
+  kind VARCHAR NOT NULL,
+  key VARCHAR NOT NULL,
+  value VARCHAR ARRAY NOT NULL,
+  editable BOOLEAN NOT NULL,
+  suggested_values VARCHAR ARRAY,
+  PRIMARY KEY (id),
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  answer_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer (id) ON DELETE CASCADE,
+  "text" VARCHAR NOT NULL,
+  UNIQUE (answer_id),
+  PRIMARY KEY (id),
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation_document (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  annotation_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_answer_annotation (id) ON DELETE CASCADE,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  checksum VARCHAR NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_form_document (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  
+  -- link to  Risk Analysis (RiskAnalysisFormTemplate)
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_form (id) ON DELETE CASCADE,
+  
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  
+  PRIMARY KEY (id),
+  
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_analysis_form_signed_document (
+  id UUID,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  
+  -- link to  Risk Analysis (RiskAnalysisFormTemplate)
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template_risk_analysis_form (id) ON DELETE CASCADE,
+  
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  signed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  
+  PRIMARY KEY (id),
+  
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);

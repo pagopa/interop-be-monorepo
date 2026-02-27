@@ -14,6 +14,7 @@ import {
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /agreements/:agreementId/unsuspend router test", () => {
   const mockApiAgreement = getMockedApiAgreement({
@@ -21,7 +22,7 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
   });
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement);
+    toM2MGatewayApiAgreement(mockApiAgreement, generateId());
 
   const makeRequest = async (
     token: string,
@@ -87,18 +88,19 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockAgreementService.unsuspendAgreement = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token);
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockAgreementService.unsuspendAgreement = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it("Should return 409 in case of agreementNotInSuspendedState error", async () => {
     mockAgreementService.unsuspendAgreement = vi
