@@ -158,10 +158,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(delegationInReadmodelDelegation.createdAt)
         .$dynamic();
 
-      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
+      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-
-      const queryResult = await readModelDB
+      const queryResultPromise = readModelDB
         .select({
           delegation: delegationInReadmodelDelegation,
           delegationStamp: delegationStampInReadmodelDelegation,
@@ -197,6 +196,10 @@ export function readModelServiceBuilderSQL({
           )
         )
         .orderBy(delegationInReadmodelDelegation.createdAt);
+      const [totalCount, queryResult] = await Promise.all([
+        totalCountPromise,
+        queryResultPromise,
+      ]);
 
       const delegations = aggregateDelegationArray(
         toDelegationAggregatorArray(queryResult)

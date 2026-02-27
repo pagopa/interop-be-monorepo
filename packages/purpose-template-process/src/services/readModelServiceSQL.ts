@@ -244,10 +244,9 @@ export function readModelServiceBuilderSQL({
         )
         .$dynamic();
 
-      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
+      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-
-      const queryResult = await readModelDB
+      const queryResultPromise = readModelDB
         .select({
           purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
           purposeRiskAnalysisFormTemplate:
@@ -316,6 +315,10 @@ export function readModelServiceBuilderSQL({
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
         );
+      const [totalCount, queryResult] = await Promise.all([
+        totalCountPromise,
+        queryResultPromise,
+      ]);
 
       const purposeTemplates = aggregatePurposeTemplateArray(
         toPurposeTemplateAggregatorArray(queryResult)

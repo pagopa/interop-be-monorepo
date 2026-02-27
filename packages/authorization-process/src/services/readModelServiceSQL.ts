@@ -157,10 +157,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(clientInReadmodelClient.name))
         .$dynamic();
 
-      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
+      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-
-      const queryResult = await readModelDB
+      const queryResultPromise = readModelDB
         .select({
           client: clientInReadmodelClient,
           clientUser: clientUserInReadmodelClient,
@@ -185,6 +184,10 @@ export function readModelServiceBuilderSQL({
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         )
         .orderBy(ascLower(clientInReadmodelClient.name));
+      const [totalCount, queryResult] = await Promise.all([
+        totalCountPromise,
+        queryResultPromise,
+      ]);
 
       return {
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(

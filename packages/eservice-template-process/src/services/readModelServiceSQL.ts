@@ -207,10 +207,9 @@ export function readModelServiceBuilderSQL({
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
         .$dynamic();
 
-      const totalCount = await getTableTotalCount(readModelDB, filterQuery);
+      const totalCountPromise = getTableTotalCount(readModelDB, filterQuery);
       const subquery = filterQuery.limit(limit).offset(offset).as("subquery");
-
-      const queryResult = await readModelDB
+      const queryResultPromise = readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -276,6 +275,10 @@ export function readModelServiceBuilderSQL({
           )
         )
         .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
+      const [totalCount, queryResult] = await Promise.all([
+        totalCountPromise,
+        queryResultPromise,
+      ]);
 
       const eserviceTemplates = aggregateEServiceTemplateArray(
         toEServiceTemplateAggregatorArray(queryResult)
