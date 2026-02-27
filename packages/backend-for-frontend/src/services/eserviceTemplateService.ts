@@ -285,19 +285,6 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const isAlreadyInstantiated =
-        (
-          await catalogProcessClient.getEServices({
-            headers,
-            queries: {
-              templatesIds: [eserviceTemplate.id],
-              producersIds: [callerTenant.id],
-              limit: 1,
-              offset: 0,
-            },
-          })
-        ).totalCount > 0;
-
       const hasRequesterRiskAnalysis = match(eserviceTemplate.mode)
         .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => null)
         .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
@@ -337,7 +324,6 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
-        isAlreadyInstantiated,
         ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
