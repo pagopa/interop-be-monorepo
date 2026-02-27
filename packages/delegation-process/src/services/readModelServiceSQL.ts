@@ -1,7 +1,7 @@
 import {
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -129,83 +129,95 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Delegation>> {
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
+      const buildFilterQuery = () =>
+        readModelDB
+          .select({
             delegationId: delegationInReadmodelDelegation.id,
           })
-        )
-        .from(delegationInReadmodelDelegation)
-        .where(
-          and(
-            delegateIds.length > 0
-              ? inArray(delegationInReadmodelDelegation.delegateId, delegateIds)
-              : undefined,
-            delegatorIds.length > 0
-              ? inArray(
-                  delegationInReadmodelDelegation.delegatorId,
-                  delegatorIds
-                )
-              : undefined,
-            eserviceIds.length > 0
-              ? inArray(delegationInReadmodelDelegation.eserviceId, eserviceIds)
-              : undefined,
-            delegationStates.length > 0
-              ? inArray(delegationInReadmodelDelegation.state, delegationStates)
-              : undefined,
-            kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
+          .from(delegationInReadmodelDelegation)
+          .where(
+            and(
+              delegateIds.length > 0
+                ? inArray(
+                    delegationInReadmodelDelegation.delegateId,
+                    delegateIds
+                  )
+                : undefined,
+              delegatorIds.length > 0
+                ? inArray(
+                    delegationInReadmodelDelegation.delegatorId,
+                    delegatorIds
+                  )
+                : undefined,
+              eserviceIds.length > 0
+                ? inArray(
+                    delegationInReadmodelDelegation.eserviceId,
+                    eserviceIds
+                  )
+                : undefined,
+              delegationStates.length > 0
+                ? inArray(
+                    delegationInReadmodelDelegation.state,
+                    delegationStates
+                  )
+                : undefined,
+              kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
+            )
           )
-        )
-        .groupBy(delegationInReadmodelDelegation.id)
-        .orderBy(delegationInReadmodelDelegation.createdAt)
+          .groupBy(delegationInReadmodelDelegation.id)
+          .orderBy(delegationInReadmodelDelegation.createdAt)
+          .$dynamic();
+
+      const subquery = buildFilterQuery()
         .limit(limit)
         .offset(offset)
         .as("subquery");
-
-      const queryResult = await readModelDB
-        .select({
-          delegation: delegationInReadmodelDelegation,
-          delegationStamp: delegationStampInReadmodelDelegation,
-          delegationContractDocument:
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildFilterQuery()),
+        readModelDB
+          .select({
+            delegation: delegationInReadmodelDelegation,
+            delegationStamp: delegationStampInReadmodelDelegation,
+            delegationContractDocument:
+              delegationContractDocumentInReadmodelDelegation,
+            delegationSignedContractDocument:
+              delegationSignedContractDocumentInReadmodelDelegation,
+          })
+          .from(delegationInReadmodelDelegation)
+          .innerJoin(
+            subquery,
+            eq(delegationInReadmodelDelegation.id, subquery.delegationId)
+          )
+          .leftJoin(
+            delegationStampInReadmodelDelegation,
+            eq(
+              delegationInReadmodelDelegation.id,
+              delegationStampInReadmodelDelegation.delegationId
+            )
+          )
+          .leftJoin(
             delegationContractDocumentInReadmodelDelegation,
-          delegationSignedContractDocument:
+            eq(
+              delegationInReadmodelDelegation.id,
+              delegationContractDocumentInReadmodelDelegation.delegationId
+            )
+          )
+          .leftJoin(
             delegationSignedContractDocumentInReadmodelDelegation,
-          totalCount: subquery.totalCount,
-        })
-        .from(delegationInReadmodelDelegation)
-        .innerJoin(
-          subquery,
-          eq(delegationInReadmodelDelegation.id, subquery.delegationId)
-        )
-        .leftJoin(
-          delegationStampInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationStampInReadmodelDelegation.delegationId
+            eq(
+              delegationInReadmodelDelegation.id,
+              delegationSignedContractDocumentInReadmodelDelegation.delegationId
+            )
           )
-        )
-        .leftJoin(
-          delegationContractDocumentInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationContractDocumentInReadmodelDelegation.delegationId
-          )
-        )
-        .leftJoin(
-          delegationSignedContractDocumentInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationSignedContractDocumentInReadmodelDelegation.delegationId
-          )
-        )
-        .orderBy(delegationInReadmodelDelegation.createdAt);
+          .orderBy(delegationInReadmodelDelegation.createdAt),
+      ]);
 
       const delegations = aggregateDelegationArray(
         toDelegationAggregatorArray(queryResult)
       );
       return createListResult(
         delegations.map((d) => d.data),
-        queryResult[0]?.totalCount
+        totalCount
       );
     },
     async getConsumerDelegators(filters: {
@@ -215,49 +227,55 @@ export function readModelServiceBuilderSQL({
       limit: number;
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
           })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            tenantInReadmodelTenant.id,
-            delegationInReadmodelDelegation.delegatorId
-          )
-        )
-        .where(
-          and(
-            // DELEGATION FILTERS
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            delegationInReadmodelDelegation,
             eq(
-              delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedConsumer
-            ),
-            eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
-            filters.eserviceIds.length > 0
-              ? inArray(
-                  delegationInReadmodelDelegation.eserviceId,
-                  filters.eserviceIds
-                )
-              : undefined,
-            // TENANT FILTERS
-            filters.delegatorName
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(filters.delegatorName)}%`
-                )
-              : undefined
+              tenantInReadmodelTenant.id,
+              delegationInReadmodelDelegation.delegatorId
+            )
           )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+          .where(
+            and(
+              // DELEGATION FILTERS
+              eq(
+                delegationInReadmodelDelegation.kind,
+                delegationKind.delegatedConsumer
+              ),
+              eq(delegationInReadmodelDelegation.state, delegationState.active),
+              eq(
+                delegationInReadmodelDelegation.delegateId,
+                filters.delegateId
+              ),
+              filters.eserviceIds.length > 0
+                ? inArray(
+                    delegationInReadmodelDelegation.eserviceId,
+                    filters.eserviceIds
+                  )
+                : undefined,
+              // TENANT FILTERS
+              filters.delegatorName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeRegExp(filters.delegatorName)}%`
+                  )
+                : undefined
+            )
+          )
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(tenantInReadmodelTenant.name)
+          .$dynamic();
+
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+      ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
         id: d.id,
@@ -274,7 +292,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, totalCount);
     },
     async getConsumerDelegatorsWithAgreements(filters: {
       delegateId: TenantId;
@@ -282,67 +300,73 @@ export function readModelServiceBuilderSQL({
       limit: number;
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
           })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            tenantInReadmodelTenant.id,
-            delegationInReadmodelDelegation.delegatorId
-          )
-        )
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
-        )
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            agreementInReadmodelAgreement.eserviceId
-          )
-        )
-        .where(
-          and(
-            // DELEGATION FILTERS
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            delegationInReadmodelDelegation,
             eq(
-              delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedConsumer
-            ),
-            eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
-            // AGREEMENT FILTERS
-            eq(
-              agreementInReadmodelAgreement.producerId,
-              eserviceInReadmodelCatalog.producerId
-            ),
-            eq(
-              agreementInReadmodelAgreement.consumerId,
+              tenantInReadmodelTenant.id,
               delegationInReadmodelDelegation.delegatorId
-            ),
-            eq(agreementInReadmodelAgreement.state, agreementState.active),
-            // TENANT FILTERS
-            filters.delegatorName
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(filters.delegatorName)}%`
-                )
-              : undefined
+            )
           )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+          .innerJoin(
+            eserviceInReadmodelCatalog,
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              eserviceInReadmodelCatalog.id
+            )
+          )
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              agreementInReadmodelAgreement.eserviceId
+            )
+          )
+          .where(
+            and(
+              // DELEGATION FILTERS
+              eq(
+                delegationInReadmodelDelegation.kind,
+                delegationKind.delegatedConsumer
+              ),
+              eq(delegationInReadmodelDelegation.state, delegationState.active),
+              eq(
+                delegationInReadmodelDelegation.delegateId,
+                filters.delegateId
+              ),
+              // AGREEMENT FILTERS
+              eq(
+                agreementInReadmodelAgreement.producerId,
+                eserviceInReadmodelCatalog.producerId
+              ),
+              eq(
+                agreementInReadmodelAgreement.consumerId,
+                delegationInReadmodelDelegation.delegatorId
+              ),
+              eq(agreementInReadmodelAgreement.state, agreementState.active),
+              // TENANT FILTERS
+              filters.delegatorName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeRegExp(filters.delegatorName)}%`
+                  )
+                : undefined
+            )
+          )
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(tenantInReadmodelTenant.name)
+          .$dynamic();
+
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+      ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
         id: d.id,
@@ -359,7 +383,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, totalCount);
     },
     async getConsumerEservices(filters: {
       delegateId: TenantId;
@@ -368,65 +392,71 @@ export function readModelServiceBuilderSQL({
       offset: number;
       eserviceName?: string;
     }): Promise<delegationApi.CompactEServices> {
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readModelDB
+          .select({
             id: eserviceInReadmodelCatalog.id,
             name: eserviceInReadmodelCatalog.name,
             producerId: eserviceInReadmodelCatalog.producerId,
           })
-        )
-        .from(eserviceInReadmodelCatalog)
-        .innerJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            delegationInReadmodelDelegation.eserviceId
+          .from(eserviceInReadmodelCatalog)
+          .innerJoin(
+            delegationInReadmodelDelegation,
+            eq(
+              eserviceInReadmodelCatalog.id,
+              delegationInReadmodelDelegation.eserviceId
+            )
           )
-        )
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            agreementInReadmodelAgreement.eserviceId
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              agreementInReadmodelAgreement.eserviceId
+            )
           )
-        )
-        .where(
-          and(
-            // DELEGATION FILTERS
-            eq(
-              delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedConsumer
-            ),
-            eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
-            eq(
-              delegationInReadmodelDelegation.delegatorId,
-              filters.delegatorId
-            ),
-            // E-SERVICE FILTER
-            filters.eserviceName
-              ? ilike(
-                  eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(filters.eserviceName)}%`
-                )
-              : undefined,
-            // AGREEMENT FILTERS
-            eq(
-              agreementInReadmodelAgreement.producerId,
-              eserviceInReadmodelCatalog.producerId
-            ),
-            eq(
-              agreementInReadmodelAgreement.consumerId,
-              delegationInReadmodelDelegation.delegatorId
-            ),
-            eq(agreementInReadmodelAgreement.state, agreementState.active)
+          .where(
+            and(
+              // DELEGATION FILTERS
+              eq(
+                delegationInReadmodelDelegation.kind,
+                delegationKind.delegatedConsumer
+              ),
+              eq(delegationInReadmodelDelegation.state, delegationState.active),
+              eq(
+                delegationInReadmodelDelegation.delegateId,
+                filters.delegateId
+              ),
+              eq(
+                delegationInReadmodelDelegation.delegatorId,
+                filters.delegatorId
+              ),
+              // E-SERVICE FILTER
+              filters.eserviceName
+                ? ilike(
+                    eserviceInReadmodelCatalog.name,
+                    `%${escapeRegExp(filters.eserviceName)}%`
+                  )
+                : undefined,
+              // AGREEMENT FILTERS
+              eq(
+                agreementInReadmodelAgreement.producerId,
+                eserviceInReadmodelCatalog.producerId
+              ),
+              eq(
+                agreementInReadmodelAgreement.consumerId,
+                delegationInReadmodelDelegation.delegatorId
+              ),
+              eq(agreementInReadmodelAgreement.state, agreementState.active)
+            )
           )
-        )
-        .groupBy(eserviceInReadmodelCatalog.id)
-        .orderBy(eserviceInReadmodelCatalog.name)
-        .limit(filters.limit)
-        .offset(filters.offset);
+          .groupBy(eserviceInReadmodelCatalog.id)
+          .orderBy(eserviceInReadmodelCatalog.name)
+          .$dynamic();
+
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+      ]);
 
       const data: delegationApi.CompactEService[] = queryResult.map((e) => ({
         id: e.id,
@@ -444,7 +474,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return createListResult(result.data, queryResult[0]?.totalCount);
+      return createListResult(result.data, totalCount);
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,

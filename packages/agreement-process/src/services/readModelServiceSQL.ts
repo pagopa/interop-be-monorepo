@@ -51,6 +51,7 @@ import {
   createListResult,
   ascLower,
   withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
@@ -374,12 +375,10 @@ export function readModelServiceBuilderSQL(
     ): Promise<ListResult<Agreement>> {
       const queryBaseAgreementIds = addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: agreementInReadmodelAgreement.id,
-              eserviceName: eserviceInReadmodelCatalog.name,
-            })
-          )
+          .select({
+            id: agreementInReadmodelAgreement.id,
+            eserviceName: eserviceInReadmodelCatalog.name,
+          })
           .from(agreementInReadmodelAgreement)
           .leftJoin(
             eserviceInReadmodelCatalog,
@@ -427,7 +426,7 @@ export function readModelServiceBuilderSQL(
             .offset(offset)
             .as("queryAgreementIds");
 
-      const resultSet = await readmodelDB
+      const outerQuery = readmodelDB
         .select({
           eserviceName: queryAgreementIds.eserviceName,
           agreement: agreementInReadmodelAgreement,
@@ -435,7 +434,6 @@ export function readModelServiceBuilderSQL(
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
-          totalCount: queryAgreementIds.totalCount,
           signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
@@ -483,6 +481,13 @@ export function readModelServiceBuilderSQL(
           agreementInReadmodelAgreement.id
         );
 
+      const [resultSet, totalCount] = await Promise.all([
+        outerQuery,
+        filters.showOnlyUpgradeable
+          ? Promise.resolve(0)
+          : getTableTotalCount(readmodelDB, queryBaseAgreementIds),
+      ]);
+
       const agreements = aggregateAgreementArray(
         toAgreementAggregatorArray(resultSet)
       ).map(({ data }) => data);
@@ -521,7 +526,7 @@ export function readModelServiceBuilderSQL(
           limit
         );
       }
-      return createListResult(agreements, resultSet[0]?.totalCount);
+      return createListResult(agreements, totalCount);
     },
 
     async getAgreementById(
@@ -660,37 +665,40 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
               id: tenantInReadmodelTenant.id,
               name: tenantInReadmodelTenant.name,
             })
-          )
-          .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
+            .from(tenantInReadmodelTenant)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.consumerId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, consumerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, consumerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic()
+        );
+
+      const [totalCount, resultSet] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
+
       return createListResult(
         resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
-        resultSet[0]?.totalCount
+        totalCount
       );
     },
 
@@ -700,37 +708,40 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
               id: tenantInReadmodelTenant.id,
               name: tenantInReadmodelTenant.name,
             })
-          )
-          .from(tenantInReadmodelTenant)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.producerId
+            .from(tenantInReadmodelTenant)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.producerId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(tenantInReadmodelTenant.name, producerName),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(tenantInReadmodelTenant.name, producerName),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(ascLower(tenantInReadmodelTenant.name))
-          .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
+            .groupBy(tenantInReadmodelTenant.id)
+            .orderBy(ascLower(tenantInReadmodelTenant.name))
+            .$dynamic()
+        );
+
+      const [totalCount, resultSet] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
+
       return createListResult(
         resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
-        resultSet[0]?.totalCount
+        totalCount
       );
     },
 
@@ -743,39 +754,42 @@ export function readModelServiceBuilderSQL(
       const { consumerIds, producerIds, eserviceName } = filters;
       const withDelegationFilter = true;
 
-      const resultSet = await addDelegationJoins(
-        readmodelDB
-          .select(
-            withTotalCount({
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
               id: eserviceInReadmodelCatalog.id,
               name: eserviceInReadmodelCatalog.name,
             })
-          )
-          .from(eserviceInReadmodelCatalog)
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              eserviceInReadmodelCatalog.id,
-              agreementInReadmodelAgreement.eserviceId
+            .from(eserviceInReadmodelCatalog)
+            .leftJoin(
+              agreementInReadmodelAgreement,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                agreementInReadmodelAgreement.eserviceId
+              )
             )
-          )
-          .where(
-            and(
-              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-              getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
-              getVisibilityFilter(requesterId)
+            .where(
+              and(
+                getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+                getProducerIdsFilter(producerIds, withDelegationFilter),
+                getConsumerIdsFilter(consumerIds, withDelegationFilter),
+                getVisibilityFilter(requesterId)
+              )
             )
-          )
-          .groupBy(eserviceInReadmodelCatalog.id)
-          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
-          .limit(limit)
-          .offset(offset)
-          .$dynamic()
-      );
+            .groupBy(eserviceInReadmodelCatalog.id)
+            .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+            .$dynamic()
+        );
+
+      const [totalCount, resultSet] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
+
       return createListResult(
         resultSet.map(({ id, name }) => ({ id, name })),
-        resultSet[0]?.totalCount
+        totalCount
       );
     },
 
@@ -842,9 +856,9 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<AgreementDocument>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readmodelDB
+          .select({
             id: agreementConsumerDocumentInReadmodelAgreement.id,
             path: agreementConsumerDocumentInReadmodelAgreement.path,
             name: agreementConsumerDocumentInReadmodelAgreement.name,
@@ -854,18 +868,20 @@ export function readModelServiceBuilderSQL(
               agreementConsumerDocumentInReadmodelAgreement.contentType,
             createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
           })
-        )
-        .from(agreementConsumerDocumentInReadmodelAgreement)
-        .where(
-          eq(
-            agreementConsumerDocumentInReadmodelAgreement.agreementId,
-            agreementId
+          .from(agreementConsumerDocumentInReadmodelAgreement)
+          .where(
+            eq(
+              agreementConsumerDocumentInReadmodelAgreement.agreementId,
+              agreementId
+            )
           )
-        )
-        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
-        .limit(limit)
-        .offset(offset)
-        .$dynamic();
+          .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
+          .$dynamic();
+
+      const [totalCount, resultsSet] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
 
       return createListResult(
         resultsSet.map(
@@ -879,7 +895,7 @@ export function readModelServiceBuilderSQL(
               createdAt: stringToDate(doc.createdAt),
             }) satisfies AgreementDocument
         ),
-        resultsSet[0]?.totalCount
+        totalCount
       );
     },
   };
