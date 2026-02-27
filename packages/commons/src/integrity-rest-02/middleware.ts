@@ -42,14 +42,13 @@ export function integrityRest02Middleware(
     // Keep original res.send
     const originalSend = res.send.bind(res);
 
-    if (res.statusCode === 204 || res.statusCode === 304) {
-      throw new Error(
-        `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
-      );
-    }
-
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
+      if (res.statusCode === 204 || res.statusCode === 304) {
+        throw new Error(
+          `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+        );
+      }
       const correlationId = res.getHeader("x-correlation-id") as
         | string
         | undefined;
