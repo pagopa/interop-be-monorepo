@@ -289,6 +289,9 @@ export const aggregateEservice = ({
           personalData: eserviceSQL.personalData,
         }
       : {}),
+    ...(eserviceSQL.instanceLabel !== null
+      ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
   };
   return {
     data: eservice,

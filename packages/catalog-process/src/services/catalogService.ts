@@ -498,6 +498,7 @@ async function innerCreateEService(
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
           riskAnalysis: RiskAnalysis[] | undefined;
+          instanceLabel: string | undefined;
         }
       | undefined;
   },
@@ -549,6 +550,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: template?.instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -2901,26 +2903,30 @@ export function catalogServiceBuilder(
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
-      newName: string,
+      updatedTemplateName: string,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Internal updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (newName === eservice.data.name) {
+      const updatedInstanceName = eservice.data.instanceLabel
+        ? `${updatedTemplateName} - ${eservice.data.instanceLabel}`
+        : updatedTemplateName;
+
+      if (updatedInstanceName === eservice.data.name) {
         return;
       }
 
       await assertEServiceNameAvailableForProducer(
-        newName,
+        updatedInstanceName,
         eservice.data.producerId,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: newName,
+        name: updatedInstanceName,
       };
 
       await repository.createEvent(
@@ -3328,8 +3334,13 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const instanceName =
+        seed.instanceLabel === undefined
+          ? template.name
+          : `${template.name} - ${seed.instanceLabel}`;
+
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        instanceName,
         ctx.authData.organizationId,
         readModelService
       );
@@ -3347,7 +3358,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3374,6 +3385,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,

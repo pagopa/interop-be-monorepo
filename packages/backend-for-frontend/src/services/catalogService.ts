@@ -479,6 +479,7 @@ export function catalogServiceBuilder(
           isNewTemplateVersionAvailable:
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
+          instanceLabel: eservice.instanceLabel,
         },
         delegation:
           delegation !== undefined && delegate !== undefined

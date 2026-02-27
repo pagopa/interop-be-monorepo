@@ -3237,6 +3237,8 @@ components:
           format: uuid
         name:
           type: string
+        instanceLabel:
+          type: string
         description:
           type: string
         technology:
@@ -3763,6 +3765,10 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     Problem:
       properties:
         type:

@@ -246,6 +246,7 @@ export const getMockEService = (
   riskAnalysis: [],
   mode: "Deliver",
   ...(templateId && { templateId }),
+  ...(templateId && { instanceLabel: "instance 001" }),
 });
 
 export const getMockVerifiedTenantAttribute = (
