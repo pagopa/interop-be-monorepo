@@ -110,6 +110,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId,
+      tenantKind: purposeRiskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -278,6 +279,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId: null,
+      tenantKind: null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =

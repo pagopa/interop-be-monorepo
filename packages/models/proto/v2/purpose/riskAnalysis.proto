@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package purpose.v2;
+import "v2/tenant/tenant.proto";
 
 message PurposeRiskAnalysisFormV2 {
   string id = 1;
@@ -8,6 +9,7 @@ message PurposeRiskAnalysisFormV2 {
   repeated RiskAnalysisSingleAnswerV2 singleAnswers = 3;
   repeated RiskAnalysisMultiAnswerV2 multiAnswers = 4;
   optional string riskAnalysisId = 5;
+  optional tenant.v2.TenantKindV2 tenantKind = 6;
 }
 
 message RiskAnalysisSingleAnswerV2 {
