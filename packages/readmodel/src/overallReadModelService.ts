@@ -19,6 +19,7 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementSignedContractInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   clientInReadmodelClient,
@@ -28,6 +29,7 @@ import {
   clientUserInReadmodelClient,
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
+  delegationSignedContractDocumentInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -57,6 +59,8 @@ import {
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   TenantCertifiedAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
@@ -80,16 +84,6 @@ import {
 } from "./agreement/aggregators.js";
 import { aggregateAttributeArray } from "./attribute/aggregators.js";
 import {
-  aggregateClientArray,
-  toClientAggregatorArray,
-} from "./authorization/clientAggregators.js";
-import { aggregateClientJWKKeyArray } from "./authorization/clientJWKKeyAggregators.js";
-import { aggregateProducerJWKKeyArray } from "./authorization/producerJWKKeyAggregators.js";
-import {
-  aggregateProducerKeychainArray,
-  toProducerKeychainAggregatorArray,
-} from "./authorization/producerKeychainAggregators.js";
-import {
   aggregateEserviceArray,
   toEServiceAggregatorArray,
 } from "./catalog/aggregators.js";
@@ -106,6 +100,8 @@ import {
   toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
 import { aggregateTenantArray } from "./tenant/aggregators.js";
+import { aggregateProducerJWKKeyArray } from "./producer-jwk-key/aggregators.js";
+import { aggregateClientArray, aggregateClientJWKKeyArray, aggregateProducerKeychainArray, toClientAggregatorArray, toProducerKeychainAggregatorArray } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
@@ -308,6 +304,8 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionSignedDocument: purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -343,6 +341,20 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
@@ -356,6 +368,7 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           attribute: agreementAttributeInReadmodelAgreement,
           consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
           contract: agreementContractInReadmodelAgreement,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -384,6 +397,13 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           eq(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         );
 
@@ -482,6 +502,7 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           delegationStamp: delegationStampInReadmodelDelegation,
           delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
+            delegationSignedContractDocument: delegationSignedContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(
@@ -497,6 +518,13 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
           )
+        )
+        .leftJoin(
+          delegationSignedContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationSignedContractDocumentInReadmodelDelegation.delegationId
+          ) 
         );
 
       return aggregateDelegationsArray(
