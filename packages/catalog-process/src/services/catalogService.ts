@@ -545,6 +545,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: template?.instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3322,8 +3323,13 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const instanceName =
+        seed.instanceLabel === undefined
+          ? template.name
+          : `${template.name} - ${seed.instanceLabel}`;
+
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        instanceName,
         ctx.authData.organizationId,
         readModelService
       );
@@ -3341,7 +3347,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3368,7 +3374,7 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel: undefined,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,
