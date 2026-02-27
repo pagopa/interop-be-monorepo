@@ -774,7 +774,6 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     ),
     attributes: generateMock(bffApi.DescriptorAttributes),
     eserviceTemplate: generateMock(bffApi.EServiceTemplateDetails),
-    isAlreadyInstantiated: generateMock(z.boolean()),
     hasRequesterRiskAnalysis: generateMock(z.boolean().optional()),
   });
 
