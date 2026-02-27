@@ -13,7 +13,6 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API /purposeTemplates/{id}", () => {
@@ -65,10 +64,6 @@ describe("API /purposeTemplates/{id}", () => {
     {
       error: purposeTemplateNotFound(purposeTemplateId),
       expectedStatus: 404,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(generateId()),

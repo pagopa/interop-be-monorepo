@@ -36,7 +36,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
@@ -184,7 +183,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(purposeTemplate);
@@ -196,7 +195,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
           authData: getMockAuthData(requesterId),
         }),
       })
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {

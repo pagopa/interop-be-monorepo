@@ -38,7 +38,6 @@ import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
   tooManyEServicesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
 import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION } from "../../src/services/validators.js";
@@ -444,7 +443,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw tenantNotAllowed when user is not the creator of the purpose template", async () => {
+  it("should throw purposeTemplateNotFound when user is not the creator of the purpose template", async () => {
     const differentTenant: Tenant = {
       ...getMockTenant(),
       kind: targetTenantKind.PA,
@@ -463,7 +462,7 @@ describe("linkEservicesToPurposeTemplate", () => {
           authData: getMockAuthData(differentTenant.id),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentTenant.id));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw eserviceAlreadyAssociatedError when linking the same eservice twice", async () => {

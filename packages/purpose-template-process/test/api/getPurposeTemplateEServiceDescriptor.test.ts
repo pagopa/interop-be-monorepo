@@ -13,7 +13,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   eServiceDescriptorPurposeTemplateNotFound,
   purposeTemplateNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
@@ -94,10 +93,6 @@ describe("API GET /purposeTemplates/:id/eservices/:eserviceId", () => {
         generateId()
       ),
       expectedStatus: 404,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
