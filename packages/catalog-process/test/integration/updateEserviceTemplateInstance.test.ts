@@ -27,6 +27,7 @@ import {
   eServiceNotFound,
   eserviceNotInDraftState,
   eServiceNotAnInstance,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -103,7 +104,10 @@ describe("update eService Instance", () => {
       false,
       undefined,
     ]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
     const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
@@ -156,6 +160,35 @@ describe("update eService Instance", () => {
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const template: EServiceTemplate = getMockEServiceTemplate();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      name: `${template.name}`,
+      descriptors: [descriptor],
+      templateId: template.id,
+    };
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateEServiceTemplateInstance(
+        mockEService.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 
   it("should write on event-store for the update of an eService (delegate)", async () => {

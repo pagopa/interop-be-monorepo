@@ -90,7 +90,6 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
-  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -180,6 +179,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertValidDelegationFlags,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -520,9 +520,15 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
+  const eserviceId = generateId<EServiceId>();
+  assertValidDelegationFlags(
+    seed.isConsumerDelegable,
+    seed.isClientAccessDelegable
+  );
+
   const creationDate = new Date();
   const newEService: EService = {
-    id: generateId(),
+    id: eserviceId,
     producerId: authData.organizationId,
     name: seed.name,
     description: seed.description,
@@ -971,6 +977,11 @@ export function catalogServiceBuilder(
 
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
+
+      assertValidDelegationFlags(
+        eserviceSeed.isConsumerDelegable,
+        eserviceSeed.isClientAccessDelegable
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
@@ -2438,9 +2449,7 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      if (!isConsumerDelegable && isClientAccessDelegable) {
-        throw invalidEServiceFlags(eserviceId);
-      }
+      assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -4085,6 +4094,11 @@ async function updateDraftEService(
       () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
     )
     .exhaustive();
+
+  assertValidDelegationFlags(
+    updatedIsConsumerDelegable,
+    updatedIsClientAccessDelegable
+  );
 
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)

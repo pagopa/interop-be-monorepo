@@ -32,6 +32,7 @@ import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
+  invalidDelegationFlags,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
@@ -178,6 +179,35 @@ describe("update eService", () => {
       metadata: { version: 1 },
     });
     expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          isSignalHubEnabled: false,
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 
   it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
