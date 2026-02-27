@@ -215,12 +215,10 @@ export function readModelServiceBuilderSQL({
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
           interface:
             eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          document:
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
           attribute:
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          riskAnalysis:
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
         })
