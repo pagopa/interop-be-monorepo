@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiClientJWK,
+  getMockedApiConsumerFullClient,
   getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import { ClientId, generateId } from "pagopa-interop-models";
@@ -19,28 +20,30 @@ describe("createClientKey", () => {
   const clientId = generateId<ClientId>();
   const mockApiClientJWK = getMockedApiClientJWK({ clientId }).jwk;
 
-  const mockApiClientKey = getMockedApiKey({
-    kid: mockApiClientJWK.kid,
+  const mockApiClientKey = getMockWithMetadata(
+    getMockedApiKey({
+      kid: mockApiClientJWK.kid,
+    })
+  );
+
+  const mockApiClient = getMockedApiConsumerFullClient({
+    kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
 
   const mockGetJWKByKid = vi.fn(() =>
     Promise.resolve(getMockWithMetadata({ jwk: mockApiClientJWK }))
   );
 
-  const mockApiClientKeyWithMetadata = getMockWithMetadata(mockApiClientKey);
+  const mockApiClientWithMetadata = getMockWithMetadata(mockApiClient);
 
-  const mockCreateClientKey = vi
-    .fn()
-    .mockResolvedValue(mockApiClientKeyWithMetadata);
+  const mockCreateClientKey = vi.fn().mockResolvedValue(mockApiClientKey);
 
-  const mockGetClientKeyById = vi
-    .fn()
-    .mockResolvedValue(mockApiClientKeyWithMetadata);
+  const mockGetClient = vi.fn().mockResolvedValue(mockApiClientWithMetadata);
 
   mockInteropBeClients.authorizationClient = {
     client: {
       createKey: mockCreateClientKey,
-      getClientKeyById: mockGetClientKeyById,
+      getClient: mockGetClient,
     },
     key: {
       getJWKByKid: mockGetJWKByKid,
@@ -105,9 +108,8 @@ describe("createClientKey", () => {
 
     // Polling
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetClientKeyById,
+      mockGet: mockGetClient,
       params: {
-        keyId: mockApiClientKey.kid,
         clientId,
       },
     });

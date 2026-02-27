@@ -113,7 +113,7 @@ describe("createKey", () => {
       getMockContext({ authData: mockAuthData })
     );
 
-    const client: Client = { ...mockClient, keys: [key] };
+    const client: Client = { ...mockClient, keys: [key.data] };
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
