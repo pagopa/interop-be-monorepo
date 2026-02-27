@@ -7,7 +7,6 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
-  assertFeatureFlagEnabled,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -51,7 +50,6 @@ import {
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -845,8 +843,6 @@ const eserviceTemplatesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
-
-        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
 
         const updatedEServiceTemplate =
           await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
