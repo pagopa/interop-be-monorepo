@@ -1850,7 +1850,7 @@ export function catalogServiceBuilder(
         : [];
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
-      const tentantsIds = Array.from(tenantsMap.keys());
+      const tenantsIds = Array.from(tenantsMap.keys());
 
       const defaultStates: catalogApi.EServiceDescriptorState[] = [
         catalogApi.EServiceDescriptorState.Values.PUBLISHED,
@@ -1862,7 +1862,7 @@ export function catalogServiceBuilder(
       const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
         queries: {
-          producersIds: tentantsIds,
+          producersIds: tenantsIds,
           templatesIds: [eServiceTemplateId],
           states: states.length === 0 ? defaultStates : states,
           offset,
@@ -1985,6 +1985,26 @@ export function catalogServiceBuilder(
           descriptorId,
         },
       });
+    },
+    updateEServiceInstanceLabel: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      seed: bffApi.EServiceInstanceLabelUpdateSeed
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Update instance label for E-Service with id = ${eServiceId} to ${seed.instanceLabel}`
+      );
+      const eservice =
+        await catalogProcessClient.updateEServiceInstanceLabelAfterPublication(
+          seed,
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id: eservice.id };
     },
   };
 }

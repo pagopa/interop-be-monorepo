@@ -1096,6 +1096,28 @@ const catalogRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/instanceLabel/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const result = await catalogService.updateEServiceInstanceLabel(
+            ctx,
+            unsafeBrandId(req.params.eServiceId),
+            req.body
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   return catalogRouter;

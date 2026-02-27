@@ -149,6 +149,7 @@ import {
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
+  toCreateEventEServiceInstanceLabelUpdated,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -980,9 +981,10 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedInstanceName = eserviceSeed.instanceLabel
-        ? `${template.name} - ${eserviceSeed.instanceLabel}`
-        : template.name;
+      const updatedInstanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: eserviceSeed.instanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -2921,9 +2923,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const updatedInstanceName = eservice.data.instanceLabel
-        ? `${updatedTemplateName} - ${eservice.data.instanceLabel}`
-        : updatedTemplateName;
+      const updatedInstanceName = buildInstanceName({
+        templateName: updatedTemplateName,
+        instanceLabel: eservice.data.instanceLabel,
+      });
 
       if (updatedInstanceName === eservice.data.name) {
         return;
@@ -3346,10 +3349,10 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const instanceName =
-        seed.instanceLabel === undefined
-          ? template.name
-          : `${template.name} - ${seed.instanceLabel}`;
+      const instanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: seed.instanceLabel,
+      });
 
       await assertEServiceNameAvailableForProducer(
         instanceName,
@@ -3677,6 +3680,62 @@ export function catalogServiceBuilder(
           updatedEservice,
           correlationId
         );
+
+      await repository.createEvent(event);
+
+      return updatedEservice;
+    },
+    async updateEServiceInstanceLabelAfterPublication(
+      eserviceId: EServiceId,
+      instanceLabel: string | undefined,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const updatedInstanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel,
+      });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel,
+      };
+
+      const event = toCreateEventEServiceInstanceLabelUpdated(
+        eservice.metadata.version,
+        updatedEservice,
+        correlationId
+      );
 
       await repository.createEvent(event);
 
@@ -4258,5 +4317,21 @@ async function updateDraftDescriptor(
     metadata: { version: event.newVersion },
   };
 }
+
+/**
+ * Builds the instance name from the template name and optional instance label.
+ * - templateName: maxLength 45
+ * - separator " - ": 3 characters
+ * - instanceLabel: maxLength 12
+ * - eservice name (result): maxLength 60
+ */
+const buildInstanceName = ({
+  templateName,
+  instanceLabel,
+}: {
+  templateName: string;
+  instanceLabel: string | undefined;
+}): string =>
+  instanceLabel ? `${templateName} - ${instanceLabel}` : templateName;
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
