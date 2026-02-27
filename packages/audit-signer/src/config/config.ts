@@ -12,16 +12,7 @@ const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
   .and(DynamoDBClientConfig)
-  .and(SafeStorageApiConfig)
-  .and(
-    z
-      .object({
-        SERVICE_NAME: z.string(),
-      })
-      .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
-      }))
-  );
+  .and(SafeStorageApiConfig);
 
 type AuditSignerConfig = z.infer<typeof AuditSignerConfig>;
 

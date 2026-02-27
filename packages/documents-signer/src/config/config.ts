@@ -20,16 +20,7 @@ const DocumentsSignerConfig = S3Config.and(LoggerConfig)
   .and(PurposeTemplateTopicConfig)
   .and(SafeStorageApiConfig)
   .and(DynamoDBClientConfig)
-  .and(AWSConfig)
-  .and(
-    z
-      .object({
-        SERVICE_NAME: z.string(),
-      })
-      .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
-      }))
-  );
+  .and(AWSConfig);
 
 type DocumentsSignerConfig = z.infer<typeof DocumentsSignerConfig>;
 

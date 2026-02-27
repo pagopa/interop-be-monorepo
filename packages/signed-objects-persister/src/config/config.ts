@@ -19,7 +19,6 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
   .and(
     z
       .object({
-        SERVICE_NAME: z.string(),
         S3_BUCKET_SIGNED_DOCUMENTS: z.string(),
         S3_BUCKET_AUDIT: z.string(),
         S3_BUCKET_EVENTS: z.string(),
@@ -29,7 +28,6 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
         AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
         signedDocumentsBucket: c.S3_BUCKET_SIGNED_DOCUMENTS,
         auditBucket: c.S3_BUCKET_AUDIT,
         eventsBucket: c.S3_BUCKET_EVENTS,
