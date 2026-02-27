@@ -1435,7 +1435,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
-          desc(
+          asc(
             sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
           )
         );
@@ -1530,7 +1530,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
-          desc(
+          asc(
             sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
           )
         );
