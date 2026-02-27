@@ -5,13 +5,13 @@ import {
   invalidKeyLength,
   invalidPublicKey,
   notAnRSAKey,
-  ProducerKeychain,
   ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockKey,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -34,13 +34,13 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
 
   const mockKey = getMockKey();
 
-  const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
+  const mockProducerKeychain = getMockWithMetadata(getMockProducerKeychain());
 
   const apiKey: authorizationApi.Key = keyToApiKey(mockKey);
 
   authorizationService.createProducerKeychainKey = vi
     .fn()
-    .mockResolvedValue(mockKey);
+    .mockResolvedValue(getMockWithMetadata(mockKey));
 
   const makeRequest = async (
     token: string,
@@ -63,7 +63,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockProducerKeychain.id);
+      const res = await makeRequest(token, mockProducerKeychain.data.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiKey);
     }
@@ -73,17 +73,17 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockProducerKeychain.id);
+    const res = await makeRequest(token, mockProducerKeychain.data.id);
     expect(res.status).toBe(403);
   });
 
   it.each([
     {
-      error: producerKeychainNotFound(mockProducerKeychain.id),
+      error: producerKeychainNotFound(mockProducerKeychain.data.id),
       expectedStatus: 404,
     },
     {
-      error: tooManyKeysPerProducerKeychain(mockProducerKeychain.id, 1),
+      error: tooManyKeysPerProducerKeychain(mockProducerKeychain.data.id, 1),
       expectedStatus: 400,
     },
     {
@@ -101,7 +101,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     {
       error: tenantNotAllowedOnProducerKeychain(
         generateId(),
-        mockProducerKeychain.id
+        mockProducerKeychain.data.id
       ),
       expectedStatus: 403,
     },
@@ -113,22 +113,25 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockProducerKeychain.id);
+      const res = await makeRequest(token, mockProducerKeychain.data.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it.each([
-    [{}, mockProducerKeychain.id],
-    [{ ...keySeed, invalidParam: "invalidValue" }, mockProducerKeychain.id],
-    [{ ...keySeed, name: 1 }, mockProducerKeychain.id],
-    [{ ...keySeed, use: "invalidUse" }, mockProducerKeychain.id],
-    [{ ...keySeed, alg: 1 }, mockProducerKeychain.id],
-    [{ ...keySeed, key: 1 }, mockProducerKeychain.id],
-    [{ ...keySeed, name: undefined }, mockProducerKeychain.id],
-    [{ ...keySeed, use: undefined }, mockProducerKeychain.id],
-    [{ ...keySeed, alg: undefined }, mockProducerKeychain.id],
-    [{ ...keySeed, key: undefined }, mockProducerKeychain.id],
+    [{}, mockProducerKeychain.data.id],
+    [
+      { ...keySeed, invalidParam: "invalidValue" },
+      mockProducerKeychain.data.id,
+    ],
+    [{ ...keySeed, name: 1 }, mockProducerKeychain.data.id],
+    [{ ...keySeed, use: "invalidUse" }, mockProducerKeychain.data.id],
+    [{ ...keySeed, alg: 1 }, mockProducerKeychain.data.id],
+    [{ ...keySeed, key: 1 }, mockProducerKeychain.data.id],
+    [{ ...keySeed, name: undefined }, mockProducerKeychain.data.id],
+    [{ ...keySeed, use: undefined }, mockProducerKeychain.data.id],
+    [{ ...keySeed, alg: undefined }, mockProducerKeychain.data.id],
+    [{ ...keySeed, key: undefined }, mockProducerKeychain.data.id],
     [{ ...keySeed }, "invalidId"],
   ])(
     "Should return 400 if passed invalid params: %s (producerKeychainId: %s)",

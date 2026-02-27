@@ -9,7 +9,6 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
-  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
@@ -37,16 +36,6 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
-  const retrieveClientKeyById = (
-    clientId: ClientId,
-    keyId: string,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
-    clients.authorizationClient.client.getClientKeyById({
-      params: { clientId: unsafeBrandId(clientId), keyId },
-      headers,
-    });
-
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
@@ -56,26 +45,6 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
-
-  const pollClientKey = (
-    clientId: ClientId,
-    response: WithMaybeMetadata<authorizationApi.Key>,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
-    pollResourceWithMetadata(() =>
-      retrieveClientKeyById(unsafeBrandId(clientId), response.data.kid, headers)
-    )({
-      condition: isPolledVersionAtLeastResponseVersion(response),
-    });
-
-  const pollClientKeyUntilDeletion = (
-    clientId: ClientId,
-    keyId: string,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<void> =>
-    pollResourceUntilDeletion(() =>
-      retrieveClientKeyById(clientId, keyId, headers)
-    )({});
 
   return {
     async getClientAdminId(
@@ -273,15 +242,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.Key> {
       logger.info(`Create a new key for client with id ${clientId}`);
 
-      const response = await clients.authorizationClient.client.createKey(
-        seed,
-        {
+      const { data: client } = await retrieveClientById(clientId, headers);
+
+      const { data: key, metadata } =
+        await clients.authorizationClient.client.createKey(seed, {
           params: { clientId },
           headers,
-        }
-      );
+        });
 
-      const { data: key } = await pollClientKey(clientId, response, headers);
+      await pollClient({ data: client, metadata }, headers);
 
       const { data: jwkData } =
         await clients.authorizationClient.key.getJWKByKid({
@@ -300,12 +269,16 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         `Deleting key for client with id ${clientId} and its keyId ${keyId}`
       );
 
-      await clients.authorizationClient.client.deleteClientKeyById(undefined, {
-        params: { clientId, keyId },
-        headers,
-      });
+      const { data, metadata } =
+        await clients.authorizationClient.client.deleteClientKeyById(
+          undefined,
+          {
+            params: { clientId, keyId },
+            headers,
+          }
+        );
 
-      await pollClientKeyUntilDeletion(clientId, keyId, headers);
+      await pollClient({ data, metadata }, headers);
     },
     async getClientUsers(
       clientId: string,
