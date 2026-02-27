@@ -57,6 +57,7 @@ const errorCodes = {
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
+  purposeVersionDocumentNotReady: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -235,6 +236,17 @@ export function purposeVersionDocumentNotFound(
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function purposeVersionDocumentNotReady(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
+    code: "purposeVersionDocumentNotReady",
+    title: "Purpose version document not ready",
   });
 }
 
