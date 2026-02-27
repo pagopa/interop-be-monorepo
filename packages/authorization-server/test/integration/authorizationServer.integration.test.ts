@@ -123,7 +123,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -157,7 +157,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -194,7 +194,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -242,7 +242,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -289,7 +289,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -346,7 +346,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -403,7 +403,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -457,7 +457,7 @@ describe("authorization server tests", () => {
       const response = await tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -471,7 +471,7 @@ describe("authorization server tests", () => {
     const responseAfterLimitExceeded = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -541,7 +541,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -594,7 +594,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -655,7 +655,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -688,7 +688,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -728,7 +728,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -776,7 +776,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -840,7 +840,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -902,7 +902,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1047,7 +1047,7 @@ describe("authorization server tests", () => {
     const result = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1171,7 +1171,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1333,7 +1333,7 @@ describe("authorization server tests", () => {
     const result = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1449,7 +1449,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1525,7 +1525,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1607,7 +1607,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1685,7 +1685,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
