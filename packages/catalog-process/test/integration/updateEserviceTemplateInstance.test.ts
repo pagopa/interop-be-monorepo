@@ -48,6 +48,7 @@ describe("update eService Instance", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const updatedInstanceLabel = "new label";
 
     const template: EServiceTemplate = getMockEServiceTemplate();
 
@@ -62,6 +63,7 @@ describe("update eService Instance", () => {
       descriptors: [descriptor],
       isSignalHubEnabled,
       templateId: template.id,
+      instanceLabel: undefined,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -72,15 +74,18 @@ describe("update eService Instance", () => {
           isSignalHubEnabled,
           isConsumerDelegable,
           isClientAccessDelegable,
+          instanceLabel: updatedInstanceLabel,
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
       ...eservice,
+      name: `${template.name} - ${updatedInstanceLabel}`,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      instanceLabel: updatedInstanceLabel,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
