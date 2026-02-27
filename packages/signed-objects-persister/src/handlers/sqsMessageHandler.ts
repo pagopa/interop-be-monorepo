@@ -245,7 +245,9 @@ export const sqsMessageHandler = async (
   safeStorageService: SafeStorageService,
   refreshableToken: RefreshableInteropToken
 ): Promise<void> => {
-  const logInstance: Logger = logger({ serviceName: config.serviceName });
+  const logInstance: Logger = logger({
+    serviceName: "signed-object-persister",
+  });
 
   try {
     if (!messagePayload.Body) {
