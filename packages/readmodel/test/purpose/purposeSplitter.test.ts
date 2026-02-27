@@ -124,7 +124,7 @@ describe("Purpose splitter", () => {
             value: a.value ? [a.value] : [],
             riskAnalysisFormId: purposeRiskAnalysisForm.id,
             kind: riskAnalysisAnswerKind.single,
-          }),
+          })
         )
         .concat(
           purposeRiskAnalysisForm.multiAnswers.map(
@@ -136,8 +136,8 @@ describe("Purpose splitter", () => {
               value: a.values,
               riskAnalysisFormId: purposeRiskAnalysisForm.id,
               kind: riskAnalysisAnswerKind.multi,
-            }),
-          ),
+            })
+          )
         );
 
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
@@ -199,10 +199,10 @@ describe("Purpose splitter", () => {
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
-      expectedPurposeRiskAnalysisFormSQL,
+      expectedPurposeRiskAnalysisFormSQL
     );
     expect(riskAnalysisAnswersSQL).toStrictEqual(
-      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL),
+      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
     expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
     expect(versionDocumentsSQL).toStrictEqual([
@@ -293,7 +293,7 @@ describe("Purpose splitter", () => {
             value: a.value ? [a.value] : [],
             riskAnalysisFormId: purposeRiskAnalysisForm.id,
             kind: riskAnalysisAnswerKind.single,
-          }),
+          })
         )
         .concat(
           purposeRiskAnalysisForm.multiAnswers.map(
@@ -305,8 +305,8 @@ describe("Purpose splitter", () => {
               value: a.values,
               riskAnalysisFormId: purposeRiskAnalysisForm.id,
               kind: riskAnalysisAnswerKind.multi,
-            }),
-          ),
+            })
+          )
         );
 
     const expectedPurposeVersionSQL: PurposeVersionSQL = {
@@ -348,10 +348,10 @@ describe("Purpose splitter", () => {
 
     expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
     expect(riskAnalysisFormSQL).toStrictEqual(
-      expectedPurposeRiskAnalysisFormSQL,
+      expectedPurposeRiskAnalysisFormSQL
     );
     expect(riskAnalysisAnswersSQL).toStrictEqual(
-      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL),
+      expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
     expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
     expect(versionDocumentsSQL).toStrictEqual([
