@@ -56,6 +56,32 @@ export function readModelServiceBuilderSQL({
           )
         )
       ).map((a) => a.data),
+
+    getTenantByExternalIdWithMetadata: async (externalId: {
+      origin: string;
+      value: string;
+    }): Promise<{ metadata: { version: number } } | undefined> =>
+      await readModelDB.transaction(async (tx) => {
+        const queryRes = await tx
+          .select({ metadataVersion: tenantInReadmodelTenant.metadataVersion })
+          .from(tenantInReadmodelTenant)
+          .where(
+            and(
+              eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
+              eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
+            )
+          );
+
+        if (queryRes.length === 0) {
+          return undefined;
+        }
+
+        return {
+          metadata: {
+            version: queryRes[0].metadataVersion,
+          },
+        };
+      }),
   };
 }
 

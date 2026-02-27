@@ -51,6 +51,37 @@ export function createPollingByCondition<T>(
   };
 }
 
+export async function waitForReadModelMetadataVersion(
+  fetchResourceWithMetadata: () => Promise<
+    { metadata: { version: number } } | undefined
+  >,
+  targetVersion: number | undefined,
+  resourceLabel: string,
+  logger: { warn: (message: string) => void },
+  pollingConfig?: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  }
+): Promise<void> {
+  if (targetVersion === undefined) {
+    logger.warn(
+      `Missing metadata version for ${resourceLabel}. Skipping polling.`
+    );
+    return;
+  }
+
+  const pollResourceByVersion = createPollingByCondition(
+    fetchResourceWithMetadata,
+    pollingConfig
+  );
+
+  await pollResourceByVersion({
+    condition: (resourceWithMetadata) =>
+      resourceWithMetadata !== undefined &&
+      resourceWithMetadata.metadata.version >= targetVersion,
+  });
+}
+
 /**
  * Polls a resource by repeatedly calling the provided fetch function until the resource is deleted
  * (i.e., a 404 Not Found is returned) or the maximum number of retries is exceeded.

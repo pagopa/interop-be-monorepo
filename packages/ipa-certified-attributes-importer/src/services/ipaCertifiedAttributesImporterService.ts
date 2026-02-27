@@ -1,6 +1,16 @@
 import { createHash } from "crypto";
-import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
+import {
+  attributeRegistryApi,
+  createZodiosClientEnhancedWithMetadata,
+  tenantApi,
+  ZodiosClientWithMetadata,
+} from "pagopa-interop-api-clients";
+import {
+  InteropHeaders,
+  Logger,
+  waitForReadModelMetadataVersion,
+  delay,
+} from "pagopa-interop-commons";
 import {
   attributeKind,
   Tenant,
@@ -11,7 +21,6 @@ import {
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { config } from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -27,6 +36,24 @@ export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 // Tipologia Società in Conto Economico Consolidato
 export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
   "Societa' in Conto Economico Consolidato";
+
+export type TenantProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof tenantApi.createInternalApiClient>
+>;
+
+export type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
+export function createTenantProcessClient(
+  tenantProcessUrl: string
+): TenantProcessClient {
+  return createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
+    tenantProcessUrl
+  );
+}
 
 export type TenantSeed = {
   origin: string;
@@ -73,7 +100,8 @@ async function checkAttributesPresence(
 
 export function getTenantUpsertData(
   registryData: RegistryData,
-  platformTenants: Tenant[]
+  platformTenants: Tenant[],
+  economicAccountCompaniesAllowlist: string[]
 ): TenantSeed[] {
   // Create a set of all existing tenant external IDs for quick lookup.
   // This is used to filter out institutions from the registry that don't
@@ -145,7 +173,7 @@ export function getTenantUpsertData(
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           originId: P.when((originId) =>
-            config.economicAccountCompaniesAllowlist.includes(originId)
+            economicAccountCompaniesAllowlist.includes(originId)
           ),
         },
         // 3. If the institution is a new SCEC with the S01G category from IPA.
@@ -189,11 +217,12 @@ export async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
   readModelService: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  attributeRegistryUrl: string,
+  attributeCreationWaitTime: number
 ): Promise<void> {
-  const client = attributeRegistryApi.createAttributeApiClient(
-    config.attributeRegistryUrl
-  );
+  const client =
+    attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
   for (const attribute of newAttributes) {
     loggerInstance.info(
@@ -207,7 +236,7 @@ export async function createNewAttributes(
   // wait until every event reaches the read model store
   do {
     loggerInstance.info("Waiting for attributes to be created");
-    await delay(config.attributeCreationWaitTime);
+    await delay(attributeCreationWaitTime);
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
 
@@ -308,13 +337,12 @@ export async function getAttributesToAssign(
 
 export async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
-
   for (const attributeToAssign of attributesToAssign) {
     loggerInstance.info(
       `Updating tenant ${
@@ -323,7 +351,23 @@ export async function assignNewAttributes(
         .map((a) => a.code)
         .join(", ")}]`
     );
-    await tenantClient.internalUpsertTenant(attributeToAssign, { headers });
+    const response = await tenantClient.internalUpsertTenant(
+      attributeToAssign,
+      {
+        headers,
+      }
+    );
+
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata(
+          attributeToAssign.externalId
+        ),
+      response.metadata?.version,
+      `tenant ${attributeToAssign.externalId.value}`,
+      loggerInstance,
+      pollingConfig
+    );
   }
 }
 
@@ -416,25 +460,39 @@ export async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
 ): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
-
   for (const a of attributesToRevoke) {
     loggerInstance.info(
       `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
-    await tenantClient.internalRevokeCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: a.tOrigin,
-        tExternalId: a.tExternalId,
-        aOrigin: a.aOrigin,
-        aExternalId: a.aCode,
-      },
-      headers,
-    });
+    const response = await tenantClient.internalRevokeCertifiedAttribute(
+      undefined,
+      {
+        params: {
+          tOrigin: a.tOrigin,
+          tExternalId: a.tExternalId,
+          aOrigin: a.aOrigin,
+          aExternalId: a.aCode,
+        },
+        headers,
+      }
+    );
+
+    await waitForReadModelMetadataVersion(
+      () =>
+        readModelServiceSQL.getTenantByExternalIdWithMetadata({
+          origin: a.tOrigin,
+          value: a.tExternalId,
+        }),
+      response.metadata?.version,
+      `tenant ${a.tExternalId}`,
+      loggerInstance,
+      pollingConfig
+    );
   }
 }

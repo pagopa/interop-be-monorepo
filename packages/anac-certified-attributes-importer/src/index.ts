@@ -41,6 +41,10 @@ await importAttributes(
   tenantProcess,
   refreshableToken,
   config.recordsProcessBatchSize,
+  {
+    defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+    defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+  },
   config.anacTenantId,
   loggerInstance,
   correlationId

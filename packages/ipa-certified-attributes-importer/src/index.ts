@@ -10,10 +10,11 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+import { parseIPACertifiedAttributesImporterConfig } from "./config/config.js";
 import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
+  createTenantProcessClient,
   createNewAttributes,
   getAttributesToAssign,
   getAttributesToRevoke,
@@ -22,6 +23,8 @@ import {
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+
+const config = parseIPACertifiedAttributesImporterConfig(process.env);
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -48,14 +51,23 @@ try {
 
   loggerInstance.info("Getting registry data");
 
-  const registryData = await getRegistryData();
+  const registryData = await getRegistryData({
+    institutionsUrl: config.institutionsUrl,
+    aooUrl: config.aooUrl,
+    uoUrl: config.uoUrl,
+    institutionsCategoriesUrl: config.institutionsCategoriesUrl,
+  });
 
   loggerInstance.info("Getting Platform data");
 
   const attributes = await readModelServiceSQL.getAttributes();
   const tenants = await readModelServiceSQL.getIPATenants();
 
-  const tenantUpsertData = getTenantUpsertData(registryData, tenants);
+  const tenantUpsertData = getTenantUpsertData(
+    registryData,
+    tenants,
+    config.economicAccountCompaniesAllowlist
+  );
 
   loggerInstance.info("Creating new attributes");
 
@@ -67,11 +79,17 @@ try {
 
   const token = (await refreshableToken.get()).serialized;
   const headers = getInteropHeaders({ token, correlationId });
+  const tenantProcessClient = createTenantProcessClient(
+    config.tenantProcessUrl
+  );
+
   await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
     headers,
-    loggerInstance
+    loggerInstance,
+    config.attributeRegistryUrl,
+    config.attributeCreationWaitTime
   );
 
   loggerInstance.info("Assigning new attributes");
@@ -83,7 +101,17 @@ try {
     loggerInstance
   );
 
-  await assignNewAttributes(attributesToAssign, headers, loggerInstance);
+  await assignNewAttributes(
+    attributesToAssign,
+    tenantProcessClient,
+    readModelServiceSQL,
+    headers,
+    loggerInstance,
+    {
+      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+    }
+  );
 
   loggerInstance.info("Revoking attributes");
 
@@ -93,7 +121,17 @@ try {
     attributes
   );
 
-  await revokeAttributes(attributesToRevoke, headers, loggerInstance);
+  await revokeAttributes(
+    attributesToRevoke,
+    tenantProcessClient,
+    readModelServiceSQL,
+    headers,
+    loggerInstance,
+    {
+      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+    }
+  );
 
   loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {
