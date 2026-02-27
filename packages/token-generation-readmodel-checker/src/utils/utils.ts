@@ -56,8 +56,8 @@ import {
   ComparisonPlatformStatesPurposeEntry,
   ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
-import { ReadModelService } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
@@ -76,7 +76,7 @@ export function getLastPurposeVersion(
     )[0];
 }
 
-export function getPurposeStateFromPurposeVersion(
+function getPurposeStateFromPurposeVersion(
   purposeVersion: PurposeVersion
 ): ItemState {
   return purposeVersion.state === purposeVersionState.active
@@ -108,7 +108,7 @@ export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
 }
 
 function getIdFromPlatformStatesPK<
-  T extends PurposeId | AgreementId | ClientId
+  T extends PurposeId | AgreementId | ClientId,
 >(
   pk:
     | PlatformStatesPurposePK
@@ -154,7 +154,7 @@ function getPurposeIdFromTokenGenStatesPK(
 
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<number> {
   const tokenGenerationService =
@@ -878,7 +878,7 @@ function validateTokenGenerationStates({
   return missingEntriesCount + differencesCount;
 }
 
-export const agreementStateToItemState = (state: AgreementState): ItemState =>
+const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
 export const clientKindToTokenGenerationStatesClientKind = (
@@ -889,12 +889,12 @@ export const clientKindToTokenGenerationStatesClientKind = (
     .with(clientKind.api, () => clientKindTokenGenStates.api)
     .exhaustive();
 
-export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
+const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
 
-export const extractAgreementTimestamp = (agreement: Agreement): string =>
+const extractAgreementTimestamp = (agreement: Agreement): string =>
   agreement.stamps.upgrade?.when.toISOString() ||
   agreement.stamps.activation?.when.toISOString() ||
   agreement.createdAt.toISOString();

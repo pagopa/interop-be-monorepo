@@ -7,6 +7,7 @@ import {
   EServiceTemplate,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -20,6 +21,7 @@ import {
   aggregateProducerKeychainArray,
   aggregateDelegationsArray,
   aggregateEServiceTemplateArray,
+  aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
@@ -38,14 +40,15 @@ import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
+import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
 
-export type DBConnection = IConnected<unknown, IClient>;
+type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
   conn: DBConnection;
   pgp: IMain;
 };
 
-export async function getManyFromDb<T extends DomainDbTable>(
+async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T
   // where: Partial<z.infer<DomainDbTableSchemas[T]>>
@@ -232,6 +235,14 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         PurposeDbTable.purpose_version_document
       );
+      const versionStampsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_stamp
+      );
+      const versionSignedDocumentsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_signed_document
+      );
 
       return aggregatePurposeArray({
         purposesSQL,
@@ -242,6 +253,8 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         })),
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
     },
 
@@ -266,6 +279,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         AgreementDbTable.agreement_attribute
       );
+      const signedContractsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_signed_contract
+      );
 
       return aggregateAgreementArray({
         agreementsSQL,
@@ -273,6 +290,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         consumerDocumentsSQL,
         contractsSQL,
         attributesSQL,
+        signedContractsSQL,
       });
     },
 
@@ -338,10 +356,58 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         DelegationDbTable.delegation_stamp
       );
 
+      const contractSignedDocumentsSQL = await getManyFromDb(
+        dbContext,
+        DelegationDbTable.delegation_signed_contract_document
+      );
+
       return aggregateDelegationsArray({
         delegationsSQL,
         contractDocumentsSQL,
         stampsSQL,
+        contractSignedDocumentsSQL,
+      });
+    },
+
+    async getAllPurposeTemplates(): Promise<
+      Array<WithMetadata<PurposeTemplate>>
+    > {
+      const purposeTemplatesSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template
+      );
+      const riskAnalysisFormTemplatesSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_form
+      );
+      const riskAnalysisTemplateAnswersSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_answer
+      );
+      const riskAnalysisTemplateAnswersAnnotationsSQL = await getManyFromDb(
+        dbContext,
+        PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation
+      );
+      const riskAnalysisTemplateAnswersAnnotationsDocumentsSQL =
+        await getManyFromDb(
+          dbContext,
+          PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document
+        );
+
+      return aggregatePurposeTemplateArray({
+        purposeTemplatesSQL,
+        riskAnalysisFormTemplatesSQL,
+        riskAnalysisTemplateAnswersSQL: riskAnalysisTemplateAnswersSQL.map(
+          (ra) => ({
+            ...ra,
+            value: JSON.parse(ra.value),
+            suggestedValues: ra.suggestedValues
+              ? JSON.parse(ra.suggestedValues)
+              : null,
+          })
+        ),
+        riskAnalysisTemplateAnswersAnnotationsSQL,
+        riskAnalysisTemplateAnswersAnnotationsDocumentsSQL,
       });
     },
   };

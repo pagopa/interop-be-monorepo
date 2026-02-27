@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
 import { afterEach, expect, inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
@@ -13,10 +12,12 @@ import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplate
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
+import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
+import { eventServiceBuilder } from "../src/services/eventService.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
-  undefined,
   undefined,
   inject("fileManagerConfig")
 );
@@ -72,7 +73,7 @@ export function expectApiClientGetToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockGet: Function;
+  mockGet: (...args: unknown[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -94,7 +95,7 @@ export function expectApiClientGetToHaveBeenNthCalledWith({
   queries,
 }: {
   nthCall: number;
-  mockGet: Function;
+  mockGet: (...args: unknown[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -115,7 +116,7 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockPost: Function;
+  mockPost: (...args: unknown[]) => unknown;
   body?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
@@ -138,10 +139,16 @@ export const purposeService = purposeServiceBuilder(
   mockInteropBeClients,
   fileManager
 );
+export const purposeTemplateService = purposeTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
-export const eserviceTemplateService =
-  eserviceTemplateServiceBuilder(mockInteropBeClients);
+export const eserviceTemplateService = eserviceTemplateServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
 export const agreementService = agreementServiceBuilder(
   mockInteropBeClients,
@@ -152,3 +159,6 @@ export const eserviceService = eserviceServiceBuilder(
   fileManager
 );
 export const keyService = keyServiceBuilder(mockInteropBeClients);
+export const producerKeychainService =
+  producerKeychainServiceBuilder(mockInteropBeClients);
+export const eventService = eventServiceBuilder(mockInteropBeClients);

@@ -26,6 +26,7 @@ import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
   templateInstanceNotAllowed,
+  eServiceUpdateSameDescriptionConflict,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -53,7 +54,7 @@ describe("update eService description", () => {
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       description: updatedDescription,
     };
@@ -70,8 +71,13 @@ describe("update eService description", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should write on event-store for the update of the eService description (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -98,7 +104,7 @@ describe("update eService description", () => {
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
-    const updatedEService: EService = {
+    const expectedEService: EService = {
       ...eservice,
       description: updatedDescription,
     };
@@ -115,8 +121,13 @@ describe("update eService description", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
@@ -219,5 +230,24 @@ describe("update eService description", () => {
         getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw eServiceDescriptionUpdateConflict if the new description is the same as the current one", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEServiceDescription(
+        eservice.id,
+        eservice.description,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(eServiceUpdateSameDescriptionConflict(eservice.id));
   });
 });

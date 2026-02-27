@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
+import {
+  getMockWithMetadata,
+  getMockedApiAgreement,
+  getMockedApiDelegation,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -25,7 +29,7 @@ describe("getAgreements", () => {
     limit: 10,
   };
 
-  const mockApiAgreement1 = getMockedApiAgreement();
+  const mockApiAgreement1 = { ...getMockedApiAgreement(), stamps: {} };
   const mockApiAgreement2 = getMockedApiAgreement();
 
   const mockApiAgreements = [mockApiAgreement1, mockApiAgreement2];
@@ -42,6 +46,15 @@ describe("getAgreements", () => {
   const mockGetAgreements = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
+
+  const mockDelegation = getMockedApiDelegation();
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [mockDelegation] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreements: mockGetAgreements,
@@ -68,6 +81,7 @@ describe("getAgreements", () => {
       createdAt: mockApiAgreement1.createdAt,
       updatedAt: mockApiAgreement1.updatedAt,
       suspendedAt: mockApiAgreement1.suspendedAt,
+      delegationId: mockDelegation.id,
     };
 
     const m2mAgreementResponse2: m2mGatewayApi.Agreement = {
@@ -85,6 +99,7 @@ describe("getAgreements", () => {
       createdAt: mockApiAgreement2.createdAt,
       updatedAt: mockApiAgreement2.updatedAt,
       suspendedAt: mockApiAgreement2.suspendedAt,
+      delegationId: mockApiAgreement2.stamps.submission?.delegationId,
     };
 
     const m2mAgreementsResponse: m2mGatewayApi.Agreements = {
@@ -101,7 +116,7 @@ describe("getAgreements", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementsResponse);
+    expect(result).toStrictEqual(m2mAgreementsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreements,
       queries: {

@@ -1,0 +1,41 @@
+{
+  "name": "signed-objects-persister",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability signed objects persister",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "dotenv-flow": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/client-sqs": "catalog:",
+    "date-fns": "catalog:",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

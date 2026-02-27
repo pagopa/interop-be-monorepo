@@ -1,0 +1,32 @@
+meta {
+  name: Assign tenant verified attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw}}/tenants/:tenantId/verifiedAttributes
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId2}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "id": "{{attributeId}}",
+    "agreementId": "{{agreementId}}",
+    "expirationDate": "{{expirationDate}}"
+  }
+}
+
+script:pre-request {
+  const now = new Date();
+  bru.setVar("expirationDate", new Date(now.getTime() + 24 * 60 * 60 * 1000));
+}

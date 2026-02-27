@@ -17,9 +17,28 @@ export function toGetPurposesApiQueryParams(
     offset: params.offset,
     consumersIds: params.consumerIds,
     producersIds: [],
+    clientId: undefined,
     states: params.states,
     excludeDraft: false,
     name: params.title,
+  };
+}
+
+export function toGetPurposesApiQueryParamsForClient(
+  params: {
+    clientId: string;
+  } & m2mGatewayApi.GetClientPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    eservicesIds: params.eserviceIds,
+    limit: params.limit,
+    offset: params.offset,
+    consumersIds: [],
+    producersIds: [],
+    clientId: params.clientId,
+    states: params.states,
+    excludeDraft: false,
+    name: "",
   };
 }
 
@@ -64,6 +83,7 @@ export function toM2MGatewayApiPurpose(
     rejectedVersion: rejectedVersion
       ? toM2mGatewayApiPurposeVersion(rejectedVersion)
       : undefined,
+    purposeTemplateId: purpose.purposeTemplateId,
   };
 }
 

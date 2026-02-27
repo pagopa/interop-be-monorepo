@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import * as jose from "jose";
+import { match, P } from "ts-pattern";
 import {
   JOSEError,
   JWSInvalid,
@@ -13,11 +14,16 @@ import {
   DPoPProofPayload,
   JWKKeyRS256,
   JWKKeyES256,
+  DPoPProofResource,
+  DPoPProofResourcePayload,
 } from "pagopa-interop-models";
+
+import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,
   dpopProofSignatureVerificationError,
+  dpopTokenBindingMismatch,
   invalidDPoPJwt,
   invalidDPoPProofFormat,
   invalidDPoPSignature,
@@ -37,19 +43,60 @@ import {
   validateJti,
   validateJWK,
   validateTyp,
+  validateAth,
+  calculateAth,
 } from "./utilities/utils.js";
 
-export const verifyDPoPProof = ({
+export function verifyDPoPProof({
   dpopProofJWS,
   expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
   dpopProofIatToleranceSeconds,
   dpopProofDurationSeconds,
+  accessToken,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm: string;
   dpopProofIatToleranceSeconds: number;
   dpopProofDurationSeconds: number;
-}): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
+  accessToken: string;
+}): ValidationResult<{ dpopProofJWT: DPoPProofResource; dpopProofJWS: string }>;
+
+export function verifyDPoPProof({
+  dpopProofJWS,
+  expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
+  dpopProofIatToleranceSeconds,
+  dpopProofDurationSeconds,
+  accessToken,
+}: {
+  dpopProofJWS: string;
+  expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm: string;
+  dpopProofIatToleranceSeconds: number;
+  dpopProofDurationSeconds: number;
+  accessToken?: undefined;
+}): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }>;
+
+export function verifyDPoPProof({
+  dpopProofJWS,
+  expectedDPoPProofHtu,
+  expectedDPoPProofHtm,
+  dpopProofIatToleranceSeconds,
+  dpopProofDurationSeconds,
+  accessToken,
+}: {
+  dpopProofJWS: string;
+  expectedDPoPProofHtu: string;
+  expectedDPoPProofHtm: string;
+  dpopProofIatToleranceSeconds: number;
+  dpopProofDurationSeconds: number;
+  accessToken?: string;
+}): ValidationResult<{
+  dpopProofJWT: DPoPProof | DPoPProofResource;
+  dpopProofJWS: string;
+}> {
   try {
     if (dpopProofJWS.split(",").length > 1) {
       return failedValidation([multipleDPoPProofsError()]);
@@ -71,7 +118,8 @@ export const verifyDPoPProof = ({
 
     // JWT payload
     const { errors: htmErrors, data: validatedHtm } = validateHtm(
-      decodedPayload.htm
+      decodedPayload.htm,
+      expectedDPoPProofHtm
     );
     const { errors: htuErrors, data: validatedHtu } = validateHtu(
       decodedPayload.htu,
@@ -95,37 +143,88 @@ export const verifyDPoPProof = ({
       !iatErrors &&
       !jtiErrors
     ) {
-      const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
-      const parsingErrors = [
-        !headerParseResult.success
-          ? dpopProofInvalidClaims(headerParseResult.error.message, "header")
-          : undefined,
-        !payloadParseResult.success
-          ? dpopProofInvalidClaims(payloadParseResult.error.message, "payload")
-          : undefined,
-      ].filter(Boolean);
-      if (parsingErrors.length > 0) {
-        return failedValidation(parsingErrors);
+      if (!headerParseResult.success) {
+        return failedValidation([
+          dpopProofInvalidClaims(headerParseResult.error.message, "header"),
+        ]);
       }
 
-      const result: DPoPProof = {
-        header: {
-          typ: validatedTyp,
-          alg: validatedAlg,
-          jwk: validatedJwk,
-        },
-        payload: {
-          htm: validatedHtm,
-          htu: validatedHtu,
-          iat: validatedIat,
-          jti: validatedJti,
-        },
-      };
-      return successfulValidation({
-        dpopProofJWT: result,
-        dpopProofJWS,
-      });
+      return match(accessToken)
+        .with(P.string, (validAccessToken) => {
+          const expectedAth = calculateAth(validAccessToken);
+          const { errors: athErrors, data: validatedAth } = validateAth(
+            decodedPayload.ath as string | undefined,
+            expectedAth
+          );
+
+          if (athErrors) {
+            return failedValidation(athErrors);
+          }
+
+          const payloadParseResult =
+            DPoPProofResourcePayload.safeParse(decodedPayload);
+
+          if (!payloadParseResult.success) {
+            return failedValidation([
+              dpopProofInvalidClaims(
+                payloadParseResult.error.message,
+                "payload"
+              ),
+            ]);
+          }
+
+          const result: DPoPProofResource = {
+            header: {
+              typ: validatedTyp,
+              alg: validatedAlg,
+              jwk: validatedJwk,
+            },
+            payload: {
+              htm: validatedHtm,
+              htu: validatedHtu,
+              iat: validatedIat,
+              jti: validatedJti,
+              ath: validatedAth,
+            },
+          };
+          return successfulValidation({
+            dpopProofJWT: result,
+            dpopProofJWS,
+          });
+        })
+
+        .with(P.nullish, () => {
+          const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
+
+          if (!payloadParseResult.success) {
+            return failedValidation([
+              dpopProofInvalidClaims(
+                payloadParseResult.error.message,
+                "payload"
+              ),
+            ]);
+          }
+
+          const result: DPoPProof = {
+            header: {
+              typ: validatedTyp,
+              alg: validatedAlg,
+              jwk: validatedJwk,
+            },
+            payload: {
+              htm: validatedHtm,
+              htu: validatedHtu,
+              iat: validatedIat,
+              jti: validatedJti,
+            },
+          };
+          return successfulValidation({
+            dpopProofJWT: result,
+            dpopProofJWS,
+          });
+        })
+        .exhaustive();
     }
     return failedValidation([
       typErrors,
@@ -143,7 +242,7 @@ export const verifyDPoPProof = ({
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedDPoPProofError(message)]);
   }
-};
+}
 
 export const verifyDPoPProofSignature = async (
   dpopProofJWS: string,
@@ -196,7 +295,6 @@ export const checkDPoPCache = async ({
   if (dpopCache) {
     return failedValidation([dpopJtiAlreadyCached(dpopProofJti)]);
   }
-
   await writeDPoPCache({
     dynamoDBClient,
     dpopCacheTable,
@@ -206,4 +304,24 @@ export const checkDPoPCache = async ({
   });
 
   return successfulValidation(dpopProofJti);
+};
+
+/**
+ * Verifies the cryptographic binding between the DPoP Proof and the Access Token.
+ *
+ * This function performs the following checks:
+ * - Calculates the JWK Thumbprint (RFC 7638) of the Proof's key.
+ * - Compares the calculated thumbprint with the `jkt` hash provided in the Access Token's `cnf` claim.
+ *
+ */
+export const verifyDPoPThumbprintMatch = (
+  dpopProofJWT: DPoPProof,
+  accessTokenJkt: string
+): ValidationResult<true> => {
+  const proofJkt = calculateJWKThumbprint(dpopProofJWT.header.jwk);
+  if (proofJkt !== accessTokenJkt) {
+    return failedValidation([dpopTokenBindingMismatch()]);
+  }
+
+  return successfulValidation(true);
 };

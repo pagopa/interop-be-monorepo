@@ -21,6 +21,11 @@ import {
   Delegation,
   delegationKind,
   DelegationId,
+  PurposeTemplateId,
+  PurposeTemplate,
+  purposeTemplateState,
+  ClientId,
+  Client,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -30,15 +35,20 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurposeArray,
   AgreementReadModelService,
   CatalogReadModelService,
+  ClientReadModelService,
   DelegationReadModelService,
   PurposeReadModelService,
+  PurposeTemplateReadModelService,
   TenantReadModelService,
   toPurposeAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -60,6 +70,7 @@ export type GetPurposesFilters = {
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
   producersIds: TenantId[];
+  purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
@@ -107,6 +118,11 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
         eq(purposeInReadmodelPurpose.delegationId, activeConsumerDelegations.id)
       )
     );
+
+const getPurposesIdsFilter = (purposesIds: PurposeId[]): SQL | undefined =>
+  purposesIds.length > 0
+    ? inArray(purposeInReadmodelPurpose.id, purposesIds)
+    : undefined;
 
 const getProducerIdsFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
@@ -197,6 +213,8 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -204,6 +222,8 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   agreementReadModelServiceSQL: AgreementReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
+  clientReadModelServiceSQL: ClientReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -235,7 +255,8 @@ export function readModelServiceBuilderSQL({
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const { producersIds, consumersIds, ...otherFilters } = filters;
+      const { producersIds, consumersIds, purposesIds, ...otherFilters } =
+        filters;
 
       const subquery = addDelegationJoins(
         readModelDB
@@ -264,6 +285,7 @@ export function readModelServiceBuilderSQL({
               getProducerIdsFilter(producersIds),
               getConsumerIdsFilter(consumersIds),
               getVisibilityFilter(requesterId),
+              getPurposesIdsFilter(purposesIds),
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )
@@ -282,6 +304,9 @@ export function readModelServiceBuilderSQL({
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
@@ -321,6 +346,20 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
         )
         .leftJoin(
@@ -425,6 +464,26 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getPublishedPurposeTemplateById(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<PurposeTemplate | undefined> {
+      return (
+        await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
+          and(
+            eq(purposeTemplateInReadmodelPurposeTemplate.id, purposeTemplateId),
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.published
+            )
+          )
+        )
+      )?.data;
+    },
+    async getClientById(
+      id: ClientId
+    ): Promise<WithMetadata<Client> | undefined> {
+      return clientReadModelServiceSQL.getClientById(id);
     },
   };
 }

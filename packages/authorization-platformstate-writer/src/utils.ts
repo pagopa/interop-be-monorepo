@@ -494,7 +494,7 @@ export const writeTokenGenStatesApiClient = async (
   );
 };
 
-export const readPlatformCatalogEntry = async (
+const readPlatformCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesCatalogEntry | undefined> => {
@@ -525,7 +525,7 @@ export const readPlatformCatalogEntry = async (
   }
 };
 
-export const readAgreementEntry = async (
+const readAgreementEntry = async (
   primaryKey: PlatformStatesAgreementPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesAgreementEntry | undefined> => {
@@ -556,7 +556,7 @@ export const readAgreementEntry = async (
   }
 };
 
-export const readPlatformPurposeEntry = async (
+const readPlatformPurposeEntry = async (
   primaryKey: PlatformStatesPurposePK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesPurposeEntry | undefined> => {
@@ -958,11 +958,11 @@ export const setClientPurposeIdsInPlatformStatesEntry = async (
   );
 };
 
-export const extractKidFromTokenGenStatesEntryPK = (
+const extractKidFromTokenGenStatesEntryPK = (
   pk: TokenGenerationStatesClientKidPK | TokenGenerationStatesClientKidPurposePK
 ): string => pk.split("#")[2];
 
-export const extractKidFromGSIClientKid = (
+const extractKidFromGSIClientKid = (
   GSIPK_clientId_kid: GSIPKClientIdKid
 ): string => GSIPK_clientId_kid.split("#")[1];
 

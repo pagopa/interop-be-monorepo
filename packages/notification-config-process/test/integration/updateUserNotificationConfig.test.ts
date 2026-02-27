@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import {
   getMockContext,
   getMockAuthData,
@@ -5,6 +6,7 @@ import {
   getMockNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
+import { authRole, notificationAdmittedRoles } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
@@ -13,6 +15,9 @@ import {
   UserNotificationConfig,
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
+  NotificationType,
+  UserRole,
+  userRole,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -20,7 +25,10 @@ import {
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
+import {
+  notificationConfigNotAllowedForUserRoles,
+  userNotificationConfigNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("updateUserNotificationConfig", () => {
   const userId: UserId = generateId();
@@ -30,12 +38,77 @@ describe("updateUserNotificationConfig", () => {
     ...getMockUserNotificationConfig(),
     userId,
     tenantId,
+    userRoles: [userRole.ADMIN_ROLE],
   };
   const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
+      inAppNotificationPreference: true,
+      emailNotificationPreference: true,
+      emailDigestPreference: false,
       inAppConfig: {
-        newEServiceVersionPublished:
-          !userNotificationConfig.inAppConfig.newEServiceVersionPublished,
+        agreementSuspendedUnsuspendedToProducer:
+          !userNotificationConfig.inAppConfig
+            .agreementSuspendedUnsuspendedToProducer,
+        agreementManagementToProducer:
+          !userNotificationConfig.inAppConfig.agreementManagementToProducer,
+        clientAddedRemovedToProducer:
+          !userNotificationConfig.inAppConfig.clientAddedRemovedToProducer,
+        purposeStatusChangedToProducer:
+          !userNotificationConfig.inAppConfig.purposeStatusChangedToProducer,
+        templateStatusChangedToProducer:
+          !userNotificationConfig.inAppConfig.templateStatusChangedToProducer,
+        agreementSuspendedUnsuspendedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .agreementSuspendedUnsuspendedToConsumer,
+        eserviceStateChangedToConsumer:
+          !userNotificationConfig.inAppConfig.eserviceStateChangedToConsumer,
+        agreementActivatedRejectedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .agreementActivatedRejectedToConsumer,
+        purposeActivatedRejectedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .purposeActivatedRejectedToConsumer,
+        purposeSuspendedUnsuspendedToConsumer:
+          !userNotificationConfig.inAppConfig
+            .purposeSuspendedUnsuspendedToConsumer,
+        newEserviceTemplateVersionToInstantiator:
+          !userNotificationConfig.inAppConfig
+            .newEserviceTemplateVersionToInstantiator,
+        eserviceTemplateNameChangedToInstantiator:
+          !userNotificationConfig.inAppConfig
+            .eserviceTemplateNameChangedToInstantiator,
+        eserviceTemplateStatusChangedToInstantiator:
+          !userNotificationConfig.inAppConfig
+            .eserviceTemplateStatusChangedToInstantiator,
+        delegationApprovedRejectedToDelegator:
+          !userNotificationConfig.inAppConfig
+            .delegationApprovedRejectedToDelegator,
+        eserviceNewVersionSubmittedToDelegator:
+          !userNotificationConfig.inAppConfig
+            .eserviceNewVersionSubmittedToDelegator,
+        eserviceNewVersionApprovedRejectedToDelegate:
+          !userNotificationConfig.inAppConfig
+            .eserviceNewVersionApprovedRejectedToDelegate,
+        delegationSubmittedRevokedToDelegate:
+          !userNotificationConfig.inAppConfig
+            .delegationSubmittedRevokedToDelegate,
+        certifiedVerifiedAttributeAssignedRevokedToAssignee:
+          !userNotificationConfig.inAppConfig
+            .certifiedVerifiedAttributeAssignedRevokedToAssignee,
+        clientKeyAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .clientKeyAddedDeletedToClientUsers,
+        clientKeyConsumerAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .clientKeyConsumerAddedDeletedToClientUsers,
+        producerKeychainKeyAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .producerKeychainKeyAddedDeletedToClientUsers,
+        purposeQuotaAdjustmentRequestToProducer:
+          !userNotificationConfig.inAppConfig
+            .purposeQuotaAdjustmentRequestToProducer,
+        purposeOverQuotaStateToConsumer:
+          !userNotificationConfig.inAppConfig.purposeOverQuotaStateToConsumer,
       },
       emailConfig: getMockNotificationConfig(),
     };
@@ -67,10 +140,11 @@ describe("updateUserNotificationConfig", () => {
       messageType: UserNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedUserNotificationConfig = {
+    const expectedUserNotificationConfig: UserNotificationConfig = {
       id: serviceReturnValue.id,
       userId,
       tenantId,
+      userRoles: [userRole.ADMIN_ROLE],
       ...userNotificationConfigSeed,
       createdAt: userNotificationConfig.createdAt,
       updatedAt: new Date(),
@@ -100,6 +174,54 @@ describe("updateUserNotificationConfig", () => {
           })
         )
       ).rejects.toThrowError(userNotificationConfigNotFound(userId, tenantId));
+    }
+  );
+
+  it.each<[UserRole[], NotificationType, "inApp" | "email"]>([
+    [
+      [authRole.API_ROLE],
+      "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+      "inApp",
+    ],
+    [[authRole.SECURITY_ROLE], "templateStatusChangedToProducer", "email"],
+    [
+      [authRole.API_ROLE, authRole.SECURITY_ROLE],
+      "delegationApprovedRejectedToDelegator",
+      "inApp",
+    ],
+  ])(
+    "should throw notificationConfigNotAllowedForUserRoles if a user with %s roles enables the not allowed notification type %s for %s notifications",
+    async (userRoles, notificationType, notificationChannel) => {
+      // For safety in case the admitted roles change in the future
+      userRoles.forEach((role) =>
+        expect(notificationAdmittedRoles[notificationType][role]).toBe(false)
+      );
+      const seed = match(notificationChannel)
+        .with("inApp", () => ({
+          ...userNotificationConfigSeed,
+          inAppConfig: {
+            ...userNotificationConfigSeed.inAppConfig,
+            [notificationType]: true,
+          },
+        }))
+        .with("email", () => ({
+          ...userNotificationConfigSeed,
+          emailConfig: {
+            ...userNotificationConfigSeed.emailConfig,
+            [notificationType]: true,
+          },
+        }))
+        .exhaustive();
+      expect(
+        notificationConfigService.updateUserNotificationConfig(
+          seed,
+          getMockContext({
+            authData: getMockAuthData(tenantId, userId, userRoles),
+          })
+        )
+      ).rejects.toThrowError(
+        notificationConfigNotAllowedForUserRoles(userId, tenantId)
+      );
     }
   );
 });

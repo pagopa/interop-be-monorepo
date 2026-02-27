@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  delegationApi,
+  m2mGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   getMockedApiDelegation,
   getMockedApiPurpose,
@@ -17,15 +25,22 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  delegationEServiceMismatch,
   missingMetadata,
-  notAnActiveConsumerDelegation,
+  requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("createReversePurpose", () => {
-  const mockPurposeProcessGetResponse = getMockWithMetadata(
-    getMockedApiPurpose()
-  );
+  const mockPurposeProcessGetResponse: WithMetadata<purposeApi.Purpose> =
+    getMockWithMetadata({
+      ...getMockedApiPurpose(),
+      purposeTemplateId: undefined,
+    });
 
   const mockReversePurposeSeed: m2mGatewayApi.ReversePurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
@@ -59,24 +74,17 @@ describe("createReversePurpose", () => {
     mockGetDelegation.mockClear();
   });
 
-  const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-    consumerId: mockPurposeProcessGetResponse.data.consumerId,
-    createdAt: mockPurposeProcessGetResponse.data.createdAt,
-    description: mockPurposeProcessGetResponse.data.description,
-    eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-    id: mockPurposeProcessGetResponse.data.id,
-    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
-    title: mockPurposeProcessGetResponse.data.title,
-    currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
-    delegationId: mockPurposeProcessGetResponse.data.delegationId,
-    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
-    rejectedVersion: undefined,
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
-    waitingForApprovalVersion: undefined,
-  };
+  const purposeVersion = mockPurposeProcessGetResponse.data.versions[0];
+  const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+    mockPurposeProcessGetResponse.data,
+    {
+      currentVersion: purposeVersion
+        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+        : undefined,
+      rejectedVersion: undefined,
+      waitingForApprovalVersion: undefined,
+    }
+  );
 
   const mockAppContext = getMockM2MAdminAppContext();
   const mockConsumerDelegation: delegationApi.Delegation =
@@ -97,7 +105,7 @@ describe("createReversePurpose", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
@@ -148,7 +156,7 @@ describe("createReversePurpose", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
@@ -181,6 +189,32 @@ describe("createReversePurpose", () => {
     });
   });
 
+  it(`Should throw delegationEServiceMismatch if the specified delegation
+    is not a delegation for the purpose e-service`, async () => {
+    const mockDelegation = {
+      ...mockConsumerDelegation,
+      eserviceId: generateId(),
+    };
+    mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
+
+    const mockPurposeSeedWithDelegation: m2mGatewayApi.ReversePurposeSeed = {
+      ...mockReversePurposeSeed,
+      delegationId: mockDelegation.id,
+    };
+
+    await expect(
+      purposeService.createReversePurpose(
+        mockPurposeSeedWithDelegation,
+        mockAppContext
+      )
+    ).rejects.toThrowError(
+      delegationEServiceMismatch(
+        mockReversePurposeSeed.eserviceId,
+        mockDelegation
+      )
+    );
+  });
+
   it.each([
     {
       ...mockConsumerDelegation,
@@ -200,15 +234,11 @@ describe("createReversePurpose", () => {
     },
     {
       ...mockConsumerDelegation,
-      eserviceId: generateId(),
-    },
-    {
-      ...mockConsumerDelegation,
       delegateId: generateId(),
     },
   ] satisfies delegationApi.Delegation[])(
-    `Should throw notAnActiveConsumerDelegation if the specified delegation
-    is not an active consumer delegation for requester tenant and e-service`,
+    `Should throw requesterIsNotTheDelegateConsumer if the specified delegation
+    is not an active consumer delegation for requester tenant`,
     async (mockDelegation) => {
       mockGetDelegation.mockResolvedValue(getMockWithMetadata(mockDelegation));
 
@@ -222,13 +252,7 @@ describe("createReversePurpose", () => {
           mockPurposeSeedWithDelegation,
           mockAppContext
         )
-      ).rejects.toThrowError(
-        notAnActiveConsumerDelegation(
-          mockAppContext.authData.organizationId,
-          mockReversePurposeSeed.eserviceId,
-          mockDelegation
-        )
-      );
+      ).rejects.toThrowError(requesterIsNotTheDelegateConsumer(mockDelegation));
     }
   );
 

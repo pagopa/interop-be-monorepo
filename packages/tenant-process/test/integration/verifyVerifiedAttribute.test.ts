@@ -129,14 +129,15 @@ describe("verifyVerifiedAttribute", async () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedTenant = await tenantService.verifyVerifiedAttribute(
-        {
-          tenantId: targetTenant.id,
-          attributeId: tenantAttributeSeedId,
-          agreementId: agreementEservice1.id,
-        },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
-      );
+      const verifyVerifiedAttrReturn =
+        await tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            attributeId: tenantAttributeSeedId,
+            agreementId: agreementEservice1.id,
+          },
+          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        );
 
       const writtenEvent = await readLastEventByStreamId(
         targetTenant.id,
@@ -175,8 +176,14 @@ describe("verifyVerifiedAttribute", async () => {
         ],
         updatedAt: new Date(),
       };
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      expect(returnedTenant).toEqual(updatedTenant);
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+        attributeId: tenantAttributeSeedId,
+      });
+      expect(verifyVerifiedAttrReturn).toEqual({
+        data: updatedTenant,
+        metadata: { version: 1 },
+      });
     }
   );
 
@@ -230,14 +237,15 @@ describe("verifyVerifiedAttribute", async () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedTenant = await tenantService.verifyVerifiedAttribute(
-        {
-          tenantId: tenantWithVerifiedAttribute.id,
-          attributeId: tenantAttributeSeedId,
-          agreementId: agreementEservice1.id,
-        },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
-      );
+      const verifyVerifiedAttrReturn =
+        await tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId: tenantAttributeSeedId,
+            agreementId: agreementEservice1.id,
+          },
+          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
         "tenant",
@@ -276,8 +284,14 @@ describe("verifyVerifiedAttribute", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      expect(returnedTenant).toEqual(updatedTenant);
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+        attributeId: tenantAttributeSeedId,
+      });
+      expect(verifyVerifiedAttrReturn).toEqual({
+        data: updatedTenant,
+        metadata: { version: 1 },
+      });
     }
   );
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {

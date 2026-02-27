@@ -4,7 +4,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   attributeNotFound: "0001",
   attributeDuplicate: "0002",
   originNotCompliant: "0003",

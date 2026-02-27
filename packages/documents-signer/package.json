@@ -1,0 +1,42 @@
+{
+  "name": "documents-signer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability documents signer",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "vitest",
+    "test:it": "vitest integration"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "dotenv-flow": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

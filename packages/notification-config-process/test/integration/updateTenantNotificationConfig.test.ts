@@ -28,10 +28,7 @@ describe("updateTenantNotificationConfig", () => {
     tenantId,
   };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
-    {
-      newEServiceVersionPublished:
-        !tenantNotificationConfig.config.newEServiceVersionPublished,
-    };
+    { enabled: !tenantNotificationConfig.enabled };
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -63,7 +60,7 @@ describe("updateTenantNotificationConfig", () => {
     const expectedTenantNotificationConfig = {
       id: serviceReturnValue.id,
       tenantId,
-      config: notificationConfigSeed,
+      enabled: notificationConfigSeed.enabled,
       createdAt: tenantNotificationConfig.createdAt,
       updatedAt: new Date(),
     };

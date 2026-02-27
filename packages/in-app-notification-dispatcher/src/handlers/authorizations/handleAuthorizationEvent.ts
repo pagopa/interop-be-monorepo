@@ -1,37 +1,81 @@
-import { AuthorizationEventEnvelopeV2 } from "pagopa-interop-models";
+import {
+  AuthorizationEventEnvelopeV2,
+  NewNotification,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { Notification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
+import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
+import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+  readModelService: ReadModelServiceSQL
+): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with(
+      {
+        type: P.union("ClientPurposeAdded", "ClientPurposeRemoved"),
+      },
+      ({ data: { purposeId }, type }) =>
+        handleClientAddedRemovedToProducer(
+          purposeId,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      { type: "ProducerKeychainEServiceAdded" },
+      ({ data: { eserviceId } }) =>
+        handleEserviceStateChangedToConsumer(
+          eserviceId,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        type: P.union(
+          "ClientKeyAdded",
+          "ClientKeyDeleted",
+          "ClientUserDeleted"
+        ),
+      },
+      (msg) =>
+        handleClientKeyAddedDeletedToClientUsers(msg, logger, readModelService)
+    )
+    .with(
+      {
+        type: P.union(
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserDeleted"
+        ),
+      },
+      (msg) =>
+        handleProducerKeychainKeyAddedDeletedToClientUsers(
+          msg,
+          logger,
+          readModelService
+        )
+    )
     .with(
       {
         type: P.union(
           "ClientAdded",
           "ClientAdminSet",
           "ClientDeleted",
-          "ClientKeyAdded",
-          "ClientKeyDeleted",
           "ClientUserAdded",
-          "ClientUserDeleted",
-          "ClientPurposeAdded",
-          "ClientPurposeRemoved",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
+          "ProducerKeychainEServiceRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
-          "ProducerKeychainKeyAdded",
-          "ProducerKeychainKeyDeleted",
-          "ProducerKeychainUserAdded",
-          "ProducerKeychainUserDeleted",
-          "ProducerKeychainEServiceAdded",
-          "ProducerKeychainEServiceRemoved"
+          "ProducerKeychainUserAdded"
         ),
       },
       () => {

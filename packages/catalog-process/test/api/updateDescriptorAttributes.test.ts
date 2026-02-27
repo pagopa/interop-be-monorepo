@@ -16,16 +16,19 @@ import {
   getMockAttribute,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
+  notValidDescriptorState,
   templateInstanceNotAllowed,
   unchangedAttributes,
 } from "../../src/model/domain/errors.js";
@@ -103,13 +106,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     descriptors: [descriptor],
   };
 
-  const apiEservice = catalogApi.EService.parse(
-    eServiceToApiEService(mockEService)
-  );
+  const apiEservice = eServiceToApiEService(mockEService);
+
+  const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
   catalogService.updateDescriptorAttributes = vi
     .fn()
-    .mockResolvedValue(mockEService);
+    .mockResolvedValue(mockEserviceWithMetadata);
 
   const makeRequest = async (
     token: string,
@@ -125,15 +128,26 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id, descriptor.id);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiEservice);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceWithMetadata.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, descriptor.id);
@@ -182,6 +196,14 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
         mockEService.id,
         descriptor.id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: notValidDescriptorState(generateId(), ""),
       expectedStatus: 400,
     },
   ])(

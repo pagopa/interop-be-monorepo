@@ -14,6 +14,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -27,7 +28,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authorization test", () => {
+describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/update test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
@@ -38,11 +39,12 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
     descriptors: [descriptor],
   };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
 
-  catalogService.updateDescriptor = vi.fn().mockResolvedValue(mockEService);
+  catalogService.updateDescriptor = vi.fn().mockResolvedValue(serviceResponse);
 
   const mockUpdateEServiceDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
     {
@@ -63,7 +65,11 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -71,6 +77,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toEqual(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

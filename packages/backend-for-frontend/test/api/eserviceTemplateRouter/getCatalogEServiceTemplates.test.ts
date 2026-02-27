@@ -71,6 +71,7 @@ describe("API GET /catalog/eservices/templates", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, personalData: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

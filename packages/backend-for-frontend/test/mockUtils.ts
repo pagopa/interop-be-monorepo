@@ -6,6 +6,7 @@ import {
   eserviceTemplateApi,
   agreementApi,
   catalogApi,
+  inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import {
   AgreementId,
@@ -19,6 +20,7 @@ import {
   generateId,
   PurposeId,
   PurposeVersionId,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -38,6 +40,9 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   state: generateMock(bffApi.DelegationState),
   kind: generateMock(bffApi.DelegationKind),
   rejectionReason: generateMock(z.string().optional()),
+  isDocumentReady: generateMock(z.boolean()),
+  activationSignedContract: generateMock(bffApi.SignedDocument.optional()),
+  revocationSignedContract: generateMock(bffApi.SignedDocument.optional()),
 });
 
 export const getMockBffApiAttributeSeed = (): bffApi.AttributeSeed => ({
@@ -144,17 +149,9 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   id: generateId(),
   name: generateMock(z.string()),
   description: generateMock(z.string()),
-  producer: generateMock(bffApi.CompactOrganization),
-  agreement: generateMock(bffApi.CompactAgreement.optional()),
+  producer: generateMock(bffApi.CatalogTenant),
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
-});
-
-export const getMockBffApiCompactEServiceLight = (
-  id: string = generateId()
-): bffApi.CompactEServiceLight => ({
-  id,
-  name: generateMock(z.string()),
 });
 
 export const getMockBffApiProducerEServiceDescriptor =
@@ -281,6 +278,7 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   isConsumerDelegable: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   templateId: generateMock(z.string().uuid().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
@@ -360,6 +358,11 @@ export const getMockBffApiInstanceEServiceSeed =
     isConsumerDelegable: generateMock(z.boolean().optional()),
   });
 
+export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
+  (): bffApi.EServicePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
@@ -368,6 +371,7 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
   isSignalHubEnabled: generateMock(z.boolean().optional()),
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   isConsumerDelegable: generateMock(z.boolean().optional()),
+  personalData: generateMock(z.boolean().optional()),
 });
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
@@ -446,6 +450,11 @@ export const getMockBffApiEServiceNameUpdateSeed =
     name: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceTemplatePersonalDataFlagUpdateSeed =
+  (): bffApi.EServiceTemplatePersonalDataFlagUpdateSeed => ({
+    personalData: generateMock(z.boolean()),
+  });
+
 export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
   // eslint-disable-next-line sonarjs/no-identical-functions
   (): bffApi.UpdateEServiceTemplateInstanceSeed => ({
@@ -482,6 +491,9 @@ export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   dailyCallsPerConsumer: generateMock(z.number().int().min(1).max(1000000000)),
   dailyCallsTotal: generateMock(z.number().int().min(1).max(1000000000)),
   delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  hasUnreadNotifications: generateMock(z.boolean()),
+  purposeTemplate: generateMock(bffApi.CompactPurposeTemplate.optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiRiskAnalysisFormConfig =
@@ -496,6 +508,12 @@ export const getMockBffApiPurposeUpdateContent =
     description: generateMock(z.string()),
     isFreeOfCharge: generateMock(z.boolean()),
     freeOfChargeReason: generateMock(z.string().optional()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
+export const getMockBffApiPatchPurposeUpdateFromTemplateContent =
+  (): bffApi.PatchPurposeUpdateFromTemplateContent => ({
+    title: generateMock(z.string()),
     dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
   });
 
@@ -518,6 +536,28 @@ export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
   isFreeOfCharge: generateMock(z.boolean()),
   freeOfChargeReason: generateMock(z.string().optional()),
   dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+});
+
+export const getMockPurposeFromTemplateSeed =
+  (): bffApi.PurposeFromTemplateSeed => ({
+    eserviceId: generateId(),
+    consumerId: generateId(),
+    title: generateMock(z.string()),
+    dailyCalls: generateMock(z.number().int().min(1).max(1000000000)),
+  });
+
+export const getMockPurposeTemplateSeed = (): bffApi.PurposeTemplateSeed => ({
+  targetDescription:
+    "This is a valid target description that meets the minimum length requirement",
+  targetTenantKind: "PA" as bffApi.TargetTenantKind,
+  purposeTitle: "Valid Purpose Title",
+  purposeDescription:
+    "This is a valid purpose description that meets the minimum length requirement",
+  purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplateSeed),
+  purposeIsFreeOfCharge: false,
+  purposeFreeOfChargeReason: undefined,
+  purposeDailyCalls: 1000,
+  handlesPersonalData: true,
 });
 
 export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
@@ -630,8 +670,10 @@ export const getMockBffApiEServiceTemplateSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
 
-export const getMockBffApiEServiceTemplateApiEServiceTemplate =
-  (): eserviceTemplateApi.EServiceTemplate => ({
+export const getMockBffApiEServiceTemplate =
+  (): eserviceTemplateApi.EServiceTemplate & {
+    id: EServiceTemplateId;
+  } => ({
     id: generateId(),
     creatorId: generateId(),
     name: generateMock(z.string()),
@@ -646,6 +688,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
+    personalData: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiEServiceTemplateDetails =
@@ -735,7 +778,7 @@ export const getMockBffApiCatalogEServiceTemplate =
     id: generateId(),
     name: generateMock(z.string()),
     description: generateMock(z.string()),
-    creator: generateMock(bffApi.CompactOrganization),
+    creator: generateMock(bffApi.CatalogTenant),
     publishedVersion: generateMock(bffApi.CompactEServiceTemplateVersion),
   });
 
@@ -750,6 +793,7 @@ export const getMockBffApiProducerEServiceTemplate =
     draftVersion: generateMock(
       bffApi.CompactEServiceTemplateVersion.optional()
     ),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiEServiceTemplateVersionQuotasUpdateSeed =
@@ -906,12 +950,6 @@ export const getMockBffApiCreateEServiceDocumentBody =
     prettyName: generateMock(z.string()),
     doc: new File(["content"], "doc.txt"),
   });
-export const getMockApiAddAgreementConsumerDocument_Body =
-  (): bffApi.addAgreementConsumerDocument_Body => ({
-    name: "name",
-    prettyName: "pretty name",
-    doc: new File([], "file name"),
-  });
 
 export const getMockBffApiAgreementListEntry =
   (): bffApi.AgreementListEntry => ({
@@ -925,6 +963,7 @@ export const getMockBffApiAgreementListEntry =
     suspendedByProducer: generateMock(z.boolean().optional()),
     descriptor: generateMock(bffApi.CompactDescriptor),
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+    hasUnreadNotifications: generateMock(z.boolean()),
   });
 
 export const getMockBffApiAgreement = (): bffApi.Agreement & {
@@ -953,6 +992,7 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   createdAt: generateMock(z.string().datetime({ offset: true })),
   updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
   suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  isDocumentReady: generateMock(z.boolean()),
 });
 
 export const getMockBffApiAddAgreementConsumerDocumentBody =
@@ -1006,3 +1046,142 @@ export const toBffCompactEServiceLight = (
   id: compactEService.id,
   name: compactEService.name,
 });
+
+const getMockInAppNotificationApiNotification =
+  (): inAppNotificationApi.Notification => ({
+    id: generateId(),
+    userId: generateId(),
+    tenantId: generateId(),
+    body: generateMock(z.string()),
+    notificationType: "agreementSuspendedUnsuspendedToProducer",
+    entityId: generateId(),
+    readAt: generateMock(z.string().datetime({ offset: true }).nullable()),
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+  });
+
+export const getMockInAppNotificationApiNotifications =
+  (): inAppNotificationApi.Notifications => ({
+    results: [
+      getMockInAppNotificationApiNotification(),
+      getMockInAppNotificationApiNotification(),
+      getMockInAppNotificationApiNotification(),
+    ],
+    totalCount: 3,
+  });
+
+export const getMockInAppNotificationApiNotificationsByType =
+  (): inAppNotificationApi.NotificationsByType => ({
+    results: {
+      agreementSuspendedUnsuspendedToProducer: generateMock(z.number().int()),
+      agreementManagementToProducer: generateMock(z.number().int()),
+      clientAddedRemovedToProducer: generateMock(z.number().int()),
+      purposeStatusChangedToProducer: generateMock(z.number().int()),
+      templateStatusChangedToProducer: generateMock(z.number().int()),
+      agreementSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
+      eserviceStateChangedToConsumer: generateMock(z.number().int()),
+      agreementActivatedRejectedToConsumer: generateMock(z.number().int()),
+      purposeActivatedRejectedToConsumer: generateMock(z.number().int()),
+      purposeSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
+      newEserviceTemplateVersionToInstantiator: generateMock(z.number().int()),
+      eserviceTemplateNameChangedToInstantiator: generateMock(z.number().int()),
+      eserviceTemplateStatusChangedToInstantiator: generateMock(
+        z.number().int()
+      ),
+      delegationApprovedRejectedToDelegator: generateMock(z.number().int()),
+      eserviceNewVersionSubmittedToDelegator: generateMock(z.number().int()),
+      eserviceNewVersionApprovedRejectedToDelegate: generateMock(
+        z.number().int()
+      ),
+      delegationSubmittedRevokedToDelegate: generateMock(z.number().int()),
+      certifiedVerifiedAttributeAssignedRevokedToAssignee: generateMock(
+        z.number().int()
+      ),
+      clientKeyAddedDeletedToClientUsers: generateMock(z.number().int()),
+      clientKeyConsumerAddedDeletedToClientUsers: generateMock(
+        z.number().int()
+      ),
+    },
+    totalCount: generateMock(z.number().int()),
+  });
+
+export const getMockBffApiNotificationsCountBySection =
+  (): bffApi.NotificationsCountBySection => ({
+    erogazione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      "template-eservice": generateMock(z.number().int()),
+      "e-service": generateMock(z.number().int()),
+      portachiavi: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    fruizione: {
+      richieste: generateMock(z.number().int()),
+      finalita: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "catalogo-e-service": {
+      totalCount: generateMock(z.number().int()),
+    },
+    aderente: {
+      deleghe: generateMock(z.number().int()),
+      anagrafica: generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    "gestione-client": {
+      "api-e-service": generateMock(z.number().int()),
+      "api-interop": generateMock(z.number().int()),
+      totalCount: generateMock(z.number().int()),
+    },
+    notifiche: {
+      totalCount: generateMock(z.number().int()),
+    },
+  });
+
+export const getMockBffApiCreatorPurposeTemplate =
+  (): bffApi.CreatorPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TargetTenantKind),
+    purposeTitle: generateMock(z.string()),
+    state: generateMock(bffApi.PurposeTemplateState),
+  });
+
+export const getMockBffApiCatalogPurposeTemplate =
+  (): bffApi.CatalogPurposeTemplate => ({
+    id: generateId(),
+    targetTenantKind: generateMock(bffApi.TargetTenantKind),
+    purposeTitle: generateMock(z.string()),
+    purposeDescription: generateMock(z.string()),
+    creator: generateMock(bffApi.CatalogTenant),
+  });
+
+export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
+  (
+    purposeTemplateId: PurposeTemplateId = generateId()
+  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
+    purposeTemplateId,
+    createdAt: generateMock(z.string().datetime({ offset: true })),
+    eservice: generateMock(bffApi.CompactPurposeTemplateEService),
+    descriptor: generateMock(bffApi.CompactDescriptor),
+  });
+
+export const getMockBffApiPurposeTemplateWithCompactCreator =
+  (): bffApi.PurposeTemplateWithCompactCreator & {
+    id: PurposeTemplateId;
+  } => ({
+    id: generateId(),
+    targetDescription:
+      "This is a valid target description that meets the minimum length requirement",
+    targetTenantKind: "PA" as bffApi.TargetTenantKind,
+    creator: generateMock(bffApi.CompactOrganization),
+    state: generateMock(bffApi.PurposeTemplateState),
+    createdAt: new Date().toISOString(),
+    purposeTitle: "Valid Purpose Title",
+    purposeDescription:
+      "This is a valid purpose description that meets the minimum length requirement",
+    purposeRiskAnalysisForm: generateMock(bffApi.RiskAnalysisFormTemplate),
+    purposeIsFreeOfCharge: false,
+    annotationDocuments: generateMock(
+      z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
+    ),
+    handlesPersonalData: false,
+  });

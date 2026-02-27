@@ -9,7 +9,7 @@ function getIdentificationKey<T extends { id: string } | { kid: string }>(
   return "id" in obj ? obj.id : obj.kid;
 }
 
-export function zipDataById<T extends { id: string } | { kid: string }>(
+function zipDataById<T extends { id: string } | { kid: string }>(
   dataA: Array<WithMetadata<T>>,
   dataB: Array<WithMetadata<T>>
 ): Array<[WithMetadata<T> | undefined, WithMetadata<T> | undefined]> {

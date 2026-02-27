@@ -1,38 +1,96 @@
-import { AgreementEventEnvelopeV2, Notification } from "pagopa-interop-models";
+import {
+  AgreementEventEnvelopeV2,
+  NewNotification,
+} from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleAgreementManagementToProducer } from "./handleAgreementManagementToProducer.js";
+import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
+import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
 
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger,
-  _readModelService: ReadModelServiceSQL
-): Promise<Notification[]> {
+  readModelService: ReadModelServiceSQL
+): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with(
+      P.union(
+        { type: "AgreementSuspendedByConsumer" },
+        { type: "AgreementUnsuspendedByConsumer" },
+        { type: "AgreementSuspendedByProducer" },
+        { type: "AgreementUnsuspendedByProducer" },
+        { type: "AgreementSuspendedByPlatform" },
+        { type: "AgreementUnsuspendedByPlatform" },
+        { type: "AgreementArchivedByConsumer" }
+      ),
+      ({ data: { agreement }, type }) =>
+        handleAgreementSuspendedUnsuspended(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union("AgreementSubmitted", "AgreementUpgraded"),
+      },
+      ({ data: { agreement }, type }) =>
+        handleAgreementManagementToProducer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: "AgreementActivated",
+      },
+      async ({ data: { agreement }, type }) => [
+        ...(await handleAgreementManagementToProducer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )),
+        ...(await handleAgreementActivatedRejectedToConsumer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
+    )
+    .with(
+      {
+        type: "AgreementRejected",
+      },
+      ({ data: { agreement }, type }) =>
+        handleAgreementActivatedRejectedToConsumer(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
+    )
     .with(
       {
         type: P.union(
-          "AgreementActivated",
-          "AgreementSubmitted",
-          "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
-          "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
-          "AgreementUpgraded",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       () => {

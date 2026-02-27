@@ -15,7 +15,6 @@ describe("API GET /producerKeychains test", () => {
     limit: 5,
     q: "",
     userIds: `${generateId()},${generateId()}`,
-    producerId: generateId(),
     eserviceId: generateId(),
   };
 
@@ -59,14 +58,12 @@ describe("API GET /producerKeychains test", () => {
     { query: {} },
     { query: { ...defaultQuery, offset: undefined } },
     { query: { ...defaultQuery, limit: undefined } },
-    { query: { ...defaultQuery, producerId: undefined } },
     { query: { ...defaultQuery, offset: -1 } },
     { query: { ...defaultQuery, limit: -2 } },
     { query: { ...defaultQuery, limit: 55 } },
     { query: { ...defaultQuery, offset: "invalid" } },
     { query: { ...defaultQuery, limit: "invalid" } },
     { query: { ...defaultQuery, userIds: `${generateId()},invalid` } },
-    { query: { ...defaultQuery, producerId: "invalid" } },
     { query: { ...defaultQuery, eserviceId: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);

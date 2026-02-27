@@ -4,7 +4,7 @@ import { match } from "ts-pattern";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
-export const eventV2TypeMapper = (
+const eventV2TypeMapper = (
   eventType: EServiceEventEnvelopeV2["type"]
 ): string =>
   match(eventType)
@@ -21,6 +21,8 @@ export const eventV2TypeMapper = (
       "EServiceDescriptionUpdatedByTemplateUpdate",
       "EServiceSignalHubEnabled",
       "EServiceSignalHubDisabled",
+      "EServicePersonalDataFlagUpdatedAfterPublication",
+      "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       () => "catalog_item_updated"
     )
     .with(

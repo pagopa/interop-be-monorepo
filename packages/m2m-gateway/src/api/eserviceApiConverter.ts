@@ -1,4 +1,5 @@
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
   params: m2mGatewayApi.GetEServicesQueryParams
@@ -36,6 +37,7 @@ export function toM2MGatewayApiEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     templateId: eservice.templateId,
+    personalData: eservice.personalData,
   };
 }
 
@@ -58,6 +60,52 @@ export function toM2MGatewayApiEServiceDescriptor(
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+  };
+}
+
+export function toCatalogApiEServiceDescriptorSeed(
+  descriptor: m2mGatewayApi.EServiceDescriptorSeed
+): catalogApi.EServiceDescriptorSeed {
+  return {
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+    attributes: {
+      declared: [],
+      verified: [],
+      certified: [],
+    },
+    docs: [],
+  };
+}
+
+export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
+  descriptor: m2mGatewayApi.EServiceDescriptorDraftUpdateSeed
+): catalogApi.PatchUpdateEServiceDescriptorSeed {
+  return {
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+    attributes: undefined, // Attributes are updated with dedicated API calls
+  };
+}
+
+export function toM2MGatewayApiEServiceRiskAnalysis(
+  riskAnalysis: catalogApi.EServiceRiskAnalysis
+): m2mGatewayApi.EServiceRiskAnalysis {
+  return {
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt,
+    riskAnalysisForm: toM2MGatewayApiRiskAnalysisForm(
+      riskAnalysis.riskAnalysisForm
+    ),
   };
 }
 

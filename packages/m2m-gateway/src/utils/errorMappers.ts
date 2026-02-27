@@ -105,6 +105,13 @@ export const unsuspendPurposeErrorMapper = (
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateDraftPurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("invalidSeedForPurposeFromTemplate", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const downloadPurposeVersionRiskAnalysisDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -133,7 +140,11 @@ export function downloadAgreementConsumerContractErrorMapper(
 
 export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("notAnActiveConsumerDelegation", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "delegationEServiceMismatch",
+      "requesterIsNotTheDelegateConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const uploadEServiceDescriptorInterfaceErrorMapper = (
@@ -141,7 +152,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "invalidInterfaceContentTypeDetected",
+      "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
@@ -155,6 +166,137 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
     .with(
       "eserviceDescriptorInterfaceNotFound",
       "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignTenantDeclaredAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "requesterIsNotTheDelegateConsumer",
+      "cannotEditDeclaredAttributesForTenant",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteDraftEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteDraftEServiceTemplateVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("cannotDeleteLastEServiceTemplateVersion", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateRiskAnalysisNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateVersionDocumentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceDescriptorAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateVersionAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createEServiceDescriptorAttributeGroupsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorNotFound",
+      "eserviceDescriptorAttributeGroupNotFound",
+      "eserviceDescriptorAttributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateVersionNotFound",
+      "eserviceTemplateVersionAttributeGroupNotFound",
+      "eserviceTemplateVersionAttributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignEServiceDescriptorAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorNotFound",
+      "eserviceDescriptorAttributeGroupNotFound",
+      "eserviceDescriptorAttributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignEServiceTemplateVersionAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateVersionNotFound",
+      "eserviceTemplateVersionAttributeGroupNotFound",
+      "eserviceTemplateVersionAttributeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateRiskAnalysisFormNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

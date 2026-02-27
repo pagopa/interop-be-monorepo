@@ -1,8 +1,8 @@
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
-export type NotificationConfigProcessClient = {
-  client: ReturnType<typeof notificationConfigApi.createProcessApiClient>;
+type NotificationConfigProcessClient = {
+  client: notificationConfigApi.NotificationConfigProcessClient;
 };
 
 export type PagoPAInteropBeClients = {

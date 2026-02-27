@@ -57,7 +57,6 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  undefined,
   inject("readModelSQLConfig")
 );
 
@@ -310,7 +309,7 @@ export const retrieveTenantSQLObjects = async (
   };
 };
 
-export const retrieveTenantSQL = async (
+const retrieveTenantSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantSQL | undefined> => {
@@ -321,7 +320,7 @@ export const retrieveTenantSQL = async (
   return result[0];
 };
 
-export const retrieveTenantMailsSQL = async (
+const retrieveTenantMailsSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantMailSQL[] | undefined> => {
@@ -332,7 +331,7 @@ export const retrieveTenantMailsSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantCertifiedAttributesSQL = async (
+const retrieveTenantCertifiedAttributesSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantCertifiedAttributeSQL[] | undefined> => {
@@ -343,7 +342,7 @@ export const retrieveTenantCertifiedAttributesSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantDeclaredAttributesSQL = async (
+const retrieveTenantDeclaredAttributesSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[] | undefined> => {
@@ -354,7 +353,7 @@ export const retrieveTenantDeclaredAttributesSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantVerifiedAttributesSQL = async (
+const retrieveTenantVerifiedAttributesSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeSQL[] | undefined> => {
@@ -365,7 +364,7 @@ export const retrieveTenantVerifiedAttributesSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
+const retrieveTenantVerifiedAttributeVerifiersSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeVerifierSQL[] | undefined> => {
@@ -378,7 +377,7 @@ export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantVerifiedAttributeRevokersSQL = async (
+const retrieveTenantVerifiedAttributeRevokersSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeRevokerSQL[] | undefined> => {
@@ -391,7 +390,7 @@ export const retrieveTenantVerifiedAttributeRevokersSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenantFeaturesSQL = async (
+const retrieveTenantFeaturesSQL = async (
   tenantId: TenantId,
   db: DrizzleReturnType
 ): Promise<TenantFeatureSQL[] | undefined> => {

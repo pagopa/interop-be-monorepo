@@ -3,7 +3,6 @@ import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
@@ -15,7 +14,6 @@ import {
 } from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
-import { readModelQueriesBuilder } from "../src/service/readmodelQueriesService.js";
 import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
 import { importAttributes } from "../src/service/processor.js";
 import { config } from "../src/config/config.js";
@@ -44,24 +42,15 @@ describe("ANAC Certified Attributes Importer", () => {
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const sftpClientMock = new SftpClient(sftpConfigTest);
-  const readModelClient = {} as ReadModelRepository;
-  const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
 
   const db = makeDrizzleConnection(config);
   const tenantReadModelService = tenantReadModelServiceBuilder(db);
   const attributeReadModelService = attributeReadModelServiceBuilder(db);
-  const readModelQueriesSQL = readModelQueriesBuilderSQL(
+  const readModelQueriesMock = readModelQueriesBuilderSQL(
     db,
     tenantReadModelService,
     attributeReadModelService
   );
-
-  const readModelQueriesMock =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelQueriesSQL
-      : oldReadModelQueries;
 
   const interopInternalToken: InteropInternalToken = {
     header: {

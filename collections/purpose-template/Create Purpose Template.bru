@@ -1,0 +1,248 @@
+meta {
+  name: Create Purpose Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-purpose-template}}/purposeTemplates
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "targetDescription": "{{randomTargetDescription}}",
+    "targetTenantKind": "PA",
+    "purposeTitle": "{{randomPurposeTitle}}",
+    "purposeDescription": "{{randomPurposeDescription}}",
+    "purposeRiskAnalysisForm": {
+      "version": "3.0",
+      "answers": {
+        "purpose": {
+          "values": ["INSTITUTIONAL"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "NB: Si ricorda ai sensi dell'art. 5, paragrafo 1, lett. b), del GDPR (principio della limitazione delle finalità), le finalità devono essere determinate, esplicite e legittime, e che i dati ottenuti possono essere successivamente trattati solo in modo compatibile con le predette finalità.",
+            "docs": [
+              {
+                "documentId": "3f7c8e9a-5b4d-42f6-a1c9-8d23e7f9b0d2",
+                "name": "gdpr_art5.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "GDPR Art. 5 - Principi di trattamento",
+                "path": "/docs/gdpr/art5.pdf",
+                "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+              }
+            ]
+          }
+        },
+        "institutionalPurpose": {
+          "values": [],
+          "editable": true,
+          "suggestedValues": []
+        },
+        "personalDataTypes": {
+          "values": ["WITH_NON_IDENTIFYING_DATA"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "NB: si ricorda che ai sensi dell'art. 4, paragrafo 1, n. 1, del GDPR per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente.",
+            "docs": [
+              {
+                "documentId": "4a5b6c7d-8e9f-10a1-b2c3-d4e5f6a7b8c9",
+                "checksum": "e8f21a6c4d3b5798c0f1e2d3a4b5c6d7",
+                "name": "gdpr_art4.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "GDPR Art. 4 - Definizioni",
+                "path": "/docs/gdpr/art4.pdf"
+              },
+              {
+                "documentId": "5f8e7d6c-9a2b-48c7-b3d5-1e6f7a8b9c0d",
+                "name": "personal_data_guide.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Guida ai dati personali",
+                "path": "/docs/guides/personal_data.pdf",
+                "checksum": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
+              }
+            ]
+          }
+        },
+        "legalBasis": {
+          "values": ["LEGAL_OBLIGATION"],
+          "editable": false,
+          "suggestedValues": []
+        },
+        "legalObligationReference": {
+          "values": [],
+          "editable": false,
+          "suggestedValues": ["Decreto Legislativo n. 196/2003, art. 15", "Regolamento UE 2016/679, art. 6", "Legge n. 241/1990, art. 22"],
+          "annotation": {
+            "text": "Specificare l'obbligo legale e, laddove possibile, la normativa di riferimento",
+            "docs": [
+              {
+                "documentId": "6a7b8c9d-0e1f-2a3b-4c5d-6e7f8a9b0c1d",
+                "name": "legal_basis_guide.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Guida alle basi giuridiche",
+                "path": "/docs/guides/legal_basis.pdf",
+                "checksum": "f1e2d3c4b5a6978d8e9f0a1b2c3d4e5f"
+              }
+            ]
+          }
+        },
+        "knowsDataQuantity": {
+          "values": ["NO"],
+          "editable": false,
+          "suggestedValues": []
+        },
+        "deliveryMethod": {
+          "values": ["ANONYMOUS"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "NB: si ricorda che ai sensi dell'art. 5, paragrafo 1, lett. c), del GDPR (principio di minimizzazione) il trattamento di dati personali deve essere sempre proporzionale e limitato a quanto strettamente necessario alla finalità perseguita.",
+            "docs": [
+              {
+                "documentId": "7b8c9d0e-1f2a-3b4c-5d6e-7f8a9b0c1d2e",
+                "name": "minimization_principle.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Principio di minimizzazione",
+                "path": "/docs/principles/minimization.pdf",
+                "checksum": "e5f6d7c8b9a0123456789abcdef01234"
+              }
+            ]
+          }
+        },
+        "policyProvided": {
+          "values": ["YES"],
+          "editable": false,
+          "suggestedValues": []
+        },
+        "confirmPricipleIntegrityAndDiscretion": {
+          "values": ["true"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "Confermare se - in linea con il principio di integrità e riservatezza di cui all'art. 5, paragrafo 1, lett. f), del GDPR - sono state adottate tutte le misure tecniche e organizzative necessarie a garantire un'adeguata sicurezza dei dati personali.",
+            "docs": [
+              {
+                "documentId": "8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+                "name": "security_measures.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Misure di sicurezza",
+                "path": "/docs/security/measures.pdf",
+                "checksum": "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d"
+              }
+            ]
+          }
+        },
+        "doneDpia": {
+          "values": ["NO"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria qualora sussistano le condizioni di cui all'art. 35 del GDPR",
+            "docs": [
+              {
+                "documentId": "9d0e1f2a-3b4c-5d6e-7f8a-9b0c1d2e3f4a",
+                "name": "dpia_guide.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Guida alla DPIA",
+                "path": "/docs/dpia/guide.pdf",
+                "checksum": "0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f"
+              }
+            ]
+          }
+        },
+        "dataDownload": {
+          "values": ["NO"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "NB: si ricorda che il download del dato non consente di disporre di un dato aggiornato, e quindi di agire nel rispetto del principio di esattezza dei dati di cui all'art. 5, paragrafo 1, lettera d), del GDPR.",
+            "docs": [
+              {
+                "documentId": "0e1f2a3b-4c5d-6e7f-8a9b-0c1d2e3f4a5b",
+                "name": "data_accuracy.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Principio di esattezza",
+                "path": "/docs/principles/accuracy.pdf",
+                "checksum": "1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a"
+              }
+            ]
+          }
+        },
+        "purposePursuit": {
+          "values": ["MERE_CORRECTNESS"],
+          "editable": false,
+          "suggestedValues": []
+        },
+        "checkedExistenceMereCorrectnessInteropCatalogue": {
+          "values": ["true"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "NB: se non già fatto, prima di confermare si invita a verificare se sul Catalogo API è presente un altro E-service che consenta di svolgere la mera attività di verifica di informazioni/dati personali di cui si necessita",
+            "docs": [
+              {
+                "documentId": "1f2a3b4c-5d6e-7f8a-9b0c-1d2e3f4a5b6c",
+                "name": "catalogue_check.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Verifica Catalogo API",
+                "path": "/docs/catalogue/check.pdf",
+                "checksum": "2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b"
+              }
+            ]
+          }
+        },
+        "usesThirdPartyData": {
+          "values": ["NO"],
+          "editable": false,
+          "suggestedValues": []
+        },
+        "declarationConfirmGDPR": {
+          "values": ["true"],
+          "editable": false,
+          "suggestedValues": [],
+          "annotation": {
+            "text": "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all'art. 5, paragrafo 2, del GDPR)",
+            "docs": [
+              {
+                "documentId": "2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d",
+                "name": "accountability_principle.pdf",
+                "contentType": "application/pdf",
+                "prettyName": "Principio di responsabilizzazione",
+                "path": "/docs/principles/accountability.pdf",
+                "checksum": "3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "purposeIsFreeOfCharge": {{randomBoolean}},
+    "purposeFreeOfChargeReason": "{{randomFreeOfChargeReason}}",
+    "purposeDailyCalls": {{randomDailyCalls}}
+  }
+}
+
+vars:post-response {
+  purposeTemplateId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 1000)
+  
+  bru.setVar("randomTargetDescription", `Test target description ${random}`)
+  bru.setVar("randomPurposeTitle", `Test purpose title ${random}`)
+  bru.setVar("randomPurposeDescription", `Test purpose description ${random}`)
+  bru.setVar("randomBoolean", Math.random() > 0.5)
+  bru.setVar("randomFreeOfChargeReason", `Free of charge reason ${random}`)
+  bru.setVar("randomDailyCalls", Math.floor(Math.random() * 1000) + 1)
+}

@@ -17,6 +17,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import { agreementContractNotFound } from "../../../src/model/errors.js";
+import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadAgreementConsumerContract", () => {
   const testFileContent = "This is a mock contract file content.";
@@ -68,7 +69,7 @@ describe("downloadAgreementConsumerContract", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockContract.path);
+    ).toStrictEqual(mockContract.path);
 
     const result = await agreementService.downloadAgreementConsumerContract(
       mockAgreementId,
@@ -82,7 +83,7 @@ describe("downloadAgreementConsumerContract", () => {
       }),
       prettyName: mockContract.prettyName,
     };
-    expect(result).toEqual(expectedServiceResponse);
+    await expectDownloadedDocumentToBeEqual(result, expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
       params: { agreementId: mockAgreementId },

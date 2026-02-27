@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const errorCodes = {
+const errorCodes = {
   delegationNotFound: "0001",
   eserviceNotFound: "0002",
   delegationAlreadyExists: "0003",

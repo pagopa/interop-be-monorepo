@@ -7,8 +7,7 @@ import {
   M2MAuthData,
   InternalAuthData,
   M2MAdminAuthData,
-  isUiAuthData,
-  authRole,
+  retrieveOriginFromAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -24,7 +23,6 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { match, P } from "ts-pattern";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   tenantIsNotACertifier,
@@ -35,11 +33,11 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelServiceSQL, "getTenantById">
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
@@ -48,25 +46,10 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveOriginFromAuthData = async (
-  authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
-): Promise<string> =>
-  await match(authData)
-    .with(P.when(isUiAuthData), ({ externalId }) => externalId.origin)
-    .with(
-      { systemRole: authRole.M2M_ADMIN_ROLE },
-      async ({ organizationId }) =>
-        (
-          await retrieveTenant(organizationId, readModelService)
-        ).externalId.origin
-    )
-    .exhaustive();
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
@@ -174,7 +157,8 @@ export function attributeRegistryServiceBuilder(
 
       const origin = await retrieveOriginFromAuthData(
         authData,
-        readModelService
+        readModelService,
+        retrieveTenant
       );
       if (!config.producerAllowedOrigins.includes(origin)) {
         throw originNotCompliant(origin);
@@ -227,7 +211,8 @@ export function attributeRegistryServiceBuilder(
 
       const origin = await retrieveOriginFromAuthData(
         authData,
-        readModelService
+        readModelService,
+        retrieveTenant
       );
       if (!config.producerAllowedOrigins.includes(origin)) {
         throw originNotCompliant(origin);
@@ -371,7 +356,7 @@ export function attributeRegistryServiceBuilder(
 
 async function getCertifierId(
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {

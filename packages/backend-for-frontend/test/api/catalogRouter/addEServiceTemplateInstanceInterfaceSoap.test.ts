@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DescriptorId,
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   interfaceExtractingInfoError,
   EServiceId,
@@ -82,7 +82,7 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
       expectedStatus: 400,
     },
     {
-      error: invalidInterfaceContentTypeDetected(
+      error: invalidContentTypeDetected(
         { id: mockEService.id, isEserviceTemplate: true },
         "contentType",
         "SOAP"

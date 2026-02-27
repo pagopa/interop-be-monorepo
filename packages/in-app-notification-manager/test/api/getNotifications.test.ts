@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, NotificationType } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -10,7 +10,14 @@ import { api, inAppNotificationService } from "../vitest.api.setup.js";
 describe("API GET /notifications", () => {
   const makeRequest = async (
     token: string,
-    queryParams: Record<string, string> = {
+    queryParams: {
+      q?: string;
+      notificationTypes?: NotificationType[];
+      limit: string;
+      offset: string;
+    } = {
+      q: "",
+      notificationTypes: [],
       limit: "10",
       offset: "0",
     }
@@ -31,6 +38,8 @@ describe("API GET /notifications", () => {
           userId: generateId(),
           tenantId: generateId(),
           body: "Notification 1",
+          notificationType: "agreementManagementToProducer" as NotificationType,
+          entityId: generateId(),
           readAt: new Date(),
           createdAt: new Date(),
         },
@@ -43,18 +52,22 @@ describe("API GET /notifications", () => {
     vi.restoreAllMocks();
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 with notifications for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
 
-      expect(res.status).toBe(200);
       expect(res.body).toEqual({
         results: expect.any(Array),
         totalCount: 1,
       });
+      expect(res.status).toBe(200);
       expect(res.body.results).toHaveLength(1);
     }
   );
@@ -71,6 +84,8 @@ describe("API GET /notifications", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const queryParams = {
       q: "search term",
+      unread: false,
+      notificationTypes: [],
       limit: "10",
       offset: "5",
     };
@@ -79,6 +94,8 @@ describe("API GET /notifications", () => {
 
     expect(inAppNotificationService.getNotifications).toHaveBeenCalledWith(
       queryParams.q,
+      false, // unread
+      queryParams.notificationTypes,
       Number(queryParams.limit),
       Number(queryParams.offset),
       expect.any(Object)

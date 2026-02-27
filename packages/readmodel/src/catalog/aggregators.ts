@@ -284,6 +284,11 @@ export const aggregateEservice = ({
           templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
         }
       : {}),
+    ...(eserviceSQL.personalData !== null
+      ? {
+          personalData: eserviceSQL.personalData,
+        }
+      : {}),
   };
   return {
     data: eservice,
@@ -356,7 +361,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorTemplateVersionRefSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>

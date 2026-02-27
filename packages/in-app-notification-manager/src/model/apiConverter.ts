@@ -8,6 +8,8 @@ export const notificationToApiNotification = (
   userId: notification.userId,
   tenantId: notification.tenantId,
   body: notification.body,
+  notificationType: notification.notificationType,
+  entityId: notification.entityId,
   readAt: notification.readAt?.toISOString() ?? null,
   createdAt: notification.createdAt.toISOString(),
 });

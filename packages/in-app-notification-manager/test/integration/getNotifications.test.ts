@@ -33,6 +33,8 @@ describe("getNotifications", () => {
     await addNotifications(notificationsList);
     const notifications = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       5,
       0,
       getMockContext({
@@ -61,6 +63,8 @@ describe("getNotifications", () => {
     await addNotifications(notificationsList);
     const notifications = await inAppNotificationService.getNotifications(
       "Notification 1",
+      undefined,
+      [],
       5,
       0,
       getMockContext({
@@ -80,6 +84,8 @@ describe("getNotifications", () => {
     const nonExistentFilter = "ThisFilterWillNotMatchAnyNotification";
     const result = await inAppNotificationService.getNotifications(
       nonExistentFilter,
+      undefined,
+      [],
       5,
       0,
       getMockContext({
@@ -100,6 +106,8 @@ describe("getNotifications", () => {
     // Test with limit = 1
     const result1 = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       1,
       0,
       getMockContext({
@@ -115,6 +123,8 @@ describe("getNotifications", () => {
     // Test with limit = 3
     const result2 = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       3,
       0,
       getMockContext({
@@ -134,6 +144,8 @@ describe("getNotifications", () => {
     // Get first page
     const firstPage = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       3,
       0,
       getMockContext({
@@ -147,6 +159,8 @@ describe("getNotifications", () => {
     // Get second page
     const secondPage = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       3,
       3,
       getMockContext({
@@ -168,6 +182,8 @@ describe("getNotifications", () => {
 
     const result = await inAppNotificationService.getNotifications(
       undefined,
+      undefined,
+      [],
       100, // Limit larger than total count
       0,
       getMockContext({
@@ -180,5 +196,94 @@ describe("getNotifications", () => {
 
     expect(result.results).toHaveLength(10);
     expect(result.totalCount).toBe(10);
+  });
+
+  describe("unread filter", () => {
+    const setupReadAndUnreadNotifications = async (): Promise<void> => {
+      const readNotifications = Array.from({ length: 3 }, (_, i) =>
+        getMockNotification({
+          userId,
+          tenantId,
+          body: `Read notification ${i}`,
+          readAt: new Date(),
+        })
+      );
+
+      const unreadNotifications = Array.from({ length: 2 }, (_, i) =>
+        getMockNotification({
+          userId,
+          tenantId,
+          body: `Unread notification ${i}`,
+          readAt: undefined,
+        })
+      );
+
+      await addNotifications([...readNotifications, ...unreadNotifications]);
+    };
+
+    it("should return only read notifications when unread is false", async () => {
+      await setupReadAndUnreadNotifications();
+
+      const result = await inAppNotificationService.getNotifications(
+        undefined,
+        false,
+        [],
+        10,
+        0,
+        getMockContext({
+          authData: {
+            ...getMockAuthData(tenantId),
+            userId,
+          },
+        })
+      );
+
+      expect(result.results).toHaveLength(3);
+      expect(result.totalCount).toBe(3);
+      expect(result.results.every((n) => n.readAt !== undefined)).toBe(true);
+    });
+
+    it("should return only unread notifications when unread is true", async () => {
+      await setupReadAndUnreadNotifications();
+
+      const result = await inAppNotificationService.getNotifications(
+        undefined,
+        true,
+        [],
+        10,
+        0,
+        getMockContext({
+          authData: {
+            ...getMockAuthData(tenantId),
+            userId,
+          },
+        })
+      );
+
+      expect(result.results).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      expect(result.results.every((n) => n.readAt === undefined)).toBe(true);
+    });
+
+    it("should return all notifications when unread is undefined", async () => {
+      await setupReadAndUnreadNotifications();
+
+      const result = await inAppNotificationService.getNotifications(
+        undefined,
+        undefined,
+        [],
+        10,
+        0,
+        getMockContext({
+          authData: {
+            ...getMockAuthData(tenantId),
+            userId,
+          },
+        })
+      );
+
+      expect(result.results).toHaveLength(5);
+      expect(result.totalCount).toBe(5);
+    });
   });
 });

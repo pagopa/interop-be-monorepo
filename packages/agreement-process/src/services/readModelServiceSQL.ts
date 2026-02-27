@@ -21,6 +21,7 @@ import {
   unsafeBrandId,
   AgreementDocumentId,
   stringToDate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -43,6 +44,7 @@ import {
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
   EServiceDescriptorSQL,
+  agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import {
   escapeRegExp,
@@ -52,12 +54,9 @@ import {
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
-import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
+import { CompactEService } from "../model/domain/models.js";
 
-export type AgreementQueryFilters = {
+type AgreementQueryFilters = {
   producerId?: TenantId | TenantId[];
   consumerId?: TenantId | TenantId[];
   eserviceId?: EServiceId | EServiceId[];
@@ -67,7 +66,7 @@ export type AgreementQueryFilters = {
   showOnlyUpgradeable?: boolean;
 };
 
-export type AgreementEServicesQueryFilters = {
+type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
@@ -327,7 +326,7 @@ const getAgreementsFilters = <
     | {
         requesterId?: never;
         withVisibilityAndDelegationFilters?: never;
-      }
+      },
 >({
   filters,
   requesterId,
@@ -437,6 +436,7 @@ export function readModelServiceBuilderSQL(
           contract: agreementContractInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
           totalCount: queryAgreementIds.totalCount,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .innerJoin(
@@ -469,6 +469,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         )
         .orderBy(
@@ -579,6 +586,7 @@ export function readModelServiceBuilderSQL(
           contract: agreementContractInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
           totalCount: queryAgreementIds.totalCount,
+          signedContract: agreementSignedContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .innerJoin(
@@ -611,6 +619,13 @@ export function readModelServiceBuilderSQL(
           eq(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementSignedContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementSignedContractInReadmodelAgreement.agreementId
           )
         )
         .orderBy(
@@ -674,7 +689,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },
@@ -714,7 +729,7 @@ export function readModelServiceBuilderSQL(
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
         resultSet[0]?.totalCount
       );
     },
@@ -862,7 +877,7 @@ export function readModelServiceBuilderSQL(
               prettyName: doc.prettyName,
               contentType: doc.contentType,
               createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument)
+            }) satisfies AgreementDocument
         ),
         resultsSet[0]?.totalCount
       );

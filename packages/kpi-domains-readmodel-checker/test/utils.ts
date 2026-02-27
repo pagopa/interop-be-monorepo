@@ -8,22 +8,12 @@ import {
   EServiceTemplate,
   ProducerKeychain,
   Purpose,
+  PurposeTemplate,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  clientJWKKeyReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  producerKeychainReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-  producerJWKKeyReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
   splitAgreementIntoObjectsSQL,
   splitAttributeIntoObjectsSQL,
   splitClientIntoObjectsSQL,
@@ -33,6 +23,7 @@ import {
   splitProducerKeychainIntoObjectsSQL,
   splitPurposeIntoObjectsSQL,
   splitTenantIntoObjectsSQL,
+  splitPurposeTemplateIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
@@ -66,9 +57,10 @@ import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
 import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
 import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
 import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
+import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";
+import { PurposeTemplateItemsSchema } from "../src/model/purposeTemplate/purposeTemplate.js";
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
-    undefined,
     undefined,
     undefined,
     undefined,
@@ -82,36 +74,13 @@ afterEach(cleanup);
 
 const connection = await analyticsPostgresDB.connect();
 
-export const dbContext: DBContext = {
+const dbContext: DBContext = {
   conn: connection,
   pgp: analyticsPostgresDB.$config.pgp,
 };
 
 export const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-
-export const eserviceReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
-export const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
-export const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilder(readModelDB);
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
-export const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
-  producerKeychainReadModelServiceBuilder(readModelDB);
-export const clientKeysReadModelServiceSQL =
-  clientJWKKeyReadModelServiceBuilder(readModelDB);
-export const producerKeychainKeyReadModelServiceSQL =
-  producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -272,6 +241,10 @@ export const addOneDelegation = async (
     DelegationDbTable.delegation_contract_document,
     splitResult.contractDocumentsSQL
   );
+  await writeInKpi(
+    DelegationDbTable.delegation_signed_contract_document,
+    splitResult.contractSignedDocumentsSQL
+  );
 };
 
 export const addOneAgreement = async (
@@ -294,6 +267,10 @@ export const addOneAgreement = async (
   await writeInKpi(
     AgreementDbTable.agreement_contract,
     splitResult.contractSQL ? [splitResult.contractSQL] : []
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_signed_contract,
+    splitResult.signedContractSQL ? [splitResult.signedContractSQL] : []
   );
 };
 
@@ -334,6 +311,43 @@ export const addOneProducerKeychain = async (
   await writeInKpi(
     ProducerKeychainDbTable.producer_keychain_key,
     splitResult.keysSQL
+  );
+};
+
+export const addOnePurposeTemplate = async (
+  purposeTemplate: WithMetadata<PurposeTemplate>
+): Promise<void> => {
+  const splitResult = PurposeTemplateItemsSchema.parse(
+    splitPurposeTemplateIntoObjectsSQL(
+      purposeTemplate.data,
+      purposeTemplate.metadata.version
+    )
+  );
+
+  await writeInKpi(PurposeTemplateDbTable.purpose_template, [
+    splitResult.purposeTemplateSQL,
+  ]);
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_form,
+    splitResult.riskAnalysisFormTemplateSQL
+      ? [splitResult.riskAnalysisFormTemplateSQL]
+      : []
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
+    splitResult.riskAnalysisTemplateAnswersSQL
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
+    splitResult.riskAnalysisTemplateAnswersAnnotationsSQL
+  );
+
+  await writeInKpi(
+    PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
+    splitResult.riskAnalysisTemplateAnswersAnnotationsDocumentsSQL
   );
 };
 

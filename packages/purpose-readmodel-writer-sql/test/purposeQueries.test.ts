@@ -4,6 +4,7 @@ import {
   getMockPurposeVersionDocument,
   getMockPurpose,
   getMockValidRiskAnalysisForm,
+  getMockPurposeVersionStamps,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -12,6 +13,7 @@ import {
   generateId,
   DelegationId,
   tenantKind,
+  PurposeTemplateId,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
@@ -23,7 +25,9 @@ import {
   retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
   retrievePurposeVersionDocumentsSQLById,
+  retrievePurposeVersionSignedDocumentsSQLById,
   retrievePurposeVersionsSQLById,
+  retrievePurposeVersionStampsSQLById,
 } from "./utils.js";
 
 describe("Purpose queries", () => {
@@ -45,16 +49,28 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.active,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
@@ -65,6 +81,8 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -73,6 +91,8 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -104,11 +124,21 @@ describe("Purpose queries", () => {
       const retrievedPurposeVersionDocumentSQL =
         await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
 
+      const retrievedPurposeVersionStampSQL =
+        await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
+
+      const retrievedPurposeVersionSignedDocumentSQL =
+        await retrievePurposeVersionSignedDocumentsSQLById(
+          purpose.id,
+          readModelDB
+        );
+
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
       expect(retrievedPurposeVersionsSQL).toHaveLength(0);
       expect(retrievedPurposeVersionDocumentSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionStampSQL).toHaveLength(0);
 
       const retrievedPurpose = aggregatePurpose({
         purposeSQL: retrievedPurposeSQL!,
@@ -116,6 +146,8 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
         versionsSQL: retrievedPurposeVersionsSQL,
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
+        versionStampsSQL: retrievedPurposeVersionStampSQL,
+        versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -141,16 +173,28 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
+      const purposeVersion3: PurposeVersion = {
+        ...getMockPurposeVersion(
+          purposeVersionState.active,
+          getMockPurposeVersionStamps()
+        ),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [purposeVersion1, purposeVersion2],
+        versions: [purposeVersion1, purposeVersion2, purposeVersion3],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
@@ -162,6 +206,8 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
+        versionSignedDocumentsSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -170,6 +216,8 @@ describe("Purpose queries", () => {
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
+        versionStampsSQL,
+        versionSignedDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -200,6 +248,17 @@ describe("Purpose queries", () => {
             firstActivationAt: new Date(),
             suspendedAt: new Date(),
           },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.active,
+              getMockPurposeVersionStamps()
+            ),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
         ],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
@@ -207,6 +266,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
       await purposeWriterService.upsertPurpose(purpose1, 1);
       await checkCompletePurpose(purpose1);
@@ -230,6 +290,17 @@ describe("Purpose queries", () => {
             firstActivationAt: new Date(),
             suspendedAt: new Date(),
           },
+          {
+            ...getMockPurposeVersion(
+              purposeVersionState.active,
+              getMockPurposeVersionStamps()
+            ),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
         ],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
@@ -237,6 +308,7 @@ describe("Purpose queries", () => {
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
+        purposeTemplateId: generateId<PurposeTemplateId>(),
       };
       await purposeWriterService.upsertPurpose(purpose2, 1);
       await checkCompletePurpose(purpose2);
@@ -260,6 +332,9 @@ describe("Purpose queries", () => {
       ).toHaveLength(0);
       expect(
         await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB)
+      ).toHaveLength(0);
+      expect(
+        await retrievePurposeVersionStampsSQLById(purpose1.id, readModelDB)
       ).toHaveLength(0);
 
       await checkCompletePurpose(purpose2);

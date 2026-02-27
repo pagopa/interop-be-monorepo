@@ -1,8 +1,4 @@
-import {
-  ReadModelRepository,
-  initDB,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, startServer } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -13,7 +9,6 @@ import {
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
 
@@ -24,9 +19,6 @@ const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
 const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
 
-const readModelRepository = ReadModelRepository.init(config);
-
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   tenantReadModelServiceSQL,
@@ -35,13 +27,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   catalogReadModelServiceSQL,
   delegationReadModelServiceSQL
 );
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const service = tenantServiceBuilder(
   initDB({
@@ -53,7 +38,7 @@ const service = tenantServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelServiceSQL
 );
 
 startServer(await createApp(service), config);

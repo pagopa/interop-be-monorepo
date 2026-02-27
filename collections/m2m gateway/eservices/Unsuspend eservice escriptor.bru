@@ -1,0 +1,20 @@
+meta {
+  name: Unsuspend eservice descriptor
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/unsuspend
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

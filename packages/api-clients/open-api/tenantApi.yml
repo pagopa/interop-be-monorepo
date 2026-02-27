@@ -554,6 +554,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -588,6 +591,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -628,6 +634,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -682,6 +691,9 @@ paths:
       responses:
         "200":
           description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1040,7 +1052,7 @@ paths:
               additionalProperties: false
               properties:
                 currentVersion:
-                  type: number
+                  type: integer
                   format: int32
               required:
                 - currentVersion
@@ -1761,7 +1773,7 @@ components:
       additionalProperties: false
       properties:
         currentVersion:
-          type: number
+          type: integer
           format: int32
         tenant:
           $ref: "#/components/schemas/MaintenanceTenantUpdate"
@@ -1837,7 +1849,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

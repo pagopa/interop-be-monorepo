@@ -7,6 +7,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
@@ -14,7 +15,7 @@ import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter
 describe("GET /agreements/:agreementId route test", () => {
   const mockApiAgreement = getMockedApiAgreement();
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement);
+    toM2MGatewayApiAgreement(mockApiAgreement, generateId());
 
   const makeRequest = async (
     token: string,

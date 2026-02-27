@@ -1,6 +1,8 @@
 import {
+  Client,
   EService,
   Purpose,
+  PurposeTemplateId,
   TenantId,
   delegationKind,
   delegationState,
@@ -16,8 +18,10 @@ import {
   getMockContext,
   getMockEService,
   sortPurpose,
+  getMockClient,
 } from "pagopa-interop-commons-test";
 import {
+  addOneClient,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
@@ -60,6 +64,7 @@ describe("getPurposes", async () => {
     consumerId: consumerId1,
     eserviceId: mockEService1ByTenant1.id,
     versions: [getMockPurposeVersion(purposeVersionState.draft)],
+    purposeTemplateId: generateId<PurposeTemplateId>(),
   };
 
   const mockPurpose2: Purpose = {
@@ -167,6 +172,15 @@ describe("getPurposes", async () => {
     state: delegationState.revoked,
   });
 
+  const client1: Client = getMockClient({
+    consumerId: consumerId1,
+    purposes: [mockPurpose1.id, mockPurpose3.id],
+  });
+
+  const client2: Client = getMockClient({
+    consumerId: consumerId2,
+    purposes: [mockPurpose2.id],
+  });
   beforeEach(async () => {
     await addOnePurpose(mockPurpose1);
     await addOnePurpose(mockPurpose2);
@@ -188,6 +202,9 @@ describe("getPurposes", async () => {
     await addOneDelegation(consumerDelegation2);
     await addOneDelegation(revokedProducerDelegation);
     await addOneDelegation(revokedConsumerDelegation);
+
+    await addOneClient(client1);
+    await addOneClient(client2);
   });
 
   it("should get all purposes visible to consumer/producer requester if no filters are provided", async () => {
@@ -199,6 +216,7 @@ describe("getPurposes", async () => {
         producersIds: [],
         states: [],
         excludeDraft: undefined,
+        clientId: undefined,
       },
       { offset: 0, limit: 50 },
       getMockContext({ authData: getMockAuthData(producerId1) })
@@ -217,6 +235,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -236,6 +255,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -256,6 +276,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -278,6 +299,7 @@ describe("getPurposes", async () => {
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
+          clientId: undefined,
           states: [],
           excludeDraft: undefined,
         },
@@ -300,6 +322,7 @@ describe("getPurposes", async () => {
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
+          clientId: undefined,
           states: [],
           excludeDraft: undefined,
         },
@@ -318,6 +341,7 @@ describe("getPurposes", async () => {
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
+          clientId: undefined,
           states: [],
           excludeDraft: undefined,
         },
@@ -337,6 +361,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -353,6 +378,7 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -373,6 +399,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [consumerId1],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -388,12 +415,31 @@ describe("getPurposes", async () => {
     ]);
   });
 
+  it("should get purposes with filters: clientId", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: client1.id,
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(consumerId1) })
+    );
+    expect(result.totalCount).toBe(2);
+
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
+  });
+
   it("should get purposes with filters: eservicesIds, consumerIds", async () => {
     const result = await purposeService.getPurposes(
       {
         eservicesIds: [mockEService1ByTenant1.id],
         consumersIds: [consumerId2],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -410,6 +456,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [producerId1],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -431,6 +478,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [purposeVersionState.draft, purposeVersionState.active],
         excludeDraft: undefined,
       },
@@ -444,6 +492,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [
           purposeVersionState.archived,
           purposeVersionState.active,
@@ -487,6 +536,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [purposeVersionState.archived],
         excludeDraft: undefined,
       },
@@ -503,6 +553,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: true,
       },
@@ -518,6 +569,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
       },
@@ -539,6 +591,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -561,6 +614,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -583,6 +637,7 @@ describe("getPurposes", async () => {
         eservicesIds: [generateId()],
         consumersIds: [],
         producersIds: [generateId()],
+        clientId: undefined,
         states: [],
         excludeDraft: undefined,
       },
@@ -603,6 +658,7 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
         consumersIds: [consumerId1],
         producersIds: [producerId1],
+        clientId: undefined,
         states: [purposeVersionState.draft, purposeVersionState.suspended],
         excludeDraft: true,
       },
@@ -620,6 +676,7 @@ describe("getPurposes", async () => {
         eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
         consumersIds: [consumerId1],
         producersIds: [producerId1],
+        clientId: undefined,
         states: [purposeVersionState.draft, purposeVersionState.suspended],
         excludeDraft: false,
       },
@@ -630,12 +687,67 @@ describe("getPurposes", async () => {
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
   });
 
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states, clientId", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: "test",
+        eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
+        consumersIds: [consumerId1],
+        producersIds: [producerId1],
+        clientId: client1.id,
+        states: [purposeVersionState.draft, purposeVersionState.suspended],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(consumerId1) })
+    );
+
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
+  });
+
+  it("should get multiple purposes when clientId filter matches more than one purpose", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: undefined,
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: client1.id,
+        states: [],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(consumerId1) })
+    );
+
+    expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
+  });
+
+  it("should not get purposes with filters: name, eservicesIds, consumersIds, producersIds, states, clientId", async () => {
+    const result = await purposeService.getPurposes(
+      {
+        title: "test",
+        eservicesIds: [mockEService1ByTenant1.id, mockEService2ByTenant1.id],
+        consumersIds: [consumerId1],
+        producersIds: [producerId1],
+        clientId: client2.id,
+        states: [purposeVersionState.draft, purposeVersionState.suspended],
+        excludeDraft: undefined,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(consumerId2) })
+    );
+
+    expectSinglePageListResult(result, []);
+  });
+
   it("should get purposes with filters: producersIds with only producer delegate id", async () => {
     const results = await purposeService.getPurposes(
       {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [delegateProducerId1],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
       },
@@ -656,6 +768,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [],
         producersIds: [delegateProducerId1, producerId2],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
       },
@@ -676,6 +789,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [delegateConsumerId1],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
       },
@@ -692,6 +806,7 @@ describe("getPurposes", async () => {
         eservicesIds: [],
         consumersIds: [delegateConsumerId1, consumerId1],
         producersIds: [],
+        clientId: undefined,
         states: [],
         excludeDraft: false,
       },

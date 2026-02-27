@@ -13,6 +13,7 @@ import {
   activateAgreementErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementContractErrorMapper,
+  getAgreementSignedContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
 import { AgreementService } from "../services/agreementService.js";
@@ -120,12 +121,10 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const requesterId = ctx.authData.organizationId;
         const result = await agreementService.getAgreementsProducerEServices(
           {
             offset,
             limit,
-            requesterId,
             eServiceName: q,
           },
           ctx
@@ -148,12 +147,10 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const requesterId = ctx.authData.organizationId;
         const result = await agreementService.getAgreementsConsumerEServices(
           {
             offset,
             limit,
-            requesterId,
             eServiceName: q,
           },
           ctx
@@ -385,6 +382,26 @@ const agreementRouter = (
         const errorRes = makeApiProblem(
           error,
           getAgreementContractErrorMapper,
+          ctx,
+          `Error downloading contract for agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/agreements/:agreementId/signedContract", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.getAgreementSignedContract(
+          req.params.agreementId,
+          ctx
+        );
+
+        return res.status(200).send(result);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementSignedContractErrorMapper,
           ctx,
           `Error downloading contract for agreement ${req.params.agreementId}`
         );

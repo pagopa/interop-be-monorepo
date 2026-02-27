@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplate,
   EServiceTemplateId,
   generateId,
   operationForbidden,
@@ -8,7 +9,9 @@ import {
 } from "pagopa-interop-models";
 import {
   generateToken,
+  getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -26,6 +29,7 @@ import {
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
 } from "../../src/model/domain/errors.js";
+import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API POST /templates/:templateId/riskAnalysis", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
@@ -35,6 +39,20 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   );
   const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
+
+  const mockEServiceTemplate: EServiceTemplate = getMockEServiceTemplate();
+
+  const serviceResponse = getMockWithMetadata({
+    eserviceTemplate: mockEServiceTemplate,
+    createdRiskAnalysisId: generateId(),
+  });
+
+  const apiResponse =
+    eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
+      eserviceTemplate:
+        eserviceTemplateToApiEServiceTemplate(mockEServiceTemplate),
+      createdRiskAnalysisId: serviceResponse.data.createdRiskAnalysisId,
+    });
 
   const makeRequest = async (
     token: string,
@@ -50,16 +68,24 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   beforeEach(() => {
     eserviceTemplateService.createRiskAnalysis = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -101,7 +127,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     {
       error: riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
-          code: "noRulesVersionFoundError",
+          code: "rulesVersionNotFoundError",
           detail: "no rule",
         }),
       ]),

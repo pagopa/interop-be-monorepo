@@ -4,39 +4,36 @@
   "type": "module",
   "private": true,
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "description": "PagoPA Interoperability ipa certified attributes importer",
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.9",
-    "prettier": "2.8.8",
-    "typescript": "5.4.5",
-    "tsx": "4.19.1",
-    "vitest": "1.6.1"
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
-    "axios": "1.8.2",
-    "dotenv-flow": "4.1.0",
-    "drizzle-orm": "0.39.3",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
   }
 }

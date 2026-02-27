@@ -20,6 +20,7 @@ import {
   EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateEventEnvelope,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   EServiceTemplateVersion,
   EServiceTemplateVersionAttributesUpdatedV2,
   EServiceTemplateVersionDocumentAddedV2,
@@ -41,6 +42,7 @@ const updateTemplateInstanceDescriptorVoucherLifespanFn = vi.fn();
 const createTemplateInstanceDescriptorDocumentFn = vi.fn();
 const updateTemplateInstanceDescriptorDocumentFn = vi.fn();
 const deleteTemplateInstanceDescriptorDocumentFn = vi.fn();
+const setTemplateInstancePersonalDataFlagFn = vi.fn();
 
 const copyDocumentFn = vi.fn();
 
@@ -64,6 +66,8 @@ vi.doMock("pagopa-interop-api-clients", () => ({
         updateTemplateInstanceDescriptorDocumentFn,
       deleteTemplateInstanceDescriptorDocument:
         deleteTemplateInstanceDescriptorDocumentFn,
+      setTemplateInstancePersonalDataFlag:
+        setTemplateInstancePersonalDataFlagFn,
     }),
   },
 }));
@@ -130,9 +134,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(instanceToUpdate2);
     await addOneEService(instanceToUpdate3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -193,9 +196,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(instanceToUpdate2);
     await addOneEService(instanceToUpdate3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -312,9 +314,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -423,9 +424,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -561,9 +561,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const clonedPath = "clonedPath";
     copyDocumentFn.mockResolvedValue(clonedPath);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -704,9 +703,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -854,9 +852,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     await addOneEService(eserviceInstance2);
     await addOneEService(eserviceInstance3);
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -902,6 +899,72 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     });
   });
 
+  it("The consumer should call the updateTemplateInstancePersonalDataFlag route on EServiceTemplatePersonalDataFlagUpdatedAfterPublication event", async () => {
+    const mockTemplate: EServiceTemplate = {
+      ...eserviceTemplate,
+      personalData: true,
+    };
+    const payload: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 = {
+      eserviceTemplate: toEServiceTemplateV2(mockTemplate),
+    };
+
+    const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: eserviceTemplate.id,
+      version: 2,
+      type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+      correlation_id: correlationId,
+    };
+
+    await addOneEService(instanceToUpdate1);
+    await addOneEService(instanceToUpdate2);
+    await addOneEService(instanceToUpdate3);
+
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
+
+    await handleMessageV2({
+      decodedKafkaMessage,
+      refreshableToken: mockRefreshableToken,
+      partition: Math.random(),
+      offset: "10",
+      readModelService,
+      fileManager,
+    });
+
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledTimes(3);
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
+      { personalData: mockTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate1.id,
+        },
+        headers: testHeaders,
+      }
+    );
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
+      { personalData: mockTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate2.id,
+        },
+        headers: testHeaders,
+      }
+    );
+    expect(setTemplateInstancePersonalDataFlagFn).toHaveBeenCalledWith(
+      { personalData: mockTemplate.personalData },
+      {
+        params: {
+          eServiceId: instanceToUpdate3.id,
+        },
+        headers: testHeaders,
+      }
+    );
+  });
+
   it.each([
     "EServiceTemplateAdded",
     "EServiceTemplateIntendedTargetUpdated",
@@ -931,9 +994,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -967,9 +1029,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js");
 
     await expect(
       handleMessageV2({

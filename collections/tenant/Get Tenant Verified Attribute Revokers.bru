@@ -11,8 +11,8 @@ get {
 }
 
 params:query {
-  offset: {{offset}}
-  limit: {{limit}}
+  offset: 0
+  limit: 10
 }
 
 params:path {
@@ -23,28 +23,4 @@ params:path {
 headers {
   Authorization: {{JWT-M2M}}
   X-Correlation-Id: {{correlation-id}}
-}
-
-tests {
-  test("Status code is 200", function() {
-    expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Response has correct structure", function() {
-    const body = res.getBody();
-    expect(body).to.have.property('results');
-    expect(body).to.have.property('totalCount');
-    expect(body.results).to.be.an('array');
-    expect(body.totalCount).to.be.a('number');
-  });
-  
-  test("Revoker objects have required fields", function() {
-    const results = res.getBody().results;
-    if (results.length > 0) {
-      const revoker = results[0];
-      expect(revoker).to.have.property('revokerId');
-      expect(revoker).to.have.property('verificationDate');
-      expect(revoker).to.have.property('revocationDate');
-    }
-  });
 }

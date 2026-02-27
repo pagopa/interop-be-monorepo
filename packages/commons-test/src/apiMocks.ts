@@ -7,12 +7,28 @@ import {
   tenantApi,
   authorizationApi,
   eserviceTemplateApi,
+  purposeTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { ClientId, algorithm, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  ProducerKeychainId,
+  RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  algorithm,
+  generateId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
-import { getMockClientJWKKey } from "./testUtils.js";
+import {
+  getMockClientJWKKey,
+  getMockProducerJWKKey,
+  randomBoolean,
+} from "./testUtils.js";
+
+export const mockAvailableDailyCalls = (): number =>
+  generateMock(z.number().min(1).max(1000000000));
+const mockOptionalDailyCalls = (): number | undefined =>
+  randomBoolean() ? mockAvailableDailyCalls() : undefined;
 
 export function getMockedApiPurposeVersion({
   state,
@@ -24,7 +40,7 @@ export function getMockedApiPurposeVersion({
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
-    dailyCalls: generateMock(z.number().min(1).max(1000000000)),
+    dailyCalls: mockAvailableDailyCalls(),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
     riskAnalysis,
   };
@@ -46,6 +62,88 @@ export function getMockedApiPurpose({
     isRiskAnalysisValid: true,
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
+    purposeTemplateId: generateMock(z.string().uuid().optional()),
+  };
+}
+
+export function getMockedApiPurposeTemplate(
+  state: purposeTemplateApi.PurposeTemplateState = generateMock(
+    purposeTemplateApi.PurposeTemplateState
+  )
+): purposeTemplateApi.PurposeTemplate {
+  return {
+    id: generateId(),
+    targetDescription: generateMock(z.string().min(10).max(250)),
+    targetTenantKind: generateMock(purposeTemplateApi.TargetTenantKind),
+    creatorId: generateId(),
+    state,
+    createdAt: new Date().toISOString(),
+    purposeTitle: generateMock(z.string().min(5).max(60)),
+    purposeDescription: generateMock(z.string().min(10).max(250)),
+    purposeRiskAnalysisForm: generateMock(
+      purposeTemplateApi.RiskAnalysisFormTemplate
+    ),
+    purposeIsFreeOfCharge: randomBoolean(),
+    handlesPersonalData: randomBoolean(),
+    updatedAt: randomBoolean() ? new Date().toISOString() : undefined,
+    purposeFreeOfChargeReason: generateMock(z.string().optional()),
+    purposeDailyCalls: mockOptionalDailyCalls(),
+  };
+}
+
+export function getMockedApiEServiceDescriptorPurposeTemplate(): purposeTemplateApi.EServiceDescriptorPurposeTemplate {
+  return {
+    purposeTemplateId: generateId(),
+    eserviceId: generateId(),
+    descriptorId: generateId(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+  id = generateId(),
+  path = "purposeTemplateAnnotationsPath",
+  name = generateMock(z.string()),
+}: {
+  id: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  path: string;
+  name: string;
+}): purposeTemplateApi.RiskAnalysisTemplateAnswerAnnotationDocument {
+  return {
+    id,
+    name,
+    path,
+    prettyName: generateMock(z.string()),
+    contentType: "application/pdf",
+    createdAt: new Date().toISOString(),
+    checksum:
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  };
+}
+
+export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
+  id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+  answerId = generateId(),
+}: {
+  id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
+  name?: string;
+  path?: string;
+  contentType?: string;
+  answerId?: string;
+} = {}): purposeTemplateApi.RiskAnalysisTemplateAnnotationDocumentWithAnswerId {
+  return {
+    answerId,
+    document: {
+      ...getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
+        id,
+        path,
+        name,
+      }),
+      contentType,
+    },
   };
 }
 
@@ -53,11 +151,13 @@ export function getMockedApiDelegation({
   kind,
   eserviceId,
   delegateId,
+  delegatorId,
   state,
 }: {
   kind?: delegationApi.DelegationKind;
   eserviceId?: string;
   delegateId?: string;
+  delegatorId?: string;
   state?: delegationApi.DelegationState;
 } = {}): delegationApi.Delegation {
   return {
@@ -65,7 +165,7 @@ export function getMockedApiDelegation({
     id: generateId(),
     eserviceId: eserviceId ?? generateId(),
     delegateId: delegateId ?? generateId(),
-    delegatorId: generateId(),
+    delegatorId: delegatorId ?? generateId(),
     createdAt: new Date().toISOString(),
     state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
     stamps: {
@@ -84,6 +184,7 @@ export function getMockedApiAgreement({
   consumerId,
   contract,
   consumerDocuments,
+  stamps,
 }: {
   state?: agreementApi.AgreementState;
   eserviceId?: string;
@@ -91,6 +192,7 @@ export function getMockedApiAgreement({
   consumerId?: string;
   contract?: agreementApi.Document;
   consumerDocuments?: agreementApi.Document[];
+  stamps?: agreementApi.AgreementStamps;
 } = {}): agreementApi.Agreement {
   return {
     id: generateId(),
@@ -106,6 +208,7 @@ export function getMockedApiAgreement({
     verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
     createdAt: new Date().toISOString(),
     contract,
+    stamps: stamps ?? generateMock(agreementApi.AgreementStamps),
   };
 }
 
@@ -245,6 +348,32 @@ export function getMockedApiConsumerPartialClient({
   } satisfies authorizationApi.PartialClient;
 }
 
+export function getMockedApiFullProducerKeychain({
+  eservices = [],
+}: {
+  eservices?: string[];
+} = {}): authorizationApi.FullProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    producerId: generateId(),
+    eservices: eservices ?? [generateId(), generateId()],
+    users: [generateId(), generateId()],
+    keys: generateMock(z.array(authorizationApi.Key)),
+  };
+}
+
+export function getMockedApiPartialProducerKeychain(): authorizationApi.PartialProducerKeychain {
+  return {
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
+    id: generateId(),
+    producerId: generateId(),
+  };
+}
+
 export function getMockedApiEservice({
   descriptors,
   technology,
@@ -260,7 +389,7 @@ export function getMockedApiEservice({
     technology: technology ?? generateMock(catalogApi.EServiceTechnology),
     descriptors:
       descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
-    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis).min(1)),
     mode: generateMock(catalogApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean()),
     isConsumerDelegable: generateMock(z.boolean()),
@@ -272,9 +401,11 @@ export function getMockedApiEservice({
 export function getMockedApiEserviceDescriptor({
   state,
   interfaceDoc,
+  attributes,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
+  attributes?: catalogApi.Attributes;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -282,10 +413,8 @@ export function getMockedApiEserviceDescriptor({
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-    dailyCallsPerConsumer: generateMock(
-      z.number().int().gte(1).lte(1000000000)
-    ),
-    dailyCallsTotal: generateMock(z.number().int().gte(1).lte(1000000000)),
+    dailyCallsPerConsumer: mockAvailableDailyCalls(),
+    dailyCallsTotal: mockAvailableDailyCalls(),
     interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
@@ -295,7 +424,7 @@ export function getMockedApiEserviceDescriptor({
     suspendedAt: new Date().toISOString(),
     deprecatedAt: new Date().toISOString(),
     archivedAt: new Date().toISOString(),
-    attributes: generateMock(catalogApi.Attributes),
+    attributes: attributes ?? generateMock(catalogApi.Attributes),
     rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
     templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
   };
@@ -322,6 +451,7 @@ export function getMockedApiEServiceTemplate({
         tenantKind: generateMock(eserviceTemplateApi.TenantKind),
       },
     ],
+    personalData: generateMock(z.boolean().optional()),
   };
 }
 
@@ -353,8 +483,10 @@ export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
 
 export function getMockedApiEserviceTemplateVersion({
   state,
+  attributes,
 }: {
   state?: eserviceTemplateApi.EServiceTemplateVersionState;
+  attributes?: eserviceTemplateApi.Attributes;
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
@@ -362,7 +494,7 @@ export function getMockedApiEserviceTemplateVersion({
       state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
-    attributes: {
+    attributes: attributes ?? {
       certified: [[getMockedApiEServiceAttribute()]],
       declared: [[getMockedApiEServiceAttribute()]],
       verified: [[getMockedApiEServiceAttribute()]],
@@ -465,6 +597,18 @@ export function getMockedApiClientJWK({
   return {
     jwk,
     clientId,
+  };
+}
+
+export function getMockedApiProducerJWK({
+  producerKeychainId = generateId<ProducerKeychainId>(),
+}: {
+  producerKeychainId?: ProducerKeychainId;
+} = {}): authorizationApi.ProducerJWK {
+  const jwk = getMockProducerJWKKey(producerKeychainId);
+  return {
+    jwk,
+    producerKeychainId,
   };
 }
 

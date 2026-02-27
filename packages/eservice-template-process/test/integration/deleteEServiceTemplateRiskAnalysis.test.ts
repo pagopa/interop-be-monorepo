@@ -30,6 +30,7 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
+  riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -76,7 +77,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await eserviceTemplateService.deleteRiskAnalysis(
+    const deleteResponse = await eserviceTemplateService.deleteRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysis.id,
       getMockContext({
@@ -105,6 +106,10 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(updatedEServiceTemplate)
     );
+    expect(deleteResponse).toEqual({
+      data: updatedEServiceTemplate,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -139,6 +144,50 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
+
+  it("should throw riskAnalysisNotFound if the risk analysis doesn't exist", async () => {
+    const requesterId = generateId<TenantId>();
+
+    const creatorTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const creator: Tenant = {
+      ...getMockTenant(requesterId),
+      kind: creatorTenantKind,
+    };
+
+    const riskAnalysisToDelete =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      versions: [eserviceTemplateVersion],
+      riskAnalysis: [riskAnalysisSecondary],
+      creatorId: requesterId,
+    };
+    await addOneTenant(creator);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      eserviceTemplateService.deleteRiskAnalysis(
+        eserviceTemplate.id,
+        riskAnalysisToDelete.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisNotFound(eserviceTemplate.id, riskAnalysisToDelete.id)
+    );
+  });
+
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 

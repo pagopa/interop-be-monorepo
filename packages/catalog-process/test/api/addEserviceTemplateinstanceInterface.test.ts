@@ -11,7 +11,7 @@ import {
   EServiceId,
   generateId,
   interfaceExtractingInfoError,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
   operationForbidden,
   technology,
@@ -165,7 +165,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         { error: operationForbidden, expectedStatus: 403 },
         { error: eserviceInterfaceDataNotValid(), expectedStatus: 400 },
         {
-          error: invalidInterfaceContentTypeDetected(
+          error: invalidContentTypeDetected(
             {
               id: eservice.id,
               isEserviceTemplate: true,
@@ -209,7 +209,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       type InvalidCase = [
         body: unknown,
         eServiceId: EServiceId | string,
-        descriptorId: DescriptorId | string
+        descriptorId: DescriptorId | string,
       ];
 
       const invalidCases: InvalidCase[] = [

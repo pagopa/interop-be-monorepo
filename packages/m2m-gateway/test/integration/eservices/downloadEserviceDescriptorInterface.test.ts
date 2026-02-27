@@ -20,8 +20,9 @@ import {
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
-describe("downloadEserviceDescriptorInterface", () => {
+describe("downloadEServiceDescriptorInterface", () => {
   const testFileContent =
     "This is a mock file content for testing purposes.\nOn multiple lines.";
 
@@ -74,7 +75,7 @@ describe("downloadEserviceDescriptorInterface", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockInterface.path);
+    ).toStrictEqual(mockInterface.path);
 
     const result = await eserviceService.downloadEServiceDescriptorInterface(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
@@ -89,7 +90,7 @@ describe("downloadEserviceDescriptorInterface", () => {
       }),
       prettyName: mockInterface.prettyName,
     };
-    expect(result).toEqual(expectedServiceResponse);
+    await expectDownloadedDocumentToBeEqual(result, expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

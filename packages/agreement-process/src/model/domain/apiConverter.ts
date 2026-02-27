@@ -12,11 +12,14 @@ import {
   badRequestError,
   CompactTenant,
   DelegationId,
+  AgreementStamp,
+  AgreementStamps,
+  AgreementSignedContract,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 
-export function agreementStateToApiAgreementState(
+function agreementStateToApiAgreementState(
   input: AgreementState
 ): agreementApi.AgreementState {
   return match<AgreementState, agreementApi.AgreementState>(input)
@@ -61,6 +64,18 @@ export const agreementDocumentToApiAgreementDocument = (
   createdAt: input.createdAt?.toJSON(),
 });
 
+const agreementSignedDocumentToApiAgreementSignedDocument = (
+  input: AgreementSignedContract
+): agreementApi.SignedDocument => ({
+  id: input.id,
+  name: input.name,
+  prettyName: input.prettyName,
+  contentType: input.contentType,
+  path: input.path,
+  createdAt: input.createdAt?.toJSON(),
+  signedAt: input.signedAt?.toJSON(),
+});
+
 export const agreementToApiAgreement = (
   agreement: Agreement
 ): agreementApi.Agreement => ({
@@ -87,6 +102,12 @@ export const agreementToApiAgreement = (
     ? agreementDocumentToApiAgreementDocument(agreement.contract)
     : undefined,
   suspendedAt: agreement.suspendedAt?.toJSON(),
+  stamps: agreementStampsToApiAgreementStamps(agreement.stamps),
+  signedContract: agreement.signedContract
+    ? agreementSignedDocumentToApiAgreementSignedDocument(
+        agreement.signedContract
+      )
+    : undefined,
 });
 
 export const apiAgreementDocumentToAgreementDocument = (
@@ -95,6 +116,15 @@ export const apiAgreementDocumentToAgreementDocument = (
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: new Date(),
+});
+
+export const apiAgreementSignedDocumentToAgreementSignedDocument = (
+  input: agreementApi.SignedDocument
+): AgreementSignedContract => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });
 
 function fromApiTenantVerifier(
@@ -134,7 +164,7 @@ function fromApiTenantRevoker(
   };
 }
 
-export const fromApiTenantAttribute = (
+const fromApiTenantAttribute = (
   input: agreementApi.TenantAttribute
 ): TenantAttribute =>
   match(input)
@@ -196,4 +226,38 @@ export const fromApiCompactTenant = (
 ): CompactTenant => ({
   id: unsafeBrandId(input.id),
   attributes: input.attributes.map(fromApiTenantAttribute),
+});
+
+const agreementStampToApiAgreementStamp = (
+  input: AgreementStamp
+): agreementApi.AgreementStamp => ({
+  who: input.who,
+  delegationId: input.delegationId,
+  when: input.when.toJSON(),
+});
+
+const agreementStampsToApiAgreementStamps = (
+  input: AgreementStamps
+): agreementApi.AgreementStamps => ({
+  submission: input.submission
+    ? agreementStampToApiAgreementStamp(input.submission)
+    : undefined,
+  activation: input.activation
+    ? agreementStampToApiAgreementStamp(input.activation)
+    : undefined,
+  rejection: input.rejection
+    ? agreementStampToApiAgreementStamp(input.rejection)
+    : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? agreementStampToApiAgreementStamp(input.suspensionByProducer)
+    : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? agreementStampToApiAgreementStamp(input.suspensionByConsumer)
+    : undefined,
+  upgrade: input.upgrade
+    ? agreementStampToApiAgreementStamp(input.upgrade)
+    : undefined,
+  archiving: input.archiving
+    ? agreementStampToApiAgreementStamp(input.archiving)
+    : undefined,
 });
