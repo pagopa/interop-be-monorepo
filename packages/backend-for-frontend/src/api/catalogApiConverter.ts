@@ -430,12 +430,13 @@ export function toBffEServiceTemplateInstance(
   producer: tenantApi.Tenant,
   showAllDescriptors: boolean = false
 ): bffApi.EServiceTemplateInstance {
-  const descriptorsToInclude = showAllDescriptors
-    ? [...eservice.descriptors]
-    : [...eservice.descriptors]
-        .filter(isValidDescriptor)
-        .sort((a, b) => Number(a.version) - Number(b.version))
-        .map(toCompactDescriptor);
+  const descriptorsToInclude = (
+    showAllDescriptors
+      ? [...eservice.descriptors]
+      : [...eservice.descriptors].filter(isValidDescriptor)
+  )
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .map(toCompactDescriptor);
 
   return {
     id: eservice.id,
