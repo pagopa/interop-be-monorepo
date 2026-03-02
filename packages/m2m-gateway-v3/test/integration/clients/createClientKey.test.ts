@@ -23,7 +23,8 @@ describe("createClientKey", () => {
   const mockApiClientKey = getMockWithMetadata(
     getMockedApiKey({
       kid: mockApiClientJWK.kid,
-    })
+    }),
+    1
   );
 
   const mockApiClient = getMockedApiConsumerFullClient({
@@ -34,7 +35,7 @@ describe("createClientKey", () => {
     Promise.resolve(getMockWithMetadata({ jwk: mockApiClientJWK }))
   );
 
-  const mockApiClientWithMetadata = getMockWithMetadata(mockApiClient);
+  const mockApiClientWithMetadata = getMockWithMetadata(mockApiClient, 2);
 
   const mockCreateClientKey = vi.fn().mockResolvedValue(mockApiClientKey);
 

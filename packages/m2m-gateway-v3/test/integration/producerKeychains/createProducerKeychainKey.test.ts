@@ -53,7 +53,7 @@ describe("createProducerKeychainKey", () => {
       getProducerKeychain: mockGetProducerKeychain,
     },
     key: {
-      getJWKByKid: mockGetJWKByKid,
+      getProducerJWKByKid: mockGetJWKByKid,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
