@@ -79,7 +79,8 @@ export async function handleCatalogMessageV2(
             "EServiceSignalHubEnabled",
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
-            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+            "EServiceInstanceLabelUpdated"
           ),
         },
         (msg) => {
