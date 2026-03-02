@@ -11,5 +11,5 @@ export type Middleware<
   M extends Method,
   Path extends ZodiosPathsByMethod<Api, M>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Context extends z.ZodObject<any>
+  Context extends z.ZodObject<any>,
 > = ZodiosRequestHandler<Api, Context, M, Path>;

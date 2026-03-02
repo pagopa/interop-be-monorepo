@@ -79,9 +79,8 @@ describe("E-service queries", () => {
 
     it("eservice NOT found", async () => {
       const eserviceId = generateId<EServiceId>();
-      const retrievedEService = await catalogReadModelService.getEServiceById(
-        eserviceId
-      );
+      const retrievedEService =
+        await catalogReadModelService.getEServiceById(eserviceId);
 
       expect(retrievedEService).toBeUndefined();
     });

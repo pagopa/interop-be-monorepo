@@ -246,7 +246,7 @@ describe("E-service aggregator", () => {
         TAttributeGroup extends EserviceAttributes[
           | "certified"
           | "declared"
-          | "verified"]
+          | "verified"],
       >(original: TAttributeGroup, aggregated: TAttributeGroup): void {
         function sortAttributes(
           attributes: EServiceAttribute[]

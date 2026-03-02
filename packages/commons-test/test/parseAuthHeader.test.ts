@@ -13,7 +13,7 @@ describe("headers", () => {
       method: "GET",
       url: "/test/example/endpoint",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    }) as any;
 
   afterEach(() => {
     vi.restoreAllMocks();

@@ -27,7 +27,7 @@ describe("API /events/attributes test", () => {
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: testToUpperSnakeCase(e.eventType),
           attributeId: e.attributeId,
-        } as m2mEventApi.AttributeM2MEvent)
+        }) as m2mEventApi.AttributeM2MEvent
     ),
   };
 
