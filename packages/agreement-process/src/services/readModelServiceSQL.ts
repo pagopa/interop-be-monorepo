@@ -373,58 +373,56 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const queryBaseAgreementIds = addDelegationJoins(
-        readmodelDB
-          .select({
-            id: agreementInReadmodelAgreement.id,
-            eserviceName: eserviceInReadmodelCatalog.name,
-          })
-          .from(agreementInReadmodelAgreement)
-          .leftJoin(
-            eserviceInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.eserviceId,
-              eserviceInReadmodelCatalog.id
-            )
-          )
-          .leftJoin(
-            eserviceDescriptorInReadmodelCatalog,
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
-            )
-          )
-          .leftJoin(
-            agreementAttributeInReadmodelAgreement,
-            eq(
-              agreementInReadmodelAgreement.id,
-              agreementAttributeInReadmodelAgreement.agreementId
-            )
-          )
-          .where(
-            getAgreementsFilters({
-              filters,
-              requesterId,
-              withVisibilityAndDelegationFilters: true,
+      const buildBaseQuery = () =>
+        addDelegationJoins(
+          readmodelDB
+            .select({
+              id: agreementInReadmodelAgreement.id,
+              eserviceName: eserviceInReadmodelCatalog.name,
             })
-          )
-          .groupBy(
-            agreementInReadmodelAgreement.id,
-            eserviceInReadmodelCatalog.name
-          )
-          .orderBy(
-            ascLower(eserviceInReadmodelCatalog.name),
-            agreementInReadmodelAgreement.id
-          )
-          .$dynamic()
-      );
+            .from(agreementInReadmodelAgreement)
+            .leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                agreementInReadmodelAgreement.eserviceId,
+                eserviceInReadmodelCatalog.id
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              eq(
+                agreementInReadmodelAgreement.descriptorId,
+                eserviceDescriptorInReadmodelCatalog.id
+              )
+            )
+            .leftJoin(
+              agreementAttributeInReadmodelAgreement,
+              eq(
+                agreementInReadmodelAgreement.id,
+                agreementAttributeInReadmodelAgreement.agreementId
+              )
+            )
+            .where(
+              getAgreementsFilters({
+                filters,
+                requesterId,
+                withVisibilityAndDelegationFilters: true,
+              })
+            )
+            .groupBy(
+              agreementInReadmodelAgreement.id,
+              eserviceInReadmodelCatalog.name
+            )
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            )
+            .$dynamic()
+        );
 
       const queryAgreementIds = filters.showOnlyUpgradeable
-        ? queryBaseAgreementIds.as("queryAgreementIds")
-        : queryBaseAgreementIds
-            .limit(limit)
-            .offset(offset)
-            .as("queryAgreementIds");
+        ? buildBaseQuery().as("queryAgreementIds")
+        : buildBaseQuery().limit(limit).offset(offset).as("queryAgreementIds");
 
       const outerQuery = readmodelDB
         .select({
@@ -485,7 +483,7 @@ export function readModelServiceBuilderSQL(
         outerQuery,
         filters.showOnlyUpgradeable
           ? Promise.resolve(0)
-          : getTableTotalCount(readmodelDB, queryBaseAgreementIds),
+          : getTableTotalCount(readmodelDB, buildBaseQuery()),
       ]);
 
       const agreements = aggregateAgreementArray(
