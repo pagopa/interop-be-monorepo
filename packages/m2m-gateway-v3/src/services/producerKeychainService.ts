@@ -191,7 +191,7 @@ export function producerKeychainServiceBuilder(
       await pollProducerKeychain({ data: producerKeychain, metadata }, headers);
 
       const { data: jwkData } =
-        await clients.authorizationClient.key.getJWKByKid({
+        await clients.authorizationClient.key.getProducerJWKByKid({
           params: { kid: key.kid },
           headers,
         });
