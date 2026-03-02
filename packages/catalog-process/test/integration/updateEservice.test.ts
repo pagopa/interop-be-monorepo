@@ -868,4 +868,43 @@ describe("update eService", () => {
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
+
+  it("should preserve existing asyncExchange and ignore seed when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const updateEServiceReturn = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: "eservice new name",
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        asyncExchange: false,
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(updateEServiceReturn.data.asyncExchange).toBe(true);
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice?.asyncExchange).toBe(true);
+
+    config.featureFlagAsyncExchange = true;
+  });
 });
