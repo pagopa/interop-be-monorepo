@@ -4229,16 +4229,7 @@ async function updateDraftEService(
       ? { personalData: updatedPersonalData }
       : {}),
     asyncExchange: isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
-      ? match(typeAndSeed)
-          .with(
-            { type: "put" },
-            ({ seed }) => seed.asyncExchange ?? eservice.data.asyncExchange
-          )
-          .with(
-            { type: "patch" },
-            ({ seed }) => seed.asyncExchange ?? eservice.data.asyncExchange
-          )
-          .exhaustive()
+      ? (typeAndSeed.seed.asyncExchange ?? eservice.data.asyncExchange)
       : eservice.data.asyncExchange,
   };
 
