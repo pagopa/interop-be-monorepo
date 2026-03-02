@@ -446,6 +446,7 @@ export async function verifiedAttributeToDigest(
       producerName: attr.entityProducerName,
       link: "",
       attributeKind: "verified" as const,
+      attributeKindLabel: "(verificato)",
     })),
     totalCount: data[0].totalCount,
   };
@@ -468,6 +469,7 @@ export function certifiedAttributeToDigest(
       producerName: "", // Certified attributes don't have a verifier/assigner
       link: "#",
       attributeKind: "certified" as const,
+      attributeKindLabel: "(certificato)",
     })),
     totalCount: data[0].totalCount,
   };
