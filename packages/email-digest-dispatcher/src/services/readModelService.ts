@@ -1,6 +1,5 @@
 import {
   eq,
-  ne,
   desc,
   asc,
   and,
@@ -1452,7 +1451,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     /**
      * Returns purposes received by the producer tenant (via e-service ownership)
      * that are in Active or WaitingForApproval state.
-     * Excludes purposes where the tenant is also the consumer (to avoid duplicates).
+     * Includes self-consumption (autofruizione) purposes where the tenant is both producer and consumer.
      * Includes consumer name via join with tenant table.
      * Limited to 5 per state.
      */
@@ -1501,8 +1500,6 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(eserviceInReadmodelCatalog.producerId, producerId),
-            // Exclude purposes where tenant is also the consumer (avoid duplicates)
-            ne(purposeInReadmodelPurpose.consumerId, producerId),
             or(
               gte(
                 purposeVersionInReadmodelPurpose.updatedAt,
