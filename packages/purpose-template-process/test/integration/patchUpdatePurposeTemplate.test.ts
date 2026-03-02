@@ -182,7 +182,7 @@ describe("patch update purpose template", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [
@@ -433,7 +433,7 @@ describe("patch update purpose template", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [

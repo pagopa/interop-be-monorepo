@@ -185,9 +185,8 @@ export async function getTenantKindLoadingCertifiedAttributes(
     });
 
   const tenantAttributesIds = getCertifiedAttributesIds(attributes);
-  const retrievedAttributes = await readModelService.getAttributesById(
-    tenantAttributesIds
-  );
+  const retrievedAttributes =
+    await readModelService.getAttributesById(tenantAttributesIds);
   tenantAttributesIds.forEach((attributeId) => {
     if (!retrievedAttributes.some((attr) => attr.id === attributeId)) {
       throw attributeNotFound(attributeId);

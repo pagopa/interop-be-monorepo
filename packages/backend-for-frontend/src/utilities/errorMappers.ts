@@ -12,6 +12,9 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_SERVICE_UNAVAILABLE,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -66,6 +69,23 @@ export const getSelfcareUserErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getSessionTokenErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
+    .with(
+      "tenantBySelfcareIdNotFound",
+      "tenantLoginNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with(
+      "missingUserRolesInIdentityToken",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
@@ -88,7 +108,7 @@ export const getAgreementContractErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractException", () => HTTP_STATUS_SERVICE_UNAVAILABLE)
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -96,7 +116,7 @@ export const getAgreementSignedContractErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("contractException", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("contractException", () => HTTP_STATUS_SERVICE_UNAVAILABLE)
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

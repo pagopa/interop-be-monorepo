@@ -326,7 +326,7 @@ const getAgreementsFilters = <
     | {
         requesterId?: never;
         withVisibilityAndDelegationFilters?: never;
-      }
+      },
 >({
   filters,
   requesterId,
@@ -877,7 +877,7 @@ export function readModelServiceBuilderSQL(
               prettyName: doc.prettyName,
               contentType: doc.contentType,
               createdAt: stringToDate(doc.createdAt),
-            } satisfies AgreementDocument)
+            }) satisfies AgreementDocument
         ),
         resultsSet[0]?.totalCount
       );
