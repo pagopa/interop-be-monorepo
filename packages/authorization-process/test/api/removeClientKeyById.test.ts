@@ -2,17 +2,23 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { generateId, ClientId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockAuthData,
+  getMockClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientKeyNotFound,
   clientNotFound,
 } from "../../src/model/domain/errors.js";
+import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 
-describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
-  const clientId = generateId<ClientId>();
+describe("API /clients/{mockClient.data.id}/keys/{keyId} authorization test", () => {
   const keyId = generateId();
+  const mockClient = getMockWithMetadata(getMockClient());
 
   const makeRequest = async (
     token: string,
@@ -30,14 +36,22 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  authorizationService.deleteClientKeyById = vi.fn().mockResolvedValue({});
+  authorizationService.deleteClientKeyById = vi
+    .fn()
+    .mockResolvedValue(mockClient);
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, clientId, keyId);
-      expect(res.status).toBe(204);
+      const res = await makeRequest(token, mockClient.data.id, keyId);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        clientToApiClient(
+          mockClient.data,
+          getMockAuthData(mockClient.data.consumerId)
+        )
+      );
     }
   );
 
@@ -45,17 +59,17 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, clientId, keyId);
+    const res = await makeRequest(token, mockClient.data.id, keyId);
     expect(res.status).toBe(403);
   });
 
   it.each([
     {
-      error: clientNotFound(clientId),
+      error: clientNotFound(mockClient.data.id),
       expectedStatus: 404,
     },
     {
-      error: clientKeyNotFound(keyId, clientId),
+      error: clientKeyNotFound(keyId, mockClient.data.id),
       expectedStatus: 404,
     },
   ])(
@@ -66,7 +80,7 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, clientId, keyId);
+      const res = await makeRequest(token, mockClient.data.id, keyId);
       expect(res.status).toBe(expectedStatus);
     }
   );
