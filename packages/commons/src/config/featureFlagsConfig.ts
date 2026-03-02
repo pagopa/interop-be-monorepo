@@ -172,6 +172,21 @@ export type FeatureFlagUseSignedDocumentConfig = z.infer<
   typeof FeatureFlagUseSignedDocumentConfig
 >;
 
+export const FeatureFlagAsyncExchangeConfig = z
+  .object({
+    FEATURE_FLAG_ASYNC_EXCHANGE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAsyncExchange: c.FEATURE_FLAG_ASYNC_EXCHANGE ?? false,
+  }));
+export type FeatureFlagAsyncExchangeConfig = z.infer<
+  typeof FeatureFlagAsyncExchangeConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -182,7 +197,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
-  FeatureFlagUseSignedDocumentConfig;
+  FeatureFlagUseSignedDocumentConfig &
+  FeatureFlagAsyncExchangeConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
@@ -193,7 +209,7 @@ export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
  */
 export const isFeatureFlagEnabled = <K extends string>(
   config: Record<K, unknown>,
-  featureFlagName: K & FeatureFlagKeys
+  featureFlagName: K & FeatureFlagKeys,
 ): boolean => {
   const featureFlag = config[featureFlagName];
 
@@ -205,7 +221,7 @@ export const isFeatureFlagEnabled = <K extends string>(
 };
 export const assertFeatureFlagEnabled = <K extends string>(
   config: Record<K, unknown>,
-  featureFlagName: K & FeatureFlagKeys
+  featureFlagName: K & FeatureFlagKeys,
 ): void => {
   if (!isFeatureFlagEnabled(config, featureFlagName)) {
     throw featureFlagNotEnabled(featureFlagName);
