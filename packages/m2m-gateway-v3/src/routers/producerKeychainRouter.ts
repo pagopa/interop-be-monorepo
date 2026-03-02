@@ -128,7 +128,7 @@ const producerKeychainRouter = (
           req.body,
           ctx
         );
-        return res.status(200).send(key);
+        return res.status(200).send(m2mGatewayApiV3.ProducerKey.parse(key));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
