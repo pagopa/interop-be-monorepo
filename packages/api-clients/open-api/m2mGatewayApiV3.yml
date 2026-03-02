@@ -11684,6 +11684,8 @@ components:
           format: uuid
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
       required:
         - id
         - producerId
@@ -11715,6 +11717,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     EServiceDescriptor:
@@ -12273,6 +12278,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceNameUpdateSeed:
       type: object

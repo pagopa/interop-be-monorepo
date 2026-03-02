@@ -292,6 +292,7 @@ export const aggregateEservice = ({
     ...(eserviceSQL.instanceLabel !== null
       ? { instanceLabel: eserviceSQL.instanceLabel }
       : {}),
+    asyncExchange: eserviceSQL.asyncExchange ?? false,
   };
   return {
     data: eservice,

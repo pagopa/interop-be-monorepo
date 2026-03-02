@@ -117,6 +117,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      asyncExchange: false,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -295,6 +296,7 @@ describe("E-service splitter", () => {
       templateId: null,
       personalData: null,
       instanceLabel: null,
+      asyncExchange: false,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {

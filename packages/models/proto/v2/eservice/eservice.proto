@@ -18,6 +18,7 @@ message EServiceV2 {
   optional string templateId = 13;
   optional bool personalData = 14;
   optional string instanceLabel = 15;
+  optional bool asyncExchange = 16;
 }
 
 message EServiceRiskAnalysisV2 {

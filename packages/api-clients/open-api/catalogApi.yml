@@ -2791,6 +2791,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2820,6 +2822,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2843,6 +2847,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     UpdateEServiceTemplateInstanceSeed:
@@ -3324,6 +3331,8 @@ components:
           type: string
           format: uuid
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
 
     CreatedEServiceRiskAnalysis:

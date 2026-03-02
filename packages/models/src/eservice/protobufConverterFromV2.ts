@@ -198,4 +198,5 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
+  asyncExchange: input.asyncExchange ?? false,
 });
