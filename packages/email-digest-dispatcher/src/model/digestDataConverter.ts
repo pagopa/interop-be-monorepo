@@ -454,7 +454,7 @@ export async function verifiedAttributeToDigest(
 
 /**
  * Transforms certified attribute data into an AttributeDigest object.
- * Certified attributes don't have a producer/verifier, so producerName is empty.
+ * Uses the certifier name resolved from the attribute's origin via the tenant_feature table.
  */
 export function certifiedAttributeToDigest(
   data: CertifiedAttribute[]
@@ -466,7 +466,7 @@ export function certifiedAttributeToDigest(
   return {
     items: data.map((attr) => ({
       name: attr.attributeName,
-      producerName: "", // Certified attributes don't have a verifier/assigner
+      producerName: attr.certifierName,
       link: "#",
       attributeKind: "certified" as const,
       attributeKindLabel: "(certificato)",
