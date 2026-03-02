@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import {
-  generateId,
-  ProducerKeychain,
-  ProducerKeychainId,
-} from "pagopa-interop-models";
+import { generateId, ProducerKeychainId } from "pagopa-interop-models";
 import {
   generateToken,
+  getMockAuthData,
   getMockKey,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
@@ -20,15 +18,16 @@ import {
   userNotFound,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
+import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 
 describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization test", () => {
   const keyToRemove = getMockKey();
   const keyToNotRemove = getMockKey();
 
-  const mockProducerKeychain: ProducerKeychain = {
+  const mockProducerKeychain = getMockWithMetadata({
     ...getMockProducerKeychain(),
     keys: [keyToRemove, keyToNotRemove],
-  };
+  });
   const makeRequest = async (
     token: string,
     producerKeychainId: ProducerKeychainId,
@@ -46,18 +45,24 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
 
   authorizationService.removeProducerKeychainKeyById = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(mockProducerKeychain);
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockProducerKeychain.id,
+        mockProducerKeychain.data.id,
         keyToRemove.kid
       );
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        producerKeychainToApiProducerKeychain(
+          mockProducerKeychain.data,
+          getMockAuthData(mockProducerKeychain.data.producerId)
+        )
+      );
     }
   );
 
@@ -67,7 +72,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
     const token = generateToken(role);
     const res = await makeRequest(
       token,
-      mockProducerKeychain.id,
+      mockProducerKeychain.data.id,
       keyToRemove.kid
     );
     expect(res.status).toBe(403);
@@ -75,28 +80,31 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
 
   it.each([
     {
-      error: producerKeychainNotFound(mockProducerKeychain.id),
+      error: producerKeychainNotFound(mockProducerKeychain.data.id),
       expectedStatus: 404,
     },
     {
-      error: producerKeyNotFound(keyToNotRemove.kid, mockProducerKeychain.id),
+      error: producerKeyNotFound(
+        keyToNotRemove.kid,
+        mockProducerKeychain.data.id
+      ),
       expectedStatus: 404,
     },
     {
-      error: userNotFound(generateId(), mockProducerKeychain.id),
+      error: userNotFound(generateId(), mockProducerKeychain.data.id),
       expectedStatus: 404,
     },
     {
       error: tenantNotAllowedOnProducerKeychain(
         generateId(),
-        mockProducerKeychain.id
+        mockProducerKeychain.data.id
       ),
       expectedStatus: 403,
     },
     {
       error: userWithoutSecurityPrivileges(
         generateId(),
-        mockProducerKeychain.users[0]
+        mockProducerKeychain.data.users[0]
       ),
       expectedStatus: 403,
     },
@@ -109,7 +117,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockProducerKeychain.id,
+        mockProducerKeychain.data.id,
         keyToRemove.kid
       );
       expect(res.status).toBe(expectedStatus);
