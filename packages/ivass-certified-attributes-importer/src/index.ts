@@ -45,15 +45,17 @@ const readModelQueriesSQL = readModelQueriesBuilderSQL(
   attributeReadModelService
 );
 
-await importAttributes(
-  csvDownloader,
-  readModelQueriesSQL,
-  tenantProcess,
-  refreshableToken,
-  config.recordsProcessBatchSize,
-  config.ivassTenantId,
-  loggerInstance,
-  correlationId
-);
-
-await cleanup();
+try {
+  await importAttributes(
+    csvDownloader,
+    readModelQueriesSQL,
+    tenantProcess,
+    refreshableToken,
+    config.recordsProcessBatchSize,
+    config.ivassTenantId,
+    loggerInstance,
+    correlationId
+  );
+} finally {
+  await cleanup();
+}

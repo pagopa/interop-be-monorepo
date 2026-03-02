@@ -19,23 +19,25 @@ async function main(): Promise<void> {
   loggerInstance.info("> Connecting to database...");
 
   const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+  try {
+    const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-  loggerInstance.info("> Connected to database!\n");
+    loggerInstance.info("> Connected to database!\n");
 
-  const differencesCount = await compareTokenGenerationReadModel(
-    dynamoDBClient,
-    readModelServiceSQL,
-    loggerInstance
-  );
+    const differencesCount = await compareTokenGenerationReadModel(
+      dynamoDBClient,
+      readModelServiceSQL,
+      loggerInstance
+    );
 
-  if (differencesCount > 0) {
-    loggerInstance.error(`Differences count: ${differencesCount}`);
-  } else {
-    loggerInstance.info("No differences found");
+    if (differencesCount > 0) {
+      loggerInstance.error(`Differences count: ${differencesCount}`);
+    } else {
+      loggerInstance.info("No differences found");
+    }
+  } finally {
+    await cleanup();
   }
-
-  await cleanup();
 }
 
 await main();

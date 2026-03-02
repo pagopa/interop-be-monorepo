@@ -18,13 +18,15 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelService
 );
 
-await dtdCatalogExporterServiceBuilder({
-  readModelService: readModelServiceSQL,
-  fileManager: initFileManager(config),
-  loggerInstance: logger({
-    serviceName: "dtd-catalog-exporter",
-    correlationId: generateId<CorrelationId>(),
-  }),
-}).exportDtdData();
-
-await cleanup();
+try {
+  await dtdCatalogExporterServiceBuilder({
+    readModelService: readModelServiceSQL,
+    fileManager: initFileManager(config),
+    loggerInstance: logger({
+      serviceName: "dtd-catalog-exporter",
+      correlationId: generateId<CorrelationId>(),
+    }),
+  }).exportDtdData();
+} finally {
+  await cleanup();
+}

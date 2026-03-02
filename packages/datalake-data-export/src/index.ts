@@ -20,8 +20,10 @@ export const dataLakeService = datalakeServiceBuilder(
   log
 );
 
-log.info("Datalake Data Exporter job started");
-await dataLakeService.exportData();
-log.info("Done!");
-
-await cleanup();
+try {
+  log.info("Datalake Data Exporter job started");
+  await dataLakeService.exportData();
+  log.info("Done!");
+} finally {
+  await cleanup();
+}

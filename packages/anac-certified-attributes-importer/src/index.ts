@@ -35,15 +35,17 @@ const loggerInstance = logger({
   correlationId,
 });
 
-await importAttributes(
-  sftpClient,
-  readModelQueriesSQL,
-  tenantProcess,
-  refreshableToken,
-  config.recordsProcessBatchSize,
-  config.anacTenantId,
-  loggerInstance,
-  correlationId
-);
-
-await cleanup();
+try {
+  await importAttributes(
+    sftpClient,
+    readModelQueriesSQL,
+    tenantProcess,
+    refreshableToken,
+    config.recordsProcessBatchSize,
+    config.anacTenantId,
+    loggerInstance,
+    correlationId
+  );
+} finally {
+  await cleanup();
+}

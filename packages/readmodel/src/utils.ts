@@ -14,6 +14,15 @@ export const makeDrizzleConnection = (
 ): DrizzleReturnType =>
   makeDrizzleConnectionWithCleanup(readModelSQLDbConfig).db;
 
+/**
+ * Make a Drizzle connection with a cleanup function to close the connection pool
+ * @param {ReadModelSQLDbConfig} readModelSQLDbConfig - The configuration for the SQL database connection
+ * @returns An object containing the Drizzle connection and a cleanup function to close the connection pool
+ * @remarks Choose this function when the caller is responsible for the connection lifecycle
+ * (for example short-lived scripts, jobs, or serverless handlers) and can call `cleanup`
+ * in a `finally` block. For long-lived processes that keep the DB connection open for the
+ * whole application lifetime, prefer `makeDrizzleConnection`.
+ */
 export const makeDrizzleConnectionWithCleanup = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
 ): { db: DrizzleReturnType; cleanup: () => Promise<void> } => {

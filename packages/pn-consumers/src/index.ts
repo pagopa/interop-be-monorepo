@@ -22,47 +22,49 @@ async function main(): Promise<void> {
 
   const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
 
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+  try {
+    const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-  loggerInstance.info("> Connected to database!\n");
+    loggerInstance.info("> Connected to database!\n");
 
-  loggerInstance.info("> Getting data...");
+    loggerInstance.info("> Getting data...");
 
-  const purposes = await readModelServiceSQL.getSENDPurposes(
-    config.pnEserviceId,
-    config.comuniELoroConsorziEAssociazioniAttributeId
-  );
+    const purposes = await readModelServiceSQL.getSENDPurposes(
+      config.pnEserviceId,
+      config.comuniELoroConsorziEAssociazioniAttributeId
+    );
 
-  if (purposes.length === 0) {
-    loggerInstance.info("> No purposes data found.");
-    return;
-  }
+    if (purposes.length === 0) {
+      loggerInstance.info("> No purposes data found.");
+      return;
+    }
 
-  const csv = toCSV(purposes.map((p) => toCsvDataRow(p, loggerInstance)));
+    const csv = toCSV(purposes.map((p) => toCsvDataRow(p, loggerInstance)));
 
-  loggerInstance.info("> Data csv produced!\n");
+    loggerInstance.info("> Data csv produced!\n");
 
-  loggerInstance.info("> Sending emails...");
+    loggerInstance.info("> Sending emails...");
 
-  const mailer = initSesMailManager(config);
+    const mailer = initSesMailManager(config);
 
-  await mailer.send(
-    {
-      from: {
-        name: config.reportSenderLabel,
-        address: config.reportSenderMail,
+    await mailer.send(
+      {
+        from: {
+          name: config.reportSenderLabel,
+          address: config.reportSenderMail,
+        },
+        to: config.mailRecipients,
+        subject: MAIL_SUBJECT,
+        html: MAIL_BODY,
+        attachments: [{ filename: CSV_FILENAME, content: csv }],
       },
-      to: config.mailRecipients,
-      subject: MAIL_SUBJECT,
-      html: MAIL_BODY,
-      attachments: [{ filename: CSV_FILENAME, content: csv }],
-    },
-    loggerInstance
-  );
+      loggerInstance
+    );
 
-  loggerInstance.info("> Success!\n");
-
-  await cleanup();
+    loggerInstance.info("> Success!\n");
+  } finally {
+    await cleanup();
+  }
 }
 
 await withExecutionTime(main, loggerInstance);
