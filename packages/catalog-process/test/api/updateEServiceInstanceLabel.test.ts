@@ -2,74 +2,51 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
-  Descriptor,
-  descriptorState,
   EService,
   EServiceId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  randomArrayItem,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  eServiceNameDuplicateForProducer,
+  eServiceNotAnInstance,
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
-  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/delegationFlags/update authorization test", () => {
-  const descriptor: Descriptor = {
-    ...getMockDescriptor(),
-    state: descriptorState.draft,
-  };
+describe("POST /templates/eservices/{eServiceId}/instanceLabel/update test", () => {
+  const mockEService: EService = getMockEService();
 
-  const mockEService: EService = {
-    ...getMockEService(),
-    descriptors: [descriptor],
-  };
-
-  const serviceResponse = getMockWithMetadata(mockEService);
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
 
-  const isClientAccessDelegable = randomArrayItem([false, true]);
-  const isConsumerDelegable = randomArrayItem([false, true]);
-
-  const eserviceSeed: catalogApi.EServiceDelegationFlagsUpdateSeed = {
-    isConsumerDelegable,
-    isClientAccessDelegable,
-  };
-
-  catalogService.updateEServiceDelegationFlags = vi
+  catalogService.updateEServiceInstanceLabelAfterPublication = vi
     .fn()
-    .mockResolvedValue(serviceResponse);
+    .mockResolvedValue(mockEService);
+
+  const mockEServiceInstanceLabelUpdateSeed: catalogApi.EServiceInstanceLabelUpdateSeed =
+    {
+      instanceLabel: "test",
+    };
 
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServiceDelegationFlagsUpdateSeed = eserviceSeed
+    body: catalogApi.EServiceInstanceLabelUpdateSeed = mockEServiceInstanceLabelUpdateSeed
   ) =>
     request(api)
-      .post(`/eservices/${eServiceId}/delegationFlags/update`)
+      .post(`/templates/eservices/${eServiceId}/instanceLabel/update`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.API_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -77,9 +54,6 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       const res = await makeRequest(token, mockEService.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
-      expect(res.headers["x-metadata-version"]).toEqual(
-        serviceResponse.metadata.version.toString()
-      );
     }
   );
 
@@ -98,6 +72,13 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       expectedStatus: 409,
     },
     {
+      error: eServiceNameDuplicateForProducer(
+        "duplicated name",
+        mockEService.producerId
+      ),
+      expectedStatus: 409,
+    },
+    {
       error: eServiceNotFound(mockEService.id),
       expectedStatus: 404,
     },
@@ -106,13 +87,13 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       expectedStatus: 403,
     },
     {
-      error: invalidDelegationFlags(false, true),
-      expectedStatus: 400,
+      error: eServiceNotAnInstance(mockEService.id),
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateEServiceDelegationFlags = vi
+      catalogService.updateEServiceInstanceLabelAfterPublication = vi
         .fn()
         .mockRejectedValue(error);
 
@@ -124,23 +105,19 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
   );
 
   it.each([
-    [{}, mockEService.id],
-    [{ isConsumerDelegable: "notABool" }, mockEService.id],
-    [{ isClientAccessDelegable: "notABool" }, mockEService.id],
     [
-      { isConsumerDelegable: true, isClientAccessDelegable: null },
+      { ...mockEServiceInstanceLabelUpdateSeed, extraField: 1 },
       mockEService.id,
     ],
-    [{ ...eserviceSeed }, "invalidId"],
-    [{ ...eserviceSeed }, mockEService.id],
+    [{ ...mockEServiceInstanceLabelUpdateSeed }, "invalidId"],
   ])(
-    "Should return 400 if passed invalid delegation flags update params: %s (eServiceId: %s)",
+    "Should return 400 if passed invalid params: %s (eserviceId: %s)",
     async (body, eServiceId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServiceDelegationFlagsUpdateSeed
+        body as catalogApi.EServiceInstanceLabelUpdateSeed
       );
 
       expect(res.status).toBe(400);

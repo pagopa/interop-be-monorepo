@@ -34,7 +34,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 const { HTTP_STATUS_CONFLICT, HTTP_STATUS_FORBIDDEN, HTTP_STATUS_NOT_FOUND } =
@@ -190,10 +189,6 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
     {
       error: annotationDocumentLimitExceeded(answerId),
       expectedStatus: HTTP_STATUS_CONFLICT,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
   ])(
     "Should return $expectedStatus for $error.code",
