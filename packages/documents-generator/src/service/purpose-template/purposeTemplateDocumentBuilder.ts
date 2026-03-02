@@ -360,7 +360,7 @@ function getSingleAnswerIsEditable(
 
 // eslint-disable-next-line max-params
 function formatAnswer<
-  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+  T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer,
 >(
   questionRules: FormQuestionRules,
   answer: T,

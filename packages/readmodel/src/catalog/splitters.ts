@@ -297,7 +297,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
           value: a.value ? [a.value] : [],
           riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
           kind: riskAnalysisAnswerKind.single,
-        } satisfies EServiceRiskAnalysisAnswerSQL)
+        }) satisfies EServiceRiskAnalysisAnswerSQL
     );
   const riskAnalysisMultiAnswers: EServiceRiskAnalysisAnswerSQL[] =
     riskAnalysis.riskAnalysisForm.multiAnswers.map(
@@ -310,7 +310,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
           value: a.values,
           riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
           kind: riskAnalysisAnswerKind.multi,
-        } satisfies EServiceRiskAnalysisAnswerSQL)
+        }) satisfies EServiceRiskAnalysisAnswerSQL
     );
 
   return {

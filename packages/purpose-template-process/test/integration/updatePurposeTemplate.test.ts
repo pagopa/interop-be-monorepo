@@ -620,7 +620,7 @@ describe("updatePurposeTemplate", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [
@@ -756,7 +756,7 @@ describe("updatePurposeTemplate", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [
