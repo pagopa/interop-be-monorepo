@@ -38,7 +38,7 @@ describe("API /events/producerKeychains test", () => {
             eventTimestamp: e.eventTimestamp.toJSON(),
             eventType: testToUpperSnakeCase(e.eventType),
             producerKeychainId: e.producerKeychainId,
-          } as m2mEventApi.ProducerKeychainM2MEvent)
+          }) as m2mEventApi.ProducerKeychainM2MEvent
       ),
     };
 

@@ -15,6 +15,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
+  invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
 
@@ -100,6 +101,10 @@ describe("API /eservices authorization test", () => {
     {
       error: originNotCompliant("Not compliant origin"),
       expectedStatus: 403,
+    },
+    {
+      error: invalidDelegationFlags(false, true),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

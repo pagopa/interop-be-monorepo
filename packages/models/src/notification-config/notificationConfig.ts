@@ -10,7 +10,7 @@ import { UserRole } from "../user/user.js";
 
 const notificationConfigShape = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.boolean()])
-) as { [K in (typeof NotificationType.options)[number]]: z.ZodBoolean };
+) as Record<(typeof NotificationType.options)[number], z.ZodBoolean>;
 
 export const NotificationConfig = z.object(notificationConfigShape);
 export type NotificationConfig = z.infer<typeof NotificationConfig>;

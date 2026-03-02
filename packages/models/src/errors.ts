@@ -122,9 +122,7 @@ type ProblemBuilderOptions = {
 };
 
 export function makeApiProblemBuilder<T extends string>(
-  errors: {
-    [K in T]: string;
-  },
+  errors: Record<T, string>,
   options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =

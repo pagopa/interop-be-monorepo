@@ -90,7 +90,6 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
-  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -180,8 +179,9 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertValidDelegationFlags,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -284,9 +284,8 @@ const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<EServiceTemplate> => {
-  const eserviceTemplate = await readModelService.getEServiceTemplateById(
-    eserviceTemplateId
-  );
+  const eserviceTemplate =
+    await readModelService.getEServiceTemplateById(eserviceTemplateId);
   if (eserviceTemplate === undefined) {
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
@@ -521,9 +520,15 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
+  const eserviceId = generateId<EServiceId>();
+  assertValidDelegationFlags(
+    seed.isConsumerDelegable,
+    seed.isClientAccessDelegable
+  );
+
   const creationDate = new Date();
   const newEService: EService = {
-    id: generateId(),
+    id: eserviceId,
     producerId: authData.organizationId,
     name: seed.name,
     description: seed.description,
@@ -972,6 +977,11 @@ export function catalogServiceBuilder(
 
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
+
+      assertValidDelegationFlags(
+        eserviceSeed.isConsumerDelegable,
+        eserviceSeed.isClientAccessDelegable
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
@@ -2439,9 +2449,7 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      if (!isConsumerDelegable && isClientAccessDelegable) {
-        throw invalidEServiceFlags(eserviceId);
-      }
+      assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -3294,9 +3302,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
 
-      const template = await readModelService.getEServiceTemplateById(
-        templateId
-      );
+      const template =
+        await readModelService.getEServiceTemplateById(templateId);
 
       if (!template) {
         throw eServiceTemplateNotFound(templateId);
@@ -3966,7 +3973,7 @@ async function extractEServiceRiskAnalysisFromTemplate(
           createdAt: r.createdAt,
           name: r.name,
           riskAnalysisForm: r.riskAnalysisForm,
-        } satisfies RiskAnalysis)
+        }) satisfies RiskAnalysis
     );
 
   if (riskAnalysis.length === 0) {
@@ -4087,6 +4094,11 @@ async function updateDraftEService(
       () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
     )
     .exhaustive();
+
+  assertValidDelegationFlags(
+    updatedIsConsumerDelegable,
+    updatedIsClientAccessDelegable
+  );
 
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)

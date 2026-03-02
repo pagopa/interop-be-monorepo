@@ -61,6 +61,7 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  invalidDelegationFlags: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -364,6 +365,17 @@ export function invalidEServiceFlags(
     detail: `EService ${eserviceId} flags are not valid`,
     code: "invalidEServiceFlags",
     title: "Invalid EService flags",
+  });
+}
+
+export function invalidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid delegation flags: isClientAccessDelegable cannot be true when isConsumerDelegable is false (isConsumerDelegable=${isConsumerDelegable}, isClientAccessDelegable=${isClientAccessDelegable})`,
+    code: "invalidDelegationFlags",
+    title: "Invalid delegation flags",
   });
 }
 
