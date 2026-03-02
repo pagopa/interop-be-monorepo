@@ -31,6 +31,7 @@ import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
+  invalidDelegationFlags,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
@@ -205,7 +206,10 @@ describe("patch update eService", () => {
       isClientAccessDelegable: true,
     };
 
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
 
     await addOneEService(eservice);
     const updateEServiceReturn = await catalogService.patchUpdateEService(
@@ -259,6 +263,33 @@ describe("patch update eService", () => {
       data: expectedEService,
       metadata: { version: 1 },
     });
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.patchUpdateEService(
+        mockEService.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContextM2MAdmin({ organizationId: mockEService.producerId })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 
   it("should delete interface on technology change)", async () => {

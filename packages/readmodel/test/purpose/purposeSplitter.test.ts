@@ -181,7 +181,7 @@ describe("Purpose splitter", () => {
     for (const [key, stamp] of Object.entries(purposeVersionStamps) as Array<
       [
         keyof PurposeVersionStamps,
-        PurposeVersionStamps[keyof PurposeVersionStamps]
+        PurposeVersionStamps[keyof PurposeVersionStamps],
       ]
     >) {
       if (stamp) {
