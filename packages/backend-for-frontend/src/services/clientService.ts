@@ -264,8 +264,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
 
     async getClientUsers(
       clientId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
@@ -279,7 +278,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           getSelfcareCompactUserById(
             selfcareV2UserClient,
             id,
-            selfcareId,
+            authData.selfcareId,
             correlationId
           )
         )
@@ -289,8 +288,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     async getClientKeyById(
       clientId: string,
       keyId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
@@ -309,7 +307,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       return decorateKey(
         selfcareV2UserClient,
         key,
-        selfcareId,
+        authData.selfcareId,
         client.users,
         correlationId
       );

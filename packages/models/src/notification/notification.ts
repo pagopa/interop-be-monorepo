@@ -76,9 +76,7 @@ export type NewNotification = z.infer<typeof NewNotification>;
 
 const notificationsByTypeResults = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.number()])
-) as {
-  [K in (typeof NotificationType.options)[number]]: z.ZodNumber;
-};
+) as Record<(typeof NotificationType.options)[number], z.ZodNumber>;
 
 export const NotificationsByType = z.object({
   results: z.object(notificationsByTypeResults),

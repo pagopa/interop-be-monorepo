@@ -10,10 +10,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
@@ -31,7 +29,8 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "mkdirp": "catalog:",
-    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsc-esm-fix": "catalog:",
     "typescript": "catalog:"
   }

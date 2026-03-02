@@ -105,9 +105,10 @@ describe("API GET /purposeTemplates/:purposeTemplateId/riskAnalysisDocument/sign
       description: "purposeTemplateRiskAnalysisFormNotFound",
     },
     {
-      error: purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
-        generateId<RiskAnalysisFormTemplateId>()
-      ),
+      error:
+        purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
+          generateId<RiskAnalysisFormTemplateId>()
+        ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
       description: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
     },

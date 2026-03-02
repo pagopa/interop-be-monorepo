@@ -121,12 +121,10 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const requesterId = ctx.authData.organizationId;
         const result = await agreementService.getAgreementsProducerEServices(
           {
             offset,
             limit,
-            requesterId,
             eServiceName: q,
           },
           ctx
@@ -149,12 +147,10 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const requesterId = ctx.authData.organizationId;
         const result = await agreementService.getAgreementsConsumerEServices(
           {
             offset,
             limit,
-            requesterId,
             eServiceName: q,
           },
           ctx
