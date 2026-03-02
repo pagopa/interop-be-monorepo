@@ -1658,8 +1658,8 @@
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
-                                            - certificato conferito da {{
-                                            producerName }}</span
+                                            - {{ attributeKindLabel }}{{#if producerName}} conferito da {{
+                                            producerName }}{{/if}}</span
                                           >
                                         </li>
                                         {{/each}}
@@ -1719,8 +1719,8 @@
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
-                                            - certificato revocato da {{
-                                            producerName }}</span
+                                            - {{ attributeKindLabel }}{{#if producerName}} revocato da {{
+                                            producerName }}{{/if}}</span
                                           >
                                         </li>
                                         {{/each}}
