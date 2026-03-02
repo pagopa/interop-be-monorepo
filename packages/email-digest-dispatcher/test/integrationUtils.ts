@@ -39,6 +39,7 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionState,
+  tenantFeatureType,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
@@ -788,18 +789,34 @@ export const createCertifiedAssignedAttributeScenario = async (config: {
   tenantId: TenantId;
   attributeName?: string;
   assignmentDaysAgo: number;
+  certifierId?: string;
+  certifierName?: string;
 }): Promise<{
   tenant: Tenant;
   attribute: Attribute;
+  certifier: Tenant;
 }> => {
   const assignmentTimestamp = daysAgo(config.assignmentDaysAgo);
-  const attribute = createMockAttribute(
-    config.attributeName
-      ? { name: config.attributeName, kind: attributeKind.certified }
-      : { kind: attributeKind.certified }
-  );
+  const certifierId = config.certifierId ?? generateId<TenantId>();
+  const attribute = createMockAttribute({
+    kind: attributeKind.certified,
+    origin: certifierId,
+    ...(config.attributeName ? { name: config.attributeName } : {}),
+  });
 
   await addOneAttribute(attribute);
+
+  // Create certifier tenant with PersistentCertifier feature
+  const certifier = createMockTenant({
+    name: config.certifierName ?? `Certifier ${certifierId}`,
+    features: [
+      {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId,
+      },
+    ],
+  });
+  await addOneTenant(certifier);
 
   const tenant = createTenantWithCertifiedAssignedAttribute(
     config.tenantId,
@@ -808,7 +825,7 @@ export const createCertifiedAssignedAttributeScenario = async (config: {
   );
   await addOneTenant(tenant);
 
-  return { tenant, attribute };
+  return { tenant, attribute, certifier };
 };
 
 /**
@@ -819,19 +836,35 @@ export const createCertifiedRevokedAttributeScenario = async (config: {
   attributeName?: string;
   assignmentDaysAgo: number;
   revocationDaysAgo: number;
+  certifierId?: string;
+  certifierName?: string;
 }): Promise<{
   tenant: Tenant;
   attribute: Attribute;
+  certifier: Tenant;
 }> => {
   const assignmentTimestamp = daysAgo(config.assignmentDaysAgo);
   const revocationTimestamp = daysAgo(config.revocationDaysAgo);
-  const attribute = createMockAttribute(
-    config.attributeName
-      ? { name: config.attributeName, kind: attributeKind.certified }
-      : { kind: attributeKind.certified }
-  );
+  const certifierId = config.certifierId ?? generateId<TenantId>();
+  const attribute = createMockAttribute({
+    kind: attributeKind.certified,
+    origin: certifierId,
+    ...(config.attributeName ? { name: config.attributeName } : {}),
+  });
 
   await addOneAttribute(attribute);
+
+  // Create certifier tenant with PersistentCertifier feature
+  const certifier = createMockTenant({
+    name: config.certifierName ?? `Certifier ${certifierId}`,
+    features: [
+      {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId,
+      },
+    ],
+  });
+  await addOneTenant(certifier);
 
   const tenant = createTenantWithCertifiedRevokedAttribute(
     config.tenantId,
@@ -841,7 +874,7 @@ export const createCertifiedRevokedAttributeScenario = async (config: {
   );
   await addOneTenant(tenant);
 
-  return { tenant, attribute };
+  return { tenant, attribute, certifier };
 };
 
 /**
@@ -928,13 +961,25 @@ export const createTenantWithMultipleAttributes = async (config: {
 
   // Create certified assigned attributes
   for (let i = 0; i < config.certifiedAssignedCount; i++) {
+    const certId = generateId<TenantId>();
     const attribute = createMockAttribute({
       name: `Certified Assigned ${i + 1}`,
       kind: attributeKind.certified,
+      origin: certId,
     });
     await addOneAttribute(attribute);
     // eslint-disable-next-line functional/immutable-data
     attributes.push(attribute);
+
+    const certifierTenant = createMockTenant({
+      features: [
+        {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: certId,
+        },
+      ],
+    });
+    await addOneTenant(certifierTenant);
 
     const assignmentTimestamp = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
     const certifiedAttr = createMockCertifiedTenantAttribute(
@@ -947,13 +992,25 @@ export const createTenantWithMultipleAttributes = async (config: {
 
   // Create certified revoked attributes
   for (let i = 0; i < config.certifiedRevokedCount; i++) {
+    const certId = generateId<TenantId>();
     const attribute = createMockAttribute({
       name: `Certified Revoked ${i + 1}`,
       kind: attributeKind.certified,
+      origin: certId,
     });
     await addOneAttribute(attribute);
     // eslint-disable-next-line functional/immutable-data
     attributes.push(attribute);
+
+    const certifierTenant = createMockTenant({
+      features: [
+        {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: certId,
+        },
+      ],
+    });
+    await addOneTenant(certifierTenant);
 
     const assignmentTimestamp = daysAgo(TEST_TIME_WINDOWS.OUTSIDE_RANGE);
     const revocationTimestamp = daysAgo(TEST_TIME_WINDOWS.WITHIN_RANGE);
