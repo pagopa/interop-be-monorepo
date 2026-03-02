@@ -6,7 +6,6 @@ import { TenantId } from "pagopa-interop-models";
 import {
   BurstyRateLimiter,
   IRateLimiterRedisOptions,
-  RateLimiterMemory,
   RateLimiterRedis,
   RateLimiterRes,
 } from "rate-limiter-flexible";
@@ -17,9 +16,10 @@ import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 const BURST_KEY_PREFIX = "BURST_";
 
 /**
- * Returns a Redis-based rate limiter with fallback to in-memory limiter if Redis is unavailable.
+ * Returns a Redis-based rate limiter.
  * The function attempts a non-blocking connection to Redis on startup.
- * If Redis is down, the client retries in the background without blocking the service.
+ * If Redis is down, requests are allowed to pass (fail-open) and
+ * the client retries in the background without blocking the service.
  */
 export async function initRedisRateLimiter(config: {
   limiterGroup: string;
@@ -57,27 +57,19 @@ export async function initRedisRateLimiter(config: {
     )
     .catch((err) =>
       genericLogger.warn(
-        `Redis client connection failed and will not retry (host: ${
+        `Redis client connection failed (host: ${
           config.redisHost
         }, port: ${config.redisPort}): ${String(
           err
-        )}. Service is operating with in-memory fallback only.`
+        )}. Service is operating in fail-open mode for rate limiting.`
       )
     );
-
-  // In-memory limiter acts as fallback if Redis is unavailable ("insuranceLimiter")
-  const insuranceLimiter = new RateLimiterMemory({
-    keyPrefix: `${config.limiterGroup}_MEM`,
-    points: config.maxRequests,
-    duration: config.rateInterval / 1000,
-  });
 
   const redisLimiterOptions: IRateLimiterRedisOptions = {
     storeClient: redisClient,
     keyPrefix: config.limiterGroup,
     points: config.maxRequests,
     duration: config.rateInterval / 1000,
-    insuranceLimiter,
   };
 
   const burstLimiterOptions: IRateLimiterRedisOptions = {
@@ -94,19 +86,8 @@ export async function initRedisRateLimiter(config: {
   );
 
   /**
-   * Fallback: Gets the consumed points for a given organization from the in-memory limiter.
-   * Returns 0 if no points consumed.
-   */
-  async function getConsumedPointsFromMemoryFallback(
-    organizationId: TenantId
-  ): Promise<number> {
-    const res = await insuranceLimiter.get(organizationId);
-    return res?.consumedPoints ?? 0;
-  }
-
-  /**
    * Attempts to consume a point for the given organization.
-   * Falls back to in-memory logic and logs on errors/timeouts.
+   * Fails open (allows requests) and logs on Redis errors/timeouts.
    */
   async function rateLimitByOrganization(
     organizationId: TenantId,
@@ -160,7 +141,7 @@ export async function initRedisRateLimiter(config: {
 
   /**
    * Returns the consumed points for a given organization from Redis.
-   * If Redis is unavailable, falls back to the in-memory limiter.
+   * If Redis is unavailable, returns 0.
    */
   async function getCountByOrganization(
     organizationId: TenantId
@@ -169,15 +150,15 @@ export async function initRedisRateLimiter(config: {
       const val = await redisClient.get(
         `${config.limiterGroup}:${organizationId}`
       );
-      return Number(val);
+      return Number(val ?? 0);
     } catch {
-      return getConsumedPointsFromMemoryFallback(organizationId);
+      return 0;
     }
   }
 
   /**
    * Returns the consumed burst points for a given organization from Redis.
-   * If Redis is unavailable, falls back to the in-memory limiter.
+   * If Redis is unavailable, returns 0.
    */
   async function getBurstCountByOrganization(
     organizationId: TenantId
@@ -186,9 +167,9 @@ export async function initRedisRateLimiter(config: {
       const val = await redisClient.get(
         `${BURST_KEY_PREFIX}${config.limiterGroup}:${organizationId}`
       );
-      return Number(val);
+      return Number(val ?? 0);
     } catch {
-      return getConsumedPointsFromMemoryFallback(organizationId);
+      return 0;
     }
   }
 
