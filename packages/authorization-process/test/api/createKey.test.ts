@@ -13,11 +13,13 @@ import {
   notAnRSAKey,
   TenantId,
   UserId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
   getMockKey,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -44,17 +46,24 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     alg: "",
   };
 
-  const mockClient: Client = {
-    ...getMockClient(),
-    users: [userId],
-    consumerId,
+  const mockClient: WithMetadata<Client> = {
+    data: {
+      ...getMockClient(),
+      users: [userId],
+      consumerId,
+    },
+    metadata: {
+      version: 1,
+    },
   };
 
   const key = getMockKey();
 
   const apiKey = keyToApiKey(key);
 
-  authorizationService.createKey = vi.fn().mockResolvedValue(key);
+  authorizationService.createKey = vi
+    .fn()
+    .mockResolvedValue(getMockWithMetadata(key));
 
   const makeRequest = async (
     token: string,
@@ -76,7 +85,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.data.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiKey);
     }
@@ -86,17 +95,17 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockClient.id);
+    const res = await makeRequest(token, mockClient.data.id);
     expect(res.status).toBe(403);
   });
 
   it.each([
     {
-      error: clientNotFound(mockClient.id),
+      error: clientNotFound(mockClient.data.id),
       expectedStatus: 404,
     },
     {
-      error: tooManyKeysPerClient(mockClient.id, 1),
+      error: tooManyKeysPerClient(mockClient.data.id, 1),
       expectedStatus: 400,
     },
     {
@@ -132,7 +141,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
       expectedStatus: 409,
     },
     {
-      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.data.id),
       expectedStatus: 403,
     },
     {
@@ -149,22 +158,22 @@ describe("API /clients/{clientId}/keys authorization test", () => {
       authorizationService.createKey = vi.fn().mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.data.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it.each([
-    [{}, mockClient.id],
-    [{ ...keySeed, invalidParam: "invalidValue" }, mockClient.id],
-    [{ ...keySeed, name: 1 }, mockClient.id],
-    [{ ...keySeed, use: "invalidUse" }, mockClient.id],
-    [{ ...keySeed, alg: 1 }, mockClient.id],
-    [{ ...keySeed, key: 1 }, mockClient.id],
-    [{ ...keySeed, name: undefined }, mockClient.id],
-    [{ ...keySeed, use: undefined }, mockClient.id],
-    [{ ...keySeed, alg: undefined }, mockClient.id],
-    [{ ...keySeed, key: undefined }, mockClient.id],
+    [{}, mockClient.data.id],
+    [{ ...keySeed, invalidParam: "invalidValue" }, mockClient.data.id],
+    [{ ...keySeed, name: 1 }, mockClient.data.id],
+    [{ ...keySeed, use: "invalidUse" }, mockClient.data.id],
+    [{ ...keySeed, alg: 1 }, mockClient.data.id],
+    [{ ...keySeed, key: 1 }, mockClient.data.id],
+    [{ ...keySeed, name: undefined }, mockClient.data.id],
+    [{ ...keySeed, use: undefined }, mockClient.data.id],
+    [{ ...keySeed, alg: undefined }, mockClient.data.id],
+    [{ ...keySeed, key: undefined }, mockClient.data.id],
     [{ ...keySeed }, "invalidId"],
   ])(
     "Should return 400 if passed invalid params: %s (clientId: %s)",
