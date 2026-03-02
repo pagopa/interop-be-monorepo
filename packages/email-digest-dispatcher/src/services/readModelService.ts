@@ -47,6 +47,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantFeatureInReadmodelTenant,
   attributeInReadmodelAttribute,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -102,10 +103,12 @@ export type VerifiedRevokedAttribute = AttributeBase & {
 
 export type CertifiedAssignedAttribute = AttributeBase & {
   state: "assigned";
+  certifierName: string;
 };
 
 export type CertifiedRevokedAttribute = AttributeBase & {
   state: "revoked";
+  certifierName: string;
 };
 
 // Base type for agreement data shared between sent and received agreements
@@ -1251,10 +1254,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieving certified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
       );
 
+      const certifierTenant = alias(
+        tenantInReadmodelTenant,
+        "certifier_tenant"
+      );
+
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            certifierName:
+              sql<string>`COALESCE(${certifierTenant.name}, ${attributeInReadmodelAttribute.origin})`.as(
+                "certifier_name"
+              ),
           })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
@@ -1264,6 +1276,20 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
             attributeInReadmodelAttribute.id
           )
+        )
+        .leftJoin(
+          tenantFeatureInReadmodelTenant,
+          and(
+            eq(
+              tenantFeatureInReadmodelTenant.certifierId,
+              attributeInReadmodelAttribute.origin
+            ),
+            eq(tenantFeatureInReadmodelTenant.kind, "PersistentCertifier")
+          )
+        )
+        .leftJoin(
+          certifierTenant,
+          eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
           and(
@@ -1285,6 +1311,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        certifierName: row.certifierName,
         state: "assigned" as const,
         totalCount: row.totalCount,
       }));
@@ -1301,10 +1328,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieving certified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
       );
 
+      const certifierTenant = alias(
+        tenantInReadmodelTenant,
+        "certifier_tenant"
+      );
+
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            certifierName:
+              sql<string>`COALESCE(${certifierTenant.name}, ${attributeInReadmodelAttribute.origin})`.as(
+                "certifier_name"
+              ),
           })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
@@ -1314,6 +1350,20 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
             attributeInReadmodelAttribute.id
           )
+        )
+        .leftJoin(
+          tenantFeatureInReadmodelTenant,
+          and(
+            eq(
+              tenantFeatureInReadmodelTenant.certifierId,
+              attributeInReadmodelAttribute.origin
+            ),
+            eq(tenantFeatureInReadmodelTenant.kind, "PersistentCertifier")
+          )
+        )
+        .leftJoin(
+          certifierTenant,
+          eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
           and(
@@ -1332,6 +1382,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        certifierName: row.certifierName,
         state: "revoked" as const,
         totalCount: row.totalCount,
       }));
