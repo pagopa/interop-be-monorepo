@@ -51,6 +51,9 @@ const rolePayloadMap = {
 
 type RolePayloadsMap = typeof rolePayloadMap;
 
+const nowInSeconds: number = Math.floor(Date.now() / 1000);
+const oneHourInSeconds: number = nowInSeconds + 3600;
+
 /**
  * Creates and returns a properly typed JWT payload based on the provided authorization role {@link AuthRole}
  *
@@ -90,9 +93,9 @@ export function createUserPayload(
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     uid: mockTokenUserId,
     name: "Mario",
@@ -122,9 +125,9 @@ function createMaintenancePayload(): InteropJwtMaintenancePayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: ["dev.interop.pagopa.it/maintenance", "interop.pagopa.it/maintenance"],
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: systemRole.MAINTENANCE_ROLE,
     sub: "interop.testing",
@@ -135,9 +138,9 @@ function createM2MPayload(): SerializedInteropJwtApiPayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: systemRole.M2M_ROLE,
     organizationId: mockTokenOrganizationId,
@@ -150,9 +153,9 @@ function createInternalPayload(): SerializedInteropJwtInternalPayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: systemRole.INTERNAL_ROLE,
     sub: "interop.testing",
@@ -163,9 +166,9 @@ function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: systemRole.M2M_ADMIN_ROLE,
     organizationId: mockTokenOrganizationId,
@@ -185,9 +188,9 @@ function createM2MAdminDPoPPayload({
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/m2m",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    nbf: Math.floor(Date.now() / 1000),
-    iat: Math.floor(Date.now() / 1000),
+    exp: oneHourInSeconds,
+    nbf: nowInSeconds,
+    iat: nowInSeconds,
     jti,
     role: systemRole.M2M_ADMIN_ROLE,
     organizationId: mockTokenOrganizationId,
@@ -336,8 +339,6 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
     .sign(authPrivateKey);
 
   // 4d) Create an expired access token
-  const nowInSeconds: number = Math.floor(Date.now() / 1000);
-
   const expiredAccessToken: string = await new SignJWT(payload)
     .setProtectedHeader({
       alg: "RS256",
