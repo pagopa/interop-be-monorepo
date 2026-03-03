@@ -28,6 +28,7 @@ CREATE TABLE domains.eservice (
   template_id VARCHAR(36),
   personal_data BOOLEAN,
   instance_label VARCHAR(2048),
+  async_exchange BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

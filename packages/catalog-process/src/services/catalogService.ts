@@ -552,6 +552,9 @@ async function innerCreateEService(
       ? { personalData: seed.personalData }
       : {}),
     instanceLabel: template?.instanceLabel,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: seed.asyncExchange }
+      : {}),
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -1987,6 +1990,7 @@ export function catalogServiceBuilder(
           },
         ],
         personalData: eservice.data.personalData,
+        asyncExchange: eservice.data.asyncExchange,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -4200,6 +4204,16 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null ? undefined : eservice.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
     description: description ?? eservice.data.description,
@@ -4223,6 +4237,9 @@ async function updateDraftEService(
       .exhaustive(),
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
+      : {}),
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
       : {}),
   };
 

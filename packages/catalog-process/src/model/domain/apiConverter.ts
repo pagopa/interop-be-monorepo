@@ -209,4 +209,5 @@ export const eServiceToApiEService = (
   templateId: eservice.templateId,
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
+  asyncExchange: eservice.asyncExchange,
 });
