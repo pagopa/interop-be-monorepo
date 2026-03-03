@@ -84,6 +84,14 @@ describe("updateDraftEService", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      asyncExchangeResponseTime: mockDescriptor.asyncExchangeResponseTime,
+      asyncExchangeResourceAvailableTime:
+        mockDescriptor.asyncExchangeResourceAvailableTime,
+      asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
+      asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
+      asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
+      asyncExchangeOnlyMultiEntityMode:
+        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);

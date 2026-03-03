@@ -80,6 +80,14 @@ describe("createDescriptor", () => {
       publishedAt: mockDescriptor.publishedAt,
       suspendedAt: mockDescriptor.suspendedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      asyncExchangeResponseTime: mockDescriptor.asyncExchangeResponseTime,
+      asyncExchangeResourceAvailableTime:
+        mockDescriptor.asyncExchangeResourceAvailableTime,
+      asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
+      asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
+      asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
+      asyncExchangeOnlyMultiEntityMode:
+        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     const result = await eserviceService.createDescriptor(

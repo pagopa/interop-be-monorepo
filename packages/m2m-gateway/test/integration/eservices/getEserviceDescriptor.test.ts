@@ -57,6 +57,17 @@ describe("getEserviceDescriptor", () => {
       archivedAt: mockCatalogProcessResponseDescriptor.archivedAt,
       templateVersionId:
         mockCatalogProcessResponseDescriptor.templateVersionRef?.id,
+      asyncExchangeResponseTime:
+        mockCatalogProcessResponseDescriptor.asyncExchangeResponseTime,
+      asyncExchangeResourceAvailableTime:
+        mockCatalogProcessResponseDescriptor.asyncExchangeResourceAvailableTime,
+      asyncExchangeConfirmation:
+        mockCatalogProcessResponseDescriptor.asyncExchangeConfirmation,
+      asyncExchangeBulk: mockCatalogProcessResponseDescriptor.asyncExchangeBulk,
+      asyncExchangeMaxResultSet:
+        mockCatalogProcessResponseDescriptor.asyncExchangeMaxResultSet,
+      asyncExchangeOnlyMultiEntityMode:
+        mockCatalogProcessResponseDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     const result = await eserviceService.getEServiceDescriptor(
