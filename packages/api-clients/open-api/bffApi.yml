@@ -29370,7 +29370,6 @@ components:
         - voucherLifespan
         - attributes
         - eserviceTemplate
-        - isAlreadyInstantiated
       properties:
         id:
           type: string
@@ -29409,8 +29408,6 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
-        isAlreadyInstantiated:
-          type: boolean
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:
