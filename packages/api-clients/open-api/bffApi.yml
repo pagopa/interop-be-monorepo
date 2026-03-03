@@ -5283,6 +5283,141 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/instanceLabel/update:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Update eservice instanceLabel
+      description: Update instanceLabel of an eservice template instance after publication
+      operationId: updateEServiceInstanceLabelAfterPublication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new instance label
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceLabelUpdateSeed"
+      responses:
+        "200":
+          description: E-Service Instance Label updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "404":
+          description: E-Service not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis:
     post:
       security:
@@ -6948,7 +7083,7 @@ paths:
       tags:
         - eservices
       summary: Retrieves EService template instances
-      description: Retrieves EService template instances
+      description: Retrieves EService template instances, from the template creator side
       operationId: getEServiceTemplateInstances
       parameters:
         - name: templateId
@@ -7150,7 +7285,125 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-
+  /templates/{templateId}/myInstances:
+    get:
+      tags:
+        - eservices
+      summary: Retrieves my EService template instances
+      description: Retrieves EService template instances by the current producer (or delegated producer)
+      operationId: getMyEServiceTemplateInstances
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: A list of EService template instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateInstances"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers":
     parameters:
       - in: query
@@ -25531,6 +25784,10 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -25708,6 +25965,14 @@ components:
           type: string
       required:
         - name
+    EServiceInstanceLabelUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
@@ -26194,6 +26459,8 @@ components:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
           type: boolean
+        instanceLabel:
+          type: string
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -29196,7 +29463,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
@@ -29226,7 +29493,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
@@ -29255,6 +29522,10 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
@@ -29310,6 +29581,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        instanceLabel:
+          type: string
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
