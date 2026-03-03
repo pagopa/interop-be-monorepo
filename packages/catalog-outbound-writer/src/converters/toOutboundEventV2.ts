@@ -65,6 +65,8 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    // TODO: populate asyncExchangeCallbackInterface when @pagopa/interop-outbound-models is updated
+    asyncExchangeCallbackInterface: undefined,
   };
 }
 
@@ -214,6 +216,10 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       () => undefined
     )
     .exhaustive();

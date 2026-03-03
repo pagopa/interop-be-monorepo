@@ -172,6 +172,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceAdded" }, // CatalogItemDocumentAddedV1
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       (e): CatalogItemDocumentAddedNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
@@ -196,6 +197,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorDocumentDeleted" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorInterfaceDeleted" }, // CatalogItemDocumentDeletedV1
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       (e): CatalogItemDocumentDeletedNotification => {
         if (!e.data.eservice) {
           throw missingKafkaMessageDataError("eservice", e.type);
@@ -210,6 +212,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       (e): CatalogItemDocumentUpdateNotification => {
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(

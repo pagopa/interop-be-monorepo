@@ -14,9 +14,11 @@ import {
   EServiceTemplateId,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorInterfaceAddedV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   DescriptorState,
+  featureFlagNotEnabled,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -34,14 +36,20 @@ import {
   documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
   checksumDuplicate,
+  asyncExchangeCallbackInterfaceAlreadyExists,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import { buildInterfaceSeed, buildDocumentSeed } from "../mockUtils.js";
+import {
+  buildInterfaceSeed,
+  buildDocumentSeed,
+  buildAsyncExchangeCallbackInterfaceSeed,
+} from "../mockUtils.js";
 
 describe("upload Document", () => {
   const mockDescriptor = getMockDescriptor();
@@ -579,5 +587,202 @@ describe("upload Document", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(checksumDuplicate(eservice.id, descriptor.id));
+  });
+
+  describe("async exchange callback interface", () => {
+    let originalFeatureFlag: boolean;
+
+    beforeEach(() => {
+      originalFeatureFlag = config.featureFlagAsyncExchange;
+      config.featureFlagAsyncExchange = true;
+    });
+
+    afterEach(() => {
+      config.featureFlagAsyncExchange = originalFeatureFlag;
+    });
+
+    it("should write on event-store for the upload of an async exchange callback interface when descriptor state is draft", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.draft),
+        serverUrls: [],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const returnedDocument = await catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType:
+          EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedDocument: Document = {
+        ...mockDocument,
+        prettyName: "callbackInterfacePrettyName",
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.id
+        ),
+        checksum:
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.uploadDate
+        ),
+      };
+
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            asyncExchangeCallbackInterface: expectedDocument,
+          },
+        ],
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
+    });
+
+    it("should write on event-store for the upload of an async exchange callback interface when descriptor state is draft (delegate)", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.draft),
+        serverUrls: [],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const returnedDocument = await catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType:
+          EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(returnedDocument.metadata.version).toEqual(1);
+    });
+
+    it.each(
+      Object.values(descriptorState).filter(
+        (state) => state !== descriptorState.draft
+      )
+    )(
+      "should throw notValidDescriptorState when uploading an async exchange callback interface for a Descriptor in %s state",
+      async (state) => {
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(state),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice);
+        expect(
+          catalogService.uploadDocument(
+            eservice.id,
+            descriptor.id,
+            buildAsyncExchangeCallbackInterfaceSeed(),
+            getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          )
+        ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
+      }
+    );
+
+    it("should throw asyncExchangeCallbackInterfaceAlreadyExists if the descriptor already contains one", async () => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        asyncExchangeCallbackInterface: mockDocument,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      expect(
+        catalogService.uploadDocument(
+          eservice.id,
+          descriptor.id,
+          buildAsyncExchangeCallbackInterfaceSeed(),
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id)
+      );
+    });
+
+    it("should throw featureFlagNotEnabled if the async exchange feature flag is not enabled", async () => {
+      config.featureFlagAsyncExchange = false;
+
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.draft),
+        serverUrls: [],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      expect(
+        catalogService.uploadDocument(
+          eservice.id,
+          descriptor.id,
+          buildAsyncExchangeCallbackInterfaceSeed(),
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        featureFlagNotEnabled("featureFlagAsyncExchange")
+      );
+    });
   });
 });

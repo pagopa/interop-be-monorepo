@@ -152,7 +152,11 @@ export async function handleCatalogMessage(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          // TODO: Handle async exchange callback interface events if notification is needed
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {

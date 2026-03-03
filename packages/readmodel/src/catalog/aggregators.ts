@@ -58,22 +58,29 @@ export const documentSQLtoDocument = (
 // eslint-disable-next-line complexity
 export const aggregateDescriptor = ({
   descriptorSQL,
-  interfaceSQL,
+  interfacesSQL,
   documentsSQL,
   attributesSQL,
   rejectionReasonsSQL,
   templateVersionRefSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
-  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const interfaceDoc = interfaceSQL
-    ? documentSQLtoDocument(interfaceSQL)
+  const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
+  const callbackInterfaceSQL = interfacesSQL.find(
+    (i) => i.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+  );
+  const interfaceDoc = mainInterfaceSQL
+    ? documentSQLtoDocument(mainInterfaceSQL)
+    : undefined;
+  const asyncExchangeCallbackInterfaceDoc = callbackInterfaceSQL
+    ? documentSQLtoDocument(callbackInterfaceSQL)
     : undefined;
 
   const {
@@ -165,6 +172,9 @@ export const aggregateDescriptor = ({
       verified: verifiedAttributes,
     },
     ...(interfaceDoc ? { interface: interfaceDoc } : {}),
+    ...(asyncExchangeCallbackInterfaceDoc
+      ? { asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc }
+      : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
@@ -204,9 +214,9 @@ export const aggregateEservice = ({
   templateVersionRefsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
   const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
-    acc.set(i.descriptorId, i);
+    acc.set(i.descriptorId, [...(acc.get(i.descriptorId) || []), i]);
     return acc;
-  }, new Map<string, EServiceDescriptorInterfaceSQL>());
+  }, new Map<string, EServiceDescriptorInterfaceSQL[]>());
   const documentsSQLByDescriptorId = documentsSQL.reduce((acc, d) => {
     acc.set(d.descriptorId, [...(acc.get(d.descriptorId) || []), d]);
     return acc;
@@ -234,7 +244,7 @@ export const aggregateEservice = ({
     .map((descriptorSQL) =>
       aggregateDescriptor({
         descriptorSQL,
-        interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
+        interfacesSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id) || [],
         documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
         attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
         rejectionReasonsSQL:

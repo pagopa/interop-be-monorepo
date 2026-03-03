@@ -143,6 +143,9 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate"

@@ -2226,6 +2226,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     CompactOrganization:
       type: object
       additionalProperties: false

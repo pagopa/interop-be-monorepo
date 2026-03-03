@@ -894,3 +894,87 @@ export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

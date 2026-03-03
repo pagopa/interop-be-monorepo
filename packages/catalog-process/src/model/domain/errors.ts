@@ -62,6 +62,7 @@ const errorCodes = {
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
   invalidDelegationFlags: "0047",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -544,5 +545,15 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
   });
 }

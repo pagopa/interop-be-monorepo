@@ -41,6 +41,19 @@ export async function handleMessageV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      async (message) => {
+        const eservice = message.data.eservice;
+        if (!eservice) {
+          throw missingKafkaMessageDataError("eservice", message.type);
+        }
+
+        return await catalogWriterService.upsertEService(
+          fromEServiceV2(eservice),
+          message.version
+        );
+      }
+    )
+    .with(
       { type: "EServiceIsConsumerDelegableEnabled" },
       { type: "EServiceIsConsumerDelegableDisabled" },
       { type: "EServiceIsClientAccessDelegableEnabled" },
@@ -61,6 +74,9 @@ export async function handleMessageV2(
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {

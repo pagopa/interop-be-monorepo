@@ -81,7 +81,7 @@ export const splitEserviceIntoObjectsSQL = (
       const {
         descriptorSQL,
         attributesSQL,
-        interfaceSQL,
+        interfacesSQL: descriptorInterfacesSQL,
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
@@ -94,9 +94,7 @@ export const splitEserviceIntoObjectsSQL = (
       return {
         descriptorsSQL: acc.descriptorsSQL.concat([descriptorSQL]),
         attributesSQL: acc.attributesSQL.concat(attributesSQL),
-        interfacesSQL: interfaceSQL
-          ? acc.interfacesSQL.concat([interfaceSQL])
-          : acc.interfacesSQL,
+        interfacesSQL: acc.interfacesSQL.concat(descriptorInterfacesSQL),
         documentsSQL: acc.documentsSQL.concat(documentsSQL),
         rejectionReasonsSQL:
           acc.rejectionReasonsSQL.concat(rejectionReasonsSQL),
@@ -179,7 +177,7 @@ export const splitDescriptorIntoObjectsSQL = (
 ): {
   descriptorSQL: EServiceDescriptorSQL;
   attributesSQL: EServiceDescriptorAttributeSQL[];
-  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
@@ -213,14 +211,32 @@ export const splitDescriptorIntoObjectsSQL = (
       version
     ),
   ];
-  const interfaceSQL = descriptor.interface
-    ? documentToDocumentSQL(
+
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
+
+  if (descriptor.interface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
         descriptor.interface,
         descriptor.id,
         eserviceId,
         version
-      )
-    : undefined;
+      ),
+      kind: "INTERFACE",
+    });
+  }
+
+  if (descriptor.asyncExchangeCallbackInterface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
+        descriptor.asyncExchangeCallbackInterface,
+        descriptor.id,
+        eserviceId,
+        version
+      ),
+      kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    });
+  }
 
   const documentsSQL = descriptor.docs.map((doc) =>
     documentToDocumentSQL(doc, descriptor.id, eserviceId, version)
@@ -261,7 +277,7 @@ export const splitDescriptorIntoObjectsSQL = (
   return {
     descriptorSQL,
     attributesSQL,
-    interfaceSQL,
+    interfacesSQL,
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,

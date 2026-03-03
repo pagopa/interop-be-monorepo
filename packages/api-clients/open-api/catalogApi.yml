@@ -3689,6 +3689,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     AgreementState:
       type: string
       description: Agreement State

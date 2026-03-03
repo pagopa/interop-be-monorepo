@@ -121,6 +121,7 @@ export const documentCreateErrorMapper = (
       "notValidDescriptor",
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
       "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
     )

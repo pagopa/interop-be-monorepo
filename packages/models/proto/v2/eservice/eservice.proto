@@ -86,6 +86,7 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
+  optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
