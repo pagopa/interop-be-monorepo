@@ -189,7 +189,6 @@ export async function createServices(
       clients.eserviceTemplateProcessClient,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
-      clients.catalogProcessClient,
       clients.inAppNotificationManagerClient,
       fileManager
     ),

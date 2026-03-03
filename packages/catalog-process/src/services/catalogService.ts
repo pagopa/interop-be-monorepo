@@ -490,6 +490,7 @@ async function innerCreateEService(
   {
     seed,
     template,
+    instanceLabel,
   }: {
     seed: catalogApi.EServiceSeed;
     template:
@@ -498,9 +499,9 @@ async function innerCreateEService(
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
           riskAnalysis: RiskAnalysis[] | undefined;
-          instanceLabel: string | undefined;
         }
       | undefined;
+    instanceLabel?: string | undefined;
   },
   readModelService: ReadModelServiceSQL,
   {
@@ -548,7 +549,7 @@ async function innerCreateEService(
       .exhaustive(),
     templateId: template?.id,
     personalData: seed.personalData,
-    instanceLabel: template?.instanceLabel,
+    instanceLabel: instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -3395,8 +3396,8 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
-            instanceLabel: seed.instanceLabel,
           },
+          instanceLabel: seed.instanceLabel,
         },
         readModelService,
         ctx
