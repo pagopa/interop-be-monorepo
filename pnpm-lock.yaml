@@ -175,8 +175,8 @@ catalogs:
       specifier: 4.20.0
       version: 4.20.0
     fast-xml-parser:
-      specifier: 5.3.6
-      version: 5.3.6
+      specifier: 5.3.8
+      version: 5.3.8
     form-data-encoder:
       specifier: 4.1.0
       version: 4.1.0
@@ -1310,7 +1310,7 @@ importers:
         version: 4.20.0
       fast-xml-parser:
         specifier: 'catalog:'
-        version: 5.3.6
+        version: 5.3.8
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -1388,8 +1388,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.10
+        version: 1.8.10
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1926,7 +1926,7 @@ importers:
         version: 4.20.0
       fast-xml-parser:
         specifier: 'catalog:'
-        version: 5.3.6
+        version: 5.3.8
       handlebars:
         specifier: 'catalog:'
         version: 4.7.8
@@ -5113,8 +5113,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.5
-        version: 1.8.5
+        specifier: 1.8.10
+        version: 1.8.10
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7212,8 +7212,8 @@ packages:
   '@pagopa/interop-outbound-models@1.8.1':
     resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
 
-  '@pagopa/interop-outbound-models@1.8.5':
-    resolution: {integrity: sha512-rhd9NZtOkux27uZw19OvBkuyp15tMzrO1lWQVncZ9d10h6mft06eaVfCMuFZmEIuyy3l+MCCZZ5qTRUjm7EKzQ==}
+  '@pagopa/interop-outbound-models@1.8.10':
+    resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -8490,6 +8490,7 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
+    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -9365,8 +9366,8 @@ packages:
     resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
     hasBin: true
 
-  fast-xml-parser@5.3.6:
-    resolution: {integrity: sha512-QNI3sAvSvaOiaMl8FYU4trnEzCwiRr8XMWgAHzlrWpTSj+QaCSvOf1h82OEP1s4hiAXhnbXSyFWCf4ldZzZRVA==}
+  fast-xml-parser@5.3.8:
+    resolution: {integrity: sha512-53jIF4N6u/pxvaL1eb/hEZts/cFLWZ92eCfLrNyCI0k38lettCG/Bs40W9pPwoPXyHQlKu2OUbQtiEIZK/J6Vw==}
     hasBin: true
 
   fastq@1.17.1:
@@ -13733,7 +13734,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.5':
+  '@pagopa/interop-outbound-models@1.8.10':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -16489,7 +16490,7 @@ snapshots:
     dependencies:
       strnum: 1.0.5
 
-  fast-xml-parser@5.3.6:
+  fast-xml-parser@5.3.8:
     dependencies:
       strnum: 2.1.2
 

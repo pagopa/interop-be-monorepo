@@ -65,6 +65,7 @@ const errorCodes = {
   unexpectedDPoPProofForAPIToken: "0043",
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
+  purposeVersionDocumentNotReady: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -243,6 +244,17 @@ export function purposeVersionDocumentNotFound(
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function purposeVersionDocumentNotReady(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
+    code: "purposeVersionDocumentNotReady",
+    title: "Purpose version document not ready",
   });
 }
 
