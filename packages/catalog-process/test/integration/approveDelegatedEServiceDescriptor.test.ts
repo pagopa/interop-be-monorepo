@@ -22,6 +22,7 @@ import {
   EServiceDescriptorApprovedByDelegatorV2,
   delegationKind,
   agreementState,
+  technology,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -29,6 +30,8 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   missingPersonalDataFlag,
+  missingAsyncExchangeFields,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -359,5 +362,90 @@ describe("publish descriptor (after delegator's approval)", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
+
+  it("should throw missingAsyncExchangeFields when approving and async exchange fields are missing", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeResponseTime: undefined,
+      asyncExchangeResourceAvailableTime: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeFields(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw asyncExchangeBulkNotAllowedForSoap when approving with SOAP and asyncExchangeBulk", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeResponseTime: 30,
+      asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeBulk: true,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should not throw async exchange errors when approving and all conditions are met", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeResponseTime: 30,
+      asyncExchangeResourceAvailableTime: 30,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.rest,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
   });
 });

@@ -62,6 +62,8 @@ const errorCodes = {
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
   invalidDelegationFlags: "0047",
+  missingAsyncExchangeFields: "0048",
+  asyncExchangeBulkNotAllowedForSoap: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -524,6 +526,28 @@ export function eServiceTemplateWithoutPersonalDataFlag(
     code: "eServiceTemplateWithoutPersonalDataFlag",
     title:
       "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function missingAsyncExchangeFields(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeResponseTime and asyncExchangeResourceAvailableTime must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeFields",
+    title: "Missing required async exchange fields for publication",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP technology",
   });
 }
 
