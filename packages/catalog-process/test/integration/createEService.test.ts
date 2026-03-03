@@ -392,7 +392,7 @@ describe("create eservice", () => {
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
 
-  it("should ignore asyncExchange from seed and default to false when featureFlagAsyncExchange is disabled", async () => {
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
     config.featureFlagAsyncExchange = false;
 
     const eservice = await catalogService.createEService(
@@ -418,8 +418,8 @@ describe("create eservice", () => {
       payload: eserviceCreationEvent.data,
     });
 
-    expect(eservice.data.asyncExchange).toBe(false);
-    expect(eserviceCreationPayload.eservice?.asyncExchange).toBe(false);
+    expect(eservice.data.asyncExchange).toBeUndefined();
+    expect(eserviceCreationPayload.eservice?.asyncExchange).toBeUndefined();
 
     config.featureFlagAsyncExchange = true;
   });
