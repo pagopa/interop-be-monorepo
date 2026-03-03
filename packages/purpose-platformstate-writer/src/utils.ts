@@ -250,10 +250,10 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           exclusiveStartKey
         );
 
-      if (tokenGenStatesEntries.length === 0 && !lastEvaluatedKey) {
-        return;
-      }
-      if (tokenGenStatesEntries.length === 0 && lastEvaluatedKey) {
+      if (tokenGenStatesEntries.length === 0) {
+        if (!lastEvaluatedKey) {
+          return;
+        }
         exclusiveStartKey = lastEvaluatedKey;
         continue;
       }
