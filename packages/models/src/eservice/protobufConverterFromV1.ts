@@ -209,5 +209,4 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
   mode: fromEServiceModeV1(input.mode),
-  asyncExchange: false,
 });

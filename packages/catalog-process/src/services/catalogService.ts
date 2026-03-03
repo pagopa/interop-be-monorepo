@@ -552,9 +552,9 @@ async function innerCreateEService(
       ? { personalData: seed.personalData }
       : {}),
     instanceLabel: template?.instanceLabel,
-    asyncExchange: isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
-      ? (seed.asyncExchange ?? false)
-      : false,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: seed.asyncExchange }
+      : {}),
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -4204,6 +4204,16 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null ? undefined : eservice.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
     description: description ?? eservice.data.description,
@@ -4228,9 +4238,9 @@ async function updateDraftEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
       : {}),
-    asyncExchange: isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
-      ? (typeAndSeed.seed.asyncExchange ?? eservice.data.asyncExchange)
-      : eservice.data.asyncExchange,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
+      : {}),
   };
 
   const event = await repository.createEvent(

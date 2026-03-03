@@ -144,7 +144,7 @@ export const EService = z.object({
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
-  asyncExchange: z.boolean().default(false),
+  asyncExchange: z.boolean().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

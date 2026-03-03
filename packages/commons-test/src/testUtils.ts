@@ -245,7 +245,6 @@ export const getMockEService = (
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",
-  asyncExchange: false,
   ...(templateId && { templateId }),
   ...(templateId && { instanceLabel: "instance 001" }),
 });
