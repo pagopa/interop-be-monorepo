@@ -12,9 +12,8 @@
     "qs",
     "@protobuf-ts/plugin"
   ],
-  "ignoreBinaries": ["tsx", "eslint", "prettier"],
+  "ignoreBinaries": ["tsx", "eslint"],
   "ignore": [
-    ".eslintrc.cjs",
     "packages/commons/src/pdf-generator/paged.polyfill.js",
     "packages/documents-generator/src/model/purposeTemplateModels.ts"
   ],

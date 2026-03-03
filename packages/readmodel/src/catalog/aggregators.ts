@@ -289,6 +289,9 @@ export const aggregateEservice = ({
           personalData: eserviceSQL.personalData,
         }
       : {}),
+    ...(eserviceSQL.instanceLabel !== null
+      ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
   };
   return {
     data: eservice,
@@ -361,7 +364,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorTemplateVersionRefSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
