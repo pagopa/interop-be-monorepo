@@ -8,6 +8,7 @@ import {
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
   genericLogger,
+  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import { addDays, subDays } from "date-fns";
@@ -39,8 +40,6 @@ import {
   DescriptorId,
   DescriptorState,
   EServiceId,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-  Tenant,
   TenantAttribute,
   TenantId,
   UserId,
@@ -1102,13 +1101,10 @@ describe("submit agreement", () => {
       }).agreement!;
 
       const contractDocumentId = agreementSubmitReponse.data.contract!.id;
-      const contractCreatedAt =
-        agreementSubmitReponse.data.contract!.createdAt;
+      const contractCreatedAt = agreementSubmitReponse.data.contract!.createdAt;
       const contractDocumentName = `${producerAndConsumer.id}_${
         producerAndConsumer.id
-      }_${formatDateyyyyMMddHHmmss(
-        contractCreatedAt
-      )}_agreement_contract.pdf`;
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
       const expectedContract = {
         id: contractDocumentId,
@@ -1713,9 +1709,7 @@ describe("submit agreement", () => {
         submitAgreementResponse.data.contract!.createdAt;
       const contractDocumentName = `${consumer.id}_${
         producer.id
-      }_${formatDateyyyyMMddHHmmss(
-        contractCreatedAt
-      )}_agreement_contract.pdf`;
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
 
       const expectedContract = {
         id: contractDocumentId,
@@ -1764,11 +1758,6 @@ describe("submit agreement", () => {
           },
         },
       };
-
-      const getIpaCode = (tenant: Tenant): string | undefined =>
-        tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-          ? tenant.externalId.value
-          : undefined;
 
       const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
         todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
@@ -2087,11 +2076,6 @@ describe("submit agreement", () => {
             data: expectedAgreement,
             metadata: { version: 1 },
           });
-
-          const getIpaCode = (tenant: Tenant): string | undefined =>
-            tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-              ? tenant.externalId.value
-              : undefined;
 
           const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
             todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
