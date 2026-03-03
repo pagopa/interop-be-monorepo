@@ -294,6 +294,7 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    instanceLabel: eservice.instanceLabel,
   };
 }
 
