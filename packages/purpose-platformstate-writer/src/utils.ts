@@ -250,8 +250,12 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           exclusiveStartKey
         );
 
-      if (tokenGenStatesEntries.length === 0) {
+      if (tokenGenStatesEntries.length === 0 && !lastEvaluatedKey) {
         return;
+      }
+      if (tokenGenStatesEntries.length === 0 && lastEvaluatedKey) {
+        exclusiveStartKey = lastEvaluatedKey;
+        continue;
       }
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: purpose.consumerId,

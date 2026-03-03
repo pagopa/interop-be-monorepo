@@ -825,8 +825,12 @@ export const upsertTokenGenStatesConsumerClientsV1 = async ({
         );
       }
 
-      if (clientEntries.data.length === 0) {
+      if (clientEntries.data.length === 0 && !data.LastEvaluatedKey) {
         return [];
+      }
+      if (clientEntries.data.length === 0 && data.LastEvaluatedKey) {
+        exclusiveStartKey = data.LastEvaluatedKey;
+        continue;
       }
 
       const { purposeEntry, agreementEntry, catalogEntry } =
