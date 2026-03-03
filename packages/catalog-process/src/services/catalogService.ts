@@ -60,6 +60,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -101,6 +102,8 @@ import {
   attributeDuplicatedInGroup,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
+  missingAsyncExchangeFields,
+  asyncExchangeBulkNotAllowedForSoap,
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
@@ -1747,6 +1750,27 @@ export function catalogServiceBuilder(
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
+      // TODO: Add check for ASYNC_EXCHANGE_CALLBACK_INTERFACE document existence
+      // once the callback interface document type is implemented
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true
+      ) {
+        if (
+          descriptor.asyncExchangeResponseTime === undefined ||
+          descriptor.asyncExchangeResourceAvailableTime === undefined
+        ) {
+          throw missingAsyncExchangeFields(eserviceId, descriptorId);
+        }
+
+        if (
+          eservice.data.technology === technology.soap &&
+          descriptor.asyncExchangeBulk === true
+        ) {
+          throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+        }
+      }
+
       if (producerDelegation) {
         const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
           eservice.data,
@@ -2854,6 +2878,27 @@ export function catalogServiceBuilder(
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
+      // TODO: Add check for ASYNC_EXCHANGE_CALLBACK_INTERFACE document existence
+      // once the callback interface document type is implemented
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true
+      ) {
+        if (
+          descriptor.asyncExchangeResponseTime === undefined ||
+          descriptor.asyncExchangeResourceAvailableTime === undefined
+        ) {
+          throw missingAsyncExchangeFields(eserviceId, descriptorId);
+        }
+
+        if (
+          eservice.data.technology === technology.soap &&
+          descriptor.asyncExchangeBulk === true
+        ) {
+          throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+        }
       }
 
       const updatedEService = await processDescriptorPublication(
