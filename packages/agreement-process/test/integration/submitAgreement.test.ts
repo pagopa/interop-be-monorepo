@@ -970,49 +970,33 @@ describe("submit agreement", () => {
   )(
     "Requester === %s, should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
+      vi.spyOn(pdfGenerator, "generate");
       const producerAndConsumerId = generateId<TenantId>();
-      const producer = {
-        ...getMockTenant(producerAndConsumerId),
-        mails: [
-          {
-            id: generateId(),
-            kind: tenantMailKind.ContactEmail,
-            address: "test1@test1.com",
-            createdAt: new Date(),
-          },
-        ],
-      };
       const consumerNotesText = "This is a test";
 
-      const producerAndConsumer = {
-        ...getMockTenant(producerAndConsumerId),
-        mails: [
-          {
-            id: generateId(),
-            kind: tenantMailKind.ContactEmail,
-            address: "test2@test2.com",
-            createdAt: new Date(),
-          },
-        ],
-      };
+      const verifiedAttribute = getMockAttribute("Verified");
+      const declaredAttribute = getMockAttribute("Declared");
+      const certifiedAttribute = getMockAttribute("Certified");
 
       const descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         attributes: {
-          certified: [],
-          declared: [],
-          verified: [],
+          certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+          declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+          verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
         },
       };
 
-      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-        descriptor,
-      ]);
+      const eservice = getMockEService(
+        generateId<EServiceId>(),
+        producerAndConsumerId,
+        [descriptor]
+      );
 
       const agreement: Agreement = {
-        ...getMockAgreement(eservice.id, producerAndConsumer.id),
-        producerId: producer.id,
+        ...getMockAgreement(eservice.id, producerAndConsumerId),
+        producerId: producerAndConsumerId,
         descriptorId: eservice.descriptors[0].id,
         ...draftAgreementSubmissionSeed,
       };
@@ -1025,9 +1009,52 @@ describe("submit agreement", () => {
         delegateConsumer,
       } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
+      const validVerifiedTenantAttribute: TenantAttribute = {
+        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+        verifiedBy: [
+          {
+            id: producerAndConsumerId,
+            verificationDate: subDays(new Date(), 1),
+            expirationDate: addDays(new Date(), 30),
+            extensionDate: undefined,
+            delegationId: producerDelegation?.id,
+          },
+        ],
+        revokedBy: [],
+      };
+
+      const validCertifiedTenantAttribute: TenantAttribute = {
+        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+        revocationTimestamp: undefined,
+      };
+
+      const validDeclaredTenantAttribute: TenantAttribute = {
+        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+        revocationTimestamp: undefined,
+        delegationId: consumerDelegation?.id,
+      };
+
+      const producerAndConsumer = {
+        ...getMockTenant(producerAndConsumerId, [
+          validVerifiedTenantAttribute,
+          validCertifiedTenantAttribute,
+          validDeclaredTenantAttribute,
+        ]),
+        mails: [
+          {
+            id: generateId(),
+            kind: tenantMailKind.ContactEmail,
+            address: "test@test.com",
+            createdAt: new Date(),
+          },
+        ],
+      };
+
       await addOneEService(eservice);
       await addOneTenant(producerAndConsumer);
-      await addOneTenant(producer);
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneAttribute(certifiedAttribute);
       await addOneAgreement(agreement);
       await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
@@ -1051,6 +1078,15 @@ describe("submit agreement", () => {
         getMockContext({ authData })
       );
 
+      const uploadedFiles = await fileManager.listFiles(
+        config.s3Bucket,
+        genericLogger
+      );
+
+      expect(uploadedFiles[0]).toEqual(
+        agreementSubmitReponse.data.contract?.path
+      );
+
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 
       expect(actualAgreementData).toMatchObject({
@@ -1065,23 +1101,48 @@ describe("submit agreement", () => {
         payload: actualAgreementData.data,
       }).agreement!;
 
-      const uploadedFiles = await fileManager.listFiles(
-        config.s3Bucket,
-        genericLogger
-      );
+      const contractDocumentId = agreementSubmitReponse.data.contract!.id;
+      const contractCreatedAt =
+        agreementSubmitReponse.data.contract!.createdAt;
+      const contractDocumentName = `${producerAndConsumer.id}_${
+        producerAndConsumer.id
+      }_${formatDateyyyyMMddHHmmss(
+        contractCreatedAt
+      )}_agreement_contract.pdf`;
 
-      expect(uploadedFiles.length).toEqual(0);
-
-      // TODO verify if this logic is correct: we have a resulting agreement
-      // in state ACTIVE but with contract undefined and no attributes.
-      // https://pagopa.atlassian.net/browse/IMN-623
-      expect(agreementSubmitReponse.data.contract).not.toBeDefined();
+      const expectedContract = {
+        id: contractDocumentId,
+        contentType: "application/pdf",
+        createdAt: contractCreatedAt,
+        path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+        prettyName: "Richiesta di fruizione",
+        name: contractDocumentName,
+      };
 
       const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
+        contract: expectedContract,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedAt: undefined,
         suspendedByPlatform: false,
+        verifiedAttributes: [
+          {
+            id: validVerifiedTenantAttribute.id,
+          },
+        ],
+        certifiedAttributes: [
+          {
+            id: validCertifiedTenantAttribute.id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            id: validDeclaredTenantAttribute.id,
+          },
+        ],
         stamps: {
           ...agreement.stamps,
           submission: {
@@ -1097,9 +1158,98 @@ describe("submit agreement", () => {
         },
       };
 
+      const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        agreementId: expectedAgreement.id,
+        submitterId: expectedAgreement.stamps.submission!.who,
+        submissionDate: dateAtRomeZone(
+          expectedAgreement.stamps.submission!.when!
+        ),
+        submissionTime: timeAtRomeZone(
+          expectedAgreement.stamps.submission!.when!
+        ),
+        activatorId: expectedAgreement.stamps.activation!.who,
+        activationDate: dateAtRomeZone(
+          expectedAgreement.stamps.activation!.when!
+        ),
+        activationTime: timeAtRomeZone(
+          expectedAgreement.stamps.activation!.when!
+        ),
+        eserviceId: eservice.id,
+        eserviceName: eservice.name,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producerAndConsumer.name,
+        producerIpaCode: producerAndConsumer.externalId.value,
+        consumerName: producerAndConsumer.name,
+        consumerIpaCode: producerAndConsumer.externalId.value,
+        consumerDelegateName: delegateConsumer?.name,
+        consumerDelegateIpaCode: delegateConsumer?.externalId.value,
+        consumerDelegationId: consumerDelegation?.id,
+        producerDelegateName: delegateProducer?.name,
+        producerDelegateIpaCode: delegateProducer?.externalId.value,
+        producerDelegationId: producerDelegation?.id,
+        certifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: certifiedAttribute.name,
+            attributeId: validCertifiedTenantAttribute.id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: declaredAttribute.name,
+            attributeId: validDeclaredTenantAttribute.id,
+            delegationId: consumerDelegation?.id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: verifiedAttribute.name,
+            attributeId: validVerifiedTenantAttribute.id,
+            expirationDate: dateAtRomeZone(
+              validVerifiedTenantAttribute.verifiedBy[0].expirationDate!
+            ),
+            delegationId: producerDelegation?.id,
+          },
+        ],
+      };
+
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          "../../src",
+          "resources/templates/documents/",
+          "agreementContractTemplate.html"
+        ),
+        expectedAgreementPDFPayload
+      );
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(expectedContract.path);
+
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(sortAgreement(agreementSubmitReponse)).toEqual({
-        data: sortAgreement(expectedAgreement),
+      expect(agreementSubmitReponse).toEqual({
+        data: expectedAgreement,
         metadata: { version: 1 },
       });
 
@@ -1420,22 +1570,82 @@ describe("submit agreement", () => {
   it.each(Object.values([requesterIs.consumer, requesterIs.delegateConsumer]))(
     "Requester === %s, should submit agreement contract with new state ACTIVE when producer and consumer are different, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
+      vi.spyOn(pdfGenerator, "generate");
       const consumerId = generateId<TenantId>();
-      const producer = {
-        ...getMockTenant(consumerId),
-        mails: [
-          {
-            id: generateId(),
-            kind: tenantMailKind.ContactEmail,
-            address: "test1@test1.com",
-            createdAt: new Date(),
-          },
-        ],
-      };
+      const producer = getMockTenant();
       const consumerNotesText = "This is a test";
 
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Certified",
+      };
+
+      const declaredAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Declared",
+      };
+
+      const verifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: "Verified",
+      };
+
+      const descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        attributes: {
+          certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+          declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+          verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
+        },
+      };
+
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      const agreement: Agreement = {
+        ...getMockAgreement(eservice.id, consumerId),
+        producerId: producer.id,
+        descriptorId: eservice.descriptors[0].id,
+        ...draftAgreementSubmissionSeed,
+      };
+
+      const { authData, consumerDelegation, delegateConsumer } =
+        authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
+
+      const validVerifiedTenantAttribute: TenantAttribute = {
+        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+        verifiedBy: [
+          {
+            id: producer.id,
+            verificationDate: new Date(new Date().getFullYear() - 1),
+            expirationDate: undefined,
+            extensionDate: undefined,
+            delegationId: undefined,
+          },
+        ],
+        revokedBy: [],
+      };
+
+      const validCertifiedTenantAttribute: TenantAttribute = {
+        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+        revocationTimestamp: undefined,
+      };
+
+      const validDeclaredTenantAttribute: TenantAttribute = {
+        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+        revocationTimestamp: undefined,
+        delegationId: consumerDelegation?.id,
+      };
+
       const consumer = {
-        ...getMockTenant(consumerId),
+        ...getMockTenant(consumerId, [
+          validVerifiedTenantAttribute,
+          validCertifiedTenantAttribute,
+          validDeclaredTenantAttribute,
+        ]),
         mails: [
           {
             id: generateId(),
@@ -1446,34 +1656,12 @@ describe("submit agreement", () => {
         ],
       };
 
-      const descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.published,
-        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
-        attributes: {
-          certified: [],
-          declared: [],
-          verified: [],
-        },
-      };
-
-      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-        descriptor,
-      ]);
-
-      const agreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumer.id),
-        producerId: producer.id,
-        descriptorId: eservice.descriptors[0].id,
-        ...draftAgreementSubmissionSeed,
-      };
-
-      const { authData, consumerDelegation, delegateConsumer } =
-        authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-
       await addOneEService(eservice);
       await addOneTenant(producer);
       await addOneTenant(consumer);
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+      await addOneAttribute(certifiedAttribute);
       await addOneAgreement(agreement);
       await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
@@ -1497,6 +1685,15 @@ describe("submit agreement", () => {
         getMockContext({ authData })
       );
 
+      const uploadedFiles = await fileManager.listFiles(
+        config.s3Bucket,
+        genericLogger
+      );
+
+      expect(uploadedFiles[0]).toEqual(
+        submitAgreementResponse.data.contract?.path
+      );
+
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 
       expect(actualAgreementData).toMatchObject({
@@ -1511,26 +1708,48 @@ describe("submit agreement", () => {
         payload: actualAgreementData.data,
       }).agreement!;
 
-      const uploadedFiles = await fileManager.listFiles(
-        config.s3Bucket,
-        genericLogger
-      );
+      const contractDocumentId = submitAgreementResponse.data.contract!.id;
+      const contractCreatedAt =
+        submitAgreementResponse.data.contract!.createdAt;
+      const contractDocumentName = `${consumer.id}_${
+        producer.id
+      }_${formatDateyyyyMMddHHmmss(
+        contractCreatedAt
+      )}_agreement_contract.pdf`;
 
-      expect(uploadedFiles.length).toEqual(0);
-
-      // TODO verify if this logic is correct: we have a resulting agreement
-      // in state ACTIVE but with contract undefined and no attributes.
-      // https://pagopa.atlassian.net/browse/IMN-623
-      expect(submitAgreementResponse.data.contract).not.toBeDefined();
+      const expectedContract = {
+        id: contractDocumentId,
+        contentType: "application/pdf",
+        createdAt: contractCreatedAt,
+        path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
+        prettyName: "Richiesta di fruizione",
+        name: contractDocumentName,
+      };
 
       const expectedAgreement = {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
+        contract: expectedContract,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedAt: undefined,
         suspendedByPlatform: false,
-        certifiedAttributes: [],
-        declaredAttributes: [],
-        verifiedAttributes: [],
+        certifiedAttributes: [
+          {
+            id: validCertifiedTenantAttribute.id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            id: validDeclaredTenantAttribute.id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            id: validVerifiedTenantAttribute.id,
+          },
+        ],
         stamps: {
           ...agreement.stamps,
           submission: {
@@ -1545,6 +1764,90 @@ describe("submit agreement", () => {
           },
         },
       };
+
+      const getIpaCode = (tenant: Tenant): string | undefined =>
+        tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ? tenant.externalId.value
+          : undefined;
+
+      const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
+        todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        agreementId: agreement.id,
+        submitterId: authData.userId,
+        submissionDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        submissionTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        activatorId: authData.userId,
+        activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+        activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        eserviceName: eservice.name,
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+        descriptorVersion: eservice.descriptors[0].version,
+        producerName: producer.name,
+        producerIpaCode: getIpaCode(producer),
+        consumerName: consumer.name,
+        consumerIpaCode: getIpaCode(consumer),
+        certifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validCertifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: certifiedAttribute.name,
+            attributeId: validCertifiedTenantAttribute.id,
+          },
+        ],
+        declaredAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validDeclaredTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: declaredAttribute.name,
+            attributeId: validDeclaredTenantAttribute.id,
+            delegationId: consumerDelegation?.id,
+          },
+        ],
+        verifiedAttributes: [
+          {
+            assignmentDate: dateAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            assignmentTime: timeAtRomeZone(
+              validVerifiedTenantAttribute.assignmentTimestamp
+            ),
+            attributeName: verifiedAttribute.name,
+            attributeId: validVerifiedTenantAttribute.id,
+            expirationDate: undefined,
+            delegationId: undefined,
+          },
+        ],
+        producerDelegationId: undefined,
+        producerDelegateName: undefined,
+        producerDelegateIpaCode: undefined,
+        consumerDelegationId: consumerDelegation?.id,
+        consumerDelegateName: delegateConsumer?.name,
+        consumerDelegateIpaCode: delegateConsumer?.externalId.value,
+      };
+
+      expect(pdfGenerator.generate).toHaveBeenCalledWith(
+        path.resolve(
+          path.dirname(fileURLToPath(import.meta.url)),
+          "../../src",
+          "resources/templates/documents/",
+          "agreementContractTemplate.html"
+        ),
+        expectedAgreementPDFPayload
+      );
+
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContain(expectedContract.path);
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
       expect(submitAgreementResponse).toEqual({
