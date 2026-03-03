@@ -65,6 +65,12 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    asyncExchangeResponseTime: undefined,
+    asyncExchangeResourceAvailableTime: undefined,
+    asyncExchangeConfirmation: undefined,
+    asyncExchangeBulk: undefined,
+    asyncExchangeMaxResultSet: undefined,
+    asyncExchangeOnlyMultiEntityMode: undefined,
   };
 }
 

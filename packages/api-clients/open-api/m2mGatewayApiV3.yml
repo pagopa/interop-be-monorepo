@@ -11775,6 +11775,21 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
       required:
         - id
         - version
@@ -11845,6 +11860,21 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
       required:
         - audience
         - voucherLifespan
@@ -11886,6 +11916,21 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -11907,6 +11952,21 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data
@@ -12356,6 +12416,21 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     JWK:
       description: JSON Web Key
       type: object

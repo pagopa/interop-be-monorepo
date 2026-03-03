@@ -88,6 +88,12 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
+  optional int32 asyncExchangeResponseTime = 21;
+  optional int32 asyncExchangeResourceAvailableTime = 22;
+  optional bool asyncExchangeConfirmation = 23;
+  optional bool asyncExchangeBulk = 24;
+  optional int32 asyncExchangeMaxResultSet = 25;
+  optional bool asyncExchangeOnlyMultiEntityMode = 26;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {

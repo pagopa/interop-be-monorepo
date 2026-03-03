@@ -61,6 +61,14 @@ export function toM2MGatewayApiEServiceDescriptor(
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+    asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime:
+      descriptor.asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+    asyncExchangeBulk: descriptor.asyncExchangeBulk,
+    asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
+    asyncExchangeOnlyMultiEntityMode:
+      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 
@@ -80,6 +88,14 @@ export function toCatalogApiEServiceDescriptorSeed(
       certified: [],
     },
     docs: [],
+    asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime:
+      descriptor.asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+    asyncExchangeBulk: descriptor.asyncExchangeBulk,
+    asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
+    asyncExchangeOnlyMultiEntityMode:
+      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 
@@ -94,6 +110,14 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
     dailyCallsTotal: descriptor.dailyCallsTotal,
     agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
     attributes: undefined, // Attributes are updated with dedicated API calls
+    asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime:
+      descriptor.asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+    asyncExchangeBulk: descriptor.asyncExchangeBulk,
+    asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
+    asyncExchangeOnlyMultiEntityMode:
+      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 

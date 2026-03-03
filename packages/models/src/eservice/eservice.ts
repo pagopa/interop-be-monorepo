@@ -114,6 +114,12 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  asyncExchangeResponseTime: z.number().int().optional(),
+  asyncExchangeResourceAvailableTime: z.number().int().optional(),
+  asyncExchangeConfirmation: z.boolean().optional(),
+  asyncExchangeBulk: z.boolean().optional(),
+  asyncExchangeMaxResultSet: z.number().int().optional(),
+  asyncExchangeOnlyMultiEntityMode: z.boolean().optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 

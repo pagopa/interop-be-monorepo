@@ -189,6 +189,36 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(descriptorSQL.asyncExchangeResponseTime !== null
+      ? {
+          asyncExchangeResponseTime: descriptorSQL.asyncExchangeResponseTime,
+        }
+      : {}),
+    ...(descriptorSQL.asyncExchangeResourceAvailableTime !== null
+      ? {
+          asyncExchangeResourceAvailableTime:
+            descriptorSQL.asyncExchangeResourceAvailableTime,
+        }
+      : {}),
+    ...(descriptorSQL.asyncExchangeConfirmation !== null
+      ? {
+          asyncExchangeConfirmation: descriptorSQL.asyncExchangeConfirmation,
+        }
+      : {}),
+    ...(descriptorSQL.asyncExchangeBulk !== null
+      ? { asyncExchangeBulk: descriptorSQL.asyncExchangeBulk }
+      : {}),
+    ...(descriptorSQL.asyncExchangeMaxResultSet !== null
+      ? {
+          asyncExchangeMaxResultSet: descriptorSQL.asyncExchangeMaxResultSet,
+        }
+      : {}),
+    ...(descriptorSQL.asyncExchangeOnlyMultiEntityMode !== null
+      ? {
+          asyncExchangeOnlyMultiEntityMode:
+            descriptorSQL.asyncExchangeOnlyMultiEntityMode,
+        }
+      : {}),
   };
 };
 

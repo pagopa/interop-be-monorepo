@@ -25842,6 +25842,21 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
@@ -25905,6 +25920,21 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -25932,6 +25962,21 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     Mail:
       type: object
       additionalProperties: false
@@ -26071,6 +26116,21 @@ components:
         archivedAt:
           type: string
           format: date-time
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     Client:
       description: Models Client details
       type: object
@@ -26389,6 +26449,21 @@ components:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
+        asyncExchangeOnlyMultiEntityMode:
+          type: boolean
     ProducerDescriptorEService:
       type: object
       additionalProperties: false

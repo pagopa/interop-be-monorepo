@@ -180,6 +180,13 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
+  asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+  asyncExchangeResourceAvailableTime:
+    descriptor.asyncExchangeResourceAvailableTime,
+  asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+  asyncExchangeBulk: descriptor.asyncExchangeBulk,
+  asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
+  asyncExchangeOnlyMultiEntityMode: descriptor.asyncExchangeOnlyMultiEntityMode,
 });
 
 export const eServiceToApiEService = (
