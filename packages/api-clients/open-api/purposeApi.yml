@@ -1198,6 +1198,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/updatedDailyCalls:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purpose
+      operationId: getUpdatedDailyCalls
+      description: Retrieve updated daily calls for a purpose
+      responses:
+        "200":
+          description: Updated daily calls retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedDailyCallsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1936,6 +1976,21 @@ components:
       required:
         - version
         - answers
+    UpdatedDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        updatedDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        updatedDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - updatedDailyCallsPerConsumer
+        - updatedDailyCallsTotal
     CreatedPurposeVersion:
       type: object
       additionalProperties: false
