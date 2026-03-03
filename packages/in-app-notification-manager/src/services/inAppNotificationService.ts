@@ -15,6 +15,7 @@ import {
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
+  authRole,
   createListResult,
   escapeRegExp,
   UIAuthData,
@@ -41,10 +42,14 @@ export function inAppNotificationServiceBuilder(
       entityIds: string[],
       {
         logger,
-        authData: { userId, organizationId },
+        authData: { userId, organizationId, userRoles },
       }: WithLogger<AppContext<UIAuthData>>
     ): Promise<string[]> => {
       logger.info("Checking for unread notifications");
+
+      if (userRoles.length === 1 && userRoles[0] === authRole.SUPPORT_ROLE) {
+        return [];
+      }
 
       if (entityIds.length === 0) {
         return [];
@@ -82,8 +87,8 @@ export function inAppNotificationServiceBuilder(
         unread === undefined
           ? undefined
           : unread
-          ? isNull(notification.readAt)
-          : isNotNull(notification.readAt);
+            ? isNull(notification.readAt)
+            : isNotNull(notification.readAt);
 
       const notifications = await db
         .select(withTotalCount(getTableColumns(notification)))

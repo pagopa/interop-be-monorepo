@@ -1,10 +1,10 @@
 import {
-  authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
   healthRouter,
   loggerMiddleware,
+  integrityRest02Middleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
@@ -15,6 +15,8 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
+import { KMSClient } from "@aws-sdk/client-kms";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -37,7 +39,10 @@ import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
-import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
+import {
+  authenticationDPoPMiddleware,
+  m2mAuthDataValidationMiddleware,
+} from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
 import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
@@ -69,9 +74,11 @@ export type RateLimiterMiddleware = ReturnType<
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
   services: M2MGatewayServices,
-  rateLimiterMiddleware: RateLimiterMiddleware
+  rateLimiterMiddleware: RateLimiterMiddleware,
+  dynamoDBClient: DynamoDBClient,
+  kmsClient: KMSClient
 ) {
-  const serviceName = modelsServiceName.M2M_GATEWAY;
+  const serviceName = modelsServiceName.M2M_GATEWAY_V3;
   const {
     agreementService,
     attributeService,
@@ -111,7 +118,8 @@ export async function createApp(
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
-    authenticationMiddleware(config),
+    integrityRest02Middleware(config, kmsClient),
+    authenticationDPoPMiddleware(config, dynamoDBClient),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,

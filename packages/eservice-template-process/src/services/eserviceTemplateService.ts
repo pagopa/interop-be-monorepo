@@ -124,9 +124,8 @@ const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
-  const eserviceTemplate = await readModelService.getEServiceTemplateById(
-    eserviceTemplateId
-  );
+  const eserviceTemplate =
+    await readModelService.getEServiceTemplateById(eserviceTemplateId);
   if (eserviceTemplate === undefined) {
     throw eserviceTemplateNotFound(eserviceTemplateId);
   }
@@ -540,12 +539,12 @@ export function eserviceTemplateServiceBuilder(
                 publishedAt: new Date(),
               }
             : eserviceTemplateVersion.version > v.version
-            ? {
-                ...v,
-                state: eserviceTemplateVersionState.deprecated,
-                deprecatedAt: new Date(),
-              }
-            : v
+              ? {
+                  ...v,
+                  state: eserviceTemplateVersionState.deprecated,
+                  deprecatedAt: new Date(),
+                }
+              : v
         ),
       };
 
@@ -653,13 +652,13 @@ export function eserviceTemplateServiceBuilder(
       if (name !== eserviceTemplate.data.name) {
         await assertEServiceTemplateNameAvailable(name, readModelService);
 
-        const hasConflictingInstances =
-          await readModelService.checkNameConflictInstances(
+        const hasInstanceNameConflicts =
+          await readModelService.hasInstanceNameConflicts(
             eserviceTemplate.data,
             name
           );
 
-        if (hasConflictingInstances) {
+        if (hasInstanceNameConflicts) {
           throw instanceNameConflict(eserviceTemplateId);
         }
       }
@@ -2281,10 +2280,10 @@ async function updateDraftEServiceTemplateVersion(
       seed.agreementApprovalPolicy === null
         ? undefined
         : seed.agreementApprovalPolicy === undefined
-        ? eserviceTemplateVersion.agreementApprovalPolicy
-        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
+          ? eserviceTemplateVersion.agreementApprovalPolicy
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
     )
     .exhaustive();
 

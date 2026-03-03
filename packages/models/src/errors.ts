@@ -122,9 +122,7 @@ type ProblemBuilderOptions = {
 };
 
 export function makeApiProblemBuilder<T extends string>(
-  errors: {
-    [K in T]: string;
-  },
+  errors: Record<T, string>,
   options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
@@ -309,6 +307,9 @@ export const commonErrorCodes = {
   pollingMaxRetriesExceeded: "10025",
   invalidServerUrl: "10026",
   hyperlinkDetectionError: "10027",
+  badDPoPToken: "10028",
+  keyTypeNotAllowed: "10029",
+  invalidJWKClaim: "10030",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -588,6 +589,12 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
   title: "Bad Bearer Token format",
 });
 
+export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
+  detail: `Bad DPoP Token format in Authorization header`,
+  code: "badDPoPToken",
+  title: "Bad DPoP Token format",
+});
+
 export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Insufficient privileges`,
   code: "operationForbidden",
@@ -641,6 +648,24 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
     detail: `One or more required JWK claims are missing`,
     code: "missingRequiredJWKClaim",
     title: "Missing required JWK claims",
+  });
+}
+
+export function invalidJWKClaim(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `JWK claims are invalid (missing or extra claims)`,
+    code: "invalidJWKClaim",
+    title: "Invalid JWK claims",
+  });
+}
+
+export function keyTypeNotAllowed(
+  kyt: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Key type ${kyt} is not allowed`,
+    code: "keyTypeNotAllowed",
+    title: "kty not allowed",
   });
 }
 
@@ -730,6 +755,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
     title: "Error extracting info from interface file",
   });
 }
+
 export function interfaceExtractingSoapFiledError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {

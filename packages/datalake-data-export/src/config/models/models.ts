@@ -76,9 +76,13 @@ export const ExportedEService = EService.pick({
   createdAt: true,
   technology: true,
   templateId: true,
+  instanceLabel: true, // TODO double check if this is needed in the export
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
+    isSignalHubEnabled: z.boolean().optional(),
+    isConsumerDelegable: z.boolean().optional(),
+    isClientAccessDelegable: z.boolean().optional(),
   })
 );
 export type ExportedEService = z.infer<typeof ExportedEService>;

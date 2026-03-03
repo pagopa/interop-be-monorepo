@@ -60,6 +60,12 @@ const errorCodes = {
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
   userNotFound: "0040",
+  dpopProofValidationFailed: "0041",
+  dpopProofSignatureValidationFailed: "0042",
+  unexpectedDPoPProofForAPIToken: "0043",
+  dpopProofJtiAlreadyUsed: "0044",
+  dpopTokenBindingFailed: "0045",
+  purposeVersionDocumentNotReady: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -238,6 +244,17 @@ export function purposeVersionDocumentNotFound(
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function purposeVersionDocumentNotReady(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
+    code: "purposeVersionDocumentNotReady",
+    title: "Purpose version document not ready",
   });
 }
 
@@ -457,5 +474,56 @@ export function userNotFound(
     detail: `User ${userId} not found for tenant ${tenantId}`,
     code: "userNotFound",
     title: "User not found",
+  });
+}
+
+export function dpopTokenBindingFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The DPoP proof public key does not match the Access Token binding ('cnf' claim). ClientId: ${clientId} - ${details}`,
+    code: "dpopTokenBindingFailed",
+    title: "DPoP Token Binding Mismatch",
+  });
+}
+
+export function dpopProofValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
+    code: "dpopProofValidationFailed",
+    title: "DPoP proof validation failed",
+  });
+}
+
+export function dpopProofSignatureValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
+    code: "dpopProofSignatureValidationFailed",
+    title: "DPoP proof signature validation failed",
+  });
+}
+
+export function unexpectedDPoPProofForAPIToken(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
+    code: "unexpectedDPoPProofForAPIToken",
+    title: "Unexpected DPoP proof for API token",
+  });
+}
+
+export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof JTI ${jti} already in cache`,
+    code: "dpopProofJtiAlreadyUsed",
+    title: "DPoP proof JTI already in cache",
   });
 }
