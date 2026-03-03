@@ -172,9 +172,7 @@ export const assertRequesterIsDelegateOrDelegator = (
 export function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
-): asserts stamps is Delegation["stamps"] & {
-  [key in S]: DelegationStamp;
-} {
+): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
   }

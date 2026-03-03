@@ -99,7 +99,7 @@ export const aggregateClientArray = ({
 };
 
 const createClientSQLPropertyMap = <
-  T extends ClientUserSQL | ClientPurposeSQL | ClientKeySQL
+  T extends ClientUserSQL | ClientPurposeSQL | ClientKeySQL,
 >(
   items: T[]
 ): Map<ClientId, T[]> =>

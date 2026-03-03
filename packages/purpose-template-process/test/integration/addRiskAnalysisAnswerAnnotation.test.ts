@@ -25,7 +25,6 @@ import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
@@ -296,7 +295,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -322,7 +321,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
 
     vi.useRealTimers();
   });
