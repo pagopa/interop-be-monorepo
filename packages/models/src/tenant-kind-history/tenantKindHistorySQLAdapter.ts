@@ -1,8 +1,6 @@
 import { unsafeBrandId } from "../brandedIds.js";
 import { TenantKind } from "../tenant/tenant.js";
-import {
-  TenantKindHistory,
-} from "./tenantKindHistory.js";
+import { TenantKindHistory } from "./tenantKindHistory.js";
 
 export type TenantKindHistorySQL = {
   tenantId: string;

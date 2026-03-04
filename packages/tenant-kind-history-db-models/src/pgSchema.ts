@@ -3,4 +3,6 @@ import { TenantKindHistoryDBConfig } from "pagopa-interop-commons";
 
 const config = TenantKindHistoryDBConfig.parse(process.env);
 
-export const tenantKindHistorySchema = pgSchema(config.tenantKindHistoryDBSchema);
+export const tenantKindHistorySchema = pgSchema(
+  config.tenantKindHistoryDBSchema
+);

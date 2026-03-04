@@ -1,7 +1,5 @@
 import { z } from "zod";
-import {
-  TenantId,
-} from "../brandedIds.js";
+import { TenantId } from "../brandedIds.js";
 import { TenantKind } from "../tenant/tenant.js";
 
 export const TenantKindHistory = z.object({
