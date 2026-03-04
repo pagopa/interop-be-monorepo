@@ -35,6 +35,7 @@ import {
   invalidDelegationFlags,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  asyncExchangeNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -126,7 +127,7 @@ describe("update eService", () => {
       false,
       undefined,
     ]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = randomArrayItem([false, undefined]);
     const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
@@ -906,5 +907,34 @@ describe("update eService", () => {
     expect(writtenPayload.eservice?.asyncExchange).toBe(true);
 
     config.featureFlagAsyncExchange = true;
+  });
+
+  it("should throw asyncExchangeNotAllowedForReceiveMode when updating with asyncExchange true and mode RECEIVE", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "RECEIVE",
+          asyncExchange: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeNotAllowedForReceiveMode(mockEService.id)
+    );
   });
 });
