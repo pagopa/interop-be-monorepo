@@ -124,7 +124,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
           ),
         },
         async (event) => {
@@ -146,17 +149,6 @@ async function handleEServiceEventV2(
             toEServiceM2MEventSQL(m2mEvent)
           );
         }
-      )
-      // TODO: Create M2M events for async exchange callback interface events when m2mEventApi is updated
-      .with(
-        {
-          type: P.union(
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
-          ),
-        },
-        () => Promise.resolve()
       )
       .exhaustive()
   );
