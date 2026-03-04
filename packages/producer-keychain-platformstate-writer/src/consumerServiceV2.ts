@@ -12,7 +12,7 @@ import {
   deleteAllProducerKeychainPlatformStatesEntries,
   deleteProducerKeychainPlatformStatesEntriesByEServiceId,
   deleteProducerKeychainPlatformStatesEntriesByKid,
-  upsertAllProducerKeychainPlatformStatesEntries,
+  upsertProducerKeychainPlatformStatesEntriesByKid,
   upsertProducerKeychainPlatformStatesEntriesByEServiceId,
 } from "./utils.js";
 
@@ -29,8 +29,13 @@ export async function handleMessageV2(
         throw missingKafkaMessageDataError("producerKeychain", msg.type);
       }
 
-      await upsertAllProducerKeychainPlatformStatesEntries({
-        producerKeychain: fromProducerKeychainV2(producerKeychain),
+      const parsedProducerKeychain = fromProducerKeychainV2(producerKeychain);
+
+      await upsertProducerKeychainPlatformStatesEntriesByKid({
+        producerKeychainId: parsedProducerKeychain.id,
+        kid: msg.data.kid,
+        keys: parsedProducerKeychain.keys,
+        eServiceIds: parsedProducerKeychain.eservices,
         version: msg.version,
         dynamoDBClient,
         tableName,
@@ -63,8 +68,11 @@ export async function handleMessageV2(
 
       const parsedProducerKeychain = fromProducerKeychainV2(producerKeychain);
 
-      await upsertAllProducerKeychainPlatformStatesEntries({
-        producerKeychain: parsedProducerKeychain,
+      await upsertProducerKeychainPlatformStatesEntriesByKid({
+        producerKeychainId: parsedProducerKeychain.id,
+        kid: msg.data.kid,
+        keys: parsedProducerKeychain.keys,
+        eServiceIds: parsedProducerKeychain.eservices,
         version: msg.version,
         dynamoDBClient,
         tableName,
@@ -88,9 +96,12 @@ export async function handleMessageV2(
       }
 
       const parsedProducerKeychain = fromProducerKeychainV2(producerKeychain);
+      const removedEServiceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
 
-      await upsertAllProducerKeychainPlatformStatesEntries({
-        producerKeychain: parsedProducerKeychain,
+      await upsertProducerKeychainPlatformStatesEntriesByEServiceId({
+        producerKeychainId: parsedProducerKeychain.id,
+        eServiceId: removedEServiceId,
+        keys: parsedProducerKeychain.keys,
         version: msg.version,
         dynamoDBClient,
         tableName,
@@ -99,7 +110,7 @@ export async function handleMessageV2(
 
       await deleteProducerKeychainPlatformStatesEntriesByEServiceId({
         producerKeychainId: parsedProducerKeychain.id,
-        eServiceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+        eServiceId: removedEServiceId,
         kids: parsedProducerKeychain.keys.map((key) => key.kid),
         version: msg.version,
         dynamoDBClient,

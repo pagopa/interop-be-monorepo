@@ -227,6 +227,48 @@ export const upsertProducerKeychainPlatformStatesEntriesByEServiceId = async ({
   );
 };
 
+export const upsertProducerKeychainPlatformStatesEntriesByKid = async ({
+  producerKeychainId,
+  kid,
+  keys,
+  eServiceIds,
+  version,
+  dynamoDBClient,
+  tableName,
+  logger,
+}: {
+  producerKeychainId: ProducerKeychainId;
+  kid: string;
+  keys: Key[];
+  eServiceIds: EServiceId[];
+  version: number;
+  dynamoDBClient: DynamoDBClient;
+  tableName: string;
+  logger: Logger;
+}): Promise<void> => {
+  const key = keys.find((currentKey) => currentKey.kid === kid);
+  if (!key) {
+    logger.info(
+      `Skipping upsert of entries for kid ${kid}. Reason: key not found in producer keychain`
+    );
+    return;
+  }
+
+  await Promise.all(
+    eServiceIds.map(async (eServiceId) => {
+      await upsertProducerKeychainPlatformStateEntry({
+        producerKeychainId,
+        key,
+        eServiceId,
+        version,
+        dynamoDBClient,
+        tableName,
+        logger,
+      });
+    })
+  );
+};
+
 export const deleteProducerKeychainPlatformStatesEntriesByKid = async ({
   producerKeychainId,
   kid,

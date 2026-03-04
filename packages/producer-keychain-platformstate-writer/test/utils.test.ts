@@ -16,6 +16,7 @@ import {
   deleteProducerKeychainPlatformStatesEntriesByEServiceId,
   deleteProducerKeychainPlatformStatesEntriesByKid,
   upsertAllProducerKeychainPlatformStatesEntries,
+  upsertProducerKeychainPlatformStatesEntriesByKid,
   upsertProducerKeychainPlatformStatesEntriesByEServiceId,
 } from "../src/utils.js";
 import {
@@ -58,6 +59,29 @@ describe("utils tests", () => {
     expect(entries.every((entry) => entry.eServiceId === eServiceId)).toBe(
       true
     );
+  });
+
+  it("upsertProducerKeychainPlatformStatesEntriesByKid should write one entry per eservice", async () => {
+    const producerKeychainId: ProducerKeychainId = generateId();
+    const key = { ...getMockKey(), producerKeychainId };
+    const eServiceId1: EServiceId = generateId();
+    const eServiceId2: EServiceId = generateId();
+
+    await upsertProducerKeychainPlatformStatesEntriesByKid({
+      producerKeychainId,
+      kid: key.kid,
+      keys: [key],
+      eServiceIds: [eServiceId1, eServiceId2],
+      version: 1,
+      dynamoDBClient,
+      tableName,
+      logger: genericLogger,
+    });
+
+    const entries = await readAllProducerKeychainPlatformStatesEntries();
+
+    expect(entries).toHaveLength(2);
+    expect(entries.every((entry) => entry.kid === key.kid)).toBe(true);
   });
 
   it("deleteProducerKeychainPlatformStatesEntriesByKid should delete entries for all provided eservices", async () => {

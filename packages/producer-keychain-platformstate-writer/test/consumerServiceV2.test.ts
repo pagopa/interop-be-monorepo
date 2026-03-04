@@ -13,6 +13,7 @@ import {
   ProducerKeychain,
   ProducerKeychainEServiceRemovedV2,
   ProducerKeychainKeyAddedV2,
+  ProducerKeychainKeyDeletedV2,
   ProducerKeychainDeletedV2,
   ProducerKeychainEServiceAddedV2,
   toProducerKeychainV2,
@@ -41,7 +42,12 @@ describe("Events V2", () => {
   it("ProducerKeychainKeyAdded should upsert platform state entry", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
-    const mockKey = {
+    const existingKey = {
+      ...getMockKey(),
+      producerKeychainId,
+      encodedPem: base64Key,
+    };
+    const addedKey = {
       ...getMockKey(),
       producerKeychainId,
       encodedPem: base64Key,
@@ -51,12 +57,12 @@ describe("Events V2", () => {
       ...getMockProducerKeychain(),
       id: producerKeychainId,
       eservices: [eServiceId],
-      keys: [mockKey],
+      keys: [existingKey, addedKey],
     };
 
     const payload: ProducerKeychainKeyAddedV2 = {
       producerKeychain: toProducerKeychainV2(mockProducerKeychain),
-      kid: mockKey.kid,
+      kid: addedKey.kid,
     };
 
     const message: AuthorizationEventEnvelopeV2 = {
@@ -85,12 +91,12 @@ describe("Events V2", () => {
     expect(send.mock.calls[0][0].input.TableName).toBe(tableName);
     const writtenEntry = unmarshall(send.mock.calls[1][0].input.Item);
     expect(writtenEntry.PK).toBe(
-      `PRODUCERKEYCHAINKIDESERVICE#${mockProducerKeychain.id}#${mockKey.kid}#${eServiceId}`
+      `PRODUCERKEYCHAINKIDESERVICE#${mockProducerKeychain.id}#${addedKey.kid}#${eServiceId}`
     );
     expect(writtenEntry.producerKeychainId).toBe(mockProducerKeychain.id);
-    expect(writtenEntry.kid).toBe(mockKey.kid);
+    expect(writtenEntry.kid).toBe(addedKey.kid);
     expect(writtenEntry.eServiceId).toBe(eServiceId);
-    expect(writtenEntry.publicKey).toBe(mockKey.encodedPem);
+    expect(writtenEntry.publicKey).toBe(addedKey.encodedPem);
     expect(writtenEntry.version).toBe(message.version);
   });
 
@@ -280,6 +286,71 @@ describe("Events V2", () => {
     );
 
     expect(send).toHaveBeenCalledTimes(4);
+  });
+
+  it("ProducerKeychainKeyDeleted should not upsert unaffected entries", async () => {
+    const producerKeychainId: ProducerKeychainId = generateId();
+    const eServiceId: EServiceId = generateId();
+    const removedKid = generateId();
+    const retainedKey = {
+      ...getMockKey(),
+      producerKeychainId,
+      encodedPem: base64Key,
+    };
+
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      id: producerKeychainId,
+      eservices: [eServiceId],
+      keys: [retainedKey],
+    };
+
+    const payload: ProducerKeychainKeyDeletedV2 = {
+      producerKeychain: toProducerKeychainV2(mockProducerKeychain),
+      kid: removedKid,
+    };
+
+    const message: AuthorizationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockProducerKeychain.id,
+      version: 1,
+      type: "ProducerKeychainKeyDeleted",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    const removedEntry = {
+      PK: `PRODUCERKEYCHAINKIDESERVICE#${mockProducerKeychain.id}#${removedKid}#${eServiceId}`,
+      publicKey: base64Key,
+      producerKeychainId: mockProducerKeychain.id,
+      kid: removedKid,
+      eServiceId,
+      version: 0,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce({
+        Item: marshall(removedEntry, {
+          removeUndefinedValues: true,
+          convertClassInstanceToMap: true,
+        }),
+      })
+      .mockResolvedValueOnce({});
+    const dynamoDBClient = { send };
+
+    await handleMessageV2(
+      message,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dynamoDBClient as any,
+      tableName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      loggerMock as any
+    );
+
+    expect(send).toHaveBeenCalledTimes(2);
   });
 
   it("ProducerKeychainEServiceAdded should upsert entries only for added eservice", async () => {
