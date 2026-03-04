@@ -47,6 +47,8 @@ describe("E-service splitter", () => {
     const isConsumerDelegable = true;
     const templateId: EServiceTemplateId = generateId();
     const personalData = true;
+    const instanceLabel = "instance 001";
+    const asyncExchange = true;
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -86,6 +88,8 @@ describe("E-service splitter", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      instanceLabel,
+      asyncExchange,
     };
 
     const {
@@ -114,6 +118,8 @@ describe("E-service splitter", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      instanceLabel,
+      asyncExchange,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -263,6 +269,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
       personalData: undefined,
+      asyncExchange: undefined,
     };
 
     const {
@@ -291,6 +298,8 @@ describe("E-service splitter", () => {
       isConsumerDelegable: null,
       templateId: null,
       personalData: null,
+      instanceLabel: null,
+      asyncExchange: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {

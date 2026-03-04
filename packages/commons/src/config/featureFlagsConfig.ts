@@ -209,7 +209,7 @@ export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
  */
 export const isFeatureFlagEnabled = <K extends string>(
   config: Record<K, unknown>,
-  featureFlagName: K & FeatureFlagKeys,
+  featureFlagName: K & FeatureFlagKeys
 ): boolean => {
   const featureFlag = config[featureFlagName];
 
@@ -221,7 +221,7 @@ export const isFeatureFlagEnabled = <K extends string>(
 };
 export const assertFeatureFlagEnabled = <K extends string>(
   config: Record<K, unknown>,
-  featureFlagName: K & FeatureFlagKeys,
+  featureFlagName: K & FeatureFlagKeys
 ): void => {
   if (!isFeatureFlagEnabled(config, featureFlagName)) {
     throw featureFlagNotEnabled(featureFlagName);

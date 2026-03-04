@@ -38,6 +38,7 @@ export function toM2MGatewayApiEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     templateId: eservice.templateId,
     personalData: eservice.personalData,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 

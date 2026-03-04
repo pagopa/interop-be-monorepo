@@ -501,6 +501,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/instanceLabel/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update eservice instanceLabel
+      operationId: updateEServiceInstanceLabelAfterPublication
+      description: Update instanceLabel of an eservice template instance after publication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new instance label
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceLabelUpdateSeed"
+      responses:
+        "200":
+          description: EService instanceLabel updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2734,6 +2791,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2763,6 +2822,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2788,6 +2849,9 @@ components:
         personalData:
           type: boolean
           nullable: true
+        asyncExchange:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -2798,6 +2862,10 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -3237,6 +3305,8 @@ components:
           format: uuid
         name:
           type: string
+        instanceLabel:
+          type: string
         description:
           type: string
         technology:
@@ -3261,6 +3331,8 @@ components:
           type: string
           format: uuid
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
 
     CreatedEServiceRiskAnalysis:
@@ -3764,6 +3836,18 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+    EServiceInstanceLabelUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     Problem:
       properties:
         type:

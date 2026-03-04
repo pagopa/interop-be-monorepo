@@ -65,6 +65,7 @@ import {
   EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2,
+  EServiceInstanceLabelUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -282,6 +283,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       ({ data }) =>
         EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceInstanceLabelUpdated" }, ({ data }) =>
+      EServiceInstanceLabelUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -604,6 +608,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2
     ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceInstanceLabelUpdated"),
+    data: protobufDecoder(EServiceInstanceLabelUpdatedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

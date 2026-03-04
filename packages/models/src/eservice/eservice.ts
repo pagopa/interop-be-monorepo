@@ -144,6 +144,8 @@ export const EService = z.object({
   isClientAccessDelegable: z.boolean().optional(),
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
+  instanceLabel: z.string().optional(),
+  asyncExchange: z.boolean().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

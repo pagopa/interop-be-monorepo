@@ -77,6 +77,7 @@ function toOutboundEServiceV2(
   return {
     ...eservice,
     riskAnalysis: undefined,
+    asyncExchange: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };

@@ -6,6 +6,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
+  FeatureFlagAsyncExchangeConfig,
   FeatureFlagEServicePersonalDataConfig,
   FeatureFlagAsyncExchangeConfig,
 } from "pagopa-interop-commons";

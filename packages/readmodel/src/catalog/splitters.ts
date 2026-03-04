@@ -397,6 +397,8 @@ export const eserviceToEserviceSQL = (
   isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
+  instanceLabel: eservice.instanceLabel ?? null,
+  asyncExchange: eservice.asyncExchange ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

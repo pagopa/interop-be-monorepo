@@ -236,3 +236,7 @@ message EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2 {
   string documentId = 2;
   EServiceV2 eservice = 3;
 }
+
+message EServiceInstanceLabelUpdatedV2 {
+  EServiceV2 eservice = 1;
+}

@@ -156,7 +156,8 @@ export async function handleCatalogMessage(
           // TODO: Handle async exchange callback interface events if notification is needed
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+          "EServiceInstanceLabelUpdated"
         ),
       },
       () => {

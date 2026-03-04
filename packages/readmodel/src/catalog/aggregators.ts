@@ -299,6 +299,12 @@ export const aggregateEservice = ({
           personalData: eserviceSQL.personalData,
         }
       : {}),
+    ...(eserviceSQL.instanceLabel !== null
+      ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
+    ...(eserviceSQL.asyncExchange !== null
+      ? { asyncExchange: eserviceSQL.asyncExchange }
+      : {}),
   };
   return {
     data: eservice,
