@@ -148,6 +148,7 @@ import {
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
+  toCreateEventEServiceInstanceLabelUpdated,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -490,6 +491,7 @@ async function innerCreateEService(
   {
     seed,
     template,
+    instanceLabel,
   }: {
     seed: catalogApi.EServiceSeed;
     template:
@@ -500,6 +502,7 @@ async function innerCreateEService(
           riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
+    instanceLabel?: string | undefined;
   },
   readModelService: ReadModelServiceSQL,
   {
@@ -549,6 +552,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -978,6 +982,24 @@ export function catalogServiceBuilder(
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
 
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      const updatedInstanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: eserviceSeed.instanceLabel,
+      });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
       assertValidDelegationFlags(
         eserviceSeed.isConsumerDelegable,
         eserviceSeed.isClientAccessDelegable
@@ -985,6 +1007,8 @@ export function catalogServiceBuilder(
 
       const updatedEService: EService = {
         ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel: eserviceSeed.instanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
@@ -2901,26 +2925,31 @@ export function catalogServiceBuilder(
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
-      newName: string,
+      updatedTemplateName: string,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Internal updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (newName === eservice.data.name) {
+      const updatedInstanceName = buildInstanceName({
+        templateName: updatedTemplateName,
+        instanceLabel: eservice.data.instanceLabel,
+      });
+
+      if (updatedInstanceName === eservice.data.name) {
         return;
       }
 
       await assertEServiceNameAvailableForProducer(
-        newName,
+        updatedInstanceName,
         eservice.data.producerId,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: newName,
+        name: updatedInstanceName,
       };
 
       await repository.createEvent(
@@ -3328,8 +3357,13 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const instanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: seed.instanceLabel,
+      });
+
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        instanceName,
         ctx.authData.organizationId,
         readModelService
       );
@@ -3347,7 +3381,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3375,6 +3409,7 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
             riskAnalysis,
           },
+          instanceLabel: seed.instanceLabel,
         },
         readModelService,
         ctx
@@ -3653,6 +3688,62 @@ export function catalogServiceBuilder(
           updatedEservice,
           correlationId
         );
+
+      await repository.createEvent(event);
+
+      return updatedEservice;
+    },
+    async updateEServiceInstanceLabelAfterPublication(
+      eserviceId: EServiceId,
+      instanceLabel: string | undefined,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const updatedInstanceName = buildInstanceName({
+        templateName: template.name,
+        instanceLabel,
+      });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel,
+      };
+
+      const event = toCreateEventEServiceInstanceLabelUpdated(
+        eservice.metadata.version,
+        updatedEservice,
+        correlationId
+      );
 
       await repository.createEvent(event);
 
@@ -4239,5 +4330,21 @@ async function updateDraftDescriptor(
     metadata: { version: event.newVersion },
   };
 }
+
+/**
+ * Builds the instance name from the template name and optional instance label.
+ * - templateName: maxLength 45
+ * - separator " - ": 3 characters
+ * - instanceLabel: maxLength 12
+ * - eservice name (result): maxLength 60
+ */
+const buildInstanceName = ({
+  templateName,
+  instanceLabel,
+}: {
+  templateName: string;
+  instanceLabel: string | undefined;
+}): string =>
+  instanceLabel ? `${templateName} - ${instanceLabel}` : templateName;
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
