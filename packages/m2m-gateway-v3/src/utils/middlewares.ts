@@ -66,7 +66,7 @@ export function m2mAuthDataValidationMiddleware(
             ctx.logger
           )
         )
-        .otherwise(() => Promise.resolve());
+        .exhaustive();
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
