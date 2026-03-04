@@ -104,6 +104,7 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeFields,
   asyncExchangeBulkNotAllowedForSoap,
+  asyncExchangeNotAllowedForReceiveMode,
   eServiceTemplateWithoutPersonalDataFlag,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
@@ -559,6 +560,14 @@ async function innerCreateEService(
       ? { asyncExchange: seed.asyncExchange }
       : {}),
   };
+
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    newEService.asyncExchange === true &&
+    newEService.mode === eserviceMode.receive
+  ) {
+    throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
+  }
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
     newEService,
@@ -1710,7 +1719,8 @@ export function catalogServiceBuilder(
       ) {
         if (
           descriptor.asyncExchangeResponseTime === undefined ||
-          descriptor.asyncExchangeResourceAvailableTime === undefined
+          descriptor.asyncExchangeResourceAvailableTime === undefined ||
+          descriptor.asyncExchangeMaxResultSet === undefined
         ) {
           throw missingAsyncExchangeFields(eserviceId, descriptorId);
         }
@@ -2840,7 +2850,8 @@ export function catalogServiceBuilder(
       ) {
         if (
           descriptor.asyncExchangeResponseTime === undefined ||
-          descriptor.asyncExchangeResourceAvailableTime === undefined
+          descriptor.asyncExchangeResourceAvailableTime === undefined ||
+          descriptor.asyncExchangeMaxResultSet === undefined
         ) {
           throw missingAsyncExchangeFields(eserviceId, descriptorId);
         }
@@ -4317,6 +4328,14 @@ async function updateDraftEService(
       ? { asyncExchange: updatedAsyncExchange }
       : {}),
   };
+
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    updatedEService.asyncExchange === true &&
+    updatedEService.mode === eserviceMode.receive
+  ) {
+    throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
+  }
 
   const event = await repository.createEvent(
     toCreateEventEServiceUpdated(

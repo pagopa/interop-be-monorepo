@@ -27,6 +27,7 @@ export const createEServiceErrorMapper = (
     .with(
       "invalidDelegationFlags",
       "invalidEServiceFlags",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -79,6 +80,7 @@ export const updateEServiceErrorMapper = (
       "invalidDelegationFlags",
       "invalidEServiceFlags",
       "templateInstanceNotAllowed",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
