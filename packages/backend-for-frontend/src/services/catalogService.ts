@@ -487,8 +487,6 @@ export function catalogServiceBuilder(
         asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
         asyncExchangeBulk: descriptor.asyncExchangeBulk,
         asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-        asyncExchangeOnlyMultiEntityMode:
-          descriptor.asyncExchangeOnlyMultiEntityMode,
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
@@ -1002,8 +1000,6 @@ export function catalogServiceBuilder(
         asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
         asyncExchangeBulk: descriptor.asyncExchangeBulk,
         asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-        asyncExchangeOnlyMultiEntityMode:
-          descriptor.asyncExchangeOnlyMultiEntityMode,
         eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
@@ -1247,8 +1243,6 @@ export function catalogServiceBuilder(
           asyncExchangeBulk: previousDescriptor.asyncExchangeBulk,
           asyncExchangeMaxResultSet:
             previousDescriptor.asyncExchangeMaxResultSet,
-          asyncExchangeOnlyMultiEntityMode:
-            previousDescriptor.asyncExchangeOnlyMultiEntityMode,
         },
         {
           headers,

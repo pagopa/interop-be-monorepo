@@ -72,7 +72,6 @@ function toOutboundDescriptorV2(
     asyncExchangeConfirmation: undefined,
     asyncExchangeBulk: undefined,
     asyncExchangeMaxResultSet: undefined,
-    asyncExchangeOnlyMultiEntityMode: undefined,
   };
 }
 

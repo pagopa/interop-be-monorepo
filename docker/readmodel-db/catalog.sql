@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   async_exchange_confirmation BOOLEAN,
   async_exchange_bulk BOOLEAN,
   async_exchange_max_result_set INTEGER,
-  async_exchange_only_multi_entity_mode BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

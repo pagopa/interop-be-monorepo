@@ -172,7 +172,6 @@ describe("E-service splitter", () => {
       asyncExchangeConfirmation: null,
       asyncExchangeBulk: null,
       asyncExchangeMaxResultSet: null,
-      asyncExchangeOnlyMultiEntityMode: null,
     };
 
     const expectedAttributeSQL: EServiceDescriptorAttributeSQL = {
@@ -358,7 +357,6 @@ describe("E-service splitter", () => {
       asyncExchangeConfirmation: null,
       asyncExchangeBulk: null,
       asyncExchangeMaxResultSet: null,
-      asyncExchangeOnlyMultiEntityMode: null,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {

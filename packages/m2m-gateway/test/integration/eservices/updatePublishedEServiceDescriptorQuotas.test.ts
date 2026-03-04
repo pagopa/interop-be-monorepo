@@ -86,8 +86,6 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
       asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
       asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
-      asyncExchangeOnlyMultiEntityMode:
-        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);
@@ -166,8 +164,6 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
       asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
       asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
-      asyncExchangeOnlyMultiEntityMode:
-        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);

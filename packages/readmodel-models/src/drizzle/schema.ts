@@ -460,9 +460,6 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
     asyncExchangeConfirmation: boolean("async_exchange_confirmation"),
     asyncExchangeBulk: boolean("async_exchange_bulk"),
     asyncExchangeMaxResultSet: integer("async_exchange_max_result_set"),
-    asyncExchangeOnlyMultiEntityMode: boolean(
-      "async_exchange_only_multi_entity_mode"
-    ),
   },
   (table) => [
     foreignKey({

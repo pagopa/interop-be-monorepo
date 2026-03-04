@@ -93,7 +93,6 @@ message EServiceDescriptorV2 {
   optional bool asyncExchangeConfirmation = 23;
   optional bool asyncExchangeBulk = 24;
   optional int32 asyncExchangeMaxResultSet = 25;
-  optional bool asyncExchangeOnlyMultiEntityMode = 26;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {

@@ -56,7 +56,6 @@ CREATE TABLE domains.eservice_descriptor (
   async_exchange_confirmation BOOLEAN,
   async_exchange_bulk BOOLEAN,
   async_exchange_max_result_set INTEGER,
-  async_exchange_only_multi_entity_mode BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)

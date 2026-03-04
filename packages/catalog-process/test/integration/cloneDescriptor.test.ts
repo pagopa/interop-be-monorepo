@@ -530,7 +530,6 @@ describe("clone descriptor", () => {
       asyncExchangeConfirmation: true,
       asyncExchangeBulk: false,
       asyncExchangeMaxResultSet: 500,
-      asyncExchangeOnlyMultiEntityMode: true,
     };
     const eservice: EService = {
       ...mockEService,
@@ -551,7 +550,6 @@ describe("clone descriptor", () => {
     expect(clonedDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(clonedDescriptor.asyncExchangeBulk).toBe(false);
     expect(clonedDescriptor.asyncExchangeMaxResultSet).toBe(500);
-    expect(clonedDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(true);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceClonedV2,
@@ -563,6 +561,5 @@ describe("clone descriptor", () => {
     expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(protoDescriptor.asyncExchangeBulk).toBe(false);
     expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(500);
-    expect(protoDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(true);
   });
 });

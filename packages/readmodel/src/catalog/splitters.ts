@@ -368,8 +368,6 @@ export const descriptorToDescriptorSQL = (
   asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation ?? null,
   asyncExchangeBulk: descriptor.asyncExchangeBulk ?? null,
   asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet ?? null,
-  asyncExchangeOnlyMultiEntityMode:
-    descriptor.asyncExchangeOnlyMultiEntityMode ?? null,
 });
 
 export const eserviceToEserviceSQL = (

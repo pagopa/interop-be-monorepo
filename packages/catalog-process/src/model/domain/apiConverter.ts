@@ -186,7 +186,6 @@ export const descriptorToApiDescriptor = (
   asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
   asyncExchangeBulk: descriptor.asyncExchangeBulk,
   asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-  asyncExchangeOnlyMultiEntityMode: descriptor.asyncExchangeOnlyMultiEntityMode,
 });
 
 export const eServiceToApiEService = (

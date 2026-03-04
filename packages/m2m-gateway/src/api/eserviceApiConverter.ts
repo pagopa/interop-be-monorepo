@@ -67,8 +67,6 @@ export function toM2MGatewayApiEServiceDescriptor(
     asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
     asyncExchangeBulk: descriptor.asyncExchangeBulk,
     asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode:
-      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 
@@ -94,8 +92,6 @@ export function toCatalogApiEServiceDescriptorSeed(
     asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
     asyncExchangeBulk: descriptor.asyncExchangeBulk,
     asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode:
-      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 
@@ -116,8 +112,6 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
     asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
     asyncExchangeBulk: descriptor.asyncExchangeBulk,
     asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode:
-      descriptor.asyncExchangeOnlyMultiEntityMode,
   };
 }
 

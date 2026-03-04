@@ -2965,8 +2965,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3062,8 +3060,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3112,8 +3108,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3761,8 +3755,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     Attribute:
       type: object
       additionalProperties: false

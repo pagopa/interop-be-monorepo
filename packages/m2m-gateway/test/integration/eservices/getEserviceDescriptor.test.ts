@@ -66,8 +66,6 @@ describe("getEserviceDescriptor", () => {
       asyncExchangeBulk: mockCatalogProcessResponseDescriptor.asyncExchangeBulk,
       asyncExchangeMaxResultSet:
         mockCatalogProcessResponseDescriptor.asyncExchangeMaxResultSet,
-      asyncExchangeOnlyMultiEntityMode:
-        mockCatalogProcessResponseDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     const result = await eserviceService.getEServiceDescriptor(

@@ -468,7 +468,6 @@ describe("updateDraftDescriptor", () => {
       asyncExchangeConfirmation: true,
       asyncExchangeBulk: true,
       asyncExchangeMaxResultSet: 1000,
-      asyncExchangeOnlyMultiEntityMode: false,
     };
 
     const result = await catalogService.updateDraftDescriptor(
@@ -487,7 +486,6 @@ describe("updateDraftDescriptor", () => {
     expect(updatedDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(updatedDescriptor.asyncExchangeBulk).toBe(true);
     expect(updatedDescriptor.asyncExchangeMaxResultSet).toBe(1000);
-    expect(updatedDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(false);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDraftDescriptorUpdatedV2,
@@ -501,7 +499,6 @@ describe("updateDraftDescriptor", () => {
     expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(protoDescriptor.asyncExchangeBulk).toBe(true);
     expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(1000);
-    expect(protoDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(false);
   });
 
   it("should not update async exchange descriptor fields when flag ON but asyncExchange false", async () => {

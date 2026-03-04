@@ -213,12 +213,6 @@ export const aggregateDescriptor = ({
           asyncExchangeMaxResultSet: descriptorSQL.asyncExchangeMaxResultSet,
         }
       : {}),
-    ...(descriptorSQL.asyncExchangeOnlyMultiEntityMode !== null
-      ? {
-          asyncExchangeOnlyMultiEntityMode:
-            descriptorSQL.asyncExchangeOnlyMultiEntityMode,
-        }
-      : {}),
   };
 };
 

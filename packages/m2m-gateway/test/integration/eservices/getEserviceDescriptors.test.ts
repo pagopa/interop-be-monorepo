@@ -71,8 +71,6 @@ describe("getEserviceDescriptors", () => {
     asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
     asyncExchangeBulk: descriptor.asyncExchangeBulk,
     asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode:
-      descriptor.asyncExchangeOnlyMultiEntityMode,
   });
 
   const m2mEserviceDescriptorResponse1: m2mGatewayApi.EServiceDescriptor =

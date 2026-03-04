@@ -20643,8 +20643,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
       required:
         - id
         - version
@@ -20728,8 +20726,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
       required:
         - audience
         - voucherLifespan
@@ -20784,8 +20780,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -20820,8 +20814,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     EServiceMode:
       type: string
       description: Indicates if the E-Service is intended for receiving or delivering data
@@ -21284,8 +21276,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     JWK:
       description: JSON Web Key
       type: object

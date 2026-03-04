@@ -734,7 +734,6 @@ function createNextDescriptor(
     | "asyncExchangeConfirmation"
     | "asyncExchangeBulk"
     | "asyncExchangeMaxResultSet"
-    | "asyncExchangeOnlyMultiEntityMode"
   > & {
     templateVersionId: EServiceTemplateVersionId | undefined;
   }
@@ -767,7 +766,6 @@ function createNextDescriptor(
     asyncExchangeConfirmation: seed.asyncExchangeConfirmation,
     asyncExchangeBulk: seed.asyncExchangeBulk,
     asyncExchangeMaxResultSet: seed.asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode: seed.asyncExchangeOnlyMultiEntityMode,
   };
 }
 
@@ -1404,9 +1402,6 @@ export function catalogServiceBuilder(
           : undefined,
         asyncExchangeMaxResultSet: asyncExchangeEnabled
           ? eserviceDescriptorSeed.asyncExchangeMaxResultSet
-          : undefined,
-        asyncExchangeOnlyMultiEntityMode: asyncExchangeEnabled
-          ? (eserviceDescriptorSeed.asyncExchangeOnlyMultiEntityMode ?? false)
           : undefined,
       });
 
@@ -4328,7 +4323,6 @@ async function updateDraftDescriptor(
     asyncExchangeConfirmation,
     asyncExchangeBulk,
     asyncExchangeMaxResultSet,
-    asyncExchangeOnlyMultiEntityMode,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -4388,10 +4382,6 @@ async function updateDraftDescriptor(
             asyncExchangeBulk ?? descriptor.asyncExchangeBulk ?? false,
           asyncExchangeMaxResultSet:
             asyncExchangeMaxResultSet ?? descriptor.asyncExchangeMaxResultSet,
-          asyncExchangeOnlyMultiEntityMode:
-            asyncExchangeOnlyMultiEntityMode ??
-            descriptor.asyncExchangeOnlyMultiEntityMode ??
-            false,
         }
       : {}),
   };

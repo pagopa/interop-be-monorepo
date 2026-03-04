@@ -86,8 +86,6 @@ describe("createDescriptor", () => {
       asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
       asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
       asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
-      asyncExchangeOnlyMultiEntityMode:
-        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     const result = await eserviceService.createDescriptor(

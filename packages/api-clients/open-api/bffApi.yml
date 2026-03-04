@@ -25855,8 +25855,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
@@ -25933,8 +25931,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -25975,8 +25971,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     Mail:
       type: object
       additionalProperties: false
@@ -26129,8 +26123,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     Client:
       description: Models Client details
       type: object
@@ -26462,8 +26454,6 @@ components:
         asyncExchangeMaxResultSet:
           type: integer
           format: int32
-        asyncExchangeOnlyMultiEntityMode:
-          type: boolean
     ProducerDescriptorEService:
       type: object
       additionalProperties: false

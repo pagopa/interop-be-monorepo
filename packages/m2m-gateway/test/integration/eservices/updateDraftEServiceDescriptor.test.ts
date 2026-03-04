@@ -90,8 +90,6 @@ describe("updateDraftEService", () => {
       asyncExchangeConfirmation: mockDescriptor.asyncExchangeConfirmation,
       asyncExchangeBulk: mockDescriptor.asyncExchangeBulk,
       asyncExchangeMaxResultSet: mockDescriptor.asyncExchangeMaxResultSet,
-      asyncExchangeOnlyMultiEntityMode:
-        mockDescriptor.asyncExchangeOnlyMultiEntityMode,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);

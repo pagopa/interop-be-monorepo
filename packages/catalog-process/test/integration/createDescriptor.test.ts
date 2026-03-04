@@ -563,7 +563,6 @@ describe("create descriptor", async () => {
       asyncExchangeConfirmation: true,
       asyncExchangeBulk: true,
       asyncExchangeMaxResultSet: 1000,
-      asyncExchangeOnlyMultiEntityMode: false,
     };
 
     const result = await catalogService.createDescriptor(
@@ -581,7 +580,6 @@ describe("create descriptor", async () => {
     expect(createdDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(createdDescriptor.asyncExchangeBulk).toBe(true);
     expect(createdDescriptor.asyncExchangeMaxResultSet).toBe(1000);
-    expect(createdDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(false);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
@@ -595,7 +593,6 @@ describe("create descriptor", async () => {
     expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
     expect(protoDescriptor.asyncExchangeBulk).toBe(true);
     expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(1000);
-    expect(protoDescriptor.asyncExchangeOnlyMultiEntityMode).toBe(false);
   });
 
   it("should ignore async exchange descriptor fields when flag ON but asyncExchange false", async () => {
@@ -629,7 +626,6 @@ describe("create descriptor", async () => {
     expect(createdDescriptor.asyncExchangeConfirmation).toBeUndefined();
     expect(createdDescriptor.asyncExchangeBulk).toBeUndefined();
     expect(createdDescriptor.asyncExchangeMaxResultSet).toBeUndefined();
-    expect(createdDescriptor.asyncExchangeOnlyMultiEntityMode).toBeUndefined();
   });
 
   it("should ignore async exchange descriptor fields when flag OFF", async () => {

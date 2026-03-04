@@ -119,7 +119,6 @@ export const Descriptor = z.object({
   asyncExchangeConfirmation: z.boolean().optional(),
   asyncExchangeBulk: z.boolean().optional(),
   asyncExchangeMaxResultSet: z.number().int().optional(),
-  asyncExchangeOnlyMultiEntityMode: z.boolean().optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
