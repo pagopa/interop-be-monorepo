@@ -434,6 +434,11 @@ export const getMockBffApiEServiceDescriptionUpdateSeed =
     description: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceInstanceLabelUpdateSeed =
+  (): bffApi.EServiceInstanceLabelUpdateSeed => ({
+    instanceLabel: "test",
+  });
+
 export const getMockBffApiUpdateEServiceDescriptorDocumentSeed =
   (): bffApi.UpdateEServiceDescriptorDocumentSeed => ({
     prettyName: generateMock(z.string()),
@@ -769,7 +774,6 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     ),
     attributes: generateMock(bffApi.DescriptorAttributes),
     eserviceTemplate: generateMock(bffApi.EServiceTemplateDetails),
-    isAlreadyInstantiated: generateMock(z.boolean()),
     hasRequesterRiskAnalysis: generateMock(z.boolean().optional()),
   });
 
