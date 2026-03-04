@@ -371,6 +371,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: undefined,
       asyncExchangeResourceAvailableTime: undefined,
+      asyncExchangeMaxResultSet: undefined,
     };
 
     const eservice: EService = {
@@ -399,6 +400,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
       asyncExchangeBulk: true,
     };
 
@@ -429,6 +431,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
     };
 
     const eservice: EService = {

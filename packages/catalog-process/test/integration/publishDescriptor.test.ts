@@ -764,6 +764,7 @@ describe("publish descriptor", () => {
       state: descriptorState.draft,
       interface: mockDocument,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
       asyncExchangeResponseTime: undefined,
     };
 
@@ -793,7 +794,38 @@ describe("publish descriptor", () => {
       state: descriptorState.draft,
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
+      asyncExchangeMaxResultSet: 100,
       asyncExchangeResourceAvailableTime: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeFields(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw missingAsyncExchangeFields if asyncExchange is true and asyncExchangeMaxResultSet is undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeResponseTime: 30,
+      asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: undefined,
     };
 
     const eservice: EService = {
@@ -823,6 +855,7 @@ describe("publish descriptor", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
       asyncExchangeBulk: true,
     };
 
@@ -847,13 +880,14 @@ describe("publish descriptor", () => {
     );
   });
 
-  it("should not throw when asyncExchange is true, technology is REST, and both required fields are set", async () => {
+  it("should not throw when asyncExchange is true, technology is REST, and all required fields are set", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
     };
 
     const eservice: EService = {
@@ -883,6 +917,7 @@ describe("publish descriptor", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: undefined,
       asyncExchangeResourceAvailableTime: undefined,
+      asyncExchangeMaxResultSet: undefined,
     };
 
     const eservice: EService = {
@@ -913,6 +948,7 @@ describe("publish descriptor", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: undefined,
       asyncExchangeResourceAvailableTime: undefined,
+      asyncExchangeMaxResultSet: undefined,
     };
 
     const eservice: EService = {
@@ -943,6 +979,7 @@ describe("publish descriptor", () => {
       interface: mockDocument,
       asyncExchangeResponseTime: 30,
       asyncExchangeResourceAvailableTime: 30,
+      asyncExchangeMaxResultSet: 100,
       asyncExchangeBulk: true,
     };
 

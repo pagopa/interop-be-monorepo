@@ -67,6 +67,7 @@ const errorCodes = {
   descriptorAsyncExchangeNotConfigured: "0050",
   missingAsyncExchangeFields: "0051",
   asyncExchangeBulkNotAllowedForSoap: "0052",
+  asyncExchangeNotAllowedForReceiveMode: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -537,7 +538,7 @@ export function missingAsyncExchangeFields(
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeResponseTime and asyncExchangeResourceAvailableTime must be set when async exchange is enabled`,
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeResponseTime, asyncExchangeResourceAvailableTime and asyncExchangeMaxResultSet must be set when async exchange is enabled`,
     code: "missingAsyncExchangeFields",
     title: "Missing required async exchange fields for publication",
   });
@@ -551,6 +552,16 @@ export function asyncExchangeBulkNotAllowedForSoap(
     detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
     code: "asyncExchangeBulkNotAllowedForSoap",
     title: "Async exchange bulk not allowed for SOAP technology",
+  });
+}
+
+export function asyncExchangeNotAllowedForReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} can't have async exchange enabled with receive mode`,
+    code: "asyncExchangeNotAllowedForReceiveMode",
+    title: "Async exchange not allowed for receive mode",
   });
 }
 
