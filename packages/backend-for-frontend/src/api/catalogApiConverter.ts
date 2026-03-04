@@ -90,6 +90,7 @@ export function toBffCatalogApiEService(
       : {}),
     hasUnreadNotifications: hasNotifications,
     personalData: eservice.personalData,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 
@@ -139,6 +140,7 @@ export async function toBffCatalogDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 
@@ -294,6 +296,7 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 

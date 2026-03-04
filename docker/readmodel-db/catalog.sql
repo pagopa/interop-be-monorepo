@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   template_id UUID,
   personal_data BOOLEAN,
   instance_label VARCHAR,
+  async_exchange BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
