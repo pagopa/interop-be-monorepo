@@ -8,7 +8,6 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagAsyncExchangeConfig,
   FeatureFlagEServicePersonalDataConfig,
-  FeatureFlagAsyncExchangeConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 

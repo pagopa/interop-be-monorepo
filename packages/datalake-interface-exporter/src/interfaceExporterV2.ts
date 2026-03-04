@@ -59,6 +59,9 @@ export async function exportInterfaceV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
+      () => undefined
+    )
+    .with(
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceIsConsumerDelegableEnabled" },
       { type: "EServiceIsConsumerDelegableDisabled" },

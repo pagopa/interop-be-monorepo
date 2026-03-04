@@ -103,6 +103,7 @@ import {
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  eServiceAsyncExchangeNotEnabled,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -680,7 +681,9 @@ async function innerAddDocumentToEserviceEvent(
       throw notValidDescriptorState(descriptor.id, descriptor.state);
     }
 
-    // TODO: validate eservice.asyncExchange when the field is available
+    if (eService.data.asyncExchange !== true) {
+      throw eServiceAsyncExchangeNotEnabled(eService.data.id);
+    }
 
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
       throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);

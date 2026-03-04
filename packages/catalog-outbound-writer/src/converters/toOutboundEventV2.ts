@@ -77,6 +77,7 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };
@@ -102,8 +103,6 @@ export function toOutboundEventV2(
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
-      { type: "EServiceInstanceLabelUpdated" },
-
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -223,6 +222,7 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "EServiceInstanceLabelUpdated" },
       () => undefined
     )
     .exhaustive();
