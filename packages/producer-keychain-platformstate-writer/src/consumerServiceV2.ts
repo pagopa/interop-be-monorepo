@@ -68,6 +68,10 @@ export async function handleMessageV2(
 
       const parsedProducerKeychain = fromProducerKeychainV2(producerKeychain);
 
+      // We first upsert the entries touched by this event with the current version.
+      // This acts as a per-entry high-water mark: if an older add/update event is
+      // consumed later (out-of-order delivery or retry), it will be skipped by the
+      // version check in the upsert/delete helpers and won't resurrect stale data.
       await upsertProducerKeychainPlatformStatesEntriesByKid({
         producerKeychainId: parsedProducerKeychain.id,
         kid: msg.data.kid,
@@ -98,6 +102,8 @@ export async function handleMessageV2(
       const parsedProducerKeychain = fromProducerKeychainV2(producerKeychain);
       const removedEServiceId = unsafeBrandId<EServiceId>(msg.data.eserviceId);
 
+      // Same rationale as key deletion: write the current event version before
+      // deleting, so older events processed later cannot recreate removed entries.
       await upsertProducerKeychainPlatformStatesEntriesByEServiceId({
         producerKeychainId: parsedProducerKeychain.id,
         eServiceId: removedEServiceId,
