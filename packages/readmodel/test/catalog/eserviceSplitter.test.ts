@@ -167,6 +167,11 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      asyncExchangeResponseTime: null,
+      asyncExchangeResourceAvailableTime: null,
+      asyncExchangeConfirmation: null,
+      asyncExchangeBulk: null,
+      asyncExchangeMaxResultSet: null,
     };
 
     const expectedAttributeSQL: EServiceDescriptorAttributeSQL = {
@@ -347,6 +352,11 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      asyncExchangeResponseTime: null,
+      asyncExchangeResourceAvailableTime: null,
+      asyncExchangeConfirmation: null,
+      asyncExchangeBulk: null,
+      asyncExchangeMaxResultSet: null,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {

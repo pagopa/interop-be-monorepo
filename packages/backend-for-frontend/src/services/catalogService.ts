@@ -481,6 +481,12 @@ export function catalogServiceBuilder(
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
           instanceLabel: eservice.instanceLabel,
         },
+        asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+        asyncExchangeResourceAvailableTime:
+          descriptor.asyncExchangeResourceAvailableTime,
+        asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+        asyncExchangeBulk: descriptor.asyncExchangeBulk,
+        asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
@@ -988,6 +994,12 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
+        asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+        asyncExchangeResourceAvailableTime:
+          descriptor.asyncExchangeResourceAvailableTime,
+        asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+        asyncExchangeBulk: descriptor.asyncExchangeBulk,
+        asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
         eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
@@ -1222,6 +1234,15 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
           attributes: previousDescriptor.attributes,
           docs: clonedDocuments,
+          asyncExchangeResponseTime:
+            previousDescriptor.asyncExchangeResponseTime,
+          asyncExchangeResourceAvailableTime:
+            previousDescriptor.asyncExchangeResourceAvailableTime,
+          asyncExchangeConfirmation:
+            previousDescriptor.asyncExchangeConfirmation,
+          asyncExchangeBulk: previousDescriptor.asyncExchangeBulk,
+          asyncExchangeMaxResultSet:
+            previousDescriptor.asyncExchangeMaxResultSet,
         },
         {
           headers,

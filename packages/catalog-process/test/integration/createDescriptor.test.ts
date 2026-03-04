@@ -34,6 +34,7 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneAttribute,
   addOneDelegation,
@@ -545,5 +546,117 @@ describe("create descriptor", async () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
+  });
+
+  it("should persist async exchange descriptor fields when flag ON and asyncExchange true", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeResourceAvailableTime: 7200,
+      asyncExchangeConfirmation: true,
+      asyncExchangeBulk: true,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const createdDescriptor = result.data.eservice.descriptors.find(
+      (d) => d.id === result.data.createdDescriptorId
+    )!;
+
+    expect(createdDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(createdDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(createdDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(createdDescriptor.asyncExchangeBulk).toBe(true);
+    expect(createdDescriptor.asyncExchangeMaxResultSet).toBe(1000);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: (await readLastEserviceEvent(eservice.id)).data,
+    });
+    const protoDescriptor = writtenPayload.eservice!.descriptors.find(
+      (d) => d.id === result.data.createdDescriptorId
+    )!;
+    expect(protoDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeBulk).toBe(true);
+    expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(1000);
+  });
+
+  it("should ignore async exchange descriptor fields when flag ON but asyncExchange false", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+      asyncExchange: false,
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const createdDescriptor = result.data.eservice.descriptors.find(
+      (d) => d.id === result.data.createdDescriptorId
+    )!;
+
+    expect(createdDescriptor.asyncExchangeResponseTime).toBeUndefined();
+    expect(
+      createdDescriptor.asyncExchangeResourceAvailableTime
+    ).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeConfirmation).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeBulk).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeMaxResultSet).toBeUndefined();
+  });
+
+  it("should ignore async exchange descriptor fields when flag OFF", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const createdDescriptor = result.data.eservice.descriptors.find(
+      (d) => d.id === result.data.createdDescriptorId
+    )!;
+
+    expect(createdDescriptor.asyncExchangeResponseTime).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeMaxResultSet).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
   });
 });

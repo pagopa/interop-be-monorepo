@@ -32,6 +32,7 @@ import {
   attributeNotFound,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   addOneAttribute,
@@ -446,5 +447,127 @@ describe("updateDraftDescriptor", () => {
     ).rejects.toThrowError(
       templateInstanceNotAllowed(eservice.id, template.id)
     );
+  });
+
+  it("should update async exchange descriptor fields when flag ON and asyncExchange true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeResourceAvailableTime: 7200,
+      asyncExchangeConfirmation: true,
+      asyncExchangeBulk: true,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(updatedDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(updatedDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(updatedDescriptor.asyncExchangeBulk).toBe(true);
+    expect(updatedDescriptor.asyncExchangeMaxResultSet).toBe(1000);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: (await readLastEserviceEvent(eservice.id)).data,
+    });
+    const protoDescriptor = writtenPayload.eservice!.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+    expect(protoDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeBulk).toBe(true);
+    expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(1000);
+  });
+
+  it("should not update async exchange descriptor fields when flag ON but asyncExchange false", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: false,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeResponseTime).toBeUndefined();
+    expect(updatedDescriptor.asyncExchangeMaxResultSet).toBeUndefined();
+  });
+
+  it("should not update async exchange descriptor fields when flag OFF", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeMaxResultSet: 1000,
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeResponseTime).toBeUndefined();
+    expect(updatedDescriptor.asyncExchangeMaxResultSet).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
   });
 });

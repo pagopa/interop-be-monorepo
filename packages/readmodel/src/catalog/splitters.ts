@@ -362,6 +362,12 @@ export const descriptorToDescriptorSQL = (
   suspendedAt: dateToString(descriptor.suspendedAt),
   deprecatedAt: dateToString(descriptor.deprecatedAt),
   archivedAt: dateToString(descriptor.archivedAt),
+  asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime ?? null,
+  asyncExchangeResourceAvailableTime:
+    descriptor.asyncExchangeResourceAvailableTime ?? null,
+  asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation ?? null,
+  asyncExchangeBulk: descriptor.asyncExchangeBulk ?? null,
+  asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet ?? null,
 });
 
 export const eserviceToEserviceSQL = (

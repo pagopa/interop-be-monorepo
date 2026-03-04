@@ -2952,6 +2952,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3034,6 +3047,19 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3069,6 +3095,19 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3703,6 +3742,19 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeConfirmation:
+          type: boolean
+        asyncExchangeBulk:
+          type: boolean
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     Attribute:
       type: object
       additionalProperties: false

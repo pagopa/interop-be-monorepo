@@ -65,6 +65,12 @@ describe("getEserviceDescriptors", () => {
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+    asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime:
+      descriptor.asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+    asyncExchangeBulk: descriptor.asyncExchangeBulk,
+    asyncExchangeMaxResultSet: descriptor.asyncExchangeMaxResultSet,
   });
 
   const m2mEserviceDescriptorResponse1: m2mGatewayApi.EServiceDescriptor =

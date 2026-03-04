@@ -518,4 +518,48 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
+
+  it("should clone descriptor with async exchange fields preserved", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [],
+      interface: undefined,
+      asyncExchangeResponseTime: 3600,
+      asyncExchangeResourceAvailableTime: 7200,
+      asyncExchangeConfirmation: true,
+      asyncExchangeBulk: false,
+      asyncExchangeMaxResultSet: 500,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const clonedEService = await catalogService.cloneDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const clonedDescriptor = clonedEService.descriptors[0];
+    expect(clonedDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(clonedDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(clonedDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(clonedDescriptor.asyncExchangeBulk).toBe(false);
+    expect(clonedDescriptor.asyncExchangeMaxResultSet).toBe(500);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceClonedV2,
+      payload: (await readLastEserviceEvent(clonedEService.id)).data,
+    });
+    const protoDescriptor = writtenPayload.eservice!.descriptors[0];
+    expect(protoDescriptor.asyncExchangeResponseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeResourceAvailableTime).toBe(7200);
+    expect(protoDescriptor.asyncExchangeConfirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeBulk).toBe(false);
+    expect(protoDescriptor.asyncExchangeMaxResultSet).toBe(500);
+  });
 });

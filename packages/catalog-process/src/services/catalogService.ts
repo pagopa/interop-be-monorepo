@@ -729,6 +729,11 @@ function createNextDescriptor(
     | "agreementApprovalPolicy"
     | "attributes"
     | "docs"
+    | "asyncExchangeResponseTime"
+    | "asyncExchangeResourceAvailableTime"
+    | "asyncExchangeConfirmation"
+    | "asyncExchangeBulk"
+    | "asyncExchangeMaxResultSet"
   > & {
     templateVersionId: EServiceTemplateVersionId | undefined;
   }
@@ -756,6 +761,11 @@ function createNextDescriptor(
     templateVersionRef: seed.templateVersionId
       ? { id: seed.templateVersionId }
       : undefined,
+    asyncExchangeResponseTime: seed.asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime: seed.asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation: seed.asyncExchangeConfirmation,
+    asyncExchangeBulk: seed.asyncExchangeBulk,
+    asyncExchangeMaxResultSet: seed.asyncExchangeMaxResultSet,
   };
 }
 
@@ -1360,6 +1370,11 @@ export function catalogServiceBuilder(
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
       const eserviceVersion = eservice.metadata.version;
+
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: eserviceDescriptorSeed.description,
         voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
@@ -1373,6 +1388,21 @@ export function catalogServiceBuilder(
         attributes: parsedAttributes,
         docs: [],
         templateVersionId: undefined,
+        asyncExchangeResponseTime: asyncExchangeEnabled
+          ? eserviceDescriptorSeed.asyncExchangeResponseTime
+          : undefined,
+        asyncExchangeResourceAvailableTime: asyncExchangeEnabled
+          ? eserviceDescriptorSeed.asyncExchangeResourceAvailableTime
+          : undefined,
+        asyncExchangeConfirmation: asyncExchangeEnabled
+          ? (eserviceDescriptorSeed.asyncExchangeConfirmation ?? false)
+          : undefined,
+        asyncExchangeBulk: asyncExchangeEnabled
+          ? (eserviceDescriptorSeed.asyncExchangeBulk ?? false)
+          : undefined,
+        asyncExchangeMaxResultSet: asyncExchangeEnabled
+          ? eserviceDescriptorSeed.asyncExchangeMaxResultSet
+          : undefined,
       });
 
       const updatedEService: EService = {
@@ -4288,6 +4318,11 @@ async function updateDraftDescriptor(
     dailyCallsTotal,
     agreementApprovalPolicy,
     attributes,
+    asyncExchangeResponseTime,
+    asyncExchangeResourceAvailableTime,
+    asyncExchangeConfirmation,
+    asyncExchangeBulk,
+    asyncExchangeMaxResultSet,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -4319,6 +4354,10 @@ async function updateDraftDescriptor(
       )
     : descriptor.agreementApprovalPolicy;
 
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eservice.data.asyncExchange === true;
+
   const updatedDescriptor: Descriptor = {
     ...descriptor,
     description: description ?? descriptor.description,
@@ -4328,6 +4367,23 @@ async function updateDraftDescriptor(
     dailyCallsTotal: updatedDailyCallsTotal,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     attributes: updatedAttributes,
+    ...(asyncExchangeEnabled
+      ? {
+          asyncExchangeResponseTime:
+            asyncExchangeResponseTime ?? descriptor.asyncExchangeResponseTime,
+          asyncExchangeResourceAvailableTime:
+            asyncExchangeResourceAvailableTime ??
+            descriptor.asyncExchangeResourceAvailableTime,
+          asyncExchangeConfirmation:
+            asyncExchangeConfirmation ??
+            descriptor.asyncExchangeConfirmation ??
+            false,
+          asyncExchangeBulk:
+            asyncExchangeBulk ?? descriptor.asyncExchangeBulk ?? false,
+          asyncExchangeMaxResultSet:
+            asyncExchangeMaxResultSet ?? descriptor.asyncExchangeMaxResultSet,
+        }
+      : {}),
   };
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);

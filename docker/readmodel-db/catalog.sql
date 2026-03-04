@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
   archived_at TIMESTAMP WITH TIME ZONE,
+  async_exchange_response_time INTEGER,
+  async_exchange_resource_available_time INTEGER,
+  async_exchange_confirmation BOOLEAN,
+  async_exchange_bulk BOOLEAN,
+  async_exchange_max_result_set INTEGER,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
