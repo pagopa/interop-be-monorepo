@@ -9,6 +9,7 @@ import {
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockValidRiskAnalysisFormTemplate,
+  sortBy,
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
@@ -27,6 +28,7 @@ import { config } from "../../src/config/config.js";
 import {
   addOnePurposeTemplate,
   fileManager,
+  protobufCleanUndefined,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
@@ -148,8 +150,19 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       },
     };
 
+    const expectedPurposeTemplateV2 = protobufCleanUndefined(
+      toPurposeTemplateV2(expectedPurposeTemplate)
+    );
+
+    annotationDocumentDeletionPayload.purposeTemplate?.purposeRiskAnalysisForm?.multiAnswers?.sort(
+      sortBy((a: { key: string }) => a.key)
+    );
+    expectedPurposeTemplateV2.purposeRiskAnalysisForm?.multiAnswers?.sort(
+      sortBy((a: { key: string }) => a.key)
+    );
+
     expect(annotationDocumentDeletionPayload).toEqual({
-      purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      purposeTemplate: expectedPurposeTemplateV2,
       documentId: annotationDocument1.id,
     });
 

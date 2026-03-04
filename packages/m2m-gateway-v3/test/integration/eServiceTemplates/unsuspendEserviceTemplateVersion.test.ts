@@ -78,7 +78,7 @@ describe("unsuspendEServiceTemplateVersion", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(mockM2MTemplateVersionResponse);
+    expect(result).toStrictEqual(mockM2MTemplateVersionResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

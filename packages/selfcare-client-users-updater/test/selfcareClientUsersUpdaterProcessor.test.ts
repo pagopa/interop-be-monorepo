@@ -30,16 +30,11 @@ import {
 } from "./utils.js";
 
 describe("selfcareClientUsersUpdaterProcessor", () => {
-  const authorizationProcessClientMock: {
-    client: Pick<
-      authorizationApi.AuthorizationProcessClient["client"],
-      "internalRemoveClientAdmin"
-    >;
-  } = {
+  const authorizationProcessClientMock = {
     client: {
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
     },
-  };
+  } as unknown as Pick<authorizationApi.AuthorizationProcessClient, "client">;
   const tokenGeneratorMock = new InteropTokenGenerator(config);
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareClientUsersUpdaterProcessor: ReturnType<

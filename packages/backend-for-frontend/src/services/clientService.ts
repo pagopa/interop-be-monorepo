@@ -129,7 +129,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Deleting key ${keyId} from client ${clientId}`);
 
-      return authorizationClient.client.deleteClientKeyById(undefined, {
+      await authorizationClient.client.deleteClientKeyById(undefined, {
         params: { clientId, keyId },
         headers,
       });
@@ -142,7 +142,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      return authorizationClient.client.removeUser(undefined, {
+      await authorizationClient.client.removeUser(undefined, {
         params: { clientId, userId },
         headers,
       });

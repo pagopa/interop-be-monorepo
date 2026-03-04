@@ -41,6 +41,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -1561,7 +1562,7 @@ export function eserviceTemplateServiceBuilder(
       limit: number,
       offset: number,
       { logger }: WithLogger<AppContext>
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving eservice template creator with name ${creatorName}, limit ${limit}, offset ${offset}`
       );
