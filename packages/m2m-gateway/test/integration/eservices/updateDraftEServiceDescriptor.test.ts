@@ -83,6 +83,12 @@ describe("updateDraftEService", () => {
       suspendedAt: mockDescriptor.suspendedAt,
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
+      asyncExchangeBulk: undefined,
+      asyncExchangeConfirmation: undefined,
+      asyncExchangeMaxResultSet: undefined,
+      asyncExchangeOnlyMultiEntityMode: undefined,
+      asyncExchangeResourceAvailableTime: undefined,
+      asyncExchangeResponseTime: undefined,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
       asyncExchangeResponseTime: mockDescriptor.asyncExchangeResponseTime,
       asyncExchangeResourceAvailableTime:
