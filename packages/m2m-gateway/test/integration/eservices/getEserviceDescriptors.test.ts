@@ -64,12 +64,6 @@ describe("getEserviceDescriptors", () => {
     suspendedAt: descriptor.suspendedAt,
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
-    asyncExchangeBulk: undefined,
-    asyncExchangeConfirmation: undefined,
-    asyncExchangeMaxResultSet: undefined,
-    asyncExchangeOnlyMultiEntityMode: undefined,
-    asyncExchangeResourceAvailableTime: undefined,
-    asyncExchangeResponseTime: undefined,
     templateVersionId: descriptor.templateVersionRef?.id,
     asyncExchange: descriptor.asyncExchange,
   });
