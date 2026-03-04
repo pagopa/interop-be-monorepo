@@ -60,9 +60,8 @@ async function getCachedDescriptorIds(
     .map((id) => [id, descriptorIdCache.get(id) as DescriptorId]);
 
   if (uncachedIds.length > 0) {
-    const fetched = await readModelService.getLatestPublishedDescriptorIds(
-      uncachedIds
-    );
+    const fetched =
+      await readModelService.getLatestPublishedDescriptorIds(uncachedIds);
     fetched.forEach((value, key) => {
       descriptorIdCache.set(key, value);
     });
@@ -102,9 +101,8 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
   }
 
   const uniqueProducerIds = [...new Set(items.map((i) => i.entityProducerId))];
-  const tenantDataMap = await readModelService.getTenantsByIds(
-    uniqueProducerIds
-  );
+  const tenantDataMap =
+    await readModelService.getTenantsByIds(uniqueProducerIds);
   return items.map((item) => ({
     ...item,
     entityProducerName:
@@ -124,9 +122,8 @@ async function enrichWithEServiceNames<T extends EntityWithEService>(
   }
 
   const uniqueEServiceIds = [...new Set(items.map((i) => i.eserviceId))];
-  const eserviceNamesMap = await readModelService.getEServicesByIds(
-    uniqueEServiceIds
-  );
+  const eserviceNamesMap =
+    await readModelService.getEServicesByIds(uniqueEServiceIds);
   return items.map((item) => ({
     ...item,
     eserviceName: eserviceNamesMap.get(item.eserviceId) ?? UNKNOWN_NAME,
@@ -148,7 +145,7 @@ async function templateDataToBaseDigest<
   T extends TemplateDigestData & {
     eserviceTemplateId: string;
     eserviceTemplateVersionId: string;
-  }
+  },
 >(
   data: T[],
   readModelService: ReadModelService,

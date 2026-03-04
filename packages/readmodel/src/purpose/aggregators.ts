@@ -89,7 +89,7 @@ const createPurposeSQLPropertyMap = <
     | PurposeRiskAnalysisAnswerSQL
     | PurposeVersionSQL
     | PurposeVersionDocumentSQL
-    | PurposeVersionStampSQL
+    | PurposeVersionStampSQL,
 >(
   items: T[]
 ): Map<PurposeId, T[]> =>
@@ -172,7 +172,7 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
       .filter((s) => s.purposeVersionId === versionSQL.id)
       .reduce(
         (
-          acc: { [key in PurposeVersionStampKind]?: PurposeVersionStampSQL },
+          acc: Partial<Record<PurposeVersionStampKind, PurposeVersionStampSQL>>,
           stamp
         ) =>
           match(PurposeVersionStampKind.parse(stamp.kind))
