@@ -608,6 +608,7 @@ describe("upload Document", () => {
       };
       const eservice: EService = {
         ...mockEService,
+        asyncExchange: true,
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
@@ -676,6 +677,7 @@ describe("upload Document", () => {
       };
       const eservice: EService = {
         ...mockEService,
+        asyncExchange: true,
         descriptors: [descriptor],
       };
       const delegation = getMockDelegation({
@@ -746,6 +748,7 @@ describe("upload Document", () => {
       };
       const eservice: EService = {
         ...mockEService,
+        asyncExchange: true,
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
