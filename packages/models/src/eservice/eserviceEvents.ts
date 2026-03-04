@@ -584,27 +584,21 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal(
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"
-    ),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"),
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2
     ),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal(
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"
-    ),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"),
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2
     ),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal(
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
-    ),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"),
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2
     ),

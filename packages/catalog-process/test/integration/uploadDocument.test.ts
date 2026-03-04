@@ -629,8 +629,7 @@ describe("upload Document", () => {
       });
 
       const writtenPayload = decodeProtobufPayload({
-        messageType:
-          EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+        messageType: EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
         payload: writtenEvent.data,
       });
 
@@ -705,8 +704,7 @@ describe("upload Document", () => {
       });
 
       const writtenPayload = decodeProtobufPayload({
-        messageType:
-          EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+        messageType: EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
         payload: writtenEvent.data,
       });
 
@@ -783,9 +781,7 @@ describe("upload Document", () => {
           buildAsyncExchangeCallbackInterfaceSeed(),
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(
-        featureFlagNotEnabled("featureFlagAsyncExchange")
-      );
+      ).rejects.toThrowError(featureFlagNotEnabled("featureFlagAsyncExchange"));
     });
   });
 });

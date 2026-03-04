@@ -130,10 +130,7 @@ export const documentCreateErrorMapper = (
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "eServiceAsyncExchangeNotEnabled",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("eServiceAsyncExchangeNotEnabled", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
