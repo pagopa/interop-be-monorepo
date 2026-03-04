@@ -202,9 +202,7 @@ export function catalogServiceBuilder(db: DBContext) {
           const batchItems = {
             descriptorSQL: batch.map((item) => item.descriptorSQL),
             attributesSQL: batch.flatMap((item) => item.attributesSQL),
-            interfaceSQL: batch.flatMap((item) =>
-              item.interfaceSQL ? [item.interfaceSQL] : []
-            ),
+            interfacesSQL: batch.flatMap((item) => item.interfacesSQL),
             documentsSQL: batch.flatMap((item) => item.documentsSQL),
             rejectionReasonsSQL: batch.flatMap(
               (item) => item.rejectionReasonsSQL
@@ -230,11 +228,11 @@ export function catalogServiceBuilder(db: DBContext) {
             );
           }
 
-          if (batchItems.interfaceSQL.length > 0) {
+          if (batchItems.interfacesSQL.length > 0) {
             await interfaceRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.interfaceSQL
+              batchItems.interfacesSQL
             );
           }
 

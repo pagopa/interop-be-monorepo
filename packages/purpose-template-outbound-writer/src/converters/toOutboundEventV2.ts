@@ -67,6 +67,7 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    asyncExchangeCallbackInterface: undefined,
   };
 }
 
@@ -77,6 +78,7 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };

@@ -280,12 +280,15 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             )
           );
 
-        const interfaceSQL = documentToDocumentSQL(
-          descriptorInterface,
-          descriptorId,
-          eserviceId,
-          metadataVersion
-        );
+        const interfaceSQL = {
+          ...documentToDocumentSQL(
+            descriptorInterface,
+            descriptorId,
+            eserviceId,
+            metadataVersion
+          ),
+          kind: "INTERFACE",
+        };
 
         await tx
           .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
@@ -425,7 +428,10 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             .delete(eserviceDescriptorDocumentInReadmodelCatalog)
             .where(
               and(
-                eq(eserviceDescriptorDocumentInReadmodelCatalog.id, documentId),
+                eq(
+                  eserviceDescriptorDocumentInReadmodelCatalog.id,
+                  documentId
+                ),
                 lte(
                   eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
                   metadataVersion
@@ -470,7 +476,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
         const {
           descriptorSQL,
           attributesSQL,
-          interfaceSQL,
+          interfacesSQL,
           documentsSQL,
           rejectionReasonsSQL,
         } = splitDescriptorIntoObjectsSQL(
@@ -483,7 +489,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           .insert(eserviceDescriptorInReadmodelCatalog)
           .values(descriptorSQL);
 
-        if (interfaceSQL) {
+        for (const interfaceSQL of interfacesSQL) {
           await tx
             .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
             .values(interfaceSQL);
