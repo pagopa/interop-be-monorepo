@@ -1,6 +1,5 @@
 import { constants } from "http2";
 import {
-  AppContext,
   ExpressContext,
   M2MAdminAuthData,
   fromAppContext,
@@ -13,13 +12,17 @@ import {
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import { Request } from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { Logger } from "pagopa-interop-commons";
 import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
-import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
+import {
+  M2MGatewayAppContext,
+  fromM2MGatewayAppContext,
+  getInteropHeaders,
+} from "./context.js";
 import { verifyDPoPCompliance } from "./dpop.js";
 import { extractRequestDetailsForDPoPCheck } from "./request.js";
 
@@ -49,7 +52,10 @@ export function m2mAuthDataValidationMiddleware(
     // - contextMiddleware already set basic ctx info such as correlationId
     // - authenticationMiddleware already set authData in ctx
 
-    const ctx = fromAppContext((req as Request & { ctx: AppContext }).ctx);
+    const ctx = fromM2MGatewayAppContext(
+      (req as Request & { ctx: M2MGatewayAppContext }).ctx,
+      req.headers
+    );
     try {
       await match(ctx.authData)
         .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (authData) =>
@@ -60,26 +66,7 @@ export function m2mAuthDataValidationMiddleware(
             ctx.logger
           )
         )
-        .with({ systemRole: systemRole.M2M_ROLE }, () => {
-          // No additional validation needed for M2M_ROLE
-        })
-        .with(
-          {
-            systemRole: P.union(
-              systemRole.INTERNAL_ROLE,
-              systemRole.MAINTENANCE_ROLE,
-              undefined
-            ),
-          },
-          (authData) => {
-            throw unauthorizedError(
-              `Invalid role ${
-                authData.systemRole ?? authData.userRoles
-              } for this operation`
-            );
-          }
-        )
-        .exhaustive();
+        .otherwise(() => Promise.resolve());
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
@@ -98,76 +85,76 @@ export const authenticationDPoPMiddleware: (
   dynamoDBClient: DynamoDBClient
 ) => ZodiosRouterContextRequestHandler<ExpressContext> =
   (config: JWTConfig & DPoPConfig, dynamoDBClient: DynamoDBClient) =>
-  async (req, res, next): Promise<unknown> => {
-    // We assume that:
-    // - contextMiddleware already set ctx.serviceName and ctx.correlationId
-    const ctx = fromAppContext(req.ctx);
+    async (req, res, next): Promise<unknown> => {
+      // We assume that:
+      // - contextMiddleware already set ctx.serviceName and ctx.correlationId
+      const ctx = fromAppContext(req.ctx);
 
-    try {
-      // ----------------------------------------------------------------------
-      // Step 0 – Request Normalization (RFC 9449)
-      // Reconstruct the Target URI (HTU) and Method (HTM) from the request
-      // to ensure the DPoP proof signature matches the actual call.
-      // ----------------------------------------------------------------------
-      const { expectedHtu, expectedHtm } = extractRequestDetailsForDPoPCheck(
-        req,
-        config.dpopHtuBase
-      );
+      try {
+        // ----------------------------------------------------------------------
+        // Step 0 – Request Normalization (RFC 9449)
+        // Reconstruct the Target URI (HTU) and Method (HTM) from the request
+        // to ensure the DPoP proof signature matches the actual call.
+        // ----------------------------------------------------------------------
+        const { expectedHtu, expectedHtm } = extractRequestDetailsForDPoPCheck(
+          req,
+          config.dpopHtuBase
+        );
 
-      // ----------------------------------------------------------------------
-      // Step 1 – Schema and Presence Verification (Syntax Check)
-      // verify HTTP Authorization Header and DPoP Header
-      // ----------------------------------------------------------------------
-      const { accessToken, dpopProofJWS } = jwtsFromAuthAndDPoPHeaders(
-        req,
-        ctx.logger
-      );
+        // ----------------------------------------------------------------------
+        // Step 1 – Schema and Presence Verification (Syntax Check)
+        // verify HTTP Authorization Header and DPoP Header
+        // ----------------------------------------------------------------------
+        const { accessToken, dpopProofJWS } = jwtsFromAuthAndDPoPHeaders(
+          req,
+          ctx.logger
+        );
 
-      // ----------------------------------------------------------------------
-      // Step 2 & 3 – Access Token Verification & DPoP Enforcement
-      // verify JWT Access Token
-      // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
-      // ----------------------------------------------------------------------
-      const accessTokenDPoP = await verifyJwtDPoPToken(
-        accessToken,
-        config,
-        ctx.logger
-      );
+        // ----------------------------------------------------------------------
+        // Step 2 & 3 – Access Token Verification & DPoP Enforcement
+        // verify JWT Access Token
+        // verify all claims (cnf included) are all present in JWT Token (Binding DPoP)
+        // ----------------------------------------------------------------------
+        const accessTokenDPoP = await verifyJwtDPoPToken(
+          accessToken,
+          config,
+          ctx.logger
+        );
 
-      // 4. Full DPoP Validation (Signature, Replay Check, Key Binding)
-      await verifyDPoPCompliance({
-        config,
-        dpopProofJWS,
-        accessToken,
-        accessTokenClientId: accessTokenDPoP.client_id,
-        accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
-        expectedHtu,
-        expectedHtm,
-        dynamoDBClient,
-        logger: ctx.logger,
-      });
+        // 4. Full DPoP Validation (Signature, Replay Check, Key Binding)
+        await verifyDPoPCompliance({
+          config,
+          dpopProofJWS,
+          accessToken,
+          accessTokenClientId: accessTokenDPoP.client_id,
+          accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
+          expectedHtu,
+          expectedHtm,
+          dynamoDBClient,
+          logger: ctx.logger,
+        });
 
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = readAuthDataFromJwtToken(accessTokenDPoP);
-      return next();
-    } catch (error) {
-      const problem = makeApiProblem(
-        error,
-        (err) =>
-          match(err.code)
-            .with(
-              "tokenVerificationFailed",
-              "dpopProofValidationFailed",
-              "dpopProofSignatureValidationFailed",
-              "dpopProofJtiAlreadyUsed",
-              "dpopTokenBindingFailed",
-              () => 401
-            )
-            .with("operationForbidden", () => 403)
-            .with("missingHeader", "badDPoPToken", "invalidClaim", () => 400)
-            .otherwise(() => 500),
-        ctx
-      );
-      return res.status(problem.status).send(problem);
-    }
-  };
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.authData = readAuthDataFromJwtToken(accessTokenDPoP);
+        return next();
+      } catch (error) {
+        const problem = makeApiProblem(
+          error,
+          (err) =>
+            match(err.code)
+              .with(
+                "tokenVerificationFailed",
+                "dpopProofValidationFailed",
+                "dpopProofSignatureValidationFailed",
+                "dpopProofJtiAlreadyUsed",
+                "dpopTokenBindingFailed",
+                () => 401
+              )
+              .with("operationForbidden", () => 403)
+              .with("missingHeader", "badDPoPToken", "invalidClaim", () => 400)
+              .otherwise(() => 500),
+          ctx
+        );
+        return res.status(problem.status).send(problem);
+      }
+    };
