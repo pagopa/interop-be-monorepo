@@ -4389,7 +4389,7 @@ async function updateDraftEService(
 
   if (
     isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
-    updatedEService.asyncExchange === true &&
+    (updatedAsyncExchange ?? eservice.data.asyncExchange) === true &&
     updatedEService.mode === eserviceMode.receive
   ) {
     throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
