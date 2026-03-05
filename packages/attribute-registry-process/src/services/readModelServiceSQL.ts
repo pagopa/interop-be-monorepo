@@ -2,7 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeKind,
@@ -44,19 +44,24 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
-        .from(attributeInReadmodelAttribute)
-        .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(getTableColumns(attributeInReadmodelAttribute))
+          .from(attributeInReadmodelAttribute)
+          .where(inArray(attributeInReadmodelAttribute.id, ids))
+          .orderBy(ascLower(attributeInReadmodelAttribute.name))
+          .$dynamic();
+
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
 
       const attributes = aggregateAttributeArray(queryResult);
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        totalCount
       );
     },
     async getAttributesByKindsNameOrigin({
@@ -72,34 +77,39 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const queryResult = await readModelDB
-        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
-        .from(attributeInReadmodelAttribute)
-        .where(
-          and(
-            kinds.length > 0
-              ? inArray(attributeInReadmodelAttribute.kind, kinds)
-              : undefined,
-            name
-              ? ilike(
-                  attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            origin
-              ? eq(attributeInReadmodelAttribute.origin, origin)
-              : undefined
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(getTableColumns(attributeInReadmodelAttribute))
+          .from(attributeInReadmodelAttribute)
+          .where(
+            and(
+              kinds.length > 0
+                ? inArray(attributeInReadmodelAttribute.kind, kinds)
+                : undefined,
+              name
+                ? ilike(
+                    attributeInReadmodelAttribute.name,
+                    `%${escapeRegExp(name)}%`
+                  )
+                : undefined,
+              origin
+                ? eq(attributeInReadmodelAttribute.origin, origin)
+                : undefined
+            )
           )
-        )
-        .orderBy(ascLower(attributeInReadmodelAttribute.name))
-        .limit(limit)
-        .offset(offset);
+          .orderBy(ascLower(attributeInReadmodelAttribute.name))
+          .$dynamic();
+
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
 
       const attributes = aggregateAttributeArray(queryResult);
 
       return createListResult(
         attributes.map((attr) => attr.data),
-        queryResult[0]?.totalCount
+        totalCount
       );
     },
     async getAttributeById(

@@ -5,7 +5,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
-  withTotalCount,
+  getTableTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -438,7 +438,8 @@ export function readModelServiceBuilderSQL(
 
         const ids = (await idsSQLquery).map((result) => result.id);
 
-        const [queryResult, totalCount] = await Promise.all([
+        const [totalCount, queryResult] = await Promise.all([
+          buildQuery(totalCountQuery),
           tx
             .select({
               eservice: eserviceInReadmodelCatalog,
@@ -517,7 +518,6 @@ export function readModelServiceBuilderSQL(
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
-          buildQuery(totalCountQuery),
         ]);
 
         const eservices = aggregateEserviceArray(
@@ -578,46 +578,48 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      const res = await readmodelDB
-        .selectDistinctOn(
-          [tenantInReadmodelTenant.id],
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readmodelDB
+          .selectDistinctOn([tenantInReadmodelTenant.id], {
             tenant: tenantInReadmodelTenant,
             agreement: agreementInReadmodelAgreement,
             descriptor: eserviceDescriptorInReadmodelCatalog,
           })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.consumerId
+              ),
+              inArray(agreementInReadmodelAgreement.state, [
+                agreementState.active,
+                agreementState.suspended,
+              ])
+            )
           )
-        )
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          and(
-            eq(
-              agreementInReadmodelAgreement.descriptorId,
-              eserviceDescriptorInReadmodelCatalog.id
-            ),
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.published,
-              descriptorState.deprecated,
-              descriptorState.suspended,
-            ])
+          .innerJoin(
+            eserviceDescriptorInReadmodelCatalog,
+            and(
+              eq(
+                agreementInReadmodelAgreement.descriptorId,
+                eserviceDescriptorInReadmodelCatalog.id
+              ),
+              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+              inArray(eserviceDescriptorInReadmodelCatalog.state, [
+                descriptorState.published,
+                descriptorState.deprecated,
+                descriptorState.suspended,
+              ])
+            )
           )
-        )
-        .limit(limit)
-        .offset(offset);
+          .$dynamic();
+
+      const [totalCount, res] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
 
       const consumers: Consumer[] = res.map((row) => ({
         descriptorVersion: row.descriptor.version,
@@ -627,7 +629,7 @@ export function readModelServiceBuilderSQL(
         consumerExternalId: row.tenant.externalIdValue,
       }));
 
-      return createListResult(consumers, res[0]?.totalCount);
+      return createListResult(consumers, totalCount);
     },
     async listAgreements({
       eservicesIds,
@@ -815,9 +817,9 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Document>> {
-      const resultsSet = await readmodelDB
-        .select(
-          withTotalCount({
+      const buildBaseQuery = () =>
+        readmodelDB
+          .select({
             id: eserviceDescriptorDocumentInReadmodelCatalog.id,
             path: eserviceDescriptorDocumentInReadmodelCatalog.path,
             name: eserviceDescriptorDocumentInReadmodelCatalog.name,
@@ -827,24 +829,26 @@ export function readModelServiceBuilderSQL(
             checksum: eserviceDescriptorDocumentInReadmodelCatalog.checksum,
             uploadDate: eserviceDescriptorDocumentInReadmodelCatalog.uploadDate,
           })
-        )
-        .from(eserviceDescriptorDocumentInReadmodelCatalog)
-        .where(
-          and(
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
-              eserviceId
-            ),
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
-              descriptorId
+          .from(eserviceDescriptorDocumentInReadmodelCatalog)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
+                eserviceId
+              ),
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+                descriptorId
+              )
             )
           )
-        )
-        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
-        .limit(limit)
-        .offset(offset)
-        .$dynamic();
+          .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
+          .$dynamic();
+
+      const [totalCount, resultsSet] = await Promise.all([
+        getTableTotalCount(readmodelDB, buildBaseQuery()),
+        buildBaseQuery().limit(limit).offset(offset),
+      ]);
 
       return createListResult(
         resultsSet.map(
@@ -859,7 +863,7 @@ export function readModelServiceBuilderSQL(
               uploadDate: stringToDate(doc.uploadDate),
             }) satisfies Document
         ),
-        resultsSet[0]?.totalCount
+        totalCount
       );
     },
   };
