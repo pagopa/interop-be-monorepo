@@ -55,21 +55,12 @@ export async function waitForReadModelMetadataVersion(
   fetchResourceWithMetadata: () => Promise<
     { metadata: { version: number } } | undefined
   >,
-  targetVersion: number | undefined,
-  resourceLabel: string,
-  logger: { warn: (message: string) => void },
+  targetVersion: number,
   pollingConfig?: {
     defaultPollingMaxRetries: number;
     defaultPollingRetryDelay: number;
   }
 ): Promise<void> {
-  if (targetVersion === undefined) {
-    logger.warn(
-      `Missing metadata version for ${resourceLabel}. Skipping polling.`
-    );
-    return;
-  }
-
   const pollResourceByVersion = createPollingByCondition(
     fetchResourceWithMetadata,
     pollingConfig

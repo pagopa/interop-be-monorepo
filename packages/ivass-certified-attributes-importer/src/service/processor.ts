@@ -230,21 +230,25 @@ async function assignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    const metadataVersion =
-      await tenantProcess.internalAssignCertifiedAttribute(
-        tenant.externalId.origin,
-        tenant.externalId.value,
-        attribute.externalId.origin,
-        attribute.externalId.value,
-        context,
-        logger
+    const metadataVersion = await tenantProcess.internalAssignCertifiedAttribute(
+      tenant.externalId.origin,
+      tenant.externalId.value,
+      attribute.externalId.origin,
+      attribute.externalId.value,
+      context,
+      logger
+    );
+
+    if (metadataVersion === undefined) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
       );
+      return;
+    }
 
     await waitForReadModelMetadataVersion(
       () => readModel.getTenantByIdWithMetadata(tenant.id),
       metadataVersion,
-      `tenant ${tenant.id}`,
-      logger,
       pollingConfig
     );
   }
@@ -268,21 +272,25 @@ async function unassignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    const metadataVersion =
-      await tenantProcess.internalRevokeCertifiedAttribute(
-        tenant.externalId.origin,
-        tenant.externalId.value,
-        attribute.externalId.origin,
-        attribute.externalId.value,
-        context,
-        logger
+    const metadataVersion = await tenantProcess.internalRevokeCertifiedAttribute(
+      tenant.externalId.origin,
+      tenant.externalId.value,
+      attribute.externalId.origin,
+      attribute.externalId.value,
+      context,
+      logger
+    );
+
+    if (metadataVersion === undefined) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
       );
+      return;
+    }
 
     await waitForReadModelMetadataVersion(
       () => readModel.getTenantByIdWithMetadata(tenant.id),
       metadataVersion,
-      `tenant ${tenant.id}`,
-      logger,
       pollingConfig
     );
   }

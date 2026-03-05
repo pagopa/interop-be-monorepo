@@ -3,20 +3,7 @@ import { InteropHeaders, Logger } from "pagopa-interop-commons";
 
 const internalUpsertTenantMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();
-const waitForReadModelMetadataVersionMock = vi.fn(
-  async (
-    _fetchResourceWithMetadata: () => Promise<unknown>,
-    targetVersion: number | undefined,
-    resourceLabel: string,
-    logger: { warn: (message: string) => void }
-  ): Promise<void> => {
-    if (targetVersion === undefined) {
-      logger.warn(
-        `Missing metadata version for ${resourceLabel}. Skipping polling.`
-      );
-    }
-  }
-);
+const waitForReadModelMetadataVersionMock = vi.fn(async (): Promise<void> => {});
 
 vi.mock("pagopa-interop-api-clients", async () => {
   const actual = await vi.importActual("pagopa-interop-api-clients");
@@ -113,7 +100,7 @@ describe("IPA metadata polling", () => {
       pollingConfig
     );
 
-    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(0);
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
@@ -191,7 +178,7 @@ describe("IPA metadata polling", () => {
       pollingConfig
     );
 
-    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(0);
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 

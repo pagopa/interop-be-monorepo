@@ -358,14 +358,20 @@ export async function assignNewAttributes(
       }
     );
 
+    const metadata = response.metadata;
+    if (!metadata) {
+      loggerInstance.warn(
+        `Missing metadata version for tenant ${attributeToAssign.externalId.value}. Skipping polling.`
+      );
+      continue;
+    }
+
     await waitForReadModelMetadataVersion(
       () =>
         readModelServiceSQL.getTenantByExternalIdWithMetadata(
           attributeToAssign.externalId
         ),
-      response.metadata?.version,
-      `tenant ${attributeToAssign.externalId.value}`,
-      loggerInstance,
+      metadata.version,
       pollingConfig
     );
   }
@@ -483,15 +489,21 @@ export async function revokeAttributes(
       }
     );
 
+    const metadata = response.metadata;
+    if (!metadata) {
+      loggerInstance.warn(
+        `Missing metadata version for tenant ${a.tExternalId}. Skipping polling.`
+      );
+      continue;
+    }
+
     await waitForReadModelMetadataVersion(
       () =>
         readModelServiceSQL.getTenantByExternalIdWithMetadata({
           origin: a.tOrigin,
           value: a.tExternalId,
         }),
-      response.metadata?.version,
-      `tenant ${a.tExternalId}`,
-      loggerInstance,
+      metadata.version,
       pollingConfig
     );
   }
