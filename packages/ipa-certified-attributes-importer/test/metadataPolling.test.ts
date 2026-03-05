@@ -3,7 +3,9 @@ import { InteropHeaders, Logger } from "pagopa-interop-commons";
 
 const internalUpsertTenantMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();
-const waitForReadModelMetadataVersionMock = vi.fn(async (): Promise<void> => {});
+const waitForReadModelMetadataVersionMock = vi.fn(
+  (): Promise<void> => Promise.resolve()
+);
 
 vi.mock("pagopa-interop-api-clients", async () => {
   const actual = await vi.importActual("pagopa-interop-api-clients");
