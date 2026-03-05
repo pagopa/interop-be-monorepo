@@ -35,8 +35,7 @@ describe("interactions utils", () => {
   });
 
   it("should create and read an interaction", async () => {
-    const interactionId =
-      "a7a95f6d-8d28-4adf-bcd1-95e420e3ecaa" as InteractionId;
+    const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
@@ -71,8 +70,7 @@ describe("interactions utils", () => {
   });
 
   it("should not create duplicated interaction", async () => {
-    const interactionId =
-      "0c7bb447-f33d-4efd-8d2b-295b7abf9cb5" as InteractionId;
+    const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
@@ -97,10 +95,12 @@ describe("interactions utils", () => {
   it("should query interactions by purpose and eService through GSI", async () => {
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
+    const interactionOneId = generateId<InteractionId>();
+    const interactionTwoId = generateId<InteractionId>();
     const i1 = {
-      PK: "INTERACTION#4f5f7e67-b322-4eb7-b205-6dc892dfad6f",
+      PK: `INTERACTION#${interactionOneId}`,
       GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
-      interactionId: "4f5f7e67-b322-4eb7-b205-6dc892dfad6f",
+      interactionId: interactionOneId,
       purposeId,
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
@@ -110,8 +110,8 @@ describe("interactions utils", () => {
     };
     const i2 = {
       ...i1,
-      PK: "INTERACTION#21379f30-8be3-4c8f-9fe3-af5b1b885282",
-      interactionId: "21379f30-8be3-4c8f-9fe3-af5b1b885282",
+      PK: `INTERACTION#${interactionTwoId}`,
+      interactionId: interactionTwoId,
     };
 
     mockSend.mockResolvedValueOnce({
@@ -135,8 +135,7 @@ describe("interactions utils", () => {
   });
 
   it("should update interaction state and callback timestamp", async () => {
-    const interactionId =
-      "5ce3fec2-9446-485c-a903-5681c4c43cef" as InteractionId;
+    const interactionId = generateId<InteractionId>();
     mockSend.mockResolvedValueOnce({});
 
     const callbackIssuedAt = new Date().toISOString();
