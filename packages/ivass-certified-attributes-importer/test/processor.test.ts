@@ -158,7 +158,7 @@ describe("IVASS Certified Attributes Importer", () => {
       getTenantsMockGenerator((_) => readModelTenants)
     );
 
-    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce(5);
+    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
 
     await expect(
       importAttributes(
@@ -216,7 +216,7 @@ describe("IVASS Certified Attributes Importer", () => {
       getTenantsMockGenerator((_) => tenantsWithAttribute)
     );
 
-    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce(5);
+    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
 
     await expect(
       importAttributes(

@@ -63,14 +63,14 @@ export const internalAssignCertifiedAttributeMock = (
   _attributeOrigin: string,
   _attributeExternalId: string,
   _context: InteropContext
-): Promise<number | undefined> => Promise.resolve(1);
+): Promise<{ version: number } | undefined> => Promise.resolve({ version: 1 });
 export const internalRevokeCertifiedAttributeMock = (
   _tenantOrigin: string,
   _tenantExternalId: string,
   _attributeOrigin: string,
   _attributeExternalId: string,
   _context: InteropContext
-): Promise<number | undefined> => Promise.resolve(1);
+): Promise<{ version: number } | undefined> => Promise.resolve({ version: 1 });
 
 export const getPATenantsMock = getTenantsMockGenerator((ipaCodes) =>
   ipaCodes.map((c) => ({

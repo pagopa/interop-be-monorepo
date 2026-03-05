@@ -7,6 +7,10 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { InteropContext } from "../model/interopContextModel.js";
 
+export type MetadataVersion = {
+  version: number;
+};
+
 export class TenantProcessService {
   private readonly client: ZodiosClientWithMetadata<
     ReturnType<typeof tenantApi.createInternalApiClient>
@@ -26,7 +30,7 @@ export class TenantProcessService {
     attributeExternalId: string,
     context: InteropContext,
     logger: Logger
-  ): Promise<number | undefined> {
+  ): Promise<MetadataVersion | undefined> {
     try {
       const response = await this.client.internalAssignCertifiedAttribute(
         undefined,
@@ -45,7 +49,7 @@ export class TenantProcessService {
         }
       );
 
-      return response.metadata?.version;
+      return response.metadata;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.error(
@@ -64,7 +68,7 @@ export class TenantProcessService {
     attributeExternalId: string,
     context: InteropContext,
     logger: Logger
-  ): Promise<number | undefined> {
+  ): Promise<MetadataVersion | undefined> {
     try {
       const response = await this.client.internalRevokeCertifiedAttribute(
         undefined,
@@ -83,7 +87,7 @@ export class TenantProcessService {
         }
       );
 
-      return response.metadata?.version;
+      return response.metadata;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.error(

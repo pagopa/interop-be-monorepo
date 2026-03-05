@@ -401,7 +401,7 @@ async function assignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    const metadataVersion = await tenantProcess.internalAssignCertifiedAttribute(
+    const metadata = await tenantProcess.internalAssignCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
@@ -410,7 +410,7 @@ async function assignAttribute(
       logger
     );
 
-    if (metadataVersion === undefined) {
+    if (!metadata) {
       logger.warn(
         `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
       );
@@ -419,7 +419,7 @@ async function assignAttribute(
 
     await waitForReadModelMetadataVersion(
       () => readModel.getTenantByIdWithMetadata(tenant.id),
-      metadataVersion,
+      metadata.version,
       pollingConfig
     );
   }
@@ -443,7 +443,7 @@ async function unassignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    const metadataVersion = await tenantProcess.internalRevokeCertifiedAttribute(
+    const metadata = await tenantProcess.internalRevokeCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
@@ -452,7 +452,7 @@ async function unassignAttribute(
       logger
     );
 
-    if (metadataVersion === undefined) {
+    if (!metadata) {
       logger.warn(
         `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
       );
@@ -461,7 +461,7 @@ async function unassignAttribute(
 
     await waitForReadModelMetadataVersion(
       () => readModel.getTenantByIdWithMetadata(tenant.id),
-      metadataVersion,
+      metadata.version,
       pollingConfig
     );
   }
