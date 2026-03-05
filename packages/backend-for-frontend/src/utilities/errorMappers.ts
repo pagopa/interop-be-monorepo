@@ -144,6 +144,10 @@ export const createEServiceDocumentErrorMapper = (
     .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
+      "interfaceExtractingSoapFieldValueError",
+      "interfaceExtractingInfoError",
+      "soapFileParsingError",
+      "openapiVersionNotRecognized",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -157,6 +161,10 @@ export const createEServiceTemplateDocumentErrorMapper = (
     .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
+      "interfaceExtractingSoapFieldValueError",
+      "interfaceExtractingInfoError",
+      "soapFileParsingError",
+      "openapiVersionNotRecognized",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
