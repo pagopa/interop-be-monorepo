@@ -16,50 +16,14 @@ import {
   DescriptorId,
   EServiceId,
   genericInternalError,
+  Interaction,
+  InteractionId,
+  interactionState,
+  InteractionState,
+  makeGSIPKPurposeIdEServiceId,
+  makeInteractionPK,
   PurposeId,
 } from "pagopa-interop-models";
-import { z } from "zod";
-
-const interactionState = {
-  startInteraction: "start_interaction",
-  callbackInvocation: "callback_invocation",
-  getResource: "get_resource",
-  confirmation: "confirmation",
-} as const;
-
-const InteractionState = z.enum([
-  Object.values(interactionState)[0],
-  ...Object.values(interactionState).slice(1),
-]);
-type InteractionState = z.infer<typeof InteractionState>;
-
-const InteractionId = z.string().uuid();
-type InteractionId = z.infer<typeof InteractionId>;
-
-const Interaction = z.object({
-  PK: z.string(),
-  GSIPK_purposeId_eserviceId: z.string(),
-  interactionId: InteractionId,
-  purposeId: PurposeId,
-  eServiceId: EServiceId,
-  descriptorId: DescriptorId,
-  state: InteractionState,
-  startInteractionTokenIssuedAt: z.string().datetime().optional(),
-  callbackInvocationTokenIssuedAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime(),
-});
-type Interaction = z.infer<typeof Interaction>;
-
-const makeInteractionPK = (interactionId: InteractionId): string =>
-  `INTERACTION#${interactionId}`;
-
-const makeGSIPKPurposeIdEServiceId = ({
-  purposeId,
-  eServiceId,
-}: {
-  purposeId: PurposeId;
-  eServiceId: EServiceId;
-}): string => `${purposeId}#${eServiceId}`;
 
 const interactionStateAllowedByScope: Record<
   InteractionState,
