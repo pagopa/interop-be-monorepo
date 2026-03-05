@@ -1,10 +1,10 @@
 import { createHash } from "crypto";
 import { match, P } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_TYPOLOGY } from "pagopa-interop-models";
+import type { OpenDataConfig } from "../config/openDataConfig.js";
 import {
   Category,
   Institution,
-  OpenDataConfig,
   getAllCategories,
   getAllInstitutions,
 } from "./openDataExtractor.js";

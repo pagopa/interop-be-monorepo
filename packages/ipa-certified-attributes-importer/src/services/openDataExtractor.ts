@@ -5,6 +5,7 @@ import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import type { OpenDataConfig } from "../config/openDataConfig.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
@@ -25,13 +26,6 @@ export type Category = {
   name: string;
   kind: string;
   origin: string;
-};
-
-export type OpenDataConfig = {
-  institutionsUrl: string;
-  aooUrl: string;
-  uoUrl: string;
-  institutionsCategoriesUrl: string;
 };
 
 const institutionsFields = [
