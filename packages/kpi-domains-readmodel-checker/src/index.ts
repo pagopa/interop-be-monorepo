@@ -2,8 +2,8 @@ import { CorrelationId, generateId } from "pagopa-interop-models";
 import { initDB, logger } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { overallReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { compare } from "./utils.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { config } from "./configs/config.js";
 import {
   DBContext,
@@ -43,7 +43,7 @@ export const dbContext: DBContext = {
   pgp: analyticsPostgresDB.$config.pgp,
 };
 
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+const readModelServiceSQL = overallReadModelServiceBuilder(readModelDB);
 const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
 
 async function main(): Promise<void> {
