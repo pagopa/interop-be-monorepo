@@ -104,7 +104,7 @@ describe("handlePurposeTemplateDocument", () => {
         },
       },
       event_version: 2,
-    } as Parameters<typeof handlePurposeTemplateDocument>[0];
+    } as unknown as Parameters<typeof handlePurposeTemplateDocument>[0];
 
     await expect(
       handlePurposeTemplateDocument(
