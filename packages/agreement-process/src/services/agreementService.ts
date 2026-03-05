@@ -615,7 +615,6 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
-      const hasRelatedAgreements = agreements.length > 0;
       const updatedAgreement = {
         ...agreement.data,
         ...updateSeed,
@@ -629,12 +628,10 @@ export function agreementServiceBuilder(
         logger
       );
 
-      const isFirstActivation =
-        updatedAgreement.state === agreementState.active &&
-        !hasRelatedAgreements;
+      const isActivating = updatedAgreement.state === agreementState.active;
 
-      const submittedAgreement = await addContractOnFirstActivation(
-        isFirstActivation,
+      const submittedAgreement = await addContractAtCondition(
+        isActivating,
         contractBuilderInstance,
         eservice,
         consumer,
@@ -1377,7 +1374,7 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const updatedAgreement: Agreement = await addContractOnFirstActivation(
+      const updatedAgreement: Agreement = await addContractAtCondition(
         isFirstActivation,
         contractBuilderInstance,
         eservice,
@@ -1757,8 +1754,8 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
 }
 
 // eslint-disable-next-line max-params
-async function addContractOnFirstActivation(
-  isFirstActivation: boolean,
+async function addContractAtCondition(
+  condition: boolean,
   contractBuilder: ContractBuilder,
   eservice: EService,
   consumer: Tenant,
@@ -1769,7 +1766,7 @@ async function addContractOnFirstActivation(
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
-    isFirstActivation
+    condition
   ) {
     logger.info(
       `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
