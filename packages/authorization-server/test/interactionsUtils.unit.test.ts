@@ -10,6 +10,7 @@ import {
   EServiceId,
   generateId,
   PurposeId,
+  InteractionId,
 } from "pagopa-interop-models";
 import {
   createInteraction,
@@ -34,7 +35,8 @@ describe("interactions utils", () => {
   });
 
   it("should create and read an interaction", async () => {
-    const interactionId = "a7a95f6d-8d28-4adf-bcd1-95e420e3ecaa";
+    const interactionId =
+      "a7a95f6d-8d28-4adf-bcd1-95e420e3ecaa" as InteractionId;
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
@@ -69,7 +71,8 @@ describe("interactions utils", () => {
   });
 
   it("should not create duplicated interaction", async () => {
-    const interactionId = "0c7bb447-f33d-4efd-8d2b-295b7abf9cb5";
+    const interactionId =
+      "0c7bb447-f33d-4efd-8d2b-295b7abf9cb5" as InteractionId;
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
@@ -132,7 +135,8 @@ describe("interactions utils", () => {
   });
 
   it("should update interaction state and callback timestamp", async () => {
-    const interactionId = "5ce3fec2-9446-485c-a903-5681c4c43cef";
+    const interactionId =
+      "5ce3fec2-9446-485c-a903-5681c4c43cef" as InteractionId;
     mockSend.mockResolvedValueOnce({});
 
     const callbackIssuedAt = new Date().toISOString();

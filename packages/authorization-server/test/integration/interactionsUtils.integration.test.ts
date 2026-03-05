@@ -8,6 +8,7 @@ import {
   EServiceId,
   generateId,
   PurposeId,
+  InteractionId,
 } from "pagopa-interop-models";
 import {
   createInteraction,
@@ -30,7 +31,8 @@ describe("interactions utils integration", () => {
   });
 
   it("should create and read an interaction from DynamoDB", async () => {
-    const interactionId = "a7a95f6d-8d28-4adf-bcd1-95e420e3ecaa";
+    const interactionId =
+      "a7a95f6d-8d28-4adf-bcd1-95e420e3ecaa" as InteractionId;
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
@@ -60,8 +62,10 @@ describe("interactions utils integration", () => {
     const eServiceId = generateId<EServiceId>();
     const issuedAt = new Date().toISOString();
 
-    const interactionOneId = "4f5f7e67-b322-4eb7-b205-6dc892dfad6f";
-    const interactionTwoId = "21379f30-8be3-4c8f-9fe3-af5b1b885282";
+    const interactionOneId =
+      "4f5f7e67-b322-4eb7-b205-6dc892dfad6f" as InteractionId;
+    const interactionTwoId =
+      "21379f30-8be3-4c8f-9fe3-af5b1b885282" as InteractionId;
 
     await createInteraction({
       dynamoDBClient,
@@ -86,7 +90,7 @@ describe("interactions utils integration", () => {
     await createInteraction({
       dynamoDBClient,
       interactionsTable,
-      interactionId: "9f26f4c4-34be-4bb5-b472-24417bded3b2",
+      interactionId: "9f26f4c4-34be-4bb5-b472-24417bded3b2" as InteractionId,
       purposeId: generateId<PurposeId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
@@ -107,7 +111,8 @@ describe("interactions utils integration", () => {
   });
 
   it("should update interaction state and token timestamps", async () => {
-    const interactionId = "5ce3fec2-9446-485c-a903-5681c4c43cef";
+    const interactionId =
+      "5ce3fec2-9446-485c-a903-5681c4c43cef" as InteractionId;
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
