@@ -5,6 +5,12 @@ import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import {
+  categoriesFields,
+  CategoriesFields,
+  institutionsFields,
+  InstitutionsFields,
+} from "../config/openDataFields.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
@@ -33,29 +39,6 @@ export type OpenDataConfig = {
   uoUrl: string;
   institutionsCategoriesUrl: string;
 };
-
-const institutionsFields = [
-  "Codice_IPA",
-  "Denominazione_ente",
-  "Denominazione_aoo",
-  "Descrizione_uo",
-  "Codice_fiscale_ente",
-  "Codice_Categoria",
-  "Mail1",
-  "Indirizzo",
-  "CAP",
-  "Tipologia",
-  "Codice_uni_aoo",
-  "Codice_uni_uo",
-] as const;
-type InstitutionsFields = (typeof institutionsFields)[number];
-
-const categoriesFields = [
-  "Codice_categoria",
-  "Nome_categoria",
-  "Tipologia_categoria",
-] as const;
-type CategoriesFields = (typeof categoriesFields)[number];
 
 function fieldExtractor<K>(
   record: unknown[],
