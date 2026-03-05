@@ -199,6 +199,25 @@ export const updateInteractionState = async ({
   state: InteractionState;
   updatedAt: string;
 }): Promise<void> => {
+  const currentInteraction = await readInteraction(
+    dynamoDBClient,
+    interactionId,
+    interactionsTable
+  );
+
+  if (!currentInteraction) {
+    throw genericInternalError("Unable to update interaction state");
+  }
+
+  if (
+    !isInteractionStateAllowedForScope({
+      currentState: currentInteraction.state,
+      scope: state,
+    })
+  ) {
+    throw genericInternalError("Unable to update interaction state");
+  }
+
   const expressionAttributeValues: NonNullable<
     UpdateItemInput["ExpressionAttributeValues"]
   > = {

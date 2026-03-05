@@ -1,4 +1,5 @@
 import {
+  GetItemCommand,
   PutItemCommand,
   QueryCommand,
   UpdateItemCommand,
@@ -136,6 +137,21 @@ describe("interactions utils", () => {
 
   it("should update interaction state and callback timestamp", async () => {
     const interactionId = generateId<InteractionId>();
+    const purposeId = generateId<PurposeId>();
+    const eServiceId = generateId<EServiceId>();
+    const currentInteraction = {
+      PK: `INTERACTION#${interactionId}`,
+      GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
+      interactionId,
+      purposeId,
+      eServiceId,
+      descriptorId: generateId<DescriptorId>(),
+      state: "start_interaction",
+      startInteractionTokenIssuedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
     mockSend.mockResolvedValueOnce({});
 
     const callbackIssuedAt = new Date().toISOString();
@@ -147,11 +163,46 @@ describe("interactions utils", () => {
       updatedAt: callbackIssuedAt,
     });
 
-    const updateCall = mockSend.mock.calls[0][0] as UpdateItemCommand;
+    const getItemCall = mockSend.mock.calls[0][0] as GetItemCommand;
+    expect(getItemCall).toBeInstanceOf(GetItemCommand);
+
+    const updateCall = mockSend.mock.calls[1][0] as UpdateItemCommand;
     expect(updateCall).toBeInstanceOf(UpdateItemCommand);
     expect(JSON.stringify(updateCall.input)).toContain(
       "callbackInvocationTokenIssuedAt"
     );
+    expect(updateCall.input.ConditionExpression).toBe("attribute_exists(PK)");
+  });
+
+  it("should throw when state transition is not allowed", async () => {
+    const interactionId = generateId<InteractionId>();
+    const purposeId = generateId<PurposeId>();
+    const eServiceId = generateId<EServiceId>();
+    const currentInteraction = {
+      PK: `INTERACTION#${interactionId}`,
+      GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
+      interactionId,
+      purposeId,
+      eServiceId,
+      descriptorId: generateId<DescriptorId>(),
+      state: "callback_invocation",
+      callbackInvocationTokenIssuedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
+
+    await expect(
+      updateInteractionState({
+        dynamoDBClient: dynamoDBClient as never,
+        interactionsTable,
+        interactionId,
+        state: "confirmation",
+        updatedAt: new Date().toISOString(),
+      })
+    ).rejects.toThrow("Unable to update interaction state");
+
+    expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it("should validate allowed state transitions by scope", () => {
