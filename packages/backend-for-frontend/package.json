@@ -46,6 +46,7 @@
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-client-assertion-validation": "workspace:*",
+    "pagopa-interop-dpop-validation": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "swagger-ui-express": "catalog:",
