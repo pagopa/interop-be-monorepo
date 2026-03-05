@@ -110,18 +110,22 @@ export function tokenServiceBuilder({
     async generateToken(
       headers: IncomingHttpHeaders & HttpDPoPHeader,
       body: authorizationServerApi.AccessTokenRequest,
-      { logger, correlationId }: WithLogger<AuthServerAppContext>,
+      getCtx: () => WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GeneratedTokenData> {
-      logger.info(`[CLIENTID=${body.client_id}] Token requested`);
+      if (body.client_id) {
+        setCtxClientId(unsafeBrandId(body.client_id));
+      }
+
+      getCtx().logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
       const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
-        logger
+        getCtx().logger
       );
 
       // Request body parameters validation
@@ -145,7 +149,7 @@ export function tokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          logger,
+          getCtx().logger,
           isFeatureFlagEnabled(
             config,
             "featureFlagClientAssertionStrictClaimsValidation"
@@ -170,7 +174,7 @@ export function tokenServiceBuilder({
         clientKind: undefined,
         tokenJti: undefined,
         message: "Client assertion validated",
-        logger,
+        logger: getCtx().logger,
       });
 
       const pk = purposeId
@@ -191,7 +195,7 @@ export function tokenServiceBuilder({
         clientKind: key.clientKind,
         tokenJti: undefined,
         message: "Key retrieved",
-        logger,
+        logger: getCtx().logger,
       });
 
       const { errors: clientAssertionSignatureErrors } =
@@ -219,7 +223,10 @@ export function tokenServiceBuilder({
 
       // Rate limit check
       const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+        await redisRateLimiter.rateLimitByOrganization(
+          key.consumerId,
+          getCtx().logger
+        );
       if (limitReached) {
         return {
           limitReached: true,
@@ -277,9 +284,9 @@ export function tokenServiceBuilder({
               key,
               clientAssertion: clientAssertionJWT,
               dpop: dpopProofJWT,
-              correlationId,
+              correlationId: getCtx().correlationId,
               fileManager,
-              logger,
+              logger: getCtx().logger,
             });
 
             logTokenGenerationInfo({
@@ -287,7 +294,7 @@ export function tokenServiceBuilder({
               clientKind: key.clientKind,
               tokenJti: token.payload.jti,
               message: "Token generated",
-              logger,
+              logger: getCtx().logger,
             });
 
             return {
@@ -313,7 +320,7 @@ export function tokenServiceBuilder({
             clientKind: key.clientKind,
             tokenJti: token.payload.jti,
             message: "Token generated",
-            logger,
+            logger: getCtx().logger,
           });
 
           return {
