@@ -113,7 +113,7 @@ describe("getVerifiedAttributes", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
@@ -141,7 +141,7 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result1).toEqual(m2mVerifiedAttributesResponse1);
+    expect(result1).toStrictEqual(m2mVerifiedAttributesResponse1);
 
     const m2mVerifiedAttributesResponse2: m2mGatewayApi.TenantVerifiedAttributes =
       {
@@ -160,7 +160,7 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mVerifiedAttributesResponse2);
+    expect(result2).toStrictEqual(m2mVerifiedAttributesResponse2);
 
     const m2mVerifiedAttributesResponse3: m2mGatewayApi.TenantVerifiedAttributes =
       {
@@ -179,6 +179,6 @@ describe("getVerifiedAttributes", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mVerifiedAttributesResponse3);
+    expect(result3).toStrictEqual(m2mVerifiedAttributesResponse3);
   });
 });

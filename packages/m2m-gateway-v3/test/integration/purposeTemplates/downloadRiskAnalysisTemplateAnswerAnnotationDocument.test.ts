@@ -69,7 +69,7 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockDocument.path);
+    ).toStrictEqual(mockDocument.path);
 
     const result =
       await purposeTemplateService.downloadRiskAnalysisTemplateAnswerAnnotationDocument(

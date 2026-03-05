@@ -21,6 +21,7 @@
   "keywords": [],
   "devDependencies": {
     "@types/archiver": "6.0.2",
+    "@types/adm-zip": "0.5.7",
     "@types/node": "20.19.4",
     "adm-zip": "0.5.10",
     "dotenv-flow": "4.1.0",

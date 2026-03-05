@@ -56,7 +56,7 @@ describe("getPurposeTemplate", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MPurposeTemplate);
+    expect(result).toStrictEqual(expectedM2MPurposeTemplate);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate,

@@ -68,7 +68,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should write three entries on the bucket", async () => {
@@ -119,7 +119,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should throw error if write operation fails", async () => {

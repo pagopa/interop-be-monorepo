@@ -30,6 +30,11 @@ export const DPoPProofPayload = z
   .strict();
 export type DPoPProofPayload = z.infer<typeof DPoPProofPayload>;
 
+export const DPoPProofResourcePayload = DPoPProofPayload.extend({
+  ath: z.string(),
+});
+export type DPoPProofResourcePayload = z.infer<typeof DPoPProofResourcePayload>;
+
 export const DPoPProof = z
   .object({
     header: DPoPProofHeader,
@@ -37,3 +42,11 @@ export const DPoPProof = z
   })
   .strict();
 export type DPoPProof = z.infer<typeof DPoPProof>;
+
+export const DPoPProofResource = z
+  .object({
+    header: DPoPProofHeader,
+    payload: DPoPProofResourcePayload,
+  })
+  .strict();
+export type DPoPProofResource = z.infer<typeof DPoPProofResource>;
