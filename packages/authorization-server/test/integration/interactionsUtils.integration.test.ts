@@ -13,7 +13,6 @@ import {
 import {
   createInteraction,
   readInteraction,
-  readInteractionsByPurposeAndEService,
   updateInteractionState,
 } from "../../src/utilities/interactionsUtils.js";
 import { dynamoDBClient } from "../integrationUtils.js";
@@ -54,57 +53,6 @@ describe("interactions utils integration", () => {
     );
 
     expect(retrieved).toEqual(created);
-  });
-
-  it("should query interactions by purpose and eService via GSI", async () => {
-    const purposeId = generateId<PurposeId>();
-    const eServiceId = generateId<EServiceId>();
-    const issuedAt = new Date().toISOString();
-
-    const interactionOneId = generateId<InteractionId>();
-    const interactionTwoId = generateId<InteractionId>();
-
-    await createInteraction({
-      dynamoDBClient,
-      interactionsTable,
-      interactionId: interactionOneId,
-      purposeId,
-      eServiceId,
-      descriptorId: generateId<DescriptorId>(),
-      issuedAt,
-    });
-
-    await createInteraction({
-      dynamoDBClient,
-      interactionsTable,
-      interactionId: interactionTwoId,
-      purposeId,
-      eServiceId,
-      descriptorId: generateId<DescriptorId>(),
-      issuedAt,
-    });
-
-    await createInteraction({
-      dynamoDBClient,
-      interactionsTable,
-      interactionId: generateId<InteractionId>(),
-      purposeId: generateId<PurposeId>(),
-      eServiceId,
-      descriptorId: generateId<DescriptorId>(),
-      issuedAt,
-    });
-
-    const interactions = await readInteractionsByPurposeAndEService({
-      dynamoDBClient,
-      interactionsTable,
-      purposeId,
-      eServiceId,
-    });
-
-    expect(interactions).toHaveLength(2);
-    expect(interactions.map((i) => i.interactionId)).toEqual(
-      expect.arrayContaining([interactionOneId, interactionTwoId])
-    );
   });
 
   it("should update interaction state and token timestamps", async () => {

@@ -164,11 +164,6 @@ export const InteractionsPK = z
   .brand(`${interactionPrefix}interactionId`);
 export type InteractionsPK = z.infer<typeof InteractionsPK>;
 
-export const GSIPKPurposeIdEServiceId = z
-  .string()
-  .brand(`purposeId#eserviceId`);
-export type GSIPKPurposeIdEServiceId = z.infer<typeof GSIPKPurposeIdEServiceId>;
-
 export const GSIPKEServiceIdDescriptorId = z
   .string()
   .brand(`eserviceId#descriptorId`);
@@ -369,7 +364,6 @@ export const IDS = z.union([
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
   InteractionsPK,
-  GSIPKPurposeIdEServiceId,
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   GSIPKClientIdKid,

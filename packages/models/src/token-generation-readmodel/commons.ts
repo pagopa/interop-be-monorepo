@@ -3,7 +3,6 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
-  GSIPKPurposeIdEServiceId,
   InteractionId,
   InteractionsPK,
   GSIPKClientIdKid,
@@ -105,15 +104,6 @@ export const makeInteractionPK = (
   interactionId: InteractionId
 ): InteractionsPK =>
   unsafeBrandId<InteractionsPK>(`INTERACTION#${interactionId}`);
-
-export const makeGSIPKPurposeIdEServiceId = ({
-  purposeId,
-  eServiceId,
-}: {
-  purposeId: PurposeId;
-  eServiceId: EServiceId;
-}): GSIPKPurposeIdEServiceId =>
-  unsafeBrandId<GSIPKPurposeIdEServiceId>(`${purposeId}#${eServiceId}`);
 
 export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId,
