@@ -133,6 +133,15 @@ describe("interactions utils integration", () => {
       updatedAt: callbackIssuedAt,
     });
 
+    const getResourceAt = new Date("2026-01-01T10:01:30.000Z").toISOString();
+    await updateInteractionState({
+      dynamoDBClient,
+      interactionsTable,
+      interactionId,
+      state: "get_resource",
+      updatedAt: getResourceAt,
+    });
+
     const confirmedAt = new Date("2026-01-01T10:02:00.000Z").toISOString();
     await updateInteractionState({
       dynamoDBClient,
