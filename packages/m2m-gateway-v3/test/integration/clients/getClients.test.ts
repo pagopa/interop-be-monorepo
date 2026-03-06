@@ -102,7 +102,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {
@@ -143,7 +143,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {

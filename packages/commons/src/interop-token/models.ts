@@ -249,17 +249,41 @@ export type AuthTokenDPoPPayload = z.infer<typeof AuthTokenDPoPPayload>;
 // ==========================================
 //    Agid Integrity Rest 02 Token
 // ==========================================
-export const IntegrityRest02SignedHeader = z.object({
-  digest: z.string(),
-  "content-type": z.string(),
-  "content-encoding": z.string().optional(),
-});
+export const DigestHeader = z
+  .object({
+    digest: z.string(),
+  })
+  .strict();
+export type DigestHeader = z.infer<typeof DigestHeader>;
+export const ContentTypeHeader = z
+  .object({
+    "content-type": z.string(),
+  })
+  .strict();
+export type ContentTypeHeader = z.infer<typeof ContentTypeHeader>;
+export const ContentEncodingHeader = z
+  .object({
+    "content-encoding": z.string(),
+  })
+  .strict();
+export type ContentEncodingHeader = z.infer<typeof ContentEncodingHeader>;
+export const IntegrityRest02SignedHeader = z.union([
+  DigestHeader,
+  ContentTypeHeader,
+  ContentEncodingHeader,
+]);
 export type IntegrityRest02SignedHeader = z.infer<
   typeof IntegrityRest02SignedHeader
 >;
+export const IntegrityRest02SignedHeaders = z.array(
+  IntegrityRest02SignedHeader
+);
+export type IntegrityRest02SignedHeaders = z.infer<
+  typeof IntegrityRest02SignedHeaders
+>;
 export const AgidIntegrityRest02TokenPayload = InteropJwtCommonPayload.merge(
   z.object({
-    signed_headers: IntegrityRest02SignedHeader,
+    signed_headers: IntegrityRest02SignedHeaders,
     sub: z.string().optional(),
   })
 );

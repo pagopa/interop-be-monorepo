@@ -17,7 +17,10 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
+} from "../../mockUtils.js";
 
 describe("createAgreement", () => {
   const mockAgreementSeed: m2mGatewayApiV3.AgreementSeed = generateMock(
@@ -63,13 +66,7 @@ describe("createAgreement", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mAgreementResponse: m2mGatewayApiV3.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
+      ...testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data),
       delegationId: mockDelegation.id,
     };
 
@@ -78,7 +75,7 @@ describe("createAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.createAgreement,
       body: mockAgreementSeed,

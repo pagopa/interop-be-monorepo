@@ -1,7 +1,4 @@
-import {
-  NewNotification,
-  EServiceEventEnvelopeV2,
-} from "pagopa-interop-models";
+import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -10,11 +7,15 @@ import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEser
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 
 export async function handleEServiceEvent(
-  decodedMessage: EServiceEventEnvelopeV2,
+  decodedMessage: EServiceEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union(
