@@ -49,10 +49,11 @@ export function integrityRest02Middleware(
           `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
         );
       }
-      const correlationId = res.getHeader("x-correlation-id") as
-        | string
-        | undefined;
-      const clientId = req.ctx?.authData?.clientId ?? correlationId;
+      const clientId = req.ctx?.authData?.clientId ?? undefined;
+      if (res.statusCode >= 400 || clientId === undefined) {
+        originalSend(body);
+        return res;
+      }
 
       const replacer =
         (res.app.get("json replacer") as JsonReplacer) ?? undefined;
@@ -75,8 +76,7 @@ export function integrityRest02Middleware(
       tokenGenerator
         .generateAgidIntegrityRest02Token({
           signedHeaders,
-          aud: clientId,
-          sub: correlationId,
+          clientId,
         })
         .then((agidSignature) => {
           res.setHeader("Digest", `SHA-256=${digest}`);
