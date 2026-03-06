@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   DescriptorId,
   EServiceId,
-  GSIPKPurposeIdEServiceId,
   InteractionId,
   InteractionsPK,
   PurposeId,
@@ -23,7 +22,6 @@ export type InteractionState = z.infer<typeof InteractionState>;
 
 export const Interaction = z.object({
   PK: InteractionsPK,
-  GSIPK_purposeId_eserviceId: GSIPKPurposeIdEServiceId,
   interactionId: InteractionId,
   purposeId: PurposeId,
   eServiceId: EServiceId,

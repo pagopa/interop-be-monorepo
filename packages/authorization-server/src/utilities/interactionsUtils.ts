@@ -5,9 +5,6 @@ import {
   GetItemInput,
   PutItemCommand,
   PutItemInput,
-  QueryCommand,
-  QueryCommandOutput,
-  QueryInput,
   UpdateItemCommand,
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
@@ -20,7 +17,6 @@ import {
   InteractionId,
   interactionState,
   InteractionState,
-  makeGSIPKPurposeIdEServiceId,
   makeInteractionPK,
   PurposeId,
 } from "pagopa-interop-models";
@@ -64,10 +60,6 @@ export const createInteraction = async ({
   const PK = makeInteractionPK(interactionId);
   const interaction: Interaction = {
     PK,
-    GSIPK_purposeId_eserviceId: makeGSIPKPurposeIdEServiceId({
-      purposeId,
-      eServiceId,
-    }),
     interactionId,
     purposeId,
     eServiceId,
@@ -82,9 +74,6 @@ export const createInteraction = async ({
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: { S: interaction.PK },
-      GSIPK_purposeId_eserviceId: {
-        S: interaction.GSIPK_purposeId_eserviceId,
-      },
       interactionId: { S: interaction.interactionId },
       purposeId: { S: interaction.purposeId },
       eServiceId: { S: interaction.eServiceId },
@@ -134,56 +123,6 @@ export const readInteraction = async (
   }
 
   return interaction.data;
-};
-
-export const readInteractionsByPurposeAndEService = async ({
-  dynamoDBClient,
-  interactionsTable,
-  purposeId,
-  eServiceId,
-}: {
-  dynamoDBClient: DynamoDBClient;
-  interactionsTable: string;
-  purposeId: PurposeId;
-  eServiceId: EServiceId;
-}): Promise<Interaction[]> => {
-  const input: QueryInput = {
-    TableName: interactionsTable,
-    IndexName: "PurposeEService",
-    KeyConditionExpression: "GSIPK_purposeId_eserviceId = :pk",
-    ExpressionAttributeValues: {
-      ":pk": {
-        S: makeGSIPKPurposeIdEServiceId({
-          purposeId,
-          eServiceId,
-        }),
-      },
-    },
-    ConsistentRead: false,
-  };
-
-  const data: QueryCommandOutput = await dynamoDBClient.send(
-    new QueryCommand(input)
-  );
-
-  if (!data.Items || data.Items.length === 0) {
-    return [];
-  }
-
-  return data.Items.map((item) => {
-    const unmarshalled = unmarshall(item);
-    const interaction = Interaction.safeParse(unmarshalled);
-
-    if (!interaction.success) {
-      throw genericInternalError(
-        `Unable to parse interaction entry: result ${JSON.stringify(
-          interaction
-        )} - data ${JSON.stringify(data)} `
-      );
-    }
-
-    return interaction.data;
-  });
 };
 
 export const updateInteractionState = async ({

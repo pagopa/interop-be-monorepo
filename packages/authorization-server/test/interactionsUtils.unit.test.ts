@@ -1,7 +1,6 @@
 import {
   GetItemCommand,
   PutItemCommand,
-  QueryCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
@@ -17,7 +16,6 @@ import {
   createInteraction,
   isInteractionStateAllowedForScope,
   readInteraction,
-  readInteractionsByPurposeAndEService,
   updateInteractionState,
 } from "../src/utilities/interactionsUtils.js";
 
@@ -93,55 +91,12 @@ describe("interactions utils", () => {
     ).rejects.toThrow();
   });
 
-  it("should query interactions by purpose and eService through GSI", async () => {
-    const purposeId = generateId<PurposeId>();
-    const eServiceId = generateId<EServiceId>();
-    const interactionOneId = generateId<InteractionId>();
-    const interactionTwoId = generateId<InteractionId>();
-    const i1 = {
-      PK: `INTERACTION#${interactionOneId}`,
-      GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
-      interactionId: interactionOneId,
-      purposeId,
-      eServiceId,
-      descriptorId: generateId<DescriptorId>(),
-      state: "start_interaction",
-      startInteractionTokenIssuedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const i2 = {
-      ...i1,
-      PK: `INTERACTION#${interactionTwoId}`,
-      interactionId: interactionTwoId,
-    };
-
-    mockSend.mockResolvedValueOnce({
-      Items: [marshall(i1), marshall(i2)],
-    });
-
-    const interactions = await readInteractionsByPurposeAndEService({
-      dynamoDBClient: dynamoDBClient as never,
-      interactionsTable,
-      purposeId,
-      eServiceId,
-    });
-
-    const queryCall = mockSend.mock.calls[0][0] as QueryCommand;
-    expect(queryCall).toBeInstanceOf(QueryCommand);
-    expect(interactions).toHaveLength(2);
-    interactions.forEach((interaction) => {
-      expect(interaction.purposeId).toBe(purposeId);
-      expect(interaction.eServiceId).toBe(eServiceId);
-    });
-  });
-
   it("should update interaction state and callback timestamp", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
-      GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
       interactionId,
       purposeId,
       eServiceId,
@@ -180,7 +135,6 @@ describe("interactions utils", () => {
     const eServiceId = generateId<EServiceId>();
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
-      GSIPK_purposeId_eserviceId: `${purposeId}#${eServiceId}`,
       interactionId,
       purposeId,
       eServiceId,
