@@ -37,6 +37,11 @@ function decodeJwtPayload(token: string): { [k: string]: unknown } {
   return JSON.parse(decoded);
 }
 
+function getClientIdFromToken(token: string): string | undefined {
+  const decoded = decodeJwtPayload(token);
+  return decoded.client_id as string | undefined;
+}
+
 function makeDummyApi(): Express {
   const app = express();
 
@@ -103,9 +108,9 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res.headers).toHaveProperty("agid-jwt-signature");
     const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
-    const correlationId = res.headers["x-correlation-id"];
+    const clientId = getClientIdFromToken(token);
     expect(decoded).toHaveProperty("sub");
-    expect(decoded.sub).toBe(correlationId);
+    expect(decoded.sub).toBe(clientId);
     expect(decoded).toHaveProperty("signed_headers");
 
     const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
@@ -135,12 +140,11 @@ describe("integrityRest02Middleware", () => {
     expect(decoded1).toHaveProperty("signed_headers");
     const decoded2 = decodeJwtPayload(res2.headers["agid-jwt-signature"]);
     expect(decoded2).toHaveProperty("signed_headers");
-    const correlationId1 = res.headers["x-correlation-id"];
-    const correlationId2 = res2.headers["x-correlation-id"];
+    const clientId = getClientIdFromToken(token);
 
     expect(decoded1.signed_headers).toEqual(decoded2.signed_headers);
-    expect(decoded1.sub).toBe(correlationId1);
-    expect(decoded2.sub).toBe(correlationId2);
+    expect(decoded1.sub).toBe(clientId);
+    expect(decoded2.sub).toBe(clientId);
     expect({
       ...decoded1,
       jti: undefined,

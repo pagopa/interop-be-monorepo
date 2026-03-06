@@ -73,8 +73,7 @@ export async function sendDownloadedDocumentAsFormData(
       contentType,
       contentEncoding,
     }),
-    aud: clientId,
-    sub: res.getHeader("x-correlation-id") as string,
+    clientId,
   });
 
   res.setHeader("Digest", `SHA-256=${digest}`);
