@@ -5,7 +5,6 @@ import { JWK } from "jose";
 
 export interface JwksServer {
   url: string;
-  // eslint-disable-next-line functional/no-method-signature
   close(): Promise<void>;
 }
 

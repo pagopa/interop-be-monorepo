@@ -297,7 +297,7 @@ async function getCachedEntities<K, V>(
  */
 function groupAndMapPurposeResults<
   TInput extends BasePurposeQueryResult,
-  TOutput
+  TOutput,
 >(
   results: TInput[],
   mapRow: (row: TInput, state: string, totalCount: number) => TOutput
