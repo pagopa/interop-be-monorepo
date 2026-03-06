@@ -37,6 +37,11 @@ function decodeJwtPayload(token: string): { [k: string]: unknown } {
   return JSON.parse(decoded);
 }
 
+function getClientIdFromToken(token: string): string | undefined {
+  const decoded = decodeJwtPayload(token);
+  return decoded.client_id as string | undefined;
+}
+
 function makeDummyApi(): Express {
   const app = express();
 
@@ -103,9 +108,10 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res.headers).toHaveProperty("agid-jwt-signature");
     const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
-    const correlationId = res.headers["x-correlation-id"];
+    const clientId = getClientIdFromToken(token);
+    expect(clientId).toBeDefined();
     expect(decoded).toHaveProperty("sub");
-    expect(decoded.sub).toBe(correlationId);
+    expect(decoded.sub).toBe(clientId);
     expect(decoded).toHaveProperty("signed_headers");
 
     const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
@@ -135,12 +141,12 @@ describe("integrityRest02Middleware", () => {
     expect(decoded1).toHaveProperty("signed_headers");
     const decoded2 = decodeJwtPayload(res2.headers["agid-jwt-signature"]);
     expect(decoded2).toHaveProperty("signed_headers");
-    const correlationId1 = res.headers["x-correlation-id"];
-    const correlationId2 = res2.headers["x-correlation-id"];
+    const clientId = getClientIdFromToken(token);
+    expect(clientId).toBeDefined();
 
     expect(decoded1.signed_headers).toEqual(decoded2.signed_headers);
-    expect(decoded1.sub).toBe(correlationId1);
-    expect(decoded2.sub).toBe(correlationId2);
+    expect(decoded1.sub).toBe(clientId);
+    expect(decoded2.sub).toBe(clientId);
     expect({
       ...decoded1,
       jti: undefined,
@@ -235,14 +241,11 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
   });
 
-  it("should have a digest even if unauthorised", async () => {
+  it("should not have a digest even if unauthorised", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
-    expect(res.headers).toHaveProperty("digest");
-    const expectedDigest = calculateIntegrityRest02DigestFromBody({
-      body: res.text,
-    });
-    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+    expect(res.headers).not.toHaveProperty("digest");
+    expect(res.headers).not.toHaveProperty("agid-jwt-signature");
   });
 
   it("Should return 500 if the response is 204", async () => {
