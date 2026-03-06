@@ -35,6 +35,10 @@ export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
   descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
+  asyncExchange: z.boolean().optional(),
+  asyncExchangeResponseTime: z.number().optional(),
+  asyncExchangeResourceAvailableTime: z.number().optional(),
+  asyncExchangeConfirmation: z.boolean().optional(),
 });
 export type PlatformStatesCatalogEntry = z.infer<
   typeof PlatformStatesCatalogEntry

@@ -33,29 +33,55 @@ export const upsertPlatformStatesCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const input: PutItemInput = {
-    Item: {
-      PK: {
-        S: catalogEntry.PK,
-      },
-      state: {
-        S: catalogEntry.state,
-      },
-      descriptorAudience: {
-        L: catalogEntry.descriptorAudience.map((item) => ({
-          S: item,
-        })),
-      },
-      descriptorVoucherLifespan: {
-        N: catalogEntry.descriptorVoucherLifespan.toString(),
-      },
-      version: {
-        N: catalogEntry.version.toString(),
-      },
-      updatedAt: {
-        S: catalogEntry.updatedAt,
-      },
+  const item: Record<string, AttributeValue> = {
+    PK: {
+      S: catalogEntry.PK,
     },
+    state: {
+      S: catalogEntry.state,
+    },
+    descriptorAudience: {
+      L: catalogEntry.descriptorAudience.map((item) => ({
+        S: item,
+      })),
+    },
+    descriptorVoucherLifespan: {
+      N: catalogEntry.descriptorVoucherLifespan.toString(),
+    },
+    version: {
+      N: catalogEntry.version.toString(),
+    },
+    updatedAt: {
+      S: catalogEntry.updatedAt,
+    },
+  };
+
+  if (catalogEntry.asyncExchange !== undefined) {
+    item.asyncExchange = {
+      BOOL: catalogEntry.asyncExchange,
+    };
+  }
+
+  if (catalogEntry.asyncExchangeResponseTime !== undefined) {
+    item.asyncExchangeResponseTime = {
+      N: catalogEntry.asyncExchangeResponseTime.toString(),
+    };
+  }
+
+  if (catalogEntry.asyncExchangeResourceAvailableTime !== undefined) {
+    item.asyncExchangeResourceAvailableTime = {
+      N: catalogEntry.asyncExchangeResourceAvailableTime.toString(),
+    };
+  }
+
+  if (catalogEntry.asyncExchangeConfirmation !== undefined) {
+    item.asyncExchangeConfirmation = {
+      BOOL: catalogEntry.asyncExchangeConfirmation,
+    };
+  }
+
+  const input: PutItemInput = {
+    Item: item,
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new PutItemCommand(input);
