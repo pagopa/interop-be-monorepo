@@ -26207,6 +26207,16 @@ components:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
           type: boolean
+        templateDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        templateDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     EServiceDoc:
       type: object
       additionalProperties: false
