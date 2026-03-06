@@ -221,28 +221,22 @@ describe("integrityRest02Middleware", () => {
     expect(undefinedBodyDigest).toBe(expectedDigest);
   });
 
-  it("should have a digest if there is a 400 error", async () => {
+  it("should not have a digest if there is a 400 error", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await request(api)
       .get(`${appBasePath}/certifiedAttributes/notAnUuuid`)
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
-    const expectedDigest = calculateIntegrityRest02DigestFromBody({
-      body: res.text,
-    });
-    expect(res.headers).toHaveProperty("digest");
-    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+    expect(res.headers).not.toHaveProperty("digest");
+    expect(res.headers).not.toHaveProperty("agid-jwt-signature");
   });
 
-  it("should have a digest even if unauthorised", async () => {
+  it("should not have a digest even if unauthorised", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
-    expect(res.headers).toHaveProperty("digest");
-    const expectedDigest = calculateIntegrityRest02DigestFromBody({
-      body: res.text,
-    });
-    expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+    expect(res.headers).not.toHaveProperty("digest");
+    expect(res.headers).not.toHaveProperty("agid-jwt-signature");
   });
 
   it("Should return 500 if the response is 204", async () => {

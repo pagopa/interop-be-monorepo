@@ -53,6 +53,10 @@ export function integrityRest02Middleware(
         | string
         | undefined;
       const clientId = req.ctx?.authData?.clientId ?? correlationId;
+      if (res.statusCode >= 400 || clientId === undefined) {
+        originalSend(body);
+        return res;
+      }
 
       const replacer =
         (res.app.get("json replacer") as JsonReplacer) ?? undefined;
