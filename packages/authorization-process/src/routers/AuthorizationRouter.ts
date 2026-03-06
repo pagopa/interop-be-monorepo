@@ -395,15 +395,16 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.createKey(
+        const { data: key, metadata } = await authorizationService.createKey(
           {
             clientId: unsafeBrandId(req.params.clientId),
             keySeed: req.body,
           },
           ctx
         );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -464,7 +465,6 @@ const authorizationRouter = (
           },
           ctx
         );
-
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -477,16 +477,24 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.deleteClientKeyById(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            keyIdToRemove: unsafeBrandId(req.params.keyId),
-          },
-          ctx
-        );
-        return res.status(204).send();
+        const { data: client, metadata } =
+          await authorizationService.deleteClientKeyById(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              keyIdToRemove: unsafeBrandId(req.params.keyId),
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -885,15 +893,17 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.createProducerKeychainKey(
-          {
-            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-            keySeed: req.body,
-          },
-          ctx
-        );
+        const { data: key, metadata } =
+          await authorizationService.createProducerKeychainKey(
+            {
+              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+              keySeed: req.body,
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -984,16 +994,28 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await authorizationService.removeProducerKeychainKeyById(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              keyIdToRemove: unsafeBrandId(req.params.keyId),
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: updatedProducerKeychain, metadata } =
+            await authorizationService.removeProducerKeychainKeyById(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                keyIdToRemove: unsafeBrandId(req.params.keyId),
+              },
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              authorizationApi.FullProducerKeychain.parse(
+                producerKeychainToApiFullVisibilityProducerKeychain(
+                  updatedProducerKeychain
+                )
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
