@@ -7,12 +7,14 @@ import {
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 
-import { AgreementSchema } from "../agreement/agreement.js";
-import { AgreementAttributeSchema } from "../agreement/agreementAttribute.js";
-import { AgreementConsumerDocumentSchema } from "../agreement/agreementConsumerDocument.js";
-import { AgreementContractSchema } from "../agreement/agreementContract.js";
-import { AgreementStampSchema } from "../agreement/agreementStamp.js";
-import { AgreementSignedContractSchema } from "../agreement/agreementSignedContract.js";
+import {
+  AgreementSchema,
+  AgreementAttributeSchema,
+  AgreementConsumerDocumentSchema,
+  AgreementContractSchema,
+  AgreementStampSchema,
+  AgreementSignedContractSchema,
+} from "pagopa-interop-kpi-models";
 
 export const AgreementDbTableConfig = {
   agreement: AgreementSchema,

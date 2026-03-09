@@ -15,16 +15,14 @@ import {
   cleaningTargetTables,
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
-import {
-  AgreementDeletingSchema,
-  AgreementItemsSchema,
-} from "../model/agreement/agreement.js";
-import {
-  AgreementConsumerDocumentDeletingSchema,
-  AgreementConsumerDocumentSchema,
-} from "../model/agreement/agreementConsumerDocument.js";
-import { AgreementContractSchema } from "../model/agreement/agreementContract.js";
+import { AgreementDeletingSchema } from "../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreement.js";
 import { agreementSignedContractRepo } from "../repository/agreement/agreementSignedContract.repository.js";
+import {
+  AgreementItemsSchema,
+  AgreementConsumerDocumentSchema,
+  AgreementContractSchema,
+} from "pagopa-interop-kpi-models";
 
 export function agreementServiceBuilder(db: DBContext) {
   const agreementRepository = agreementRepo(db.conn);

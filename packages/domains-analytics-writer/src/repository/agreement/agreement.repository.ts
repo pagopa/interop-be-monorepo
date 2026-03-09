@@ -13,10 +13,8 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
 import { config } from "../../config/config.js";
-import {
-  AgreementSchema,
-  AgreementDeletingSchema,
-} from "../../model/agreement/agreement.js";
+import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
+import { AgreementSchema } from "pagopa-interop-kpi-models";
 
 export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
