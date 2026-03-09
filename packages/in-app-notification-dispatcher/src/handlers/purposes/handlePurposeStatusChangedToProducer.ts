@@ -29,7 +29,7 @@ export async function handlePurposeStatusChangedToProducer(
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeStatusChangedToProducer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeStatusChangedToProducer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
@@ -42,7 +42,7 @@ export async function handlePurposeStatusChangedToProducer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeStatusChangedToProducer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }
