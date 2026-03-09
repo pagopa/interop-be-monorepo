@@ -10,9 +10,9 @@ import { splitPurposeIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { DBContext } from "../../db/db.js";
+import { PurposeItemsSchema } from "pagopa-interop-kpi-models";
 import {
   PurposeDeletingSchema,
-  PurposeItemsSchema,
 } from "../../model/purpose/purpose.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
