@@ -63,6 +63,16 @@ export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
 export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
 
+// Tenant models
+export * from "./tenant/tenant.js";
+export * from "./tenant/tenantMail.js";
+export * from "./tenant/tenantCertifiedAttribute.js";
+export * from "./tenant/tenantDeclaredAttribute.js";
+export * from "./tenant/tenantFeature.js";
+export * from "./tenant/tenantVerifiedAttribute.js";
+export * from "./tenant/tenantVerifiedAttributeRevoker.js";
+export * from "./tenant/tenantVerifiedAttributeVerifier.js";
+
 // DB models
 export * from "./db/agreement.js";
 export * from "./db/attribute.js";
@@ -72,3 +82,4 @@ export * from "./db/delegation.js";
 export * from "./db/eserviceTemplate.js";
 export * from "./db/purpose.js";
 export * from "./db/purposeTemplate.js";
+export * from "./db/tenant.js";

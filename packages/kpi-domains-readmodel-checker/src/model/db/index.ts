@@ -8,8 +8,8 @@ import {
   EserviceTemplateDbTableConfig,
   PurposeDbTableConfig,
   PurposeTemplateDbTableConfig,
+  TenantDbTableConfig,
 } from "pagopa-interop-kpi-models";
-import { TenantDbTableConfig } from "./tenant.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,

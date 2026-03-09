@@ -56,9 +56,9 @@ import {
   PurposeDbTable,
   PurposeTemplateItemsSchema,
   PurposeTemplateDbTable,
+  TenantItemsSchema,
+  TenantDbTable,
 } from "pagopa-interop-kpi-models";
-import { TenantDbTable } from "../src/model/db/tenant.js";
-import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,

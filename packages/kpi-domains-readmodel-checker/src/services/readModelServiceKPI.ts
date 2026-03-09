@@ -28,7 +28,6 @@ import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
 import camelcaseKeys from "camelcase-keys";
 import { config } from "../configs/config.js";
-import { TenantDbTable } from "../model/db/tenant.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
@@ -39,6 +38,7 @@ import {
   EserviceTemplateDbTable,
   PurposeDbTable,
   PurposeTemplateDbTable,
+  TenantDbTable,
 } from "pagopa-interop-kpi-models";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
 

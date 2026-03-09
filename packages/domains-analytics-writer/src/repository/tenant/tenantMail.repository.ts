@@ -9,8 +9,8 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
+import { TenantMailSchema } from "pagopa-interop-kpi-models";
 import {
-  TenantMailSchema,
   TenantMailDeletingSchema,
 } from "../../model/tenant/tenantMail.js";
 import { TenantDbTable, DeletingDbTable } from "../../model/db/index.js";
