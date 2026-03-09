@@ -42,15 +42,15 @@ import {
   AttributeDbTable,
   AgreementItemsSchema,
   AgreementDbTable,
+  EserviceItemsSchema,
+  CatalogDbTable,
 } from "pagopa-interop-kpi-models";
 import { ClientItemsSchema } from "../src/model/authorization/client.js";
 import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
-import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
 } from "../src/model/db/authorization.js";
-import { CatalogDbTable } from "../src/model/db/catalog.js";
 import { DelegationDbTable } from "../src/model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../src/model/db/purpose.js";

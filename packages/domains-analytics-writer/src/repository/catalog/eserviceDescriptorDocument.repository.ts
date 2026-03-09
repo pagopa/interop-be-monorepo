@@ -11,10 +11,8 @@ import {
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorDocumentDeletingSchema,
-  EserviceDescriptorDocumentSchema,
-} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorDocumentDeletingSchema } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {

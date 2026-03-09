@@ -10,11 +10,9 @@ import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceItemsSchema,
-  EserviceDeletingSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],

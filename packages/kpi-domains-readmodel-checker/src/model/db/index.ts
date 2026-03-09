@@ -1,8 +1,8 @@
 import {
   AgreementDbTableConfig,
   AttributeDbTableConfig,
+  CatalogDbTableConfig,
 } from "pagopa-interop-kpi-models";
-import { CatalogDbTableConfig } from "./catalog.js";
 import {
   ClientDbTableConfig,
   ProducerKeychainDbTableConfig,

@@ -29,12 +29,15 @@ import { IClient } from "pg-promise/typescript/pg-subset.js";
 import camelcaseKeys from "camelcase-keys";
 import { config } from "../configs/config.js";
 import { TenantDbTable } from "../model/db/tenant.js";
-import { AgreementDbTable, AttributeDbTable } from "pagopa-interop-kpi-models";
+import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
+} from "pagopa-interop-kpi-models";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
 } from "../model/db/authorization.js";
-import { CatalogDbTable } from "../model/db/catalog.js";
 import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../model/db/purpose.js";

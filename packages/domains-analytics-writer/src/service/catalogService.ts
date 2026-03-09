@@ -19,23 +19,19 @@ import {
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
-import {
-  EserviceDeletingSchema,
-  EserviceItemsSchema,
-} from "../model/catalog/eservice.js";
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceDeletingSchema } from "../model/catalog/eservice.js";
 import {
   EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
 } from "../model/catalog/eserviceDescriptor.js";
-import {
-  EserviceDescriptorDocumentDeletingSchema,
-  EserviceDescriptorDocumentSchema,
-} from "../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorDocumentDeletingSchema } from "../model/catalog/eserviceDescriptorDocument.js";
 import {
   EserviceDescriptorDocumentOrInterfaceDeletingSchema,
-  EserviceDescriptorInterfaceSchema,
 } from "../model/catalog/eserviceDescriptorInterface.js";
+import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
 
 export function catalogServiceBuilder(db: DBContext) {
   const eserviceRepo = eserviceRepository(db.conn);
