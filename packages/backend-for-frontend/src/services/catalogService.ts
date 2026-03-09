@@ -1645,6 +1645,7 @@ export function catalogServiceBuilder(
               eServiceId: eservice.id,
             },
           });
+          throw error;
         }
         await pollEServiceById({
           condition: (result) => result.riskAnalysis.length > 0,
