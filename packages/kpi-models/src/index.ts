@@ -7,5 +7,9 @@ export * from "./agreement/agreementSignedContract.js";
 export * from "./agreement/agreementStamp.js";
 export * from "./agreement/agreementItems.js";
 
+// Attribute models
+export * from "./attribute/attribute.js";
+
 // DB models
 export * from "./db/agreement.js";
+export * from "./db/attribute.js";
