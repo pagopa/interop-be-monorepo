@@ -324,7 +324,9 @@ export const retrieveServerUrlsAPI = async (
         },
         (f) => {
           const openApi = parseOpenApi(f.fileType, fileContent);
-          const { data: version, error } = z.string().safeParse(openApi.openapi);
+          const { data: version, error } = z
+            .string()
+            .safeParse(openApi.openapi);
           if (error) {
             throw openapiVersionNotRecognized("nd");
           }
