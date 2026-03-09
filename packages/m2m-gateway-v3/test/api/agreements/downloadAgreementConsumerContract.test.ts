@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDPoPProof,
+  mockM2MAdminClientId,
+} from "pagopa-interop-commons-test";
 import {
   AuthRole,
   authRole,
@@ -65,18 +69,22 @@ describe("GET /agreements/:agreementId/contract router test", () => {
         body: res.text,
       });
       expect(digest).toBe(`SHA-256=${calcDigest}`);
-      const signedHeadersRaw = decodeJwtPayload(
-        res.headers["agid-jwt-signature"]
-      ).signed_headers;
+      const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+      const signedHeadersRaw = decoded.signed_headers;
       const signedHeadersParse =
         IntegrityRest02SignedHeaders.safeParse(signedHeadersRaw);
       expect(signedHeadersParse.success).toBe(true);
       const signedHeaders = signedHeadersParse.data;
-      expect(signedHeaders).toHaveLength(2);
+      expect(signedHeaders).toHaveLength(3);
       expect(signedHeaders).toContainEqual({ digest: `SHA-256=${calcDigest}` });
       expect(signedHeaders).toContainEqual({
         "content-type": res.headers["content-type"],
       });
+      expect(signedHeaders).toContainEqual({
+        "x-correlation-id": res.headers["x-correlation-id"],
+      });
+      expect(decoded).toHaveProperty("client_id");
+      expect(decoded.client_id).toBe(mockM2MAdminClientId);
     }
   );
 
