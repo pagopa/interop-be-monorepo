@@ -11,6 +11,8 @@ import {
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposePK,
+  ProducerKeychainId,
+  ProducerKeychainPlatformStatesPK,
   PurposeId,
   TenantId,
   TokenGenerationStatesClientKidPK,
@@ -49,6 +51,19 @@ export const makePlatformStatesClientPK = (
   clientId: ClientId
 ): PlatformStatesClientPK =>
   unsafeBrandId<PlatformStatesClientPK>(`CLIENT#${clientId}`);
+
+export const makeProducerKeychainPlatformStatesPK = ({
+  producerKeychainId,
+  kid,
+  eServiceId,
+}: {
+  producerKeychainId: ProducerKeychainId;
+  kid: string;
+  eServiceId: EServiceId;
+}): ProducerKeychainPlatformStatesPK =>
+  unsafeBrandId<ProducerKeychainPlatformStatesPK>(
+    `PRODUCERKEYCHAINKIDESERVICE#${producerKeychainId}#${kid}#${eServiceId}`
+  );
 
 export const makeGSIPKConsumerIdEServiceId = ({
   consumerId,
