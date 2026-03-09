@@ -3943,6 +3943,16 @@ const deleteDescriptorInterfaceAndDocs = async (
     await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
   }
 
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface !== undefined) {
+    await fileManager.delete(
+      config.s3Bucket,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
+  }
+
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
     fileManager.delete(config.s3Bucket, doc.path, logger)
   );
