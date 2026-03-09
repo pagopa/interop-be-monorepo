@@ -10,13 +10,16 @@ export function buildIntegrityRest02SignedHeaders({
   digest,
   contentType,
   contentEncoding,
+  correlationId,
 }: {
   digest: string;
   contentType?: string | undefined;
   contentEncoding?: string | undefined;
+  correlationId: string;
 }): IntegrityRest02SignedHeaders {
   const headers: IntegrityRest02SignedHeaders = [
     { digest: `SHA-256=${digest}` },
+    { "x-correlation-id": correlationId },
   ];
   if (contentType) {
     // eslint-disable-next-line functional/immutable-data

@@ -6,6 +6,7 @@ import {
   generateToken,
   getMockedApiAttribute,
   getMockDPoPProof,
+  mockM2MAdminClientId,
 } from "pagopa-interop-commons-test";
 import {
   authRole,
@@ -103,9 +104,9 @@ describe("integrityRest02Middleware", () => {
     expect(res.headers.digest).toBe(`SHA-256=${digest}`);
     expect(res.headers).toHaveProperty("agid-jwt-signature");
     const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+    expect(decoded).toHaveProperty("client_id");
+    expect(decoded.client_id).toBe(mockM2MAdminClientId);
     const correlationId = res.headers["x-correlation-id"];
-    expect(decoded).toHaveProperty("sub");
-    expect(decoded.sub).toBe(correlationId);
     expect(decoded).toHaveProperty("signed_headers");
 
     const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
@@ -113,10 +114,13 @@ describe("integrityRest02Middleware", () => {
     );
     expect(signedHeadersParse.success).toBe(true);
     const signedHeaders = signedHeadersParse.data;
-    expect(signedHeaders).toHaveLength(2);
+    expect(signedHeaders).toHaveLength(3);
     expect(signedHeaders).toContainEqual({ digest: `SHA-256=${digest}` });
     expect(signedHeaders).toContainEqual({
       "content-type": res.headers["content-type"],
+    });
+    expect(signedHeaders).toContainEqual({
+      "x-correlation-id": correlationId,
     });
   });
 
@@ -138,24 +142,23 @@ describe("integrityRest02Middleware", () => {
     const correlationId1 = res.headers["x-correlation-id"];
     const correlationId2 = res2.headers["x-correlation-id"];
 
-    expect(decoded1.signed_headers).toEqual(decoded2.signed_headers);
-    expect(decoded1.sub).toBe(correlationId1);
-    expect(decoded2.sub).toBe(correlationId2);
+    // expect(decoded1.signed_headers).toEqual(decoded2.signed_headers);
     expect({
       ...decoded1,
       jti: undefined,
       exp: undefined,
-      nbf: undefined,
       iat: undefined,
-      sub: undefined,
+      signed_headers: undefined,
     }).toStrictEqual({
       ...decoded2,
       jti: undefined,
       exp: undefined,
-      nbf: undefined,
       iat: undefined,
-      sub: undefined,
+      signed_headers: undefined,
     });
+
+    expect(decoded1.client_id).toBe(mockM2MAdminClientId);
+    expect(decoded2.client_id).toBe(mockM2MAdminClientId);
 
     const signedHeadersParse1 = IntegrityRest02SignedHeaders.safeParse(
       decoded1.signed_headers
@@ -170,8 +173,8 @@ describe("integrityRest02Middleware", () => {
     const signedHeaders1 = signedHeadersParse1.data;
     const signedHeaders2 = signedHeadersParse2.data;
 
-    expect(signedHeaders1).toHaveLength(2);
-    expect(signedHeaders2).toHaveLength(2);
+    expect(signedHeaders1).toHaveLength(3);
+    expect(signedHeaders2).toHaveLength(3);
     expect(signedHeaders1).toContainEqual({ digest: `SHA-256=${digest}` });
     expect(signedHeaders2).toContainEqual({ digest: `SHA-256=${digest}` });
     expect(signedHeaders1).toContainEqual({
@@ -179,6 +182,12 @@ describe("integrityRest02Middleware", () => {
     });
     expect(signedHeaders2).toContainEqual({
       "content-type": res.headers["content-type"],
+    });
+    expect(signedHeaders1).toContainEqual({
+      "x-correlation-id": correlationId1,
+    });
+    expect(signedHeaders2).toContainEqual({
+      "x-correlation-id": correlationId2,
     });
   });
 

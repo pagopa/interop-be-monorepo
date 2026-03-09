@@ -67,14 +67,18 @@ export async function sendDownloadedDocumentAsFormData(
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
   const tokenGenerator = getIntoropTokenGenerator();
+  const correlationId = res.getHeader("x-correlation-id")?.toString();
+  if (!correlationId) {
+    throw new Error("Missing correlation id");
+  }
   const agidSignature = await tokenGenerator.generateAgidIntegrityRest02Token({
     signedHeaders: buildIntegrityRest02SignedHeaders({
       digest,
       contentType,
       contentEncoding,
+      correlationId,
     }),
-    aud: clientId,
-    sub: res.getHeader("x-correlation-id") as string,
+    clientId,
   });
 
   res.setHeader("Digest", `SHA-256=${digest}`);

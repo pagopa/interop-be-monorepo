@@ -49,43 +49,50 @@ export function integrityRest02Middleware(
           `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
         );
       }
-      const correlationId = res.getHeader("x-correlation-id") as
-        | string
-        | undefined;
-      const clientId = req.ctx?.authData?.clientId ?? correlationId;
+      void (async (): Promise<void> => {
+        try {
+          const correlationId = res.getHeader("x-correlation-id") as
+            | string
+            | undefined;
+          if (!correlationId) {
+            throw new Error(
+              "Integrity REST 02 middleware should not be used for responses without a correlation id"
+            );
+          }
+          const clientId = req.ctx?.authData?.clientId;
 
-      const replacer =
-        (res.app.get("json replacer") as JsonReplacer) ?? undefined;
-      const spaces = (res.app.get("json spaces") as JsonSpaces) ?? undefined;
-      const digest = calculateIntegrityRest02DigestFromBody({
-        body,
-        replacer,
-        spaces,
-      });
-      const contentType = res.getHeader("Content-Type")?.toString();
-      const contentEncoding = res.getHeader("Content-Encoding")?.toString();
-      const signedHeaders = buildIntegrityRest02SignedHeaders({
-        digest,
-        contentType,
-        contentEncoding,
-      });
+          const replacer =
+            (res.app.get("json replacer") as JsonReplacer) ?? undefined;
+          const spaces =
+            (res.app.get("json spaces") as JsonSpaces) ?? undefined;
+          const digest = calculateIntegrityRest02DigestFromBody({
+            body,
+            replacer,
+            spaces,
+          });
+          const contentType = res.getHeader("Content-Type")?.toString();
+          const contentEncoding = res.getHeader("Content-Encoding")?.toString();
+          const signedHeaders = buildIntegrityRest02SignedHeaders({
+            digest,
+            contentType,
+            contentEncoding,
+            correlationId,
+          });
 
-      const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
+          const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
 
-      tokenGenerator
-        .generateAgidIntegrityRest02Token({
-          signedHeaders,
-          aud: clientId,
-          sub: correlationId,
-        })
-        .then((agidSignature) => {
+          const agidSignature =
+            await tokenGenerator.generateAgidIntegrityRest02Token({
+              signedHeaders,
+              clientId,
+            });
           res.setHeader("Digest", `SHA-256=${digest}`);
           res.setHeader("Agid-JWT-Signature", agidSignature);
           originalSend(body);
-        })
-        .catch((err) => {
+        } catch (err) {
           next(err);
-        });
+        }
+      })();
 
       return res;
     };
