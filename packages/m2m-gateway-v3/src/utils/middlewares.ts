@@ -67,6 +67,9 @@ export function m2mAuthDataValidationMiddleware(
             ctx.logger
           )
         )
+        .with({ systemRole: systemRole.M2M_ROLE }, () => {
+          // No additional validation needed for M2M_ROLE
+        })
         .otherwise((authData) => {
           throw unauthorizedError(
             `Invalid role ${authData.systemRole} for this operation`
