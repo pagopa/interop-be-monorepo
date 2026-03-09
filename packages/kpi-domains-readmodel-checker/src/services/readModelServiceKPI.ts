@@ -29,7 +29,7 @@ import { IClient } from "pg-promise/typescript/pg-subset.js";
 import camelcaseKeys from "camelcase-keys";
 import { config } from "../configs/config.js";
 import { TenantDbTable } from "../model/db/tenant.js";
-import { AgreementDbTable } from "../model/db/agreement.js";
+import { AgreementDbTable } from "pagopa-interop-kpi-models";
 import { AttributeDbTable } from "../model/db/attribute.js";
 import {
   ClientDbTable,
