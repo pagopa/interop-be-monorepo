@@ -7,9 +7,9 @@ import {
   DelegationDbTableConfig,
   EserviceTemplateDbTableConfig,
   PurposeDbTableConfig,
+  PurposeTemplateDbTableConfig,
 } from "pagopa-interop-kpi-models";
 import { TenantDbTableConfig } from "./tenant.js";
-import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,

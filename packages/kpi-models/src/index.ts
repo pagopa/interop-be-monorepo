@@ -55,6 +55,14 @@ export * from "./purpose/purposeVersionSignedDocument.js";
 export * from "./purpose/purposeRiskAnalysis.js";
 export * from "./purpose/purposeRiskAnalysisAnswer.js";
 
+// PurposeTemplate models
+export * from "./purposeTemplate/purposeTemplate.js";
+export * from "./purposeTemplate/purposeTemplateEserviceDescriptor.js";
+export * from "./purposeTemplate/purposeTemplateRiskAnalysisForm.js";
+export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
+export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
+export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
+
 // DB models
 export * from "./db/agreement.js";
 export * from "./db/attribute.js";
@@ -63,3 +71,4 @@ export * from "./db/authorization.js";
 export * from "./db/delegation.js";
 export * from "./db/eserviceTemplate.js";
 export * from "./db/purpose.js";
+export * from "./db/purposeTemplate.js";

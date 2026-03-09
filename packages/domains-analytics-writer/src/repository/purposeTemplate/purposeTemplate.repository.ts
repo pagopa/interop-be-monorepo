@@ -9,9 +9,9 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
+import { PurposeTemplateSchema } from "pagopa-interop-kpi-models";
 import {
   PurposeTemplateDeletingSchema,
-  PurposeTemplateSchema,
 } from "../../model/purposeTemplate/purposeTemplate.js";
 import {
   DeletingDbTable,

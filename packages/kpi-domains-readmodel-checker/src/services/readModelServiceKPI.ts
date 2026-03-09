@@ -38,9 +38,9 @@ import {
   DelegationDbTable,
   EserviceTemplateDbTable,
   PurposeDbTable,
+  PurposeTemplateDbTable,
 } from "pagopa-interop-kpi-models";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
-import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
 
 type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
