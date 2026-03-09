@@ -23,7 +23,7 @@ import {
   ValidationOption,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { UpdatedDailyCalls } from "./models.js";
+import { RemainingDailyCalls } from "./models.js";
 
 const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisSingleAnswer[]
@@ -255,9 +255,10 @@ export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
   signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });
 
-export const updatedDailyCallsToApiUpdatedDailyCalls = (
-  updatedDailyCalls: UpdatedDailyCalls
-): purposeApi.UpdatedDailyCallsResponse => ({
-  updatedDailyCallsPerConsumer: updatedDailyCalls.updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal: updatedDailyCalls.updatedDailyCallsTotal,
+export const remainingDailyCallsToApiRemainingDailyCalls = (
+  remainingDailyCalls: RemainingDailyCalls
+): purposeApi.RemainingDailyCallsResponse => ({
+  remainingDailyCallsPerConsumer:
+    remainingDailyCalls.remainingDailyCallsPerConsumer,
+  remainingDailyCallsTotal: remainingDailyCalls.remainingDailyCallsTotal,
 });

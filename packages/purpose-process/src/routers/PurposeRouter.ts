@@ -27,7 +27,7 @@ import {
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
-  updatedDailyCallsToApiUpdatedDailyCalls,
+  remainingDailyCallsToApiRemainingDailyCalls,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PurposeService } from "../services/purposeService.js";
@@ -46,7 +46,7 @@ import {
   getPurposeErrorMapper,
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
-  getUpdatedDailyCallsErrorMapper,
+  getRemainingDailyCallsErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
@@ -239,13 +239,13 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes/:purposeId/updatedDailyCalls", async (req, res) => {
+    .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const result = await purposeService.getUpdatedDailyCalls({
+        const result = await purposeService.getRemainingDailyCalls({
           purposeId: unsafeBrandId(req.params.purposeId),
           ctx,
         });
@@ -253,14 +253,14 @@ const purposeRouter = (
         return res
           .status(200)
           .send(
-            purposeApi.UpdatedDailyCallsResponse.parse(
-              updatedDailyCallsToApiUpdatedDailyCalls(result)
+            purposeApi.RemainingDailyCallsResponse.parse(
+              remainingDailyCallsToApiRemainingDailyCalls(result)
             )
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getUpdatedDailyCallsErrorMapper,
+          getRemainingDailyCallsErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
