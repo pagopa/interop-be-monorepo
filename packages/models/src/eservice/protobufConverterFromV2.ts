@@ -148,6 +148,10 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.templateVersionRef != null
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? fromDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
 });
 

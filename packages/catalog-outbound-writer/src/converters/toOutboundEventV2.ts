@@ -65,6 +65,8 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    // TODO: populate asyncExchangeCallbackInterface when @pagopa/interop-outbound-models is updated
+    asyncExchangeCallbackInterface: undefined,
   };
 }
 
@@ -75,6 +77,7 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };
@@ -100,8 +103,6 @@ export function toOutboundEventV2(
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
-      { type: "EServiceInstanceLabelUpdated" },
-
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -217,6 +218,11 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "EServiceInstanceLabelUpdated" },
       () => undefined
     )
     .exhaustive();

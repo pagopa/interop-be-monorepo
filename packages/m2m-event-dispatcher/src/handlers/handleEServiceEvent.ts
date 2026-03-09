@@ -124,7 +124,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
           ),
         },
         async (event) => {
