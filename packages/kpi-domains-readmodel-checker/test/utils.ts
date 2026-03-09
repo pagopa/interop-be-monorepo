@@ -37,12 +37,15 @@ import {
   DomainDbTableReadModels,
   DomainDbTableSchemas,
 } from "../src/model/db/index.js";
-import { AgreementItemsSchema, AgreementDbTable } from "pagopa-interop-kpi-models";
-import { AttributeSchema } from "../src/model/attribute/attribute.js";
+import {
+  AttributeSchema,
+  AttributeDbTable,
+  AgreementItemsSchema,
+  AgreementDbTable,
+} from "pagopa-interop-kpi-models";
 import { ClientItemsSchema } from "../src/model/authorization/client.js";
 import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
 import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
-import { AttributeDbTable } from "../src/model/db/attribute.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
