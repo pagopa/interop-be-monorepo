@@ -428,10 +428,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             .delete(eserviceDescriptorDocumentInReadmodelCatalog)
             .where(
               and(
-                eq(
-                  eserviceDescriptorDocumentInReadmodelCatalog.id,
-                  documentId
-                ),
+                eq(eserviceDescriptorDocumentInReadmodelCatalog.id, documentId),
                 lte(
                   eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
                   metadataVersion
