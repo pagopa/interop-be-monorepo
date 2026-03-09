@@ -36,6 +36,7 @@
     "kafkajs": "catalog:",
     "p-retry": "catalog:",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-kpi-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
