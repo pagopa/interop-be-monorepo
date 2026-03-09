@@ -10,7 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 import { AgreementConsumerDocumentSchema } from "pagopa-interop-kpi-models";
 
 export function agreementConsumerDocumentRepo(conn: DBConnection) {

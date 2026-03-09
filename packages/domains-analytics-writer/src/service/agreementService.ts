@@ -16,7 +16,7 @@ import {
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
 import { AgreementDeletingSchema } from "../model/agreement/agreement.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreementConsumerDocument.js";
 import { agreementSignedContractRepo } from "../repository/agreement/agreementSignedContract.repository.js";
 import {
   AgreementItemsSchema,
