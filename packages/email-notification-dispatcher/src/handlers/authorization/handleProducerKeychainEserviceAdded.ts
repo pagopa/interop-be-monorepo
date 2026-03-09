@@ -85,10 +85,11 @@ export async function handleProducerKeychainEserviceAdded(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza chiavi`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },
-    tenantId: producer.id,
+    tenantId: t.tenantId,
     ...mapRecipientToEmailPayload(t),
   }));
 }

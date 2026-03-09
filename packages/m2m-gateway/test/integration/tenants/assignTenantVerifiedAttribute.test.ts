@@ -89,7 +89,7 @@ describe("assignTenantVerifiedAttribute", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantAttributeResponse);
+    expect(result).toStrictEqual(m2mTenantAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute

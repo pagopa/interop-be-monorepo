@@ -1,5 +1,5 @@
 import {
-  AgreementEventV2,
+  AgreementEvent,
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -20,7 +20,7 @@ import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreemen
 import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
 
 export async function handleAgreementEvent(
-  params: HandlerParams<typeof AgreementEventV2>
+  params: HandlerParams<typeof AgreementEvent>
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -30,6 +30,10 @@ export async function handleAgreementEvent(
     correlationId,
   } = params;
   return match(params.decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => [
       ...(await handleAgreementActivatedToProducer({
         agreementV2Msg: agreement,

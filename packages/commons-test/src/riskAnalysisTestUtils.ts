@@ -421,7 +421,7 @@ export const getMockValidRiskAnalysisForm = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis3_0_Pa
+        validatedRiskAnalysis3_1_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>

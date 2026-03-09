@@ -1,5 +1,5 @@
 import {
-  AuthorizationEventV2,
+  AuthorizationEvent,
   EmailNotificationMessagePayload,
   EServiceId,
   PurposeId,
@@ -19,7 +19,7 @@ import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEse
 import { handleProducerKeychainKeyAdded } from "./handleProducerKeychainKeyAdded.js";
 
 export async function handleAuthorizationEvent(
-  params: HandlerParams<typeof AuthorizationEventV2>
+  params: HandlerParams<typeof AuthorizationEvent>
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -29,6 +29,10 @@ export async function handleAuthorizationEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       { type: "ProducerKeychainEServiceAdded" },
       ({ data: { eserviceId } }) =>

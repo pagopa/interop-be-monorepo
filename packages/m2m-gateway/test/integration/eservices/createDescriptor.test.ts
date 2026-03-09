@@ -88,7 +88,7 @@ describe("createDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceDescriptorResponse);
+    expect(result).toStrictEqual(m2mEserviceDescriptorResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.createDescriptor,
       params: { eServiceId: mockEService.id },

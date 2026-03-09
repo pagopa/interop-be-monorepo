@@ -102,8 +102,8 @@ export function toBffDelegationApiDelegation(
         ? delegation.revocationSignedContract !== undefined
         : delegation.revocationContract !== undefined
       : useSignedContracts
-      ? delegation.activationSignedContract !== undefined
-      : delegation.activationContract !== undefined;
+        ? delegation.activationSignedContract !== undefined
+        : delegation.activationContract !== undefined;
   return {
     id: delegation.id,
     eservice: eservice && {

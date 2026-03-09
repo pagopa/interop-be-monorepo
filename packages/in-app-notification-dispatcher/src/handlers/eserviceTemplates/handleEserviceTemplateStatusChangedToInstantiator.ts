@@ -62,7 +62,6 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
     );
     return [];
   }
-
   const creator = await retrieveTenant(
     eserviceTemplate.creatorId,
     readModelService
@@ -83,8 +82,8 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-          creator.name,
-          eserviceTemplate.name
+          eserviceTemplate.name,
+          creator.name
         ),
         notificationType: "eserviceTemplateStatusChangedToInstantiator",
         entityId,
