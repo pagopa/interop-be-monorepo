@@ -4339,6 +4339,8 @@ async function updateDraftDescriptor(
  * - separator " - ": 3 characters
  * - instanceLabel: maxLength 12
  * - eservice name (result): maxLength 60
+ *
+ * Also, empty spaces are removed, and an empty string is treated as undefined
  */
 const buildInstanceName = ({
   templateName,
