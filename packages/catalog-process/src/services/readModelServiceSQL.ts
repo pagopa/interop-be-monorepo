@@ -616,9 +616,7 @@ export function readModelServiceBuilderSQL(
           )
           .$dynamic();
 
-      const paginatedQuery = buildBaseQuery()
-        .limit(limit)
-        .offset(offset);
+      const paginatedQuery = buildBaseQuery().limit(limit).offset(offset);
 
       const [totalCount, res] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),

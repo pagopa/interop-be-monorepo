@@ -557,9 +557,7 @@ export function readModelServiceBuilderSQL(
 
       const paginatedQuery = buildBaseQuery()
         .orderBy(
-          asc(
-            tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate
-          )
+          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
         )
         .offset(offset)
         .limit(limit);
