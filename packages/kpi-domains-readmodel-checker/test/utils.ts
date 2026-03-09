@@ -50,11 +50,11 @@ import {
   ProducerKeychainDbTable,
   DelegationItemsSchema,
   DelegationDbTable,
+  EserviceTemplateItemsSchema,
+  EserviceTemplateDbTable,
 } from "pagopa-interop-kpi-models";
-import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../src/model/db/purpose.js";
 import { TenantDbTable } from "../src/model/db/tenant.js";
-import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
 import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
 import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
 import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";

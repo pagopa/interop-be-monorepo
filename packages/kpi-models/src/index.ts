@@ -37,9 +37,19 @@ export * from "./delegation/delegationStamp.js";
 export * from "./delegation/delegationContractDocument.js";
 export * from "./delegation/delegationSignedContractDocument.js";
 
+// EserviceTemplate models
+export * from "./eserviceTemplate/eserviceTemplate.js";
+export * from "./eserviceTemplate/eserviceTemplateVersion.js";
+export * from "./eserviceTemplate/eserviceTemplateVersionInterface.js";
+export * from "./eserviceTemplate/eserviceTemplateVersionDocument.js";
+export * from "./eserviceTemplate/eserviceTemplateVersionAttribute.js";
+export * from "./eserviceTemplate/eserviceTemplateRiskAnalysis.js";
+export * from "./eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
+
 // DB models
 export * from "./db/agreement.js";
 export * from "./db/attribute.js";
 export * from "./db/catalog.js";
 export * from "./db/authorization.js";
 export * from "./db/delegation.js";
+export * from "./db/eserviceTemplate.js";

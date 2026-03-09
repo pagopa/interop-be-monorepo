@@ -5,9 +5,9 @@ import {
   ClientDbTableConfig,
   ProducerKeychainDbTableConfig,
   DelegationDbTableConfig,
+  EserviceTemplateDbTableConfig,
 } from "pagopa-interop-kpi-models";
 import { PurposeDbTableConfig } from "./purpose.js";
-import { EserviceTemplateDbTableConfig } from "./eserviceTemplate.js";
 import { TenantDbTableConfig } from "./tenant.js";
 import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
 

@@ -36,8 +36,8 @@ import {
   ClientDbTable,
   ProducerKeychainDbTable,
   DelegationDbTable,
+  EserviceTemplateDbTable,
 } from "pagopa-interop-kpi-models";
-import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
 import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";

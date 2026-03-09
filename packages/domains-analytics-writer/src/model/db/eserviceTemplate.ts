@@ -7,13 +7,15 @@ import {
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
-import { EserviceTemplateSchema } from "../eserviceTemplate/eserviceTemplate.js";
-import { EserviceTemplateRiskAnalysisSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysis.js";
-import { EserviceTemplateRiskAnalysisAnswerSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
-import { EserviceTemplateVersionSchema } from "../eserviceTemplate/eserviceTemplateVersion.js";
-import { EserviceTemplateVersionAttributeSchema } from "../eserviceTemplate/eserviceTemplateVersionAttribute.js";
-import { EserviceTemplateVersionDocumentSchema } from "../eserviceTemplate/eserviceTemplateVersionDocument.js";
-import { EserviceTemplateVersionInterfaceSchema } from "../eserviceTemplate/eserviceTemplateVersionInterface.js";
+import {
+  EserviceTemplateSchema,
+  EserviceTemplateVersionSchema,
+  EserviceTemplateVersionInterfaceSchema,
+  EserviceTemplateVersionDocumentSchema,
+  EserviceTemplateVersionAttributeSchema,
+  EserviceTemplateRiskAnalysisSchema,
+  EserviceTemplateRiskAnalysisAnswerSchema,
+} from "pagopa-interop-kpi-models";
 
 export const EserviceTemplateDbTableConfig = {
   eservice_template: EserviceTemplateSchema,
