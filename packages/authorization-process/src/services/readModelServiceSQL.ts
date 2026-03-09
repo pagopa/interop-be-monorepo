@@ -155,10 +155,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(clientInReadmodelClient.id)
-          .orderBy(ascLower(clientInReadmodelClient.name))
           .$dynamic();
 
       const subquery = buildFilterQuery()
+        .orderBy(ascLower(clientInReadmodelClient.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -361,10 +361,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(producerKeychainInReadmodelProducerKeychain.id)
-          .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
           .$dynamic();
 
       const subquery = buildFilterQuery()
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");

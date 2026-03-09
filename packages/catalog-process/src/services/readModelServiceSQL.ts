@@ -616,9 +616,13 @@ export function readModelServiceBuilderSQL(
           )
           .$dynamic();
 
+      const paginatedQuery = buildBaseQuery()
+        .limit(limit)
+        .offset(offset);
+
       const [totalCount, res] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       const consumers: Consumer[] = res.map((row) => ({
@@ -842,12 +846,16 @@ export function readModelServiceBuilderSQL(
               )
             )
           )
-          .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(asc(eserviceDescriptorDocumentInReadmodelCatalog.uploadDate))
+        .limit(limit)
+        .offset(offset);
 
       const [totalCount, resultsSet] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       return createListResult(

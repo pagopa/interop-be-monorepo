@@ -49,12 +49,16 @@ export function readModelServiceBuilderSQL({
           .select(getTableColumns(attributeInReadmodelAttribute))
           .from(attributeInReadmodelAttribute)
           .where(inArray(attributeInReadmodelAttribute.id, ids))
-          .orderBy(ascLower(attributeInReadmodelAttribute.name))
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
+        .limit(limit)
+        .offset(offset);
 
       const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);
@@ -97,12 +101,16 @@ export function readModelServiceBuilderSQL({
                 : undefined
             )
           )
-          .orderBy(ascLower(attributeInReadmodelAttribute.name))
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
+        .limit(limit)
+        .offset(offset);
 
       const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       const attributes = aggregateAttributeArray(queryResult);

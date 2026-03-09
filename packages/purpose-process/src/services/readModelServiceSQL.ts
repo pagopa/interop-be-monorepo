@@ -287,11 +287,11 @@ export function readModelServiceBuilderSQL({
               )
             )
             .groupBy(purposeInReadmodelPurpose.id)
-            .orderBy(ascLower(purposeInReadmodelPurpose.title))
             .$dynamic()
         );
 
       const subquery = buildFilterQuery()
+        .orderBy(ascLower(purposeInReadmodelPurpose.title))
         .limit(limit)
         .offset(offset)
         .as("subquery");

@@ -683,13 +683,17 @@ export function readModelServiceBuilderSQL(
               )
             )
             .groupBy(tenantInReadmodelTenant.id)
-            .orderBy(ascLower(tenantInReadmodelTenant.name))
             .$dynamic()
         );
 
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
+        .limit(limit)
+        .offset(offset);
+
       const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       return createListResult(
@@ -726,13 +730,17 @@ export function readModelServiceBuilderSQL(
               )
             )
             .groupBy(tenantInReadmodelTenant.id)
-            .orderBy(ascLower(tenantInReadmodelTenant.name))
             .$dynamic()
         );
 
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
+        .limit(limit)
+        .offset(offset);
+
       const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       return createListResult(
@@ -774,13 +782,17 @@ export function readModelServiceBuilderSQL(
               )
             )
             .groupBy(eserviceInReadmodelCatalog.id)
-            .orderBy(ascLower(eserviceInReadmodelCatalog.name))
             .$dynamic()
         );
 
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+        .limit(limit)
+        .offset(offset);
+
       const [totalCount, resultSet] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       return createListResult(
@@ -871,12 +883,16 @@ export function readModelServiceBuilderSQL(
               agreementId
             )
           )
-          .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       const [totalCount, resultsSet] = await Promise.all([
         getTableTotalCount(readmodelDB, buildBaseQuery()),
-        buildBaseQuery().limit(limit).offset(offset),
+        paginatedQuery,
       ]);
 
       return createListResult(

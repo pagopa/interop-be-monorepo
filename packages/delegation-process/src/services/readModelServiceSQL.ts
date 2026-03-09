@@ -269,12 +269,16 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(tenantInReadmodelTenant.name)
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(tenantInReadmodelTenant.name)
+        .limit(filters.limit)
+        .offset(filters.offset);
 
       const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, buildBaseQuery()),
-        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+        paginatedQuery,
       ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
@@ -360,12 +364,16 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
-          .orderBy(tenantInReadmodelTenant.name)
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(tenantInReadmodelTenant.name)
+        .limit(filters.limit)
+        .offset(filters.offset);
 
       const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, buildBaseQuery()),
-        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+        paginatedQuery,
       ]);
 
       const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
@@ -450,12 +458,16 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(eserviceInReadmodelCatalog.id)
-          .orderBy(eserviceInReadmodelCatalog.name)
           .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
+        .orderBy(eserviceInReadmodelCatalog.name)
+        .limit(filters.limit)
+        .offset(filters.offset);
 
       const [totalCount, queryResult] = await Promise.all([
         getTableTotalCount(readModelDB, buildBaseQuery()),
-        buildBaseQuery().limit(filters.limit).offset(filters.offset),
+        paginatedQuery,
       ]);
 
       const data: delegationApi.CompactEService[] = queryResult.map((e) => ({
