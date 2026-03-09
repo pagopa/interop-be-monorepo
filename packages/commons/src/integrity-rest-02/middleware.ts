@@ -26,6 +26,9 @@ interface RequestWithMaybeContext extends Request {
  * This middleware uses the "json replacer" and "json spaces" options from the response object to ensure
  * that the body is converted to a canonical JSON representation.
  *
+ * Also note that, to have the Digest and Agid-JWT-Signature headers set on the response even if the
+ * authorisation is not successful, this middleware needs to be _before_ the authentication middleware.
+ *
  * @param config - The token generation configuration.
  * @param kmsClient - The KMS client.
  * @returns The middleware function.
@@ -41,6 +44,11 @@ export function integrityRest02Middleware(
 
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
+      if (res.statusCode === 204 || res.statusCode === 304) {
+        throw new Error(
+          `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+        );
+      }
       const correlationId = res.getHeader("x-correlation-id") as
         | string
         | undefined;
@@ -54,9 +62,12 @@ export function integrityRest02Middleware(
         replacer,
         spaces,
       });
+      const contentType = res.getHeader("Content-Type")?.toString();
+      const contentEncoding = res.getHeader("Content-Encoding")?.toString();
       const signedHeaders = buildIntegrityRest02SignedHeaders({
-        res,
         digest,
+        contentType,
+        contentEncoding,
       });
 
       const tokenGenerator = new InteropTokenGenerator(config, kmsClient);

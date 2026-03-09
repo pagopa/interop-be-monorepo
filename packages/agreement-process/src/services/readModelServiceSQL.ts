@@ -56,16 +56,10 @@ import {
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
 import { CompactEService } from "../model/domain/models.js";
-
-type AgreementQueryFilters = {
-  producerId?: TenantId | TenantId[];
-  consumerId?: TenantId | TenantId[];
-  eserviceId?: EServiceId | EServiceId[];
-  descriptorId?: DescriptorId | DescriptorId[];
-  agreementStates?: AgreementState[];
-  attributeId?: AttributeId | AttributeId[];
-  showOnlyUpgradeable?: boolean;
-};
+import {
+  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
+} from "./readModelService.js";
 
 type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
@@ -280,12 +274,12 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  withDelegationFilter: boolean | undefined
+  exactConsumerIdMatch: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        withDelegationFilter
+        !exactConsumerIdMatch
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -330,10 +324,12 @@ const getAgreementsFilters = <
       },
 >({
   filters,
+  exactConsumerIdMatch,
   requesterId,
   withVisibilityAndDelegationFilters,
 }: {
   filters: AgreementQueryFilters;
+  exactConsumerIdMatch: boolean;
 } & T): SQL | undefined => {
   const {
     producerIds,
@@ -349,7 +345,7 @@ const getAgreementsFilters = <
       ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
+    getConsumerIdsFilter(consumerIds, exactConsumerIdMatch),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -369,7 +365,7 @@ export function readModelServiceBuilderSQL(
   return {
     async getAgreements(
       requesterId: TenantId,
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
@@ -413,12 +409,25 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.id,
               eserviceInReadmodelCatalog.name
             )
-            .orderBy(
-              ascLower(eserviceInReadmodelCatalog.name),
-              agreementInReadmodelAgreement.id
-            )
-            .$dynamic()
-        );
+          )
+          .where(
+            getAgreementsFilters({
+              filters,
+              exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
+              requesterId,
+              withVisibilityAndDelegationFilters: true,
+            })
+          )
+          .groupBy(
+            agreementInReadmodelAgreement.id,
+            eserviceInReadmodelCatalog.name
+          )
+          .orderBy(
+            ascLower(eserviceInReadmodelCatalog.name),
+            agreementInReadmodelAgreement.id
+          )
+          .$dynamic()
+      );
 
       const queryAgreementIds = filters.showOnlyUpgradeable
         ? buildBaseQuery().as("queryAgreementIds")
@@ -568,6 +577,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
+            exactConsumerIdMatch: true,
           })
         )
         .groupBy(
@@ -767,13 +777,13 @@ export function readModelServiceBuilderSQL(
                 agreementInReadmodelAgreement.eserviceId
               )
             )
-            .where(
-              and(
-                getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-                getProducerIdsFilter(producerIds, withDelegationFilter),
-                getConsumerIdsFilter(consumerIds, withDelegationFilter),
-                getVisibilityFilter(requesterId)
-              )
+          )
+          .where(
+            and(
+              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+              getProducerIdsFilter(producerIds, withDelegationFilter),
+              getConsumerIdsFilter(consumerIds, false),
+              getVisibilityFilter(requesterId)
             )
             .groupBy(eserviceInReadmodelCatalog.id)
             .orderBy(ascLower(eserviceInReadmodelCatalog.name))
