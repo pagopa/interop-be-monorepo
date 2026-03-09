@@ -18,10 +18,8 @@ import {
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { agreementServiceBuilder } from "../../service/agreementService.js";
-import {
-  AgreementConsumerDocumentDeletingSchema,
-  AgreementDeletingSchema,
-} from "../../model/agreement/agreement.js";
+import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 import {
   AgreementConsumerDocumentSchema,
