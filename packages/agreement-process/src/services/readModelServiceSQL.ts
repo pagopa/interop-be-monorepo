@@ -401,6 +401,7 @@ export function readModelServiceBuilderSQL(
             .where(
               getAgreementsFilters({
                 filters,
+                exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
                 requesterId,
                 withVisibilityAndDelegationFilters: true,
               })
@@ -409,25 +410,12 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.id,
               eserviceInReadmodelCatalog.name
             )
-          )
-          .where(
-            getAgreementsFilters({
-              filters,
-              exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
-              requesterId,
-              withVisibilityAndDelegationFilters: true,
-            })
-          )
-          .groupBy(
-            agreementInReadmodelAgreement.id,
-            eserviceInReadmodelCatalog.name
-          )
-          .orderBy(
-            ascLower(eserviceInReadmodelCatalog.name),
-            agreementInReadmodelAgreement.id
-          )
-          .$dynamic()
-      );
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            )
+            .$dynamic()
+        );
 
       const queryAgreementIds = filters.showOnlyUpgradeable
         ? buildBaseQuery().as("queryAgreementIds")
@@ -777,14 +765,13 @@ export function readModelServiceBuilderSQL(
                 agreementInReadmodelAgreement.eserviceId
               )
             )
+        ).where(
+          and(
+            getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+            getProducerIdsFilter(producerIds, withDelegationFilter),
+            getConsumerIdsFilter(consumerIds, false),
+            getVisibilityFilter(requesterId)
           )
-          .where(
-            and(
-              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-              getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, false),
-              getVisibilityFilter(requesterId)
-            )
             .groupBy(eserviceInReadmodelCatalog.id)
             .orderBy(ascLower(eserviceInReadmodelCatalog.name))
             .$dynamic()
