@@ -479,7 +479,6 @@ export function catalogServiceBuilder(
           isNewTemplateVersionAvailable:
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
-          instanceLabel: eservice.instanceLabel,
         },
         delegation:
           delegation !== undefined && delegate !== undefined
@@ -1646,6 +1645,7 @@ export function catalogServiceBuilder(
               eServiceId: eservice.id,
             },
           });
+          throw error;
         }
         await pollEServiceById({
           condition: (result) => result.riskAnalysis.length > 0,
@@ -1657,7 +1657,7 @@ export function catalogServiceBuilder(
         fileName: string,
         filePath: string,
         prettyName: string,
-        kind: "INTERFACE" | "DOCUMENT",
+        kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
         serverUrls: string[],
         contentType: string,
         checksum: string

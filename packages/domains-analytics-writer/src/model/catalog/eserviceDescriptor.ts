@@ -47,7 +47,7 @@ export type EserviceDescriptorDeletingSchema = z.infer<
 export const EserviceDescriptorItemsSchema = z.object({
   descriptorSQL: EserviceDescriptorSchema,
   attributesSQL: z.array(EserviceDescriptorAttributeSchema),
-  interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),
+  interfacesSQL: z.array(EserviceDescriptorInterfaceSchema),
   documentsSQL: z.array(EserviceDescriptorDocumentSchema),
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefSQL: EserviceDescriptorTemplateVersionRefSchema.optional(),

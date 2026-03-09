@@ -62,6 +62,8 @@ const errorCodes = {
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
   invalidDelegationFlags: "0047",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
+  eServiceAsyncExchangeNotEnabled: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -544,5 +546,25 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function eServiceAsyncExchangeNotEnabled(
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not have async exchange enabled`,
+    code: "eServiceAsyncExchangeNotEnabled",
+    title: "EService does not have async exchange enabled",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
   });
 }

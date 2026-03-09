@@ -114,6 +114,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  asyncExchangeCallbackInterface: Document.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 

@@ -3,7 +3,7 @@ info:
   title: PDND Interoperability API
   description: PDND Interoperability API for machine-to-machine interaction with interoperability features
   x-summary: PDND Interoperability API
-  version: "2.4.0"
+  version: "2.5.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -19381,6 +19381,9 @@ components:
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
             - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
             - ESERVICE_RISK_ANALYSIS_DELETED
