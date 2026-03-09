@@ -31,8 +31,15 @@ export * from "./authorization/producerKeychainEService.js";
 export * from "./authorization/producerKeychainKey.js";
 export * from "./authorization/producerKeychainUser.js";
 
+// Delegation models
+export * from "./delegation/delegation.js";
+export * from "./delegation/delegationStamp.js";
+export * from "./delegation/delegationContractDocument.js";
+export * from "./delegation/delegationSignedContractDocument.js";
+
 // DB models
 export * from "./db/agreement.js";
 export * from "./db/attribute.js";
 export * from "./db/catalog.js";
 export * from "./db/authorization.js";
+export * from "./db/delegation.js";
