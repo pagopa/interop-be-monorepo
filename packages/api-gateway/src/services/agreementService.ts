@@ -1,10 +1,10 @@
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+  agreementApi,
+  apiGatewayApi,
+  purposeApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
 import {
@@ -17,7 +17,7 @@ import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { getAllPurposes } from "./purposeService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   { headers, logger }: WithLogger<ApiGatewayAppContext>,
   queryParams: apiGatewayApi.GetAgreementsQueryParams
 ): Promise<apiGatewayApi.Agreements> {
@@ -43,7 +43,7 @@ export async function getAllAgreements(
 }
 
 const retrieveAgreement = (
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: ApiGatewayAppContext["headers"],
   agreementId: agreementApi.Agreement["id"]
 ): Promise<agreementApi.Agreement> =>
@@ -62,9 +62,9 @@ const retrieveAgreement = (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
-  agreementProcessClient: AgreementProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  purposeProcessClient: PurposeProcessClient
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "tenant">,
+  purposeProcessClient: purposeApi.PurposeProcessClient
 ) {
   return {
     getAgreements: async (

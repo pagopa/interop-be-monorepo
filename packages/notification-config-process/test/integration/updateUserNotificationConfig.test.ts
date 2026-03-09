@@ -98,6 +98,9 @@ describe("updateUserNotificationConfig", () => {
         clientKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .clientKeyAddedDeletedToClientUsers,
+        clientKeyConsumerAddedDeletedToClientUsers:
+          !userNotificationConfig.inAppConfig
+            .clientKeyConsumerAddedDeletedToClientUsers,
         producerKeychainKeyAddedDeletedToClientUsers:
           !userNotificationConfig.inAppConfig
             .producerKeychainKeyAddedDeletedToClientUsers,

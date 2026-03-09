@@ -118,10 +118,7 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 
-export type GetPurposesFilters = Omit<
-  ReadModelGetPurposesFilters,
-  "purposesIds"
-> & {
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
@@ -1134,21 +1131,21 @@ export function purposeServiceBuilder(
         if (!riskAnalysisForm) {
           throw missingRiskAnalysis(purposeId);
         }
-
-        const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-          eservice,
-          purpose.data.consumerId,
-          readModelService
-        );
-
-        validateRiskAnalysisOrThrow({
-          riskAnalysisForm:
-            riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-          schemaOnlyValidation: false,
-          tenantKind,
-          dateForExpirationValidation: new Date(),
-          personalDataInEService: eservice.personalData,
-        });
+        // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
+        if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
+          validateRiskAnalysisOrThrow({
+            riskAnalysisForm:
+              riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+            schemaOnlyValidation: false,
+            tenantKind,
+            dateForExpirationValidation: new Date(),
+            personalDataInEService: eservice.personalData,
+          });
+        }
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -1384,6 +1381,7 @@ export function purposeServiceBuilder(
       const createdAt = new Date();
 
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
@@ -1466,11 +1464,6 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const producerKind = await retrieveTenantKind(
-        eservice.producerId,
-        readModelService
-      );
-
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       await assertPurposeTitleIsNotDuplicated({
@@ -1481,16 +1474,6 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
-
-      validateRiskAnalysisOrThrow({
-        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-          riskAnalysis.riskAnalysisForm
-        ),
-        schemaOnlyValidation: false,
-        tenantKind: producerKind,
-        dateForExpirationValidation: createdAt,
-        personalDataInEService: eservice.personalData,
-      });
 
       const newVersion: PurposeVersion = {
         id: generateId(),

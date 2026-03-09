@@ -379,4 +379,34 @@ describe("handlePurposeVersionRejected", async () => {
       expect(message.email.body).toContain(purpose.title);
     });
   });
+
+  it("should use purposeVersionRejectedMailTemplate and not purposeVersionActivatedMailTemplate", async () => {
+    const purpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId,
+      consumerId,
+    };
+    await addOnePurpose(purpose);
+
+    const messages = await handlePurposeVersionRejectedFirstVersion({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toBe(3);
+    messages.forEach((message) => {
+      // Verify rejection message content
+      expect(message.email.subject).toContain("è stata rifiutata");
+      expect(message.email.body).toContain(
+        `La tua finalità &quot;${purpose.title}&quot; è stata rifiutata`
+      );
+
+      // Ensure it doesn't contain activation message content
+      expect(message.email.subject).not.toContain("è stata attivata");
+      expect(message.email.body).not.toContain("è stata attivata");
+    });
+  });
 });

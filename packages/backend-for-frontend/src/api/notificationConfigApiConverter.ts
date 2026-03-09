@@ -16,6 +16,7 @@ export function toBffApiUserNotificationConfig(
   ): bffApi.NotificationConfig => {
     const {
       clientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers,
       ...rest
     } = config;
@@ -24,6 +25,7 @@ export function toBffApiUserNotificationConfig(
       ...rest,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsers ||
+        clientKeyConsumerAddedDeletedToClientUsers ||
         producerKeychainKeyAddedDeletedToClientUsers,
     };
   };

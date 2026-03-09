@@ -96,4 +96,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
 };
 
-afterEach(cleanup);
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await cleanup();
+});

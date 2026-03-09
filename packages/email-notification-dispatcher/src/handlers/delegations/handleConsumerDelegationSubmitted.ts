@@ -77,6 +77,7 @@ export async function handleConsumerDelegationSubmitted(
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

@@ -79,6 +79,7 @@ export async function handleProducerKeychainKeyDeleted(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         keyId: kid,
         producerKeychainName: producerKeychain.name,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

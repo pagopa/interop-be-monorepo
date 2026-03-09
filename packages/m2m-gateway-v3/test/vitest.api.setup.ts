@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { KMSClient } from "@aws-sdk/client-kms";
+import { InteropTokenGenerator } from "pagopa-interop-commons";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -11,13 +13,44 @@ vi.mock("pagopa-interop-application-audit", async () => ({
   ),
 }));
 
-vi.mock("pagopa-interop-commons", async () => {
-  const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(
-    "pagopa-interop-commons"
-  );
+export const mockKmsClient = {
+  send: vi
+    .fn()
+    .mockResolvedValue(
+      new Promise((resolve) =>
+        resolve({ Signature: new Uint8Array([1, 2, 3]) })
+      )
+    ),
+} as unknown as KMSClient;
+
+vi.mock("../src/utils/tokenGenerator.js", async () => {
+  const actual = await vi.importActual<
+    typeof import("../src/utils/tokenGenerator.js")
+  >("../src/utils/tokenGenerator.js");
+
   return {
     ...actual,
-    authenticationMiddleware: vi.fn(
+    getIntoropTokenGenerator: vi.fn(
+      () =>
+        new InteropTokenGenerator(
+          {
+            integrityRestSignatureIssuer: "mockIssuer",
+            integrityRestSignatureKid: "mockKid",
+            integrityRestSignatureSecondsDuration: 100,
+          },
+          mockKmsClient
+        )
+    ),
+  };
+});
+
+vi.mock("../src/utils/middlewares.js", async () => {
+  const actual = await vi.importActual<
+    typeof import("../src/utils/middlewares.js")
+  >("../src/utils/middlewares.js");
+  return {
+    ...actual,
+    authenticationDPoPMiddleware: vi.fn(
       () =>
         async (
           req: Request & { ctx: AppContext },
@@ -25,7 +58,10 @@ vi.mock("pagopa-interop-commons", async () => {
           next: NextFunction
         ): Promise<unknown> => {
           try {
-            const jwtToken = jwtFromAuthHeader(req, genericLogger);
+            const { accessToken: jwtToken } = jwtsFromAuthAndDPoPHeaders(
+              req,
+              genericLogger
+            );
             const decoded = decodeJwtToken(jwtToken, genericLogger);
             const ctx = req.ctx || {};
             ctx.authData = readAuthDataFromJwtToken(
@@ -47,15 +83,16 @@ vi.mock("pagopa-interop-commons", async () => {
 });
 
 import {
-  jwtFromAuthHeader,
   genericLogger,
   readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
   rateLimiterMiddleware,
   RateLimiter,
+  jwtsFromAuthAndDPoPHeaders,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { createApp } from "../src/app.js";
 import { AgreementService } from "../src/services/agreementService.js";
 import { AttributeService } from "../src/services/attributeService.js";
@@ -69,6 +106,7 @@ import { TenantService } from "../src/services/tenantService.js";
 import { KeyService } from "../src/services/keyService.js";
 import { ProducerKeychainService } from "../src/services/producerKeychainService.js";
 import { EventService } from "../src/services/eventService.js";
+import { UserService } from "../src/services/userService.js";
 
 export const mockRateLimiter: RateLimiter = {
   rateLimitByOrganization: vi.fn().mockResolvedValue({
@@ -110,6 +148,8 @@ export const mockEserviceService = {} as EserviceService;
 export const mockKeyService = {} as KeyService;
 export const mockProducerKeychainService = {} as ProducerKeychainService;
 export const mockEventService = {} as EventService;
+export const mockDynamoDBClient = {} as DynamoDBClient;
+export const mockUserService = {} as UserService;
 
 export const api = await createApp(
   {
@@ -125,6 +165,9 @@ export const api = await createApp(
     keyService: mockKeyService,
     producerKeychainService: mockProducerKeychainService,
     eventService: mockEventService,
+    userService: mockUserService,
   },
-  rateLimiterMiddleware(mockRateLimiter)
+  rateLimiterMiddleware(mockRateLimiter),
+  mockDynamoDBClient,
+  mockKmsClient
 );

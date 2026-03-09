@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
-  DescriptorState,
   EService,
   EServiceId,
   Tenant,
@@ -32,6 +31,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -47,7 +47,7 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -75,13 +75,6 @@ export function descriptorStatesNotAllowingInterfaceOperations(
     .with(descriptorState.draft, () => false)
     .otherwise(() => true);
 }
-
-export const activeDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archived,
-];
 
 function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
@@ -185,6 +178,15 @@ export function assertIsDraftDescriptor(descriptor: Descriptor): void {
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
     throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
   }
 }
 

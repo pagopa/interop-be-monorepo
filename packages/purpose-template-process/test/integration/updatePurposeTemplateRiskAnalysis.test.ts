@@ -30,13 +30,20 @@ import {
   tenantKind,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { config } from "../../src/config/config.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import * as validators from "../../src/services/validators.js";
 import {
@@ -63,7 +70,9 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-
+  afterEach(async () => {
+    vi.restoreAllMocks();
+  });
   const riskAnalysisPAVersion = getLatestVersionFormRules(
     tenantKind.PA
   )!.version;
@@ -289,7 +298,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
     );
   });
 
-  it("Should throw a tenantNotAllowed error if the requester tenant is not template creator", async () => {
+  it("Should throw a purposeTemplateNotFound error if the requester tenant is not template creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOneTenant(creator);
@@ -303,7 +312,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
           authData: getMockAuthData(requesterId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
   });
 
   it("Should remove annotations documents for each answer deleted in risk analysis form template seed, all annotation documents of answers not affected by update still remain in S3", async () => {

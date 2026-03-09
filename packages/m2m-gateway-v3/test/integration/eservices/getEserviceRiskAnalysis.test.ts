@@ -59,7 +59,7 @@ describe("getEserviceRiskAnalysis", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedRiskAnalysis);
+    expect(result).toStrictEqual(expectedRiskAnalysis);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockEService.id },
