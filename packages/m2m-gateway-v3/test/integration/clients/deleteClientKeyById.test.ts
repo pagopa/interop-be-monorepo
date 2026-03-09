@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  ClientId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -7,14 +8,13 @@ import {
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
-  getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
-  mockDeletionPollingResponse,
+  mockPollingResponse,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
@@ -25,74 +25,66 @@ describe("deleteClientKey", () => {
   const mockAuthorizationProcessResponse = getMockWithMetadata(
     getMockedApiConsumerFullClient()
   );
-
-  const mockApiClientKey = getMockWithMetadata(
-    getMockedApiKey({
-      kid: keyId,
-    })
+  const clientId: ClientId = unsafeBrandId(
+    mockAuthorizationProcessResponse.data.id
   );
 
   const mockDeleteClientKeyById = vi.fn();
-
-  const mockGetClient = vi.fn(
-    mockDeletionPollingResponse(mockAuthorizationProcessResponse, 2)
-  );
-
-  const mockGetClientKeyById = vi.fn(
-    mockDeletionPollingResponse(mockApiClientKey, 2)
-  );
+  const mockGetClient = vi.fn();
 
   mockInteropBeClients.authorizationClient = {
     client: {
-      getClient: mockGetClient,
       deleteClientKeyById: mockDeleteClientKeyById,
-      getClientKeyById: mockGetClientKeyById,
+      getClient: mockGetClient,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockDeleteClientKeyById.mockClear();
-    mockGetClient.mockClear();
-    mockGetClientKeyById.mockClear();
+    vi.clearAllMocks();
+
+    mockDeleteClientKeyById.mockResolvedValue(mockAuthorizationProcessResponse);
+    mockGetClient.mockImplementation(
+      mockPollingResponse(mockAuthorizationProcessResponse, 2)
+    );
   });
 
   it("Should succeed and perform API clients calls", async () => {
     const result = await clientService.deleteClientKey(
-      unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+      clientId,
       keyId,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(undefined);
+    expect(result).toStrictEqual(undefined);
+
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.authorizationClient.client.deleteClientKeyById,
       params: {
-        clientId: mockAuthorizationProcessResponse.data.id,
+        clientId,
         keyId,
       },
     });
+
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.authorizationClient.client.getClientKeyById,
-      params: { clientId: mockAuthorizationProcessResponse.data.id, keyId },
+      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
+      params: { clientId },
     });
-    expect(
-      mockInteropBeClients.authorizationClient.client.getClientKeyById
-    ).toHaveBeenCalledTimes(2);
+
+    expect(mockGetClient).toHaveBeenCalledTimes(2);
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClientKeyById.mockImplementation(
-      mockDeletionPollingResponse(
-        mockApiClientKey,
+    mockGetClient.mockImplementation(
+      mockPollingResponse(
+        mockAuthorizationProcessResponse,
         config.defaultPollingMaxRetries + 1
       )
     );
 
     await expect(
       clientService.deleteClientKey(
-        unsafeBrandId(mockAuthorizationProcessResponse.data.id),
+        clientId,
         keyId,
         getMockM2MAdminAppContext()
       )
@@ -102,7 +94,8 @@ describe("deleteClientKey", () => {
         config.defaultPollingRetryDelay
       )
     );
-    expect(mockGetClientKeyById).toHaveBeenCalledTimes(
+
+    expect(mockGetClient).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
     );
   });

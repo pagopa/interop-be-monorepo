@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { UserId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -36,7 +36,8 @@ describe("API GET /users/:userId", () => {
   const makeRequest = async (userId: string, token: string) =>
     request(api)
       .get(`${appBasePath}/users/${userId}`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   it("Should return 200 with user data for M2M_ADMIN_ROLE", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
