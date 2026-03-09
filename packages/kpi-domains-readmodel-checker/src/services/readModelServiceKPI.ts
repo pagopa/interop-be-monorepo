@@ -33,11 +33,9 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
-} from "pagopa-interop-kpi-models";
-import {
   ClientDbTable,
   ProducerKeychainDbTable,
-} from "../model/db/authorization.js";
+} from "pagopa-interop-kpi-models";
 import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { PurposeDbTable } from "../model/db/purpose.js";

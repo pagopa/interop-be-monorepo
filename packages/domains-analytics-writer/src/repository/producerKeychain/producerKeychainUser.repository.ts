@@ -10,7 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 
 import { ProducerKeychainDbTable } from "../../model/db/index.js";
-import { ProducerKeychainUserSchema } from "../../model/authorization/producerKeychainUser.js";
+import { ProducerKeychainUserSchema } from "pagopa-interop-kpi-models";
 
 export function producerKeychainUserRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

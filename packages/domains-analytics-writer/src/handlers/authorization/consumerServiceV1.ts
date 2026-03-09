@@ -16,22 +16,18 @@ import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
 import {
-  ClientKeyDeletingSchema,
+  ClientItemsSchema,
   ClientKeySchema,
+  ClientPurposeSchema,
+  ClientUserSchema,
+} from "pagopa-interop-kpi-models";
+import {
+  ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../../model/authorization/clientKey.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
-import {
-  ClientPurposeDeletingSchema,
-  ClientPurposeSchema,
-} from "../../model/authorization/clientPurpose.js";
-import {
-  ClientUserDeletingSchema,
-  ClientUserSchema,
-} from "../../model/authorization/clientUser.js";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
+import { ClientPurposeDeletingSchema } from "../../model/authorization/clientPurpose.js";
+import { ClientUserDeletingSchema } from "../../model/authorization/clientUser.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAuthorizationMessageV1(

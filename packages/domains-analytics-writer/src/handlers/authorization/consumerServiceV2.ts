@@ -13,15 +13,10 @@ import {
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
+import { ClientItemsSchema, ProducerKeychainItemsSchema } from "pagopa-interop-kpi-models";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
-import {
-  ProducerKeychainItemsSchema,
-  ProducerKeychainDeletingSchema,
-} from "../../model/authorization/producerKeychain.js";
+import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
 
 export async function handleAuthorizationEventMessageV2(
   messages: AuthorizationEventEnvelopeV2[],
