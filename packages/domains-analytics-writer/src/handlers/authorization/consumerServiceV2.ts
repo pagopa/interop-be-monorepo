@@ -13,7 +13,10 @@ import {
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
-import { ClientItemsSchema, ProducerKeychainItemsSchema } from "pagopa-interop-kpi-models";
+import {
+  ClientItemsSchema,
+  ProducerKeychainItemsSchema,
+} from "pagopa-interop-kpi-models";
 import { ClientDeletingSchema } from "../../model/authorization/client.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";

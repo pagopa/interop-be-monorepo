@@ -13,9 +13,7 @@ import {
   generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { PurposeVersionSchema } from "pagopa-interop-kpi-models";
-import {
-  PurposeVersionDeletingSchema,
-} from "../../model/purpose/purposeVersion.js";
+import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
 import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
 
 export function purposeVersionRepo(conn: DBConnection) {

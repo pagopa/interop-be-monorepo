@@ -6,7 +6,6 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-
 import {
   PurposeTemplateSchema,
   PurposeTemplateRiskAnalysisFormSchema,

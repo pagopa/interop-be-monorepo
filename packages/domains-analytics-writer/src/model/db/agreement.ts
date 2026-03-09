@@ -6,7 +6,6 @@ import {
   agreementContractInReadmodelAgreement,
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
-
 import {
   AgreementSchema,
   AgreementAttributeSchema,

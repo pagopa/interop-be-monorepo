@@ -14,9 +14,7 @@ import {
   PurposeTemplateDbTable,
 } from "../../model/db/index.js";
 import { PurposeTemplateEServiceDescriptorSchema } from "pagopa-interop-kpi-models";
-import {
-  PurposeTemplateEServiceDescriptorDeletingSchema,
-} from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 
 export function purposeTemplateEServiceDescriptorRepository(
   conn: DBConnection

@@ -28,9 +28,7 @@ import {
 } from "../model/catalog/eserviceDescriptor.js";
 import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
 import { EserviceDescriptorDocumentDeletingSchema } from "../model/catalog/eserviceDescriptorDocument.js";
-import {
-  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
-} from "../model/catalog/eserviceDescriptorInterface.js";
+import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../model/catalog/eserviceDescriptorInterface.js";
 import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
 
 export function catalogServiceBuilder(db: DBContext) {

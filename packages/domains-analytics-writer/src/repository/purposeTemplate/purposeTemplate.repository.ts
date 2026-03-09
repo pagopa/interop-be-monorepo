@@ -10,9 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { PurposeTemplateSchema } from "pagopa-interop-kpi-models";
-import {
-  PurposeTemplateDeletingSchema,
-} from "../../model/purposeTemplate/purposeTemplate.js";
+import { PurposeTemplateDeletingSchema } from "../../model/purposeTemplate/purposeTemplate.js";
 import {
   DeletingDbTable,
   PurposeTemplateDbTable,

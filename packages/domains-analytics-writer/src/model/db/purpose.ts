@@ -7,7 +7,6 @@ import {
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
-
 import {
   PurposeSchema,
   PurposeRiskAnalysisFormSchema,

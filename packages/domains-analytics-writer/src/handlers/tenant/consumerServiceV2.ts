@@ -10,9 +10,7 @@ import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { tenantServiceBuilder } from "../../service/tenantService.js";
 import { TenantItemsSchema } from "pagopa-interop-kpi-models";
-import {
-  TenantDeletingSchema,
-} from "../../model/tenant/tenant.js";
+import { TenantDeletingSchema } from "../../model/tenant/tenant.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV2(

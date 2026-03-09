@@ -10,9 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { TenantMailSchema } from "pagopa-interop-kpi-models";
-import {
-  TenantMailDeletingSchema,
-} from "../../model/tenant/tenantMail.js";
+import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
 import { TenantDbTable, DeletingDbTable } from "../../model/db/index.js";
 
 export function tenantMailRepository(conn: DBConnection) {

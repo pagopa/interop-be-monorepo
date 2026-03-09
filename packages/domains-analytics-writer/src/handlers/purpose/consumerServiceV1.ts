@@ -15,13 +15,12 @@ import {
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
-import { PurposeItemsSchema, PurposeVersionItemsSchema } from "pagopa-interop-kpi-models";
 import {
-  PurposeDeletingSchema,
-} from "../../model/purpose/purpose.js";
-import {
-  PurposeVersionDeletingSchema,
-} from "../../model/purpose/purposeVersion.js";
+  PurposeItemsSchema,
+  PurposeVersionItemsSchema,
+} from "pagopa-interop-kpi-models";
+import { PurposeDeletingSchema } from "../../model/purpose/purpose.js";
+import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
