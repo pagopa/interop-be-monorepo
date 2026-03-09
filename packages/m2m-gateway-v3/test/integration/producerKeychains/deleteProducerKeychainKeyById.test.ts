@@ -7,14 +7,13 @@ import {
 import {
   getMockedApiFullProducerKeychain,
   getMockWithMetadata,
-  getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
-  mockDeletionPollingResponse,
+  mockPollingResponse,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
@@ -22,41 +21,28 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteProducerKeychainKey", () => {
   const keyId = generateId();
-  const mockAuthorizationProcessResponse = getMockWithMetadata(
-    getMockedApiFullProducerKeychain()
-  );
-  const keychainId = mockAuthorizationProcessResponse.data
-    .id as ProducerKeychainId;
-
-  const mockApiProducerKeychainKey = getMockWithMetadata(
-    getMockedApiKey({
-      kid: keyId,
-    })
-  );
+  const mockKeychainResponse = getMockedApiFullProducerKeychain();
+  const mockResponseWithMetadata = getMockWithMetadata(mockKeychainResponse);
+  const keychainId = mockKeychainResponse.id as ProducerKeychainId;
 
   const mockDeleteProducerKeyById = vi.fn();
-
-  const mockGetProducerKeychain = vi.fn(
-    mockDeletionPollingResponse(mockAuthorizationProcessResponse, 2)
-  );
-
-  const mockGetProducerKeyById = vi.fn(
-    mockDeletionPollingResponse(mockApiProducerKeychainKey, 2)
-  );
+  const mockGetProducerKeychain = vi.fn();
 
   mockInteropBeClients.authorizationClient = {
     producerKeychain: {
-      getProducerKeychain: mockGetProducerKeychain,
       deleteProducerKeyById: mockDeleteProducerKeyById,
-      getProducerKeyById: mockGetProducerKeyById,
+      getProducerKeychain: mockGetProducerKeychain,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockDeleteProducerKeyById.mockClear();
-    mockGetProducerKeychain.mockClear();
-    mockGetProducerKeyById.mockClear();
+    vi.clearAllMocks();
+
+    mockDeleteProducerKeyById.mockResolvedValue(mockResponseWithMetadata);
+
+    mockGetProducerKeychain.mockImplementation(
+      mockPollingResponse(mockResponseWithMetadata, 2)
+    );
   });
 
   it("Should succeed and perform API producerKeychains calls", async () => {
@@ -66,7 +52,8 @@ describe("deleteProducerKeychainKey", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(undefined);
+    expect(result).toStrictEqual(undefined);
+
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.authorizationClient.producerKeychain
@@ -76,22 +63,21 @@ describe("deleteProducerKeychainKey", () => {
         keyId,
       },
     });
+
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain
-          .getProducerKeyById,
-      params: { producerKeychainId: keychainId, keyId },
+          .getProducerKeychain,
+      params: { producerKeychainId: keychainId },
     });
-    expect(
-      mockInteropBeClients.authorizationClient.producerKeychain
-        .getProducerKeyById
-    ).toHaveBeenCalledTimes(2);
+
+    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(2);
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetProducerKeyById.mockImplementation(
-      mockDeletionPollingResponse(
-        mockApiProducerKeychainKey,
+    mockGetProducerKeychain.mockImplementation(
+      mockPollingResponse(
+        mockResponseWithMetadata,
         config.defaultPollingMaxRetries + 1
       )
     );
@@ -108,7 +94,8 @@ describe("deleteProducerKeychainKey", () => {
         config.defaultPollingRetryDelay
       )
     );
-    expect(mockGetProducerKeyById).toHaveBeenCalledTimes(
+
+    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(
       config.defaultPollingMaxRetries
     );
   });

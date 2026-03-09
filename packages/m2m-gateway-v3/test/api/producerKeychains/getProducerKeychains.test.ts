@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -45,7 +46,8 @@ describe("GET /producerKeychains router test", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/producerKeychains`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .query(query)
       .send();
 
