@@ -1,5 +1,6 @@
 import { constants } from "http2";
 import {
+  AuthData,
   ExpressContext,
   M2MAdminAuthData,
   fromAppContext,
@@ -57,7 +58,7 @@ export function m2mAuthDataValidationMiddleware(
       req.headers
     );
     try {
-      await match(ctx.authData)
+      await match(ctx.authData as AuthData)
         .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (authData) =>
           validateM2MAdminUserId(
             authData,
@@ -66,7 +67,11 @@ export function m2mAuthDataValidationMiddleware(
             ctx.logger
           )
         )
-        .exhaustive();
+        .otherwise((authData) => {
+          throw unauthorizedError(
+            `Invalid role ${authData.systemRole} for this operation`
+          );
+        });
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
