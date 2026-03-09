@@ -630,7 +630,7 @@ export function agreementServiceBuilder(
 
       const isActivating = updatedAgreement.state === agreementState.active;
 
-      const submittedAgreement = await addContractAtCondition(
+      const submittedAgreement = await addContractIfActivating(
         isActivating,
         contractBuilderInstance,
         eservice,
@@ -1374,7 +1374,7 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const updatedAgreement: Agreement = await addContractAtCondition(
+      const updatedAgreement: Agreement = await addContractIfActivating(
         isFirstActivation,
         contractBuilderInstance,
         eservice,
@@ -1754,8 +1754,8 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
 }
 
 // eslint-disable-next-line max-params
-async function addContractAtCondition(
-  condition: boolean,
+async function addContractIfActivating(
+  shouldAddContract: boolean,
   contractBuilder: ContractBuilder,
   eservice: EService,
   consumer: Tenant,
@@ -1766,7 +1766,7 @@ async function addContractAtCondition(
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
-    condition
+    shouldAddContract
   ) {
     logger.info(
       `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
