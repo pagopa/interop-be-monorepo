@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -314,9 +314,9 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
             purposeRiskAnalysisAnswerInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
-          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -328,15 +328,9 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           purposeRiskAnalysisAnswerInReadmodelPurpose,
-          and(
-            eq(
-              purposeInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
-            ),
-            eq(
-              purposeRiskAnalysisFormInReadmodelPurpose.id,
-              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-            )
+          eq(
+            purposeRiskAnalysisFormInReadmodelPurpose.id,
+            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
           )
         )
         .leftJoin(
@@ -354,17 +348,17 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          purposeVersionSignedDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
           purposeVersionStampInReadmodelPurpose,
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
         );
 
