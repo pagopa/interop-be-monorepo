@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
