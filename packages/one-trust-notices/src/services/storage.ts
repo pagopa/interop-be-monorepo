@@ -9,11 +9,14 @@ import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { DeepPartial, DynamoDBKeyOf } from "../utils/utils.js";
 
 export class DynamoDbTableClient<
-  TSchema extends Record<string, unknown> = Record<string, AttributeValue>
+  TSchema extends Record<string, unknown> = Record<string, AttributeValue>,
 > {
   private client: DynamoDB;
 
-  constructor(private tableName: string, region: string) {
+  constructor(
+    private tableName: string,
+    region: string
+  ) {
     this.client = new DynamoDB({ region });
   }
 

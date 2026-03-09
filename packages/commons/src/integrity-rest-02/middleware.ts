@@ -9,11 +9,25 @@ import {
 } from "./digest.js";
 import { buildIntegrityRest02SignedHeaders } from "./headers.js";
 
+// The context may or may not be present (e.g if the user is not authorised)
+interface AuthData {
+  clientId?: string;
+}
+
+interface RequestWithMaybeContext extends Request {
+  ctx?: {
+    authData?: AuthData;
+  };
+}
+
 /**
  * Middleware for Integrity REST 02 responses. Calculates Digest and signs Agid-JWT-Signature automatically
  * and sets the "digest" and "agid-jwt-signature" headers on the response.
  * This middleware uses the "json replacer" and "json spaces" options from the response object to ensure
  * that the body is converted to a canonical JSON representation.
+ *
+ * Also note that, to have the Digest and Agid-JWT-Signature headers set on the response even if the
+ * authorisation is not successful, this middleware needs to be _before_ the authentication middleware.
  *
  * @param config - The token generation configuration.
  * @param kmsClient - The KMS client.
@@ -24,12 +38,22 @@ export function integrityRest02Middleware(
   kmsClient: KMSClient
 ) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  return (_req: Request, res: Response, next: NextFunction) => {
+  return (req: RequestWithMaybeContext, res: Response, next: NextFunction) => {
     // Keep original res.send
     const originalSend = res.send.bind(res);
 
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
+      if (res.statusCode === 204 || res.statusCode === 304) {
+        throw new Error(
+          `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+        );
+      }
+      const correlationId = res.getHeader("x-correlation-id") as
+        | string
+        | undefined;
+      const clientId = req.ctx?.authData?.clientId ?? correlationId;
+
       const replacer =
         (res.app.get("json replacer") as JsonReplacer) ?? undefined;
       const spaces = (res.app.get("json spaces") as JsonSpaces) ?? undefined;
@@ -38,9 +62,12 @@ export function integrityRest02Middleware(
         replacer,
         spaces,
       });
+      const contentType = res.getHeader("Content-Type")?.toString();
+      const contentEncoding = res.getHeader("Content-Encoding")?.toString();
       const signedHeaders = buildIntegrityRest02SignedHeaders({
-        res,
         digest,
+        contentType,
+        contentEncoding,
       });
 
       const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
@@ -48,6 +75,8 @@ export function integrityRest02Middleware(
       tokenGenerator
         .generateAgidIntegrityRest02Token({
           signedHeaders,
+          aud: clientId,
+          sub: correlationId,
         })
         .then((agidSignature) => {
           res.setHeader("Digest", `SHA-256=${digest}`);

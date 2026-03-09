@@ -118,11 +118,11 @@ export async function createApp(
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
+    integrityRest02Middleware(config, kmsClient),
     authenticationDPoPMiddleware(config, dynamoDBClient),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,
-    integrityRest02Middleware(config, kmsClient),
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),
     purposeRouter(zodiosCtx, purposeService),
