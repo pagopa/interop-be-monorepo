@@ -242,6 +242,24 @@ describe("integrityRest02Middleware", () => {
     });
     expect(res.headers).toHaveProperty("digest");
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+    const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+    expect(decoded).toHaveProperty("client_id");
+    expect(decoded.client_id).toBe(mockM2MAdminClientId);
+    const signedHeadersParse = IntegrityRest02SignedHeaders.safeParse(
+      decoded.signed_headers
+    );
+    expect(signedHeadersParse.success).toBe(true);
+    const signedHeaders = signedHeadersParse.data;
+    expect(signedHeaders).toHaveLength(3);
+    expect(signedHeaders).toContainEqual({
+      digest: `SHA-256=${expectedDigest}`,
+    });
+    expect(signedHeaders).toContainEqual({
+      "content-type": res.headers["content-type"],
+    });
+    expect(signedHeaders).toContainEqual({
+      "x-correlation-id": res.headers["x-correlation-id"],
+    });
   });
 
   it("should have a digest even if unauthorised", async () => {
@@ -252,6 +270,8 @@ describe("integrityRest02Middleware", () => {
       body: res.text,
     });
     expect(res.headers.digest).toBe(`SHA-256=${expectedDigest}`);
+    const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+    expect(decoded).not.toHaveProperty("client_id");
   });
 
   it("Should return 500 if the response is 204", async () => {
