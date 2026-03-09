@@ -24,19 +24,15 @@ import {
   splitPurposeIntoObjectsSQL,
   splitTenantIntoObjectsSQL,
   splitPurposeTemplateIntoObjectsSQL,
+  overallReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
 } from "../src/services/readModelServiceKPI.js";
-import {
-  DomainDbTable,
-  DomainDbTableReadModels,
-  DomainDbTableSchemas,
-} from "../src/model/db/index.js";
+import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
 import {
   AttributeSchema,
   AttributeDbTable,
@@ -58,7 +54,9 @@ import {
   PurposeTemplateDbTable,
   TenantItemsSchema,
   TenantDbTable,
+  DomainDbTableReadModels,
 } from "pagopa-interop-kpi-models";
+
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,
@@ -80,7 +78,7 @@ const dbContext: DBContext = {
 };
 
 export const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
-export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+export const readModelServiceSQL = overallReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>

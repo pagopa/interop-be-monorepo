@@ -83,3 +83,4 @@ export * from "./db/eserviceTemplate.js";
 export * from "./db/purpose.js";
 export * from "./db/purposeTemplate.js";
 export * from "./db/tenant.js";
+export * from "./db/utils.js";
