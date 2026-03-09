@@ -410,16 +410,24 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.id,
               eserviceInReadmodelCatalog.name
             )
-            .orderBy(
-              ascLower(eserviceInReadmodelCatalog.name),
-              agreementInReadmodelAgreement.id
-            )
             .$dynamic()
         );
 
       const queryAgreementIds = filters.showOnlyUpgradeable
-        ? buildBaseQuery().as("queryAgreementIds")
-        : buildBaseQuery().limit(limit).offset(offset).as("queryAgreementIds");
+        ? buildBaseQuery()
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            )
+            .as("queryAgreementIds")
+        : buildBaseQuery()
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              agreementInReadmodelAgreement.id
+            )
+            .limit(limit)
+            .offset(offset)
+            .as("queryAgreementIds");
 
       const outerQuery = readmodelDB
         .select({

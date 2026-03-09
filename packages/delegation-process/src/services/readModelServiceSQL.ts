@@ -165,10 +165,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(delegationInReadmodelDelegation.id)
-          .orderBy(delegationInReadmodelDelegation.createdAt)
           .$dynamic();
 
       const subquery = buildFilterQuery()
+        .orderBy(delegationInReadmodelDelegation.createdAt)
         .limit(limit)
         .offset(offset)
         .as("subquery");

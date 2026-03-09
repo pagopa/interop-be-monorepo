@@ -240,12 +240,12 @@ export function readModelServiceBuilderSQL({
           )
           .where(getPurposeTemplatesFilters(filters, authData))
           .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
-          .orderBy(
-            ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
-          )
           .$dynamic();
 
       const subquery = buildFilterQuery()
+        .orderBy(
+          ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
+        )
         .limit(limit)
         .offset(offset)
         .as("subquery");
