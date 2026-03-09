@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiEservice,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -30,7 +31,8 @@ describe("PATCH /eservices/:eserviceId/name router test", () => {
   ) =>
     request(api)
       .patch(`${appBasePath}/eservices/${eserviceId}/name`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .set("Content-Type", "application/merge-patch+json")
       .send(body);
 

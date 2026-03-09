@@ -54,7 +54,7 @@ describe("removeClientPurpose", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(undefined);
+    expect(result).toStrictEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.authorizationClient.client.removeClientPurpose,

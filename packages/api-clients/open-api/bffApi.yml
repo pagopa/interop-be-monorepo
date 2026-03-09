@@ -26435,6 +26435,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        instanceLabel:
+          type: string
         asyncExchange:
           type: boolean
     ProducerDescriptorEServiceProducer:
@@ -26469,8 +26471,6 @@ components:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
           type: boolean
-        instanceLabel:
-          type: string
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -29384,7 +29384,6 @@ components:
         - voucherLifespan
         - attributes
         - eserviceTemplate
-        - isAlreadyInstantiated
       properties:
         id:
           type: string
@@ -29423,8 +29422,6 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
-        isAlreadyInstantiated:
-          type: boolean
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:

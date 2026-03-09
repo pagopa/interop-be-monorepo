@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
@@ -7,6 +7,7 @@ import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
 import { getMockDownloadedDocument } from "../../mockUtils.js";
@@ -27,7 +28,8 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
       .get(
         `${appBasePath}/purposes/${purposeId}/versions/${versionId}/riskAnalysisDocument`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .buffer(true)
       .parse(testMultipartResponseParser);
 
@@ -84,5 +86,17 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
     const res = await makeRequest(token, generateId(), generateId());
 
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 409 in case of purposeVersionDocumentNotReady error", async () => {
+    mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionDocumentNotReady(generateId(), generateId())
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), generateId());
+
+    expect(res.status).toBe(409);
   });
 });
