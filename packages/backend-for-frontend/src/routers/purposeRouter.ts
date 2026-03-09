@@ -143,24 +143,24 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/purposes/:purposeId/updatedDailyCalls", async (req, res) => {
+    .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getUpdatedDailyCalls(
+        const result = await purposeService.getRemainingDailyCalls(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
         return res
           .status(200)
-          .send(bffApi.UpdatedDailyCallsResponse.parse(result));
+          .send(bffApi.RemainingDailyCallsResponse.parse(result));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error retrieving updated daily calls for Purpose ${req.params.purposeId}`
+          `Error retrieving remaining daily calls for Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

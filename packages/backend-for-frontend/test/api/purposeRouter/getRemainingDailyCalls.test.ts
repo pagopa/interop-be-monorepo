@@ -8,22 +8,22 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API GET /purposes/{purposeId}/updatedDailyCalls test", () => {
+describe("API GET /purposes/{purposeId}/remainingDailyCalls test", () => {
   const purposeId: PurposeId = generateId();
-  const apiResponse = bffApi.UpdatedDailyCallsResponse.parse({
-    updatedDailyCallsPerConsumer: 80,
-    updatedDailyCallsTotal: 1800,
+  const apiResponse = bffApi.RemainingDailyCallsResponse.parse({
+    remainingDailyCallsPerConsumer: 80,
+    remainingDailyCallsTotal: 1800,
   });
 
   beforeEach(() => {
-    services.purposeService.getUpdatedDailyCalls = vi
+    services.purposeService.getRemainingDailyCalls = vi
       .fn()
       .mockResolvedValue(apiResponse);
   });
 
   const makeRequest = async (token: string, purposeId: PurposeId) =>
     request(api)
-      .get(`${appBasePath}/purposes/${purposeId}/updatedDailyCalls`)
+      .get(`${appBasePath}/purposes/${purposeId}/remainingDailyCalls`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
