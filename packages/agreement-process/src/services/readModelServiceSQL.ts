@@ -765,13 +765,14 @@ export function readModelServiceBuilderSQL(
                 agreementInReadmodelAgreement.eserviceId
               )
             )
-        ).where(
-          and(
-            getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
-            getProducerIdsFilter(producerIds, withDelegationFilter),
-            getConsumerIdsFilter(consumerIds, false),
-            getVisibilityFilter(requesterId)
-          )
+            .where(
+              and(
+                getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
+                getProducerIdsFilter(producerIds, withDelegationFilter),
+                getConsumerIdsFilter(consumerIds, false),
+                getVisibilityFilter(requesterId)
+              )
+            )
             .groupBy(eserviceInReadmodelCatalog.id)
             .orderBy(ascLower(eserviceInReadmodelCatalog.name))
             .$dynamic()
