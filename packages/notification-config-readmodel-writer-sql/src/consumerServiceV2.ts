@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   NotificationConfigEventEnvelope,
   fromTenantNotificationConfigV2,
@@ -10,7 +11,8 @@ import { NotificationConfigReadModelWriteService } from "./readModelWriteService
 
 export async function handleMessageV2(
   message: NotificationConfigEventEnvelope,
-  notificationConfigReadModelWriteService: NotificationConfigReadModelWriteService
+  notificationConfigReadModelWriteService: NotificationConfigReadModelWriteService,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with(
@@ -32,10 +34,21 @@ export async function handleMessageV2(
         );
       }
     )
+    .with({ type: "UserNotificationConfigCreated" }, async (message) => {
+      if (!message.data.userNotificationConfig) {
+        throw genericInternalError(
+          "Notification config can't be missing in event message"
+        );
+      }
+      await notificationConfigReadModelWriteService.upsertOrMergeUserNotificationConfigOnCreate(
+        fromUserNotificationConfigV2(message.data.userNotificationConfig),
+        message.version,
+        logger
+      );
+    })
     .with(
       {
         type: P.union(
-          "UserNotificationConfigCreated",
           "UserNotificationConfigUpdated",
           "UserNotificationConfigRoleAdded",
           "UserNotificationConfigRoleRemoved"

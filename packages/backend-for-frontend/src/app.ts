@@ -41,7 +41,7 @@ import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import emailDeeplinkRouter from "./routers/emailDeeplinkRouter.js";
+import emailDeeplinkRouters from "./routers/emailDeeplinkRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 import {
   AgreementService,
@@ -189,7 +189,6 @@ export async function createServices(
       clients.eserviceTemplateProcessClient,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
-      clients.catalogProcessClient,
       clients.inAppNotificationManagerClient,
       fileManager
     ),
@@ -256,7 +255,7 @@ export async function createApp(
       config
     ),
     authorizationRouter(zodiosCtx, services.authorizationService),
-    emailDeeplinkRouter(zodiosCtx),
+    ...emailDeeplinkRouters(zodiosCtx),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)

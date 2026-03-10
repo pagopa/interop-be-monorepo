@@ -319,7 +319,7 @@ export function eServiceDescriptorPurposeTemplateNotFound(
 
 export function invalidFreeOfChargeReason(
   purposeIsFreeOfCharge: boolean,
-  purposeFreeOfChargeReason: string
+  purposeFreeOfChargeReason: string | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid purposeFreeOfChargeReason: "${purposeFreeOfChargeReason}" for purposeIsFreeOfCharge: "${purposeIsFreeOfCharge}"`,

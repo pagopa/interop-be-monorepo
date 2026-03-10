@@ -6,10 +6,7 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import { InteropHeaders } from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-} from "./clients/clientsProvider.js";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const processPurposes = async ({
@@ -19,7 +16,7 @@ export const processPurposes = async ({
   delegationId,
 }: {
   readModelService: ReadModelServiceSQL;
-  purposeProcessClient: PurposeProcessClient;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
   headers: InteropHeaders;
   delegationId: DelegationId;
 }): Promise<void> => {
@@ -93,7 +90,7 @@ export const processAgreement = async ({
   delegation,
 }: {
   readModelService: ReadModelServiceSQL;
-  agreementProcessClient: AgreementProcessClient;
+  agreementProcessClient: agreementApi.AgreementProcessClient;
   headers: InteropHeaders;
   delegation: Delegation;
 }): Promise<void> => {

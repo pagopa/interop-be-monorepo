@@ -77,6 +77,7 @@ describe("getRecipientsForTenants", () => {
   const tenantRecipients = tenants.map((t) => ({
     type: "Tenant" as const,
     tenantId: t.id,
+    selfcareId: t.selfcareId,
     address: t.mails[0]?.address,
   }));
 
@@ -84,6 +85,7 @@ describe("getRecipientsForTenants", () => {
     type: "User" as const,
     userId: u.userId,
     tenantId: u.tenantId,
+    selfcareId: tenants.find((t) => t.id === u.tenantId)?.selfcareId,
   }));
 
   const readModelService = {

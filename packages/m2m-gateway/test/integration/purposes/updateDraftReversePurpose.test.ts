@@ -20,7 +20,11 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("updateDraftReversePurpose", () => {
   const mockPurpose = getMockedApiPurpose();
@@ -61,27 +65,19 @@ describe("updateDraftReversePurpose", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockPurposeProcessGetResponse.data.consumerId,
-      createdAt: mockPurposeProcessGetResponse.data.createdAt,
-      description: mockPurposeProcessGetResponse.data.description,
-      eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-      id: mockPurposeProcessGetResponse.data.id,
-      isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
-      title: mockPurposeProcessGetResponse.data.title,
-      currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
-      delegationId: mockPurposeProcessGetResponse.data.delegationId,
-      freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
-      waitingForApprovalVersion: undefined,
-    };
+    const purposeVersion = mockPurposeProcessGetResponse.data.versions.at(0);
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+      mockPurposeProcessGetResponse.data,
+      {
+        currentVersion: purposeVersion
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+          : undefined,
+        rejectedVersion: undefined,
+        waitingForApprovalVersion: undefined,
+      }
+    );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.patchUpdateReversePurpose,

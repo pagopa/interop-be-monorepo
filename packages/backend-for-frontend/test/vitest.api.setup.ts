@@ -59,22 +59,24 @@ import {
   initFileManager,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
-import { createApp, createServices } from "../src/app.js";
 import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  AuthorizationProcessClient,
-  CatalogProcessClient,
-  DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
-  NotificationConfigProcessClient,
-  PurposeProcessClient,
-  PurposeTemplateProcessClient,
+  agreementApi,
+  attributeRegistryApi,
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+  notificationConfigApi,
+  purposeApi,
+  purposeTemplateApi,
+  SelfcareV2UsersClient,
   SelfcareV2InstitutionClient,
-  SelfcareV2UserClient,
+} from "pagopa-interop-api-clients";
+import type {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+import { createApp, createServices } from "../src/app.js";
 import { config } from "../src/config/config.js";
 
 export const mockRateLimiter: RateLimiter = {
@@ -94,27 +96,30 @@ export const clients = {
     tenantAttribute: {},
     selfcare: {},
   } as TenantProcessClient,
-  attributeProcessClient: {} as AttributeProcessClient,
-  catalogProcessClient: {} as CatalogProcessClient,
-  agreementProcessClient: {} as AgreementProcessClient,
-  purposeProcessClient: {} as PurposeProcessClient,
-  purposeTemplateProcessClient: {} as PurposeTemplateProcessClient,
+  attributeProcessClient: {} as attributeRegistryApi.AttributeProcessClient,
+  catalogProcessClient: {} as catalogApi.CatalogProcessClient,
+  agreementProcessClient: {} as agreementApi.AgreementProcessClient,
+  purposeProcessClient: {} as purposeApi.PurposeProcessClient,
+  purposeTemplateProcessClient:
+    {} as purposeTemplateApi.PurposeTemplateProcessClient,
   authorizationClient: {
     client: {},
     producerKeychain: {},
-    user: {},
     token: {},
   } as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
-  selfcareV2UserClient: {} as SelfcareV2UserClient,
+  selfcareV2UserClient: {} as SelfcareV2UsersClient,
   delegationProcessClient: {
     producer: {},
     consumer: {},
     delegation: {},
   } as DelegationProcessClient,
-  eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
-  notificationConfigProcessClient: {} as NotificationConfigProcessClient,
-  inAppNotificationManagerClient: {} as InAppNotificationManagerClient,
+  eserviceTemplateProcessClient:
+    {} as eserviceTemplateApi.EServiceTemplateProcessClient,
+  notificationConfigProcessClient:
+    {} as notificationConfigApi.NotificationConfigProcessClient,
+  inAppNotificationManagerClient:
+    {} as inAppNotificationApi.InAppNotificationManagerClient,
 };
 
 const fileManager = initFileManager(config);

@@ -1,16 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  catalogApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
+import type {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
@@ -41,15 +42,17 @@ describe("getEServiceConsumers", () => {
 
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
-  } as unknown as CatalogProcessClient;
+  } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = {} as unknown as TenantProcessClient;
-  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
-  const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
+  const mockAgreementProcessClient =
+    {} as unknown as agreementApi.AgreementProcessClient;
+  const mockAttributeProcessClient =
+    {} as unknown as attributeRegistryApi.AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockEServiceTemplateProcessClient =
-    {} as unknown as EServiceTemplateProcessClient;
+    {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
   const mockIInAppNotificationManagerClient =
-    {} as unknown as InAppNotificationManagerClient;
+    {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,

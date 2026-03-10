@@ -48,10 +48,7 @@ import {
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
 } from "../model/errors.js";
-import {
-  PagoPAInteropBeClients,
-  AgreementProcessClient,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
@@ -372,13 +369,14 @@ async function retrieveKeyAndEservice(
 }
 
 async function retrieveAgreement(
-  agreementClient: AgreementProcessClient,
+  agreementClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eserviceId: string,
   ctx: WithLogger<BffAppContext>
 ): Promise<agreementApi.Agreement> {
   const agreements = await getAllAgreements(agreementClient, ctx.headers, {
     consumersIds: [consumerId],
+    exactConsumerIdMatch: true,
     eservicesIds: [eserviceId],
     states: [
       agreementApi.AgreementState.Values.ACTIVE,

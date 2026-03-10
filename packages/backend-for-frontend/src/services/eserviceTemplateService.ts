@@ -3,7 +3,9 @@
 import { randomUUID } from "crypto";
 import {
   bffApi,
+  attributeRegistryApi,
   eserviceTemplateApi,
+  inAppNotificationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -19,6 +21,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -30,13 +33,6 @@ import {
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
-import {
-  AttributeProcessClient,
-  CatalogProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
@@ -50,11 +46,10 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  inAppNotificationManagerClient: InAppNotificationManagerClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
   return {
@@ -288,19 +283,6 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const isAlreadyInstantiated =
-        (
-          await catalogProcessClient.getEServices({
-            headers,
-            queries: {
-              templatesIds: [eserviceTemplate.id],
-              producersIds: [callerTenant.id],
-              limit: 1,
-              offset: 0,
-            },
-          })
-        ).totalCount > 0;
-
       const hasRequesterRiskAnalysis = match(eserviceTemplate.mode)
         .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => null)
         .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
@@ -340,7 +322,6 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
-        isAlreadyInstantiated,
         ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
@@ -787,7 +768,7 @@ async function getTenantsFromEServiceTemplates(
 }
 export const retrieveEServiceTemplate = async (
   templateId: string,
-  eserviceTemplateClient: EServiceTemplateProcessClient,
+  eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   headers: BffAppContext["headers"]
 ): Promise<eserviceTemplateApi.EServiceTemplate> => {
   const eserviceTemplate = await eserviceTemplateClient.getEServiceTemplateById(

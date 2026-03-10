@@ -26,12 +26,9 @@ const privacyNoticeRouter = (
 
       try {
         const { consentType } = req.params;
-        const { userId } = ctx.authData;
-
         const notice = await privacyNoticeService.getPrivacyNotice(
           consentType,
-          userId,
-          ctx.logger
+          ctx
         );
         return res.status(200).send(bffApi.PrivacyNotice.parse(notice));
       } catch (error) {
@@ -50,13 +47,11 @@ const privacyNoticeRouter = (
 
       try {
         const { consentType } = req.params;
-        const { userId } = ctx.authData;
 
         await privacyNoticeService.acceptPrivacyNotice(
           consentType,
-          userId,
           req.body,
-          ctx.logger
+          ctx
         );
         return res.status(204).send();
       } catch (error) {

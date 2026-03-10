@@ -20,7 +20,7 @@ import {
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
-import type { GlobalSetupContext } from "vitest/node";
+import type { TestProject } from "vitest/node";
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
@@ -94,7 +94,7 @@ export function setupTestContainersVitestGlobal() {
 
   return async function ({
     provide,
-  }: GlobalSetupContext): Promise<() => Promise<void>> {
+  }: TestProject): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
