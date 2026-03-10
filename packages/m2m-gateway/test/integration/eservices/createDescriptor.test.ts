@@ -80,6 +80,7 @@ describe("createDescriptor", () => {
       publishedAt: mockDescriptor.publishedAt,
       suspendedAt: mockDescriptor.suspendedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      asyncExchange: mockDescriptor.asyncExchange,
     };
 
     const result = await eserviceService.createDescriptor(

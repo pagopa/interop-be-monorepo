@@ -57,6 +57,7 @@ describe("getEserviceDescriptor", () => {
       archivedAt: mockCatalogProcessResponseDescriptor.archivedAt,
       templateVersionId:
         mockCatalogProcessResponseDescriptor.templateVersionRef?.id,
+      asyncExchange: mockCatalogProcessResponseDescriptor.asyncExchange,
     };
 
     const result = await eserviceService.getEServiceDescriptor(
