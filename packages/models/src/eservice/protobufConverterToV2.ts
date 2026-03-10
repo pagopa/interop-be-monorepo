@@ -122,9 +122,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface
     ? toDocumentV2(input.asyncExchangeCallbackInterface)
     : undefined,
-  asyncExchange: input.asyncExchange
-    ? { ...input.asyncExchange }
-    : undefined,
+  asyncExchange: input.asyncExchange ? { ...input.asyncExchange } : undefined,
 });
 
 export const toRiskAnalysisV2 = (

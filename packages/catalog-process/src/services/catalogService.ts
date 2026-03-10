@@ -1344,10 +1344,9 @@ export function catalogServiceBuilder(
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface:
-                  isAsyncExchangeCallbackInterface
-                    ? updatedDocument
-                    : d.asyncExchangeCallbackInterface,
+                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+                  ? updatedDocument
+                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
