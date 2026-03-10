@@ -68,8 +68,10 @@ export const toEServiceTemplateRiskAnalysisV2 = (
 ): EServiceTemplateRiskAnalysisV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
-  riskAnalysisForm: toRiskAnalysisFormV2(input.riskAnalysisForm),
   tenantKind: toTenantKindV2(input.tenantKind),
+  riskAnalysisForm: input.riskAnalysisForm
+    ? toRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
 });
 
 export const toEServiceTemplateVersionV2 = (
