@@ -104,6 +104,7 @@ import {
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
+  descriptorAsyncExchangeNotConfigured,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -686,6 +687,10 @@ async function innerAddDocumentToEserviceEvent(
       throw eServiceAsyncExchangeNotEnabled(eService.data.id);
     }
 
+    if (descriptor.asyncExchange == null) {
+      throw descriptorAsyncExchangeNotConfigured(descriptor.id);
+    }
+
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
       throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);
     }
@@ -763,6 +768,7 @@ function createNextDescriptor(
     | "agreementApprovalPolicy"
     | "attributes"
     | "docs"
+    | "asyncExchange"
   > & {
     templateVersionId: EServiceTemplateVersionId | undefined;
   }
@@ -790,6 +796,7 @@ function createNextDescriptor(
     templateVersionRef: seed.templateVersionId
       ? { id: seed.templateVersionId }
       : undefined,
+    asyncExchange: seed.asyncExchange,
   };
 }
 
@@ -1337,9 +1344,10 @@ export function catalogServiceBuilder(
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                  ? updatedDocument
-                  : d.asyncExchangeCallbackInterface,
+                asyncExchangeCallbackInterface:
+                  isAsyncExchangeCallbackInterface
+                    ? updatedDocument
+                    : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
@@ -1415,6 +1423,11 @@ export function catalogServiceBuilder(
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
       const eserviceVersion = eservice.metadata.version;
+
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: eserviceDescriptorSeed.description,
         voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
@@ -1428,6 +1441,17 @@ export function catalogServiceBuilder(
         attributes: parsedAttributes,
         docs: [],
         templateVersionId: undefined,
+        asyncExchange:
+          asyncExchangeEnabled && eserviceDescriptorSeed.asyncExchange
+            ? {
+                responseTime: eserviceDescriptorSeed.asyncExchange.responseTime,
+                resourceAvailableTime:
+                  eserviceDescriptorSeed.asyncExchange.resourceAvailableTime,
+                confirmation: eserviceDescriptorSeed.asyncExchange.confirmation,
+                bulk: eserviceDescriptorSeed.asyncExchange.bulk,
+                maxResultSet: eserviceDescriptorSeed.asyncExchange.maxResultSet,
+              }
+            : undefined,
       });
 
       const updatedEService: EService = {
@@ -4353,6 +4377,7 @@ async function updateDraftDescriptor(
     dailyCallsTotal,
     agreementApprovalPolicy,
     attributes,
+    asyncExchange: asyncExchangeSeed,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -4384,6 +4409,10 @@ async function updateDraftDescriptor(
       )
     : descriptor.agreementApprovalPolicy;
 
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eservice.data.asyncExchange === true;
+
   const updatedDescriptor: Descriptor = {
     ...descriptor,
     description: description ?? descriptor.description,
@@ -4393,6 +4422,11 @@ async function updateDraftDescriptor(
     dailyCallsTotal: updatedDailyCallsTotal,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     attributes: updatedAttributes,
+    asyncExchange: asyncExchangeEnabled
+      ? asyncExchangeSeed != null
+        ? { ...asyncExchangeSeed }
+        : descriptor.asyncExchange
+      : descriptor.asyncExchange,
   };
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
