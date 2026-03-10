@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Attribute, attributeKind, generateId } from "pagopa-interop-models";
+import { attributeKind, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockAttribute,
