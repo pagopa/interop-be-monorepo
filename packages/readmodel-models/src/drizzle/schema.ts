@@ -1640,6 +1640,45 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
     ]
   );
 
+export const eserviceDescriptorAsyncExchangeInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_async_exchange",
+    {
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      responseTime: integer("response_time").notNull(),
+      resourceAvailableTime: integer("resource_available_time").notNull(),
+      confirmation: boolean("confirmation").notNull(),
+      bulk: boolean("bulk").notNull(),
+      maxResultSet: integer("max_result_set").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_async_exchange_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_async_exchange_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_async_exch_eservice_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.descriptorId],
+        name: "eservice_descriptor_async_exchange_pkey",
+      }),
+    ]
+  );
+
 export const clientJwkKeyInReadmodelClientJwkKey = readmodelClientJwkKey.table(
   "client_jwk_key",
   {

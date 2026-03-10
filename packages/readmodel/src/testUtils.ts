@@ -31,6 +31,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangeInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -277,6 +278,7 @@ export const upsertEService = async (
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      asyncExchangesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -327,6 +329,12 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
+    }
+
+    for (const asyncExchangeSQL of asyncExchangesSQL) {
+      await tx
+        .insert(eserviceDescriptorAsyncExchangeInReadmodelCatalog)
+        .values(asyncExchangeSQL);
     }
   });
 };

@@ -21,6 +21,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangeInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -97,6 +98,9 @@ export type EServiceDescriptorAttributeSQL = InferSelectModel<
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
+export type EServiceDescriptorAsyncExchangeSQL = InferSelectModel<
+  typeof eserviceDescriptorAsyncExchangeInReadmodelCatalog
+>;
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -107,6 +111,7 @@ export type EServiceItemsSQL = {
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  asyncExchangesSQL: EServiceDescriptorAsyncExchangeSQL[];
 };
 
 export type EServiceTemplateSQL = InferSelectModel<

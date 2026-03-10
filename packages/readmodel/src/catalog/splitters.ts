@@ -13,6 +13,7 @@ import {
   dateToString,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorAsyncExchangeSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -66,6 +67,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    asyncExchangesSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -75,6 +77,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+        asyncExchangesSQL: EServiceDescriptorAsyncExchangeSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
@@ -85,6 +88,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
+        asyncExchangeSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -101,6 +105,9 @@ export const splitEserviceIntoObjectsSQL = (
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
+        asyncExchangesSQL: asyncExchangeSQL
+          ? acc.asyncExchangesSQL.concat(asyncExchangeSQL)
+          : acc.asyncExchangesSQL,
       };
     },
     {
@@ -110,6 +117,7 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
+      asyncExchangesSQL: [],
     }
   );
 
@@ -123,6 +131,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    asyncExchangesSQL,
   };
 };
 
@@ -181,6 +190,7 @@ export const splitDescriptorIntoObjectsSQL = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  asyncExchangeSQL: EServiceDescriptorAsyncExchangeSQL | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -274,6 +284,20 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
+  const asyncExchangeSQL: EServiceDescriptorAsyncExchangeSQL | undefined =
+    descriptor.asyncExchange
+      ? {
+          eserviceId,
+          metadataVersion: version,
+          descriptorId: descriptor.id,
+          responseTime: descriptor.asyncExchange.responseTime,
+          resourceAvailableTime: descriptor.asyncExchange.resourceAvailableTime,
+          confirmation: descriptor.asyncExchange.confirmation,
+          bulk: descriptor.asyncExchange.bulk,
+          maxResultSet: descriptor.asyncExchange.maxResultSet,
+        }
+      : undefined;
+
   return {
     descriptorSQL,
     attributesSQL,
@@ -281,6 +305,7 @@ export const splitDescriptorIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
+    asyncExchangeSQL,
   };
 };
 
