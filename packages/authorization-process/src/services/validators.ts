@@ -1,3 +1,4 @@
+import { JsonWebKey } from "crypto";
 import {
   M2MAdminAuthData,
   M2MAuthData,
@@ -16,9 +17,11 @@ import {
   delegationKind,
   delegationState,
   EService,
+  genericError,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
+  Tenant,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
@@ -26,7 +29,6 @@ import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
   tenantNotAllowedOnPurpose,
-  tenantNotAllowedOnClient,
   tenantNotAllowedOnProducerKeychain,
   tooManyKeysPerClient,
   tooManyKeysPerProducerKeychain,
@@ -35,9 +37,11 @@ import {
   securityUserNotMember,
   clientKindNotAllowed,
   clientAdminIdNotFound,
+  tenantNotAllowedOnClient,
+  missingSelfcareId,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -111,7 +115,7 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertOrganizationIsProducerKeychainProducer = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   producerKeychain: ProducerKeychain
 ): void => {
   if (producerKeychain.producerId !== authData.organizationId) {
@@ -141,7 +145,7 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 };
 
 export const assertOrganizationIsEServiceProducer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   eservice: EService
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
@@ -151,7 +155,7 @@ export const assertOrganizationIsEServiceProducer = (
 
 export const assertKeyDoesNotAlreadyExist = async (
   kid: string,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   const [clientKey, producerKey] = await Promise.all([
     readModelService.getClientKeyByKid(kid),
@@ -164,7 +168,7 @@ export const assertKeyDoesNotAlreadyExist = async (
 };
 
 export const assertSecurityRoleIsClientMember = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   client: Client
 ): void => {
   if (
@@ -176,20 +180,40 @@ export const assertSecurityRoleIsClientMember = (
   }
 };
 
-export const assertClientIsConsumer = (client: Client): void => {
+export function assertClientIsConsumer(
+  client: Client
+): asserts client is Client & { kind: typeof clientKind.consumer } {
   if (client.kind !== clientKind.consumer) {
     throw clientKindNotAllowed(client.id);
   }
-};
+}
 
-export const assertClientIsAPI = (client: Client): void => {
+export function assertClientIsAPI(
+  client: Client
+): asserts client is Client & { kind: typeof clientKind.api } {
   if (client.kind !== clientKind.api) {
     throw clientKindNotAllowed(client.id);
   }
-};
+}
 
 export const assertAdminInClient = (client: Client, adminId: UserId): void => {
   if (client.adminId !== adminId) {
     throw clientAdminIdNotFound(client.id, adminId);
   }
 };
+
+export function assertJwkKtyIsDefined(
+  jwk: JsonWebKey
+): asserts jwk is JsonWebKey & { kty: NonNullable<JsonWebKey["kty"]> } {
+  if (jwk.kty === undefined) {
+    throw genericError("JWK must have a 'kty' property");
+  }
+}
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
+  }
+}

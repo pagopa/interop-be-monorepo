@@ -1,6 +1,5 @@
 import {
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   initFileManager,
   logger,
@@ -8,17 +7,13 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
 import { downloadCSV } from "./service/fileDownloader.js";
-import {
-  ReadModelQueries,
-  readModelQueriesBuilder,
-} from "./service/readModelQueriesService.js";
 import { readModelQueriesBuilderSQL } from "./service/readModelQueriesServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
@@ -37,15 +32,11 @@ const csvDownloader = (): Promise<string> =>
     loggerInstance
   );
 
-const readModelClient = ReadModelRepository.init(config);
-const oldReadModelQueries: ReadModelQueries =
-  readModelQueriesBuilder(readModelClient);
-
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
 
-const db = makeDrizzleConnection(config);
+const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const readModelQueriesSQL = readModelQueriesBuilderSQL(
@@ -54,25 +45,17 @@ const readModelQueriesSQL = readModelQueriesBuilderSQL(
   attributeReadModelService
 );
 
-const readModelQueries =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelQueriesSQL
-    : oldReadModelQueries;
-
-await importAttributes(
-  csvDownloader,
-  readModelQueries,
-  tenantProcess,
-  refreshableToken,
-  config.recordsProcessBatchSize,
-  config.ivassTenantId,
-  loggerInstance,
-  correlationId
-);
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+try {
+  await importAttributes(
+    csvDownloader,
+    readModelQueriesSQL,
+    tenantProcess,
+    refreshableToken,
+    config.recordsProcessBatchSize,
+    config.ivassTenantId,
+    loggerInstance,
+    correlationId
+  );
+} finally {
+  await cleanup();
+}

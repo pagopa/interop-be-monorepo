@@ -1,0 +1,44 @@
+meta {
+  name: Create Purpose Template
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "targetDescription": "{{randomTargetDescription}}",
+    "targetTenantKind": "PA",
+    "purposeTitle": "{{randomPurposeTitle}}",
+    "purposeDescription": "{{randomPurposeDescription}}",
+    "purposeIsFreeOfCharge": {{randomPurposeIsFreeOfCharge}},
+    "purposeFreeOfChargeReason": "{{randomFreeOfChargeReason}}",
+    "purposeDailyCalls": {{randomDailyCalls}},
+    "handlesPersonalData": {{randomHandlesPersonalData}}
+  }
+}
+
+vars:post-response {
+  purposeTemplateId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 1000)
+  
+  bru.setVar("randomTargetDescription", `Test target description ${random}`)
+  bru.setVar("randomPurposeTitle", `Test purpose title ${random}`)
+  bru.setVar("randomPurposeDescription", `Test purpose description ${random}`)
+  bru.setVar("randomPurposeIsFreeOfCharge", Math.random() > 0.5)
+  bru.setVar("randomFreeOfChargeReason", `Free of charge reason ${random}`)
+  bru.setVar("randomDailyCalls", Math.floor(Math.random() * 1000) + 1)
+  bru.setVar("randomHandlesPersonalData", Math.random() > 0.5)
+}

@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const AuthorizationProcessServerConfig = z
+const AuthorizationProcessServerConfig = z
   .object({
     AUTHORIZATION_PROCESS_URL: APIEndpoint,
   })
@@ -20,8 +20,6 @@ const ClientPurposeUpdaterConfig = AuthorizationProcessServerConfig.and(
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig);
 
-export type ClientPurposeUpdaterConfig = z.infer<
-  typeof ClientPurposeUpdaterConfig
->;
+type ClientPurposeUpdaterConfig = z.infer<typeof ClientPurposeUpdaterConfig>;
 export const config: ClientPurposeUpdaterConfig =
   ClientPurposeUpdaterConfig.parse(process.env);

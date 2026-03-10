@@ -1,0 +1,674 @@
+openapi: 3.0.3
+info:
+  title: Notification Config Process Micro Service
+  description: This service is the notification config process
+  version: "{{version}}"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/"
+    description: This service is the notification config process
+security:
+  - bearerAuth: []
+tags:
+  - name: process
+    description: Implements notification config process
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /tenantNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a tenant's notification configuration
+      description: Retrieve a tenant's notification configuration
+      operationId: getTenantNotificationConfig
+      responses:
+        "200":
+          description: The tenant's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update a tenant's notification configuration
+      description: Update a tenant's notification configuration
+      operationId: updateTenantNotificationConfig
+      requestBody:
+        description: A notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantNotificationConfigUpdateSeed"
+        required: true
+      responses:
+        "200":
+          description: The tenant's updated notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/tenantNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a tenant's default notification configuration
+      description: Create a tenant's default notification configuration
+      operationId: createTenantDefaultNotificationConfig
+      requestBody:
+        description: A tenant notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantNotificationConfigSeed"
+        required: true
+      responses:
+        "200":
+          description: The tenant's newly created notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/tenantNotificationConfigs/tenantId/{tenantId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Delete a tenant's notification configuration
+      description: Delete a tenant's notification configuration
+      operationId: deleteTenantNotificationConfig
+      responses:
+        "204":
+          description: Tenant notification config deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /userNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a user's notification configuration
+      description: Retrieve a user's notification configuration
+      operationId: getUserNotificationConfig
+      responses:
+        "200":
+          description: The user's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update a user's notification configuration
+      description: Update a user's notification configuration
+      operationId: updateUserNotificationConfig
+      requestBody:
+        description: A user notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserNotificationConfigUpdateSeed"
+        required: true
+      responses:
+        "200":
+          description: The user's updated notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/ensureUserNotificationConfigExistsWithRoles:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a user's default notification configuration if missing or add roles to it
+      description: Create a user's default notification configuration if missing or add roles to it
+      operationId: ensureUserNotificationConfigExistsWithRoles
+      requestBody:
+        description: A user notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserNotificationConfigSeed"
+        required: true
+      responses:
+        "204":
+          description: User notification config created or roles added if missing
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}/userRole/{userRole}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userRole
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UserRole"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Remove a role from the user's notification configuration (or delete it if it's the only role)
+      description: Remove a role from the user's notification configuration or delete it if it's the only role
+      operationId: removeUserNotificationConfigRole
+      responses:
+        "204":
+          description: User notification config role removed or config deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: User notification config or role not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  schemas:
+    TenantNotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - tenantId
+        - enabled
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserNotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - userId
+        - tenantId
+        - userRoles
+        - inAppNotificationPreference
+        - emailNotificationPreference
+        - emailDigestPreference
+        - inAppConfig
+        - emailConfig
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        userRoles:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/UserRole"
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: boolean
+        emailDigestPreference:
+          type: boolean
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
+        - clientKeyConsumerAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
+      properties:
+        agreementSuspendedUnsuspendedToProducer:
+          type: boolean
+        agreementManagementToProducer:
+          type: boolean
+        clientAddedRemovedToProducer:
+          type: boolean
+        purposeStatusChangedToProducer:
+          type: boolean
+        templateStatusChangedToProducer:
+          type: boolean
+        agreementSuspendedUnsuspendedToConsumer:
+          type: boolean
+        eserviceStateChangedToConsumer:
+          type: boolean
+        agreementActivatedRejectedToConsumer:
+          type: boolean
+        purposeActivatedRejectedToConsumer:
+          type: boolean
+        purposeSuspendedUnsuspendedToConsumer:
+          type: boolean
+        newEserviceTemplateVersionToInstantiator:
+          type: boolean
+        eserviceTemplateNameChangedToInstantiator:
+          type: boolean
+        eserviceTemplateStatusChangedToInstantiator:
+          type: boolean
+        delegationApprovedRejectedToDelegator:
+          type: boolean
+        eserviceNewVersionSubmittedToDelegator:
+          type: boolean
+        eserviceNewVersionApprovedRejectedToDelegate:
+          type: boolean
+        delegationSubmittedRevokedToDelegate:
+          type: boolean
+        certifiedVerifiedAttributeAssignedRevokedToAssignee:
+          type: boolean
+        clientKeyAddedDeletedToClientUsers:
+          type: boolean
+        clientKeyConsumerAddedDeletedToClientUsers:
+          type: boolean
+        producerKeychainKeyAddedDeletedToClientUsers:
+          type: boolean
+        purposeQuotaAdjustmentRequestToProducer:
+          type: boolean
+        purposeOverQuotaStateToConsumer:
+          type: boolean
+    TenantNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - tenantId
+      properties:
+        tenantId:
+          type: string
+          format: uuid
+    UserNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - tenantId
+        - userRoles
+      properties:
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        userRoles:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/UserRole"
+    TenantNotificationConfigUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+    UserNotificationConfigUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - inAppNotificationPreference
+        - emailNotificationPreference
+        - emailDigestPreference
+        - inAppConfig
+        - emailConfig
+      properties:
+        inAppNotificationPreference:
+          type: boolean
+        emailNotificationPreference:
+          type: boolean
+        emailDigestPreference:
+          type: boolean
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+    UserRole:
+      type: string
+      description: User role
+      enum:
+        - ADMIN
+        - API
+        - SECURITY
+        - SUPPORT
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT

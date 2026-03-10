@@ -1,0 +1,48 @@
+{
+  "name": "pagopa-interop-purpose-template-process",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability service for purpose template",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test:api": "vitest --config vitest.api.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test": "pnpm test:api && pnpm test:integration",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@types/supertest": "catalog:",
+    "cpx2": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "supertest": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@zodios/core": "catalog:",
+    "@zodios/express": "catalog:",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "express": "catalog:",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const TokenDetailsPersisterConfig = FileManagerConfig.and(S3Config)
+const TokenDetailsPersisterConfig = FileManagerConfig.and(S3Config)
   .and(KafkaConsumerConfig)
   .and(KafkaBatchConsumerConfig)
   .and(LoggerConfig)
@@ -21,9 +21,7 @@ export const TokenDetailsPersisterConfig = FileManagerConfig.and(S3Config)
       }))
   );
 
-export type TokenDetailsPersisterConfig = z.infer<
-  typeof TokenDetailsPersisterConfig
->;
+type TokenDetailsPersisterConfig = z.infer<typeof TokenDetailsPersisterConfig>;
 
 export const config: TokenDetailsPersisterConfig =
   TokenDetailsPersisterConfig.parse(process.env);

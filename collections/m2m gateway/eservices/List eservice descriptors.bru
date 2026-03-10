@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors?offset=0&limit=10
   body: none
   auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
 }
 
 params:path {
@@ -16,4 +21,8 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  descriptorId: res.body.results.at(-1).id
 }

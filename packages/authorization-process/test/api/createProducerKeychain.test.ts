@@ -9,7 +9,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -22,17 +22,9 @@ describe("API /producerKeychains authorization test", () => {
 
   const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
 
-  const apiProducerKeyChain = producerKeychainToApiProducerKeychain(
-    mockProducerKeychain,
-    {
-      showUsers: true,
-    }
-  );
-
-  authorizationService.createProducerKeychain = vi.fn().mockResolvedValue({
-    producerKeychain: mockProducerKeychain,
-    showUsers: true,
-  });
+  authorizationService.createProducerKeychain = vi
+    .fn()
+    .mockResolvedValue(mockProducerKeychain);
 
   const makeRequest = async (
     token: string,
@@ -51,7 +43,9 @@ describe("API /producerKeychains authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, producerKeychainSeed);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiProducerKeyChain);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain)
+      );
     }
   );
 

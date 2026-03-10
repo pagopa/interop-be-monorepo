@@ -14,7 +14,6 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
-  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
@@ -22,9 +21,9 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
+  invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
@@ -44,9 +43,6 @@ describe("create eservice", () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the creation of an eservice", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isConsumerDelegable = randomArrayItem([false, true, undefined]);
     const isClientAccessDelegable = match(isConsumerDelegable)
@@ -54,6 +50,7 @@ describe("create eservice", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const personalData = randomArrayItem([false, true]);
 
     const eservice = await catalogService.createEService(
       {
@@ -65,6 +62,7 @@ describe("create eservice", () => {
         isSignalHubEnabled,
         isConsumerDelegable,
         isClientAccessDelegable,
+        personalData,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -72,21 +70,23 @@ describe("create eservice", () => {
     expect(eservice).toBeDefined();
 
     const eserviceCreationEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
+      eservice.data.id,
       0,
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eservice.data.id
+    );
 
     expect(eserviceCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -104,23 +104,25 @@ describe("create eservice", () => {
     const expectedEservice: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       descriptors: [],
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      personalData,
       descriptors: [
         {
           ...mockDescriptor,
-          id: eservice.descriptors[0].id,
+          id: eservice.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
         },
@@ -133,66 +135,10 @@ describe("create eservice", () => {
     expect(descriptorCreationPayload.eservice).toEqual(
       toEServiceV2(expectedEserviceWithDescriptor)
     );
-  });
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is not enabled", async () => {
-    config.featureFlagSignalhubWhitelist = false;
-    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
-  });
-
-  it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [generateId()];
-    const isSignalHubEnabled = true;
-
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(false);
-  });
-
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    expect(eservice).toEqual({
+      data: expectedEserviceWithDescriptor,
+      metadata: { version: 1 },
+    });
   });
 
   it("should create an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
@@ -201,7 +147,10 @@ describe("create eservice", () => {
       false,
       undefined,
     ]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
     const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
@@ -224,21 +173,23 @@ describe("create eservice", () => {
     expect(eservice).toBeDefined();
 
     const eserviceCreationEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
+      eservice.data.id,
       0,
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eservice.data.id
+    );
 
     expect(eserviceCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -256,7 +207,7 @@ describe("create eservice", () => {
     const expectedEservice: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       descriptors: [],
       isSignalHubEnabled,
       isConsumerDelegable,
@@ -265,14 +216,14 @@ describe("create eservice", () => {
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
       descriptors: [
         {
           ...mockDescriptor,
-          id: eservice.descriptors[0].id,
+          id: eservice.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
         },
@@ -286,65 +237,27 @@ describe("create eservice", () => {
       toEServiceV2(expectedEserviceWithDescriptor)
     );
   });
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is not enabled", async () => {
-    config.featureFlagSignalhubWhitelist = false;
-    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
 
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
-  });
-
-  it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [generateId()];
-    const isSignalHubEnabled = true;
-
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(false);
-  });
-
-  it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
 
-    const eservice = await catalogService.createEService(
-      {
-        name: mockEService.name,
-        description: mockEService.description,
-        technology: "REST",
-        mode: "DELIVER",
-        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
-        isSignalHubEnabled,
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    await expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+          isSignalHubEnabled,
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: invalidDelegationFlags(false, true).code,
+    });
   });
 
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {

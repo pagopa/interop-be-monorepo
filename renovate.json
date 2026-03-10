@@ -15,10 +15,10 @@
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": [
-        "@protobuf-ts"
-      ],
-      "groupName": "protobuf-ts monorepo"
+      "groupName": "protobuf-ts monorepo",
+      "matchPackageNames": [
+        "/@protobuf-ts/"
+      ]
     },
     {
       "enabled": true,

@@ -4,10 +4,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ProducerKeychainReadModelWriterConfig =
-  ReadModelWriterConfigSQL.and(AuthorizationTopicConfig);
+const ProducerKeychainReadModelWriterConfig = ReadModelWriterConfigSQL.and(
+  AuthorizationTopicConfig
+);
 
-export type ProducerKeychainReadModelWriterConfig = z.infer<
+type ProducerKeychainReadModelWriterConfig = z.infer<
   typeof ProducerKeychainReadModelWriterConfig
 >;
 

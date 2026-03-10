@@ -8,6 +8,10 @@ import {
   toEServiceTemplateV2,
   operationForbidden,
   Document,
+  EServiceTemplateVersionDocumentAddedV2,
+  EServiceTemplateVersionState,
+  generateId,
+  EServiceTemplateVersionId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -24,6 +28,7 @@ import {
   eserviceTemplateVersionNotFound,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
+  notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -55,11 +60,11 @@ describe("upload Document", () => {
       };
       await addOneEServiceTemplate(eserviceTemplate);
 
-      const returnedEServiceTemplate =
+      const returnedDocument =
         await eserviceTemplateService.createEServiceTemplateDocument(
           eserviceTemplate.id,
           version.id,
-          buildInterfaceSeed(),
+          buildDocumentSeed(),
           getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
           })
@@ -68,43 +73,128 @@ describe("upload Document", () => {
       const writtenEvent = await readLastEserviceTemplateEvent(
         eserviceTemplate.id
       );
-      expect(writtenEvent.stream_id).toBe(eserviceTemplate.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceTemplateVersionInterfaceAdded");
-      expect(writtenEvent.event_version).toBe(2);
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: eserviceTemplate.id,
+        version: "1",
+        type: "EServiceTemplateVersionDocumentAdded",
+        event_version: 2,
+      });
+
       const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceTemplateVersionInterfaceAddedV2,
+        messageType: EServiceTemplateVersionDocumentAddedV2,
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = toEServiceTemplateV2({
+      const expectedDocument: Document = {
+        ...mockDocument,
+        id: unsafeBrandId(
+          writtenPayload.eserviceTemplate!.versions[0]!.docs[0]!.id
+        ),
+        checksum:
+          writtenPayload.eserviceTemplate!.versions[0]!.docs[0]!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eserviceTemplate!.versions[0]!.docs[0]!.uploadDate
+        ),
+      };
+
+      const expectedEserviceTemplate = toEServiceTemplateV2({
         ...eserviceTemplate,
         versions: [
           {
             ...version,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!
-                  .checksum,
-              uploadDate: new Date(
-                writtenPayload.eserviceTemplate!.versions[0]!.interface!.uploadDate
-              ),
-            },
+            docs: [expectedDocument],
           },
         ],
       });
 
       expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEservice);
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(returnedEServiceTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: expectedDocument.id,
+        eserviceTemplate: expectedEserviceTemplate,
+      });
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
+
+  it("should write on event-store for the upload of a interface when version state is draft", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const returnedDocument =
+      await eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateVersionInterfaceAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateVersionInterfaceAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDocument: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(
+        writtenPayload.eserviceTemplate!.versions[0]!.interface!.id
+      ),
+      checksum:
+        writtenPayload.eserviceTemplate!.versions[0]!.interface!.checksum,
+      uploadDate: new Date(
+        writtenPayload.eserviceTemplate!.versions[0]!.interface!.uploadDate
+      ),
+    };
+
+    const expectedEserviceTemplate = toEServiceTemplateV2({
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...version,
+          interface: expectedDocument,
+        },
+      ],
+    });
+
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      documentId: expectedDocument.id,
+      eserviceTemplate: expectedEserviceTemplate,
+    });
+    expect(returnedDocument).toEqual({
+      data: expectedDocument,
+      metadata: {
+        version: 1,
+      },
+    });
+  });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     await expect(
@@ -157,6 +247,80 @@ describe("upload Document", () => {
       eserviceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
     );
   });
+
+  const statesToExclude: EServiceTemplateVersionState[] = [
+    eserviceTemplateVersionState.draft,
+    eserviceTemplateVersionState.published,
+    eserviceTemplateVersionState.suspended,
+  ];
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => !statesToExclude.includes(state)
+    )
+  )(
+    "should throw notValidEServiceTemplateVersionState if the document is in s% state",
+    async (state) => {
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        docs: [mockDocument],
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      await expect(
+        eserviceTemplateService.createEServiceTemplateDocument(
+          eserviceTemplate.id,
+          version.id,
+          buildDocumentSeed(),
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        notValidEServiceTemplateVersionState(version.id, state)
+      );
+    }
+  );
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.draft
+    )
+  )(
+    "should throw notValidEServiceTemplateVersionState if the interface is in s% state",
+    async (state) => {
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        interface: mockDocument,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      await expect(
+        eserviceTemplateService.createEServiceTemplateDocument(
+          eserviceTemplate.id,
+          version.id,
+          buildInterfaceSeed(),
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        notValidEServiceTemplateVersionState(version.id, state)
+      );
+    }
+  );
 
   it("should throw interfaceAlreadyExists if the version already contains an interface", async () => {
     const version: EServiceTemplateVersion = {
@@ -240,7 +404,7 @@ describe("upload Document", () => {
         })
       )
     ).rejects.toThrowError(
-      checksumDuplicate(document.name, eserviceTemplate.id, mockVersion.id)
+      checksumDuplicate(eserviceTemplate.id, mockVersion.id)
     );
   });
 });

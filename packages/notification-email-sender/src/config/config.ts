@@ -1,16 +1,14 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   AWSSesConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const SESEmailSenderConfig = z
+const SESEmailSenderConfig = z
   .object({
     INTEROP_FE_BASE_URL: z.string(),
     SENDER_MAIL: z.string().email(),
@@ -21,20 +19,32 @@ export const SESEmailSenderConfig = z
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
   }));
-export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
+type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
-export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
-  ReadModelDbConfig
+const NotificationEmailSenderRedisConfig = z
+  .object({
+    REDIS_NOTIFICATION_EMAIL_SENDER_HOST: z.string(),
+    REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.coerce.number().min(1001),
+    REDIS_NOTIFICATION_EMAIL_SENDER_TTL_SECONDS: z.coerce.number(),
+  })
+  .transform((c) => ({
+    redisNotificationEmailSenderHost: c.REDIS_NOTIFICATION_EMAIL_SENDER_HOST,
+    redisNotificationEmailSenderPort: c.REDIS_NOTIFICATION_EMAIL_SENDER_PORT,
+    redisNotificationEmailSenderTtlSeconds:
+      c.REDIS_NOTIFICATION_EMAIL_SENDER_TTL_SECONDS,
+  }));
+
+const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
+  ReadModelSQLDbConfig
 )
   .and(AgreementTopicConfig)
   .and(AWSSesConfig)
   .and(SESEmailSenderConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(NotificationEmailSenderRedisConfig);
 
-export type NotificationEmailSenderConfig = z.infer<
+type NotificationEmailSenderConfig = z.infer<
   typeof NotificationEmailSenderConfig
 >;
 

@@ -1,0 +1,120 @@
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockPurposeTemplate,
+  getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
+} from "pagopa-interop-commons-test";
+import {
+  generateId,
+  PurposeTemplate,
+  PurposeTemplateId,
+  purposeTemplateState,
+  TenantId,
+  targetTenantKind,
+} from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+} from "../integrationUtils.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
+
+describe("getPurposeTemplateById", () => {
+  it.each(Object.values(purposeTemplateState))(
+    "should get the purpose template if the requester is the creator and the purpose template is in state %s",
+    async (purposeTemplateState) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        state: purposeTemplateState,
+        purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
+          targetTenantKind.PA
+        ),
+      };
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const purposeTemplateResponse =
+        await purposeTemplateService.getPurposeTemplateById(
+          purposeTemplate.id,
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        );
+      expect({
+        ...purposeTemplateResponse,
+        data: sortPurposeTemplate(purposeTemplateResponse.data),
+      } satisfies typeof purposeTemplateResponse).toMatchObject({
+        data: sortPurposeTemplate(purposeTemplate),
+        metadata: { version: 0 },
+      });
+    }
+  );
+
+  // Gettable states for non-creator requesters
+  const gettablePurposeTemplateStates = Object.values(
+    purposeTemplateState
+  ).filter((s) => s !== purposeTemplateState.draft);
+  it.each(gettablePurposeTemplateStates)(
+    "should get the purpose template if it's in state %s and the requester is not the creator",
+    async (purposeTemplateState) => {
+      const requesterId = generateId<TenantId>();
+
+      const purposeTemplate: PurposeTemplate = {
+        ...getMockPurposeTemplate(),
+        state: purposeTemplateState,
+        purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
+          targetTenantKind.PA
+        ),
+      };
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const purposeTemplateResponse =
+        await purposeTemplateService.getPurposeTemplateById(
+          purposeTemplate.id,
+          getMockContext({
+            authData: getMockAuthData(requesterId),
+          })
+        );
+      expect({
+        ...purposeTemplateResponse,
+        data: sortPurposeTemplate(purposeTemplateResponse.data),
+      } satisfies typeof purposeTemplateResponse).toMatchObject({
+        data: sortPurposeTemplate(purposeTemplate),
+        metadata: { version: 0 },
+      });
+    }
+  );
+
+  it("should throw purposeTemplateNotFound if the requester is not the creator and the purpose template is in Draft state", async () => {
+    const requesterId = generateId<TenantId>();
+
+    const purposeTemplate: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      state: purposeTemplateState.draft,
+      purposeRiskAnalysisForm: getMockValidRiskAnalysisFormTemplate(
+        targetTenantKind.PA
+      ),
+    };
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.getPurposeTemplateById(
+        purposeTemplate.id,
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
+  });
+
+  it("should throw purposeTemplateNotFound if the purpose template doesn't exist", async () => {
+    const notExistingId = generateId<PurposeTemplateId>();
+    const purposeTemplate = getMockPurposeTemplate();
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.getPurposeTemplateById(
+        notExistingId,
+        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+      )
+    ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
+  });
+});

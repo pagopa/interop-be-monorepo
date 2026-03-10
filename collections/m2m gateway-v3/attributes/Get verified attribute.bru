@@ -1,0 +1,24 @@
+meta {
+  name: Get verified attribute
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/verifiedAttributes/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+docs {
+  Retrieves a verified attribute by its ID. 
+}

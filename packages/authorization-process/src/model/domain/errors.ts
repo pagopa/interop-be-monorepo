@@ -12,7 +12,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   clientNotFound: "0001",
   tenantNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
@@ -49,6 +49,8 @@ export const errorCodes = {
   userAlreadyAssignedAsAdmin: "0034",
   jwkNotFound: "0035",
   producerJwkNotFound: "0036",
+  tenantNotFound: "0037",
+  missingSelfcareId: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -427,5 +429,21 @@ export function producerJwkNotFound(kid: string): ApiError<ErrorCodes> {
     detail: `Producer JWK with kid ${kid} not found`,
     code: "producerJwkNotFound",
     title: "Producer JWK not found",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `SelfcareId in Tenant ${tenantId} not found`,
+    code: "missingSelfcareId",
+    title: "SelfcareId not found",
   });
 }

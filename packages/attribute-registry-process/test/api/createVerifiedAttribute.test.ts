@@ -1,13 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { attributeKind, generateId } from "pagopa-interop-models";
-import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import { Attribute, attributeKind, generateId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByName } from "../../src/model/domain/errors.js";
+import {
+  attributeDuplicateByName,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /verifiedAttributes authorization test", () => {
   const mockVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed = {
@@ -17,13 +24,15 @@ describe("API /verifiedAttributes authorization test", () => {
 
   const mockAttribute = getMockAttribute(attributeKind.verified);
 
+  const serviceResponse = getMockWithMetadata(mockAttribute);
+
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)
   );
 
   attributeRegistryService.createVerifiedAttribute = vi
     .fn()
-    .mockResolvedValue(mockAttribute);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -32,7 +41,11 @@ describe("API /verifiedAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockVerifiedAttributeSeed);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -41,6 +54,9 @@ describe("API /verifiedAttributes authorization test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -74,5 +90,15 @@ describe("API /verifiedAttributes authorization test", () => {
         name: "Verified Attribute",
       });
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 500 for tenant not found", async () => {
+    attributeRegistryService.createVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(generateId()));
+
+    const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+
+    expect(res.status).toBe(500);
   });
 });

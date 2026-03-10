@@ -36,20 +36,7 @@
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": [
-        "build",
-        "^test",
-        "^test:old",
-        "test:integration",
-        "test:integration:old",
-        "test:api"
-      ]
-    },
-    "test:old": {
-      "dependsOn": ["build", "^test:old", "test:integration:old"]
-    },
-    "test:integration:old": {
-      "dependsOn": ["build", "^test:integration:old"]
+      "dependsOn": ["build", "^test", "test:integration", "test:api"]
     },
     "test:integration": {
       "dependsOn": ["build", "^test:integration"]
@@ -69,7 +56,9 @@
       "dependsOn": ["^lint:openapi"],
       "cache": false
     },
-    "format:check": {},
-    "format:write": {}
+    "generate-db-models": {
+      "dependsOn": ["//#infra:start", "^generate-db-models"],
+      "outputs": ["src/generated/**"]
+    }
   }
 }

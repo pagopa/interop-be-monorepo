@@ -29,10 +29,6 @@ body:json {
   }
 }
 
-vars:post-response {
-  reversePurposeId: res.body.id
-}
-
 script:pre-request {
   const random = Math.round(Math.random() * 100)
   

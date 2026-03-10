@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -18,10 +19,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import {
-  AgreementProcessClient,
-  PagoPAInteropBeClients,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
@@ -43,13 +41,14 @@ import {
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: BffAppContext["headers"],
   getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
 ): Promise<agreementApi.Agreement[]> {
@@ -59,6 +58,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
+          exactConsumerIdMatch: true,
           offset,
           limit,
         },
@@ -114,6 +114,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
+            exactConsumerIdMatch: false,
             producersIds,
             states,
           },
@@ -160,6 +161,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
+            exactConsumerIdMatch: false,
             states,
           },
           headers: ctx.headers,
@@ -220,12 +222,21 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      await agreementProcessClient.addAgreementConsumerDocument(seed, {
-        params: { agreementId },
-        headers,
-      });
+      try {
+        await agreementProcessClient.addAgreementConsumerDocument(seed, {
+          params: { agreementId },
+          headers,
+        });
 
-      return documentContent;
+        return documentContent;
+      } catch (error) {
+        await fileManager.delete(
+          config.consumerDocumentsContainer,
+          storagePath,
+          logger
+        );
+        throw error;
+      }
     },
 
     async getAgreementConsumerDocument(
@@ -282,6 +293,37 @@ export function agreementServiceBuilder(
 
       return Buffer.from(documentBytes);
     },
+    async getAgreementSignedContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving signed contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+      if (!agreement.signedContract) {
+        if (
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
+        ) {
+          throw contractException(agreementId);
+        }
+        throw contractNotFound(agreementId);
+      }
+
+      const path = agreement.signedContract.path;
+
+      const documentBytes = await fileManager.get(
+        config.consumerSignedDocumentsContainer,
+        path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
 
     async removeConsumerDocument(
       agreementId: string,
@@ -313,11 +355,16 @@ export function agreementServiceBuilder(
 
     async suspendAgreement(
       agreementId: string,
+      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(`Suspending agreement ${agreementId}`);
+      ctx.logger.info(
+        `Suspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
       const agreement = await agreementProcessClient.suspendAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -394,11 +441,16 @@ export function agreementServiceBuilder(
 
     async activateAgreement(
       agreementId: string,
+      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(`Activating agreement ${agreementId}`);
+      ctx.logger.info(
+        `Activating agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
       const agreement = await agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -423,15 +475,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
         `Retrieving producer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -446,7 +496,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          producersIds: [requesterId],
+          producersIds: [authData.organizationId],
         },
         headers,
       });
@@ -465,15 +515,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
       logger.info(
         `Retrieving consumer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -488,7 +536,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          consumersIds: [requesterId],
+          consumersIds: [authData.organizationId],
         },
         headers,
       });
@@ -585,9 +633,55 @@ export function agreementServiceBuilder(
   };
 }
 
-export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
+export const getLatestAgreementsOnDescriptor = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
+  eservice: catalogApi.EService,
+  descriptorId: string,
+  headers: Headers
+): Promise<agreementApi.Agreement[]> => {
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      exactConsumerIdMatch: false,
+      eservicesIds: [eservice.id],
+      descriptorsIds: [descriptorId],
+    }
+  );
+
+  // Even though the previous query is filtered by consumerId, there might be different consumerIds due to delegations
+  const agreementsByConsumer = allAgreements.reduce<
+    Map<string, agreementApi.Agreement[]>
+  >((acc, agreement) => {
+    const agreementsWithSameConsumerId = acc.get(agreement.consumerId) ?? [];
+    agreementsWithSameConsumerId.push(agreement);
+    acc.set(agreement.consumerId, agreementsWithSameConsumerId);
+    return acc;
+  }, new Map());
+
+  // For each consumerId, get the latest agreement by createdAt
+  const latestAgreements: agreementApi.Agreement[] = [];
+  for (const agreements of agreementsByConsumer.values()) {
+    const sorted = agreements.sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime()
+    );
+    const latest = sorted[0];
+    if (latest) {
+      latestAgreements.push(latest);
+    }
+  }
+
+  return latestAgreements;
+};
+
+export const getLatestAgreement = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  consumerId: string,
+  exactConsumerIdMatch: boolean,
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
@@ -597,6 +691,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
+      exactConsumerIdMatch,
     }
   );
 
@@ -646,6 +741,12 @@ async function enrichAgreementListEntry(
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
 
+  const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+    clients.inAppNotificationManagerClient,
+    agreements.map((agreement) => agreement.id),
+    ctx
+  );
+
   const agreementsResult = [];
   for (const agreement of agreements) {
     const { consumer, producer, eservice, delegation } =
@@ -661,12 +762,12 @@ async function enrichAgreementListEntry(
     const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
     const delegate = delegation
-      ? cachedTenants.get(delegation.delegateId) ??
+      ? (cachedTenants.get(delegation.delegateId) ??
         (await getTenantById(
           clients.tenantProcessClient,
           ctx.headers,
           delegation.delegateId
-        ))
+        )))
       : undefined;
 
     agreementsResult.push({
@@ -704,7 +805,11 @@ async function enrichAgreementListEntry(
     });
   }
 
-  return agreementsResult;
+  const notifications = await notificationsPromise;
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    hasUnreadNotifications: notifications.includes(agreement.id),
+  }));
 }
 
 export async function enrichAgreement(
@@ -812,6 +917,12 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
+    isDocumentReady: isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? agreement.signedContract !== undefined
+      : agreement.contract !== undefined,
   };
 }
 

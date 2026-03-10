@@ -99,6 +99,31 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     expect(storedContract[0].metadataVersion).toBe(1);
   });
 
+  it("AgreementAdded: processes duplicate events should not throw MERGE error", async () => {
+    const mock = getMockAgreement();
+    const doc = getMockAgreementDocument();
+    mock.consumerDocuments = [doc];
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
+    mock.contract = contractDoc;
+
+    const msg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
+
+    const duplicateEventMsg = msg;
+
+    await expect(
+      handleAgreementMessageV1([msg, duplicateEventMsg], dbContext)
+    ).resolves.not.toThrowError();
+  });
+
   it("AgreementConsumerDocumentAdded: inserts new document", async () => {
     const mock = getMockAgreement();
     const doc = getMockAgreementDocument();

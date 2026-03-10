@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ApplicationAuditFallbackConfig =
+const ApplicationAuditFallbackConfig =
   ApplicationAuditFallbackSQSConsumerConfig.and(KafkaProducerConfig)
     .and(ApplicationAuditTopicConfig)
     .and(LoggerConfig)
@@ -20,7 +20,7 @@ export const ApplicationAuditFallbackConfig =
         }))
     );
 
-export type ApplicationAuditFallbackConfig = z.infer<
+type ApplicationAuditFallbackConfig = z.infer<
   typeof ApplicationAuditFallbackConfig
 >;
 

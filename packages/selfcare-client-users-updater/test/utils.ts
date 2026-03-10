@@ -1,26 +1,12 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
-import {
-  Client,
-  generateId,
-  Tenant,
-  toReadModelClient,
-  toReadModelTenant,
-  UserId,
-} from "pagopa-interop-models";
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { Client, generateId, Tenant, UserId } from "pagopa-interop-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
-import {
-  clientReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import { upsertClient, upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { config } from "../src/config/config.js";
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
@@ -60,7 +46,7 @@ export const kafkaMessagePayload: EachMessagePayload = {
 export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
   Promise.resolve(interopToken);
 
-export const interopToken: InteropInternalToken = {
+const interopToken: InteropInternalToken = {
   header: {
     alg: "algorithm",
     use: "use",
@@ -80,39 +66,28 @@ export const interopToken: InteropInternalToken = {
   serialized: "the-token",
 };
 
-export const { cleanup, readModelRepository, readModelDB } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
-export const { clients, tenants } = readModelRepository;
-
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL({
+export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
 });
-export const readModelService = config.featureFlagSQL
-  ? readModelServiceSQL
-  : oldReadModelService;
 
 export const addOneClient = async (client: Client): Promise<void> => {
-  await writeInReadmodel(toReadModelClient(client), clients);
-
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceBuilder(readModelDB).upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };

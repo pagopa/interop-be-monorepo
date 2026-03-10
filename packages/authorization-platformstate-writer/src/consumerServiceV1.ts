@@ -1,4 +1,4 @@
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   AuthorizationEventEnvelopeV1,
   Client,
@@ -20,7 +20,6 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
-  TokenGenerationStatesClientKidPK,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
@@ -29,12 +28,10 @@ import {
   convertEntriesToClientKidInTokenGenerationStates,
   createTokenGenStatesConsumerClient,
   deleteClientEntryFromPlatformStates,
-  deleteClientEntryFromTokenGenerationStates,
   deleteEntriesFromTokenGenStatesByClientIdKidV1,
   deleteEntriesFromTokenGenStatesByClientIdV1,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV1,
-  extractKidFromTokenGenStatesEntryPK,
-  readConsumerClientsInTokenGenStatesV1,
+  upsertTokenGenStatesConsumerClientsV1,
   readPlatformClientEntry,
   retrievePlatformStatesByPurpose,
   setClientPurposeIdsInPlatformStatesEntry,
@@ -293,95 +290,16 @@ export async function handleMessageV1(
         logger
       );
 
-      const tokenGenStatesConsumerClients =
-        await readConsumerClientsInTokenGenStatesV1(clientId, dynamoDBClient);
-      if (tokenGenStatesConsumerClients.length === 0) {
-        logger.info(
-          `Skipping token-generation-states update. Reason: no entries found for client ${clientId}`
-        );
-        return Promise.resolve();
-      } else {
-        const { purposeEntry, agreementEntry, catalogEntry } =
-          await retrievePlatformStatesByPurpose(
-            purposeId,
-            dynamoDBClient,
-            logger
-          );
+      const addedTokenGenStatesConsumerClients =
+        await upsertTokenGenStatesConsumerClientsV1({
+          clientId,
+          purposeId,
+          purposeIds,
+          dynamoDBClient,
+          logger,
+        });
 
-        const seenKids = new Set<string>();
-        const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
-          [];
-
-        for (const entry of tokenGenStatesConsumerClients) {
-          const addedTokenGenStatesConsumerClient = await match(
-            // Count without the current purpose
-            purposeIds.length - 1
-          )
-            .with(0, async () => {
-              const newTokenGenStatesConsumerClient =
-                createTokenGenStatesConsumerClient({
-                  consumerId: entry.consumerId,
-                  kid: extractKidFromTokenGenStatesEntryPK(entry.PK),
-                  publicKey: entry.publicKey,
-                  clientId,
-                  purposeId,
-                  purposeEntry,
-                  agreementEntry,
-                  catalogEntry,
-                });
-
-              await upsertTokenGenStatesConsumerClient(
-                newTokenGenStatesConsumerClient,
-                dynamoDBClient,
-                logger
-              );
-              if (
-                TokenGenerationStatesClientKidPK.safeParse(entry.PK).success
-              ) {
-                // Remove only partial entries (to avoid deleting complete entries after retry)
-                await deleteClientEntryFromTokenGenerationStates(
-                  entry.PK,
-                  dynamoDBClient,
-                  logger
-                );
-              }
-              return newTokenGenStatesConsumerClient;
-            })
-            .with(P.number.gt(0), async () => {
-              const kid = extractKidFromTokenGenStatesEntryPK(entry.PK);
-              if (!seenKids.has(kid)) {
-                const newTokenGenStatesConsumerClient =
-                  createTokenGenStatesConsumerClient({
-                    consumerId: entry.consumerId,
-                    kid,
-                    publicKey: entry.publicKey,
-                    clientId,
-                    purposeId,
-                    purposeEntry,
-                    agreementEntry,
-                    catalogEntry,
-                  });
-
-                await upsertTokenGenStatesConsumerClient(
-                  newTokenGenStatesConsumerClient,
-                  dynamoDBClient,
-                  logger
-                );
-                seenKids.add(kid);
-                return newTokenGenStatesConsumerClient;
-              }
-              return null;
-            })
-            .run();
-
-          if (addedTokenGenStatesConsumerClient) {
-            // eslint-disable-next-line functional/immutable-data
-            addedTokenGenStatesConsumerClients.push(
-              addedTokenGenStatesConsumerClient
-            );
-          }
-        }
-
+      if (addedTokenGenStatesConsumerClients.length > 0) {
         // Second check for updated fields
         await Promise.all(
           addedTokenGenStatesConsumerClients.map(async (entry) => {
@@ -484,7 +402,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
+const parseKey = (keyV1: KeyV1 | undefined, eventType: string): Key => {
   if (!keyV1) {
     throw missingKafkaMessageDataError("key", eventType);
   }

@@ -1,0 +1,31 @@
+meta {
+  name: Update Draft Eservice Template
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+    "name": "Updated name",
+    "intendedTarget": "This is the description of the intended template target",
+    "description": "This is the description of the EService Template",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "isSignalHubEnabled": false
+  }
+}

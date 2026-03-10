@@ -1,0 +1,16 @@
+meta {
+  name: Notification count
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-bff}}/inAppNotifications/count
+  body: none
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

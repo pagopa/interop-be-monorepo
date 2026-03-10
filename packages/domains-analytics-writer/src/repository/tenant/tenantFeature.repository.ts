@@ -62,7 +62,3 @@ export function tenantFeatureRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantFeatureRepository = ReturnType<
-  typeof tenantFeatureRepository
->;

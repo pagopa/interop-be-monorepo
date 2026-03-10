@@ -13,9 +13,9 @@ import {
   delegationKind,
   delegationState,
   generateId,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { CompactOrganization } from "../../src/model/domain/models.js";
 import {
   addOneTenant,
   addOneAgreement,

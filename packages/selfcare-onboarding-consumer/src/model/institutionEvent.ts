@@ -13,7 +13,7 @@ const InstitutionEvent = z.object({
   digitalAddress: z.string().trim().min(1),
   institutionType: z.string().trim().min(1),
 });
-export type InstitutionEvent = z.infer<typeof InstitutionEvent>;
+type InstitutionEvent = z.infer<typeof InstitutionEvent>;
 
 export const InstitutionEventPayload = z.object({
   id: z.string(),

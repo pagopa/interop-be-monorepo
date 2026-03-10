@@ -59,12 +59,13 @@ describe("reject descriptor", () => {
       rejectedAt: new Date(),
     };
 
-    await catalogService.rejectDelegatedEServiceDescriptor(
-      eservice.id,
-      descriptor.id,
-      { rejectionReason: newRejectionReason.rejectionReason },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const rejectDelegatedEServiceDescriptor =
+      await catalogService.rejectDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        { rejectionReason: newRejectionReason.rejectionReason },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -78,7 +79,7 @@ describe("reject descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -87,10 +88,13 @@ describe("reject descriptor", () => {
           rejectionReasons: [newRejectionReason],
         },
       ],
+    };
+    expect(rejectDelegatedEServiceDescriptor).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should throw eServiceNotFound if the eService doesn't exist", async () => {

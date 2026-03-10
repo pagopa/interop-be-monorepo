@@ -52,12 +52,13 @@ describe("revokeDeclaredAttribute", async () => {
 
   it("Should revoke the declared attribute if it exist in tenant", async () => {
     await addOneTenant(tenant);
-    const returnedTenant = await tenantService.revokeDeclaredAttribute(
-      {
-        attributeId,
-      },
-      getMockContext({ authData: getMockAuthData(tenant.id) })
-    );
+    const revokeDeclaredAttrReturn =
+      await tenantService.revokeDeclaredAttribute(
+        {
+          attributeId,
+        },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
     const writtenEvent = await readLastEventByStreamId(
       tenant.id,
       "tenant",
@@ -86,8 +87,14 @@ describe("revokeDeclaredAttribute", async () => {
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+      attributeId,
+    });
+    expect(revokeDeclaredAttrReturn).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     expect(

@@ -1,0 +1,20 @@
+meta {
+  name: Delete Risk Analysis Template Answer Annotation Document
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

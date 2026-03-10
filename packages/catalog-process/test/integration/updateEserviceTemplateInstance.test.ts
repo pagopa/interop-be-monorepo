@@ -27,8 +27,8 @@ import {
   eServiceNotFound,
   eserviceNotInDraftState,
   eServiceNotAnInstance,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -42,9 +42,6 @@ describe("update eService Instance", () => {
   const mockDocument = getMockDocument();
 
   it("should write on event-store for the update of an eService", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
     const isConsumerDelegable = randomArrayItem([false, true, undefined]);
     const isClientAccessDelegable = match(isConsumerDelegable)
@@ -52,6 +49,7 @@ describe("update eService Instance", () => {
       .with(true, () => randomArrayItem([false, true, undefined]))
       .with(false, () => false)
       .exhaustive();
+    const updatedInstanceLabel = "new label";
 
     const template: EServiceTemplate = getMockEServiceTemplate();
 
@@ -66,6 +64,7 @@ describe("update eService Instance", () => {
       descriptors: [descriptor],
       isSignalHubEnabled,
       templateId: template.id,
+      instanceLabel: undefined,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -76,15 +75,18 @@ describe("update eService Instance", () => {
           isSignalHubEnabled,
           isConsumerDelegable,
           isClientAccessDelegable,
+          instanceLabel: updatedInstanceLabel,
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
       ...eservice,
+      name: `${template.name} - ${updatedInstanceLabel}`,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
+      instanceLabel: updatedInstanceLabel,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -107,7 +109,10 @@ describe("update eService Instance", () => {
       false,
       undefined,
     ]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
     const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
@@ -160,6 +165,35 @@ describe("update eService Instance", () => {
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const template: EServiceTemplate = getMockEServiceTemplate();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      name: `${template.name}`,
+      descriptors: [descriptor],
+      templateId: template.id,
+    };
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateEServiceTemplateInstance(
+        mockEService.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 
   it("should write on event-store for the update of an eService (delegate)", async () => {

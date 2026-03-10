@@ -3,11 +3,13 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationKind,
+  DelegationSignedContractDocument,
   DelegationStamp,
   DelegationStamps,
   DelegationState,
   delegationKind,
   delegationState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -30,9 +32,19 @@ export const delegationToApiDelegation = (
     ? delegationContractToApiDelegationContract(delegation.revocationContract)
     : undefined,
   stamps: delegationStampsToApiDelegationStamps(delegation.stamps),
+  activationSignedContract: delegation.activationSignedContract
+    ? delegationSignedContractToApiDelegationSignedContract(
+        delegation.activationSignedContract
+      )
+    : undefined,
+  revocationSignedContract: delegation.revocationSignedContract
+    ? delegationSignedContractToApiDelegationSignedContract(
+        delegation.revocationSignedContract
+      )
+    : undefined,
 });
 
-export const delegationStateToApiDelegationState = (
+const delegationStateToApiDelegationState = (
   state: DelegationState
 ): delegationApi.DelegationState =>
   match<DelegationState, delegationApi.DelegationState>(state)
@@ -54,7 +66,7 @@ export const delegationStateToApiDelegationState = (
     )
     .exhaustive();
 
-export const delegationKindToApiDelegationKind = (
+const delegationKindToApiDelegationKind = (
   kind: DelegationKind
 ): delegationApi.DelegationKind =>
   match<DelegationKind, delegationApi.DelegationKind>(kind)
@@ -93,7 +105,19 @@ export const delegationContractToApiDelegationContract = (
   createdAt: contract.createdAt.toJSON(),
 });
 
-export const delegationStampsToApiDelegationStamps = (
+const delegationSignedContractToApiDelegationSignedContract = (
+  contract: DelegationSignedContractDocument
+): delegationApi.DelegationSignedContractDocument => ({
+  id: contract.id,
+  name: contract.name,
+  prettyName: contract.prettyName,
+  contentType: contract.contentType,
+  path: contract.path,
+  createdAt: contract.createdAt.toJSON(),
+  signedAt: contract.signedAt?.toJSON(),
+});
+
+const delegationStampsToApiDelegationStamps = (
   stamps: DelegationStamps
 ): delegationApi.DelegationStamps => ({
   submission: delegationStampToApiDelegationStamp(stamps.submission),
@@ -108,7 +132,7 @@ export const delegationStampsToApiDelegationStamps = (
     : undefined,
 });
 
-export const delegationStampToApiDelegationStamp = (
+const delegationStampToApiDelegationStamp = (
   stamp: DelegationStamp
 ): delegationApi.DelegationStamp => ({
   who: stamp.who,
@@ -136,3 +160,12 @@ export const apiDelegationStateToDelegationState = (
       () => delegationState.waitingForApproval
     )
     .exhaustive();
+
+export const apiDelegationSignedContractToDelegationSignedContract = (
+  input: delegationApi.DelegationSignedContractDocument
+): DelegationSignedContractDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
+});

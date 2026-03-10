@@ -4,6 +4,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
   getMockedApiAgreement,
+  getMockedApiDelegation,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -16,7 +17,10 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiAgreement,
+} from "../../mockUtils.js";
 
 describe("createAgreement", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = generateMock(
@@ -28,6 +32,7 @@ describe("createAgreement", () => {
       state: agreementApi.AgreementState.Values.DRAFT,
       eserviceId: mockAgreementSeed.eserviceId,
       descriptorId: mockAgreementSeed.descriptorId,
+      stamps: {},
     })
   );
 
@@ -38,6 +43,15 @@ describe("createAgreement", () => {
   const mockGetAgreement = vi.fn(
     mockPollingResponse(mockAgreementProcessResponse, 2)
   );
+
+  const mockDelegation = getMockedApiDelegation();
+  mockInteropBeClients.delegationProcessClient = {
+    delegation: {
+      getDelegations: vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata({ results: [mockDelegation] })),
+    },
+  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
   mockInteropBeClients.agreementProcessClient = {
     createAgreement: mockCreateAgreement,
@@ -52,13 +66,8 @@ describe("createAgreement", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
+      ...testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data),
+      delegationId: mockDelegation.id,
     };
 
     const result = await agreementService.createAgreement(
@@ -66,7 +75,7 @@ describe("createAgreement", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
+    expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.createAgreement,
       body: mockAgreementSeed,

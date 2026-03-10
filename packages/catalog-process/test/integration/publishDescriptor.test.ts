@@ -40,6 +40,7 @@ import {
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
   audienceCannotBeEmpty,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -72,9 +73,10 @@ describe("publish descriptor", () => {
       ...mockEService,
       mode: eserviceMode.deliver,
       descriptors: [descriptor],
+      personalData: false,
     };
     await addOneEService(eservice);
-    await catalogService.publishDescriptor(
+    const publishDescriptorResponse = await catalogService.publishDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -92,7 +94,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -101,10 +103,14 @@ describe("publish descriptor", () => {
           state: descriptorState.published,
         },
       ],
-    });
+    };
 
+    expect(publishDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should write on event-store for the publication of a descriptor with mode Receive", async () => {
@@ -130,12 +136,13 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: true,
     };
 
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.publishDescriptor(
+    const publishDescriptorResponse = await catalogService.publishDescriptor(
       eservice.id,
       descriptor.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -153,7 +160,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -162,10 +169,14 @@ describe("publish descriptor", () => {
           state: descriptorState.published,
         },
       ],
-    });
+    };
 
+    expect(publishDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should write on event-store for the submission of the descriptor by the delegate", async () => {
@@ -191,6 +202,7 @@ describe("publish descriptor", () => {
       mode: eserviceMode.receive,
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
+      personalData: true,
     };
 
     const delegate = {
@@ -260,6 +272,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     await catalogService.publishDescriptor(
@@ -321,6 +334,7 @@ describe("publish descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor1, descriptor2],
+      personalData: false,
     };
     await addOneEService(eservice);
     const tenant: Tenant = {
@@ -714,5 +728,29 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
+  });
+
+  it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: undefined,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
   });
 });

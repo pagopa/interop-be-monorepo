@@ -10,6 +10,7 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -27,6 +28,11 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/quotas/upd
   const mockEserviceTemplate = getMockEServiceTemplate();
   const mockSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed =
     { voucherLifespan: 60 };
+
+  const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
+  const apiEserviceTemplate = eserviceTemplateApi.EServiceTemplate.parse(
+    eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
+  );
 
   const makeRequest = async (
     token: string,
@@ -46,19 +52,24 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/quotas/upd
   beforeEach(() => {
     eserviceTemplateService.updateEServiceTemplateVersionQuotas = vi
       .fn()
-      .mockResolvedValue(mockEserviceTemplate);
+      .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual(
-        eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
-      );
       expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiEserviceTemplate);
+      expect(res.headers["x-metadata-version"]).toEqual(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

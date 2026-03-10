@@ -7,25 +7,7 @@ export const errorCodes = {
   setupPartialStagingTablesError: "SETUP_PARTIAL_STAGING_TABLES_ERROR",
 } as const;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export function insertStagingRecordsError(
-  detail: unknown
-): InternalError<ErrorCodes> {
-  return new InternalError({
-    detail: `Database error inserting staging records: ${JSON.stringify(
-      detail
-    )}`,
-    code: "insertStagingRecordsError",
-  });
-}
-
-export function mergeDataError(detail: unknown): InternalError<ErrorCodes> {
-  return new InternalError({
-    detail: `Database error merging data: ${JSON.stringify(detail)}`,
-    code: "mergeDataError",
-  });
-}
+type ErrorCodes = keyof typeof errorCodes;
 
 export function setupStagingTablesError(
   detail: unknown

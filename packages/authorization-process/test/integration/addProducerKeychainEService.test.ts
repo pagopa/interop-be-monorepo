@@ -49,13 +49,14 @@ describe("addProducerKeychainEService", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     await addOneEService(mockEService);
 
-    await authorizationService.addProducerKeychainEService(
-      {
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-      },
-      getMockContext({ authData: getMockAuthData(mockProducerId) })
-    );
+    const addEServiceProducerKeychainResponse =
+      await authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -73,12 +74,21 @@ describe("addProducerKeychainEService", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      eservices: [...mockProducerKeychain.eservices, mockEService.id],
+    };
+
     expect(writtenPayload).toEqual({
       eserviceId: mockEService.id,
-      producerKeychain: toProducerKeychainV2({
-        ...mockProducerKeychain,
-        eservices: [mockEService.id],
-      }),
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
+    });
+
+    expect(addEServiceProducerKeychainResponse).toEqual({
+      data: expectedProducerKeychain,
+      metadata: {
+        version: 1,
+      },
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain does not exist", async () => {

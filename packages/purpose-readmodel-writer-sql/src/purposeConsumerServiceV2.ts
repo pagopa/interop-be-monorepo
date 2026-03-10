@@ -1,19 +1,19 @@
 import {
   PurposeEventEnvelopeV2,
   fromPurposeV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { CustomReadModelService } from "./readModelService.js";
+import { PurposeWriterService } from "./purposeWriterService.js";
 
 export async function handleMessageV2(
   message: PurposeEventEnvelopeV2,
-  purposeReadModelService: CustomReadModelService
+  purposeWriterService: PurposeWriterService
 ): Promise<void> {
   const purposeV2 = message.data.purpose;
   if (!purposeV2) {
-    throw genericInternalError("Purpose can't be missing in the event message");
+    throw missingKafkaMessageDataError("purpose", message.type);
   }
   const purpose = fromPurposeV2(purposeV2);
 
@@ -23,7 +23,7 @@ export async function handleMessageV2(
       { type: "WaitingForApprovalPurposeDeleted" },
       { type: "PurposeDeletedByRevokedDelegation" },
       async (message) => {
-        await purposeReadModelService.deletePurposeById(
+        await purposeWriterService.deletePurposeById(
           unsafeBrandId(message.stream_id),
           message.version
         );
@@ -47,8 +47,10 @@ export async function handleMessageV2(
       { type: "PurposeVersionActivated" },
       { type: "PurposeCloned" },
       { type: "PurposeVersionArchivedByRevokedDelegation" },
+      { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       async (message) => {
-        await purposeReadModelService.upsertPurpose(purpose, message.version);
+        await purposeWriterService.upsertPurpose(purpose, message.version);
       }
     )
     .exhaustive();

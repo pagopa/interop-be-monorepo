@@ -1,0 +1,28 @@
+meta {
+  name: Create EService Template Version
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw}}/eserviceTemplates/:templateId/versions
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "description": "Version description",
+    "voucherLifespan": 100,
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 1000,
+    "agreementApprovalPolicy": "AUTOMATIC"
+  }
+}

@@ -19,6 +19,7 @@ import {
   getMockAuthData,
   addSomeRandomDelegations,
   getMockContext,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -39,6 +40,7 @@ import {
   TenantId,
   tenantKind,
   DelegationId,
+  UserId,
 } from "pagopa-interop-models";
 import { genericLogger, getIpaCode } from "pagopa-interop-commons";
 import {
@@ -68,6 +70,8 @@ import {
 } from "../integrationUtils.js";
 
 describe("createPurposeVersion", () => {
+  const userId: UserId = generateId();
+
   let mockConsumer: Tenant;
   let mockProducer: Tenant;
   let mockEService: EService;
@@ -143,7 +147,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -169,6 +175,8 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -205,9 +213,10 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...mockPurpose,
       versions: [
         {
@@ -218,7 +227,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -226,8 +235,16 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionResponse).toMatchObject({
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -263,7 +280,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -289,6 +308,8 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -325,9 +346,10 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...mockPurpose,
       versions: [
         {
@@ -338,7 +360,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -346,8 +368,16 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionResponse).toMatchObject({
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -371,7 +401,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 4,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -397,6 +429,8 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: undefined,
       consumerDelegateName: undefined,
       consumerDelegateIpaCode: undefined,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -433,9 +467,10 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 4,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...mockPurpose,
       versions: [
         {
@@ -446,7 +481,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -454,8 +489,16 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionResponse).toMatchObject({
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -511,23 +554,31 @@ describe("createPurposeVersion", () => {
       dailyCalls: 30,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...mockPurpose,
       versions: [...mockPurpose.versions, expectedPurposeVersion],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionWaitingForApprovalV2,
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
     );
-    expect(purposeVersionResponse).toMatchObject({
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -573,7 +624,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -599,6 +652,8 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: delegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
+      consumerId: mockPurpose.consumerId,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -635,9 +690,10 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...purpose,
       versions: [
         {
@@ -648,7 +704,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -656,8 +712,16 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionResponse).toMatchObject({
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
@@ -744,7 +808,9 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({
+        authData: getMockAuthData(consumerDelegate.id, userId),
+      })
     );
 
     const createdPurposeVersion =
@@ -770,6 +836,8 @@ describe("createPurposeVersion", () => {
       consumerDelegationId: consumerDelegation.id,
       consumerDelegateName: consumerDelegate.name,
       consumerDelegateIpaCode: consumerDelegate.externalId.value,
+      userId,
+      consumerId: consumer.id,
     };
 
     expect(pdfGenerator.generate).toBeCalledWith(
@@ -806,9 +874,10 @@ describe("createPurposeVersion", () => {
       state: purposeVersionState.active,
       dailyCalls: 24,
       riskAnalysis: createdPurposeVersion.riskAnalysis,
+      stamps: createdPurposeVersion.stamps,
     };
 
-    const expectedPurpose: Purpose = {
+    const expectedPurpose: Purpose = sortPurpose({
       ...delegatePurpose,
       versions: [
         {
@@ -819,7 +888,7 @@ describe("createPurposeVersion", () => {
         expectedPurposeVersion,
       ],
       updatedAt: new Date(),
-    };
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: NewPurposeVersionActivatedV2,
@@ -827,8 +896,16 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionResponse).toMatchObject({
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      toPurposeV2(expectedPurpose)
+    );
+    expect({
+      ...purposeVersionResponse,
+      data: {
+        ...purposeVersionResponse.data,
+        purpose: sortPurpose(purposeVersionResponse.data.purpose),
+      },
+    } satisfies typeof purposeVersionResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,

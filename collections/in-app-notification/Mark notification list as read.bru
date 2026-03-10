@@ -1,0 +1,24 @@
+meta {
+  name: Mark notification list as read
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-in-app-notification}}/notifications/bulk/markAsRead
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "ids": [
+      "2944aaca-7ee2-4de9-84af-e5d855ef8543"
+    ]
+  }
+}

@@ -4,7 +4,6 @@ import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
@@ -16,7 +15,6 @@ import {
 } from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { importAttributes } from "../src/service/processor.js";
-import { readModelQueriesBuilder } from "../src/service/readModelQueriesService.js";
 import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
 import { config } from "../src/config/config.js";
 import {
@@ -40,24 +38,15 @@ describe("IVASS Certified Attributes Importer", () => {
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const csvDownloaderMock = downloadCSVMock;
-  const readModelClient = {} as ReadModelRepository;
-  const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
 
   const db = makeDrizzleConnection(config);
   const tenantReadModelService = tenantReadModelServiceBuilder(db);
   const attributeReadModelService = attributeReadModelServiceBuilder(db);
-  const readModelQueriesSQL = readModelQueriesBuilderSQL(
+  const readModelQueriesMock = readModelQueriesBuilderSQL(
     db,
     tenantReadModelService,
     attributeReadModelService
   );
-
-  const readModelQueriesMock =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelQueriesSQL
-      : oldReadModelQueries;
 
   const run = () =>
     importAttributes(

@@ -17,9 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 
-export function toTenantAttribute(
-  att: tenantApi.TenantAttribute
-): TenantAttribute[] {
+function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
   const certified: CertifiedTenantAttribute | undefined = att.certified && {
     id: unsafeBrandId(att.certified.id),
     type: tenantAttributeType.CERTIFIED,

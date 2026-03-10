@@ -17,9 +17,7 @@ const TenantOutboundWriterConfig = KafkaConsumerConfig.and(KafkaProducerConfig)
     tenantOutboundTopic: c.TENANT_OUTBOUND_TOPIC,
   }));
 
-export type TenantOutboundWriterConfig = z.infer<
-  typeof TenantOutboundWriterConfig
->;
+type TenantOutboundWriterConfig = z.infer<typeof TenantOutboundWriterConfig>;
 
 export const config: TenantOutboundWriterConfig =
   TenantOutboundWriterConfig.parse(process.env);

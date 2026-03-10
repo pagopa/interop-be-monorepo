@@ -15,6 +15,7 @@ import {
   getMockAttribute,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -22,6 +23,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDuplicatedInGroup,
   attributeNotFound,
   eServiceDescriptorNotFound,
   eServiceNotFound,
@@ -30,7 +32,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
+describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.draft,
@@ -40,6 +42,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     ...getMockEService(),
     descriptors: [descriptor],
   };
+
+  const serviceResponse = getMockWithMetadata(mockEService);
 
   const apiEservice = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
@@ -59,7 +63,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
 
   catalogService.updateDraftDescriptor = vi
     .fn()
-    .mockResolvedValue(mockEService);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -116,7 +120,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     },
     {
       error: attributeNotFound(descriptorSeed.attributes.declared[0][0].id),
-      expectedStatus: 400,
+      expectedStatus: 404,
     },
     {
       error: templateInstanceNotAllowed(
@@ -126,10 +130,16 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
       ),
       expectedStatus: 400,
     },
+    {
+      error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.updateDraftDescriptor = vi.fn().mockRejectedValue(error);
+      catalogService.updateDraftDescriptor = vi
+        .fn()
+        .mockRejectedValueOnce(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
@@ -155,7 +165,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     [{ ...descriptorSeed }, "invalidId", descriptor.id],
     [{ ...descriptorSeed }, mockEService.id, "invalidId"],
   ])(
-    "Should return 400 if passed invalid params: %s (eserviceId: %s, descriptorId: %s)",
+    "Should return 400 if passed invalid seed or e-service id (seed #%#)",
     async (body, eServiceId, descriptorId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

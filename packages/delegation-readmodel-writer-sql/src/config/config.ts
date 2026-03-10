@@ -4,11 +4,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const DelegationReadModelWriterConfig = ReadModelWriterConfigSQL.and(
+const DelegationReadModelWriterConfig = ReadModelWriterConfigSQL.and(
   DelegationTopicConfig
 );
 
-export type DelegationReadModelWriterConfig = z.infer<
+type DelegationReadModelWriterConfig = z.infer<
   typeof DelegationReadModelWriterConfig
 >;
 

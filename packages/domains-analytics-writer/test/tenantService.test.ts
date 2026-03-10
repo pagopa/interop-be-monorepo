@@ -31,6 +31,7 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockVerifiedTenantAttribute,
+  toTenantV1,
 } from "pagopa-interop-commons-test";
 import { handleTenantMessageV1 } from "../src/handlers/tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "../src/handlers/tenant/consumerServiceV2.js";
@@ -42,7 +43,6 @@ import {
   resetTargetTables,
   tenantTables,
 } from "./utils.js";
-import { toTenantV1 } from "./utilsTenantConverterV1.js";
 import { getMockVerifiedBy, getMockRevokedBy } from "./utilsTenant.js";
 
 describe("Tenant messages consumers - handleTenantMessageV1", () => {
@@ -126,7 +126,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     });
 
     expect(storedTenant?.id).toBe(mockTenant.id);
-    expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.onboardedAt);
+    expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
 
     const storedTenantMails = await getManyFromDb(
       dbContext,

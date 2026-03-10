@@ -1,5 +1,4 @@
 import {
-  ReadModelRepository,
   initDB,
   initFileManager,
   initPDFGenerator,
@@ -8,14 +7,15 @@ import {
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
+  purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
 
@@ -27,10 +27,10 @@ const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+const purposeTemplateReadModelServiceSQL =
+  purposeTemplateReadModelServiceBuilder(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   purposeReadModelServiceSQL,
@@ -38,13 +38,9 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  purposeTemplateReadModelServiceSQL,
+  clientReadModelServiceSQL,
 });
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
 
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
@@ -59,7 +55,7 @@ const service = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService,
+  readModelServiceSQL,
   fileManager,
   pdfGenerator
 );

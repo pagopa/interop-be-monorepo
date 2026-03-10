@@ -47,6 +47,7 @@ describe("API GET /templates", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -80,6 +81,7 @@ describe("API GET /templates", () => {
     { limit: -1 },
     { offset: -1 },
     { limit: 51 },
+    { ...queryParams, personalData: "invalid" },
   ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(

@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   withTotalCount,
@@ -9,18 +10,19 @@ import {
 import {
   Attribute,
   AttributeId,
+  AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateVersionState,
   ListResult,
   Tenant,
   TenantId,
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
+  CompactOrganization,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -41,15 +43,22 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { match } from "ts-pattern";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
-
-export type GetEServiceTemplatesFilters = {
-  name?: string;
-  eserviceTemplatesIds: EServiceTemplateId[];
-  creatorsIds: TenantId[];
-  states: EServiceTemplateVersionState[];
-};
+import { GetEServiceTemplatesFilters } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -95,11 +104,15 @@ export function readModelServiceBuilderSQL({
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
     },
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      kind: AttributeKind
     ): Promise<Attribute[]> {
       return (
         await attributeReadModelServiceSQL.getAttributesByFilter(
-          inArray(attributeInReadmodelAttribute.id, attributesIds)
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributesIds),
+            eq(attributeInReadmodelAttribute.kind, kind)
+          )
         )
       ).map((a) => a.data);
     },
@@ -107,9 +120,10 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
-      const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
+      const { eserviceTemplatesIds, creatorsIds, states, name, personalData } =
+        filters;
 
       const subquery = readModelDB
         .select(
@@ -141,6 +155,26 @@ export function readModelServiceBuilderSQL({
                   eserviceTemplatesIds
                 )
               : undefined,
+            match(personalData)
+              .with("TRUE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  true
+                )
+              )
+              .with("FALSE", () =>
+                eq(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData,
+                  false
+                )
+              )
+              .with("DEFINED", () =>
+                isNotNull(
+                  eserviceTemplateInReadmodelEserviceTemplate.personalData
+                )
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // CREATORS IDS FILTER
             creatorsIds.length > 0
               ? inArray(
@@ -263,40 +297,51 @@ export function readModelServiceBuilderSQL({
         queryResult[0]?.totalCount ?? 0
       );
     },
-    async checkNameConflictInstances(
+    async hasInstanceNameConflicts(
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> {
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const instanceProducerIds = (
-          await tx
-            .select({
-              producerId: eserviceInReadmodelCatalog.producerId,
-            })
-            .from(eserviceInReadmodelCatalog)
-            .where(
-              and(
-                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
-              )
-            )
-            .groupBy(eserviceInReadmodelCatalog.producerId)
-        ).map((d) => d.producerId);
+      /**
+       * Checks whether renaming a template to `newName` would cause a name conflict
+       * for any of its instances. For each instance, the expected new name is computed as
+       * `newName - instanceLabel` (or just `newName` if the instance has no label),
+       * then we verify that no other eservice by the same producer already uses that name.
+       */
 
-        return await tx
-          .select({
-            count: count(),
-          })
-          .from(eserviceInReadmodelCatalog)
-          .where(
-            and(
-              ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
-              inArray(
-                eserviceInReadmodelCatalog.producerId,
-                instanceProducerIds
-              )
+      const templateInstances = alias(
+        eserviceInReadmodelCatalog,
+        "template_instances"
+      );
+
+      const escapedNewName = escapeRegExp(newName);
+
+      const queryResult = await readModelDB
+        .select({ count: count() })
+        .from(templateInstances)
+        .where(
+          and(
+            eq(templateInstances.templateId, eserviceTemplate.id),
+            exists(
+              readModelDB
+                .select()
+                .from(eserviceInReadmodelCatalog)
+                .where(
+                  and(
+                    eq(
+                      eserviceInReadmodelCatalog.producerId,
+                      templateInstances.producerId
+                    ),
+                    ne(eserviceInReadmodelCatalog.id, templateInstances.id),
+                    sql`${eserviceInReadmodelCatalog.name} ILIKE CASE
+                      WHEN ${templateInstances.instanceLabel} IS NOT NULL
+                        THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
+                      ELSE ${escapedNewName}
+                    END`
+                  )
+                )
             )
-          );
-      });
+          )
+        );
 
       return queryResult.length > 0 ? queryResult[0].count > 0 : false;
     },
@@ -304,7 +349,7 @@ export function readModelServiceBuilderSQL({
       name: string | undefined,
       limit: number,
       offset: number
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       const queryResult = await readModelDB
         .select(
           withTotalCount({
@@ -345,16 +390,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data: CompactOrganization[] = queryResult.map((d) => ({
+        id: unsafeBrandId(d.id),
+        name: d.name,
+      }));
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+      const result = z.array(CompactOrganization).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

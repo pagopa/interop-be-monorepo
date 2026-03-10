@@ -145,7 +145,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parsePurpose = (
+const parsePurpose = (
   purposeV1: PurposeV1 | undefined,
   msgType: string
 ): Purpose => {

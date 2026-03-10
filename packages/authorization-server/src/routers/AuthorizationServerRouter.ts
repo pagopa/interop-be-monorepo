@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   ClientId,
+  ClientKindTokenGenStates,
   Problem,
   TenantId,
   tooManyRequestsError,
@@ -47,17 +48,25 @@ const authorizationServerRouter = (
       req.ctx.organizationId = organizationId;
     };
 
-    const ctx: WithLogger<AuthServerAppContext> = {
+    const setCtxClientKind = (
+      tokenGenClientKind: ClientKindTokenGenStates
+    ): void => {
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx.clientKind = tokenGenClientKind;
+    };
+
+    const getCtx = (): WithLogger<AuthServerAppContext> => ({
       ...req.ctx,
       logger: logger({ ...req.ctx }),
-    };
+    });
 
     try {
       const tokenResult = await tokenService.generateToken(
         req.headers,
         req.body,
-        ctx,
+        getCtx,
         setCtxClientId,
+        setCtxClientKind,
         setCtxOrganizationId
       );
 
@@ -70,7 +79,7 @@ const authorizationServerRouter = (
         const errorRes = makeApiProblem(
           tooManyRequestsError(tokenResult.rateLimitedTenantId),
           authorizationServerErrorMapper,
-          ctx
+          getCtx()
         );
 
         return res.status(errorRes.status).send(errorRes);
@@ -83,7 +92,11 @@ const authorizationServerRouter = (
           tokenResult.token.payload.exp - tokenResult.token.payload.iat,
       });
     } catch (err) {
-      const errorRes = makeApiProblem(err, authorizationServerErrorMapper, ctx);
+      const errorRes = makeApiProblem(
+        err,
+        authorizationServerErrorMapper,
+        getCtx()
+      );
       if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
         const cleanedError: Problem = {
           title: "The request contains bad syntax or cannot be fulfilled.",
@@ -96,7 +109,7 @@ const authorizationServerRouter = (
               detail: "Unable to generate a token for the given request",
             },
           ],
-          correlationId: ctx.correlationId,
+          correlationId: req.ctx.correlationId,
         };
 
         return res.status(cleanedError.status).send(cleanedError);
@@ -113,7 +126,7 @@ const authorizationServerRouter = (
                 "Unable to generate a token for the given request due to an internal error",
             },
           ],
-          correlationId: ctx.correlationId,
+          correlationId: req.ctx.correlationId,
         };
         return res.status(cleanedError.status).send(cleanedError);
       }

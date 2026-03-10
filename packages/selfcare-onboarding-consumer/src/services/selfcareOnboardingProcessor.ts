@@ -12,13 +12,12 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "selfcare">,
   productName: string,
   allowedOrigins: string[]
 ) {
@@ -69,7 +68,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId} InstitutionType: ${institution.institutionType}`
           );
           return;
         }

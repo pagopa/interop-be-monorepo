@@ -4,7 +4,6 @@ import request from "supertest";
 import { Client, ClientId, generateId, UserId } from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
@@ -19,11 +18,10 @@ describe("API /clients/{clientId}/users authorization test", () => {
     users: [userId1, userId2],
   };
 
-  const apiClientUsers = authorizationApi.Users.parse([userId1, userId2]);
-
+  const users = [userId1, userId2];
   authorizationService.getClientUsers = vi
     .fn()
-    .mockResolvedValue({ users: [userId1, userId2] });
+    .mockResolvedValue([userId1, userId2]);
 
   const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
@@ -37,6 +35,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(
@@ -45,7 +44,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClientUsers);
+      expect(res.body).toEqual(users);
     }
   );
 

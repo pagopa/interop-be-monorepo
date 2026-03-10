@@ -26,7 +26,7 @@ describe("GET /tenants/:tenantId route test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(mockResponse);
+      mockTenantService.getTenant = vi.fn().mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
@@ -52,9 +52,10 @@ describe("GET /tenants/:tenantId route test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(
-        resp as unknown as tenantApi.Tenant
-      );
+      mockTenantService.getTenant = vi
+        .fn()
+        .mockResolvedValue(resp as tenantApi.Tenant);
+
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 

@@ -10,18 +10,21 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authorization test", () => {
   const descriptor: Descriptor = {
@@ -35,9 +38,13 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
     descriptors: [descriptor],
   };
 
+  const mockApiEservice = eServiceToApiEService(mockEService);
+
+  const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
+
   catalogService.approveDelegatedEServiceDescriptor = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(mockEserviceWithMetadata);
 
   const makeRequest = async (
     token: string,
@@ -48,17 +55,28 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/approve`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(mockEService);
 
-  it("Should return 200 for user with role admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id, descriptor.id);
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
 
-    expect(res.status).toBe(204);
-  });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockApiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        mockEserviceWithMetadata.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, descriptor.id);
@@ -78,6 +96,10 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: missingPersonalDataFlag(mockEService.id, descriptor.id),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

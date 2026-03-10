@@ -14,6 +14,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -32,7 +33,11 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     descriptors: [descriptor],
   };
 
-  catalogService.deleteDraftDescriptor = vi.fn().mockResolvedValue({});
+  const serviceResponse = getMockWithMetadata(eservice);
+
+  catalogService.deleteDraftDescriptor = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -45,13 +50,21 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
       .set("X-Correlation-Id", generateId())
       .send();
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, eservice.id, descriptor.id);
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toEqual(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -62,6 +75,16 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     const res = await makeRequest(token, eservice.id, descriptor.id);
 
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 204 and not set metadata when the entire e-service is deleted", async () => {
+    catalogService.deleteDraftDescriptor = vi.fn().mockResolvedValueOnce(
+      undefined // when the entire e-service is deleted, the service returns undefined
+    );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id, descriptor.id);
+    expect(res.status).toBe(204);
+    expect(res.headers["x-metadata-version"]).toBeUndefined();
   });
 
   it.each([

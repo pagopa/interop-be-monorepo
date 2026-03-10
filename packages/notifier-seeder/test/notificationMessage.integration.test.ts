@@ -170,7 +170,8 @@ describe("Notification tests", async () => {
 
       const purposeMessage = buildPurposeMessage(
         purposeEventEnvelope,
-        purposeEventNotification
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        purposeEventNotification!
       );
 
       await queueWriter.send(purposeMessage, genericLogger);
@@ -183,6 +184,7 @@ describe("Notification tests", async () => {
         stamps: {},
         contract: undefined,
         suspendedAt: undefined,
+        signedContract: undefined,
       };
 
       const agreementEventV2: AgreementAddedV2 = {
@@ -205,7 +207,8 @@ describe("Notification tests", async () => {
 
       const agreementMessage = buildAgreementMessage(
         agreementEventEnvelope,
-        agreementEventNotification
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        agreementEventNotification!
       );
 
       await queueWriter.send(agreementMessage, genericLogger);

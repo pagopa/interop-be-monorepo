@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AgreementId, agreementState, generateId } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { api, agreementService } from "../vitest.api.setup.js";
@@ -20,6 +24,8 @@ import { getMockConsumerDocument, getMockDocumentSeed } from "../mockUtils.js";
 describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
   const mockAgreement = getMockAgreement();
   const mockConsumerDocument = getMockConsumerDocument(mockAgreement.id);
+  const serviceResponse = getMockWithMetadata(mockConsumerDocument);
+
   const defaultBody = getMockDocumentSeed(mockConsumerDocument);
 
   const apiResponse = agreementApi.Document.parse(
@@ -29,7 +35,7 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
   beforeEach(() => {
     agreementService.addConsumerDocument = vi
       .fn()
-      .mockResolvedValue(mockConsumerDocument);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -43,15 +49,26 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body).toEqual(apiResponse);
-    expect(res.status).toBe(200);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.status).toBe(200);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);

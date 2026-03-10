@@ -9,7 +9,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",
   purposeNotFound: "0003",

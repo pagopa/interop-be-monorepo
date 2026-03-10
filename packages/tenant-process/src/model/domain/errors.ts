@@ -7,7 +7,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   attributeNotFound: "0001",
   invalidAttributeStructure: "0002",
   tenantDuplicate: "0003",
@@ -68,22 +68,6 @@ export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidAttributeStructure(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Invalid attribute structure`,
-    code: "invalidAttributeStructure",
-    title: "Invalid attribute structure",
-  });
-}
-
-export function tenantDuplicate(teanantName: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${teanantName} already exists`,
-    code: "tenantDuplicate",
-    title: "Duplicated tenant name",
-  });
-}
-
 export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
@@ -137,8 +121,7 @@ export function attributeVerificationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant is not allowed to verify attribute ${attributeId}
-    for tenant ${consumerId}`,
+    detail: `Tenant is not allowed to verify attribute ${attributeId} for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "Attribute verification is not allowed",
   });
@@ -149,8 +132,7 @@ export function attributeRevocationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant is not allowed to revoke attribute ${attributeId}
-    for tenant ${consumerId}`,
+    detail: `Tenant is not allowed to revoke attribute ${attributeId} for tenant ${consumerId}`,
     code: "attributeRevocationNotAllowed",
     title: "Attribute revocation is not allowed",
   });
@@ -251,7 +233,7 @@ export function attributeAlreadyRevoked(
 }
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail ${mailId} not found`,
+    detail: `Mail ${mailId} not found`,
     code: "mailNotFound",
     title: "Mail not found",
   });
@@ -259,7 +241,7 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
 
 export function mailAlreadyExists(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail already exists`,
+    detail: `Mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
   });
@@ -317,9 +299,9 @@ export function descriptorNotFoundInEservice(
   });
 }
 
-export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+export function notValidMailAddress(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail address ${address} not valid`,
+    detail: `Mail address not valid`,
     code: "notValidMailAddress",
     title: "Not valid mail address",
   });

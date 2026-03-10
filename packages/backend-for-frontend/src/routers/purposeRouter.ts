@@ -5,7 +5,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PurposeService } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -270,6 +274,9 @@ const purposeRouter = (
           const result = await purposeService.suspendPurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
+            req.body.delegationId
+              ? unsafeBrandId<DelegationId>(req.body.delegationId)
+              : undefined,
             ctx
           );
 
@@ -296,6 +303,9 @@ const purposeRouter = (
           const result = await purposeService.activatePurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
+            req.body.delegationId
+              ? unsafeBrandId<DelegationId>(req.body.delegationId)
+              : undefined,
             ctx
           );
 
@@ -442,6 +452,79 @@ const purposeRouter = (
             emptyErrorMapper,
             ctx,
             `Error retrieving risk analysis configuration for version ${req.params.riskAnalysisVersion}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/purposeTemplates/:purposeTemplateId/purposes", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.createPurposeFromTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating Purpose from template ${req.params.purposeTemplateId} and consumer ${req.body.consumerId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch(
+      "/purposeTemplates/:purposeTemplateId/purposes/:purposeId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await purposeService.patchUpdatePurposeFromTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(bffApi.PurposeVersionResource.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating Purpose with id ${req.params.purposeId} created from template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await purposeService.getRiskAnalysisSignedDocument(
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+
+          return res.status(200).send(Buffer.from(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error downloading risk analysis signed document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

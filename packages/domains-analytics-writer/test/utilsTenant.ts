@@ -4,7 +4,7 @@ import {
   TenantRevoker,
 } from "pagopa-interop-models";
 
-export const currentDate = new Date();
+const currentDate = new Date();
 
 export const getMockVerifiedBy = (): TenantVerifier => ({
   id: generateId(),

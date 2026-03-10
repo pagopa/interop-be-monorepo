@@ -84,7 +84,7 @@ describe("delete Document", () => {
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toContain(document.path);
 
-      await catalogService.deleteDocument(
+      const deleteDocumentResponse = await catalogService.deleteDocument(
         eservice.id,
         descriptor.id,
         document.id,
@@ -100,19 +100,19 @@ describe("delete Document", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = toEServiceV2({
+      const expectedEService: EService = {
         ...eservice,
         descriptors: [
           {
             ...descriptor,
-            docs: [],
+            docs: descriptor.docs.filter((doc) => doc.id !== document.id),
           },
         ],
-      });
+      };
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       expect(writtenPayload.documentId).toEqual(document.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
 
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
@@ -122,6 +122,13 @@ describe("delete Document", () => {
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).not.toContain(document.path);
+
+      expect(deleteDocumentResponse).toEqual({
+        data: expectedEService,
+        metadata: {
+          version: 1,
+        },
+      });
     }
   );
 
@@ -158,7 +165,7 @@ describe("delete Document", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
 
-    await catalogService.deleteDocument(
+    const deleteDocumentResponse = await catalogService.deleteDocument(
       eservice.id,
       descriptor.id,
       interfaceDocument.id,
@@ -174,7 +181,7 @@ describe("delete Document", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEService: EService = {
       ...eservice,
       descriptors: [
         {
@@ -183,11 +190,11 @@ describe("delete Document", () => {
           serverUrls: [],
         },
       ],
-    });
+    };
 
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
     expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -197,6 +204,13 @@ describe("delete Document", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
+
+    expect(deleteDocumentResponse).toEqual({
+      data: expectedEService,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should write on event-store for the deletion of a document that is the descriptor interface, and delete the file from the bucket (delegate)", async () => {

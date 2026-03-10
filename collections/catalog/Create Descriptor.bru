@@ -29,12 +29,31 @@ body:json {
       "dailyCallsPerConsumer": 100,
       "dailyCallsTotal": 100,
       "agreementApprovalPolicy": "AUTOMATIC",
-      "attributes": {
+          "attributes": {
           "certified": [
+            [{
+              "id": "{{certifiedAttributeId}}", 
+              "explicitAttributeVerification": false
+            }],
+            [{
+              "id": "9bc80f94-9be6-4f86-8b24-3282ad241e0a",
+              "explicitAttributeVerification": false
+            }, {
+              "id": "df17b7ae-1336-4e53-8eb7-8ae65e28b594",
+              "explicitAttributeVerification": false
+            }]
           ],
           "declared": [
+            [{
+              "id": "{{declaredAttributeId}}", 
+              "explicitAttributeVerification": false
+            }]
           ],
           "verified": [
+            [{
+              "id": "{{verifiedAttributeId}}", 
+              "explicitAttributeVerification": false
+            }]
           ]
       },
       "docs": []
@@ -42,5 +61,5 @@ body:json {
 }
 
 vars:post-response {
-  descriptorId: res.body.id
+  descriptorId: res.body.createdDescriptorId
 }

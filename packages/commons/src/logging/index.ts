@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import winston from "winston";
-import { CorrelationId, SpanId } from "pagopa-interop-models";
+import { ClientId, CorrelationId, SpanId } from "pagopa-interop-models";
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
@@ -8,12 +8,14 @@ export type LoggerMetadata = {
   serviceName?: string;
   userId?: string;
   organizationId?: string;
+  clientId?: ClientId;
   correlationId?: CorrelationId | null;
   spanId?: SpanId | null;
   eventType?: string;
   eventVersion?: number;
   streamId?: string;
   streamVersion?: number;
+  jti?: string;
 };
 
 export const parsedLoggerConfig = LoggerConfig.safeParse(process.env);
@@ -31,12 +33,14 @@ const logFormat = (
     serviceName,
     userId,
     organizationId,
+    clientId,
     correlationId,
     spanId,
     eventType,
     eventVersion,
     streamId,
     streamVersion,
+    jti,
   }: LoggerMetadata
 ) => {
   const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
@@ -44,6 +48,8 @@ const logFormat = (
   const organizationLogPart = organizationId
     ? `[OID=${organizationId}]`
     : undefined;
+  const clientLogPart = clientId ? `[CLIENTID=${clientId}]` : undefined;
+  const jtiLogPart = jti ? `[JTI=${jti}]` : undefined;
   const correlationLogPart = correlationId
     ? `[CID=${correlationId}]`
     : undefined;
@@ -60,7 +66,9 @@ const logFormat = (
   const secondPart = [
     userLogPart,
     organizationLogPart,
+    clientLogPart,
     correlationLogPart,
+    jtiLogPart,
     spanIdLogPart,
     eventTypePart,
     eventVersionPart,

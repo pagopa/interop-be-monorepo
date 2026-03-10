@@ -4,7 +4,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   generateId,
-  invalidInterfaceContentTypeDetected,
+  invalidContentTypeDetected,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -74,15 +74,18 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
       expectedStatus: 404,
     },
     {
-      error: invalidInterfaceContentTypeDetected(
-        generateId(),
+      error: invalidContentTypeDetected(
+        { id: generateId(), isEserviceTemplate: true },
         "contentType",
         "technology"
       ),
       expectedStatus: 400,
     },
     {
-      error: invalidInterfaceFileDetected(generateId()),
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
       expectedStatus: 400,
     },
   ])(

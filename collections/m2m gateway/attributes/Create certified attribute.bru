@@ -1,0 +1,35 @@
+meta {
+  name: Create certified attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw}}/certifiedAttributes
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "code": "{{randomCode}}",
+    "name": "{{randomName}}",
+    "description": "{{randomDescription}}"
+  }
+}
+
+script:pre-request {
+  const randomCode = Math.round(Math.random() * 10000)
+  
+  bru.setVar("randomCode", randomCode)
+  bru.setVar("randomName", `test name ${randomCode}`)
+  bru.setVar("randomDescription", `test description ${randomCode}`)
+}
+
+docs {
+  Creates a new certified attribute.
+}

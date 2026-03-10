@@ -10,6 +10,7 @@ import {
   pollingMaxRetriesExceeded,
   PurposeId,
 } from "pagopa-interop-models";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -17,15 +18,23 @@ import {
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes/:purposeId/suspend router test", () => {
   const mockApiPurpose = getMockedApiPurpose();
   const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
-  const makeRequest = async (token: string, purposeId: string) =>
+  const makeRequest = async (
+    token: string,
+    purposeId: string,
+    body: m2mGatewayApi.DelegationRef | undefined = {
+      delegationId: generateId(),
+    }
+  ) =>
     request(api)
       .post(`${appBasePath}/purposes/${purposeId}/suspend`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -42,6 +51,32 @@ describe("POST /purposes/:purposeId/suspend router test", () => {
       expect(res.body).toEqual(mockM2MPurposeResponse);
     }
   );
+
+  it("Should return 200 when no body is passed", async () => {
+    mockPurposeService.suspendPurpose = vi
+      .fn()
+      .mockResolvedValue(mockM2MPurposeResponse);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiPurpose.id, undefined);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MPurposeResponse);
+  });
+
+  it.each([
+    { delegationId: "INVALID ID" },
+    {
+      unsupportedField: "unsupportedValue",
+    },
+  ])("Should return 400 for incorrect value for body", async (body) => {
+    mockPurposeService.suspendPurpose = vi
+      .fn()
+      .mockResolvedValue(mockM2MPurposeResponse);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockApiPurpose.id, body);
+    expect(res.status).toBe(400);
+  });
 
   it("Should return 409 for missing current purpose version", async () => {
     mockPurposeService.suspendPurpose = vi
@@ -67,16 +102,19 @@ describe("POST /purposes/:purposeId/suspend router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockPurposeService.suspendPurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId());
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.suspendPurpose = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
     { ...mockM2MPurposeResponse, createdAt: undefined },

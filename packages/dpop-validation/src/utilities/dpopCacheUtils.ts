@@ -15,11 +15,13 @@ export const writeDPoPCache = async ({
   dpopCacheTable,
   jti,
   iat,
+  durationSeconds,
 }: {
   dynamoDBClient: DynamoDBClient;
   dpopCacheTable: string;
   jti: string;
   iat: number;
+  durationSeconds: number;
 }): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(jti)",
@@ -31,7 +33,7 @@ export const writeDPoPCache = async ({
         N: iat.toString(),
       },
       ttl: {
-        N: (iat + 60).toString(),
+        N: (iat + durationSeconds).toString(),
       },
     },
     TableName: dpopCacheTable,

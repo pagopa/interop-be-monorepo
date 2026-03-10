@@ -1,40 +1,6 @@
 import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
-export const FeatureFlagSignalhubWhitelistConfig = z
-  .object({
-    FEATURE_FLAG_SIGNALHUB_WHITELIST: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-    SIGNALHUB_WHITELIST_PRODUCER: z
-      .string()
-      .transform((value) => value.split(","))
-      .pipe(z.array(z.string().uuid()))
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST ?? false,
-    signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
-  }));
-export type FeatureFlagSignalhubWhitelistConfig = z.infer<
-  typeof FeatureFlagSignalhubWhitelistConfig
->;
-
-export const FeatureFlagSQLConfig = z
-  .object({
-    FEATURE_FLAG_SQL: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagSQL: c.FEATURE_FLAG_SQL ?? false,
-  }));
-export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
-
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   .object({
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
@@ -49,21 +15,6 @@ export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   }));
 export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
->;
-
-export const FeatureFlagAdminClientConfig = z
-  .object({
-    FEATURE_FLAG_ADMIN_CLIENT: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT ?? false,
-  }));
-export type FeatureFlagAdminClientConfig = z.infer<
-  typeof FeatureFlagAdminClientConfig
 >;
 
 export const FeatureFlagApplicationAuditStrictConfig = z
@@ -112,13 +63,126 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
-type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  FeatureFlagAgreementApprovalPolicyUpdateConfig &
-  FeatureFlagSQLConfig &
-  FeatureFlagAdminClientConfig &
+export const FeatureFlagNotificationConfig = z
+  .object({
+    FEATURE_FLAG_NOTIFICATION_CONFIG: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagNotificationConfig: c.FEATURE_FLAG_NOTIFICATION_CONFIG ?? false,
+  }));
+export type FeatureFlagNotificationConfig = z.infer<
+  typeof FeatureFlagNotificationConfig
+>;
+
+export const FeatureFlagPurposeTemplateConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSE_TEMPLATE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
+  }));
+export type FeatureFlagPurposeTemplateConfig = z.infer<
+  typeof FeatureFlagPurposeTemplateConfig
+>;
+
+export const FeatureFlagEServicePersonalDataConfig = z
+  .object({
+    FEATURE_FLAG_ESERVICE_PERSONAL_DATA: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagEservicePersonalData:
+      c.FEATURE_FLAG_ESERVICE_PERSONAL_DATA ?? false,
+  }));
+export type FeatureFlagEServicePersonalDataConfig = z.infer<
+  typeof FeatureFlagEServicePersonalDataConfig
+>;
+
+export const FeatureFlagDelegationsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationsContractBuilder:
+      c.FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagDelegationsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagAgreementsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAgreementsContractBuilder:
+      c.FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagAgreementsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagPurposesProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposesContractBuilder:
+      c.FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagPurposesProcessContractBuilderConfig
+>;
+
+export const FeatureFlagUseSignedDocumentConfig = z
+  .object({
+    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
+  }));
+export type FeatureFlagUseSignedDocumentConfig = z.infer<
+  typeof FeatureFlagUseSignedDocumentConfig
+>;
+
+type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
-  FeatureFlagClientAssertionStrictClaimsValidationConfig;
+  FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagNotificationConfig &
+  FeatureFlagPurposeTemplateConfig &
+  FeatureFlagEServicePersonalDataConfig &
+  FeatureFlagDelegationsProcessContractBuilderConfig &
+  FeatureFlagAgreementsProcessContractBuilderConfig &
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagUseSignedDocumentConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

@@ -1,0 +1,93 @@
+import {
+  AuthorizationEventEnvelopeV2,
+  fromClientV2,
+  missingKafkaMessageDataError,
+  clientKind,
+  NotificationType,
+} from "pagopa-interop-models";
+import { Logger } from "pagopa-interop-commons";
+import { NewNotification } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { getNotificationRecipients } from "../handlerCommons.js";
+
+type ClientKeyAddedDeletedToClientUsersEventType =
+  | "ClientKeyAdded"
+  | "ClientKeyDeleted"
+  | "ClientUserDeleted";
+
+type ClientKeyAddedDeletedToClientUsersEvent = Extract<
+  AuthorizationEventEnvelopeV2,
+  { type: ClientKeyAddedDeletedToClientUsersEventType }
+>;
+
+export async function handleClientKeyAddedDeletedToClientUsers(
+  decodedMessage: ClientKeyAddedDeletedToClientUsersEvent,
+  logger: Logger,
+  readModelService: ReadModelServiceSQL
+): Promise<NewNotification[]> {
+  if (!decodedMessage.data.client) {
+    throw missingKafkaMessageDataError("client", decodedMessage.type);
+  }
+
+  logger.info(
+    `Sending in-app notification for handleClientKeyAddedDeletedToClientUsers ${decodedMessage.data.client.id} eventType ${decodedMessage.type}`
+  );
+
+  const client = fromClientV2(decodedMessage.data.client);
+  const notificationType: NotificationType = match(client.kind)
+    .with(
+      clientKind.consumer,
+      () => "clientKeyConsumerAddedDeletedToClientUsers" as const
+    )
+    .with(clientKind.api, () => "clientKeyAddedDeletedToClientUsers" as const)
+    .exhaustive();
+
+  const usersWithNotifications = await getNotificationRecipients(
+    [client.consumerId],
+    notificationType,
+    readModelService,
+    logger
+  );
+  if (usersWithNotifications.length === 0) {
+    logger.info(
+      `No users with notifications enabled for ${notificationType} message`
+    );
+    return [];
+  }
+
+  return match(decodedMessage)
+    .with({ type: "ClientKeyDeleted" }, ({ data: { kid } }) =>
+      usersWithNotifications
+        .filter(({ userId }) => client.users.includes(userId)) // Send to all other users
+        .map(({ userId, tenantId }) => ({
+          userId,
+          tenantId,
+          body: inAppTemplates.clientKeyDeletedToClientUsers(client.name, kid),
+          notificationType,
+          entityId: client.id,
+        }))
+    )
+    .with({ type: "ClientKeyAdded" }, () =>
+      usersWithNotifications.map(({ userId, tenantId }) => ({
+        userId,
+        tenantId,
+        body: inAppTemplates.clientKeyAddedToClientUsers(client.name),
+        notificationType,
+        entityId: client.id,
+      }))
+    )
+    .with({ type: "ClientUserDeleted" }, ({ data: { userId } }) =>
+      usersWithNotifications
+        .filter(({ userId: uid }) => uid !== userId) // Send to all other users
+        .map(({ userId, tenantId }) => ({
+          userId,
+          tenantId,
+          body: inAppTemplates.clientUserDeletedToClientUsers(client.name),
+          notificationType,
+          entityId: client.id,
+        }))
+    )
+    .exhaustive();
+}

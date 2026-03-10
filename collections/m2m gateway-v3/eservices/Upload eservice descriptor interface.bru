@@ -1,0 +1,31 @@
+meta {
+  name: Upload eservice descriptor interface
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId/interface
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  file: @file()
+  prettyName: Test File
+}
+
+vars:post-response {
+  documentId: res.body.id
+}

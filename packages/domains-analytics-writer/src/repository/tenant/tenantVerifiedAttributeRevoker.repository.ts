@@ -70,7 +70,3 @@ export function tenantVerifiedAttributeRevokerRepository(conn: DBConnection) {
     },
   };
 }
-
-export type TenantVerifiedAttributeRevokerRepository = ReturnType<
-  typeof tenantVerifiedAttributeRevokerRepository
->;

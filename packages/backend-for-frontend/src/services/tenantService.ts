@@ -2,20 +2,17 @@ import {
   attributeRegistryApi,
   bffApi,
   tenantApi,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { isDefined, WithLogger } from "pagopa-interop-commons";
+import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  AttributeProcessClient,
-  SelfcareV2InstitutionClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
   toBffApiTenant,
@@ -29,7 +26,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: WithLogger<BffAppContext>["headers"]
 ): Promise<RegistryAttributesMap> {
   const registryAttributes = await getAllBulkAttributes(
@@ -44,30 +41,36 @@ async function getRegistryAttributesMap(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
-  attributeRegistryProcessClient: AttributeProcessClient,
+  attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
-    correlationId: CorrelationId
+    correlationId: CorrelationId,
+    logger: Logger
   ): Promise<bffApi.CompactTenant["logoUrl"]> {
     if (!selfcareId) {
       return undefined;
     }
 
-    const institution =
-      await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
-        {
+    try {
+      const institution =
+        await selfcareV2InstitutionClient.retrieveInstitutionByIdUsingGET({
           params: {
             id: selfcareId,
           },
           headers: {
             "X-Correlation-Id": correlationId,
           },
-        }
-      );
+        });
 
-    return institution.logo;
+      return institution.logo;
+    } catch (error) {
+      logger.warn(
+        `Error retrieving logo for tenant ${selfcareId} from selfcare - ${error}`
+      );
+      return undefined;
+    }
   }
 
   return {
@@ -134,7 +137,7 @@ export function tenantServiceBuilder(
       const results = await Promise.all(
         pagedResults.results.map((tenant) =>
           toBffApiCompactTenant(tenant, (selfcareId) =>
-            getLogoUrl(selfcareId, correlationId)
+            getLogoUrl(selfcareId, correlationId, logger)
           )
         )
       );
@@ -430,11 +433,12 @@ export function tenantServiceBuilder(
       });
     },
     async updateTenantDelegatedFeatures(
-      tenantId: TenantId,
       delegatedFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed,
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, authData }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
+      logger.info(
+        `Assigning delegated producer feature to tenant ${authData.organizationId}`
+      );
       await tenantProcessClient.tenant.updateTenantDelegatedFeatures(
         delegatedFeatures,
         { headers }
@@ -470,7 +474,7 @@ export function enhanceTenantAttributes(
   };
 }
 
-export function getDeclaredTenantAttribute(
+function getDeclaredTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.DeclaredTenantAttribute | undefined {
@@ -492,7 +496,7 @@ export function getDeclaredTenantAttribute(
   };
 }
 
-export function getCertifiedTenantAttribute(
+function getCertifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.CertifiedTenantAttribute | undefined {
@@ -513,7 +517,7 @@ export function getCertifiedTenantAttribute(
   };
 }
 
-export function toApiVerifiedTenantAttribute(
+function toApiVerifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.VerifiedTenantAttribute | undefined {

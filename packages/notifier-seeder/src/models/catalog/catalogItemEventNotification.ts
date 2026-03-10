@@ -25,7 +25,7 @@ export type CatalogDocumentV1Notification = Omit<
   uploadDate: string;
 };
 
-export type CatalogAttributesV1Notification = {
+type CatalogAttributesV1Notification = {
   certified: CatalogAttributeValueV1[][];
   verified: CatalogAttributeValueV1[][];
   declared: CatalogAttributeValueV1[][];

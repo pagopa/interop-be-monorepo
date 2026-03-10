@@ -38,16 +38,4 @@ script:pre-request {
   const random = Math.round(Math.random() * 100)
   
   bru.setVar("randomName",`test name ${random}`)
-  
-  const keyEncodedPem = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsV8l9CPuysQmwaltNUAL
-+2nia90pa2tLF5s7SjfqsoLFu8qlbNWC8wpuYcAJF1nDp3XXyxrDkWtlqam2flOJ
-iLOgrSPSVfOj7kC5kAFUVUoKFOo8AFEYXJmzw39YAYubPCwcOjTjo2rQI0E2Ti4W
-Vi+m9usYscGBivvqMq140EGVIKBhZq0E22c5omLleFyMIGIf2NdloNOtNJNPDi/V
-mZYqhtnwjMQYHE9iPdmDvzCcYFQdlQPgKx2i4R5nKCCIzSke+4fmbKCfy7LFRbM/
-tZWVBAoQCYV1xBkmmxEL+46noPykcAVCkEIJN3mUBSe5UEETzjasuylGugsdXl2G
-2QIDAQAB
------END PUBLIC KEY-----`;
-  
-  bru.setVar("keyEncodedPem", keyEncodedPem)
 }

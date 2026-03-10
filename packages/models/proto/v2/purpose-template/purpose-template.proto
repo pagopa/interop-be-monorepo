@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package purpose.template.v2;
+
+enum PurposeTemplateStateV2 {
+  DRAFT = 0;
+  PUBLISHED = 1;
+  SUSPENDED = 2;
+  ARCHIVED = 3;
+}
+
+// Number 1 is skipped because targetTenantKind used to be associated to the enum TenantKindV2.
+// There are already some events in the event-store, so the numbers must match.
+enum TargetTenantKindV2 {
+  PA = 0;
+  PRIVATE = 2;
+}
+
+message PurposeTemplateV2 {
+  string id = 1;
+  string targetDescription = 2;
+  TargetTenantKindV2 targetTenantKind = 3;
+  string creatorId = 4;
+  PurposeTemplateStateV2 state = 5;
+  int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  string purposeTitle = 8;
+  string purposeDescription = 9;
+  optional RiskAnalysisFormTemplateV2 purposeRiskAnalysisForm = 10;
+  bool purposeIsFreeOfCharge = 11;
+  optional string purposeFreeOfChargeReason = 12;
+  optional int32 purposeDailyCalls = 13;
+  bool handlesPersonalData = 14;
+}
+
+message RiskAnalysisFormTemplateV2 {
+  string id = 1;
+  string version = 2;
+  repeated RiskAnalysisTemplateSingleAnswerV2 singleAnswers = 3;
+  repeated RiskAnalysisTemplateMultiAnswerV2 multiAnswers = 4;
+  optional RiskAnalysisTemplateDocumentV2 document = 5;
+  optional RiskAnalysisTemplateSignedDocumentV2 signedDocument = 6;
+}
+
+message RiskAnalysisTemplateSingleAnswerV2 {
+  string id = 1;
+  string key = 2;
+  optional string value = 3;
+  bool editable = 4;
+  optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+  repeated string suggestedValues = 6;
+}
+
+message RiskAnalysisTemplateMultiAnswerV2 {
+  string id = 1;
+  string key = 2;
+  repeated string values = 3;
+  bool editable = 4;
+  optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+}
+
+message RiskAnalysisTemplateDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+}
+
+message RiskAnalysisTemplateSignedDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+  int64 signedAt = 7;
+}
+
+message RiskAnalysisTemplateAnswerAnnotationV2 {
+  string id = 1;
+  string text = 2;
+  repeated RiskAnalysisTemplateAnswerAnnotationDocumentV2 docs = 3;
+}
+
+message RiskAnalysisTemplateAnswerAnnotationDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+  string checksum = 7;
+}

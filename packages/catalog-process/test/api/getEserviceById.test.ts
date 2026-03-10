@@ -2,7 +2,11 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { EService, generateId } from "pagopa-interop-models";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -16,7 +20,8 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     eServiceToApiEService(eservice)
   );
 
-  catalogService.getEServiceById = vi.fn().mockResolvedValue(eservice);
+  const serviceResponse = getMockWithMetadata(eservice);
+  catalogService.getEServiceById = vi.fn().mockResolvedValue(serviceResponse);
 
   const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
@@ -32,6 +37,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.INTERNAL_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
@@ -40,6 +46,9 @@ describe("API /eservices/{eServiceId} authorization test", () => {
       const res = await makeRequest(token, eservice.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

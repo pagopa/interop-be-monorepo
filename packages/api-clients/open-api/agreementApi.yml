@@ -112,6 +112,11 @@ paths:
     post:
       summary: Agreement Activation
       operationId: activateAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Pending agreement activated.
@@ -158,6 +163,49 @@ paths:
           type: string
           format: uuid
         required: true
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - agreement
+      summary: Retrieve consumer Documents of an Agreement
+      description: Retrieve consumer Documents of an Agreement
+      operationId: getAgreementConsumerDocuments
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documents"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -176,6 +224,9 @@ paths:
       responses:
         "200":
           description: Returns the document.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -250,6 +301,9 @@ paths:
       operationId: removeAgreementConsumerDocument
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Document removed
         "403":
           description: Forbidden
@@ -276,6 +330,11 @@ paths:
     post:
       summary: Suspend Agreement
       operationId: suspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended.
@@ -531,6 +590,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: exactConsumerIdMatch
+          description: use consumerIds to retrieve agreements with those specific consumersIds, regardless the delegations
+          schema:
+            type: boolean
+          required: true
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -790,6 +855,9 @@ paths:
       responses:
         "200":
           description: Agreement cloned.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -814,6 +882,106 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/internal/agreement/{agreementId}/contract":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned contract document to the agreement
+      summary: Add unsigned contract metadata to agreement
+      tags:
+        - agreement
+      operationId: addUnsignedAgreementContractMetadata
+      requestBody:
+        description: The unsigned contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Document"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/internal/agreement/{agreementId}/signedContract":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an signed contract document to the agreement
+      summary: Add unsigned contract metadata to agreement
+      tags:
+        - agreement
+      operationId: addSignedAgreementContractMetadata
+      requestBody:
+        description: The signed contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignedDocument"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
           content:
             application/problem+json:
               schema:
@@ -1065,6 +1233,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     AgreementPayload:
       type: object
       additionalProperties: false
@@ -1151,6 +1327,10 @@ components:
         suspendedAt:
           type: string
           format: date-time
+        stamps:
+          $ref: "#/components/schemas/AgreementStamps"
+        signedContract:
+          $ref: "#/components/schemas/SignedDocument"
       required:
         - id
         - eserviceId
@@ -1163,7 +1343,45 @@ components:
         - declaredAttributes
         - consumerDocuments
         - createdAt
+        - stamps
       description: business representation of an agreement
+    AgreementStamps:
+      type: object
+      additionalProperties: false
+      properties:
+        submission:
+          $ref: "#/components/schemas/AgreementStamp"
+        activation:
+          $ref: "#/components/schemas/AgreementStamp"
+        rejection:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByProducer:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByConsumer:
+          $ref: "#/components/schemas/AgreementStamp"
+        upgrade:
+          $ref: "#/components/schemas/AgreementStamp"
+        archiving:
+          $ref: "#/components/schemas/AgreementStamp"
+    AgreementStamp:
+      type: object
+      additionalProperties: false
+      properties:
+        who:
+          description: identifier of the user that performed the action
+          type: string
+          format: uuid
+        when:
+          description: timestamp of when the action was performed
+          type: string
+          format: date-time
+        delegationId:
+          description: identifier of the delegation related to the action, if any
+          type: string
+          format: uuid
+      required:
+        - who
+        - when
     AgreementRejectionPayload:
       type: object
       additionalProperties: false
@@ -1414,6 +1632,20 @@ components:
           type: string
         path:
           type: string
+    Documents:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Document:
       type: object
       additionalProperties: false
@@ -1439,6 +1671,34 @@ components:
           format: date-time
         path:
           type: string
+    SignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - createdAt
+        - path
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        path:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
     CompactEServices:
       type: object
       additionalProperties: false
@@ -1539,7 +1799,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

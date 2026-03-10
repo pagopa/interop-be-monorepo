@@ -39,13 +39,14 @@ describe("remove producer keychain e-service", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.removeProducerKeychainEService(
-      {
-        producerKeychainId: mockProducerKeychain.id,
-        eserviceIdToRemove,
-      },
-      getMockContext({ authData: getMockAuthData(mockProducer.id) })
-    );
+    const removeEServiceResponse =
+      await authorizationService.removeProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          eserviceIdToRemove,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -63,12 +64,21 @@ describe("remove producer keychain e-service", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      eservices: [eserviceIdToNotRemove],
+    };
+
     expect(writtenPayload).toEqual({
-      producerKeychain: toProducerKeychainV2({
-        ...mockProducerKeychain,
-        eservices: [eserviceIdToNotRemove],
-      }),
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
       eserviceId: eserviceIdToRemove,
+    });
+
+    expect(removeEServiceResponse).toEqual({
+      data: expectedProducerKeychain,
+      metadata: {
+        version: 1,
+      },
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {

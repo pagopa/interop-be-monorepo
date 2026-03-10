@@ -71,7 +71,3 @@ export function eserviceDescriptorTemplateVersionRefRepository(
     },
   };
 }
-
-export type EserviceDescriptorTemplateVersionRefRepository = ReturnType<
-  typeof eserviceDescriptorTemplateVersionRefRepository
->;

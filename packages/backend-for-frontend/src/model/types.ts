@@ -1,14 +1,14 @@
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 
-export const Conditions = z.object({
+const Conditions = z.object({
   AudienceRestriction: z
     .array(z.object({ Audience: z.array(z.string()) }))
     .refine((a) => a.length > 0, { message: "Missing " }),
   NotBefore: z.string(),
   NotOnOrAfter: z.string(),
 });
-export type Conditions = z.infer<typeof Conditions>;
+type Conditions = z.infer<typeof Conditions>;
 
 export const SAMLResponse = z
   .object({
@@ -83,14 +83,14 @@ export const SAMLResponse = z
 
 export type SAMLResponse = z.infer<typeof SAMLResponse>;
 
-export const PrivacyNoticeVersion = z.object({
+const PrivacyNoticeVersion = z.object({
   versionId: z.string(),
   name: z.string(),
   publishedDate: z.string(),
   status: z.string(),
   version: z.number(),
 });
-export type PrivacyNoticeVersion = z.infer<typeof PrivacyNoticeVersion>;
+type PrivacyNoticeVersion = z.infer<typeof PrivacyNoticeVersion>;
 
 export const PrivacyNotice = z.object({
   privacyNoticeId: z.string(),
@@ -124,12 +124,12 @@ export type UserPrivacyNoticeConsentType = z.infer<
   typeof UserPrivacyNoticeConsentType
 >;
 
-export const UserPrivacyNoticeVersion = z.object({
+const UserPrivacyNoticeVersion = z.object({
   versionId: z.string(),
   kind: UserPrivacyNoticeConsentType,
   version: z.number(),
 });
-export type UserPrivacyNoticeVersion = z.infer<typeof UserPrivacyNoticeVersion>;
+type UserPrivacyNoticeVersion = z.infer<typeof UserPrivacyNoticeVersion>;
 
 export const UserPrivacyNotice = z.object({
   pnIdWithUserId: z.string(),
@@ -146,27 +146,17 @@ export const catalogApiDescriptorState =
 
 export const agreementApiState = agreementApi.AgreementState.Values;
 
-export const EserviceConsumer = z.object({
-  descriptorVersion: z.number(),
-  descriptorState: catalogApi.EServiceDescriptorState,
-  agreementState: agreementApi.AgreementState,
-  consumerName: z.string(),
-  consumerExternalId: z.string(),
-});
-
-export const ConfigurationSingleAnswer = z.object({
+const ConfigurationSingleAnswer = z.object({
   key: z.string(),
   value: z.string().nullable().optional(),
 });
-export type ConfigurationSingleAnswer = z.infer<
-  typeof ConfigurationSingleAnswer
->;
+type ConfigurationSingleAnswer = z.infer<typeof ConfigurationSingleAnswer>;
 
-export const ConfigurationMultiAnswer = z.object({
+const ConfigurationMultiAnswer = z.object({
   key: z.string(),
   values: z.array(z.string()),
 });
-export type ConfigurationMultiAnswer = z.infer<typeof ConfigurationMultiAnswer>;
+type ConfigurationMultiAnswer = z.infer<typeof ConfigurationMultiAnswer>;
 
 const ConfigurationRiskAnalysisForm = z.object({
   version: z.string(),
@@ -183,13 +173,13 @@ export type ConfigurationRiskAnalysis = z.infer<
   typeof ConfigurationRiskAnalysis
 >;
 
-export const ConfigurationDoc = z.object({
+const ConfigurationDoc = z.object({
   prettyName: z.string(),
   path: z.string(),
 });
-export type ConfigurationDoc = z.infer<typeof ConfigurationDoc>;
+type ConfigurationDoc = z.infer<typeof ConfigurationDoc>;
 
-export const ConfigurationDescriptor = z.object({
+const ConfigurationDescriptor = z.object({
   interface: ConfigurationDoc.optional(),
   docs: z.array(ConfigurationDoc),
   audience: z.array(z.string()),

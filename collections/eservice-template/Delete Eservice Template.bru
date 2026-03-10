@@ -1,0 +1,19 @@
+meta {
+  name: Delete Eservice Template
+  type: http
+}
+
+delete {
+  url: {{host-template}}/templates/:eserviceTemplateId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

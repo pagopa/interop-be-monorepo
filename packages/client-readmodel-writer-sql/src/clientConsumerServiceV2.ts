@@ -1,15 +1,15 @@
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
+import { ClientWriterService } from "./clientWriterService.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  readModelService: ReadModelService
+  clientWriterService: ClientWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -31,19 +31,17 @@ export async function handleMessageV2(
         const clientV2 = message.data.client;
 
         if (!clientV2) {
-          throw genericInternalError(
-            "client can't be missing in event message"
-          );
+          throw missingKafkaMessageDataError("client", message.type);
         }
 
-        await readModelService.upsertClient(
+        await clientWriterService.upsertClient(
           fromClientV2(clientV2),
           message.version
         );
       }
     )
     .with({ type: "ClientDeleted" }, async (message) => {
-      await readModelService.deleteClientById(
+      await clientWriterService.deleteClientById(
         unsafeBrandId(message.data.clientId),
         message.version
       );

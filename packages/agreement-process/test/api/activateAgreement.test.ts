@@ -22,6 +22,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotInExpectedState,
+  tenantIsNotTheDelegate,
   notLatestEServiceDescriptor,
   tenantIsNotTheDelegateProducer,
   tenantIsNotTheProducer,
@@ -44,12 +45,14 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: AgreementId = mockAgreement.id
+    agreementId: AgreementId = mockAgreement.id,
+    delegationId?: DelegationId
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/activate`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .send({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -105,6 +108,10 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
       error: agreementAlreadyExists(generateId(), generateId()),
       expectedStatus: 409,
     },
+    {
+      error: tenantIsNotTheDelegate(generateId()),
+      expectedStatus: 403,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -115,11 +122,14 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
     }
   );
 
-  it.each([{ agreementId: "invalid" as AgreementId }])(
+  it.each([
+    { agreementId: "invalid" as AgreementId },
+    { agreementId: mockAgreement.id, delegationId: "invalid" as DelegationId },
+  ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ agreementId }) => {
+    async ({ agreementId, delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId);
+      const res = await makeRequest(token, agreementId, delegationId);
       expect(res.status).toBe(400);
     }
   );

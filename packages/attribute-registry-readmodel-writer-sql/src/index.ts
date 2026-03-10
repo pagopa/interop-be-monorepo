@@ -7,14 +7,12 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { runConsumer } from "kafka-iam-auth";
-import {
-  makeDrizzleConnection,
-  attributeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 import { config } from "./config/config.js";
+import { attributeWriterServiceBuilder } from "./attributeWriterService.js";
 
-const attributeReadModelService = attributeReadModelServiceBuilder(
+const attributeWriterService = attributeWriterServiceBuilder(
   makeDrizzleConnection(config)
 );
 
@@ -35,10 +33,15 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
 
-  await handleMessage(msg, attributeReadModelService);
+  await handleMessage(msg, attributeWriterService);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 
-await runConsumer(config, [config.attributeTopic], processMessage);
+await runConsumer(
+  config,
+  [config.attributeTopic],
+  processMessage,
+  "attribute-registry-readmodel-writer-sql"
+);

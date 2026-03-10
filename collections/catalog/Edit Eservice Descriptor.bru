@@ -21,8 +21,8 @@ headers {
 }
 
 body:json {
-  {
-      "description": "testone testone",
+    {
+  //     "description": "testone testone",
       "audience": [
           "string"
       ],
@@ -32,10 +32,13 @@ body:json {
       "agreementApprovalPolicy": "AUTOMATIC",
       "attributes": {
           "certified": [
+  //           [{ "id": "{{certifiedAttributeId}}", "explicitAttributeVerification": false }]
           ],
           "declared": [
+  //           [{ "id": "{{declaredAttributeId}}", "explicitAttributeVerification": false }]
           ],
           "verified": [
+  //           [{ "id": "{{verifiedAttributeId}}", "explicitAttributeVerification": false }]
           ]
       }
   }

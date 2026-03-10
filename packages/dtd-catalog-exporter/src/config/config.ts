@@ -1,14 +1,12 @@
 import {
-  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
+const DtdCatalogExporterConfig = ReadModelSQLDbConfig.and(FileManagerConfig)
   .and(S3Config)
   .and(LoggerConfig)
   .and(
@@ -33,11 +31,9 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
         githubRepo: c.GITHUB_REPO,
         githubRepoOwner: c.GITHUB_REPO_OWNER,
       }))
-  )
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig);
+  );
 
-export type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;
+type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;
 export const config: DtdCatalogExporterConfig = DtdCatalogExporterConfig.parse(
   process.env
 );

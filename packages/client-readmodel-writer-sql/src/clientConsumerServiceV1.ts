@@ -3,37 +3,36 @@ import {
   AuthorizationEventEnvelopeV1,
   fromClientV1,
   fromKeyV1,
-  genericInternalError,
   Key,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
+import { ClientWriterService } from "./clientWriterService.js";
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
-  readModelService: ReadModelService
+  clientWriterService: ClientWriterService
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientAdded" }, async (message) => {
       const clientV1 = message.data.client;
-
       if (!clientV1) {
-        throw genericInternalError("client can't be missing in event message");
+        throw missingKafkaMessageDataError("client", message.type);
       }
 
-      await readModelService.upsertClient(
+      await clientWriterService.upsertClient(
         fromClientV1(clientV1),
         message.version
       );
     })
     .with({ type: "UserAdded" }, async (message) => {
       const clientV1 = message.data.client;
-
       if (!clientV1) {
-        throw genericInternalError("client can't be missing in event message");
+        throw missingKafkaMessageDataError("client", message.type);
       }
-      await readModelService.addUser(
+
+      await clientWriterService.addUser(
         fromClientV1(clientV1).id,
         unsafeBrandId(message.data.userId),
         message.version
@@ -42,9 +41,10 @@ export async function handleMessageV1(
     .with({ type: "UserRemoved" }, async (message) => {
       const clientV1 = message.data.client;
       if (!clientV1) {
-        throw genericInternalError("client can't be missing in event message");
+        throw missingKafkaMessageDataError("client", message.type);
       }
-      await readModelService.removeUser(
+
+      await clientWriterService.removeUser(
         fromClientV1(clientV1).id,
         unsafeBrandId(message.data.userId),
         message.version
@@ -52,18 +52,18 @@ export async function handleMessageV1(
     })
     .with({ type: "ClientPurposeAdded" }, async (message) => {
       const purposeId = message.data.statesChain?.purpose?.purposeId;
-
       if (!purposeId) {
-        throw genericInternalError("");
+        throw missingKafkaMessageDataError("purposeId", message.type);
       }
-      await readModelService.addPurpose(
+
+      await clientWriterService.addPurpose(
         unsafeBrandId(message.data.clientId),
         unsafeBrandId(purposeId),
         message.version
       );
     })
     .with({ type: "ClientPurposeRemoved" }, async (message) => {
-      await readModelService.removePurpose(
+      await clientWriterService.removePurpose(
         unsafeBrandId(message.data.clientId),
         unsafeBrandId(message.data.purposeId),
         message.version
@@ -81,27 +81,27 @@ export async function handleMessageV1(
           return jwk.kty !== "EC";
         });
 
-      await readModelService.addKeys(
+      await clientWriterService.addKeys(
         unsafeBrandId(message.data.clientId),
         keysToAdd,
         message.version
       );
     })
     .with({ type: "KeyDeleted" }, async (message) => {
-      await readModelService.deleteKey(
+      await clientWriterService.deleteKey(
         unsafeBrandId(message.data.clientId),
         message.data.keyId,
         message.version
       );
     })
     .with({ type: "ClientDeleted" }, async (message) => {
-      await readModelService.deleteClientById(
+      await clientWriterService.deleteClientById(
         unsafeBrandId(message.data.clientId),
         message.version
       );
     })
     .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
-      await readModelService.migrateKeyRelationshipToUser(
+      await clientWriterService.migrateKeyRelationshipToUser(
         unsafeBrandId(message.data.clientId),
         message.data.keyId,
         unsafeBrandId(message.data.userId),

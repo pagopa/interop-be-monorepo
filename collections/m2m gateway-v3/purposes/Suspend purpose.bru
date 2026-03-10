@@ -1,0 +1,26 @@
+meta {
+  name: Suspend purpose
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/suspend
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
+}

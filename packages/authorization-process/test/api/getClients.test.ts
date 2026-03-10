@@ -8,11 +8,14 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockClient,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
+import { testToPartialClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients authorization test", () => {
   const consumerId = generateId<TenantId>();
@@ -23,7 +26,7 @@ describe("API /clients authorization test", () => {
   const client1: Client = {
     ...getMockClient(),
     name: "client",
-    consumerId,
+    consumerId: mockTokenOrganizationId,
     purposes: [purposeId],
     users: [userId1],
     kind: "Consumer",
@@ -42,13 +45,6 @@ describe("API /clients authorization test", () => {
     results: [client1, client2],
     totalCount: 2,
   };
-
-  const apiClients = authorizationApi.Clients.parse({
-    results: clientsResponse.results.map((client) =>
-      clientToApiClient(client, { showUsers: false })
-    ),
-    totalCount: clientsResponse.totalCount,
-  });
 
   authorizationService.getClients = vi.fn().mockResolvedValue(clientsResponse);
 
@@ -77,15 +73,19 @@ describe("API /clients authorization test", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with role %s and return full or partial clients based on client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClients);
+      expect(res.body).toEqual({
+        results: [testToFullClient(client1), testToPartialClient(client2)],
+        totalCount: 2,
+      });
     }
   );
 

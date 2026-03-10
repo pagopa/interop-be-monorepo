@@ -1,9 +1,17 @@
-import { DelegationId, RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
+import {
+  DelegationId,
+  PurposeTemplateId,
+  RiskAnalysisId,
+  unsafeBrandId,
+} from "../brandedIds.js";
 import {
   PurposeStateV2,
   PurposeVersionDocumentV2,
+  PurposeVersionStampV2,
   PurposeVersionV2,
   PurposeV2,
+  PurposeVersionStampsV2,
+  PurposeVersionSignedDocumentV2,
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
@@ -12,6 +20,9 @@ import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
+  PurposeVersionStamp,
+  PurposeVersionStamps,
   PurposeVersionState,
   purposeVersionState,
 } from "./purpose.js";
@@ -43,6 +54,32 @@ export const fromPurposeVersionDocumentV2 = (
   createdAt: bigIntToDate(input.createdAt),
 });
 
+export const fromPurposeVersionSignedDocumentV2 = (
+  input: PurposeVersionSignedDocumentV2
+): PurposeVersionSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: bigIntToDate(input.createdAt),
+  signedAt: bigIntToDate(input.signedAt),
+});
+
+export const fromPurposeVersionStampV2 = (
+  input: PurposeVersionStampV2 | undefined
+): PurposeVersionStamp | undefined =>
+  input
+    ? {
+        who: unsafeBrandId(input.who),
+        when: bigIntToDate(input.when),
+      }
+    : undefined;
+
+export const fromPurposeVersionStampsV2 = (
+  input: PurposeVersionStampsV2
+): PurposeVersionStamps => ({
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  creation: fromPurposeVersionStampV2(input?.creation)!,
+});
+
 export const fromPurposeVersionV2 = (
   input: PurposeVersionV2
 ): PurposeVersion => ({
@@ -56,6 +93,10 @@ export const fromPurposeVersionV2 = (
   updatedAt: bigIntToDate(input.updatedAt),
   firstActivationAt: bigIntToDate(input.firstActivationAt),
   suspendedAt: bigIntToDate(input.suspendedAt),
+  stamps: input.stamps ? fromPurposeVersionStampsV2(input.stamps) : undefined,
+  signedContract: input.signedContract
+    ? fromPurposeVersionSignedDocumentV2(input.signedContract)
+    : undefined,
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (
@@ -89,5 +130,8 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
     : undefined,
   delegationId: input.delegationId
     ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
+  purposeTemplateId: input.purposeTemplateId
+    ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
     : undefined,
 });

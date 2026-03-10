@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-m2m-gw}}/purposes/:purposeId/activate
-  body: none
+  body: json
   auth: none
 }
 
@@ -16,4 +16,10 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
 }

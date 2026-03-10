@@ -8,16 +8,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  eserviceTemplateReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
+import { eserviceTemplateWriterServiceBuilder } from "./eserviceTemplateWriterService.js";
 
 const db = makeDrizzleConnection(config);
-const eserviceTemplateReadModelService =
-  eserviceTemplateReadModelServiceBuilder(db);
+const eserviceTemplateWriterService = eserviceTemplateWriterServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -38,7 +35,7 @@ async function processMessage({
 
   await match(decodedMessage)
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, eserviceTemplateReadModelService)
+      handleMessageV2(msg, eserviceTemplateWriterService)
     )
     .exhaustive();
 
@@ -47,4 +44,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.eserviceTemplateTopic], processMessage);
+await runConsumer(
+  config,
+  [config.eserviceTemplateTopic],
+  processMessage,
+  "eservice-template-readmodel-writer-sql"
+);

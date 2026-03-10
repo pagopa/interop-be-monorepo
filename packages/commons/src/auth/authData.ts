@@ -21,6 +21,7 @@ export type UIAuthData = {
   userId: UserId;
   userRoles: UserRole[];
   selfcareId: SelfcareId;
+  jti: string;
   externalId: {
     value: string;
     origin: string;
@@ -30,6 +31,8 @@ export type UIAuthData = {
 export type M2MAuthData = {
   systemRole: Extract<SystemRole, "m2m">;
   organizationId: TenantId;
+  clientId: ClientId;
+  jti: string;
 };
 
 export type M2MAdminAuthData = {
@@ -37,14 +40,17 @@ export type M2MAdminAuthData = {
   organizationId: TenantId;
   userId: UserId;
   clientId: ClientId;
+  jti: string;
 };
 
 export type InternalAuthData = {
   systemRole: Extract<SystemRole, "internal">;
+  jti: string;
 };
 
 export type MaintenanceAuthData = {
   systemRole: Extract<SystemRole, "maintenance">;
+  jti: string;
 };
 
 export type AuthData =
@@ -61,17 +67,21 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
       { role: systemRole.MAINTENANCE_ROLE },
       (t) => ({
         systemRole: t.role,
+        jti: t.jti,
       })
     )
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      jti: t.jti,
     }))
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       clientId: unsafeBrandId<ClientId>(t.client_id),
       userId: unsafeBrandId<UserId>(t.adminId),
+      jti: t.jti,
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,
@@ -80,6 +90,7 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
       userRoles: t["user-roles"],
       selfcareId: unsafeBrandId<SelfcareId>(t.selfcareId),
       externalId: t.externalId,
+      jti: t.jti,
     }))
     .exhaustive();
 

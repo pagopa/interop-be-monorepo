@@ -4,10 +4,12 @@ import {
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionSignedDocument,
   PurposeVersionState,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   LocalizedText,
@@ -18,10 +20,11 @@ import {
   LabeledValue,
   FormQuestionRules,
   RiskAnalysisFormRules,
+  ValidationOption,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 
-export const singleAnswersToApiSingleAnswers = (
+const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisSingleAnswer[]
 ): Record<string, string[]> =>
   singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
@@ -33,7 +36,7 @@ export const singleAnswersToApiSingleAnswers = (
     return acc;
   }, {});
 
-export const multiAnswersToApiMultiAnswers = (
+const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisMultiAnswer[]
 ): Record<string, string[]> =>
   multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
@@ -45,7 +48,7 @@ export const multiAnswersToApiMultiAnswers = (
     return acc;
   }, {});
 
-export const riskAnalysisFormToApiRiskAnalysisForm = (
+const riskAnalysisFormToApiRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm
 ): purposeApi.RiskAnalysisForm => {
   const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
@@ -61,7 +64,7 @@ export const riskAnalysisFormToApiRiskAnalysisForm = (
   };
 };
 
-export const purposeVersionStateToApiPurposeVersionState = (
+const purposeVersionStateToApiPurposeVersionState = (
   state: PurposeVersionState
 ): purposeApi.PurposeVersionState =>
   match<PurposeVersionState, purposeApi.PurposeVersionState>(state)
@@ -94,6 +97,16 @@ export const purposeVersionDocumentToApiPurposeVersionDocument = (
   createdAt: document.createdAt.toJSON(),
 });
 
+export const purposeVersionSignedDocumentToApiPurposeVersionSignedDocument = (
+  document: PurposeVersionSignedDocument
+): purposeApi.PurposeVersionSignedDocument => ({
+  id: document.id,
+  contentType: document.contentType,
+  path: document.path,
+  createdAt: document.createdAt.toJSON(),
+  signedAt: document.signedAt?.toJSON(),
+});
+
 export const purposeVersionToApiPurposeVersion = (
   version: PurposeVersion
 ): purposeApi.PurposeVersion => ({
@@ -108,6 +121,11 @@ export const purposeVersionToApiPurposeVersion = (
   dailyCalls: version.dailyCalls,
   suspendedAt: version.suspendedAt?.toJSON(),
   rejectionReason: version.rejectionReason,
+  signedContract: version.signedContract
+    ? purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(
+        version.signedContract
+      )
+    : undefined,
 });
 
 export const purposeToApiPurpose = (
@@ -131,38 +149,37 @@ export const purposeToApiPurpose = (
   isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
+  purposeTemplateId: purpose.purposeTemplateId,
 });
 
-export const localizedTextToApiLocalizedText = (
+const localizedTextToApiLocalizedText = (
   localizedText: LocalizedText
 ): purposeApi.LocalizedTextResponse => ({
   it: localizedText.it,
   en: localizedText.en,
 });
 
-export const dataTypeToApiDataType = (
-  type: DataType
-): purposeApi.DataTypeResponse =>
+const dataTypeToApiDataType = (type: DataType): purposeApi.DataTypeResponse =>
   match<DataType, purposeApi.DataTypeResponse>(type)
     .with(dataType.single, () => "SINGLE")
     .with(dataType.multi, () => "MULTI")
     .with(dataType.freeText, () => "FREETEXT")
     .exhaustive();
 
-export const dependencyToApiDependency = (
+const dependencyToApiDependency = (
   dependency: Dependency
 ): purposeApi.DependencyResponse => ({
   id: dependency.id,
   value: dependency.value,
 });
 
-export const hideOptionConfigToApiHideOptionConfig = (
+const hideOptionConfigToApiHideOptionConfig = (
   hideOptionConfig: HideOptionConfig
 ): purposeApi.HideOptionResponse => ({
   id: hideOptionConfig.id,
   value: hideOptionConfig.value,
 });
-export const mapHideOptionToApiMapHideOption = (
+const mapHideOptionToApiMapHideOption = (
   mapHideOptionConfig: Record<string, HideOptionConfig[]>
 ): Record<string, purposeApi.HideOptionResponse[]> =>
   Object.fromEntries(
@@ -172,14 +189,20 @@ export const mapHideOptionToApiMapHideOption = (
     ])
   );
 
-export const labeledValueToApiLabeledValue = (
+const labeledValueToApiLabeledValue = (
   labeledValue: LabeledValue
 ): purposeApi.LabeledValueResponse => ({
   label: localizedTextToApiLocalizedText(labeledValue.label),
   value: labeledValue.value,
 });
 
-export const formConfigQuestionToApiFormConfigQuestion = (
+const validationToApiValidation = (
+  validation: ValidationOption
+): purposeApi.ValidationOptionResponse => ({
+  maxLength: validation.maxLength,
+});
+
+const formConfigQuestionToApiFormConfigQuestion = (
   question: FormQuestionRules
 ): purposeApi.FormConfigQuestionResponse => {
   const commonFields = {
@@ -195,6 +218,9 @@ export const formConfigQuestionToApiFormConfigQuestion = (
     defaultValue: question.defaultValue,
     hideOption: question.hideOption
       ? mapHideOptionToApiMapHideOption(question.hideOption)
+      : undefined,
+    validation: question.validation
+      ? validationToApiValidation(question.validation)
       : undefined,
   };
 
@@ -216,4 +242,14 @@ export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
   questions: configuration.questions.map(
     formConfigQuestionToApiFormConfigQuestion
   ),
+  expiration: configuration.expiration?.toJSON(),
+});
+
+export const apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys = (
+  input: purposeApi.PurposeVersionSignedDocument
+): PurposeVersionSignedDocument => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(input.createdAt),
+  signedAt: input.signedAt ? new Date(input.signedAt) : undefined,
 });

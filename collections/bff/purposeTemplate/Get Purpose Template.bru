@@ -1,0 +1,24 @@
+meta {
+  name: Get Purpose Template
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  purposeTemplateId: res.body.id
+}

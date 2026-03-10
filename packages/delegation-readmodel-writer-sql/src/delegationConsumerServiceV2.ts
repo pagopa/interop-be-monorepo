@@ -1,14 +1,14 @@
 import {
   DelegationEventEnvelopeV2,
   fromDelegationV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
+import { DelegationWriterService } from "./delegationWriterService.js";
 
 export async function handleMessageV2(
   message: DelegationEventEnvelopeV2,
-  readModelService: ReadModelService
+  delegationWriterService: DelegationWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -20,11 +20,13 @@ export async function handleMessageV2(
       { type: "ConsumerDelegationApproved" },
       { type: "ConsumerDelegationRejected" },
       { type: "ConsumerDelegationRevoked" },
+      { type: "DelegationContractGenerated" },
+      { type: "DelegationSignedContractGenerated" },
       async (message) => {
         if (!message.data.delegation) {
-          throw genericInternalError("Delegation not found in message");
+          throw missingKafkaMessageDataError("delegation", message.type);
         }
-        await readModelService.upsertDelegation(
+        await delegationWriterService.upsertDelegation(
           fromDelegationV2(message.data.delegation),
           message.version
         );

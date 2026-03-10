@@ -1,0 +1,29 @@
+meta {
+  name: Assign eservice descriptor certified attributes to group
+  type: http
+  seq: 35
+}
+
+post {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes
+  body: json
+  auth: none
+}
+
+params:path {
+  groupIndex: 0
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "c7aeac5c-b31f-444e-a0ba-a630d32423e2"
+    ]
+  }
+}

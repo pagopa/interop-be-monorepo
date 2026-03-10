@@ -28,6 +28,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
+  missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -38,8 +39,8 @@ import {
   addOneDelegation,
 } from "../integrationUtils.js";
 
-describe("publish descriptor", () => {
-  const mockEService = getMockEService();
+describe("publish descriptor (after delegator's approval)", () => {
+  const mockEService: EService = { ...getMockEService(), personalData: false };
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   beforeAll(() => {
@@ -60,11 +61,12 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.approveDelegatedEServiceDescriptor(
-      eservice.id,
-      descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const approveDelegatedEServiceDescriptorResponse =
+      await catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -78,7 +80,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = toEServiceV2({
+    const expectedEservice = {
       ...eservice,
       descriptors: [
         {
@@ -87,10 +89,13 @@ describe("publish descriptor", () => {
           state: descriptorState.published,
         },
       ],
+    };
+    expect(approveDelegatedEServiceDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-
     expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should also archive the previously published descriptor", async () => {
@@ -114,11 +119,12 @@ describe("publish descriptor", () => {
       descriptors: [descriptor1, descriptor2],
     };
     await addOneEService(eservice);
-    await catalogService.approveDelegatedEServiceDescriptor(
-      eservice.id,
-      descriptor2.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const approveDelegatedEServiceDescriptorResponse =
+      await catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor2.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({
@@ -148,10 +154,12 @@ describe("publish descriptor", () => {
       ...eservice,
       descriptors: [updatedDescriptor1, updatedDescriptor2],
     };
-    expect(writtenPayload).toEqual({
-      eservice: toEServiceV2(expectedEservice),
-      descriptorId: descriptor2.id,
+    expect(approveDelegatedEServiceDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
+    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should also deprecate the previously published descriptor if there was a valid agreement", async () => {
@@ -187,11 +195,12 @@ describe("publish descriptor", () => {
       state: agreementState.active,
     };
     await addOneAgreement(agreement);
-    await catalogService.approveDelegatedEServiceDescriptor(
-      eservice.id,
-      descriptor2.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    const approveDelegatedEServiceDescriptorResponse =
+      await catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor2.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({
@@ -220,10 +229,12 @@ describe("publish descriptor", () => {
       ...eservice,
       descriptors: [updatedDescriptor1, updatedDescriptor2],
     };
-    expect(writtenPayload).toEqual({
-      eservice: toEServiceV2(expectedEservice),
-      descriptorId: descriptor2.id,
+    expect(approveDelegatedEServiceDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
     });
+    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
   it("should throw eServiceNotFound if the eService doesn't exist", async () => {
@@ -325,4 +336,28 @@ describe("publish descriptor", () => {
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
+
+  it("should throw missingPersonalDataFlag if the eservice has personalData undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: undefined,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
 });

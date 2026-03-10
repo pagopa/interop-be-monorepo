@@ -63,8 +63,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
-    authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",

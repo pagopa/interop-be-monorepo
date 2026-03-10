@@ -12,11 +12,11 @@ import { CsvRow, RawCsvRow } from "../model/csvRowModel.js";
 import { InteropContext } from "../model/interopContextModel.js";
 import { IvassReadModelTenant } from "../model/tenant.js";
 import { TenantProcessService } from "./tenantProcessService.js";
-import { ReadModelQueries } from "./readModelQueriesService.js";
+import { ReadModelQueriesSQL } from "./readModelQueriesServiceSQL.js";
 
 export async function importAttributes(
   csvDownloader: () => Promise<string>,
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
@@ -58,7 +58,7 @@ export async function importAttributes(
 }
 
 async function assignAttributes(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   attributes: IvassAttributes,
@@ -129,7 +129,7 @@ async function assignAttributes(
 }
 
 async function unassignAttributes(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
@@ -161,12 +161,11 @@ async function unassignAttributes(
 }
 
 async function getAttributesIdentifiers(
-  readModel: ReadModelQueries,
+  readModel: ReadModelQueriesSQL,
   ivassTenantId: string
 ): Promise<IvassAttributes> {
-  const ivassTenant: IvassReadModelTenant = await readModel.getTenantById(
-    ivassTenantId
-  );
+  const ivassTenant: IvassReadModelTenant =
+    await readModel.getTenantById(ivassTenantId);
   const certifier = ivassTenant.features.find(
     (f) => f.type === "PersistentCertifier"
   );

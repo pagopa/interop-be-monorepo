@@ -14,6 +14,7 @@ import {
   getMockValidRiskAnalysis,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -28,6 +29,7 @@ import {
   riskAnalysisValidationFailed,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
   const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
@@ -38,7 +40,19 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
   };
 
-  catalogService.createRiskAnalysis = vi.fn().mockResolvedValue({});
+  const serviceResponse = getMockWithMetadata({
+    eservice: mockEService,
+    createdRiskAnalysisId: generateId(),
+  });
+
+  catalogService.createRiskAnalysis = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
+
+  const apiResponse = catalogApi.CreatedEServiceRiskAnalysis.parse({
+    eservice: eServiceToApiEService(mockEService),
+    createdRiskAnalysisId: serviceResponse.data.createdRiskAnalysisId,
+  });
 
   const makeRequest = async (
     token: string,
@@ -51,14 +65,22 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

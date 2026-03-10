@@ -9,7 +9,7 @@ import { api, mockKeyService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MKey } from "../../../src/api/keysApiConverter.js";
 
-describe("API /keys/{keyId} authorization test", () => {
+describe("GET /keys/{keyId} router test", () => {
   const mockKey = getMockClientJWKKey();
   const { clientId, ...jwk } = mockKey;
 

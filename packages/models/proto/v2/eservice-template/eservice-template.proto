@@ -50,4 +50,5 @@ message EServiceTemplateV2 {
   repeated EServiceTemplateRiskAnalysisV2 riskAnalysis = 9;
   eservice.v2.EServiceModeV2 mode = 10;
   optional bool isSignalHubEnabled = 11;
+  optional bool personalData = 12;
 }

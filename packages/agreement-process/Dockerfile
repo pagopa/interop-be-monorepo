@@ -1,9 +1,9 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS build
 
-RUN npm install -g corepack@0.31.0 && corepack enable
+RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -35,7 +35,8 @@ COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
@@ -53,7 +54,7 @@ RUN pnpm build && \
   packages/agreement-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \
@@ -63,12 +64,10 @@ RUN apt-get update && \
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-RUN groupadd -r app && useradd -rm -g app -G audio,video app
-
 COPY --from=build /out /app
 
-RUN chown -R app:app /app
-RUN chmod -R 700 /app
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
+RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/agreement-process

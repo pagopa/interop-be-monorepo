@@ -2,14 +2,14 @@ import { match } from "ts-pattern";
 import {
   TenantEventEnvelopeV1,
   fromTenantV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { ReadModelService } from "./readModelService.js";
+import { TenantWriterService } from "./tenantWriterService.js";
 
 export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
-  readModelService: ReadModelService
+  tenantWriterService: TenantWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -18,23 +18,23 @@ export async function handleMessageV1(
       { type: "TenantMailAdded" },
       async (msg) => {
         if (!msg.data.tenant) {
-          throw genericInternalError("Tenant not found in message");
+          throw missingKafkaMessageDataError("tenant", msg.type);
         }
 
-        await readModelService.upsertTenant(
+        await tenantWriterService.upsertTenant(
           fromTenantV1(msg.data.tenant),
           message.version
         );
       }
     )
     .with({ type: "TenantDeleted" }, async (msg) => {
-      await readModelService.deleteTenant(
+      await tenantWriterService.deleteTenantById(
         unsafeBrandId(msg.data.tenantId),
         message.version
       );
     })
     .with({ type: "SelfcareMappingCreated" }, async (msg) => {
-      await readModelService.setSelfcareId(
+      await tenantWriterService.setSelfcareId(
         unsafeBrandId(msg.data.tenantId),
         msg.data.selfcareId,
         msg.version
@@ -42,7 +42,7 @@ export async function handleMessageV1(
     })
     .with({ type: "SelfcareMappingDeleted" }, async () => Promise.resolve())
     .with({ type: "TenantMailDeleted" }, async (msg) => {
-      await readModelService.deleteTenantMailById(
+      await tenantWriterService.deleteTenantMailById(
         unsafeBrandId(msg.data.tenantId),
         msg.data.mailId,
         msg.version

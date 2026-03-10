@@ -116,5 +116,3 @@ export function agreementRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementRepo = ReturnType<typeof agreementRepo>;

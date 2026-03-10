@@ -5,13 +5,13 @@ import {
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
-  writeInReadmodel,
   ReadEvent,
   readEventByStreamIdAndVersion,
   sortAgreements,
   sortBy,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
+import type { DeeplyAllowMatchers } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -19,12 +19,8 @@ import {
   EService,
   Tenant,
   toAgreementV2,
-  toReadModelEService,
-  toReadModelTenant,
-  toReadModelAgreement,
   AgreementDocumentId,
   Attribute,
-  toReadModelAttribute,
   Delegation,
   ListResult,
   AgreementV2,
@@ -45,27 +41,26 @@ import {
   attributeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertAttribute,
+  upsertDelegation,
+  upsertEService,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
-import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+export const { cleanup, postgresDB, fileManager, readModelDB } =
+  await setupTestContainersVitest(
+    inject("eventStoreConfig"),
+    inject("fileManagerConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
@@ -81,11 +76,6 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const { agreements, attributes, eservices, tenants, delegations } =
-  readModelRepository;
-
-export const oldReadModelService = readModelServiceBuilder(readModelRepository);
-
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
@@ -94,7 +84,7 @@ const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-const readModelServiceSQL = readModelServiceBuilderSQL(
+const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -103,22 +93,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
 export const pdfGenerator = await initPDFGenerator();
-
-export const agreementContractBuilder = contractBuilder(
-  readModelService,
-  pdfGenerator,
-  fileManager,
-  config,
-  genericLogger
-);
 
 export const agreementService = agreementServiceBuilder(
   postgresDB,
@@ -126,7 +101,7 @@ export const agreementService = agreementServiceBuilder(
   fileManager,
   pdfGenerator
 );
-export const writeAgreementInEventstore = async (
+const writeAgreementInEventstore = async (
   agreement: Agreement
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
@@ -146,71 +121,37 @@ export const writeAgreementInEventstore = async (
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 export const writeOnlyOneAgreement = async (
   agreement: Agreement
 ): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
+  await upsertEService(readModelDB, eservice, 0);
 };
 export const updateOneEService = async (eservice: EService): Promise<void> => {
-  await eservices.updateOne(
-    {
-      "data.id": eservice.id,
-      "metadata.version": 0,
-    },
-    {
-      $set: {
-        data: toReadModelEService(eservice),
-        metadata: {
-          version: 1,
-        },
-      },
-    }
-  );
-  await catalogReadModelServiceSQL.upsertEService(eservice, 1);
+  await upsertEService(readModelDB, eservice, 1);
 };
 
 export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
-  await tenants.updateOne(
-    {
-      "data.id": tenant.id,
-      "metadata.version": 0,
-    },
-    {
-      $set: {
-        data: toReadModelTenant(tenant),
-        metadata: {
-          version: 1,
-        },
-      },
-    }
-  );
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
+  await upsertTenant(readModelDB, tenant, 1);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
+  await upsertTenant(readModelDB, tenant, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastAgreementEvent = async (
@@ -294,7 +235,9 @@ export function expectGenericSinglePageListResult<T>(
 ): void {
   expect(actual).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(
+      expected as unknown as Array<DeeplyAllowMatchers<T>>
+    ),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
@@ -331,7 +274,6 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
 export async function updateAgreementInReadModel(
   agreement: Agreement
 ): Promise<void> {
-  await updateOneAgreementDocumentDB(agreement);
   await updateOneAgreementRelationalDB(agreement);
 }
 
@@ -346,37 +288,5 @@ const updateOneAgreementRelationalDB = async (
     throw new Error("Agreement not found in read model. Cannot update.");
   }
 
-  await agreementReadModelServiceSQL.upsertAgreement(
-    agreement,
-    currentVersion + 1
-  );
+  await upsertAgreement(readModelDB, agreement, currentVersion + 1);
 };
-
-async function updateOneAgreementDocumentDB(
-  agreement: Agreement
-): Promise<void> {
-  const currentVersion = (
-    await agreements.findOne({
-      "data.id": agreement.id,
-    })
-  )?.metadata.version;
-
-  if (currentVersion === undefined) {
-    throw new Error("Agreement not found in read model. Cannot update.");
-  }
-
-  await agreements.updateOne(
-    {
-      "data.id": agreement.id,
-      "metadata.version": currentVersion,
-    },
-    {
-      $set: {
-        data: toReadModelAgreement(agreement),
-        metadata: {
-          version: currentVersion + 1,
-        },
-      },
-    }
-  );
-}

@@ -70,7 +70,6 @@ import {
   setClientPurposeIdsInPlatformStatesEntry,
   convertEntriesToClientKidInTokenGenerationStates,
   deleteClientEntryFromPlatformStates,
-  readConsumerClientsInTokenGenStatesV1,
   retrievePlatformStatesByPurpose,
   updateTokenGenStatesDataForSecondRetrieval,
   upsertPlatformClientEntry,
@@ -867,51 +866,6 @@ describe("utils", () => {
     });
   });
 
-  it("readConsumerClientsInTokenGenStatesV1", async () => {
-    const clientId = generateId<ClientId>();
-    const pk1 = makeTokenGenerationStatesClientKidPK({ clientId, kid: "" });
-    const pk2 = makeTokenGenerationStatesClientKidPurposePK({
-      clientId,
-      kid: "",
-      purposeId: generateId<PurposeId>(),
-    });
-
-    const GSIPK_clientId = clientId;
-
-    const tokenGenStatesConsumerClientWithoutPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk1),
-        GSIPK_clientId,
-      };
-
-    const tokenGenStatesConsumerClientWithPurpose: TokenGenerationStatesConsumerClient =
-      {
-        ...getMockTokenGenStatesConsumerClient(pk2),
-        GSIPK_clientId,
-      };
-
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithoutPurpose,
-      dynamoDBClient
-    );
-    await writeTokenGenStatesConsumerClient(
-      tokenGenStatesConsumerClientWithPurpose,
-      dynamoDBClient
-    );
-
-    const res = await readConsumerClientsInTokenGenStatesV1(
-      GSIPK_clientId,
-      dynamoDBClient
-    );
-
-    expect(res).toEqual(
-      expect.arrayContaining([
-        tokenGenStatesConsumerClientWithoutPurpose,
-        tokenGenStatesConsumerClientWithPurpose,
-      ])
-    );
-  });
-
   it("setClientPurposeIdsInPlatformStatesEntry", async () => {
     const clientEntry1: PlatformStatesClientEntry = {
       ...getMockPlatformStatesClientEntry(),
@@ -1253,9 +1207,8 @@ describe("utils", () => {
       logger: genericLogger,
     });
 
-    const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-      dynamoDBClient
-    );
+    const retrievedTokenGenStatesEntries =
+      await readAllTokenGenStatesItems(dynamoDBClient);
     const expectedTokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...tokenConsumerClient,
       purposeState: itemState.inactive,

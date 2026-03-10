@@ -14,17 +14,8 @@ import {
   purposeVersionState,
   Tenant,
   TenantId,
-  toReadModelPurpose,
-  toReadModelTenant,
 } from "pagopa-interop-models";
-import {
-  purposes,
-  readModelService,
-  seedCollection,
-  seedPurposes,
-  seedTenants,
-  tenants,
-} from "./utils.js";
+import { readModelService, seedPurposes, seedTenants } from "./utils.js";
 
 describe("MetricsManager", () => {
   const PN_ESERVICE_ID_MOCK = generateId<EServiceId>();
@@ -55,7 +46,6 @@ describe("MetricsManager", () => {
         externalId: { origin: "origin", value: "value" },
       },
     ];
-    await seedCollection(tenants, tenantsData.map(toReadModelTenant));
     await seedTenants(tenantsData);
 
     const purposesData: Purpose[] = [
@@ -72,7 +62,6 @@ describe("MetricsManager", () => {
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       },
     ];
-    await seedCollection(purposes, purposesData.map(toReadModelPurpose));
     await seedPurposes(purposesData);
 
     const result = await readModelService.getSENDPurposes(

@@ -598,3 +598,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
     );
   });
 });
+
+afterEach(async () => {
+  vi.restoreAllMocks();
+});

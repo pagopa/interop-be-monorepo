@@ -93,6 +93,26 @@ create table purpose.events (
     UNIQUE (stream_id, version)
 );
 
+create schema purpose_template;
+create table purpose_template.events (
+    sequence_num bigserial NOT NULL,
+
+    stream_id uuid NOT NULL,
+    version bigint NOT NULL,
+
+    correlation_id text,
+
+    type text NOT NULL,
+    event_version int NOT NULL,
+    data bytea NOT NULL,
+
+    log_date timestamptz NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (sequence_num),
+    UNIQUE (stream_id, version)
+);
+
+
 create schema "authorization";
 create table "authorization".events (
     sequence_num bigserial NOT NULL,
@@ -141,6 +161,25 @@ CREATE TABLE delegation.events(
 
 create schema eservice_template;
 CREATE TABLE eservice_template.events(
+    sequence_num bigserial NOT NULL,
+
+    stream_id uuid NOT NULL,
+    version bigint NOT NULL,
+
+    correlation_id text,
+
+    type text NOT NULL,
+    event_version int NOT NULL,
+    data bytea NOT NULL,
+
+    log_date timestamptz NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (sequence_num),
+    UNIQUE (stream_id, version)
+);
+
+create schema notification_config;
+CREATE TABLE notification_config.events(
     sequence_num bigserial NOT NULL,
 
     stream_id uuid NOT NULL,

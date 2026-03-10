@@ -116,5 +116,3 @@ export function purposeVersionRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeVersionRepo = ReturnType<typeof purposeVersionRepo>;

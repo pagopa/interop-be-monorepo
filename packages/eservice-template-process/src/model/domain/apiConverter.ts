@@ -10,6 +10,7 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -32,7 +33,7 @@ export function apiTechnologyToTechnology(
     .exhaustive();
 }
 
-export function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
+function eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
   input: EServiceTemplateVersionState
 ): eserviceTemplateApi.EServiceTemplateVersionState {
   return match<
@@ -60,28 +61,27 @@ export function apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
     .exhaustive();
 }
 
-export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
-  input: AgreementApprovalPolicy | undefined
+function agreementApprovalPolicyToApiAgreementApprovalPolicy(
+  input: AgreementApprovalPolicy
 ): eserviceTemplateApi.AgreementApprovalPolicy {
   return match<
-    AgreementApprovalPolicy | undefined,
+    AgreementApprovalPolicy,
     eserviceTemplateApi.AgreementApprovalPolicy
   >(input)
     .with(agreementApprovalPolicy.automatic, () => "AUTOMATIC")
     .with(agreementApprovalPolicy.manual, () => "MANUAL")
-    .otherwise(() => "AUTOMATIC");
+    .exhaustive();
 }
 
 export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-  input: eserviceTemplateApi.AgreementApprovalPolicy | undefined
+  input: eserviceTemplateApi.AgreementApprovalPolicy
 ): AgreementApprovalPolicy {
   return match<
-    eserviceTemplateApi.AgreementApprovalPolicy | undefined,
+    eserviceTemplateApi.AgreementApprovalPolicy,
     AgreementApprovalPolicy
   >(input)
     .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
     .with("MANUAL", () => agreementApprovalPolicy.manual)
-    .with(undefined, () => agreementApprovalPolicy.automatic)
     .exhaustive();
 }
 
@@ -112,9 +112,10 @@ export const documentToApiDocument = (
   prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
+  uploadDate: document.uploadDate.toJSON(),
 });
 
-export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
+const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   eserviceTemplateVersion: EServiceTemplateVersion
 ): eserviceTemplateApi.EServiceTemplateVersion => ({
   id: eserviceTemplateVersion.id,
@@ -130,9 +131,11 @@ export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
   ),
-  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
-    eserviceTemplateVersion.agreementApprovalPolicy
-  ),
+  agreementApprovalPolicy: eserviceTemplateVersion.agreementApprovalPolicy
+    ? agreementApprovalPolicyToApiAgreementApprovalPolicy(
+        eserviceTemplateVersion.agreementApprovalPolicy
+      )
+    : undefined,
   publishedAt: eserviceTemplateVersion.publishedAt?.toJSON(),
   suspendedAt: eserviceTemplateVersion.suspendedAt?.toJSON(),
   deprecatedAt: eserviceTemplateVersion.deprecatedAt?.toJSON(),
@@ -169,4 +172,12 @@ export const eserviceTemplateToApiEServiceTemplate = (
     eserviceTemplateVersionToApiEServiceTemplateVersion
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  personalData: eserviceTemplate.personalData,
+});
+
+export const compactOrganizationToApi = (
+  organization: CompactOrganization
+): eserviceTemplateApi.CompactOrganization => ({
+  id: organization.id,
+  name: organization.name,
 });

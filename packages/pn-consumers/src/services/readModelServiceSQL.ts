@@ -11,6 +11,8 @@ import {
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
+  purposeVersionStampInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantInReadmodelTenant,
@@ -94,6 +96,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purpose: purposeInReadmodelPurpose,
           purposeVersion: purposeVersionInReadmodelPurpose,
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeVersionSignedDocument:
+            purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeRiskAnalysisForm: sql<null>`NULL`,
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
           consumerName: tenantInReadmodelTenant.name,
@@ -117,6 +122,20 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionStampInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionStampInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          purposeVersionSignedDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
         )
         .innerJoin(

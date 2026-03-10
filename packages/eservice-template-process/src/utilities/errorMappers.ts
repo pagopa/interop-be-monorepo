@@ -21,6 +21,15 @@ export const getEServiceTemplateErrorMapper = (
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const deleteEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceTemplateNotInDraftState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const suspendEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -43,7 +52,7 @@ export const activateEServiceTemplateVersionErrorMapper = (
       "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -60,8 +69,10 @@ export const publishEServiceTemplateVersionErrorMapper = (
     .with(
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
+      "missingPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -74,6 +85,7 @@ export const updateEServiceTemplateNameErrorMapper = (
     .with(
       "eserviceTemplateWithoutPublishedVersion",
       "eserviceTemplateDuplicate",
+      "eServiceTemplateUpdateSameNameConflict",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -93,7 +105,11 @@ export const updateEServiceTemplateDescriptionErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceTemplateWithoutPublishedVersion",
+      "eServiceTemplateUpdateSameDescriptionConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateVersionQuotasErrorMapper = (
@@ -132,7 +148,11 @@ export const deleteRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eserviceTemplateNotFound",
+      "riskAnalysisNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
@@ -186,6 +206,7 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
       "inconsistentAttributesSeedGroupsCount",
       "versionAttributeGroupSupersetMissingInAttributesSeed",
       "unchangedAttributes",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -224,6 +245,7 @@ export const updateDraftTemplateVersionErrorMapper = (
     .with(
       "notValidEServiceTemplateVersionState",
       "inconsistentDailyCalls",
+      "attributeDuplicatedInGroup",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -234,6 +256,8 @@ export const createEServiceTemplateVersionErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
+      "attributeNotFound",
+      "attributeDuplicatedInGroup",
       "draftEServiceTemplateVersionAlreadyExists",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
@@ -253,7 +277,12 @@ export const createEServiceTemplateDocumentErrorMapper = (
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("interfaceAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
-    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "documentPrettyNameDuplicate",
+      "checksumDuplicate",
+      "notValidEServiceTemplateVersionState",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getEServiceTemplateDocumentErrorMapper = (
@@ -303,4 +332,17 @@ export const getEServiceTemplatesErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceTemplatePersonalDataFlagErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceTemplateWithoutPublishedVersion",
+      "eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

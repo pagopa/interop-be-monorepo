@@ -1,0 +1,36 @@
+meta {
+  name: Update Reverse Purpose (partial)
+  type: http
+  seq: 20
+}
+
+patch {
+  url: {{host-purpose}}/reverse/purposes/:id
+  body: json
+  auth: none
+}
+
+params:path {
+  id: {{reversePurposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "title": "{{randomName}}",
+      "description": "a purpose long description updated",
+      "isFreeOfCharge": false,
+      "dailyCalls": 200,
+      "freeOfChargeReason": null 
+  }
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
+}

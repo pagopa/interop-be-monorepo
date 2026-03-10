@@ -597,4 +597,3 @@ export function catalogServiceBuilder(db: DBContext) {
     },
   };
 }
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

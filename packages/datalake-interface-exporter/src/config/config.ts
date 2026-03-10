@@ -6,9 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const DatalakeInterfaceExporterConfig = LoggerConfig.and(
-  FileManagerConfig
-)
+const DatalakeInterfaceExporterConfig = LoggerConfig.and(FileManagerConfig)
   .and(KafkaConsumerConfig)
   .and(CatalogTopicConfig)
   .and(
@@ -26,7 +24,7 @@ export const DatalakeInterfaceExporterConfig = LoggerConfig.and(
       }))
   );
 
-export type DatalakeInterfaceExporterConfig = z.infer<
+type DatalakeInterfaceExporterConfig = z.infer<
   typeof DatalakeInterfaceExporterConfig
 >;
 export const config: DatalakeInterfaceExporterConfig =

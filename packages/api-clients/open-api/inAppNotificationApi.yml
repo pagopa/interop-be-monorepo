@@ -1,0 +1,664 @@
+openapi: 3.0.3
+info:
+  title: In App Notification Manager
+  description: This service is the in-app notification manager
+  version: "{{version}}"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/"
+    description: This service is the in-app notification manager
+security:
+  - bearerAuth: []
+tags:
+  - name: notification
+    description: Implements in-app notification manager
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /filterUnreadNotifications:
+    get:
+      tags:
+        - notification
+      summary: Get all unread notifications from a list of entity IDs
+      description: Returns a subset of all entity IDs that have unread notifications
+      operationId: filterUnreadNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: query
+          name: entityIds
+          description: Filter notifications by entity IDs
+          schema:
+            type: array
+            default: []
+            items:
+              type: string
+          explode: false
+      responses:
+        "200":
+          description: A list of entity IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications:
+    get:
+      tags:
+        - notification
+      summary: Get all notifications
+      description: Returns a list of all notifications for the requester
+      operationId: getNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: query
+          name: q
+          description: Query to filter notifications
+          schema:
+            type: string
+        - in: query
+          name: unread
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: notificationTypes
+          description: Notification types to filter notifications
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/NotificationType"
+            default: []
+          explode: false
+      responses:
+        "200":
+          description: A list of notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notifications"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - notification
+      summary: Delete bulk notifications
+      description: Delete bulk notifications
+      operationId: deleteNotifications
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/bulk/markAsRead:
+    post:
+      tags:
+        - notification
+      summary: Mark a list of notifications as read
+      description: Mark a list of notifications as read
+      operationId: markNotificationsAsRead
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}/markAsRead:
+    post:
+      tags:
+        - notification
+      summary: Mark a notification as read
+      description: Mark a notification as read
+      operationId: markNotificationAsRead
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}/markAsUnread:
+    post:
+      tags:
+        - notification
+      summary: Mark a notification as unread
+      description: Mark a notification as unread
+      operationId: markNotificationAsUnread
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification marked as unread
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/bulk/markAsUnread:
+    post:
+      tags:
+        - notification
+      summary: Mark a list of notifications as unread
+      description: Mark a list of notifications as unread
+      operationId: markNotificationsAsUnread
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications marked as unread
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/markAsReadByEntityId/{entityId}:
+    post:
+      tags:
+        - notification
+      summary: Mark all notifications as read by entity id
+      description: Mark all notifications as read by entity id
+      operationId: markNotificationsAsReadByEntityId
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: entityId
+          required: true
+          description: ID of Entity
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}:
+    delete:
+      tags:
+        - notification
+      summary: Delete a notification
+      description: Delete a notification
+      operationId: deleteNotification
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification deleted
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/byType:
+    get:
+      tags:
+        - notification
+      summary: Get all notifications by type
+      description: Returns a list of all notifications count grouped by notificationType
+      operationId: getNotificationsByType
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      responses:
+        "200":
+          description: A list of notifications count grouped by notificationType
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsByType"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  schemas:
+    Notifications:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the notification
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user
+        tenantId:
+          type: string
+          format: uuid
+          description: ID of the tenant
+        body:
+          type: string
+          description: Content of the notification
+        notificationType:
+          $ref: "#/components/schemas/NotificationType"
+        entityId:
+          type: string
+          description: ID of the related entity
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the notification was read
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was created
+      required:
+        - id
+        - userId
+        - tenantId
+        - body
+        - notificationType
+        - entityId
+        - createdAt
+    NotificationType:
+      type: string
+      enum:
+        - agreementSuspendedUnsuspendedToProducer
+        - agreementManagementToProducer
+        - clientAddedRemovedToProducer
+        - purposeStatusChangedToProducer
+        - templateStatusChangedToProducer
+        - agreementSuspendedUnsuspendedToConsumer
+        - eserviceStateChangedToConsumer
+        - agreementActivatedRejectedToConsumer
+        - purposeActivatedRejectedToConsumer
+        - purposeSuspendedUnsuspendedToConsumer
+        - newEserviceTemplateVersionToInstantiator
+        - eserviceTemplateNameChangedToInstantiator
+        - eserviceTemplateStatusChangedToInstantiator
+        - delegationApprovedRejectedToDelegator
+        - eserviceNewVersionSubmittedToDelegator
+        - eserviceNewVersionApprovedRejectedToDelegate
+        - delegationSubmittedRevokedToDelegate
+        - certifiedVerifiedAttributeAssignedRevokedToAssignee
+        - clientKeyAddedDeletedToClientUsers
+        - clientKeyConsumerAddedDeletedToClientUsers
+        - producerKeychainKeyAddedDeletedToClientUsers
+        - purposeQuotaAdjustmentRequestToProducer
+        - purposeOverQuotaStateToConsumer
+    NotificationsByType:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: object
+          properties:
+            agreementSuspendedUnsuspendedToProducer:
+              type: integer
+              format: int32
+            agreementManagementToProducer:
+              type: integer
+              format: int32
+            clientAddedRemovedToProducer:
+              type: integer
+              format: int32
+            purposeStatusChangedToProducer:
+              type: integer
+              format: int32
+            templateStatusChangedToProducer:
+              type: integer
+              format: int32
+            agreementSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            eserviceStateChangedToConsumer:
+              type: integer
+              format: int32
+            agreementActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeActivatedRejectedToConsumer:
+              type: integer
+              format: int32
+            purposeSuspendedUnsuspendedToConsumer:
+              type: integer
+              format: int32
+            newEserviceTemplateVersionToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateNameChangedToInstantiator:
+              type: integer
+              format: int32
+            eserviceTemplateStatusChangedToInstantiator:
+              type: integer
+              format: int32
+            delegationApprovedRejectedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionSubmittedToDelegator:
+              type: integer
+              format: int32
+            eserviceNewVersionApprovedRejectedToDelegate:
+              type: integer
+              format: int32
+            delegationSubmittedRevokedToDelegate:
+              type: integer
+              format: int32
+            certifiedVerifiedAttributeAssignedRevokedToAssignee:
+              type: integer
+              format: int32
+            clientKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+            clientKeyConsumerAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+            producerKeychainKeyAddedDeletedToClientUsers:
+              type: integer
+              format: int32
+            purposeQuotaAdjustmentRequestToProducer:
+              type: integer
+              format: int32
+            purposeOverQuotaStateToConsumer:
+              type: integer
+              format: int32
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT

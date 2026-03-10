@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   Algorithm,
   ApiError,
@@ -25,10 +26,12 @@ import {
   dpopTypNotFound,
   invalidDPoPTyp,
   dpopIatNotFound,
+  notYetValidDPoPProof,
+  dpopAthNotFound,
+  invalidDPoPAth,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
-const EXPECTED_HTM = "POST";
 const ALLOWED_ALGORITHMS: string[] = Algorithm.options;
 
 export const validateTyp = (
@@ -70,13 +73,14 @@ export const validateJWK = (
 };
 
 export const validateHtm = (
-  htm: unknown | undefined
+  htm: unknown | undefined,
+  expectedDPoPProofHtm: string
 ): ValidationResult<string> => {
   if (!htm) {
     return failedValidation([dpopHtmNotFound()]);
   }
 
-  if (htm !== EXPECTED_HTM) {
+  if (htm !== expectedDPoPProofHtm) {
     return failedValidation([invalidDPoPHtm(htm)]);
   }
 
@@ -99,15 +103,25 @@ export const validateHtu = (
 };
 
 export const validateIat = (
-  iat: number | undefined
+  iat: number | undefined,
+  toleranceSeconds: number,
+  durationSeconds: number
 ): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([dpopIatNotFound()]);
   }
 
   const currentTime = dateToSeconds(new Date());
-  if (currentTime < iat || currentTime > iat + 60) {
-    return failedValidation([expiredDPoPProof(iat, currentTime)]);
+
+  // There's a tolerance of some seconds to accommodate for clock offsets between the client and the server
+  if (currentTime + toleranceSeconds < iat) {
+    return failedValidation([
+      notYetValidDPoPProof(iat, currentTime, toleranceSeconds),
+    ]);
+  } else if (currentTime > iat + durationSeconds) {
+    return failedValidation([
+      expiredDPoPProof(iat, currentTime, durationSeconds),
+    ]);
   }
 
   return successfulValidation(iat);
@@ -120,6 +134,19 @@ export const validateJti = (
     return failedValidation([dpopJtiNotFound()]);
   }
   return successfulValidation(jti);
+};
+
+export const validateAth = (
+  ath: string | undefined,
+  expectedAth: string
+): ValidationResult<string> => {
+  if (!ath) {
+    return failedValidation([dpopAthNotFound()]);
+  }
+  if (ath !== expectedAth) {
+    return failedValidation([invalidDPoPAth(ath)]);
+  }
+  return successfulValidation(ath);
 };
 
 export const successfulValidation = <T>(
@@ -145,3 +172,6 @@ export const failedValidation = (
     errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
   };
 };
+
+export const calculateAth = (accessToken: string): string =>
+  createHash("sha256").update(accessToken).digest("base64url");

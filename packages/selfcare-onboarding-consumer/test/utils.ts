@@ -72,15 +72,6 @@ export const kafkaMessagePayload: EachMessagePayload = {
   pause: () => () => {},
 };
 
-export const selfcareUpsertTenantSeed = {
-  externalId: {
-    origin: correctEventPayload.institution.origin,
-    value: correctEventPayload.institution.originId,
-  },
-  selfcareId: correctEventPayload.institutionId,
-  name: correctEventPayload.institution.description,
-};
-
 export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
   Promise.resolve(interopInternalToken);
 

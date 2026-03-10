@@ -32,7 +32,7 @@ import {
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 /* ========= STATES ========= */
 export const inactiveDelegationStates: DelegationState[] = [
@@ -108,7 +108,7 @@ export const assertDelegationNotExists = async (
   delegator: Tenant,
   eserviceId: EServiceId,
   delegationKind: DelegationKind,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   const delegatorId = delegator.id;
 
@@ -172,9 +172,7 @@ export const assertRequesterIsDelegateOrDelegator = (
 export function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
-): asserts stamps is Delegation["stamps"] & {
-  [key in S]: DelegationStamp;
-} {
+): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
   }
@@ -189,7 +187,7 @@ export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
 export const assertNoDelegationRelatedAgreementExists = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
   const agreement = await readModelService.getDelegationRelatedAgreement(
     eserviceId,

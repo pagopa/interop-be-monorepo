@@ -76,5 +76,3 @@ export function attributeServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type AttributeService = ReturnType<typeof attributeServiceBuilder>;

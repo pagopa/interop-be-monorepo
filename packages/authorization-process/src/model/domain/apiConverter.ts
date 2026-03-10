@@ -1,7 +1,12 @@
+import { JsonWebKey } from "crypto";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   Client,
-  ClientKind,
   Key,
   KeyUse,
   clientKind,
@@ -9,10 +14,12 @@ import {
   ProducerKeychain,
   ClientJWKKey,
   ProducerJWKKey,
+  ClientKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { assertJwkKtyIsDefined } from "../../services/validators.js";
 
-export const clientKindToApiClientKind = (
+const clientKindToApiClientKind = (
   kind: ClientKind
 ): authorizationApi.ClientKind =>
   match<ClientKind, authorizationApi.ClientKind>(kind)
@@ -28,7 +35,7 @@ export const apiClientKindToClientKind = (
     .with("API", () => clientKind.api)
     .exhaustive();
 
-export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
+const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
   match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
@@ -36,33 +43,23 @@ export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
 
 export function clientToApiClientWithKeys(
   client: Client,
-  { showUsers }: { showUsers: boolean }
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.ClientWithKeys {
   return {
-    client: {
-      id: client.id,
-      name: client.name,
-      consumerId: client.consumerId,
-      users: showUsers ? client.users : [],
-      createdAt: client.createdAt.toJSON(),
-      purposes: client.purposes,
-      kind: clientKindToApiClientKind(client.kind),
-      description: client.description,
-      adminId: client.adminId,
-    },
+    client: clientToApiClient(client, authData),
     keys: client.keys.map(keyToApiKey),
   };
 }
 
-export function clientToApiClient(
-  client: Client,
-  { showUsers }: { showUsers: boolean }
-): authorizationApi.Client {
+export function clientToApiFullVisibilityClient(
+  client: Client
+): authorizationApi.FullClient {
   return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
     id: client.id,
     name: client.name,
     consumerId: client.consumerId,
-    users: showUsers ? client.users : [],
+    users: client.users,
     createdAt: client.createdAt.toJSON(),
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
@@ -71,19 +68,75 @@ export function clientToApiClient(
   };
 }
 
-export function producerKeychainToApiProducerKeychain(
-  producerKeychain: ProducerKeychain,
-  { showUsers }: { showUsers: boolean }
-): authorizationApi.ProducerKeychain {
+export function clientToApiClient(
+  client: Client,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.Client {
+  if (authData.organizationId !== client.consumerId) {
+    return {
+      visibility: authorizationApi.Visibility.Enum.PARTIAL,
+      id: client.id,
+      consumerId: client.consumerId,
+      kind: clientKindToApiClientKind(client.kind),
+    } satisfies authorizationApi.PartialClient;
+  }
+
+  return clientToApiFullVisibilityClient(client);
+}
+
+export function producerKeychainToApiFullVisibilityProducerKeychain(
+  producerKeychain: ProducerKeychain
+): authorizationApi.FullProducerKeychain {
   return {
+    visibility: authorizationApi.Visibility.Enum.FULL,
     id: producerKeychain.id,
     name: producerKeychain.name,
     producerId: producerKeychain.producerId,
-    users: showUsers ? producerKeychain.users : [],
+    users: producerKeychain.users,
     createdAt: producerKeychain.createdAt.toJSON(),
     eservices: producerKeychain.eservices,
     description: producerKeychain.description,
     keys: producerKeychain.keys.map(keyToApiKey),
+  };
+}
+
+export function producerKeychainToApiProducerKeychain(
+  producerKeychain: ProducerKeychain,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.ProducerKeychain {
+  if (authData.organizationId !== producerKeychain.producerId) {
+    return {
+      visibility: authorizationApi.Visibility.Enum.PARTIAL,
+      id: producerKeychain.id,
+      producerId: producerKeychain.producerId,
+    } satisfies authorizationApi.PartialProducerKeychain;
+  }
+
+  return producerKeychainToApiFullVisibilityProducerKeychain(producerKeychain);
+}
+
+function jsonWebKeyToApiJWKKey(
+  jwk: JsonWebKey,
+  kid: string
+): authorizationApi.JWKKey {
+  assertJwkKtyIsDefined(jwk);
+
+  return {
+    ...jwk,
+    kid,
+    use: "sig",
+  };
+}
+
+export function jwkAndClientToApiKeyWithClient(
+  jwk: JsonWebKey,
+  kid: string,
+  client: Client,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.KeyWithClient {
+  return {
+    key: jsonWebKeyToApiJWKKey(jwk, kid),
+    client: clientToApiClient(client, authData),
   };
 }
 

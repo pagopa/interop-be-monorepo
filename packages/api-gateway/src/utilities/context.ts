@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
-export type Headers = {
+type Headers = {
   "X-Correlation-Id": CorrelationId;
   Authorization: string | undefined;
   "X-Forwarded-For": string | undefined;

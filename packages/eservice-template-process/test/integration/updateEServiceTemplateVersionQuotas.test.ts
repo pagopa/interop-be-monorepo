@@ -47,14 +47,15 @@ describe("updateEServiceTemplateVersionQuotas", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
-      eserviceTemplate.id,
-      eserviceTemplateVersion.id,
-      { voucherLifespan: 60 },
-      getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
-      })
-    );
+    const updatedEserviceTemplateVersionReturn =
+      await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        { voucherLifespan: 60 },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      );
 
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -68,7 +69,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEServiceTemplate = toEServiceTemplateV2({
+    const expectedEServiceTemplate = {
       ...eserviceTemplate,
       versions: [
         {
@@ -76,12 +77,19 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           voucherLifespan: 60,
         },
       ],
-    });
+    };
 
     expect(writtenPayload.eserviceTemplateVersionId).toEqual(
       eserviceTemplateVersion.id
     );
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
+    expect(writtenPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(expectedEServiceTemplate)
+    );
+
+    expect(updatedEserviceTemplateVersionReturn).toEqual({
+      data: expectedEServiceTemplate,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {

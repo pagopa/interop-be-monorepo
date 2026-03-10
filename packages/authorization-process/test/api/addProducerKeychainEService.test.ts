@@ -12,6 +12,7 @@ import {
   generateToken,
   getMockEService,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -23,6 +24,7 @@ import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
+import { testToFullProducerKeychain } from "../apiUtils.js";
 
 describe("API /producerKeychains/{producerKeychainId}/eservices authorization test", () => {
   const mockProducerId: TenantId = generateId();
@@ -39,9 +41,11 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
     producerId: mockProducerId,
   };
 
+  const serviceResponse = getMockWithMetadata(mockProducerKeychain);
+
   authorizationService.addProducerKeychainEService = vi
     .fn()
-    .mockResolvedValue({});
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -54,13 +58,34 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
       .set("X-Correlation-Id", generateId())
       .send({ eserviceId });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 with a full producer keychain for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        testToFullProducerKeychain(mockProducerKeychain)
+      );
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+      expect(
+        authorizationService.addProducerKeychainEService
+      ).toHaveBeenCalledWith(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: {
+            eserviceId: mockEService.id,
+          },
+        },
+        expect.any(Object)
+      );
     }
   );
 
