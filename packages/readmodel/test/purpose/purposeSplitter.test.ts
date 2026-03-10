@@ -232,8 +232,10 @@ describe("Purpose splitter", () => {
       signedContract: purposeVersionSignedDocument,
     };
 
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      tenantKind: undefined,
+    };
 
     const purpose: Purpose = {
       ...getMockPurpose(),
