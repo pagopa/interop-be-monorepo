@@ -2295,7 +2295,8 @@ export function catalogServiceBuilder(
         ...riskAnalysisToUpdate,
         name: eserviceRiskAnalysisSeed.name,
         riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
+          validatedRiskAnalysisForm,
+          tenant.kind
         ),
       };
 
