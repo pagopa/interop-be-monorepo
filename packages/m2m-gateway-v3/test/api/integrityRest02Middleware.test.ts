@@ -122,6 +122,15 @@ describe("integrityRest02Middleware", () => {
     expect(signedHeaders).toContainEqual({
       "x-correlation-id": correlationId,
     });
+
+    // Case sensitive checks
+    expect(signedHeaders).not.toContainEqual({ Digest: `SHA-256=${digest}` });
+    expect(signedHeaders).not.toContainEqual({
+      "Content-Type": res.headers["content-type"],
+    });
+    expect(signedHeaders).not.toContainEqual({
+      "X-Correlation-Id": correlationId,
+    });
   });
 
   it("Should return same digest with the same body", async () => {
