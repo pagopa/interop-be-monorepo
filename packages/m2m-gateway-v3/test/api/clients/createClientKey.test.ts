@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockClientJWKKey,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -19,7 +20,8 @@ describe("POST /clients/:clientId/keys router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/keys`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(seed);
 
   const keySeed: m2mGatewayApiV3.KeySeed = {

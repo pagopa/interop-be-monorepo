@@ -276,7 +276,11 @@ const updatePurposeTemplateWithoutAnnotation = async (
     readModelService
   );
 
-  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertRequesterIsCreator(
+    purposeTemplateId,
+    purposeTemplate.data.creatorId,
+    authData
+  );
   assertPurposeTemplateIsDraft(purposeTemplate.data);
   assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
@@ -284,7 +288,9 @@ const updatePurposeTemplateWithoutAnnotation = async (
     purposeTemplate.data.purposeRiskAnalysisForm;
 
   function removeAnnotation<
-    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+    T extends
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer,
   >(
     answers: T[],
     answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId
@@ -350,6 +356,19 @@ const updatePurposeTemplateWithoutAnnotation = async (
     });
   }
 
+  const originalAnswer =
+    purposeTemplateRiskAnalysisForm.singleAnswers.find(
+      (a) => a.id === answerId
+    ) ||
+    purposeTemplateRiskAnalysisForm.multiAnswers.find((a) => a.id === answerId);
+
+  if (!originalAnswer?.annotation) {
+    throw riskAnalysisTemplateAnswerAnnotationNotFound(
+      purposeTemplate.data.id,
+      answerId
+    );
+  }
+
   const annotationDocumentsToRemove = [
     ...annotationDocumentsToRemoveFromSingleAnswer,
     ...annotationDocumentsToRemoveFromMultiAnswer,
@@ -393,7 +412,11 @@ const updatePurposeTemplateWithoutAnnotationDocument = async ({
     readModelService
   );
 
-  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertRequesterIsCreator(
+    purposeTemplateId,
+    purposeTemplate.data.creatorId,
+    authData
+  );
   assertPurposeTemplateIsDraft(purposeTemplate.data);
   assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
@@ -401,7 +424,9 @@ const updatePurposeTemplateWithoutAnnotationDocument = async ({
     purposeTemplate.data.purposeRiskAnalysisForm;
 
   function removeAnnotationDocument<
-    T extends RiskAnalysisTemplateSingleAnswer | RiskAnalysisTemplateMultiAnswer
+    T extends
+      | RiskAnalysisTemplateSingleAnswer
+      | RiskAnalysisTemplateMultiAnswer,
   >(
     answers: T[],
     documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
@@ -570,7 +595,7 @@ async function activatePurposeTemplate({
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
   }
 
-  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
   assertActivatableState(purposeTemplate.data, expectedInitialState);
 
   const eserviceStateValidationIssues =
@@ -653,7 +678,11 @@ async function updateDraftPurposeTemplate(
   );
 
   assertPurposeTemplateIsDraft(purposeTemplate.data);
-  assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+  assertRequesterIsCreator(
+    purposeTemplateId,
+    purposeTemplate.data.creatorId,
+    authData
+  );
   assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
   const purposeTemplateWithRiskAnalysisForm = purposeTemplate.data;
@@ -662,6 +691,7 @@ async function updateDraftPurposeTemplate(
     targetTenantKind,
     purposeTitle,
     purposeFreeOfChargeReason,
+    purposeIsFreeOfCharge,
     purposeDailyCalls,
     handlesPersonalData,
   } = typeAndSeed.seed;
@@ -716,19 +746,42 @@ async function updateDraftPurposeTemplate(
     .with({ type: "patch" }, () => purposeTemplate.data.purposeRiskAnalysisForm)
     .exhaustive();
 
+  const updatedPurposeIsFreeOfCharge =
+    purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
+
+  // Context: https://github.com/pagopa/interop-be-monorepo/pull/2954
+  function updatePurposeFreeOfChargeReason(): string | undefined {
+    const normalizedSeedFreeOfChargeReason =
+      typeof purposeFreeOfChargeReason === "string" &&
+      purposeFreeOfChargeReason.length > 0
+        ? purposeFreeOfChargeReason
+        : undefined;
+
+    // Return the seed purposeFreeOfChargeReason if defined and not empty
+    if (normalizedSeedFreeOfChargeReason !== undefined) {
+      return normalizedSeedFreeOfChargeReason;
+    }
+
+    // Return undefined if the updated purposeIsFreeOfCharge is false or the seed purposeFreeOfChargeReason is explicitly set to null.
+    // A purpose template should only have a purposeFreeOfChargeReason when purposeIsFreeOfCharge is true.
+    if (!updatedPurposeIsFreeOfCharge || purposeFreeOfChargeReason === null) {
+      return undefined;
+    }
+
+    // Fallback to the existing reason in the purpose template
+    return purposeTemplate.data.purposeFreeOfChargeReason;
+  }
+
   const updatedPurposeTemplate: PurposeTemplate = {
     ...purposeTemplate.data,
     ...typeAndSeed.seed,
-    purposeFreeOfChargeReason:
-      purposeFreeOfChargeReason === null
-        ? undefined
-        : purposeFreeOfChargeReason ??
-          purposeTemplate.data.purposeFreeOfChargeReason,
+    purposeIsFreeOfCharge: updatedPurposeIsFreeOfCharge,
+    purposeFreeOfChargeReason: updatePurposeFreeOfChargeReason(),
     purposeRiskAnalysisForm: updatedPurposeRiskAnalysisForm,
     purposeDailyCalls:
       purposeDailyCalls === null
         ? undefined
-        : purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls,
+        : (purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls),
     updatedAt: new Date(),
   };
 
@@ -1030,7 +1083,11 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.published,
       ]);
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validationResult = await validateEservicesAssociations(
         eserviceIds,
@@ -1104,7 +1161,11 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.published,
       ]);
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validationResult = await validateEservicesDisassociations(
         eserviceIds,
@@ -1256,7 +1317,11 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateState.draft,
       ]);
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validatedAnswer = validateRiskAnalysisAnswerOrThrow({
         riskAnalysisAnswer: riskAnalysisTemplateAnswerRequest,
@@ -1330,7 +1395,11 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
@@ -1438,7 +1507,11 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
       assertPurposeTemplateIsDraft(purposeTemplate.data);
 
       const riskAnalysisFormTemplate = retrieveRiskAnalysisFormTemplate(
@@ -1543,7 +1616,11 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
@@ -1685,7 +1762,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
       assertSuspendableState(purposeTemplate.data);
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -1722,7 +1799,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
       assertArchivableState(purposeTemplate.data);
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -1759,7 +1836,11 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
       assertPurposeTemplateIsDraft(purposeTemplate.data);
       assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
 
@@ -1924,7 +2005,11 @@ export function purposeTemplateServiceBuilder(
       );
 
       assertPurposeTemplateIsDraft(purposeTemplate.data);
-      assertRequesterIsCreator(purposeTemplate.data.creatorId, authData);
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
 
       const validRiskAnalysisFormTemplate =
         validateAndTransformRiskAnalysisTemplate(

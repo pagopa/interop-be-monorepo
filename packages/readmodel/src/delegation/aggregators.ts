@@ -55,7 +55,7 @@ export const aggregateDelegationArray = ({
 };
 
 const createDelegationSQLPropertyMap = <
-  T extends DelegationStampSQL | DelegationContractDocumentSQL
+  T extends DelegationStampSQL | DelegationContractDocumentSQL,
 >(
   items: T[]
 ): Map<DelegationId, T[]> =>
@@ -125,7 +125,7 @@ export const aggregateDelegation = ({
     rejection: rejectionStampSQL,
     revocation: revocationStampSQL,
   } = stampsSQL.reduce(
-    (acc: { [key in DelegationStampKind]?: DelegationStampSQL }, stamp) =>
+    (acc: Partial<Record<DelegationStampKind, DelegationStampSQL>>, stamp) =>
       match(DelegationStampKind.parse(stamp.kind))
         .with(DelegationStampKind.enum.submission, () => ({
           ...acc,

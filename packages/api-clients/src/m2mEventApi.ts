@@ -3,6 +3,10 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type M2MEventsAPI = typeof m2mEventApi.m2mEventsApi.api;
 
+export type EventManagerClient = ReturnType<
+  typeof m2mEventApi.createM2mEventsApiClient
+>;
+
 export type GetAttributeM2MEventsQueryParams = QueryParametersByAlias<
   M2MEventsAPI,
   "getAttributeM2MEvents"

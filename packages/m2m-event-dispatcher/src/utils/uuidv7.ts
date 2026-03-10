@@ -28,7 +28,7 @@ export function generateM2MEventId<
     | ProducerKeychainM2MEventId
     | ProducerKeyM2MEventId
     | TenantM2MEventId
-    | PurposeTemplateM2MEventId
+    | PurposeTemplateM2MEventId,
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }

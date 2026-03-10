@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiEservice,
   randomBoolean,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -32,7 +33,9 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
   ) =>
     request(api)
       .patch(`${appBasePath}/eservices/${eserviceId}/delegation`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

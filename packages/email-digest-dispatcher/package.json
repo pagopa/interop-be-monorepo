@@ -1,0 +1,43 @@
+{
+  "name": "pagopa-interop-email-digest-dispatcher",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability Email Notification Digest Dispatcher",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "check": "tsc --project tsconfig.check.json",
+    "generate-mock-email": "tsx ./scripts/generate-mock-email.ts"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "cpx2": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "pg": "catalog:",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

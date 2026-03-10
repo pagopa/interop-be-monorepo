@@ -84,7 +84,7 @@ describe("updateDraftEserviceTemplateVersion", () => {
       suspendedAt: mockTemplateVersion.suspendedAt,
     };
 
-    expect(result).toEqual(expectedM2MTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MTemplateVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

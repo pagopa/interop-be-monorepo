@@ -14,13 +14,13 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
   toDelegationState,
 } from "../api/delegationApiConverter.js";
 import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,

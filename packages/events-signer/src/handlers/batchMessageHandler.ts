@@ -16,6 +16,8 @@ import {
   DelegationEventEnvelopeV2,
   DelegationEvent,
   genericInternalError,
+  PurposeTemplateEventEnvelopeV2,
+  PurposeTemplateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -30,6 +32,7 @@ import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js"
 import { handleCatalogMessageV2 } from "./handleCatalogMessageV2.js";
 import { handleDelegationMessageV2 } from "./handleDelegationMessageV2.js";
 import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
+import { handlePurposeTemplateMessageV2 } from "./handlePurposeTemplateMessageV2.js";
 
 /**
  * Processes a list of Kafka messages for the specified topic by decoding each message and invoking the corresponding handler.
@@ -197,6 +200,32 @@ export async function executeTopicHandler(
       if (delegationsV2WithTimestamp.length > 0) {
         await handleDelegationMessageV2(
           delegationsV2WithTimestamp,
+          fileManager,
+          signatureService,
+          safeStorageService
+        );
+      }
+    })
+    .with(config.purposeTemplateTopic, async () => {
+      const purposeTemplatesV2WithTimestamp: Array<{
+        purposeTemplateV2: PurposeTemplateEventEnvelopeV2;
+        timestamp: Date;
+      }> = [];
+
+      for (const message of kafkaMessages) {
+        const decoded = decodeKafkaMessage(message, PurposeTemplateEvent);
+        match(decoded)
+          .with({ event_version: 2 }, (msg) =>
+            purposeTemplatesV2WithTimestamp.push({
+              purposeTemplateV2: msg,
+              timestamp: getEventTimestamp(message),
+            })
+          )
+          .exhaustive();
+      }
+      if (purposeTemplatesV2WithTimestamp.length > 0) {
+        await handlePurposeTemplateMessageV2(
+          purposeTemplatesV2WithTimestamp,
           fileManager,
           signatureService,
           safeStorageService
