@@ -66,7 +66,7 @@ export function readModelServiceBuilderSQL(
   agreementReadModelService: AgreementReadModelService,
   attributeReadModelService: AttributeReadModelService,
   catalogReadModelService: CatalogReadModelService,
-  delegationReadModelService: DelegationReadModelService,
+  delegationReadModelService: DelegationReadModelService
 ) {
   return {
     async getTenants({
@@ -74,7 +74,6 @@ export function readModelServiceBuilderSQL(
       features,
       externalIdOrigin,
       externalIdValue,
-      externalIdSelfcareInstitutionType,
       offset,
       limit,
     }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
@@ -84,7 +83,7 @@ export function readModelServiceBuilderSQL(
             withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
               nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            }),
+            })
           )
           .from(tenantInReadmodelTenant)
           .leftJoin(
@@ -92,9 +91,9 @@ export function readModelServiceBuilderSQL(
             and(
               eq(
                 tenantInReadmodelTenant.id,
-                tenantFeatureInReadmodelTenant.tenantId,
-              ),
-            ),
+                tenantFeatureInReadmodelTenant.tenantId
+              )
+            )
           )
           .where(
             and(
@@ -110,14 +109,8 @@ export function readModelServiceBuilderSQL(
               externalIdValue
                 ? eq(tenantInReadmodelTenant.externalIdValue, externalIdValue)
                 : undefined,
-              externalIdSelfcareInstitutionType
-                ? eq(
-                    tenantInReadmodelTenant.externalIdSelfcareInstitutionType,
-                    externalIdSelfcareInstitutionType,
-                  )
-                : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId),
-            ),
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
           )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
@@ -126,22 +119,22 @@ export function readModelServiceBuilderSQL(
         const tenantIds = queryResult.map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
-          tx,
+          tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount,
+          queryResult[0]?.totalCount
         );
       });
     },
     async getTenantById(
-      id: TenantId,
+      id: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
       return await tenantReadModelService.getTenantById(id);
     },
 
     async getTenantByName(
-      name: string,
+      name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       const tenantSQL = await readModelDB
         .select()
@@ -152,12 +145,12 @@ export function readModelServiceBuilderSQL(
         return undefined;
       }
       return await tenantReadModelService.getTenantById(
-        unsafeBrandId(tenantSQL[0].id),
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantByExternalId(
-      externalId: ExternalId,
+      externalId: ExternalId
     ): Promise<WithMetadata<Tenant> | undefined> {
       const tenantSQL = await readModelDB
         .select()
@@ -165,20 +158,20 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
-            eq(tenantInReadmodelTenant.externalIdValue, externalId.value),
-          ),
+            eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
+          )
         );
 
       if (tenantSQL.length === 0) {
         return undefined;
       }
       return await tenantReadModelService.getTenantById(
-        unsafeBrandId(tenantSQL[0].id),
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantBySelfcareId(
-      selfcareId: string,
+      selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       const tenantSQL = await readModelDB
         .select()
@@ -189,7 +182,7 @@ export function readModelServiceBuilderSQL(
         return undefined;
       }
       return await tenantReadModelService.getTenantById(
-        unsafeBrandId(tenantSQL[0].id),
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
@@ -204,8 +197,8 @@ export function readModelServiceBuilderSQL(
         await attributeReadModelService.getAttributeByFilter(
           and(
             eq(attributeInReadmodelAttribute.origin, origin),
-            eq(attributeInReadmodelAttribute.code, code),
-          ),
+            eq(attributeInReadmodelAttribute.code, code)
+          )
         );
 
       if (!attributeWithMetadata) {
@@ -231,7 +224,7 @@ export function readModelServiceBuilderSQL(
           .select(
             withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
-            }),
+            })
           )
           .from(tenantInReadmodelTenant)
           .innerJoin(
@@ -239,25 +232,25 @@ export function readModelServiceBuilderSQL(
             and(
               eq(
                 tenantInReadmodelTenant.id,
-                agreementInReadmodelAgreement.consumerId,
+                agreementInReadmodelAgreement.consumerId
               ),
               eq(agreementInReadmodelAgreement.producerId, producerId),
               inArray(agreementInReadmodelAgreement.state, [
                 agreementState.active,
                 agreementState.suspended,
-              ]),
-            ),
+              ])
+            )
           )
           .where(
             and(
               consumerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(consumerName)}%`,
+                    `%${escapeRegExp(consumerName)}%`
                   )
                 : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId),
-            ),
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
           )
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
@@ -267,11 +260,11 @@ export function readModelServiceBuilderSQL(
         const tenantIds = queryResult.map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
-          tx,
+          tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount,
+          queryResult[0]?.totalCount
         );
       });
     },
@@ -290,7 +283,7 @@ export function readModelServiceBuilderSQL(
           .select(
             withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
-            }),
+            })
           )
           .from(tenantInReadmodelTenant)
           .innerJoin(
@@ -298,20 +291,20 @@ export function readModelServiceBuilderSQL(
             and(
               eq(
                 tenantInReadmodelTenant.id,
-                eserviceInReadmodelCatalog.producerId,
-              ),
-            ),
+                eserviceInReadmodelCatalog.producerId
+              )
+            )
           )
           .where(
             and(
               producerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(producerName)}%`,
+                    `%${escapeRegExp(producerName)}%`
                   )
                 : undefined,
-              isNotNull(tenantInReadmodelTenant.selfcareId),
-            ),
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
           )
           .groupBy(tenantInReadmodelTenant.id)
           .orderBy(ascLower(tenantInReadmodelTenant.name))
@@ -321,25 +314,25 @@ export function readModelServiceBuilderSQL(
         const tenantIds = queryResult.map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
           tenantIds,
-          tx,
+          tx
         );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-          queryResult[0]?.totalCount,
+          queryResult[0]?.totalCount
         );
       });
     },
 
     async getAttributesByExternalIds(
-      externalIds: ExternalId[],
+      externalIds: ExternalId[]
     ): Promise<Attribute[]> {
       const filter = or(
         ...externalIds.map((externalId) =>
           and(
             eq(attributeInReadmodelAttribute.origin, externalId.origin),
-            eq(attributeInReadmodelAttribute.code, externalId.value),
-          ),
-        ),
+            eq(attributeInReadmodelAttribute.code, externalId.value)
+          )
+        )
       );
 
       const attributesWithMetadata =
@@ -351,14 +344,14 @@ export function readModelServiceBuilderSQL(
     async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const attributesWithMetadata =
         await attributeReadModelService.getAttributesByFilter(
-          inArray(attributeInReadmodelAttribute.id, attributeIds),
+          inArray(attributeInReadmodelAttribute.id, attributeIds)
         );
 
       return attributesWithMetadata.map((attr) => attr.data);
     },
 
     async getAttributeById(
-      attributeId: AttributeId,
+      attributeId: AttributeId
     ): Promise<Attribute | undefined> {
       const attributeWithMetadata =
         await attributeReadModelService.getAttributeById(attributeId);
@@ -377,7 +370,7 @@ export function readModelServiceBuilderSQL(
     },
 
     async getAgreementById(
-      agreementId: AgreementId,
+      agreementId: AgreementId
     ): Promise<Agreement | undefined> {
       const agreementWithMetadata =
         await agreementReadModelService.getAgreementById(agreementId);
@@ -402,7 +395,7 @@ export function readModelServiceBuilderSQL(
             nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
             attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
             attributeName: attributeInReadmodelAttribute.name,
-          }),
+          })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
@@ -410,25 +403,25 @@ export function readModelServiceBuilderSQL(
           and(
             eq(
               tenantCertifiedAttributeInReadmodelTenant.attributeId,
-              attributeInReadmodelAttribute.id,
+              attributeInReadmodelAttribute.id
             ),
             eq(attributeInReadmodelAttribute.origin, certifierId),
             eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
             isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
-            ),
-          ),
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+            )
+          )
         )
         .innerJoin(
           tenantInReadmodelTenant,
           eq(
             tenantCertifiedAttributeInReadmodelTenant.tenantId,
-            tenantInReadmodelTenant.id,
-          ),
+            tenantInReadmodelTenant.id
+          )
         )
         .orderBy(
           ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name,
+          attributeInReadmodelAttribute.name
         )
         .limit(limit)
         .offset(offset);
@@ -440,7 +433,7 @@ export function readModelServiceBuilderSQL(
           attributeId: row.attributeId,
           attributeName: row.attributeName,
         })),
-        res[0]?.totalCount,
+        res[0]?.totalCount
       );
     },
 
@@ -453,8 +446,8 @@ export function readModelServiceBuilderSQL(
         await attributeReadModelService.getAttributesByFilter(
           and(
             eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
-            eq(attributeInReadmodelAttribute.origin, certifierId),
-          ),
+            eq(attributeInReadmodelAttribute.origin, certifierId)
+          )
         );
       if (attributesWithMetadata.length === 0) {
         return undefined;
@@ -463,7 +456,7 @@ export function readModelServiceBuilderSQL(
       return attributesWithMetadata[0].data;
     },
     async getActiveProducerDelegationByEservice(
-      eserviceId: EServiceId,
+      eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
       const delegationWithMetadata =
         await delegationReadModelService.getDelegationByFilter(
@@ -472,15 +465,15 @@ export function readModelServiceBuilderSQL(
             eq(delegationInReadmodelDelegation.state, delegationState.active),
             eq(
               delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedProducer,
-            ),
-          ),
+              delegationKind.delegatedProducer
+            )
+          )
         );
 
       return delegationWithMetadata?.data;
     },
     async getActiveConsumerDelegation(
-      delegationId: DelegationId,
+      delegationId: DelegationId
     ): Promise<Delegation | undefined> {
       const delegationWithMetadata =
         await delegationReadModelService.getDelegationByFilter(
@@ -489,9 +482,9 @@ export function readModelServiceBuilderSQL(
             eq(delegationInReadmodelDelegation.state, delegationState.active),
             eq(
               delegationInReadmodelDelegation.kind,
-              delegationKind.delegatedConsumer,
-            ),
-          ),
+              delegationKind.delegatedConsumer
+            )
+          )
         );
 
       return delegationWithMetadata?.data;
@@ -499,7 +492,7 @@ export function readModelServiceBuilderSQL(
     async getTenantVerifiedAttributeVerifiers(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { offset, limit }: { offset: number; limit: number },
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantVerifier>> {
       const queryResult = await readModelDB
         .select(
@@ -514,25 +507,23 @@ export function readModelServiceBuilderSQL(
               tenantVerifiedAttributeVerifierInReadmodelTenant.extensionDate,
             delegationId:
               tenantVerifiedAttributeVerifierInReadmodelTenant.delegationId,
-          }),
+          })
         )
         .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
         .where(
           and(
             eq(
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantId,
+              tenantId
             ),
             eq(
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
-              attributeId,
-            ),
-          ),
+              attributeId
+            )
+          )
         )
         .orderBy(
-          asc(
-            tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate,
-          ),
+          asc(tenantVerifiedAttributeVerifierInReadmodelTenant.verificationDate)
         )
         .offset(offset)
         .limit(limit);
@@ -551,13 +542,13 @@ export function readModelServiceBuilderSQL(
             ? unsafeBrandId<DelegationId>(result.delegationId)
             : undefined,
         })),
-        queryResult.length > 0 ? queryResult[0].totalCount : 0,
+        queryResult.length > 0 ? queryResult[0].totalCount : 0
       );
     },
     async getTenantVerifiedAttributeRevokers(
       tenantId: TenantId,
       attributeId: AttributeId,
-      { offset, limit }: { offset: number; limit: number },
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<TenantRevoker>> {
       const queryResult = await readModelDB
         .select(
@@ -574,23 +565,23 @@ export function readModelServiceBuilderSQL(
               tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate,
             delegationId:
               tenantVerifiedAttributeRevokerInReadmodelTenant.delegationId,
-          }),
+          })
         )
         .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
         .where(
           and(
             eq(
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantId,
+              tenantId
             ),
             eq(
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
-              attributeId,
-            ),
-          ),
+              attributeId
+            )
+          )
         )
         .orderBy(
-          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate),
+          asc(tenantVerifiedAttributeRevokerInReadmodelTenant.revocationDate)
         )
         .offset(offset)
         .limit(limit);
@@ -610,7 +601,7 @@ export function readModelServiceBuilderSQL(
             ? unsafeBrandId<DelegationId>(result.delegationId)
             : undefined,
         })),
-        queryResult.length > 0 ? queryResult[0].totalCount : 0,
+        queryResult.length > 0 ? queryResult[0].totalCount : 0
       );
     },
   };

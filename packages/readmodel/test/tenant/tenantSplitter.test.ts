@@ -101,6 +101,7 @@ describe("Tenant splitters", () => {
       const externalId: ExternalId = {
         origin: "IPA",
         value: generateId(),
+        selfcareInstitutionType: "SCP",
       };
       const tenant: Tenant = {
         ...getMockTenant(),
@@ -145,6 +146,8 @@ describe("Tenant splitters", () => {
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        externalSelfcareInstitutionType:
+          externalId.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
@@ -319,6 +322,7 @@ describe("Tenant splitters", () => {
       const externalId: ExternalId = {
         origin: "IPA",
         value: generateId(),
+        selfcareInstitutionType: "SCP",
       };
       const tenant: Tenant = {
         ...getMockTenant(),
@@ -363,6 +367,8 @@ describe("Tenant splitters", () => {
         subUnitType: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        externalSelfcareInstitutionType:
+          externalId.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {

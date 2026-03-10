@@ -177,6 +177,8 @@ export async function checkDifferences(
       selfcareId: tenantInReadmodelTenant.selfcareId,
       externalIdOrigin: tenantInReadmodelTenant.externalIdOrigin,
       externalIdValue: tenantInReadmodelTenant.externalIdValue,
+      externalSelfcareInstitutionType:
+        tenantInReadmodelTenant.externalSelfcareInstitutionType,
     })
     .from(tenantInReadmodelTenant)
     .where(isNotNull(tenantInReadmodelTenant.selfcareId));

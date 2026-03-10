@@ -18,7 +18,7 @@ export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
   tenantProcessClient: Pick<tenantApi.TenantProcessClient, "selfcare">,
   productName: string,
-  allowedOrigins: string[],
+  allowedOrigins: string[]
 ) {
   return {
     async processMessage({
@@ -34,12 +34,12 @@ export function selfcareOnboardingProcessorBuilder(
 
       try {
         loggerInstance.info(
-          `Consuming message for partition ${partition} with offset ${message.offset}`,
+          `Consuming message for partition ${partition} with offset ${message.offset}`
         );
 
         if (!message.value) {
           loggerInstance.warn(
-            `Empty message for partition ${partition} with offset ${message.offset}`,
+            `Empty message for partition ${partition} with offset ${message.offset}`
           );
           return;
         }
@@ -51,7 +51,7 @@ export function selfcareOnboardingProcessorBuilder(
         // Note: doing this before parsing to avoid errors on messages of other products
         if (jsonPayload.product !== productName) {
           loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`,
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
           );
           return;
         }
@@ -63,7 +63,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId} InstitutionType: ${institution.institutionType}`,
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId} InstitutionType: ${institution.institutionType}`
           );
           return;
         }
@@ -77,6 +77,7 @@ export function selfcareOnboardingProcessorBuilder(
           externalId: {
             origin,
             value: externalIdValue,
+            selfcareInstitutionType: institution.institutionType,
           },
           selfcareId: eventPayload.institutionId,
           name: institution.description,
@@ -98,11 +99,11 @@ export function selfcareOnboardingProcessorBuilder(
         });
 
         loggerInstance.info(
-          `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`,
+          `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`
         );
       } catch (err) {
         throw genericInternalError(
-          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`,
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
         );
       }
     },
