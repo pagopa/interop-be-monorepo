@@ -25905,6 +25905,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchange:
+          $ref: "#/components/schemas/AsyncExchangeFields"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -26071,6 +26073,10 @@ components:
         archivedAt:
           type: string
           format: date-time
+        asyncExchange:
+          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     Client:
       description: Models Client details
       type: object
@@ -26389,6 +26395,10 @@ components:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        asyncExchange:
+          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -28322,6 +28332,28 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+    AsyncExchangeFields:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTechnology:
       type: string
       description: EService Descriptor State

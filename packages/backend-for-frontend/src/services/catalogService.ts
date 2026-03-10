@@ -480,6 +480,9 @@ export function catalogServiceBuilder(
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
         },
+        asyncExchange: descriptor.asyncExchange,
+        asyncExchangeCallbackInterface:
+          descriptor.asyncExchangeCallbackInterface,
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
@@ -987,6 +990,9 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
+        asyncExchange: descriptor.asyncExchange,
+        asyncExchangeCallbackInterface:
+          descriptor.asyncExchangeCallbackInterface,
         eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
@@ -1221,6 +1227,7 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
           attributes: previousDescriptor.attributes,
           docs: clonedDocuments,
+          asyncExchange: previousDescriptor.asyncExchange,
         },
         {
           headers,

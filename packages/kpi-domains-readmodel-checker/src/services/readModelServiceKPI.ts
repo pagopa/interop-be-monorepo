@@ -106,6 +106,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
+      const asyncExchangesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange
+      );
 
       return aggregateEserviceArray({
         eservicesSQL,
@@ -124,6 +128,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           value: JSON.parse(ra.value),
         })),
         templateVersionRefsSQL,
+        asyncExchangesSQL,
       });
     },
 
