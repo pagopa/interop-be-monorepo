@@ -2012,14 +2012,14 @@ export function purposeServiceBuilder(
         documentId
       );
     },
-    async getUpdatedDailyCalls({
+    async getRemainingDailyCalls({
       purposeId,
       ctx: { authData, logger },
     }: {
       purposeId: PurposeId;
       ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
-    }): Promise<purposeApi.UpdatedDailyCallsResponse> {
-      logger.info(`Retrieving updated daily calls for Purpose ${purposeId}`);
+    }): Promise<purposeApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
@@ -2048,8 +2048,8 @@ export function purposeServiceBuilder(
         quotas.maxDailyCallsTotal - quotas.currentTotalCalls
       );
       return {
-        updatedDailyCallsPerConsumer: remainingDailyCallsPerConsumer,
-        updatedDailyCallsTotal: remainingDailyCallsTotal,
+        remainingDailyCallsPerConsumer,
+        remainingDailyCallsTotal,
       };
     },
   };

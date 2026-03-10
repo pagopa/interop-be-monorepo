@@ -1198,7 +1198,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /purposes/{purposeId}/updatedDailyCalls:
+  /purposes/{purposeId}/remainingDailyCalls:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
@@ -1211,15 +1211,15 @@ paths:
     get:
       tags:
         - purpose
-      operationId: getUpdatedDailyCalls
-      description: Retrieve updated daily calls for a purpose
+      operationId: getRemainingDailyCalls
+      description: Retrieve remaining daily calls for a purpose
       responses:
         "200":
-          description: Updated daily calls retrieved
+          description: Remaining daily calls retrieved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdatedDailyCallsResponse"
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
         "400":
           description: Bad Request
           content:
@@ -1976,21 +1976,21 @@ components:
       required:
         - version
         - answers
-    UpdatedDailyCallsResponse:
+    RemainingDailyCallsResponse:
       type: object
       additionalProperties: false
       properties:
-        updatedDailyCallsPerConsumer:
+        remainingDailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 0
-        updatedDailyCallsTotal:
+        remainingDailyCallsTotal:
           type: integer
           format: int32
           minimum: 0
       required:
-        - updatedDailyCallsPerConsumer
-        - updatedDailyCallsTotal
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     CreatedPurposeVersion:
       type: object
       additionalProperties: false

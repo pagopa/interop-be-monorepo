@@ -17,6 +17,7 @@ import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
+  toM2MGatewayApiRemainingDailyCallsResponse,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -589,6 +590,22 @@ export function purposeServiceBuilder(
       }
 
       return toM2MGatewayApiAgreement(agreement, purpose.delegationId);
+    },
+    async getRemainingDailyCalls(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.RemainingDailyCallsResponse> {
+      logger.info(
+        `Retrieving remaining daily calls for purpose with id ${purposeId}`
+      );
+
+      const { data: result } =
+        await clients.purposeProcessClient.getRemainingDailyCalls({
+          params: { purposeId },
+          headers,
+        });
+
+      return toM2MGatewayApiRemainingDailyCallsResponse(result);
     },
     async updateDraftPurpose(
       purposeId: PurposeId,

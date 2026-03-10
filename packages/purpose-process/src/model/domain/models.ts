@@ -54,8 +54,8 @@ export const UpdatedQuotas = z.object({
 });
 export type UpdatedQuotas = z.infer<typeof UpdatedQuotas>;
 
-export const UpdatedDailyCalls = z.object({
-  updatedDailyCallsPerConsumer: z.number(),
-  updatedDailyCallsTotal: z.number(),
+export const RemainingDailyCalls = z.object({
+  remainingDailyCallsPerConsumer: z.number(),
+  remainingDailyCallsTotal: z.number(),
 });
-export type UpdatedDailyCalls = z.infer<typeof UpdatedDailyCalls>;
+export type RemainingDailyCalls = z.infer<typeof RemainingDailyCalls>;

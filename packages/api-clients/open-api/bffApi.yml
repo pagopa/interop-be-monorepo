@@ -17357,7 +17357,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/purposes/{purposeId}/updatedDailyCalls":
+  "/purposes/{purposeId}/remainingDailyCalls":
     parameters:
       - name: purposeId
         in: path
@@ -17369,15 +17369,15 @@ paths:
     get:
       tags:
         - purposes
-      operationId: getUpdatedDailyCalls
-      description: Retrieve updated available daily calls for a purpose
+      operationId: getRemainingDailyCalls
+      description: Retrieve remaining daily calls for a purpose
       responses:
         "200":
-          description: Retrieve updated daily calls
+          description: Retrieve remaining daily calls
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdatedDailyCallsResponse"
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -27786,21 +27786,21 @@ components:
       required:
         - results
         - pagination
-    UpdatedDailyCallsResponse:
+    RemainingDailyCallsResponse:
       type: object
       additionalProperties: false
       properties:
-        updatedDailyCallsPerConsumer:
+        remainingDailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 0
-        updatedDailyCallsTotal:
+        remainingDailyCallsTotal:
           type: integer
           format: int32
           minimum: 0
       required:
-        - updatedDailyCallsPerConsumer
-        - updatedDailyCallsTotal
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     DelegationWithCompactTenants:
       type: object
       additionalProperties: false

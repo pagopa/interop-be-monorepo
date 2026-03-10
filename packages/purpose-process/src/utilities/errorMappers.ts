@@ -325,7 +325,7 @@ export const updatePurposeByTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getUpdatedDailyCallsErrorMapper = (
+export const getRemainingDailyCallsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

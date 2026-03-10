@@ -34,7 +34,7 @@ import {
   purposeService,
 } from "../integrationUtils.js";
 
-describe("getUpdatedDailyCalls", () => {
+describe("getRemainingDailyCalls", () => {
   it("should return available daily calls for the consumer", async () => {
     const consumerId: TenantId = generateId();
     const producerId: TenantId = generateId();
@@ -94,14 +94,14 @@ describe("getUpdatedDailyCalls", () => {
     await addOnePurpose(anotherConsumerPurpose);
     await addOnePurpose(otherConsumerPurpose);
 
-    const result = await purposeService.getUpdatedDailyCalls({
+    const result = await purposeService.getRemainingDailyCalls({
       purposeId: consumerPurpose.id,
       ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
     });
 
     expect(result).toEqual({
-      updatedDailyCallsPerConsumer: 50,
-      updatedDailyCallsTotal: 850,
+      remainingDailyCallsPerConsumer: 50,
+      remainingDailyCallsTotal: 850,
     });
   });
 
@@ -112,7 +112,7 @@ describe("getUpdatedDailyCalls", () => {
     await addOneTenant({ ...getMockTenant(consumerId) });
 
     await expect(
-      purposeService.getUpdatedDailyCalls({
+      purposeService.getRemainingDailyCalls({
         purposeId: nonExistentPurposeId,
         ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
       })
@@ -157,7 +157,7 @@ describe("getUpdatedDailyCalls", () => {
     await addOnePurpose(consumerPurpose);
 
     await expect(
-      purposeService.getUpdatedDailyCalls({
+      purposeService.getRemainingDailyCalls({
         purposeId: consumerPurpose.id,
         ctx: getMockContext({ authData: getMockAuthData(anotherConsumerId) }),
       })
