@@ -35,6 +35,21 @@ export const NotificationType = z.enum([
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
+export const DigestNotificationType = z.enum([
+  "eserviceCatalog",
+  "eserviceTemplateToCreator",
+  "eserviceTemplateToInstantiator",
+  "agreementToProducer",
+  "agreementToConsumer",
+  "purposeToProducer",
+  "purposeToConsumer",
+  "delegation",
+  "attribute",
+  "notificationSettings",
+]);
+
+export type DigestNotificationType = z.infer<typeof DigestNotificationType>;
+
 export const Notification = z.object({
   id: NotificationId,
   userId: UserId,
@@ -61,9 +76,7 @@ export type NewNotification = z.infer<typeof NewNotification>;
 
 const notificationsByTypeResults = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.number()])
-) as {
-  [K in (typeof NotificationType.options)[number]]: z.ZodNumber;
-};
+) as Record<(typeof NotificationType.options)[number], z.ZodNumber>;
 
 export const NotificationsByType = z.object({
   results: z.object(notificationsByTypeResults),

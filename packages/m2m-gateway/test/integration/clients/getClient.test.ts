@@ -54,7 +54,7 @@ describe("getClient", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientResponse);
+    expect(result).toStrictEqual(m2mClientResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockPartialClientFromProcess.data.id },
@@ -77,7 +77,7 @@ describe("getClient", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mFullClientResponse);
+    expect(result).toStrictEqual(m2mFullClientResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockFullClientFromProcess.data.id },

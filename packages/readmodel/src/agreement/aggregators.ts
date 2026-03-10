@@ -71,7 +71,7 @@ const createAgreementSQLPropertyMap = <
     | AgreementConsumerDocumentSQL
     | AgreementContractSQL
     | AgreementAttributeSQL
-    | AgreementSignedContractSQL
+    | AgreementSignedContractSQL,
 >(
   items: T[]
 ): Map<AgreementId, T[]> =>
@@ -146,7 +146,7 @@ export const aggregateAgreement = ({
     upgrade: upgradeStampSQL,
     archiving: archivingStampSQL,
   } = stampsSQL.reduce(
-    (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
+    (acc: Partial<Record<AgreementStampKind, AgreementStampSQL>>, stamp) =>
       match(AgreementStampKind.parse(stamp.kind))
         .with(AgreementStampKind.enum.submission, () => ({
           ...acc,

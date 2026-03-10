@@ -150,7 +150,6 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
   producer: generateMock(bffApi.CatalogTenant),
-  agreement: generateMock(bffApi.CompactAgreement.optional()),
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
@@ -433,6 +432,11 @@ export const getMockBffApiUpdateEServiceSeed =
 export const getMockBffApiEServiceDescriptionUpdateSeed =
   (): bffApi.EServiceDescriptionUpdateSeed => ({
     description: generateMock(z.string()),
+  });
+
+export const getMockBffApiEServiceInstanceLabelUpdateSeed =
+  (): bffApi.EServiceInstanceLabelUpdateSeed => ({
+    instanceLabel: "test",
   });
 
 export const getMockBffApiUpdateEServiceDescriptorDocumentSeed =
@@ -770,7 +774,6 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     ),
     attributes: generateMock(bffApi.DescriptorAttributes),
     eserviceTemplate: generateMock(bffApi.EServiceTemplateDetails),
-    isAlreadyInstantiated: generateMock(z.boolean()),
     hasRequesterRiskAnalysis: generateMock(z.boolean().optional()),
   });
 
