@@ -214,6 +214,8 @@ jobs:
           path: |
             .turbo/
             packages/*/dist/
+            packages/*/src/generated/
+            packages/*/src/gen/
 
   lint:
     name: Lint sharded [ ${{ matrix.shard.shardIndex }} ]
