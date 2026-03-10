@@ -15,7 +15,7 @@ export const lowerCase = (column: Column): SQL => sql<string>`LOWER(${column})`;
 export const ascLower = (column: Column): SQL => asc(lowerCase(column));
 
 export const withTotalCount = <
-  P extends Record<string, Table | Column | SQL | SQL.Aliased>
+  P extends Record<string, Table | Column | SQL | SQL.Aliased>,
 >(
   projection: P
 ): P & { totalCount: SQL.Aliased<number> } => ({
