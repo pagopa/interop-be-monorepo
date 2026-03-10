@@ -26,6 +26,7 @@ import {
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
+  missingRiskAnalysis,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
@@ -115,6 +116,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
         mockEserviceTemplate.versions[0].id
       ),
       expectedStatus: 400,
+    },
+    {
+      error: missingRiskAnalysis(mockEserviceTemplate.id),
+      expectedStatus: 409,
     },
     {
       error: riskAnalysisValidationFailed([

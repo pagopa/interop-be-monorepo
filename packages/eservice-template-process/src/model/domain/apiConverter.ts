@@ -10,6 +10,7 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -172,4 +173,11 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
   personalData: eserviceTemplate.personalData,
+});
+
+export const compactOrganizationToApi = (
+  organization: CompactOrganization
+): eserviceTemplateApi.CompactOrganization => ({
+  id: organization.id,
+  name: organization.name,
 });

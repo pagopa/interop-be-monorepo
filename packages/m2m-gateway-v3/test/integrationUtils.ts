@@ -16,6 +16,7 @@ import { keyServiceBuilder } from "../src/services/keyService.js";
 import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
 import { eventServiceBuilder } from "../src/services/eventService.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { userServiceBuilder } from "../src/services/userService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 export const { cleanup, fileManager } = await setupTestContainersVitest(
@@ -163,3 +164,4 @@ export const keyService = keyServiceBuilder(mockInteropBeClients);
 export const producerKeychainService =
   producerKeychainServiceBuilder(mockInteropBeClients);
 export const eventService = eventServiceBuilder(mockInteropBeClients);
+export const userService = userServiceBuilder(mockInteropBeClients);

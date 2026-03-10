@@ -116,8 +116,8 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
+      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",

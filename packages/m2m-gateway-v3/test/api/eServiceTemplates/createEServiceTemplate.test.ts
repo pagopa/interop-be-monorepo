@@ -2,6 +2,7 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import request from "supertest";
 import { authRole, AuthRole } from "pagopa-interop-commons";
@@ -51,7 +52,8 @@ describe("POST /eserviceTemplates router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/eserviceTemplates`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

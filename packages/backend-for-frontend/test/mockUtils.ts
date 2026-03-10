@@ -150,7 +150,6 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   name: generateMock(z.string()),
   description: generateMock(z.string()),
   producer: generateMock(bffApi.CatalogTenant),
-  agreement: generateMock(bffApi.CompactAgreement.optional()),
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
