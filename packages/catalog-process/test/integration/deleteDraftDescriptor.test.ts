@@ -123,11 +123,13 @@ describe("delete draft descriptor", () => {
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
     };
+    const asyncExchangeCallbackInterfaceDocumentId =
+      generateId<EServiceDocumentId>();
     const asyncExchangeCallbackInterfaceDocument = {
       ...mockDocument,
-      id: generateId<EServiceDocumentId>(),
+      id: asyncExchangeCallbackInterfaceDocumentId,
       name: `${mockDocument.name}_async_callback`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_async_callback`,
+      path: `${config.eserviceDocumentsPath}/${asyncExchangeCallbackInterfaceDocumentId}/${mockDocument.name}_async_callback`,
     };
 
     const publishedDescriptor: Descriptor = {
