@@ -95,8 +95,10 @@ export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+      validatedForm,
+      tenantKind
+    ),
     tenantKind,
   };
 }

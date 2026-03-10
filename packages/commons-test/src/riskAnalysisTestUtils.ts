@@ -409,12 +409,14 @@ export const getMockExpiredRiskAnalysisForm = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis2_0_Pa_Expired
+        validatedRiskAnalysis2_0_Pa_Expired,
+        producerTenantKind
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis1_0_Private_Expired
+        validatedRiskAnalysis1_0_Private_Expired,
+        producerTenantKind
       )
     )
     .exhaustive();
@@ -425,12 +427,14 @@ export const getMockValidRiskAnalysisForm = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis3_1_Pa
+        validatedRiskAnalysis3_1_Pa,
+        producerTenantKind
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis2_0_Private
+        validatedRiskAnalysis2_0_Private,
+        producerTenantKind
       )
     )
     .exhaustive();
