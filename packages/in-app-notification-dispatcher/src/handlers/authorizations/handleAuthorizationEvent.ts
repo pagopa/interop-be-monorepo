@@ -1,5 +1,5 @@
 import {
-  AuthorizationEventEnvelopeV2,
+  AuthorizationEventEnvelope,
   NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -11,11 +11,15 @@ import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAdded
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 
 export async function handleAuthorizationEvent(
-  decodedMessage: AuthorizationEventEnvelopeV2,
+  decodedMessage: AuthorizationEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union("ClientPurposeAdded", "ClientPurposeRemoved"),

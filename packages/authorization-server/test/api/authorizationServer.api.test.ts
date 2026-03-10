@@ -17,6 +17,7 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
 } from "pagopa-interop-commons";
+import * as interopCommons from "pagopa-interop-commons";
 import { getMockClient, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { api, tokenService } from "../vitest.api.setup.js";
 import {
@@ -239,6 +240,34 @@ describe("POST /authorization-server/token.oauth2", async () => {
 
     const res = await makeRequest();
     expect(res.status).toBe(429);
+  });
+
+  it("Should include clientId in logger metadata after context mutation", async () => {
+    const loggerSpy = vi.spyOn(interopCommons, "logger");
+    const metadataClientId = generateId<ClientId>();
+
+    tokenService.generateToken = vi.fn().mockImplementation(async (...args) => {
+      const [, , getCtx, setCtxClientId] = args;
+      setCtxClientId(metadataClientId);
+      getCtx();
+
+      return {
+        limitReached: true,
+        token: undefined,
+        rateLimiterStatus: {},
+        rateLimitedTenantId: generateId<TenantId>(),
+      };
+    });
+
+    const res = await makeRequest();
+
+    expect(res.status).not.toBe(200);
+    expect(
+      loggerSpy.mock.calls.some(
+        ([metadata]) =>
+          (metadata as { clientId?: ClientId }).clientId === metadataClientId
+      )
+    ).toBe(true);
   });
 
   it.each([

@@ -3,7 +3,8 @@ import { config } from "../config/config.js";
 
 const { bffUrl } = config;
 
-const DEEPLINK_BASE_PATH = "/emailDeepLink";
+const baseUrl = bffUrl.endsWith("/") ? bffUrl : `${bffUrl}/`;
+const DEEPLINK_BASE_PATH = "emailDeepLink";
 
 /**
  * Builds a deeplink URL with optional query parameters.
@@ -12,7 +13,7 @@ function buildDeeplinkUrl(
   notificationType: DigestNotificationType,
   params?: { entityId?: string; selfcareId?: string | null }
 ): string {
-  const url = new URL(`${DEEPLINK_BASE_PATH}/${notificationType}`, bffUrl);
+  const url = new URL(`${DEEPLINK_BASE_PATH}/${notificationType}`, baseUrl);
 
   if (params?.entityId) {
     url.searchParams.set("entityId", params.entityId);
