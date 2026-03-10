@@ -388,21 +388,16 @@ const tenantRouter = (
     })
     .post("/tenants/delegatedFeatures/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      const tenantId = ctx.authData.organizationId;
 
       try {
-        await tenantService.updateTenantDelegatedFeatures(
-          tenantId,
-          req.body,
-          ctx
-        );
+        await tenantService.updateTenantDelegatedFeatures(req.body, ctx);
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error while updating delegated producer and consumer feature to ${tenantId}`
+          `Error while updating delegated producer and consumer feature to ${ctx.authData.organizationId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

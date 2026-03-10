@@ -255,9 +255,8 @@ export async function generateM2MAdminAccessTokenWithDPoPProof({
   const dpopThumbprint = await calculateJwkThumbprint(dpopPublicJwk);
 
   // 1b) Create different cnf
-  const { publicKey: dpopPublicKeyForDifferentCnf } = await generateKeyPair(
-    "ES256"
-  );
+  const { publicKey: dpopPublicKeyForDifferentCnf } =
+    await generateKeyPair("ES256");
 
   const dpopPublicJwkForDifferentCnf = await exportJWK(
     dpopPublicKeyForDifferentCnf
