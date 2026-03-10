@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
 import { afterEach, expect, inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
@@ -74,7 +73,7 @@ export function expectApiClientGetToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockGet: Function;
+  mockGet: (...args: unknown[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -96,7 +95,7 @@ export function expectApiClientGetToHaveBeenNthCalledWith({
   queries,
 }: {
   nthCall: number;
-  mockGet: Function;
+  mockGet: (...args: unknown[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -117,7 +116,7 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockPost: Function;
+  mockPost: (...args: unknown[]) => unknown;
   body?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;

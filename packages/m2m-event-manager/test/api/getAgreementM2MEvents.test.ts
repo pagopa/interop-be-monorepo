@@ -39,7 +39,7 @@ describe("API /events/agreements test", () => {
           agreementId: e.agreementId,
           consumerDelegationId: e.consumerDelegationId,
           producerDelegationId: e.producerDelegationId,
-        } as m2mEventApi.AgreementM2MEvent)
+        }) as m2mEventApi.AgreementM2MEvent
     ),
   };
 

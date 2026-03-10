@@ -66,8 +66,6 @@
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",
     "lint:autofix": "turbo lint:autofix",
     "lint:openapi": "turbo lint:openapi",
-    "format:check": "turbo format:check",
-    "format:write": "turbo format:write",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
     "generate-db-models": "turbo generate-db-models",

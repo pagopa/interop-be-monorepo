@@ -11,10 +11,8 @@
   },
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -32,6 +30,8 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -102,9 +102,10 @@ describe("API GET /purposeTemplates/:purposeTemplateId/riskAnalysisDocument test
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
     {
-      error: purposeTemplateRiskAnalysisTemplateDocumentNotFound(
-        generateId<RiskAnalysisFormTemplateId>()
-      ),
+      error:
+        purposeTemplateRiskAnalysisTemplateDocumentNotFound(
+          generateId<RiskAnalysisFormTemplateId>()
+        ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
     },
   ])(

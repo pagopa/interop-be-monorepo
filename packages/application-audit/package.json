@@ -10,10 +10,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
@@ -28,7 +26,8 @@
   "devDependencies": {
     "@types/express": "catalog:",
     "@types/node": "catalog:",
-    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"
   }
 }

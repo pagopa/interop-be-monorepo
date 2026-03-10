@@ -463,9 +463,8 @@ describe("utils tests", async () => {
 
   describe("updatePurposeDataInTokenGenerationStatesTable", async () => {
     it("should do nothing if previous entries don't exist", async () => {
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -482,9 +481,8 @@ describe("utils tests", async () => {
           logger: genericLogger,
         })
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -538,9 +536,8 @@ describe("utils tests", async () => {
         purposeConsumerId: purpose.consumerId,
         logger: genericLogger,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -570,9 +567,8 @@ describe("utils tests", async () => {
 
   describe("updatePurposeEntriesInTokenGenerationStatesTable", async () => {
     it("should do nothing if previous entries don't exist", async () => {
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -588,9 +584,8 @@ describe("utils tests", async () => {
           genericLogger
         )
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -664,9 +659,8 @@ describe("utils tests", async () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
@@ -790,9 +784,8 @@ describe("utils tests", async () => {
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -947,9 +940,8 @@ describe("utils tests", async () => {
         genericLogger
       );
 
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
