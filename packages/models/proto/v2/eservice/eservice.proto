@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package eservice.v2;
+import "v2/tenant/tenant.proto";
 
 message EServiceV2 {
   string id = 1;
@@ -31,6 +32,7 @@ message EServiceRiskAnalysisFormV2 {
   string version = 2;
   repeated EServiceRiskAnalysisSingleAnswerV2 singleAnswers = 3;
   repeated EServiceRiskAnalysisMultiAnswerV2 multiAnswers = 4;
+  optional tenant.v2.TenantKindV2 tenantKind = 5;
 }
 
 message EServiceRiskAnalysisSingleAnswerV2 {

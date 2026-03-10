@@ -2208,7 +2208,8 @@ export function catalogServiceBuilder(
       const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name
+          eserviceRiskAnalysisSeed.name,
+          tenant.kind
         );
 
       const newEservice: EService = {
@@ -2295,7 +2296,8 @@ export function catalogServiceBuilder(
         ...riskAnalysisToUpdate,
         name: eserviceRiskAnalysisSeed.name,
         riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
+          validatedRiskAnalysisForm,
+          tenant.kind
         ),
       };
 
