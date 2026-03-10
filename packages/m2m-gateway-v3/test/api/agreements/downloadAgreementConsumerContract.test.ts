@@ -80,6 +80,7 @@ describe("GET /agreements/:agreementId/contract router test", () => {
       expect(signedHeaders).toContainEqual({
         "x-correlation-id": res.headers["x-correlation-id"],
       });
+      expect(clientId).toBeDefined();
       expect(decoded).toHaveProperty("client_id");
       expect(decoded.client_id).toBe(clientId);
     }
