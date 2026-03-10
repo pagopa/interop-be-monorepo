@@ -513,7 +513,7 @@ export function purposeServiceBuilder(
           updateContent: purposeUpdateContent,
           mode: eserviceMode.deliver,
         },
-        false,
+        "put",
         authData,
         readModelService,
         correlationId,
@@ -536,7 +536,7 @@ export function purposeServiceBuilder(
           updateContent: purposeUpdateContent,
           mode: eserviceMode.deliver,
         },
-        true,
+        "patch",
         authData,
         readModelService,
         correlationId,
@@ -555,7 +555,7 @@ export function purposeServiceBuilder(
           updateContent: reversePurposeUpdateContent,
           mode: eserviceMode.receive,
         },
-        false,
+        "put",
         authData,
         readModelService,
         correlationId,
@@ -578,7 +578,7 @@ export function purposeServiceBuilder(
           updateContent: reversePurposeUpdateContent,
           mode: eserviceMode.receive,
         },
-        true,
+        "patch",
         authData,
         readModelService,
         correlationId,
@@ -2065,7 +2065,7 @@ const performUpdatePurpose = async (
           | purposeApi.ReversePurposeUpdateContent
           | purposeApi.PatchReversePurposeUpdateContent;
       },
-  isPatch: boolean,
+  updateStrategy: "put" | "patch",
   authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
@@ -2125,7 +2125,9 @@ const performUpdatePurpose = async (
   );
 
   const mergedRiskAnalysisForm =
-    isPatch && riskAnalysisForm && purpose.data.riskAnalysisForm
+    updateStrategy === "patch" &&
+    riskAnalysisForm &&
+    purpose.data.riskAnalysisForm
       ? {
           version: riskAnalysisForm.version,
           answers: {
