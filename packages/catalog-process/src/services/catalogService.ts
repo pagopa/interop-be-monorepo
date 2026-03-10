@@ -2208,7 +2208,8 @@ export function catalogServiceBuilder(
       const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name
+          eserviceRiskAnalysisSeed.name,
+          tenant.kind
         );
 
       const newEservice: EService = {
