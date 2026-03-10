@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockedApiTenant } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiTenant,
+  getMockDPoPProof,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
@@ -16,7 +20,8 @@ describe("GET /tenants/:tenantId route test", () => {
   const makeRequest = async (token: string) =>
     request(api)
       .get(`${appBasePath}/tenants/${mockResponse.id}`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,

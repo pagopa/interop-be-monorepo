@@ -1,0 +1,16 @@
+meta {
+  name: Get User by Id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/users/:userId
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

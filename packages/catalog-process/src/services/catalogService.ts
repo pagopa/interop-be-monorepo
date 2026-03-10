@@ -1965,6 +1965,7 @@ export function catalogServiceBuilder(
             archivedAt: undefined,
           },
         ],
+        personalData: eservice.data.personalData,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,

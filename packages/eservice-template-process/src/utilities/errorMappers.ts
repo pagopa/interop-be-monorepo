@@ -52,7 +52,7 @@ export const activateEServiceTemplateVersionErrorMapper = (
       "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -72,6 +72,7 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "missingPersonalDataFlag",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
