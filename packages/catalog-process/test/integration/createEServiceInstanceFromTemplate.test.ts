@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { afterAll, beforeAll, describe, vi, it, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, vi, it, expect } from "vitest";
 import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
