@@ -1,7 +1,5 @@
 import { defineConfig } from "vitest/config";
-import { config as loadEnv } from "dotenv-flow";
-
-loadEnv({ silent: true });
+import "dotenv-flow/config";
 
 export default defineConfig({
   test: {
