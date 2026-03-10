@@ -92,7 +92,6 @@ catalog:
   p-retry: 6.2.1
   pg: 8.13.1
   prettier: 3.8.1
-  prettier-plugin-organize-imports: 4.2.0
   pg-promise: 11.8.0
   puppeteer: 22.11.2
   qs: 6.14.2
