@@ -224,7 +224,7 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
-      const certifier = await getCertifierId(
+      const certifierId = await getCertifierId(
         authData.organizationId,
         readModelService
       );
@@ -232,14 +232,14 @@ export function attributeRegistryServiceBuilder(
         await readModelService.getAttributeByCodeOriginOrName(
           apiCertifiedAttributeSeed.code,
           apiCertifiedAttributeSeed.name,
-          certifier
+          certifierId
         );
 
       if (attributeWithSameName) {
         throw attributeDuplicateByCodeOriginOrName(
           apiCertifiedAttributeSeed.name,
           apiCertifiedAttributeSeed.code,
-          certifier
+          certifierId
         );
       }
 
@@ -250,7 +250,7 @@ export function attributeRegistryServiceBuilder(
         description: apiCertifiedAttributeSeed.description,
         creationTime: new Date(),
         code: apiCertifiedAttributeSeed.code,
-        origin: certifier,
+        origin: certifierId,
       };
 
       logger.info(
