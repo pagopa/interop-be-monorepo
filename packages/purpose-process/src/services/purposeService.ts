@@ -513,6 +513,7 @@ export function purposeServiceBuilder(
           updateContent: purposeUpdateContent,
           mode: eserviceMode.deliver,
         },
+        false,
         authData,
         readModelService,
         correlationId,
@@ -535,6 +536,7 @@ export function purposeServiceBuilder(
           updateContent: purposeUpdateContent,
           mode: eserviceMode.deliver,
         },
+        true,
         authData,
         readModelService,
         correlationId,
@@ -553,6 +555,7 @@ export function purposeServiceBuilder(
           updateContent: reversePurposeUpdateContent,
           mode: eserviceMode.receive,
         },
+        false,
         authData,
         readModelService,
         correlationId,
@@ -575,6 +578,7 @@ export function purposeServiceBuilder(
           updateContent: reversePurposeUpdateContent,
           mode: eserviceMode.receive,
         },
+        true,
         authData,
         readModelService,
         correlationId,
@@ -2061,6 +2065,7 @@ const performUpdatePurpose = async (
           | purposeApi.ReversePurposeUpdateContent
           | purposeApi.PatchReversePurposeUpdateContent;
       },
+  isPatch: boolean,
   authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
@@ -2119,10 +2124,23 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const mergedRiskAnalysisForm =
+    isPatch && riskAnalysisForm && purpose.data.riskAnalysisForm
+      ? {
+          version: riskAnalysisForm.version,
+          answers: {
+            ...riskAnalysisFormToRiskAnalysisFormToValidate(
+              purpose.data.riskAnalysisForm
+            ).answers,
+            ...riskAnalysisForm.answers,
+          },
+        }
+      : riskAnalysisForm;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    mode === eserviceMode.deliver && riskAnalysisForm
+    mode === eserviceMode.deliver && mergedRiskAnalysisForm
       ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
+          mergedRiskAnalysisForm,
           true,
           tenantKind,
           new Date(),

@@ -657,6 +657,54 @@ describe("patchUpdatePurpose", () => {
     ).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
+  it("should merge patch riskAnalysisForm answers with existing answers instead of replacing them", async () => {
+    await addOnePurpose(draftPurpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+
+    const fullSeed = buildRiskAnalysisSeed(validRiskAnalysis);
+
+    const partialRiskAnalysisSeed: purposeApi.RiskAnalysisFormSeed = {
+      version: fullSeed.version,
+      answers: {
+        institutionalPurpose: ["updated institutional purpose"],
+      },
+    };
+
+    const updatePurposeReturn = await purposeService.patchUpdatePurpose(
+      draftPurpose.id,
+      {
+        riskAnalysisForm: partialRiskAnalysisSeed,
+      },
+      getMockContextM2MAdmin({
+        organizationId: consumer.id,
+      })
+    );
+
+    const updatedRiskAnalysis =
+      updatePurposeReturn.data.purpose.riskAnalysisForm;
+    expect(updatedRiskAnalysis).toBeDefined();
+
+    const institutionalPurposeAnswer = updatedRiskAnalysis!.singleAnswers.find(
+      (a) => a.key === "institutionalPurpose"
+    );
+    expect(institutionalPurposeAnswer?.value).toBe(
+      "updated institutional purpose"
+    );
+
+    const purposeAnswer = updatedRiskAnalysis!.singleAnswers.find(
+      (a) => a.key === "purpose"
+    );
+    expect(purposeAnswer?.value).toBe("INSTITUTIONAL");
+
+    const usesPersonalDataAnswer = updatedRiskAnalysis!.singleAnswers.find(
+      (a) => a.key === "usesPersonalData"
+    );
+    expect(usesPersonalDataAnswer).toBeDefined();
+
+    expect(updatePurposeReturn.data.isRiskAnalysisValid).toBe(true);
+  });
+
   it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updatePurpose", async () => {
     await addOnePurpose(draftPurpose);
     await addOneEService(eservice);
