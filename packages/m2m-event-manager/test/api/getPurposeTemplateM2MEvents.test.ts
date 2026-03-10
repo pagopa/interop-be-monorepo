@@ -38,7 +38,7 @@ describe("API /events/purposeTemplates test", () => {
             eventTimestamp: e.eventTimestamp.toJSON(),
             eventType: toApiPurposeTemplateM2MEventType(e.eventType),
             purposeTemplateId: e.purposeTemplateId,
-          } as m2mEventApi.PurposeTemplateM2MEvent)
+          }) as m2mEventApi.PurposeTemplateM2MEvent
       ),
     };
 
