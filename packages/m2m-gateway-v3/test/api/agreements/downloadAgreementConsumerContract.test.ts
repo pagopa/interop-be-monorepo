@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  generateToken,
-  getMockDPoPProof,
-  mockM2MAdminClientId,
-} from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   AuthRole,
   authRole,
@@ -57,6 +53,7 @@ describe("GET /agreements/:agreementId/contract router test", () => {
         .mockResolvedValue(mockDownloadedDoc);
 
       const token = generateToken(role);
+      const clientId = decodeJwtPayload(token).client_id as string;
       const res = await makeRequest(token, generateId());
 
       expect(res.status).toBe(200);
@@ -84,7 +81,7 @@ describe("GET /agreements/:agreementId/contract router test", () => {
         "x-correlation-id": res.headers["x-correlation-id"],
       });
       expect(decoded).toHaveProperty("client_id");
-      expect(decoded.client_id).toBe(mockM2MAdminClientId);
+      expect(decoded.client_id).toBe(clientId);
     }
   );
 
