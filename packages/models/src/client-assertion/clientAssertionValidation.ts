@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { ClientId, PurposeId } from "../brandedIds.js";
+import { ClientId, InteractionId, PurposeId } from "../brandedIds.js";
+import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
 
 export const ClientAssertionDigest = z
   .object({
@@ -45,3 +46,27 @@ export const ClientAssertion = z
   })
   .strict();
 export type ClientAssertion = z.infer<typeof ClientAssertion>;
+
+export const AsyncClientAssertionPayload = ClientAssertionPayload.extend({
+  scope: InteractionState,
+  interactionId: InteractionId.optional(),
+  urlCallback: z.string().optional(),
+  entityNumber: z.number().positive().optional(),
+});
+export type AsyncClientAssertionPayload = z.infer<
+  typeof AsyncClientAssertionPayload
+>;
+
+export const AsyncClientAssertionPayloadStrict =
+  AsyncClientAssertionPayload.strict();
+export type AsyncClientAssertionPayloadStrict = z.infer<
+  typeof AsyncClientAssertionPayloadStrict
+>;
+
+export const AsyncClientAssertion = z
+  .object({
+    header: ClientAssertionHeader,
+    payload: AsyncClientAssertionPayload,
+  })
+  .strict();
+export type AsyncClientAssertion = z.infer<typeof AsyncClientAssertion>;

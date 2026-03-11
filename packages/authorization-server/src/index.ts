@@ -42,6 +42,9 @@ const tokenService = tokenServiceBuilder({
 
 const asyncTokenService = asyncTokenServiceBuilder({
   dynamoDBClient,
+  redisRateLimiter,
+  producer,
+  fileManager,
 });
 
 startServer(await createApp(tokenService, asyncTokenService), config);
