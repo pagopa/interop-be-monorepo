@@ -21347,6 +21347,8 @@ components:
           maxLength: 64
         value:
           type: string
+        selfcareInstitutionType:
+          type: string
       required:
         - origin
         - value

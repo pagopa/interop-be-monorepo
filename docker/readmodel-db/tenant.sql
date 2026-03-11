@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
   selfcare_id VARCHAR,
   external_id_origin VARCHAR NOT NULL,
   external_id_value VARCHAR NOT NULL,
+  external_id_selfcare_institution_type VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   name VARCHAR NOT NULL,

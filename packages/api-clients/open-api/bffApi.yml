@@ -28611,6 +28611,8 @@ components:
           type: string
         value:
           type: string
+        selfcareInstitutionType:
+          type: string
       required:
         - origin
         - value

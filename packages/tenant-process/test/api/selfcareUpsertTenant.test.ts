@@ -19,6 +19,7 @@ describe("API POST /selfcare/tenants test", () => {
     externalId: {
       origin: tenant.externalId.origin,
       value: tenant.externalId.value,
+      selfcareInstitutionType: tenant.externalId.selfcareInstitutionType,
     },
     name: "A tenant",
     selfcareId,

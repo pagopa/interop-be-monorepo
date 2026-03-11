@@ -389,6 +389,11 @@ export function tenantServiceBuilder(
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           updatedAt: new Date(),
+          externalId: {
+            ...existingTenant.data.externalId,
+            selfcareInstitutionType:
+              tenantSeed.externalId.selfcareInstitutionType,
+          },
         };
 
         logger.info(
