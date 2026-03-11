@@ -18,6 +18,10 @@ const errorCodes = {
   dpopProofValidationFailed: "0009",
   dpopProofSignatureValidationFailed: "0010",
   dpopProofJtiAlreadyUsed: "0012",
+  invalidAsyncScope: "0013",
+  asyncScopeNotYetImplemented: "0014",
+  asyncRequestValidationFailed: "0015",
+  asyncClientAssertionClaimsValidationFailed: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -130,5 +134,45 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
     detail: `DPoP proof JTI ${jti} already in cache`,
     code: "dpopProofJtiAlreadyUsed",
     title: "DPoP proof JTI already in cache",
+  });
+}
+
+export function invalidAsyncScope(scope: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid async scope: ${scope}`,
+    code: "invalidAsyncScope",
+    title: "Invalid async scope",
+  });
+}
+
+export function asyncScopeNotYetImplemented(
+  scope: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async scope not yet implemented: ${scope}`,
+    code: "asyncScopeNotYetImplemented",
+    title: "Async scope not yet implemented",
+  });
+}
+
+export function asyncRequestValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async request validation failed for client ${clientId} - ${details}`,
+    code: "asyncRequestValidationFailed",
+    title: "Async request validation failed",
+  });
+}
+
+export function asyncClientAssertionClaimsValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async client assertion claims validation failed for client ${clientId} - ${details}`,
+    code: "asyncClientAssertionClaimsValidationFailed",
+    title: "Async client assertion claims validation failed",
   });
 }

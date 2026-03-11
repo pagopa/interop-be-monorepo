@@ -9,6 +9,7 @@ import { initProducer } from "kafka-iam-auth";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
+import { asyncTokenServiceBuilder } from "./services/asyncTokenService.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const redisRateLimiter = await initRedisRateLimiter({
@@ -39,4 +40,8 @@ const tokenService = tokenServiceBuilder({
   fileManager,
 });
 
-startServer(await createApp(tokenService), config);
+const asyncTokenService = asyncTokenServiceBuilder({
+  dynamoDBClient,
+});
+
+startServer(await createApp(tokenService, asyncTokenService), config);
