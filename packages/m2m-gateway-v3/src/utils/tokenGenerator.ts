@@ -3,6 +3,7 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { config } from "../config/config.js";
 
 const kmsClient = new KMSClient();
+let instance: InteropTokenGenerator | undefined;
 
 /**
  * Note: This function is left to its own file to enable mocking
@@ -15,5 +16,8 @@ const kmsClient = new KMSClient();
  * ```
  */
 export function getInteropTokenGenerator(): InteropTokenGenerator {
-  return new InteropTokenGenerator(config, kmsClient);
+  if (!instance) {
+    instance = new InteropTokenGenerator(config, kmsClient);
+  }
+  return instance;
 }
