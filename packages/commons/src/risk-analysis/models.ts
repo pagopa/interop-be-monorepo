@@ -72,14 +72,17 @@ export type ValidationRule = {
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"]
+  name: RiskAnalysis["name"],
+  tenantKind?: TenantKind
 ): RiskAnalysis {
   return {
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+      validatedForm,
+      tenantKind
+    ),
   };
 }
 
@@ -92,18 +95,22 @@ export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+      validatedForm,
+      tenantKind
+    ),
     tenantKind,
   };
 }
 
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
-  validatedForm: RiskAnalysisValidatedForm
+  validatedForm: RiskAnalysisValidatedForm,
+  tenantKind?: TenantKind
 ): RiskAnalysisForm {
   return {
     id: generateId<RiskAnalysisFormId>(),
     version: validatedForm.version,
+    tenantKind,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       ...a,
       id: generateId<RiskAnalysisSingleAnswerId>(),

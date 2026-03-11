@@ -1097,6 +1097,7 @@ export function eserviceTemplateServiceBuilder(
       const updatedRiskAnalysisForm: RiskAnalysisForm = {
         id: riskAnalysisToUpdate.riskAnalysisForm.id,
         version: validatedForm.version,
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
         singleAnswers: validatedForm.singleAnswers.map((a) => ({
           ...a,
           id: generateId(),

@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_form (
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   risk_analysis_id UUID,
+  tenant_kind VARCHAR,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
