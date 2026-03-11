@@ -48,7 +48,7 @@ describe("getTenant", () => {
 
     const result = await tenantService.getTenant(
       unsafeBrandId(mockApiTenant.data.id),
-      getMockM2MAdminAppContext(),
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toStrictEqual(m2mTenantResponse);

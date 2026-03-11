@@ -53,9 +53,9 @@ export const agreementInReadmodelAgreement = readmodelAgreement.table(
   (table) => [
     unique("agreement_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const eserviceTemplateInReadmodelEserviceTemplate =
@@ -80,9 +80,9 @@ export const eserviceTemplateInReadmodelEserviceTemplate =
     (table) => [
       unique("eservice_template_id_metadata_version_unique").on(
         table.id,
-        table.metadataVersion,
+        table.metadataVersion
       ),
-    ],
+    ]
   );
 
 export const eserviceTemplateVersionInReadmodelEserviceTemplate =
@@ -130,7 +130,7 @@ export const eserviceTemplateVersionInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_version_eservice_template_id_metadata_ve_fkey",
       }),
-    ],
+    ]
   );
 
 export const agreementConsumerDocumentInReadmodelAgreement =
@@ -163,7 +163,7 @@ export const agreementConsumerDocumentInReadmodelAgreement =
         ],
         name: "agreement_consumer_document_agreement_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
@@ -200,7 +200,7 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
       name: "agreement_contract_pkey",
     }),
     unique("agreement_contract_agreement_id_key").on(table.agreementId),
-  ],
+  ]
 );
 
 export const agreementSignedContractInReadmodelAgreement =
@@ -238,7 +238,7 @@ export const agreementSignedContractInReadmodelAgreement =
         columns: [table.id, table.agreementId],
         name: "agreement_signed_contract_pkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
@@ -279,9 +279,9 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
         name: "eservice_template_version_int_eservice_template_id_metadat_fkey",
       }),
       unique("eservice_template_version_interface_version_id_key").on(
-        table.versionId,
+        table.versionId
       ),
-    ],
+    ]
   );
 
 export const producerKeychainInReadmodelProducerKeychain =
@@ -301,9 +301,9 @@ export const producerKeychainInReadmodelProducerKeychain =
     (table) => [
       unique("producer_keychain_id_metadata_version_unique").on(
         table.id,
-        table.metadataVersion,
+        table.metadataVersion
       ),
-    ],
+    ]
   );
 
 export const eserviceTemplateVersionDocumentInReadmodelEserviceTemplate =
@@ -343,7 +343,7 @@ export const eserviceTemplateVersionDocumentInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_version_doc_eservice_template_id_metadat_fkey",
       }),
-    ],
+    ]
   );
 
 export const attributeInReadmodelAttribute = readmodelAttribute.table(
@@ -360,7 +360,7 @@ export const attributeInReadmodelAttribute = readmodelAttribute.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-  },
+  }
 );
 
 export const delegationInReadmodelDelegation = readmodelDelegation.table(
@@ -383,9 +383,9 @@ export const delegationInReadmodelDelegation = readmodelDelegation.table(
   (table) => [
     unique("delegation_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const eserviceInReadmodelCatalog = readmodelCatalog.table(
@@ -412,9 +412,9 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
@@ -467,7 +467,7 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       ],
       name: "eservice_descriptor_eservice_id_metadata_version_fkey",
     }),
-  ],
+  ]
 );
 
 export const eserviceDescriptorRejectionReasonInReadmodelCatalog =
@@ -502,7 +502,7 @@ export const eserviceDescriptorRejectionReasonInReadmodelCatalog =
         ],
         name: "eservice_descriptor_rejection_eservice_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceDescriptorInterfaceInReadmodelCatalog =
@@ -543,9 +543,9 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
         name: "eservice_descriptor_interface_eservice_id_metadata_version_fkey",
       }),
       unique("eservice_descriptor_interface_descriptor_id_key").on(
-        table.descriptorId,
+        table.descriptorId
       ),
-    ],
+    ]
   );
 
 export const delegationContractDocumentInReadmodelDelegation =
@@ -581,9 +581,9 @@ export const delegationContractDocumentInReadmodelDelegation =
       }),
       unique("delegation_contract_document_delegation_id_kind_unique").on(
         table.delegationId,
-        table.kind,
+        table.kind
       ),
-    ],
+    ]
   );
 
 export const delegationSignedContractDocumentInReadmodelDelegation =
@@ -620,9 +620,9 @@ export const delegationSignedContractDocumentInReadmodelDelegation =
         name: "delegation_signed_contract_do_delegation_id_metadata_versi_fkey",
       }),
       unique(
-        "delegation_signed_contract_document_delegation_id_kind_unique",
+        "delegation_signed_contract_document_delegation_id_kind_unique"
       ).on(table.delegationId, table.kind),
-    ],
+    ]
   );
 
 export const eserviceDescriptorDocumentInReadmodelCatalog =
@@ -662,7 +662,7 @@ export const eserviceDescriptorDocumentInReadmodelCatalog =
         ],
         name: "eservice_descriptor_document_eservice_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceRiskAnalysisInReadmodelCatalog = readmodelCatalog.table(
@@ -699,9 +699,9 @@ export const eserviceRiskAnalysisInReadmodelCatalog = readmodelCatalog.table(
     }),
     unique("eservice_risk_analysis_risk_analysis_form_id_eservice_id_key").on(
       table.eserviceId,
-      table.riskAnalysisFormId,
+      table.riskAnalysisFormId
     ),
-  ],
+  ]
 );
 
 export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
@@ -750,7 +750,7 @@ export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
         ],
         name: "eservice_risk_analysis_answer_eservice_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate =
@@ -784,9 +784,9 @@ export const eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate =
         name: "eservice_template_risk_analys_eservice_template_id_metadat_fkey",
       }),
       unique("eservice_template_risk_analysis_risk_analysis_form_id_key").on(
-        table.riskAnalysisFormId,
+        table.riskAnalysisFormId
       ),
-    ],
+    ]
   );
 
 export const eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate =
@@ -822,7 +822,7 @@ export const eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_risk_analy_eservice_template_id_metadat_fkey1",
       }),
-    ],
+    ]
   );
 
 export const purposeInReadmodelPurpose = readmodelPurpose.table(
@@ -849,9 +849,9 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
@@ -881,7 +881,7 @@ export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
       columns: [table.id, table.purposeId],
       name: "purpose_risk_analysis_form_pkey",
     }),
-  ],
+  ]
 );
 
 export const purposeRiskAnalysisAnswerInReadmodelPurpose =
@@ -922,7 +922,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
         columns: [table.id, table.purposeId],
         name: "purpose_risk_analysis_answer_pkey",
       }),
-    ],
+    ]
   );
 
 export const clientInReadmodelClient = readmodelClient.table(
@@ -943,9 +943,9 @@ export const clientInReadmodelClient = readmodelClient.table(
   (table) => [
     unique("client_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
@@ -985,7 +985,7 @@ export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
       ],
       name: "purpose_version_purpose_id_metadata_version_fkey",
     }),
-  ],
+  ]
 );
 
 export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
@@ -1026,9 +1026,9 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
       name: "purpose_version_document_pkey",
     }),
     unique("purpose_version_document_purpose_version_id_key").on(
-      table.purposeVersionId,
+      table.purposeVersionId
     ),
-  ],
+  ]
 );
 
 export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
@@ -1064,7 +1064,7 @@ export const purposeVersionStampInReadmodelPurpose = readmodelPurpose.table(
       columns: [table.purposeVersionId, table.kind],
       name: "purpose_version_stamp_pkey",
     }),
-  ],
+  ]
 );
 
 export const purposeVersionSignedDocumentInReadmodelPurpose =
@@ -1107,9 +1107,9 @@ export const purposeVersionSignedDocumentInReadmodelPurpose =
         name: "purpose_version_signed_document_pkey",
       }),
       unique("purpose_version_signed_document_purpose_version_id_key").on(
-        table.purposeVersionId,
+        table.purposeVersionId
       ),
-    ],
+    ]
   );
 
 export const tenantInReadmodelTenant = readmodelTenant.table(
@@ -1122,7 +1122,7 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
     externalIdOrigin: varchar("external_id_origin").notNull(),
     externalIdValue: varchar("external_id_value").notNull(),
     externalIdSelfcareInstitutionType: varchar(
-      "external_id_selfcare_institution_type",
+      "external_id_selfcare_institution_type"
     ),
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -1139,9 +1139,9 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
   (table) => [
     unique("tenant_id_metadata_version_unique").on(
       table.id,
-      table.metadataVersion,
+      table.metadataVersion
     ),
-  ],
+  ]
 );
 
 export const tenantMailInReadmodelTenant = readmodelTenant.table(
@@ -1176,7 +1176,7 @@ export const tenantMailInReadmodelTenant = readmodelTenant.table(
       columns: [table.id, table.tenantId, table.createdAt],
       name: "tenant_mail_pkey",
     }),
-  ],
+  ]
 );
 
 export const producerKeychainUserInReadmodelProducerKeychain =
@@ -1205,7 +1205,7 @@ export const producerKeychainUserInReadmodelProducerKeychain =
         columns: [table.producerKeychainId, table.userId],
         name: "producer_keychain_user_pkey",
       }),
-    ],
+    ]
   );
 
 export const producerKeychainEserviceInReadmodelProducerKeychain =
@@ -1234,7 +1234,7 @@ export const producerKeychainEserviceInReadmodelProducerKeychain =
         columns: [table.producerKeychainId, table.eserviceId],
         name: "producer_keychain_eservice_pkey",
       }),
-    ],
+    ]
   );
 
 export const clientUserInReadmodelClient = readmodelClient.table(
@@ -1262,7 +1262,7 @@ export const clientUserInReadmodelClient = readmodelClient.table(
       columns: [table.clientId, table.userId],
       name: "client_user_pkey",
     }),
-  ],
+  ]
 );
 
 export const clientPurposeInReadmodelClient = readmodelClient.table(
@@ -1290,7 +1290,7 @@ export const clientPurposeInReadmodelClient = readmodelClient.table(
       columns: [table.clientId, table.purposeId],
       name: "client_purpose_pkey",
     }),
-  ],
+  ]
 );
 
 export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
@@ -1319,7 +1319,7 @@ export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
       columns: [table.agreementId, table.attributeId],
       name: "agreement_attribute_pkey",
     }),
-  ],
+  ]
 );
 
 export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
@@ -1351,7 +1351,7 @@ export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
       columns: [table.attributeId, table.tenantId],
       name: "tenant_verified_attribute_pkey",
     }),
-  ],
+  ]
 );
 
 export const delegationStampInReadmodelDelegation = readmodelDelegation.table(
@@ -1381,7 +1381,7 @@ export const delegationStampInReadmodelDelegation = readmodelDelegation.table(
       columns: [table.delegationId, table.kind],
       name: "delegation_stamp_pkey",
     }),
-  ],
+  ]
 );
 
 export const tenantFeatureInReadmodelTenant = readmodelTenant.table(
@@ -1414,7 +1414,7 @@ export const tenantFeatureInReadmodelTenant = readmodelTenant.table(
       columns: [table.tenantId, table.kind],
       name: "tenant_feature_pkey",
     }),
-  ],
+  ]
 );
 
 export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
@@ -1450,7 +1450,7 @@ export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
       columns: [table.attributeId, table.tenantId],
       name: "tenant_certified_attribute_pkey",
     }),
-  ],
+  ]
 );
 
 export const agreementStampInReadmodelAgreement = readmodelAgreement.table(
@@ -1481,7 +1481,7 @@ export const agreementStampInReadmodelAgreement = readmodelAgreement.table(
       columns: [table.agreementId, table.kind],
       name: "agreement_stamp_pkey",
     }),
-  ],
+  ]
 );
 
 export const tenantDeclaredAttributeInReadmodelTenant = readmodelTenant.table(
@@ -1518,7 +1518,7 @@ export const tenantDeclaredAttributeInReadmodelTenant = readmodelTenant.table(
       columns: [table.attributeId, table.tenantId],
       name: "tenant_declared_attribute_pkey",
     }),
-  ],
+  ]
 );
 
 export const eserviceDescriptorAttributeInReadmodelCatalog =
@@ -1530,7 +1530,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
       explicitAttributeVerification: boolean(
-        "explicit_attribute_verification",
+        "explicit_attribute_verification"
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
@@ -1558,7 +1558,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
         columns: [table.attributeId, table.descriptorId, table.groupId],
         name: "eservice_descriptor_attribute_pkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
@@ -1570,7 +1570,7 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
       explicitAttributeVerification: boolean(
-        "explicit_attribute_verification",
+        "explicit_attribute_verification"
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
@@ -1598,7 +1598,7 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
         columns: [table.attributeId, table.versionId, table.groupId],
         name: "eservice_template_version_attribute_pkey",
       }),
-    ],
+    ]
   );
 
 export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
@@ -1637,7 +1637,7 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
         columns: [table.eserviceTemplateVersionId, table.descriptorId],
         name: "eservice_descriptor_template_version_ref_pkey",
       }),
-    ],
+    ]
   );
 
 export const clientJwkKeyInReadmodelClientJwkKey = readmodelClientJwkKey.table(
@@ -1657,7 +1657,7 @@ export const clientJwkKeyInReadmodelClientJwkKey = readmodelClientJwkKey.table(
       columns: [table.clientId, table.kid],
       name: "client_jwk_key_pkey",
     }),
-  ],
+  ]
 );
 
 export const producerJwkKeyInReadmodelProducerJwkKey =
@@ -1678,7 +1678,7 @@ export const producerJwkKeyInReadmodelProducerJwkKey =
         columns: [table.producerKeychainId, table.kid],
         name: "producer_jwk_key_pkey",
       }),
-    ],
+    ]
   );
 
 export const tenantVerifiedAttributeVerifierInReadmodelTenant =
@@ -1730,7 +1730,7 @@ export const tenantVerifiedAttributeVerifierInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_verif_tenant_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const clientKeyInReadmodelClient = readmodelClient.table(
@@ -1767,7 +1767,7 @@ export const clientKeyInReadmodelClient = readmodelClient.table(
       columns: [table.clientId, table.kid],
       name: "client_key_pkey",
     }),
-  ],
+  ]
 );
 
 export const producerKeychainKeyInReadmodelProducerKeychain =
@@ -1805,7 +1805,7 @@ export const producerKeychainKeyInReadmodelProducerKeychain =
         columns: [table.producerKeychainId, table.kid],
         name: "producer_keychain_key_pkey",
       }),
-    ],
+    ]
   );
 
 export const tenantVerifiedAttributeRevokerInReadmodelTenant =
@@ -1861,7 +1861,7 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_revok_tenant_id_metadata_version_fkey",
       }),
-    ],
+    ]
   );
 
 export const tenantNotificationConfigInReadmodelNotificationConfig =
@@ -1884,10 +1884,10 @@ export const tenantNotificationConfigInReadmodelNotificationConfig =
     (table) => [
       unique("tenant_notification_config_id_metadata_version_unique").on(
         table.id,
-        table.metadataVersion,
+        table.metadataVersion
       ),
       unique("tenant_notification_config_tenant_id_unique").on(table.tenantId),
-    ],
+    ]
   );
 
 export const userNotificationConfigInReadmodelNotificationConfig =
@@ -1900,10 +1900,10 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       tenantId: uuid("tenant_id").notNull(),
       userRoles: varchar("user_roles").array().notNull(),
       inAppNotificationPreference: boolean(
-        "in_app_notification_preference",
+        "in_app_notification_preference"
       ).notNull(),
       emailNotificationPreference: boolean(
-        "email_notification_preference",
+        "email_notification_preference"
       ).notNull(),
       emailDigestPreference: boolean("email_digest_preference").notNull(),
       createdAt: timestamp("created_at", {
@@ -1918,13 +1918,13 @@ export const userNotificationConfigInReadmodelNotificationConfig =
     (table) => [
       unique("user_notification_config_id_metadata_version_unique").on(
         table.id,
-        table.metadataVersion,
+        table.metadataVersion
       ),
       unique("user_notification_config_user_id_tenant_id_unique").on(
         table.userId,
-        table.tenantId,
+        table.tenantId
       ),
-    ],
+    ]
   );
 
 export const userEnabledInAppNotificationInReadmodelNotificationConfig =
@@ -1955,7 +1955,7 @@ export const userEnabledInAppNotificationInReadmodelNotificationConfig =
         columns: [table.userNotificationConfigId, table.notificationType],
         name: "user_enabled_in_app_notification_pkey",
       }),
-    ],
+    ]
   );
 
 export const userEnabledEmailNotificationInReadmodelNotificationConfig =
@@ -1986,7 +1986,7 @@ export const userEnabledEmailNotificationInReadmodelNotificationConfig =
         columns: [table.userNotificationConfigId, table.notificationType],
         name: "user_enabled_email_notification_pkey",
       }),
-    ],
+    ]
   );
 
 export const purposeTemplateInReadmodelPurposeTemplate =
@@ -2017,9 +2017,9 @@ export const purposeTemplateInReadmodelPurposeTemplate =
     (table) => [
       unique("purpose_template_id_metadata_version_key").on(
         table.id,
-        table.metadataVersion,
+        table.metadataVersion
       ),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
@@ -2046,9 +2046,9 @@ export const purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate =
         name: "purpose_template_risk_analysi_purpose_template_id_metadata_fkey",
       }),
       unique("purpose_template_risk_analysis_form_purpose_template_id_key").on(
-        table.purposeTemplateId,
+        table.purposeTemplateId
       ),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate =
@@ -2089,7 +2089,7 @@ export const purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate =
         ],
         name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey4",
       }),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate =
@@ -2134,7 +2134,7 @@ export const purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemp
         ],
         name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey5",
       }),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
@@ -2172,7 +2172,7 @@ export const purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate =
         ],
         name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey1",
       }),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate =
@@ -2214,7 +2214,7 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurpo
         ],
         name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey3",
       }),
-    ],
+    ]
   );
 
 export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate =
@@ -2249,9 +2249,9 @@ export const purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTempla
         name: "purpose_template_risk_analys_purpose_template_id_metadata_fkey2",
       }),
       unique(
-        "purpose_template_risk_analysis_answer_annotation_answer_id_key",
+        "purpose_template_risk_analysis_answer_annotation_answer_id_key"
       ).on(table.answerId),
-    ],
+    ]
   );
 
 export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
@@ -2285,5 +2285,5 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
         columns: [table.purposeTemplateId, table.eserviceId],
         name: "purpose_template_eservice_descriptor_pkey",
       }),
-    ],
+    ]
   );
