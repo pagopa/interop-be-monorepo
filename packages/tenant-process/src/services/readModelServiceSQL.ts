@@ -43,7 +43,6 @@ import {
   and,
   asc,
   eq,
-  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -53,7 +52,8 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   lowerCase,
   withTotalCount,
 } from "pagopa-interop-commons";
@@ -101,7 +101,7 @@ export function readModelServiceBuilderSQL(
                 ? inArray(tenantFeatureInReadmodelTenant.kind, features)
                 : undefined,
               name
-                ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+                ? ilikeEscaped(tenantInReadmodelTenant.name, `%${escapeSqlLike(name)}%`)
                 : undefined,
               externalIdOrigin
                 ? eq(tenantInReadmodelTenant.externalIdOrigin, externalIdOrigin)
@@ -139,7 +139,7 @@ export function readModelServiceBuilderSQL(
       const tenantSQL = await readModelDB
         .select()
         .from(tenantInReadmodelTenant)
-        .where(ilike(tenantInReadmodelTenant.name, escapeRegExp(name)));
+        .where(ilikeEscaped(tenantInReadmodelTenant.name, escapeSqlLike(name)));
 
       if (tenantSQL.length === 0) {
         return undefined;
@@ -244,9 +244,9 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               consumerName
-                ? ilike(
+                ? ilikeEscaped(
                     tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(consumerName)}%`
+                    `%${escapeSqlLike(consumerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
@@ -298,9 +298,9 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               producerName
-                ? ilike(
+                ? ilikeEscaped(
                     tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(producerName)}%`
+                    `%${escapeSqlLike(producerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)

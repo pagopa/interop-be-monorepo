@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -91,9 +92,9 @@ export function readModelServiceBuilderSQL({
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);
@@ -143,9 +144,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -381,7 +382,10 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined
           )
         )
