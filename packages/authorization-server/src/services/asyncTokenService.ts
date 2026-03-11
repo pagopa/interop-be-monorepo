@@ -8,6 +8,8 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ClientId,
   ClientKindTokenGenStates,
+  InteractionState,
+  interactionState,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
@@ -29,7 +31,6 @@ import {
   clientAssertionValidationFailed,
   invalidAsyncScope,
 } from "../model/domain/errors.js";
-import { AsyncScope } from "../model/domain/asyncModels.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 import { retrieveKey } from "./tokenService.js";
 
@@ -148,10 +149,10 @@ const parseAsyncScope = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: Record<string, any>,
   logger: Logger
-): AsyncScope => {
+): InteractionState => {
   const rawScope = payload.scope;
 
-  const parsed = AsyncScope.safeParse(rawScope);
+  const parsed = InteractionState.safeParse(rawScope);
   if (!parsed.success) {
     logger.warn(`Invalid async scope received: ${rawScope}`);
     throw invalidAsyncScope(String(rawScope ?? "undefined"));
@@ -160,18 +161,18 @@ const parseAsyncScope = (
   return parsed.data;
 };
 
-const dispatchByScope = async (scope: AsyncScope): Promise<void> =>
+const dispatchByScope = async (scope: InteractionState): Promise<void> =>
   match(scope)
-    .with("start_interaction", async () => {
-      throw asyncScopeNotYetImplemented("start_interaction");
+    .with(interactionState.startInteraction, async () => {
+      throw asyncScopeNotYetImplemented(interactionState.startInteraction);
     })
-    .with("callback_invocation", async () => {
-      throw asyncScopeNotYetImplemented("callback_invocation");
+    .with(interactionState.callbackInvocation, async () => {
+      throw asyncScopeNotYetImplemented(interactionState.callbackInvocation);
     })
-    .with("get_resource", async () => {
-      throw asyncScopeNotYetImplemented("get_resource");
+    .with(interactionState.getResource, async () => {
+      throw asyncScopeNotYetImplemented(interactionState.getResource);
     })
-    .with("confirmation", async () => {
-      throw asyncScopeNotYetImplemented("confirmation");
+    .with(interactionState.confirmation, async () => {
+      throw asyncScopeNotYetImplemented(interactionState.confirmation);
     })
     .exhaustive();
