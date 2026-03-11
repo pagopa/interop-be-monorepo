@@ -25774,6 +25774,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -25812,6 +25814,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -26189,6 +26193,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -26222,6 +26228,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceMode:
       type: string
@@ -26429,6 +26437,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+        asyncExchange:
+          type: boolean
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -26701,6 +26711,8 @@ components:
           description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -26909,6 +26921,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object

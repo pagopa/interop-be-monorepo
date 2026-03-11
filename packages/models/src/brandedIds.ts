@@ -118,6 +118,17 @@ export const PlatformStatesClientPK = z
   .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
+const producerKeychainKidEServicePrefix = "PRODUCERKEYCHAINKIDESERVICE#";
+export const ProducerKeychainPlatformStatesPK = z
+  .string()
+  .refine((pk) => pk.startsWith(producerKeychainKidEServicePrefix))
+  .brand(
+    `${producerKeychainKidEServicePrefix}producerKeychainId#kid#eServiceId`
+  );
+export type ProducerKeychainPlatformStatesPK = z.infer<
+  typeof ProducerKeychainPlatformStatesPK
+>;
+
 export const GSIPKConsumerIdEServiceId = z
   .string()
   .brand(`tenantId#eserviceId`);
@@ -337,6 +348,7 @@ export const IDS = z.union([
   PlatformStatesAgreementPK,
   PlatformStatesPurposePK,
   PlatformStatesClientPK,
+  ProducerKeychainPlatformStatesPK,
   GSIPKConsumerIdEServiceId,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,

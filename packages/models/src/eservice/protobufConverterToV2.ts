@@ -119,6 +119,10 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? toDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
 });
 
 export const toRiskAnalysisV2 = (

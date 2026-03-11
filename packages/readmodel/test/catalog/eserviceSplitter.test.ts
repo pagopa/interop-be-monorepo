@@ -20,6 +20,7 @@ import { describe, it, expect } from "vitest";
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   EServiceDescriptorTemplateVersionRefSQL,
@@ -48,6 +49,7 @@ describe("E-service splitter", () => {
     const templateId: EServiceTemplateId = generateId();
     const personalData = true;
     const instanceLabel = "instance 001";
+    const asyncExchange = true;
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -88,6 +90,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      asyncExchange,
     };
 
     const {
@@ -117,6 +120,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      asyncExchange,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -185,12 +189,13 @@ describe("E-service splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceDescriptorDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceDescriptorInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     const expectedRejectionReasonSQL: EServiceDescriptorRejectionReasonSQL = {
@@ -266,6 +271,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
       personalData: undefined,
+      asyncExchange: undefined,
     };
 
     const {
@@ -295,6 +301,7 @@ describe("E-service splitter", () => {
       templateId: null,
       personalData: null,
       instanceLabel: null,
+      asyncExchange: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {

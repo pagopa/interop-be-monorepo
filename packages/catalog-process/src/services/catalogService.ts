@@ -102,6 +102,8 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  asyncExchangeCallbackInterfaceAlreadyExists,
+  eServiceAsyncExchangeNotEnabled,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -148,6 +150,9 @@ import {
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
+  toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded,
+  toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated,
+  toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted,
   toCreateEventEServiceInstanceLabelUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -219,9 +224,11 @@ const retrieveDocument = (
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
-  const document = [...descriptor.docs, descriptor.interface].find(
-    (doc) => doc != null && doc.id === documentId
-  );
+  const document = [
+    ...descriptor.docs,
+    descriptor.interface,
+    descriptor.asyncExchangeCallbackInterface,
+  ].find((doc) => doc != null && doc.id === documentId);
   if (document === undefined) {
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
@@ -553,6 +560,9 @@ async function innerCreateEService(
       ? { personalData: seed.personalData }
       : {}),
     instanceLabel: instanceLabel,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: seed.asyncExchange }
+      : {}),
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -630,6 +640,8 @@ async function innerAddDocumentToEserviceEvent(
 
   const isInterface = documentSeed.kind === "INTERFACE";
   const isDocument = documentSeed.kind === "DOCUMENT";
+  const isAsyncExchangeCallbackInterface =
+    documentSeed.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE";
 
   if (
     isInterface &&
@@ -663,6 +675,22 @@ async function innerAddDocumentToEserviceEvent(
     throw checksumDuplicate(eService.data.id, descriptor.id);
   }
 
+  if (isAsyncExchangeCallbackInterface) {
+    assertFeatureFlagEnabled(config, "featureFlagAsyncExchange");
+
+    if (descriptorStatesNotAllowingInterfaceOperations(descriptor)) {
+      throw notValidDescriptorState(descriptor.id, descriptor.state);
+    }
+
+    if (eService.data.asyncExchange !== true) {
+      throw eServiceAsyncExchangeNotEnabled(eService.data.id);
+    }
+
+    if (descriptor.asyncExchangeCallbackInterface !== undefined) {
+      throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);
+    }
+  }
+
   const createdDocument: Document = {
     id: unsafeBrandId(documentSeed.documentId),
     name: documentSeed.fileName,
@@ -676,9 +704,12 @@ async function innerAddDocumentToEserviceEvent(
   const updatedDescriptor: Descriptor = {
     ...descriptor,
     interface: isInterface ? createdDocument : descriptor.interface,
-    docs: isInterface ? descriptor.docs : [...descriptor.docs, createdDocument],
+    docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
+    asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+      ? createdDocument
+      : descriptor.asyncExchangeCallbackInterface,
   };
 
   const updatedEService: EService = replaceDescriptor(
@@ -686,26 +717,31 @@ async function innerAddDocumentToEserviceEvent(
     updatedDescriptor
   );
 
+  const eventPayload = {
+    descriptorId,
+    documentId: unsafeBrandId<EServiceDocumentId>(documentSeed.documentId),
+    eservice: updatedEService,
+  };
+
   const event = isInterface
     ? toCreateEventEServiceInterfaceAdded(
         eService.data.id,
         eService.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(documentSeed.documentId),
-          eservice: updatedEService,
-        },
+        eventPayload,
         ctx.correlationId
       )
-    : toCreateEventEServiceDocumentAdded(
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(documentSeed.documentId),
-          eservice: updatedEService,
-        },
-        ctx.correlationId
-      );
+    : isAsyncExchangeCallbackInterface
+      ? toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded(
+          eService.data.id,
+          eService.metadata.version,
+          eventPayload,
+          ctx.correlationId
+        )
+      : toCreateEventEServiceDocumentAdded(
+          eService.metadata.version,
+          eventPayload,
+          ctx.correlationId
+        );
 
   return {
     eService: updatedEService,
@@ -1156,8 +1192,10 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const document = retrieveDocument(eserviceId, descriptor, documentId);
       const isInterface = document.id === descriptor?.interface?.id;
+      const isAsyncExchangeCallbackInterface =
+        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
 
-      if (isInterface) {
+      if (isInterface || isAsyncExchangeCallbackInterface) {
         assertInterfaceDeletableDescriptorState(descriptor);
       } else {
         assertEServiceNotTemplateInstance(
@@ -1179,32 +1217,41 @@ export function catalogServiceBuilder(
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
+                asyncExchangeCallbackInterface:
+                  d.asyncExchangeCallbackInterface?.id === documentId
+                    ? undefined
+                    : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
+      };
+
+      const eventPayload = {
+        descriptorId,
+        documentId,
+        eservice: newEservice,
       };
 
       const event = isInterface
         ? toCreateEventEServiceInterfaceDeleted(
             eserviceId,
             eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
+            eventPayload,
             correlationId
           )
-        : toCreateEventEServiceDocumentDeleted(
-            eserviceId,
-            eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            )
+          : toCreateEventEServiceDocumentDeleted(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1251,9 +1298,11 @@ export function catalogServiceBuilder(
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       const isInterface = document.id === descriptor?.interface?.id;
+      const isAsyncExchangeCallbackInterface =
+        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
 
       if (
-        isInterface &&
+        (isInterface || isAsyncExchangeCallbackInterface) &&
         descriptorStatesNotAllowingInterfaceOperations(descriptor)
       ) {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
@@ -1288,32 +1337,40 @@ export function catalogServiceBuilder(
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
+                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+                  ? updatedDocument
+                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
+      };
+
+      const eventPayload = {
+        descriptorId,
+        documentId,
+        eservice: newEservice,
       };
 
       const event = isInterface
         ? toCreateEventEServiceInterfaceUpdated(
             eserviceId,
             eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
+            eventPayload,
             correlationId
           )
-        : toCreateEventEServiceDocumentUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            )
+          : toCreateEventEServiceDocumentUpdated(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -1988,6 +2045,7 @@ export function catalogServiceBuilder(
           },
         ],
         personalData: eservice.data.personalData,
+        asyncExchange: eservice.data.asyncExchange,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -3885,6 +3943,16 @@ const deleteDescriptorInterfaceAndDocs = async (
     await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
   }
 
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface !== undefined) {
+    await fileManager.delete(
+      config.s3Bucket,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
+  }
+
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
     fileManager.delete(config.s3Bucket, doc.path, logger)
   );
@@ -4201,6 +4269,16 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null ? undefined : eservice.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEService: EService = {
     ...eservice.data,
     description: description ?? eservice.data.description,
@@ -4224,6 +4302,9 @@ async function updateDraftEService(
       .exhaustive(),
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
+      : {}),
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
       : {}),
   };
 

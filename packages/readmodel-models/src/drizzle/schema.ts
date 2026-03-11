@@ -408,6 +408,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    asyncExchange: boolean("async_exchange"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -513,6 +514,7 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
+      kind: varchar().notNull(),
       name: varchar().notNull(),
       contentType: varchar("content_type").notNull(),
       prettyName: varchar("pretty_name").notNull(),
@@ -542,8 +544,9 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
         ],
         name: "eservice_descriptor_interface_eservice_id_metadata_version_fkey",
       }),
-      unique("eservice_descriptor_interface_descriptor_id_key").on(
-        table.descriptorId
+      unique("eservice_descriptor_interface_descriptor_id_kind_key").on(
+        table.descriptorId,
+        table.kind
       ),
     ]
   );

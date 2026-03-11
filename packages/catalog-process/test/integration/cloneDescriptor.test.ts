@@ -92,6 +92,7 @@ describe("clone descriptor", () => {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
+      asyncExchange: true,
     };
     await addOneEService(eservice);
 

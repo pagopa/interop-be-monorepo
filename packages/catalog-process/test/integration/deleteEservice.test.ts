@@ -79,6 +79,12 @@ describe("delete eservice", () => {
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
     };
+    const mockAsyncCallback = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncCallback,
+      name: `${mockDocument.name}_async_callback`,
+      path: `${config.eserviceDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,
+    };
 
     await fileManager.storeBytes(
       {
@@ -102,16 +108,31 @@ describe("delete eservice", () => {
       genericLogger
     );
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
       state: descriptorState.draft,
       docs: [document],
     };
@@ -175,6 +196,11 @@ describe("delete eservice", () => {
       document.path,
       genericLogger
     );
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDocument.path,
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -182,6 +208,9 @@ describe("delete eservice", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(document.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(asyncExchangeCallbackInterfaceDocument.path);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

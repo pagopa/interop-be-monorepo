@@ -28,6 +28,7 @@ CREATE TABLE domains.eservice (
   template_id VARCHAR(36),
   personal_data BOOLEAN,
   instance_label VARCHAR(2048),
+  async_exchange BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -83,7 +84,8 @@ CREATE TABLE domains.eservice_descriptor_interface (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
-  descriptor_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.eservice_descriptor (id),
+  descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
+  kind VARCHAR(2048) NOT NULL,
   name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
   pretty_name VARCHAR(2048) NOT NULL,
@@ -92,6 +94,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
+  UNIQUE (descriptor_id, kind),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
