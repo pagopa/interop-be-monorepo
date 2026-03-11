@@ -2,6 +2,8 @@ import { match } from "ts-pattern";
 import {
   clientKindTokenGenStates,
   ClientAssertion,
+  AsyncClientAssertion,
+  AsyncClientAssertionPayloadStrict,
   ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
@@ -32,6 +34,10 @@ import {
   validateIss,
   validateKid,
   validatePurposeId,
+  validateScope,
+  validateInteractionId,
+  validateUrlCallback,
+  validateEntityNumber,
   validateSub,
   validatePlatformState,
   ALLOWED_ALGORITHM,
@@ -55,6 +61,7 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
+  scopeNotProvided,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -234,6 +241,101 @@ export const verifyClientAssertion = (
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
+};
+
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+export const verifyAsyncClientAssertion = (
+  clientAssertionJws: string,
+  clientId: string | undefined,
+  expectedAudiences: string[],
+  logger: Logger,
+  // TODO: delete when FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION is removed
+  featureFlagClientAssertionStrictClaimsValidation: boolean = false
+): ValidationResult<AsyncClientAssertion> => {
+  // Run base validation with strict=false to avoid rejecting async-specific claims
+  const baseResult = verifyClientAssertion(
+    clientAssertionJws,
+    clientId,
+    expectedAudiences,
+    logger,
+    false
+  );
+  if (baseResult.errors) {
+    return failedValidation(baseResult.errors);
+  }
+
+  // Re-decode JWT to access async claims (stripped by base non-strict parse)
+  const decodedPayload = jose.decodeJwt(clientAssertionJws);
+
+  // Validate async-specific claims (format only)
+  const { errors: scopeErrors, data: validatedScope } = validateScope(
+    decodedPayload.scope
+  );
+  const { errors: interactionIdErrors, data: validatedInteractionId } =
+    validateInteractionId(decodedPayload.interactionId);
+  const { errors: urlCallbackErrors, data: validatedUrlCallback } =
+    validateUrlCallback(decodedPayload.urlCallback);
+  const { errors: entityNumberErrors, data: validatedEntityNumber } =
+    validateEntityNumber(decodedPayload.entityNumber);
+
+  // scope is REQUIRED for async
+  if (!scopeErrors && !validatedScope) {
+    return failedValidation([scopeNotProvided()]);
+  }
+
+  if (
+    scopeErrors ||
+    interactionIdErrors ||
+    urlCallbackErrors ||
+    entityNumberErrors
+  ) {
+    return failedValidation([
+      scopeErrors,
+      interactionIdErrors,
+      urlCallbackErrors,
+      entityNumberErrors,
+    ]);
+  }
+
+  // After the guards above, scope is guaranteed to be defined
+  const scope = validatedScope;
+  if (!scope) {
+    // Unreachable: scopeNotProvided guard already returned above
+    return failedValidation([scopeNotProvided()]);
+  }
+
+  // Strict validation with async schema (if feature flag enabled)
+  const payloadStrictParseResult =
+    AsyncClientAssertionPayloadStrict.safeParse(decodedPayload);
+  if (!payloadStrictParseResult.success) {
+    logger.warn(
+      `[CLIENTID=${baseResult.data.payload.sub}] Invalid claims in async client assertion payload: ${JSON.stringify(
+        JSON.parse(payloadStrictParseResult.error.message)
+      )}`
+    );
+  }
+  if (
+    featureFlagClientAssertionStrictClaimsValidation &&
+    !payloadStrictParseResult.success
+  ) {
+    return failedValidation([
+      clientAssertionInvalidClaims(
+        payloadStrictParseResult.error.message,
+        "payload"
+      ),
+    ]);
+  }
+
+  return successfulValidation({
+    header: baseResult.data.header,
+    payload: {
+      ...baseResult.data.payload,
+      scope,
+      interactionId: validatedInteractionId,
+      urlCallback: validatedUrlCallback,
+      entityNumber: validatedEntityNumber,
+    },
+  });
 };
 
 export const verifyClientAssertionSignature = async (

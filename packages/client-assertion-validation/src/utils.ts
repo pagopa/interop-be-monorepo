@@ -1,6 +1,8 @@
 import {
   ApiError,
   ClientId,
+  InteractionId,
+  InteractionState,
   itemState,
   PurposeId,
   TokenGenerationStatesConsumerClient,
@@ -36,6 +38,10 @@ import {
   invalidAgreementState,
   invalidEServiceState,
   invalidPurposeState,
+  invalidScopeClaimFormat,
+  invalidInteractionIdClaimFormat,
+  invalidUrlCallbackClaimFormat,
+  invalidEntityNumberClaimFormat,
 } from "./errors.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
@@ -113,6 +119,64 @@ export const validatePurposeId = (
       ? unsafeBrandId<PurposeId>(purposeIdParseResult.data)
       : undefined;
   return successfulValidation(validatedPurposeId);
+};
+
+export const validateScope = (
+  scope?: unknown
+): ValidationResult<InteractionState | undefined> => {
+  const scopeParseResult = InteractionState.safeParse(scope);
+  if (scope && !scopeParseResult.success) {
+    return failedValidation([
+      invalidScopeClaimFormat(typeof scope === "string" ? scope : ""),
+    ]);
+  }
+  return successfulValidation(
+    scopeParseResult.success ? scopeParseResult.data : undefined
+  );
+};
+
+export const validateInteractionId = (
+  interactionId?: unknown
+): ValidationResult<InteractionId | undefined> => {
+  const interactionIdParseResult = InteractionId.safeParse(interactionId);
+  if (interactionId && !interactionIdParseResult.success) {
+    return failedValidation([
+      invalidInteractionIdClaimFormat(
+        typeof interactionId === "string" ? interactionId : ""
+      ),
+    ]);
+  }
+  return successfulValidation(
+    interactionIdParseResult.success ? interactionIdParseResult.data : undefined
+  );
+};
+
+export const validateUrlCallback = (
+  urlCallback?: unknown
+): ValidationResult<string | undefined> => {
+  if (urlCallback === undefined || urlCallback === null) {
+    return successfulValidation(undefined);
+  }
+  if (typeof urlCallback !== "string" || urlCallback.length === 0) {
+    return failedValidation([
+      invalidUrlCallbackClaimFormat(String(urlCallback)),
+    ]);
+  }
+  return successfulValidation(urlCallback);
+};
+
+export const validateEntityNumber = (
+  entityNumber?: unknown
+): ValidationResult<number | undefined> => {
+  if (entityNumber === undefined || entityNumber === null) {
+    return successfulValidation(undefined);
+  }
+  if (typeof entityNumber !== "number" || entityNumber <= 0) {
+    return failedValidation([
+      invalidEntityNumberClaimFormat(String(entityNumber)),
+    ]);
+  }
+  return successfulValidation(entityNumber);
 };
 
 export const validateKid = (kid?: string): ValidationResult<string> => {

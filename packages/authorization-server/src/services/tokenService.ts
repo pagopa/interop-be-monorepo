@@ -375,7 +375,7 @@ export const retrieveKey = async (
   }
 };
 
-const publishAudit = async ({
+export const publishAudit = async ({
   producer,
   generatedToken,
   key,
@@ -515,7 +515,7 @@ const deconstructGSIPK_eserviceId_descriptorId = (
   };
 };
 
-const logTokenGenerationInfo = ({
+export const logTokenGenerationInfo = ({
   validatedJwt,
   clientKind,
   tokenJti,
@@ -536,7 +536,7 @@ const logTokenGenerationInfo = ({
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
 
-const validateDPoPProof = async (
+export const validateDPoPProof = async (
   dpopProofHeader: string | undefined,
   clientId: string | undefined,
   logger: Logger
