@@ -27,6 +27,7 @@ export const createEServiceErrorMapper = (
     .with(
       "invalidDelegationFlags",
       "invalidEServiceFlags",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -79,6 +80,7 @@ export const updateEServiceErrorMapper = (
       "invalidDelegationFlags",
       "invalidEServiceFlags",
       "templateInstanceNotAllowed",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -314,6 +316,9 @@ export const publishDescriptorErrorMapper = (
       "notValidDescriptor",
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeFields",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -534,7 +539,13 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("missingPersonalDataFlag", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingPersonalDataFlag",
+      "missingAsyncExchangeFields",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
