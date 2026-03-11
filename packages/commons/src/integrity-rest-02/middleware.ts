@@ -37,12 +37,11 @@ export function integrityRest02Middleware(
   config: IntegrityRest02SignatureConfig,
   kmsClient: KMSClient
 ) {
+  const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return (req: RequestWithMaybeContext, res: Response, next: NextFunction) => {
     // Keep original res.send
     const originalSend = res.send.bind(res);
-    const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
-
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
       if (res.statusCode === 204 || res.statusCode === 304) {
@@ -51,6 +50,7 @@ export function integrityRest02Middleware(
             `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
           )
         );
+        return res;
       }
       void (async (): Promise<void> => {
         try {
