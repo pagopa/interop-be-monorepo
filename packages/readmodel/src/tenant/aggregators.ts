@@ -117,7 +117,7 @@ export const aggregateTenant = ({
       origin: tenantSQL.externalIdOrigin,
       value: tenantSQL.externalIdValue,
       selfcareInstitutionType:
-        tenantSQL.externalSelfcareInstitutionType || undefined,
+        tenantSQL.externalIdSelfcareInstitutionType || undefined,
     },
     features,
     mails,

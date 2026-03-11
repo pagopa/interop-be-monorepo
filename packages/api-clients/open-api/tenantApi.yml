@@ -371,10 +371,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: externalSelfcareInstitutionType
-        schema:
-          type: string
-      - in: query
         name: offset
         required: true
         schema:

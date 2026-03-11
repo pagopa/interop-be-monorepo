@@ -104,8 +104,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           consumerName: tenantInReadmodelTenant.name,
           consumerExternalIdOrigin: tenantInReadmodelTenant.externalIdOrigin,
           consumerExternalIdValue: tenantInReadmodelTenant.externalIdValue,
-          consumerExternalSelfcareInstitutionType:
-            tenantInReadmodelTenant.externalSelfcareInstitutionType,
+          consumerExternalIdSelfcareInstitutionType:
+            tenantInReadmodelTenant.externalIdSelfcareInstitutionType,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(
@@ -151,7 +151,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           consumerName: string;
           consumerExternalIdOrigin: string;
           consumerExternalIdValue: string;
-          consumerExternalSelfcareInstitutionType: string | null;
+          consumerExternalIdSelfcareInstitutionType: string | null;
         }
       >();
 
@@ -162,8 +162,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             consumerName: row.consumerName,
             consumerExternalIdOrigin: row.consumerExternalIdOrigin,
             consumerExternalIdValue: row.consumerExternalIdValue,
-            consumerExternalSelfcareInstitutionType:
-              row.consumerExternalSelfcareInstitutionType,
+            consumerExternalIdSelfcareInstitutionType:
+              row.consumerExternalIdSelfcareInstitutionType,
           });
         }
       }

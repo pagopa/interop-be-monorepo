@@ -36,6 +36,8 @@ describe("getTenant", () => {
       externalId: {
         origin: mockApiTenant.data.externalId.origin,
         value: mockApiTenant.data.externalId.value,
+        selfcareInstitutionType:
+          mockApiTenant.data.externalId.selfcareInstitutionType,
       },
       name: mockApiTenant.data.name,
       kind: mockApiTenant.data.kind,
@@ -46,7 +48,7 @@ describe("getTenant", () => {
 
     const result = await tenantService.getTenant(
       unsafeBrandId(mockApiTenant.data.id),
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext(),
     );
 
     expect(result).toStrictEqual(m2mTenantResponse);

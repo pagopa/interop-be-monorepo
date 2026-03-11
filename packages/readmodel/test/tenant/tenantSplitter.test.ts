@@ -146,7 +146,7 @@ describe("Tenant splitters", () => {
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
-        externalSelfcareInstitutionType:
+        externalIdSelfcareInstitutionType:
           externalId.selfcareInstitutionType || null,
       };
 
@@ -367,7 +367,7 @@ describe("Tenant splitters", () => {
         subUnitType: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
-        externalSelfcareInstitutionType:
+        externalIdSelfcareInstitutionType:
           externalId.selfcareInstitutionType || null,
       };
 
