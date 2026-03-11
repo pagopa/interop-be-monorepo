@@ -13400,7 +13400,7 @@ components:
         * `signed_headers` (Mandatory): An array of JSON objects detailing the HTTP headers protected by the signature. It strictly includes the `digest`, `content-type` (if applicable), `content-encoding` (if applicable), and the `x-correlation-id` tracking header.
       schema:
         type: string
-        pattern: ^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+        pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
   securitySchemes:
     DPoPAuth:
