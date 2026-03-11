@@ -123,7 +123,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/AsyncAccessTokenRequest"
+              $ref: "#/components/schemas/AccessTokenRequest"
       responses:
         "200":
           description: The Access token
@@ -215,27 +215,6 @@ components:
         format: jws
   schemas:
     AccessTokenRequest:
-      type: object
-      required:
-        - client_assertion
-        - client_assertion_type
-        - grant_type
-      properties:
-        client_id:
-          type: string
-          format: uuid
-          example: e58035ce-c753-4f72-b613-46f8a17b71cc
-        client_assertion:
-          type: string
-          format: jws
-        client_assertion_type:
-          type: string
-          example: urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-        grant_type:
-          type: string
-          enum:
-            - client_credentials
-    AsyncAccessTokenRequest:
       type: object
       required:
         - client_assertion

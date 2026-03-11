@@ -14,7 +14,7 @@ import {
 describe("POST /authorization-server/token.oauth2.async", async () => {
   const clientId = generateId<ClientId>();
 
-  const validRequestBody: authorizationServerApi.AsyncAccessTokenRequest = {
+  const validRequestBody: authorizationServerApi.AccessTokenRequest = {
     client_id: "e58035ce-c753-4f72-b613-46f8a17b71cc",
     client_assertion: "valid-jws-token",
     client_assertion_type:
@@ -23,7 +23,7 @@ describe("POST /authorization-server/token.oauth2.async", async () => {
   };
 
   const makeRequest = (
-    body: authorizationServerApi.AsyncAccessTokenRequest = validRequestBody
+    body: authorizationServerApi.AccessTokenRequest = validRequestBody
   ) =>
     request(api)
       .post("/authorization-server/token.oauth2.async")
@@ -114,7 +114,7 @@ describe("POST /authorization-server/token.oauth2.async", async () => {
     { ...validRequestBody, grant_type: "invalid-type" },
   ])("Should return 400 if passed invalid params: %s", async (body) => {
     const res = await makeRequest(
-      body as authorizationServerApi.AsyncAccessTokenRequest
+      body as authorizationServerApi.AccessTokenRequest
     );
     expect(res.status).toBe(400);
   });
