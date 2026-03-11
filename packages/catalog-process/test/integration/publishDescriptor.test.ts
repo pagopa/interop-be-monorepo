@@ -43,6 +43,7 @@ import {
   audienceCannotBeEmpty,
   missingPersonalDataFlag,
   missingAsyncExchangeFields,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
@@ -60,6 +61,7 @@ describe("publish descriptor", () => {
   const mockDescriptor: Descriptor = getMockDescriptor();
 
   const mockDocument = getMockDocument();
+  const mockCallbackInterfaceDocument = getMockDocument();
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -758,14 +760,13 @@ describe("publish descriptor", () => {
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
   });
 
-  it("should throw missingAsyncExchangeFields if asyncExchange is true and asyncExchangeResponseTime is undefined", async () => {
+  it("should throw missingAsyncExchangeFields if asyncExchange is true and descriptor asyncExchange fields are undefined", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
-      asyncExchangeResponseTime: undefined,
+      asyncExchange: undefined,
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
@@ -788,14 +789,19 @@ describe("publish descriptor", () => {
     );
   });
 
-  it("should throw missingAsyncExchangeFields if asyncExchange is true and asyncExchangeResourceAvailableTime is undefined", async () => {
+  it("should throw missingAsyncExchangeCallbackInterface if asyncExchange is true and callback interface is missing", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeMaxResultSet: 100,
-      asyncExchangeResourceAvailableTime: undefined,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: undefined,
     };
 
     const eservice: EService = {
@@ -814,49 +820,23 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      missingAsyncExchangeFields(eservice.id, descriptor.id)
+      missingAsyncExchangeCallbackInterface(eservice.id, descriptor.id)
     );
   });
 
-  it("should throw missingAsyncExchangeFields if asyncExchange is true and asyncExchangeMaxResultSet is undefined", async () => {
+  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is Soap and asyncExchange bulk is true", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: undefined,
-    };
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      personalData: false,
-      asyncExchange: true,
-    };
-
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.publishDescriptor(
-        eservice.id,
-        descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      missingAsyncExchangeFields(eservice.id, descriptor.id)
-    );
-  });
-
-  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is Soap and asyncExchangeBulk is true", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
-      asyncExchangeBulk: true,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
@@ -885,9 +865,14 @@ describe("publish descriptor", () => {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
@@ -915,9 +900,7 @@ describe("publish descriptor", () => {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: undefined,
-      asyncExchangeResourceAvailableTime: undefined,
-      asyncExchangeMaxResultSet: undefined,
+      asyncExchange: undefined,
     };
 
     const eservice: EService = {
@@ -946,9 +929,7 @@ describe("publish descriptor", () => {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: undefined,
-      asyncExchangeResourceAvailableTime: undefined,
-      asyncExchangeMaxResultSet: undefined,
+      asyncExchange: undefined,
     };
 
     const eservice: EService = {
@@ -972,15 +953,19 @@ describe("publish descriptor", () => {
     config.featureFlagAsyncExchange = true;
   });
 
-  it("should not throw asyncExchangeBulkNotAllowedForSoap when technology is REST and asyncExchangeBulk is true", async () => {
+  it("should not throw asyncExchangeBulkNotAllowedForSoap when technology is REST and asyncExchange bulk is true", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
-      asyncExchangeBulk: true,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {

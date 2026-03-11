@@ -317,6 +317,7 @@ export const publishDescriptorErrorMapper = (
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
       "missingAsyncExchangeFields",
+      "missingAsyncExchangeCallbackInterface",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -541,6 +542,7 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
     .with(
       "missingPersonalDataFlag",
       "missingAsyncExchangeFields",
+      "missingAsyncExchangeCallbackInterface",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )

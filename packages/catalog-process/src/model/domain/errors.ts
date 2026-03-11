@@ -68,6 +68,7 @@ const errorCodes = {
   missingAsyncExchangeFields: "0051",
   asyncExchangeBulkNotAllowedForSoap: "0052",
   asyncExchangeNotAllowedForReceiveMode: "0053",
+  missingAsyncExchangeCallbackInterface: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -538,9 +539,20 @@ export function missingAsyncExchangeFields(
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeResponseTime, asyncExchangeResourceAvailableTime and asyncExchangeMaxResultSet must be set when async exchange is enabled`,
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because async exchange fields (responseTime, resourceAvailableTime, maxResultSet) must be set when async exchange is enabled`,
     code: "missingAsyncExchangeFields",
     title: "Missing required async exchange fields for publication",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
   });
 }
 

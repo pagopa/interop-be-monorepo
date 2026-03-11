@@ -103,6 +103,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   missingAsyncExchangeFields,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
   asyncExchangeNotAllowedForReceiveMode,
   eServiceTemplateWithoutPersonalDataFlag,
@@ -1759,23 +1760,21 @@ export function catalogServiceBuilder(
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
-      // TODO: Add check for ASYNC_EXCHANGE_CALLBACK_INTERFACE document existence
-      // once the callback interface document type is implemented
       if (
         isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
         eservice.data.asyncExchange === true
       ) {
-        if (
-          descriptor.asyncExchangeResponseTime === undefined ||
-          descriptor.asyncExchangeResourceAvailableTime === undefined ||
-          descriptor.asyncExchangeMaxResultSet === undefined
-        ) {
+        if (descriptor.asyncExchange === undefined) {
           throw missingAsyncExchangeFields(eserviceId, descriptorId);
+        }
+
+        if (descriptor.asyncExchangeCallbackInterface === undefined) {
+          throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
         }
 
         if (
           eservice.data.technology === technology.soap &&
-          descriptor.asyncExchangeBulk === true
+          descriptor.asyncExchange.bulk === true
         ) {
           throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
         }
@@ -2890,23 +2889,21 @@ export function catalogServiceBuilder(
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
-      // TODO: Add check for ASYNC_EXCHANGE_CALLBACK_INTERFACE document existence
-      // once the callback interface document type is implemented
       if (
         isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
         eservice.data.asyncExchange === true
       ) {
-        if (
-          descriptor.asyncExchangeResponseTime === undefined ||
-          descriptor.asyncExchangeResourceAvailableTime === undefined ||
-          descriptor.asyncExchangeMaxResultSet === undefined
-        ) {
+        if (descriptor.asyncExchange === undefined) {
           throw missingAsyncExchangeFields(eserviceId, descriptorId);
+        }
+
+        if (descriptor.asyncExchangeCallbackInterface === undefined) {
+          throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
         }
 
         if (
           eservice.data.technology === technology.soap &&
-          descriptor.asyncExchangeBulk === true
+          descriptor.asyncExchange.bulk === true
         ) {
           throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
         }

@@ -31,6 +31,7 @@ import {
   notValidDescriptorState,
   missingPersonalDataFlag,
   missingAsyncExchangeFields,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
@@ -46,6 +47,7 @@ describe("publish descriptor (after delegator's approval)", () => {
   const mockEService: EService = { ...getMockEService(), personalData: false };
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+  const mockCallbackInterfaceDocument = getMockDocument();
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -369,9 +371,8 @@ describe("publish descriptor (after delegator's approval)", () => {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
       interface: mockDocument,
-      asyncExchangeResponseTime: undefined,
-      asyncExchangeResourceAvailableTime: undefined,
-      asyncExchangeMaxResultSet: undefined,
+      asyncExchange: undefined,
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
@@ -393,15 +394,53 @@ describe("publish descriptor (after delegator's approval)", () => {
     );
   });
 
-  it("should throw asyncExchangeBulkNotAllowedForSoap when approving with SOAP and asyncExchangeBulk", async () => {
+  it("should throw missingAsyncExchangeCallbackInterface when approving and callback interface is missing", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
-      asyncExchangeBulk: true,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeCallbackInterface(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw asyncExchangeBulkNotAllowedForSoap when approving with SOAP and asyncExchange bulk", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
@@ -429,9 +468,14 @@ describe("publish descriptor (after delegator's approval)", () => {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
       interface: mockDocument,
-      asyncExchangeResponseTime: 30,
-      asyncExchangeResourceAvailableTime: 30,
-      asyncExchangeMaxResultSet: 100,
+      asyncExchange: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
     };
 
     const eservice: EService = {
