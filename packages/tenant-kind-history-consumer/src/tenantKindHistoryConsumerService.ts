@@ -1,11 +1,8 @@
 import { isAxiosError } from "axios";
 import {
   Logger,
-  RefreshableInteropToken,
-  getInteropHeaders,
 } from "pagopa-interop-commons";
 import {
-  CorrelationId,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
   TenantId,
@@ -13,10 +10,9 @@ import {
   fromTenantV2,
   genericInternalError,
   missingKafkaMessageDataError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
+import { TenantKindHistoryWriterService } from "./tenantKindHistoryWriterService.js";
 
 /* TODO:
 V1
@@ -38,24 +34,15 @@ V2
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantKindhistoryConsumerServiceBuilder(
-  refreshableToken: RefreshableInteropToken,
-  { notificationConfigProcess }: PagoPAInteropBeClients
+  tenantKindHistoryWriterService: TenantKindHistoryWriterService
 ) {
-  const createTenantDefaultNotificationConfig = async (
+  const createTenantKindHistory = async (
     tenantId: TenantId,
-    correlationId: CorrelationId,
     logger: Logger
   ): Promise<void> => {
-    const token = (await refreshableToken.get()).serialized;
-    const headers = getInteropHeaders({ token, correlationId });
     logger.info(`Creating default notification config for tenant ${tenantId}`);
     try {
-      await notificationConfigProcess.client.createTenantDefaultNotificationConfig(
-        { tenantId },
-        {
-          headers,
-        }
-      );
+      await tenantKindHistoryWriterService.createTenantKindHistory(/*TODO*/);
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
         logger.info(
@@ -69,33 +56,9 @@ export function tenantKindhistoryConsumerServiceBuilder(
     }
   };
 
-  const deleteTenantNotificationConfig = async (
-    tenantId: TenantId,
-    correlationId: CorrelationId,
-    logger: Logger
-  ): Promise<void> => {
-    const token = (await refreshableToken.get()).serialized;
-    const headers = getInteropHeaders({ token, correlationId });
-    logger.info(`Deleting notification config for tenant ${tenantId}`);
-    try {
-      await notificationConfigProcess.client.deleteTenantNotificationConfig(
-        undefined,
-        {
-          params: { tenantId },
-          headers,
-        }
-      );
-    } catch (error) {
-      throw genericInternalError(
-        `Error deleting default notification config for tenant ${tenantId}. Reason: ${error}`
-      );
-    }
-  };
-
   return {
     async handleMessageV1(
       message: TenantEventEnvelopeV1,
-      correlationId: CorrelationId,
       logger: Logger
     ): Promise<void> {
       await match(message)
@@ -103,22 +66,15 @@ export function tenantKindhistoryConsumerServiceBuilder(
           if (!message.data.tenant) {
             throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
           }
-          await createTenantDefaultNotificationConfig(
+          await createTenantKindHistory(
             fromTenantV1(message.data.tenant).id,
-            correlationId,
-            logger
-          );
-        })
-        .with({ type: "TenantDeleted" }, async (message) => {
-          await deleteTenantNotificationConfig(
-            unsafeBrandId(message.data.tenantId),
-            correlationId,
             logger
           );
         })
         .with(
           {
             type: P.union(
+              "TenantDeleted",
               "TenantUpdated",
               "SelfcareMappingCreated",
               "SelfcareMappingDeleted",
@@ -135,7 +91,6 @@ export function tenantKindhistoryConsumerServiceBuilder(
 
     async handleMessageV2(
       message: TenantEventEnvelopeV2,
-      correlationId: CorrelationId,
       logger: Logger
     ): Promise<void> {
       await match(message)
@@ -143,23 +98,15 @@ export function tenantKindhistoryConsumerServiceBuilder(
           if (!message.data.tenant) {
             throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
           }
-          await createTenantDefaultNotificationConfig(
+          await createTenantKindHistory(
             fromTenantV2(message.data.tenant).id,
-            correlationId,
-            logger
-          );
-        })
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
-          await deleteTenantNotificationConfig(
-            unsafeBrandId(message.data.tenantId),
-            correlationId,
             logger
           );
         })
         .with(
           {
             type: P.union(
+              "MaintenanceTenantDeleted",
               "TenantOnboardDetailsUpdated",
               "TenantCertifiedAttributeAssigned",
               "TenantCertifiedAttributeRevoked",
