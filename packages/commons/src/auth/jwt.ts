@@ -126,6 +126,27 @@ export const verifyJwtToken = async (
         (err, decoded) => {
           if (err || !decoded) {
             logger.warn(`Token verification failed: ${err}`);
+            // If signature was valid but claims check failed (e.g. expired, wrong audience),
+            // log the JTI at warn level for traceability.
+            const signatureWasValid =
+              err instanceof jwt.TokenExpiredError ||
+              err instanceof jwt.NotBeforeError ||
+              (err instanceof jwt.JsonWebTokenError &&
+                err.message !== "invalid signature" &&
+                err.message !== "jwt malformed" &&
+                err.message !== "invalid algorithm");
+            if (signatureWasValid) {
+              try {
+                const rawDecoded = jwt.decode(jwtToken, { json: true });
+                if (rawDecoded?.jti) {
+                  logger.warn(
+                    `[ATJTI=${rawDecoded.jti}] - Access token passed signature validation but failed claims check: ${err?.message}`
+                  );
+                }
+              } catch {
+                // best-effort: ignore decoding errors
+              }
+            }
             const { userId, selfcareId } = extractUserInfoForFailedToken();
             return reject(tokenVerificationFailed(userId, selfcareId));
           }
