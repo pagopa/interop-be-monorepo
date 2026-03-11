@@ -14,6 +14,6 @@ const kmsClient = new KMSClient();
  * });
  * ```
  */
-export function getIntoropTokenGenerator(): InteropTokenGenerator {
+export function getInteropTokenGenerator(): InteropTokenGenerator {
   return new InteropTokenGenerator(config, kmsClient);
 }

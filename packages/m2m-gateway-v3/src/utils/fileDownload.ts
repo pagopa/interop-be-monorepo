@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
-import { getIntoropTokenGenerator } from "./tokenGenerator.js";
+import { getInteropTokenGenerator } from "./tokenGenerator.js";
 
 export type DownloadedDocument = {
   id: string;
@@ -66,7 +66,7 @@ export async function sendDownloadedDocumentAsFormData(
   const contentType = encoder.headers["Content-Type"];
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
-  const tokenGenerator = getIntoropTokenGenerator();
+  const tokenGenerator = getInteropTokenGenerator();
   const correlationId = res.getHeader("x-correlation-id")?.toString();
   if (!correlationId) {
     throw new Error("Missing correlation id");

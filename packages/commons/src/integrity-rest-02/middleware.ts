@@ -41,12 +41,15 @@ export function integrityRest02Middleware(
   return (req: RequestWithMaybeContext, res: Response, next: NextFunction) => {
     // Keep original res.send
     const originalSend = res.send.bind(res);
+    const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
 
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
       if (res.statusCode === 204 || res.statusCode === 304) {
-        throw new Error(
-          `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+        next(
+          new Error(
+            `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+          )
         );
       }
       void (async (): Promise<void> => {
@@ -78,8 +81,6 @@ export function integrityRest02Middleware(
             contentEncoding,
             correlationId,
           });
-
-          const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
 
           const agidSignature =
             await tokenGenerator.generateAgidIntegrityRest02Token({
