@@ -13387,21 +13387,10 @@ components:
         exactly as it is sent to the client, encoded in Base64 as per RFC 3230
     IntegrityRest02AgidJwtSignatureHeader:
       description: |
-        The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the M2M Gateway's private key.
+        The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the PDND API private key.
         It ensures payload integrity and non-repudiation across all responses (both success and error), in compliance with: 1) Linee Guida sull'interoperabilità tecnica delle Pubbliche Amministrazioni - Pattern di sicurezza,  2) RFC 7515 and 3) RFC 7519.
-
-        **JWT Payload Structure:**
-        The token payload consists of the following claims:
-        * `iss` (Mandatory): The identifier of the provider (Issuer).
-        * `iat` (Mandatory): Token issuance timestamp (Unix epoch).
-        * `exp` (Mandatory): Token expiration timestamp (Unix epoch).
-        * `jti` (Mandatory): Unique token identifier to prevent replay attacks.
-        * `client_id` (Optional): Included only when the caller's identity is successfully verified.
-        * `signed_headers` (Mandatory): An array of JSON objects detailing the HTTP headers protected by the signature. It strictly includes the `digest`, `content-type` (if applicable), `content-encoding` (if applicable), and the `x-correlation-id` tracking header.
       schema:
         type: string
-        pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
   securitySchemes:
     DPoPAuth:
       type: http

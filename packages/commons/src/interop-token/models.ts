@@ -288,14 +288,16 @@ export const IntegrityRest02SignedHeaders = z.array(
 export type IntegrityRest02SignedHeaders = z.infer<
   typeof IntegrityRest02SignedHeaders
 >;
-export const AgidIntegrityRest02TokenPayload = z.object({
-  iss: z.string(),
-  exp: z.number(),
-  iat: z.number(),
-  jti: z.string(),
-  client_id: z.string().optional(),
-  signed_headers: IntegrityRest02SignedHeaders,
-});
+export const AgidIntegrityRest02TokenPayload = z
+  .object({
+    iss: z.string(),
+    exp: z.number(),
+    iat: z.number(),
+    jti: z.string(),
+    client_id: z.string().optional(),
+    signed_headers: IntegrityRest02SignedHeaders,
+  })
+  .strict();
 export type AgidIntegrityRest02TokenPayload = z.infer<
   typeof AgidIntegrityRest02TokenPayload
 >;
