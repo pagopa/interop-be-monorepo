@@ -90,7 +90,7 @@ export function asyncTokenServiceBuilder({
     // eslint-disable-next-line max-params
     async generateAsyncToken(
       headers: IncomingHttpHeaders & HttpDPoPHeader,
-      body: authorizationServerApi.AsyncAccessTokenRequest,
+      body: authorizationServerApi.AccessTokenRequest,
       getCtx: () => WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
