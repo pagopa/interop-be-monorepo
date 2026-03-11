@@ -1186,6 +1186,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             catalogEntry.descriptorVoucherLifespan
           ),
           ...setIfChanged("descriptorState", catalogEntry.state),
+          ...setIfChanged("asyncExchange", catalogEntry.asyncExchangeEnabled),
         }
       : {}),
   };
@@ -1336,6 +1337,7 @@ export const createTokenGenStatesConsumerClient = ({
       descriptorState: catalogEntry.state,
       descriptorAudience: catalogEntry.descriptorAudience,
       descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+      asyncExchange: catalogEntry.asyncExchangeEnabled,
     }),
   };
 };

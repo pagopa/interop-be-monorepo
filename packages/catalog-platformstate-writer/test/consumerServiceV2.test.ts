@@ -1976,9 +1976,13 @@ describe("integration tests V2 events", async () => {
         interface: getMockDocument(),
         publishedAt: new Date(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
-        asyncExchangeResponseTime: 120,
-        asyncExchangeResourceAvailableTime: 600,
-        asyncExchangeConfirmation: true,
+        asyncExchange: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
       };
       const eservice: EService = {
         ...getMockEService(),
@@ -2036,11 +2040,8 @@ describe("integration tests V2 events", async () => {
       );
       expect(retrievedCatalogEntry).toEqual(
         expect.objectContaining({
-          asyncExchange: true,
-          asyncExchangeResponseTime: descriptor.asyncExchangeResponseTime,
-          asyncExchangeResourceAvailableTime:
-            descriptor.asyncExchangeResourceAvailableTime,
-          asyncExchangeConfirmation: descriptor.asyncExchangeConfirmation,
+          asyncExchangeEnabled: true,
+          asyncExchange: descriptor.asyncExchange,
         })
       );
 
@@ -2050,7 +2051,6 @@ describe("integration tests V2 events", async () => {
         expect.arrayContaining([
           expect.objectContaining({
             PK: tokenGenStatesEntryPK,
-            asyncExchange: true,
           }),
         ])
       );

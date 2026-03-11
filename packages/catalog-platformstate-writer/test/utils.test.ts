@@ -183,6 +183,42 @@ describe("utils tests", async () => {
 
       expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
     });
+
+    it("should persist async exchange as a nested object", async () => {
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+      const catalogStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.inactive,
+        descriptorVoucherLifespan: 100,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        asyncExchangeEnabled: true,
+        asyncExchange: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await upsertPlatformStatesCatalogEntry(
+        catalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
+    });
   });
 
   describe("readCatalogEntry", async () => {

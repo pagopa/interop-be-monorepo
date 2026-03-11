@@ -250,30 +250,52 @@ export const writePlatformCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
+  const item: PutItemInput["Item"] = {
+    PK: {
+      S: catalogEntry.PK,
+    },
+    state: {
+      S: catalogEntry.state,
+    },
+    descriptorAudience: {
+      L: catalogEntry.descriptorAudience.map((item) => ({
+        S: item,
+      })),
+    },
+    descriptorVoucherLifespan: {
+      N: catalogEntry.descriptorVoucherLifespan.toString(),
+    },
+    version: {
+      N: catalogEntry.version.toString(),
+    },
+    updatedAt: {
+      S: catalogEntry.updatedAt,
+    },
+  };
+
+  if (catalogEntry.asyncExchange !== undefined) {
+    item.asyncExchange = {
+      M: {
+        responseTime: { N: catalogEntry.asyncExchange.responseTime.toString() },
+        resourceAvailableTime: {
+          N: catalogEntry.asyncExchange.resourceAvailableTime.toString(),
+        },
+        confirmation: { BOOL: catalogEntry.asyncExchange.confirmation },
+        bulk: { BOOL: catalogEntry.asyncExchange.bulk },
+        maxResultSet: { N: catalogEntry.asyncExchange.maxResultSet.toString() },
+      },
+    };
+  }
+
+  if (catalogEntry.asyncExchangeEnabled !== undefined) {
+    item.asyncExchangeEnabled = {
+      BOOL: catalogEntry.asyncExchangeEnabled,
+    };
+  }
+
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: catalogEntry.PK,
-      },
-      state: {
-        S: catalogEntry.state,
-      },
-      descriptorAudience: {
-        L: catalogEntry.descriptorAudience.map((item) => ({
-          S: item,
-        })),
-      },
-      descriptorVoucherLifespan: {
-        N: catalogEntry.descriptorVoucherLifespan.toString(),
-      },
-      version: {
-        N: catalogEntry.version.toString(),
-      },
-      updatedAt: {
-        S: catalogEntry.updatedAt,
-      },
-    },
+    Item: item,
     TableName: "platform-states",
   };
   const command = new PutItemCommand(input);

@@ -80,13 +80,8 @@ export async function handleMessageV2(
               descriptorVoucherLifespan: descriptor.voucherLifespan,
               ...(isAsyncExchangeEnabled
                 ? {
-                    asyncExchange: eservice.asyncExchange,
-                    asyncExchangeResponseTime:
-                      descriptor.asyncExchangeResponseTime,
-                    asyncExchangeResourceAvailableTime:
-                      descriptor.asyncExchangeResourceAvailableTime,
-                    asyncExchangeConfirmation:
-                      descriptor.asyncExchangeConfirmation,
+                    asyncExchangeEnabled: eservice.asyncExchange,
+                    asyncExchange: descriptor.asyncExchange,
                   }
                 : {}),
               version: msg.version,

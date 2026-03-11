@@ -12,6 +12,7 @@ import {
   TenantId,
   UserId,
 } from "../brandedIds.js";
+import { AsyncExchangeFields } from "../eservice/eservice.js";
 import { ClientKindTokenGenStates } from "./commons.js";
 
 export const itemState = {
@@ -35,10 +36,8 @@ export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
   descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
-  asyncExchange: z.boolean().optional(),
-  asyncExchangeResponseTime: z.number().optional(),
-  asyncExchangeResourceAvailableTime: z.number().optional(),
-  asyncExchangeConfirmation: z.boolean().optional(),
+  asyncExchangeEnabled: z.boolean().optional(),
+  asyncExchange: AsyncExchangeFields.optional(),
 });
 export type PlatformStatesCatalogEntry = z.infer<
   typeof PlatformStatesCatalogEntry
