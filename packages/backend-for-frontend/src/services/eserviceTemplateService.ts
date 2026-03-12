@@ -593,7 +593,9 @@ export function eserviceTemplateServiceBuilder(
 
       const documentId = randomUUID();
 
-      if (doc.kind === "INTERFACE") {
+      if (
+        doc.kind === eserviceTemplateApi.EServiceDocumentKind.enum.INTERFACE
+      ) {
         await validateRestInterfaceRoundTrip(doc.doc, {
           id: eserviceTemplate.id,
           isEserviceTemplate: true,
