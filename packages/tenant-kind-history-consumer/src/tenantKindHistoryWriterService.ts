@@ -1,56 +1,49 @@
-import { eq } from "drizzle-orm";
-import { fromTenantKindHistorySQL } from "pagopa-interop-models";
+import { eq, and } from "drizzle-orm";
 import {
-  checkMetadataVersion,
-} from "pagopa-interop-readmodel";
-import {
-  DrizzleReturnType,
-  eserviceTemplateInReadmodelEserviceTemplate,
-} from "pagopa-interop-readmodel-models";
+  TenantKind,
+  toTenantKindHistorySQL,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { drizzle } from "drizzle-orm/node-postgres";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantKindHistoryWriterServiceBuilder(
-  tenantKindHistoryDB: DrizzleReturnType
+  tenantKindHistoryDB: ReturnType<typeof drizzle>
 ) {
   return {
     async createTenantKindHistory(
       tenantId: string,
       metadataVersion: number,
-      kind: string,
+      kind: string | undefined,
       modifiedAt: string
     ): Promise<void> {
-      const tenantKindHistorySQL = fromTenantKindHistorySQL({
-        tenantId,
-        metadataVersion,
-        kind,
-        modifiedAt,
+      if (!kind) return; // no tenant kind change to register
+
+      const tenantKindHistorySQL = toTenantKindHistorySQL({
+        tenantId: unsafeBrandId(tenantId),
+        version: metadataVersion,
+        kind: TenantKind.parse(kind),
+        modifiedAt: new Date(modifiedAt),
       });
 
-      await tenantKindHistoryDB
-        .insert(tenantKindHistory)
-        .values(tenantKindHistorySQL);
-
       await tenantKindHistoryDB.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          eserviceTemplateInReadmodelEserviceTemplate,
-          metadataVersion,
-          eserviceTemplate.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(eserviceTemplateInReadmodelEserviceTemplate)
+        const match = await tx
+          .select()
+          .from(tenantKindHistory)
           .where(
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplate.id
+            and(
+              eq(tenantKindHistory.tenantId, tenantKindHistorySQL.tenantId),
+              eq(
+                tenantKindHistory.metadataVersion,
+                tenantKindHistorySQL.metadataVersion
+              )
             )
           );
+
+        if (match) return; // already saved this tenant kind change
+
+        await tx.insert(tenantKindHistory).values(tenantKindHistorySQL);
       });
     },
   };
