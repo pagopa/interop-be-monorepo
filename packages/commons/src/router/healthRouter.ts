@@ -14,7 +14,7 @@ type RequiresHealthStatus = [
     method: "get";
     path: "/status";
     response: typeof ProblemSchema;
-  }
+  },
 ];
 
 export const healthRouter = (

@@ -28,7 +28,8 @@ COPY ./packages/models /app/packages/models
 COPY ./packages/in-app-notification-db-models /app/packages/in-app-notification-db-models
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.modules.yaml && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \

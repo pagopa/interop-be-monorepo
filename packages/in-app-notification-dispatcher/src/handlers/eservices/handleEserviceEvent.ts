@@ -90,7 +90,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeleted"
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceInstanceLabelUpdated"
         ),
       },
       () => {
