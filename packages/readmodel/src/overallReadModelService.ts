@@ -111,13 +111,17 @@ import { aggregateTenantArray } from "./tenant/aggregators.js";
 import { aggregateProducerJWKKeyArray } from "./producer-jwk-key/aggregators.js";
 import {
   aggregateClientArray,
-  aggregateClientJWKKeyArray,
-  aggregateProducerKeychainArray,
-  aggregatePurposeTemplateArray,
   toClientAggregatorArray,
+} from "./client/aggregators.js";
+import { aggregateClientJWKKeyArray } from "./client-jwk-key/aggregators.js";
+import {
+  aggregateProducerKeychainArray,
   toProducerKeychainAggregatorArray,
+} from "./producer-keychain/aggregators.js";
+import {
+  aggregatePurposeTemplateArray,
   toPurposeTemplateAggregatorArray,
-} from "./index.js";
+} from "./purpose-template/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
