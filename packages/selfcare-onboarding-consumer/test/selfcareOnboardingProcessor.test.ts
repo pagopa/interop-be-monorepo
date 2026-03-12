@@ -105,7 +105,10 @@ describe("Message processor", () => {
       message: {
         ...kafkaMessagePayload.message,
         value: Buffer.from(
-          JSON.stringify({ ...correctEventPayload, product: "another-product" })
+          JSON.stringify({
+            ...correctEventPayload,
+            product: "another-product",
+          })
         ),
       },
     };
@@ -170,7 +173,11 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "IPA", value: "ipa_123" },
+        externalId: {
+          origin: "IPA",
+          value: "ipa_123",
+          selfcareInstitutionType: "PA",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
@@ -209,7 +216,11 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "IPA", value: "AOO_456" },
+        externalId: {
+          origin: "IPA",
+          value: "AOO_456",
+          selfcareInstitutionType: "PA",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
@@ -249,7 +260,11 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "tax789" },
+        externalId: {
+          origin: "ANAC",
+          value: "tax789",
+          selfcareInstitutionType: "PA",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
@@ -286,11 +301,14 @@ describe("Message processor", () => {
 
       await selfcareOnboardingProcessor.processMessage(message);
 
-      const expectedOrigin = origin + "-" + institutionType;
       expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
       expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          externalId: { origin: expectedOrigin, value: "tax789" },
+          externalId: {
+            origin: origin,
+            value: "tax789",
+            selfcareInstitutionType: institutionType,
+          },
           selfcareId: correctEventPayload.institutionId,
           name: correctInstitutionEventField.description,
         }),
@@ -330,7 +348,11 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "anac_123" },
+        externalId: {
+          origin: "ANAC",
+          value: "anac_123",
+          selfcareInstitutionType: "PA",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
@@ -370,7 +392,11 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "anac_123" },
+        externalId: {
+          origin: "ANAC",
+          value: "anac_123",
+          selfcareInstitutionType: "PA",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),

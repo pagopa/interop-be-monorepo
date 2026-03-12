@@ -53,6 +53,8 @@ describe("getTenants", () => {
       externalId: {
         origin: mockApiTenant1.externalId.origin,
         value: mockApiTenant1.externalId.value,
+        selfcareInstitutionType:
+          mockApiTenant1.externalId.selfcareInstitutionType,
       },
       name: mockApiTenant1.name,
       kind: mockApiTenant1.kind,
@@ -67,6 +69,8 @@ describe("getTenants", () => {
       externalId: {
         origin: mockApiTenant2.externalId.origin,
         value: mockApiTenant2.externalId.value,
+        selfcareInstitutionType:
+          mockApiTenant2.externalId.selfcareInstitutionType,
       },
       name: mockApiTenant2.name,
       kind: mockApiTenant2.kind,
