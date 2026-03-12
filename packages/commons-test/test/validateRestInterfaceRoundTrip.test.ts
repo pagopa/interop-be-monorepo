@@ -1,3 +1,6 @@
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import path from "path";
 import { describe, expect, it } from "vitest";
 import {
   generateId,
@@ -5,6 +8,11 @@ import {
 } from "pagopa-interop-models";
 import { validateRestInterfaceRoundTrip } from "pagopa-interop-commons";
 import { readFileContent } from "../src/index.js";
+
+const bffApiPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../api-clients/open-api/bffApi.yml"
+);
 
 describe("validateRestInterfaceRoundTrip", () => {
   const resource = {
@@ -35,7 +43,7 @@ describe("validateRestInterfaceRoundTrip", () => {
   });
 
   it("should throw invalidInterfaceFileDetected for a YAML file with too many $ref that cause excessive aliases after round-trip", async () => {
-    const content = await readFileContent("bffApi.yml");
+    const content = await fs.readFile(bffApiPath, "utf-8");
     const file = new File([content], "bffApi.yml", {
       type: "application/x-yaml",
     });
