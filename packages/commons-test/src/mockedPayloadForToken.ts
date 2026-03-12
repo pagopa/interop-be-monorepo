@@ -78,8 +78,9 @@ export const signPayload = (payload: object): string => {
   const header = Buffer.from(
     JSON.stringify({ alg: "HS256", typ: "JWT" })
   ).toString("base64url");
+  const p = payload as Record<string, unknown>;
   const claims =
-    "iat" in payload
+    p.iat != null
       ? payload
       : { ...payload, iat: Math.floor(Date.now() / 1000) };
   const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
