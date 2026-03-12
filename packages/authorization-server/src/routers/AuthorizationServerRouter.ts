@@ -1,26 +1,17 @@
-import { constants } from "http2";
 import {
-  AuthServerAppContext,
   ExpressContext,
-  logger,
   rateLimiterHeadersFromStatus,
-  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  ClientId,
-  ClientKindTokenGenStates,
-  Problem,
-  TenantId,
-  tooManyRequestsError,
-} from "pagopa-interop-models";
+import { tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { TokenService } from "../services/tokenService.js";
+import { buildCtxHelpers, handleTokenError } from "../utilities/routerUtils.js";
 
 const authorizationServerRouter = (
   ctx: ZodiosContext,
@@ -33,32 +24,10 @@ const authorizationServerRouter = (
     }
   );
   authorizationServerRouter.post("/token.oauth2", async (req, res) => {
-    /* generateToken needs to mutate the context to set the clientId and organizationId,
-      so that they can be used in further middlewares (e.g., the application audit).
-      We create two dedicated mutation functions so that we can pass down a read-only context
-      and the mutation function, and avoid mutating it directly.
-      */
-    const setCtxClientId = (clientId: ClientId): void => {
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.clientId = clientId;
-    };
+    const { getCtx, setCtxClientId, setCtxClientKind, setCtxOrganizationId } =
+      buildCtxHelpers(req.ctx);
 
-    const setCtxOrganizationId = (organizationId: TenantId): void => {
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.organizationId = organizationId;
-    };
-
-    const setCtxClientKind = (
-      tokenGenClientKind: ClientKindTokenGenStates
-    ): void => {
-      // eslint-disable-next-line functional/immutable-data
-      req.ctx.clientKind = tokenGenClientKind;
-    };
-
-    const getCtx = (): WithLogger<AuthServerAppContext> => ({
-      ...req.ctx,
-      logger: logger({ ...req.ctx }),
-    });
+    const ctx = getCtx();
 
     try {
       const tokenResult = await tokenService.generateToken(
@@ -92,44 +61,8 @@ const authorizationServerRouter = (
           tokenResult.token.payload.exp - tokenResult.token.payload.iat,
       });
     } catch (err) {
-      const errorRes = makeApiProblem(
-        err,
-        authorizationServerErrorMapper,
-        getCtx()
-      );
-      if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
-        const cleanedError: Problem = {
-          title: "The request contains bad syntax or cannot be fulfilled.",
-          type: "about:blank",
-          status: constants.HTTP_STATUS_BAD_REQUEST,
-          detail: "Bad request",
-          errors: [
-            {
-              code: "015-0008",
-              detail: "Unable to generate a token for the given request",
-            },
-          ],
-          correlationId: req.ctx.correlationId,
-        };
-
-        return res.status(cleanedError.status).send(cleanedError);
-      } else {
-        const cleanedError: Problem = {
-          title: "The request couldn't be fulfilled due to an internal error",
-          type: "internalServerError",
-          status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-          detail: "Internal server error",
-          errors: [
-            {
-              code: "015-0000",
-              detail:
-                "Unable to generate a token for the given request due to an internal error",
-            },
-          ],
-          correlationId: req.ctx.correlationId,
-        };
-        return res.status(cleanedError.status).send(cleanedError);
-      }
+      const { status, body } = handleTokenError(err, ctx);
+      return res.status(status).send(body);
     }
   });
   return authorizationServerRouter;
