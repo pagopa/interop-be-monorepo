@@ -7,7 +7,6 @@ import {
 } from "jose";
 import {
   invalidClaim,
-  jwkDecodingError,
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
@@ -28,7 +27,7 @@ import {
 export const decodeJwtToken = (
   jwtToken: string,
   logger: Logger
-): JWTPayload | null => {
+): JWTPayload => {
   try {
     return decodeJwt(jwtToken);
   } catch (err) {
@@ -74,20 +73,10 @@ export const verifyJwtToken = async (
   const extractUserInfoForFailedToken = (): AuthDataUserInfo => {
     try {
       const decoded = decodeJwtToken(jwtToken, logger);
-      if (!decoded) {
-        logger.warn("Failed to decode JWT token");
-        return getUserInfoFromAuthData(undefined);
-      }
-
-      try {
-        const authData = readAuthDataFromJwtToken(decoded);
-        return getUserInfoFromAuthData(authData);
-      } catch (authDataError) {
-        logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
-        return getUserInfoFromAuthData(undefined);
-      }
-    } catch (decodeError) {
-      logger.warn(`Error decoding JWT token: ${decodeError}`);
+      const authData = readAuthDataFromJwtToken(decoded);
+      return getUserInfoFromAuthData(authData);
+    } catch (error) {
+      logger.warn(`Could not extract user info from JWT token: ${error}`);
       return getUserInfoFromAuthData(undefined);
     }
   };
@@ -111,9 +100,6 @@ export const verifyJwtToken = async (
           audience: acceptedAudiences,
         });
         const decoded = decodeJwtToken(jwtToken, logger);
-        if (!decoded) {
-          throw jwkDecodingError("Empty decoded token");
-        }
         return { decoded };
       } catch (error) {
         // If it is a matching key error or a network problem try with the next client

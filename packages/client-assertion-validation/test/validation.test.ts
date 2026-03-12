@@ -324,7 +324,7 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
-    it("unexpectedClientAssertionPayload", async () => {
+    it("audienceNotFound - valid JWT without audience claim", async () => {
       const { keySet } = generateKeySet();
 
       const jws = await new SignJWT({ val: "actualPayload" })
