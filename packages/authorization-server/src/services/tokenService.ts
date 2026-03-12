@@ -44,7 +44,7 @@ import {
   publishAudit,
   retrieveKey,
   validateDPoPProof,
-} from "./tokenServiceHelpers.js";
+} from "../utilities/tokenServiceHelpers.js";
 
 export type GeneratedTokenData =
   | {
@@ -315,4 +315,4 @@ export {
   publishAudit,
   retrieveKey,
   validateDPoPProof,
-} from "./tokenServiceHelpers.js";
+} from "../utilities/tokenServiceHelpers.js";
