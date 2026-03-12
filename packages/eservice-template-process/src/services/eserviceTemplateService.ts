@@ -1332,6 +1332,9 @@ export function eserviceTemplateServiceBuilder(
         ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
           ? { personalData: seed.personalData }
           : {}),
+        ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+          ? { asyncExchange: seed.asyncExchange }
+          : {}),
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -2151,6 +2154,19 @@ async function updateDraftEServiceTemplate(
           : eserviceTemplate.data.personalData)
     )
     .exhaustive();
+
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null
+          ? undefined
+          : eserviceTemplate.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEServiceTemplate: EServiceTemplate = {
     ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
@@ -2168,6 +2184,9 @@ async function updateDraftEServiceTemplate(
     isSignalHubEnabled: updatedIsSignalHubEnabled,
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: updatedPersonalData }
+      : {}),
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
       : {}),
   };
 

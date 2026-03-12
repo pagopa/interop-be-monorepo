@@ -29370,6 +29370,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     EServiceTemplateVersionDetails:
@@ -29491,6 +29493,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -29522,6 +29526,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     InstanceEServiceSeed:
       type: object

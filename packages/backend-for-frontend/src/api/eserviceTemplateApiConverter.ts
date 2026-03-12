@@ -50,6 +50,7 @@ export function toBffEServiceTemplateDetails(
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
     personalData: eserviceTemplate.personalData,
+    asyncExchange: eserviceTemplate.asyncExchange,
   };
 }
 

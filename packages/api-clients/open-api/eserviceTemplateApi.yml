@@ -1534,6 +1534,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1564,6 +1566,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1587,6 +1591,9 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     VersionSeedForEServiceTemplateCreation:
@@ -1935,6 +1942,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceMode:
       type: string

@@ -326,4 +326,5 @@ const eserviceTemplateToEServiceTemplateSQL = (
   mode: eserviceTemplate.mode,
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled ?? null,
   personalData: eserviceTemplate.personalData ?? null,
+  asyncExchange: eserviceTemplate.asyncExchange ?? null,
 });

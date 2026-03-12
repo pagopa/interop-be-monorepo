@@ -51,4 +51,5 @@ message EServiceTemplateV2 {
   eservice.v2.EServiceModeV2 mode = 10;
   optional bool isSignalHubEnabled = 11;
   optional bool personalData = 12;
+  optional bool asyncExchange = 13;
 }

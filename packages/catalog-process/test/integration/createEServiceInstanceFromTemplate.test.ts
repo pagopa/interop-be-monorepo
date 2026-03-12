@@ -66,6 +66,7 @@ describe("create eService from template", () => {
       ...mockEServiceTemplate,
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     const tenant: Tenant = {
@@ -125,6 +126,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -138,6 +140,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -260,6 +263,7 @@ describe("create eService from template", () => {
         isClientAccessDelegable: false,
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
+        asyncExchange: eServiceTemplate.asyncExchange,
         ...(instanceLabel !== undefined ? { instanceLabel } : {}),
       };
 
@@ -274,6 +278,7 @@ describe("create eService from template", () => {
         isConsumerDelegable: false,
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
+        asyncExchange: eServiceTemplate.asyncExchange,
         ...(instanceLabel !== undefined ? { instanceLabel } : {}),
         descriptors: [
           {
@@ -328,6 +333,7 @@ describe("create eService from template", () => {
       ],
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     await addOneTenant(tenant);
@@ -357,6 +363,7 @@ describe("create eService from template", () => {
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
       personalData: eserviceTemplate.personalData,
+      asyncExchange: eserviceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -404,6 +411,7 @@ describe("create eService from template", () => {
       ],
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     await addOneTenant(tenant);
@@ -431,6 +439,7 @@ describe("create eService from template", () => {
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPrivate],
       personalData: eserviceTemplate.personalData,
+      asyncExchange: eserviceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -485,6 +494,7 @@ describe("create eService from template", () => {
       ...mockEServiceTemplate,
       versions: [eserviceTemplatePublishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     const tenant: Tenant = {
@@ -612,6 +622,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
