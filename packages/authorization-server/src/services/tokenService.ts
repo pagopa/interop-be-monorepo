@@ -299,12 +299,7 @@ export function tokenServiceBuilder({
 
 export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 
-// Re-export shared helpers for backwards compatibility
 export {
-  deconstructGSIPK_eserviceId_descriptorId,
   fallbackAudit,
-  logTokenGenerationInfo,
-  publishAudit,
   retrieveKey,
-  validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
