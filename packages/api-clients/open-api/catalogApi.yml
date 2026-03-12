@@ -1754,16 +1754,16 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /maintenance/eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}/fix:
+  /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
       tags:
-        - maintenance
+        - process
       summary: Fix tenant kind for a risk analysis
-      operationId: fixEServiceRiskAnalysis
+      operationId: fixEServiceRiskAnalysisTenantKind
       description: Fixes the tenant kind of a specific risk analysis on the specified E-Service
       parameters:
         - name: eServiceId
@@ -1792,12 +1792,6 @@ paths:
                 $ref: "#/components/schemas/EService"
         "404":
           description: EService or Risk Analysis not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
           content:
             application/problem+json:
               schema:
