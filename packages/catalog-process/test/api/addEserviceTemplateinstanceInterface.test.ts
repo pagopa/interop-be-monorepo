@@ -12,6 +12,7 @@ import {
   generateId,
   interfaceExtractingInfoError,
   invalidContentTypeDetected,
+  invalidInterfaceData,
   invalidInterfaceFileDetected,
   operationForbidden,
   technology,
@@ -181,6 +182,13 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         {
           error: notValidDescriptorState(descriptor.id, descriptor.state),
+          expectedStatus: 400,
+        },
+        {
+          error: invalidInterfaceData({
+            id: eservice.id,
+            isEserviceTemplate: true,
+          }),
           expectedStatus: 400,
         },
       ])(
