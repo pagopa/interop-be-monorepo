@@ -39,7 +39,10 @@ import {
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
-import { logTokenGenerationInfo, validateDPoPProof } from "./tokenService.js";
+import {
+  logTokenGenerationInfo,
+  validateDPoPProof,
+} from "./tokenServiceHelpers.js";
 
 type ScopeHandlerContext = {
   dynamoDBClient: DynamoDBClient;
