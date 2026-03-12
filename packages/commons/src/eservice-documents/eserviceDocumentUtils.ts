@@ -81,6 +81,41 @@ const getInterfaceFileType = (
     .with(P.string.endsWith("xml"), () => eserviceInterfaceAllowedFileType.xml)
     .otherwise(() => undefined);
 
+/**
+ * Validates that a REST interface file survives the round-trip that happens
+ * during e-service template instantiation:
+ * YAML/JSON parse → SwaggerParser.validate → YAML/JSON stringify → re-parse.
+ *
+ * SwaggerParser.validate resolves $ref in-place, causing YAML.stringify to
+ * produce anchors/aliases. If there are too many, YAML.parse rejects the file.
+ */
+export const validateRestInterfaceRoundTrip = async (
+  file: File,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
+): Promise<void> => {
+  const fileType = getInterfaceFileType(file.name);
+  if (
+    fileType !== eserviceInterfaceAllowedFileType.json &&
+    fileType !== eserviceInterfaceAllowedFileType.yaml
+  ) {
+    return;
+  }
+
+  const fileContent = await file.text();
+  const jsonApi = parseOpenApi(fileType, fileContent);
+
+  try {
+    await SwaggerParser.validate(jsonApi);
+    const buffer = restApiFileToBuffer(fileType, jsonApi);
+    parseOpenApi(fileType, buffer.toString());
+  } catch {
+    throw invalidInterfaceFileDetected(resource);
+  }
+};
+
 const retrieveServerUrlsRestAPI = (
   fileType: EserviceRestInterfaceType,
   file: string
