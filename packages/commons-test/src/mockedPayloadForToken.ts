@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, createHmac } from "crypto";
 import {
   generateKeyPair,
   exportJWK,
@@ -7,7 +7,6 @@ import {
   JWK,
   exportSPKI,
 } from "jose";
-import jwt from "jsonwebtoken";
 import {
   AuthRole,
   InteropJwtMaintenancePayload,
@@ -75,8 +74,21 @@ export function createPayload<T extends keyof RolePayloadsMap>(
 export const generateToken = (role: AuthRole): string =>
   signPayload(createPayload(role));
 
-export const signPayload = (payload: object): string =>
-  jwt.sign(payload, "test-secret");
+export const signPayload = (payload: object): string => {
+  const header = Buffer.from(
+    JSON.stringify({ alg: "HS256", typ: "JWT" })
+  ).toString("base64url");
+  const p = payload as Record<string, unknown>;
+  const claims =
+    p.iat != null
+      ? payload
+      : { ...payload, iat: Math.floor(Date.now() / 1000) };
+  const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
+  const signature = createHmac("sha256", "test-secret")
+    .update(`${header}.${body}`)
+    .digest("base64url");
+  return `${header}.${body}.${signature}`;
+};
 
 export const mockTokenUserId = generateId<UserId>();
 
