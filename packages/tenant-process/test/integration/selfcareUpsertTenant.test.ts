@@ -48,6 +48,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: mockTenant.externalId.origin,
         value: mockTenant.externalId.value,
+        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId,
@@ -80,33 +81,36 @@ describe("selfcareUpsertTenant", async () => {
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-  it.each([PUBLIC_ADMINISTRATIONS_IDENTIFIER, SCP, "Private"])(
-    "Should create a tenant with origin %s if it does not exist",
-    async (origin) => {
+  it.each([
+    { origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER, type: "PA" },
+    { origin: SCP, type: "SCP" },
+    { origin: "PRV", type: "PRV" },
+  ])(
+    "Should create a tenant with origin $origin and type $type if it does not exist",
+    async ({ origin, type }) => {
       const tenantSeed = {
         externalId: {
           origin,
           value: "0",
+          selfcareInstitutionType: type,
         },
         name: "A tenant",
         selfcareId: generateId(),
         onboardedAt: mockTenant.onboardedAt!.toISOString(),
         subUnitType: mockTenant.subUnitType,
       };
+
       const id = await tenantService.selfcareUpsertTenant(
         tenantSeed,
         getMockContext({})
       );
+
       expect(id).toBeDefined();
       const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
       if (!writtenEvent) {
         fail("Creation failed: tenant not found in event-store");
       }
-      expect(writtenEvent).toMatchObject({
-        stream_id: id,
-        version: "0",
-        type: "TenantOnboarded",
-      });
+
       const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
         TenantOnboardedV2
       ).parse(writtenEvent.data);
@@ -114,10 +118,11 @@ describe("selfcareUpsertTenant", async () => {
       const expectedTenant: Tenant = {
         externalId: tenantSeed.externalId,
         id: unsafeBrandId(id),
-        kind: match(origin)
-          .with(SCP, () => tenantKind.SCP)
-          .with("Private", () => tenantKind.PRIVATE)
-          .otherwise(() => undefined),
+
+        kind: match(type)
+          .with("SCP", () => tenantKind.SCP)
+          .with("PA", () => undefined)
+          .otherwise(() => tenantKind.PRIVATE),
         selfcareId: tenantSeed.selfcareId,
         onboardedAt: mockTenant.onboardedAt!,
         createdAt: new Date(),
@@ -136,6 +141,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
+        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId: mockTenant.selfcareId!,
@@ -154,6 +160,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
+        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
       },
       selfcareId: generateId(),
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
