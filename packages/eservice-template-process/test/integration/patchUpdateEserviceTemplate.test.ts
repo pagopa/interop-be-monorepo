@@ -67,6 +67,15 @@ describe("update eserviceTemplate", () => {
       isSignalHubEnabled: true,
       intendedTarget: "intendedTarget",
     },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      intendedTarget: "intendedTarget",
+      asyncExchange: true,
+    },
   ] as eserviceTemplateApi.PatchUpdateEServiceTemplateSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
@@ -102,6 +111,7 @@ describe("update eserviceTemplate", () => {
         isSignalHubEnabled:
           seed.isSignalHubEnabled ?? eserviceTemplate.isSignalHubEnabled,
         intendedTarget: seed.intendedTarget ?? eserviceTemplate.intendedTarget,
+        asyncExchange: seed.asyncExchange ?? eserviceTemplate.asyncExchange,
         riskAnalysis:
           seed.mode === "DELIVER" ? [] : eserviceTemplate.riskAnalysis,
       };

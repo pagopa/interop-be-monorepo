@@ -39,11 +39,13 @@ describe("create eservice template", () => {
   });
   it("should write on event-store for the creation of an eservice template", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const asyncExchange = randomArrayItem([false, true, undefined]);
     const eserviceTemplate =
       await eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           isSignalHubEnabled,
+          asyncExchange,
         }),
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
@@ -85,6 +87,7 @@ describe("create eservice template", () => {
         },
       ],
       isSignalHubEnabled,
+      asyncExchange,
     };
 
     expect(eserviceCreationPayload.eserviceTemplate).toEqual(

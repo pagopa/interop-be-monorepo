@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template (
   mode VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   personal_data BOOLEAN,
+  async_exchange BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT eservice_template_id_metadata_version_unique UNIQUE (id, metadata_version)
 );

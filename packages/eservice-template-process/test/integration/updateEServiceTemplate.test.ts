@@ -45,6 +45,7 @@ describe("update EService template", () => {
     vi.spyOn(fileManager, "delete");
 
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const asyncExchange = randomArrayItem([false, true, undefined]);
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [mockVersion],
@@ -56,6 +57,7 @@ describe("update EService template", () => {
       ...eserviceTemplate,
       name: updatedName,
       isSignalHubEnabled,
+      asyncExchange,
     };
     const returnedEServiceTemplate =
       await eserviceTemplateService.updateEServiceTemplate(
