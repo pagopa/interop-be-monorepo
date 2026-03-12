@@ -1,6 +1,6 @@
 import { constants } from "http2";
 import {
-  AppContext,
+  AuthData,
   ExpressContext,
   M2MAdminAuthData,
   fromAppContext,
@@ -13,13 +13,17 @@ import {
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import { Request } from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { Logger } from "pagopa-interop-commons";
 import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
-import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
+import {
+  M2MGatewayAppContext,
+  fromM2MGatewayAppContext,
+  getInteropHeaders,
+} from "./context.js";
 import { verifyDPoPCompliance } from "./dpop.js";
 import { extractRequestDetailsForDPoPCheck } from "./request.js";
 
@@ -49,9 +53,12 @@ export function m2mAuthDataValidationMiddleware(
     // - contextMiddleware already set basic ctx info such as correlationId
     // - authenticationMiddleware already set authData in ctx
 
-    const ctx = fromAppContext((req as Request & { ctx: AppContext }).ctx);
+    const ctx = fromM2MGatewayAppContext(
+      (req as Request & { ctx: M2MGatewayAppContext }).ctx,
+      req.headers
+    );
     try {
-      await match(ctx.authData)
+      await match(ctx.authData as AuthData)
         .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (authData) =>
           validateM2MAdminUserId(
             authData,
@@ -63,23 +70,11 @@ export function m2mAuthDataValidationMiddleware(
         .with({ systemRole: systemRole.M2M_ROLE }, () => {
           // No additional validation needed for M2M_ROLE
         })
-        .with(
-          {
-            systemRole: P.union(
-              systemRole.INTERNAL_ROLE,
-              systemRole.MAINTENANCE_ROLE,
-              undefined
-            ),
-          },
-          (authData) => {
-            throw unauthorizedError(
-              `Invalid role ${
-                authData.systemRole ?? authData.userRoles
-              } for this operation`
-            );
-          }
-        )
-        .exhaustive();
+        .otherwise((authData) => {
+          throw unauthorizedError(
+            `Invalid role ${authData.systemRole} for this operation`
+          );
+        });
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
