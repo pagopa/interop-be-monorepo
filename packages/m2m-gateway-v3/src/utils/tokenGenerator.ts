@@ -2,8 +2,6 @@ import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { config } from "../config/config.js";
 
-let instance: InteropTokenGenerator | undefined;
-
 /**
  * Note: This function is left to its own file to enable mocking
  * or to override the KmsClient to use a local KmsClient like so:
@@ -14,9 +12,8 @@ let instance: InteropTokenGenerator | undefined;
  * });
  * ```
  */
-export function getInteropTokenGenerator(): InteropTokenGenerator {
-  if (!instance) {
-    instance = new InteropTokenGenerator(config, new KMSClient());
-  }
-  return instance;
+export function getInteropTokenGenerator(
+  kmsClient: KMSClient
+): InteropTokenGenerator {
+  return new InteropTokenGenerator(config, kmsClient);
 }

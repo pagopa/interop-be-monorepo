@@ -1,3 +1,4 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createHash } from "node:crypto";
@@ -43,7 +44,8 @@ export async function downloadDocument(
 export async function sendDownloadedDocumentAsFormData(
   { id, file, prettyName }: DownloadedDocument,
   res: Response,
-  clientId: string
+  clientId: string,
+  kmsClient: KMSClient
 ): Promise<Response> {
   const form = new FormData();
   form.set("file", file);
@@ -66,7 +68,7 @@ export async function sendDownloadedDocumentAsFormData(
   const contentType = encoder.headers["Content-Type"];
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
-  const tokenGenerator = getInteropTokenGenerator();
+  const tokenGenerator = getInteropTokenGenerator(kmsClient);
   const correlationId = res.getHeader("x-correlation-id")?.toString();
   if (!correlationId) {
     throw new Error("Missing correlation id");
