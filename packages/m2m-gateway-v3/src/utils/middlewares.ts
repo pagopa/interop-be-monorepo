@@ -149,7 +149,7 @@ export const authenticationDPoPMiddleware: (
         });
       } catch (dpopError) {
         ctx.logger.warn(
-          `[ATJTI=${accessTokenDPoP.jti}] - Access token valid but DPoP validation failed`
+          `[JTI=${accessTokenDPoP.jti}] - Access token valid but DPoP validation failed`
         );
         throw dpopError;
       }
