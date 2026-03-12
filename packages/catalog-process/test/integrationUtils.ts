@@ -38,19 +38,24 @@ import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
-export const { cleanup, postgresDB, fileManager, readModelDB, tenantKindHistoryDB } =
-  await setupTestContainersVitest(
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("tenantKindHistoryDBConfig")
-  );
+export const {
+  cleanup,
+  postgresDB,
+  fileManager,
+  readModelDB,
+  tenantKindHistoryDB,
+} = await setupTestContainersVitest(
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("tenantKindHistoryDBConfig")
+);
 
 afterEach(cleanup);
 
