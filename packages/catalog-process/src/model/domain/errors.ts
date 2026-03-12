@@ -358,16 +358,6 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
-export function invalidEServiceFlags(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} flags are not valid`,
-    code: "invalidEServiceFlags",
-    title: "Invalid EService flags",
-  });
-}
-
 export function invalidDelegationFlags(
   isConsumerDelegable: boolean | undefined,
   isClientAccessDelegable: boolean | undefined
