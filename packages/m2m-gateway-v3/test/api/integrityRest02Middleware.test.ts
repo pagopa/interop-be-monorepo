@@ -25,7 +25,7 @@ import {
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
-function decodeJwtPayload(token: string): { [k: string]: unknown } {
+function decodeJwtPayload(token: string): Record<string, unknown> {
   const [, payload] = token.split(".");
 
   if (!payload) {

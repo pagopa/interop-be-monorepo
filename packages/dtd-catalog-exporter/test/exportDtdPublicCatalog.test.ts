@@ -31,9 +31,6 @@ import {
 describe("exportDtdPublicCatalog", () => {
   vi.mock("../src/services/github-client.services.ts", () => ({
     GithubClient: class MockGithubClient {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      constructor(_accessToken: string) {}
-
       public async createOrUpdateRepoFile(
         _content: string,
         _owner: string,

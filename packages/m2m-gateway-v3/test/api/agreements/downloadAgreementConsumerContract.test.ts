@@ -17,7 +17,7 @@ import {
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { agreementContractNotFound } from "../../../src/model/errors.js";
 
-function decodeJwtPayload(token: string): { [k: string]: unknown } {
+function decodeJwtPayload(token: string): Record<string, unknown> {
   const [, payload] = token.split(".");
 
   if (!payload) {

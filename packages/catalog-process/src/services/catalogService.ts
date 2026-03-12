@@ -90,7 +90,6 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
-  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -149,6 +148,7 @@ import {
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
+  toCreateEventEServiceInstanceLabelUpdated,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -180,8 +180,9 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertValidDelegationFlags,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -284,9 +285,8 @@ const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<EServiceTemplate> => {
-  const eserviceTemplate = await readModelService.getEServiceTemplateById(
-    eserviceTemplateId
-  );
+  const eserviceTemplate =
+    await readModelService.getEServiceTemplateById(eserviceTemplateId);
   if (eserviceTemplate === undefined) {
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
@@ -491,6 +491,7 @@ async function innerCreateEService(
   {
     seed,
     template,
+    instanceLabel,
   }: {
     seed: catalogApi.EServiceSeed;
     template:
@@ -501,6 +502,7 @@ async function innerCreateEService(
           riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
+    instanceLabel?: string | undefined;
   },
   readModelService: ReadModelServiceSQL,
   {
@@ -521,9 +523,15 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
+  const eserviceId = generateId<EServiceId>();
+  assertValidDelegationFlags(
+    seed.isConsumerDelegable,
+    seed.isClientAccessDelegable
+  );
+
   const creationDate = new Date();
   const newEService: EService = {
-    id: generateId(),
+    id: eserviceId,
     producerId: authData.organizationId,
     name: seed.name,
     description: seed.description,
@@ -544,6 +552,7 @@ async function innerCreateEService(
     ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
       ? { personalData: seed.personalData }
       : {}),
+    instanceLabel: instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -973,8 +982,34 @@ export function catalogServiceBuilder(
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
 
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel: eserviceSeed.instanceLabel,
+        });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      assertValidDelegationFlags(
+        eserviceSeed.isConsumerDelegable,
+        eserviceSeed.isClientAccessDelegable
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel: parsedInstanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
@@ -2439,9 +2474,7 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      if (!isConsumerDelegable && isClientAccessDelegable) {
-        throw invalidEServiceFlags(eserviceId);
-      }
+      assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2893,26 +2926,31 @@ export function catalogServiceBuilder(
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
-      newName: string,
+      updatedTemplateName: string,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Internal updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (newName === eservice.data.name) {
+      const { instanceName: updatedInstanceName } = buildInstanceName({
+        templateName: updatedTemplateName,
+        instanceLabel: eservice.data.instanceLabel,
+      });
+
+      if (updatedInstanceName === eservice.data.name) {
         return;
       }
 
       await assertEServiceNameAvailableForProducer(
-        newName,
+        updatedInstanceName,
         eservice.data.producerId,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: newName,
+        name: updatedInstanceName,
       };
 
       await repository.createEvent(
@@ -3294,9 +3332,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
 
-      const template = await readModelService.getEServiceTemplateById(
-        templateId
-      );
+      const template =
+        await readModelService.getEServiceTemplateById(templateId);
 
       if (!template) {
         throw eServiceTemplateNotFound(templateId);
@@ -3321,8 +3358,13 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const { parsedInstanceLabel, instanceName } = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: seed.instanceLabel,
+      });
+
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        instanceName,
         ctx.authData.organizationId,
         readModelService
       );
@@ -3340,7 +3382,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3368,6 +3410,7 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
             riskAnalysis,
           },
+          instanceLabel: parsedInstanceLabel,
         },
         readModelService,
         ctx
@@ -3646,6 +3689,63 @@ export function catalogServiceBuilder(
           updatedEservice,
           correlationId
         );
+
+      await repository.createEvent(event);
+
+      return updatedEservice;
+    },
+    async updateEServiceInstanceLabelAfterPublication(
+      eserviceId: EServiceId,
+      instanceLabel: string | undefined,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel,
+        });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel: parsedInstanceLabel,
+      };
+
+      const event = toCreateEventEServiceInstanceLabelUpdated(
+        eservice.metadata.version,
+        updatedEservice,
+        correlationId
+      );
 
       await repository.createEvent(event);
 
@@ -3966,7 +4066,7 @@ async function extractEServiceRiskAnalysisFromTemplate(
           createdAt: r.createdAt,
           name: r.name,
           riskAnalysisForm: r.riskAnalysisForm,
-        } satisfies RiskAnalysis)
+        }) satisfies RiskAnalysis
     );
 
   if (riskAnalysis.length === 0) {
@@ -4087,6 +4187,11 @@ async function updateDraftEService(
       () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
     )
     .exhaustive();
+
+  assertValidDelegationFlags(
+    updatedIsConsumerDelegable,
+    updatedIsClientAccessDelegable
+  );
 
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)
@@ -4227,5 +4332,33 @@ async function updateDraftDescriptor(
     metadata: { version: event.newVersion },
   };
 }
+
+/**
+ * Builds the instance name from the template name and optional instance label.
+ * - templateName: maxLength 45
+ * - separator " - ": 3 characters
+ * - instanceLabel: maxLength 12
+ * - eservice name (result): maxLength 60
+ *
+ * Also, empty spaces are removed, and an empty string is treated as undefined
+ */
+const buildInstanceName = ({
+  templateName,
+  instanceLabel,
+}: {
+  templateName: string;
+  instanceLabel: string | undefined;
+}): { parsedInstanceLabel?: string; instanceName: string } => {
+  const trimmedInstanceLabel = instanceLabel?.trim();
+  const parsedInstanceLabel =
+    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
+      ? trimmedInstanceLabel
+      : undefined;
+
+  const instanceName = parsedInstanceLabel
+    ? `${templateName} - ${parsedInstanceLabel}`
+    : templateName;
+  return { parsedInstanceLabel, instanceName };
+};
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
