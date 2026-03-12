@@ -1,12 +1,12 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { eserviceTemplateInReadmodelEserviceTemplate } from "pagopa-interop-readmodel-models";
+import { EserviceTemplateVersionSchema } from "./eserviceTemplateVersion.js";
+import { EserviceTemplateVersionInterfaceSchema } from "./eserviceTemplateVersionInterface.js";
+import { EserviceTemplateVersionDocumentSchema } from "./eserviceTemplateVersionDocument.js";
+import { EserviceTemplateVersionAttributeSchema } from "./eserviceTemplateVersionAttribute.js";
 import { EserviceTemplateRiskAnalysisSchema } from "./eserviceTemplateRiskAnalysis.js";
 import { EserviceTemplateRiskAnalysisAnswerSchema } from "./eserviceTemplateRiskAnalysisAnswer.js";
-import { EserviceTemplateVersionSchema } from "./eserviceTemplateVersion.js";
-import { EserviceTemplateVersionAttributeSchema } from "./eserviceTemplateVersionAttribute.js";
-import { EserviceTemplateVersionDocumentSchema } from "./eserviceTemplateVersionDocument.js";
-import { EserviceTemplateVersionInterfaceSchema } from "./eserviceTemplateVersionInterface.js";
 
 export const EserviceTemplateSchema = createSelectSchema(
   eserviceTemplateInReadmodelEserviceTemplate

@@ -14,8 +14,8 @@ import {
   ClientDbTable,
   ClientDbTablePartialTable,
 } from "../../model/db/index.js";
+import { ClientKeySchema } from "pagopa-interop-kpi-models";
 import {
-  ClientKeySchema,
   ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../../model/authorization/clientKey.js";

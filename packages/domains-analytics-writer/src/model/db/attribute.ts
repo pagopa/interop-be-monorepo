@@ -1,5 +1,5 @@
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
-import { AttributeSchema } from "../attribute/attribute.js";
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 export const AttributeDbTableConfig = {
   attribute: AttributeSchema,

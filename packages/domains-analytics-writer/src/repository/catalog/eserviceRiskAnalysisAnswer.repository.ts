@@ -8,7 +8,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { EserviceRiskAnalysisAnswerSchema } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
+import { EserviceRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {

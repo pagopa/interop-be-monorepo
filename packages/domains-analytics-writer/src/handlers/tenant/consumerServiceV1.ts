@@ -9,8 +9,8 @@ import { splitTenantIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { tenantServiceBuilder } from "../../service/tenantService.js";
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import {
-  TenantItemsSchema,
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";

@@ -8,7 +8,7 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { TenantCertifiedAttributeSchema } from "../../model/tenant/tenantCertifiedAttribute.js";
+import { TenantCertifiedAttributeSchema } from "pagopa-interop-kpi-models";
 import { TenantDbTable } from "../../model/db/index.js";
 
 export function tenantCertifiedAttributeRepository(conn: DBConnection) {

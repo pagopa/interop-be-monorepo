@@ -11,11 +11,9 @@ import { splitAgreementIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { agreementServiceBuilder } from "../../service/agreementService.js";
-import {
-  AgreementItemsSchema,
-  AgreementDeletingSchema,
-} from "../../model/agreement/agreement.js";
+import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import { AgreementItemsSchema } from "pagopa-interop-kpi-models";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],

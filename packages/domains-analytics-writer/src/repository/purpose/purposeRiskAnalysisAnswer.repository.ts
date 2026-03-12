@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { PurposeRiskAnalysisAnswerSchema } from "../../model/purpose/purposeRiskAnalysisAnswer.js";
+import { PurposeRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 import { PurposeDbTable } from "../../model/db/index.js";
 
 export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
