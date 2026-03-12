@@ -4,9 +4,7 @@ import { match } from "ts-pattern";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { PurposeEventNotification } from "./purposeEventNotification.js";
 
-export const eventV2TypeMapper = (
-  eventType: PurposeEventEnvelopeV2["type"]
-): string =>
+const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
   match(eventType)
     .with("PurposeAdded", "PurposeCloned", () => "purpose_created")
     .with("DraftPurposeUpdated", () => "purpose_updated")
@@ -45,6 +43,8 @@ export const eventV2TypeMapper = (
       () => "purpose_version_deleted"
     )
     .with("PurposeVersionRejected", () => "purpose_version_rejected")
+    .with("RiskAnalysisDocumentGenerated", () => "purpose_updated")
+    .with("RiskAnalysisSignedDocumentGenerated", () => "purpose_updated")
     .exhaustive();
 
 export const buildPurposeMessage = (

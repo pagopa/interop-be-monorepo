@@ -1,63 +1,69 @@
-import { constants } from "http2";
 import {
   ApiError,
-  parseErrorMessage,
-  makeApiProblemBuilder,
   AttributeId,
+  makeApiProblemBuilder,
+  parseErrorMessage,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
+  eserviceIsNotDraft: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
-  tenantLoginNotAllowed: "0008",
-  eServiceNotFound: "0010",
-  tenantNotFound: "0011",
-  agreementNotFound: "0012",
-  eserviceDescriptorNotFound: "0013",
-  purposeDraftVersionNotFound: "0014",
-  dynamoReadingError: "0015",
-  missingInterface: "0016",
-  eserviceRiskNotFound: "0017",
-  noDescriptorInEservice: "0018",
-  missingDescriptorInClonedEservice: "0019",
-  invalidInterfaceContentTypeDetected: "0020",
-  invalidInterfaceFileDetected: "0021",
-  openapiVersionNotRecognized: "0022",
-  interfaceExtractingInfoError: "0023",
-  agreementDescriptorNotFound: "0024",
-  unknownTenantOrigin: "0025",
-  invalidJwtClaim: "0026",
-  samlNotValid: "0027",
-  missingSelfcareId: "0028",
-  invalidZipStructure: "0029",
-  contractNotFound: "0030",
-  contractException: "0031",
-  notValidDescriptor: "0032",
-  privacyNoticeNotFoundInConfiguration: "0033",
-  privacyNoticeNotFound: "0034",
-  privacyNoticeVersionIsNotTheLatest: "0035",
-  missingActivePurposeVersion: "0036",
-  activeAgreementByEserviceAndConsumerNotFound: "0037",
-  purposeIdNotFoundInClientAssertion: "0038",
-  delegationNotFound: "0039",
-  organizationNotAllowed: "0040",
-  cannotGetKeyWithClient: "0041",
-  clientAssertionPublicKeyNotFound: "0042",
-  eserviceDelegated: "0043",
-  delegatedEserviceNotExportable: "0044",
-  missingUserRolesInIdentityToken: "0045",
+  tenantLoginNotAllowed: "0007",
+  eServiceNotFound: "0008",
+  tenantNotFound: "0009",
+  agreementNotFound: "0010",
+  eserviceDescriptorNotFound: "0011",
+  dynamoReadingError: "0012",
+  missingInterface: "0013",
+  eserviceRiskNotFound: "0014",
+  noDescriptorInEservice: "0015",
+  missingDescriptorInClonedEservice: "0016",
+  agreementDescriptorNotFound: "0017",
+  invalidJwtClaim: "0018",
+  samlNotValid: "0019",
+  missingSelfcareId: "0020",
+  invalidZipStructure: "0021",
+  contractNotFound: "0022",
+  contractException: "0023",
+  notValidDescriptor: "0024",
+  privacyNoticeNotFoundInConfiguration: "0025",
+  privacyNoticeNotFound: "0026",
+  privacyNoticeVersionIsNotTheLatest: "0027",
+  missingActivePurposeVersion: "0028",
+  activeAgreementByEserviceAndConsumerNotFound: "0029",
+  purposeIdNotFoundInClientAssertion: "0030",
+  delegationNotFound: "0031",
+  tenantNotAllowed: "0032",
+  cannotGetKeyWithClient: "0033",
+  clientAssertionPublicKeyNotFound: "0034",
+  delegatedEserviceNotExportable: "0035",
+  eserviceTemplateVersionNotFound: "0036",
+  catalogEServiceTemplatePublishedVersionNotFound: "0037",
+  eserviceTemplateNotFound: "0038",
+  eserviceTemplateIsNotPublished: "0039",
+  tooManyDescriptorForInterfaceWithTemplate: "0040",
+  missingUserRolesInIdentityToken: "0041",
+  templateInstanceNotAllowed: "0042",
+  tenantBySelfcareIdNotFound: "0043",
+  eserviceTemplateInterfaceNotFound: "0044",
+  invalidInterfaceFile: "0045",
+  eserviceTemplateInterfaceDataNotValid: "0046",
+  invalidEserviceInterfaceFileDetected: "0047",
+  operationForbidden: "0048",
+  noVersionInEServiceTemplate: "0049",
+  delegationContractNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export const emptyErrorMapper = (): number =>
-  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
+  problemErrorsPassthrough: true,
+  forceGenericProblemOn500: true,
+});
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -155,6 +161,16 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
+export function tenantBySelfcareIdNotFound(
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with Selfcare ID ${selfcareId} not found`,
+    code: "tenantBySelfcareIdNotFound",
+    title: "Tenant not found",
+  });
+}
+
 export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement of consumer ${consumerId} not found`,
@@ -181,16 +197,6 @@ export function eserviceDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
     code: "eserviceDescriptorNotFound",
     title: "EService descriptor not found",
-  });
-}
-
-export function purposeDraftVersionNotFound(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
-    code: "purposeDraftVersionNotFound",
-    title: "Purpose draft version not found",
   });
 }
 
@@ -259,6 +265,15 @@ export function noDescriptorInEservice(
     title: "No descriptor found in Eservice",
   });
 }
+export function noVersionInEServiceTemplate(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No version found in Eservice template ${eserviceTemplateId}`,
+    code: "noVersionInEServiceTemplate",
+    title: "No version found in Eservice template",
+  });
+}
 
 export function missingDescriptorInClonedEservice(
   eserviceId: string
@@ -270,52 +285,12 @@ export function missingDescriptorInClonedEservice(
   });
 }
 
-export function invalidInterfaceContentTypeDetected(
-  eServiceId: string,
-  contentType: string,
-  technology: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
-    code: "invalidInterfaceContentTypeDetected",
-    title: "Invalid content type detected",
-  });
-}
-
-export function invalidInterfaceFileDetected(
-  eServiceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The interface file for EService ${eServiceId} is invalid`,
-    code: "invalidInterfaceFileDetected",
-    title: "Invalid interface file detected",
-  });
-}
-
-export function openapiVersionNotRecognized(
-  version: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `OpenAPI version not recognized - ${version}`,
-    code: "openapiVersionNotRecognized",
-    title: "OpenAPI version not recognized",
-  });
-}
-
-export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error extracting info from interface file`,
-    code: "interfaceExtractingInfoError",
-    title: "Error extracting info from interface file",
-  });
-}
-
 export function notValidDescriptor(
   descriptorId: string,
   state: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    detail: `Descriptor ${descriptorId} is in an invalid state ${state} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
   });
@@ -331,9 +306,9 @@ export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
 
 export function contractException(agreementId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Contract exception for agreement ${agreementId}`,
+    detail: `There is no contract to download for agreement ${agreementId}`,
     code: "contractException",
-    title: "Contract exception",
+    title: "Contract not available",
   });
 }
 
@@ -385,11 +360,11 @@ export function clientAssertionPublicKeyNotFound(
   });
 }
 
-export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+export function tenantNotAllowed(clientId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization not allowed for client ${clientId}`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant not allowed for client ${clientId}`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 
@@ -412,6 +387,16 @@ export function delegationNotFound(delegationId: string): ApiError<ErrorCodes> {
   });
 }
 
+export function delegationContractNotFound(
+  delegationId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation contract for delegation ${delegationId} not found`,
+    code: "delegationContractNotFound",
+    title: "Delegation contract not found",
+  });
+}
+
 export function delegatedEserviceNotExportable(
   delegatorId: string
 ): ApiError<ErrorCodes> {
@@ -422,10 +407,70 @@ export function delegatedEserviceNotExportable(
   });
 }
 
+export function eserviceTemplateVersionNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${eserviceTemplateVersionId} not found in Eservice template ${eserviceTemplateId}`,
+    code: "eserviceTemplateVersionNotFound",
+    title: "EService template version not found",
+  });
+}
+
+export function catalogEServiceTemplatePublishedVersionNotFound(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Published version not found in catalog Eservice template ${eserviceTemplateId}`,
+    code: "catalogEServiceTemplatePublishedVersionNotFound",
+    title: "Catalog EService template published version not found",
+  });
+}
+
+export function eserviceTemplateNotFound(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice template ${eserviceTemplateId} not found`,
+    code: "eserviceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eserviceIsNotDraft(eserviceId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in draft state`,
+    code: "eserviceIsNotDraft",
+    title: "EService is not in draft state",
+  });
+}
+
+export function eserviceTemplateNotPublished(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} is not in published state`,
+    code: "eserviceTemplateIsNotPublished",
+    title: "EService template is not in published state",
+  });
+}
+
 export function missingUserRolesInIdentityToken(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Unable to extract userRoles from claims",
     code: "missingUserRolesInIdentityToken",
     title: "Unable to extract userRoles from claims",
+  });
+}
+
+export function templateInstanceNotAllowed(
+  eserviceId: string,
+  eServiceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
+    code: "templateInstanceNotAllowed",
+    title: "TemplateId must be undefined",
   });
 }

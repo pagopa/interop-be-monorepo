@@ -1,0 +1,26 @@
+meta {
+  name: Assign tenant certified attribute
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/certifiedAttributes
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "id" : "{{attributeId}}"
+  }
+}

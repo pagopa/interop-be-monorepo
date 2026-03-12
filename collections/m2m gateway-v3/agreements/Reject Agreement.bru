@@ -1,0 +1,26 @@
+meta {
+  name: Reject agreement
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "reason": "Testing rejection reason because yes"
+  }
+}

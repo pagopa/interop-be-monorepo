@@ -1,7 +1,7 @@
 meta {
   name: Retrieve a producer eservice
   type: http
-  seq: 1
+  seq: 15
 }
 
 get {
@@ -16,7 +16,6 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
 
 docs {

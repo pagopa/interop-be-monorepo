@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -18,10 +19,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import {
-  AgreementProcessClient,
-  PagoPAInteropBeClients,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
@@ -43,13 +41,14 @@ import {
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
+import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
-  agreementProcessClient: AgreementProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   headers: BffAppContext["headers"],
   getAgreementsQueryParams: Partial<agreementApi.GetAgreementsQueryParams>
 ): Promise<agreementApi.Agreement[]> {
@@ -59,6 +58,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
+          exactConsumerIdMatch: true,
           offset,
           limit,
         },
@@ -114,22 +114,21 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
+            exactConsumerIdMatch: false,
             producersIds,
             states,
           },
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) =>
-        enrichAgreementListEntry(a, clients, ctx)
-      );
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
       return {
         pagination: {
           limit,
           offset,
           totalCount,
         },
-        results: await Promise.all(agreements),
+        results: agreements,
       };
     },
 
@@ -162,21 +161,21 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
+            exactConsumerIdMatch: false,
             states,
           },
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) =>
-        enrichAgreementListEntry(a, clients, ctx)
-      );
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+
       return {
         pagination: {
           limit,
           offset,
           totalCount,
         },
-        results: await Promise.all(agreements),
+        results: agreements,
       };
     },
 
@@ -223,12 +222,21 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      await agreementProcessClient.addAgreementConsumerDocument(seed, {
-        params: { agreementId },
-        headers,
-      });
+      try {
+        await agreementProcessClient.addAgreementConsumerDocument(seed, {
+          params: { agreementId },
+          headers,
+        });
 
-      return documentContent;
+        return documentContent;
+      } catch (error) {
+        await fileManager.delete(
+          config.consumerDocumentsContainer,
+          storagePath,
+          logger
+        );
+        throw error;
+      }
     },
 
     async getAgreementConsumerDocument(
@@ -285,6 +293,37 @@ export function agreementServiceBuilder(
 
       return Buffer.from(documentBytes);
     },
+    async getAgreementSignedContract(
+      agreementId: string,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<Buffer> {
+      logger.info(`Retrieving signed contract for agreement ${agreementId}`);
+
+      const agreement = await agreementProcessClient.getAgreementById({
+        params: { agreementId },
+        headers,
+      });
+      if (!agreement.signedContract) {
+        if (
+          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
+          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
+          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
+        ) {
+          throw contractException(agreementId);
+        }
+        throw contractNotFound(agreementId);
+      }
+
+      const path = agreement.signedContract.path;
+
+      const documentBytes = await fileManager.get(
+        config.consumerSignedDocumentsContainer,
+        path,
+        logger
+      );
+
+      return Buffer.from(documentBytes);
+    },
 
     async removeConsumerDocument(
       agreementId: string,
@@ -316,11 +355,16 @@ export function agreementServiceBuilder(
 
     async suspendAgreement(
       agreementId: string,
+      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(`Suspending agreement ${agreementId}`);
+      ctx.logger.info(
+        `Suspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
       const agreement = await agreementProcessClient.suspendAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -361,13 +405,10 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Updating agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.updateAgreementById(
-        payload,
-        {
-          params: { agreementId },
-          headers: ctx.headers,
-        }
-      );
+      const agreement = await agreementProcessClient.updateAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -377,7 +418,7 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Upgrading agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.upgradeAgreementById(
+      const agreement = await agreementProcessClient.upgradeAgreement(
         undefined,
         {
           params: { agreementId },
@@ -400,11 +441,16 @@ export function agreementServiceBuilder(
 
     async activateAgreement(
       agreementId: string,
+      delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
-      ctx.logger.info(`Activating agreement ${agreementId}`);
+      ctx.logger.info(
+        `Activating agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
       const agreement = await agreementProcessClient.activateAgreement(
-        undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -429,15 +475,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
         `Retrieving producer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -452,7 +496,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          producersIds: [requesterId],
+          producersIds: [authData.organizationId],
         },
         headers,
       });
@@ -471,15 +515,13 @@ export function agreementServiceBuilder(
       {
         offset,
         limit,
-        requesterId,
         eServiceName,
       }: {
         offset: number;
         limit: number;
-        requesterId: string;
         eServiceName?: string;
       },
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ) {
       logger.info(
         `Retrieving consumer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
@@ -494,7 +536,7 @@ export function agreementServiceBuilder(
           offset,
           limit,
           eServiceName,
-          consumersIds: [requesterId],
+          consumersIds: [authData.organizationId],
         },
         headers,
       });
@@ -591,9 +633,55 @@ export function agreementServiceBuilder(
   };
 }
 
-export const getLatestAgreement = async (
-  agreementProcessClient: AgreementProcessClient,
+export const getLatestAgreementsOnDescriptor = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
+  eservice: catalogApi.EService,
+  descriptorId: string,
+  headers: Headers
+): Promise<agreementApi.Agreement[]> => {
+  const allAgreements = await getAllAgreements(
+    agreementProcessClient,
+    headers,
+    {
+      consumersIds: [consumerId],
+      exactConsumerIdMatch: false,
+      eservicesIds: [eservice.id],
+      descriptorsIds: [descriptorId],
+    }
+  );
+
+  // Even though the previous query is filtered by consumerId, there might be different consumerIds due to delegations
+  const agreementsByConsumer = allAgreements.reduce<
+    Map<string, agreementApi.Agreement[]>
+  >((acc, agreement) => {
+    const agreementsWithSameConsumerId = acc.get(agreement.consumerId) ?? [];
+    agreementsWithSameConsumerId.push(agreement);
+    acc.set(agreement.consumerId, agreementsWithSameConsumerId);
+    return acc;
+  }, new Map());
+
+  // For each consumerId, get the latest agreement by createdAt
+  const latestAgreements: agreementApi.Agreement[] = [];
+  for (const agreements of agreementsByConsumer.values()) {
+    const sorted = agreements.sort(
+      (first, second) =>
+        new Date(second.createdAt).getTime() -
+        new Date(first.createdAt).getTime()
+    );
+    const latest = sorted[0];
+    if (latest) {
+      latestAgreements.push(latest);
+    }
+  }
+
+  return latestAgreements;
+};
+
+export const getLatestAgreement = async (
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  consumerId: string,
+  exactConsumerIdMatch: boolean,
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
@@ -603,6 +691,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
+      exactConsumerIdMatch,
     }
   );
 
@@ -646,57 +735,81 @@ export const getLatestAgreement = async (
 };
 
 async function enrichAgreementListEntry(
-  agreement: agreementApi.Agreement,
+  agreements: agreementApi.Agreement[],
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
-): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice, delegation } =
-    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
+): Promise<bffApi.AgreementListEntry[]> {
+  const cachedTenants = new Map<string, tenantApi.Tenant>();
 
-  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+  const notificationsPromise: Promise<string[]> = filterUnreadNotifications(
+    clients.inAppNotificationManagerClient,
+    agreements.map((agreement) => agreement.id),
+    ctx
+  );
 
-  const delegate =
-    delegation !== undefined
-      ? await getTenantById(
+  const agreementsResult = [];
+  for (const agreement of agreements) {
+    const { consumer, producer, eservice, delegation } =
+      await getConsumerProducerEserviceDelegation(
+        agreement,
+        clients,
+        ctx,
+        cachedTenants
+      );
+    cachedTenants.set(consumer.id, consumer);
+    cachedTenants.set(producer.id, producer);
+
+    const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+
+    const delegate = delegation
+      ? (cachedTenants.get(delegation.delegateId) ??
+        (await getTenantById(
           clients.tenantProcessClient,
           ctx.headers,
           delegation.delegateId
-        )
+        )))
       : undefined;
 
-  return {
-    id: agreement.id,
-    state: agreement.state,
-    consumer: {
-      id: consumer.id,
-      name: consumer.name,
-      kind: consumer.kind,
-    },
-    eservice: toCompactEservice(eservice, producer),
-    descriptor: toCompactDescriptor(currentDescriptor),
-    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-    suspendedByConsumer: agreement.suspendedByConsumer,
-    suspendedByProducer: agreement.suspendedByProducer,
-    suspendedByPlatform: agreement.suspendedByPlatform,
-    delegation:
-      delegation !== undefined && delegate !== undefined
-        ? {
-            id: delegation.id,
-            delegate: {
-              id: delegation.delegateId,
-              name: delegate.name,
-              kind: delegate.kind,
-              contactMail: getLatestTenantContactEmail(delegate),
-            },
-            delegator: {
-              id: delegation.delegatorId,
-              name: consumer.name,
-              kind: consumer.kind,
-              contactMail: getLatestTenantContactEmail(consumer),
-            },
-          }
-        : undefined,
-  };
+    agreementsResult.push({
+      id: agreement.id,
+      state: agreement.state,
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+      },
+      eservice: toCompactEservice(eservice, producer),
+      descriptor: toCompactDescriptor(currentDescriptor),
+      canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+      suspendedByConsumer: agreement.suspendedByConsumer,
+      suspendedByProducer: agreement.suspendedByProducer,
+      suspendedByPlatform: agreement.suspendedByPlatform,
+      delegation:
+        delegation !== undefined && delegate !== undefined
+          ? {
+              id: delegation.id,
+              delegate: {
+                id: delegation.delegateId,
+                name: delegate.name,
+                kind: delegate.kind,
+                contactMail: getLatestTenantContactEmail(delegate),
+              },
+              delegator: {
+                id: delegation.delegatorId,
+                name: consumer.name,
+                kind: consumer.kind,
+                contactMail: getLatestTenantContactEmail(consumer),
+              },
+            }
+          : undefined,
+    });
+  }
+
+  const notifications = await notificationsPromise;
+  return agreementsResult.map((agreement) => ({
+    ...agreement,
+    hasUnreadNotifications: notifications.includes(agreement.id),
+  }));
 }
 
 export async function enrichAgreement(
@@ -804,6 +917,12 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
+    isDocumentReady: isFeatureFlagEnabled(
+      config,
+      "featureFlagUseSignedDocument"
+    )
+      ? agreement.signedContract !== undefined
+      : agreement.contract !== undefined,
   };
 }
 
@@ -836,22 +955,27 @@ async function getConsumerProducerEserviceDelegation(
     catalogProcessClient,
     delegationProcessClient,
   }: PagoPAInteropBeClients,
-  { headers }: WithLogger<BffAppContext>
+  { headers }: WithLogger<BffAppContext>,
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
   eservice: catalogApi.EService;
   delegation: delegationApi.Delegation | undefined;
 }> {
-  const consumerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.consumerId },
-    headers,
-  });
+  const consumer =
+    cachedTenants.get(agreement.consumerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.consumerId },
+      headers,
+    }));
 
-  const producerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.producerId },
-    headers,
-  });
+  const producer =
+    cachedTenants.get(agreement.producerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.producerId },
+      headers,
+    }));
 
   const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
@@ -870,9 +994,7 @@ async function getConsumerProducerEserviceDelegation(
     headers,
   });
 
-  const [consumer, producer, eservice, delegation] = await Promise.all([
-    consumerTask,
-    producerTask,
+  const [eservice, delegation] = await Promise.all([
     eserviceTask,
     delegationTask,
   ]);
@@ -914,3 +1036,5 @@ const emptyPagination = (offset: number, limit: number) => ({
   },
   results: [],
 });
+
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;

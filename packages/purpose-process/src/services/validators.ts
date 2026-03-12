@@ -1,50 +1,69 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
-  EService,
-  EServiceMode,
-  Purpose,
-  PurposeVersion,
-  PurposeRiskAnalysisForm,
-  RiskAnalysisForm,
-  TenantId,
-  TenantKind,
-  purposeVersionState,
-  EServiceId,
-  delegationKind,
-  Delegation,
-  delegationState,
-  DelegationId,
-} from "pagopa-interop-models";
-import {
-  validateRiskAnalysis,
+  M2MAdminAuthData,
+  Ownership,
+  ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  AuthData,
+  UIAuthData,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  Delegation,
+  DelegationId,
+  delegationKind,
+  delegationState,
+  EService,
+  EServiceId,
+  EServiceMode,
+  Purpose,
+  PurposeRiskAnalysisForm,
+  PurposeTemplate,
+  PurposeTemplateId,
+  PurposeVersion,
+  purposeVersionState,
+  RiskAnalysisForm,
+  RiskAnalysisFormTemplate,
+  RiskAnalysisTemplateAnswer,
+  TenantId,
+  tenantKind,
+  TenantKind,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidPersonalData,
+  invalidPurposeTenantKind,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
-  organizationIsNotTheDelegatedProducer,
-  organizationIsNotTheProducer,
-  organizationNotAllowed,
+  purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
+  riskAnalysisAnswerNotInSuggestValues,
+  riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisMissingExpectedFieldError,
   riskAnalysisValidationFailed,
+  riskAnalysisVersionMismatch,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegate,
+  tenantIsNotTheDelegatedConsumer,
+  tenantIsNotTheDelegatedProducer,
+  tenantIsNotTheProducer,
+  tenantNotAllowed,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
@@ -53,7 +72,9 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
-        tenantKind
+        tenantKind,
+        dateForExpirationValidation,
+        personalDataInEService
       ).type === "valid"
     );
   }
@@ -98,10 +119,10 @@ export const assertConsistentFreeOfCharge = (
 
 const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
-  authData: Pick<AuthData, "organizationId">
+  authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== purpose.consumerId) {
-    throw organizationIsNotTheConsumer(authData.organizationId);
+    throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
 
@@ -109,27 +130,36 @@ export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
   tenantKind,
+  dateForExpirationValidation,
+  personalDataInEService,
 }: {
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
+  dateForExpirationValidation: Date;
+  personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
+    tenantKind,
+    dateForExpirationValidation,
+    personalDataInEService
   );
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
+  return match(result)
+    .with({ type: "invalid" }, ({ issues }) => {
+      throw riskAnalysisValidationFailed(issues);
+    })
+    .with({ type: "valid" }, ({ value }) => value)
+    .exhaustive();
 }
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
+  tenantKind: TenantKind,
+  dateForExpirationValidation: Date,
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -138,6 +168,8 @@ export function validateAndTransformRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
+    dateForExpirationValidation,
+    personalDataInEService,
   });
 
   return {
@@ -146,32 +178,18 @@ export function validateAndTransformRiskAnalysis(
   };
 }
 
-export function reverseValidateAndTransformRiskAnalysis(
-  riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): PurposeRiskAnalysisForm | undefined {
-  if (!riskAnalysisForm) {
-    return undefined;
-  }
-
-  const formToValidate =
-    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisOrThrow({
-    riskAnalysisForm: formToValidate,
-    schemaOnlyValidation,
-    tenantKind,
-  });
-
-  return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
-  };
-}
-
 export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
+  }
+}
+
+export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
+  if (purpose.purposeTemplateId !== undefined) {
+    throw purposeFromTemplateCannotBeModified(
+      purpose.id,
+      purpose.purposeTemplateId
+    );
   }
 }
 
@@ -196,7 +214,7 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   consumerId,
   title,
 }: {
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   eserviceId: EServiceId;
   consumerId: TenantId;
   title: string;
@@ -212,16 +230,26 @@ export const assertPurposeTitleIsNotDuplicated = async ({
   }
 };
 
+export const assertPersonalDataCompliant = (
+  eservicePersonalData: boolean | undefined,
+  purposeTemplateHandlesPersonalData: boolean
+): void => {
+  if (
+    eservicePersonalData === undefined ||
+    eservicePersonalData !== purposeTemplateHandlesPersonalData
+  ) {
+    throw invalidPersonalData(eservicePersonalData);
+  }
+};
+
 export async function isOverQuota(
   eservice: EService,
   purpose: Purpose,
   dailyCalls: number,
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
     states: [purposeVersionState.active],
     excludeDraft: true,
   });
@@ -267,14 +295,15 @@ export async function isOverQuota(
   );
 }
 
-export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
+export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
-  authData: Pick<AuthData, "organizationId">,
-  readModelService: ReadModelService
+  authData: Pick<UIAuthData, "organizationId">,
+  readModelService: ReadModelServiceSQL
 ): Promise<void> => {
-  // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer/consumer even when active producer/consumer delegations exist
+  // This validator is for retrieval operations that can be performed by all the tenants involved:
+  // the consumer, the producer, the consumer delegate, and the producer delegate.
+  // Consumers and producers can retrieve purposes even if delegations exist.
   try {
     assertRequesterIsConsumer(purpose, authData);
   } catch {
@@ -297,7 +326,7 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
             await retrievePurposeDelegation(purpose, readModelService)
           );
         } catch {
-          throw organizationNotAllowed(authData.organizationId);
+          throw tenantNotAllowed(authData.organizationId);
         }
       }
     }
@@ -306,16 +335,16 @@ export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
 
 const assertRequesterIsProducer = (
   eservice: Pick<EService, "producerId">,
-  authData: Pick<AuthData, "organizationId">
+  authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
-    throw organizationIsNotTheProducer(authData.organizationId);
+    throw tenantIsNotTheProducer(authData.organizationId);
   }
 };
 
 const assertRequesterIsDelegateProducer = (
   eservice: Pick<EService, "producerId" | "id">,
-  authData: Pick<AuthData, "organizationId">,
+  authData: Pick<UIAuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -325,7 +354,7 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== eservice.id
   ) {
-    throw organizationIsNotTheDelegatedProducer(
+    throw tenantIsNotTheDelegatedProducer(
       authData.organizationId,
       activeProducerDelegation?.id
     );
@@ -334,7 +363,7 @@ const assertRequesterIsDelegateProducer = (
 
 export const assertRequesterCanActAsProducer = (
   eservice: Pick<EService, "producerId" | "id">,
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
@@ -352,7 +381,7 @@ export const assertRequesterCanActAsProducer = (
 
 export const assertRequesterCanActAsConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
@@ -369,8 +398,8 @@ export const assertRequesterCanActAsConsumer = (
 };
 
 const assertRequesterIsDelegateConsumer = (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: Pick<AuthData, "organizationId">,
+  purpose: Pick<Purpose, "consumerId" | "eserviceId" | "delegationId">,
+  authData: Pick<UIAuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -378,9 +407,10 @@ const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.delegatorId !== purpose.consumerId ||
     activeConsumerDelegation?.eserviceId !== purpose.eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation?.state !== delegationState.active
+    activeConsumerDelegation?.state !== delegationState.active ||
+    purpose.delegationId !== activeConsumerDelegation?.id
   ) {
-    throw organizationIsNotTheDelegatedConsumer(
+    throw tenantIsNotTheDelegatedConsumer(
       authData.organizationId,
       activeConsumerDelegation?.id
     );
@@ -388,25 +418,338 @@ const assertRequesterIsDelegateConsumer = (
 };
 
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: AuthData,
-  readModelService: ReadModelService
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  authData: UIAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL
 ): Promise<DelegationId | undefined> => {
   try {
-    assertRequesterIsConsumer(purpose, authData);
+    assertRequesterIsConsumer(
+      {
+        consumerId,
+      },
+      authData
+    );
     return undefined;
   } catch {
     const consumerDelegation =
       await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-        purpose
+        {
+          eserviceId,
+          consumerId,
+        }
       );
 
     if (!consumerDelegation) {
-      throw organizationIsNotTheConsumer(authData.organizationId);
+      throw tenantIsNotTheConsumer(authData.organizationId);
     }
 
-    assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+    assertRequesterIsDelegateConsumer(
+      {
+        consumerId,
+        eserviceId,
+        delegationId: consumerDelegation.id,
+      },
+      authData,
+      consumerDelegation
+    );
 
     return consumerDelegation?.id;
   }
 };
+
+export const getOrganizationRole = async ({
+  purpose,
+  producerId,
+  delegationId,
+  readModelService,
+  authData,
+}: {
+  purpose: Purpose;
+  producerId: TenantId;
+  delegationId: DelegationId | undefined;
+  readModelService: ReadModelServiceSQL;
+  authData: UIAuthData | M2MAdminAuthData;
+}): Promise<Ownership> => {
+  if (
+    producerId === purpose.consumerId &&
+    authData.organizationId === producerId
+  ) {
+    return ownership.SELF_CONSUMER;
+  }
+
+  const [producerDelegation, consumerDelegation] = await Promise.all([
+    readModelService.getActiveProducerDelegationByEserviceId(
+      purpose.eserviceId
+    ),
+    retrievePurposeDelegation(purpose, readModelService),
+  ]);
+
+  if (delegationId) {
+    if (delegationId === consumerDelegation?.id) {
+      assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+      return ownership.CONSUMER;
+    } else if (delegationId === producerDelegation?.id) {
+      assertRequesterIsDelegateProducer(
+        { id: purpose.eserviceId, producerId },
+        authData,
+        producerDelegation
+      );
+      return ownership.PRODUCER;
+    } else {
+      throw tenantIsNotTheDelegate(authData.organizationId);
+    }
+  }
+
+  const hasDelegation =
+    (authData.organizationId === purpose.consumerId && consumerDelegation) ||
+    (authData.organizationId === producerId && producerDelegation);
+
+  if (hasDelegation) {
+    throw tenantIsNotTheDelegate(authData.organizationId);
+  }
+
+  try {
+    assertRequesterIsProducer({ producerId }, authData);
+    return ownership.PRODUCER;
+  } catch {
+    try {
+      assertRequesterIsConsumer(purpose, authData);
+      return ownership.CONSUMER;
+    } catch {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
+};
+
+export function assertValidPurposeTenantKind(
+  purposeTenantKind: TenantKind,
+  templateTargetTenantKind: TenantKind
+): void {
+  const privateTenantKinds: TenantKind[] = [
+    tenantKind.GSP,
+    tenantKind.SCP,
+    tenantKind.PRIVATE,
+  ];
+  const valid = match(purposeTenantKind)
+    .with(tenantKind.PA, () => templateTargetTenantKind === tenantKind.PA)
+    .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
+      privateTenantKinds.includes(templateTargetTenantKind)
+    )
+    .exhaustive();
+
+  if (!valid) {
+    throw invalidPurposeTenantKind(purposeTenantKind, templateTargetTenantKind);
+  }
+}
+
+function buildSingleOrMultiAnswerValueFromTemplate(
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  isEditable: boolean,
+  hasSuggestions: boolean
+): string[] {
+  // Editable Answer or Single Answer with Suggestions must provide answer value in request body
+  if (isEditable || hasSuggestions) {
+    throw riskAnalysisMissingExpectedFieldError(answerFromTemplate.key);
+  }
+
+  // Using answer value from template
+  return type === "single"
+    ? answerFromTemplate.value
+      ? [answerFromTemplate.value]
+      : []
+    : answerFromTemplate.values;
+}
+
+function assertValidSingleOrMultiAnswerValueNonEditableField(
+  templateId: PurposeTemplateId,
+  { answer: answerFromTemplate, type }: RiskAnalysisTemplateAnswer,
+  answerSeed: string[],
+  hasSuggestions: boolean
+): void {
+  // Not Editable Multi Answer must not provide answer value in request body
+  if (type === "multi") {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer without suggested values must not provide answer value in request body
+  if (!hasSuggestions) {
+    throw riskAnalysisContainsNotEditableAnswers(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+
+  // Not Editable Single Answer with suggested values must provide one of those in request body
+  if (
+    answerSeed.some(
+      (v: string) => !answerFromTemplate.suggestedValues.includes(v)
+    )
+  ) {
+    throw riskAnalysisAnswerNotInSuggestValues(
+      templateId,
+      answerFromTemplate.key
+    );
+  }
+}
+
+function buildSingleOrMultiAnswerValue(
+  templateId: PurposeTemplateId,
+  templateAnswer: RiskAnalysisTemplateAnswer,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed
+): string[] {
+  const answerFromSeed = riskAnalysisForm.answers[templateAnswer.answer.key];
+  const isEditable = templateAnswer.answer.editable;
+  const hasSuggestions =
+    templateAnswer.type === "single" &&
+    templateAnswer.answer.suggestedValues.length > 0;
+
+  if (!answerFromSeed) {
+    return buildSingleOrMultiAnswerValueFromTemplate(
+      templateAnswer,
+      isEditable,
+      hasSuggestions
+    );
+  }
+
+  if (!isEditable) {
+    assertValidSingleOrMultiAnswerValueNonEditableField(
+      templateId,
+      templateAnswer,
+      answerFromSeed,
+      hasSuggestions
+    );
+  }
+
+  // Editable Answer or Single Answer with Suggestion using value from request's body
+  return answerFromSeed;
+}
+
+// This function handles cases where a purpose is being created or edited from a template.
+// If an answer is editable by the template, it's possible to edit an answer that triggers a dependent answer
+// (e.g., a radio button of editable answer that enables a single answer)
+// In such a scenario, and unlike other cases, the risk analysis must be constructed by including the answer contained in the 'seed'
+// even if that answer is not explicitly present in the purpose template.
+function buildDependentAnswersFromSeed(
+  riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed,
+  riskAnalysisFormTemplate: RiskAnalysisFormTemplate
+): Record<string, string[]> {
+  const upcomingAnswers = Object.keys(riskAnalysisFormSeed.answers);
+  const templateAnswers = [
+    riskAnalysisFormTemplate.singleAnswers.map((a) => a.key),
+    riskAnalysisFormTemplate.multiAnswers.map((a) => a.key),
+  ];
+
+  const additionalAnswers = upcomingAnswers.filter(
+    (answerKey) =>
+      !templateAnswers.some((templateAnswerKeys) =>
+        templateAnswerKeys.includes(answerKey)
+      )
+  );
+
+  return additionalAnswers.reduce(
+    (acc, answerKey) => ({
+      ...acc,
+      [answerKey]: riskAnalysisFormSeed.answers[answerKey],
+    }),
+    {}
+  );
+}
+function buildAnswersSeed(
+  id: PurposeTemplateId,
+  riskAnalysisFormTemplate: RiskAnalysisFormTemplate,
+  riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed
+): Record<string, string[]> {
+  const upcomingDependentAnswers = buildDependentAnswersFromSeed(
+    riskAnalysisFormSeed,
+    riskAnalysisFormTemplate
+  );
+
+  const filteredRiskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed = {
+    ...riskAnalysisFormSeed,
+    answers: Object.fromEntries(
+      Object.entries(riskAnalysisFormSeed.answers).filter(
+        ([key]) => !upcomingDependentAnswers[key]
+      )
+    ),
+  };
+
+  const singleAnswers = riskAnalysisFormTemplate.singleAnswers.reduce(
+    (acc, templateAnswer) => ({
+      ...acc,
+      [templateAnswer.key]: buildSingleOrMultiAnswerValue(
+        id,
+        {
+          type: "single",
+          answer: templateAnswer,
+        },
+        filteredRiskAnalysisFormSeed
+      ),
+    }),
+    {}
+  );
+
+  const multiAnswers = riskAnalysisFormTemplate.multiAnswers.reduce(
+    (acc, templateAnswer) => ({
+      ...acc,
+      [templateAnswer.key]: buildSingleOrMultiAnswerValue(
+        id,
+        {
+          type: "multi",
+          answer: templateAnswer,
+        },
+        filteredRiskAnalysisFormSeed
+      ),
+    }),
+    {}
+  );
+
+  return {
+    ...singleAnswers,
+    ...multiAnswers,
+    ...upcomingDependentAnswers,
+  };
+}
+
+export function validateRiskAnalysisAgainstTemplateOrThrow(
+  purposeTemplate: PurposeTemplate,
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  tenantKind: TenantKind,
+  createdAt: Date,
+  eservicePersonalData: boolean | undefined
+): PurposeRiskAnalysisForm | undefined {
+  if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
+    return undefined;
+  }
+
+  if (
+    purposeTemplate.purposeRiskAnalysisForm.version !== riskAnalysisForm.version
+  ) {
+    throw riskAnalysisVersionMismatch(
+      riskAnalysisForm.version,
+      purposeTemplate.purposeRiskAnalysisForm.version
+    );
+  }
+
+  const answersToSeed = buildAnswersSeed(
+    purposeTemplate.id,
+    purposeTemplate.purposeRiskAnalysisForm,
+    riskAnalysisForm
+  );
+
+  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+    version: purposeTemplate.purposeRiskAnalysisForm.version,
+    answers: answersToSeed,
+  };
+
+  return validateAndTransformRiskAnalysis(
+    formToValidate,
+    false,
+    tenantKind,
+    createdAt,
+    eservicePersonalData
+  );
+}

@@ -124,7 +124,7 @@ export const persistentTenant: Tenant = {
   mails: [],
 };
 
-export const persistentAttribute: Attribute = {
+const persistentAttribute: Attribute = {
   id: unsafeBrandId("7a04c906-1525-4c68-8a5b-d740d77d9c80"),
   origin: "attributeOrigin",
   code: "attributeCode",

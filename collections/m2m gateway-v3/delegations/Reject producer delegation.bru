@@ -1,0 +1,26 @@
+meta {
+  name: Reject producer delegation
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/producerDelegations/:delegationId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "rejectionReason": "Test reason"
+  }
+}

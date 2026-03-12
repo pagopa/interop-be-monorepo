@@ -2,16 +2,21 @@
 import { randomUUID } from "crypto";
 import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
 import {
-  InteropToken,
+  InteropInternalToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
 import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
+import {
+  tenantReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
-import { ReadModelQueries } from "../src/service/readModelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
+import { config } from "../src/config/config.js";
 import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
   downloadCSVMock,
@@ -33,8 +38,15 @@ describe("IVASS Certified Attributes Importer", () => {
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const csvDownloaderMock = downloadCSVMock;
-  const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
+
+  const db = makeDrizzleConnection(config);
+  const tenantReadModelService = tenantReadModelServiceBuilder(db);
+  const attributeReadModelService = attributeReadModelServiceBuilder(db);
+  const readModelQueriesMock = readModelQueriesBuilderSQL(
+    db,
+    tenantReadModelService,
+    attributeReadModelService
+  );
 
   const run = () =>
     importAttributes(
@@ -48,7 +60,7 @@ describe("IVASS Certified Attributes Importer", () => {
       generateId()
     );
 
-  const interopToken: InteropToken = {
+  const interopInternalToken: InteropInternalToken = {
     header: {
       alg: "algorithm",
       use: "use",
@@ -63,12 +75,12 @@ describe("IVASS Certified Attributes Importer", () => {
       iat: 0,
       nbf: 0,
       exp: 10,
-      role: "role1",
+      role: "internal",
     },
     serialized: "the-token",
   };
-  const generateInternalTokenMock = (): Promise<InteropToken> =>
-    Promise.resolve(interopToken);
+  const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+    Promise.resolve(interopInternalToken);
 
   const refreshableInternalTokenSpy = vi
     .spyOn(refreshableTokenMock, "get")

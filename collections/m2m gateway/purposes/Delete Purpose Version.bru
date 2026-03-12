@@ -1,0 +1,20 @@
+meta {
+  name: Delete Purpose Version
+  type: http
+  seq: 14
+}
+
+delete {
+  url: {{host-m2m-gw}}/purposes/:id/versions/:versionId
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{purposeVersionId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

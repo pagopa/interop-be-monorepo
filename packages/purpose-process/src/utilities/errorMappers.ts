@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -16,12 +17,11 @@ const {
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const getPurposesErrorMapper = (): number =>
+  HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const getRiskAnalysisDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -33,14 +33,7 @@ export const getRiskAnalysisDocumentErrorMapper = (
       "purposeVersionDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "organizationNotAllowed",
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheProducer",
-      "organizationIsNotTheDelegatedProducer",
-      "organizationIsNotTheDelegatedConsumer",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deletePurposeVersionErrorMapper = (
@@ -53,8 +46,8 @@ export const deletePurposeVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -70,8 +63,8 @@ export const rejectPurposeVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "organizationIsNotTheProducer",
-      "organizationIsNotTheDelegatedProducer",
+      "tenantIsNotTheProducer",
+      "tenantIsNotTheDelegatedProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -83,26 +76,31 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
+      "purposeNotInDraftState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "purposeNotInDraftState",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "duplicatedPurposeTitle",
+      "purposeFromTemplateCannotBeModified",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
@@ -118,8 +116,8 @@ export const archivePurposeVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -134,7 +132,13 @@ export const suspendPurposeVersionErrorMapper = (
       "purposeVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotAllowed",
+      "tenantIsNotTheDelegatedProducer",
+      "tenantIsNotTheDelegate",
+
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -144,8 +148,8 @@ export const createPurposeVersionErrorMapper = (
   match(error.code)
     .with("unchangedDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeVersionStateConflict", () => HTTP_STATUS_CONFLICT)
@@ -155,8 +159,8 @@ export const createPurposeVersionErrorMapper = (
 export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
@@ -173,8 +177,8 @@ export const createReversePurposeErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegatedConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
@@ -184,6 +188,33 @@ export const createReversePurposeErrorMapper = (
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createPurposeFromTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotFound",
+      "tenantKindNotFound",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      "invalidPurposeTenantKind",
+      "riskAnalysisMissingExpectedFieldError",
+      "riskAnalysisContainsNotEditableAnswers",
+      "riskAnalysisAnswerNotInSuggestValues",
+      "riskAnalysisVersionMismatch",
+      "eServiceModeNotAllowed",
+      "invalidPersonalData",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
@@ -233,14 +264,63 @@ export const activatePurposeVersionErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheProducer",
-      "organizationNotAllowed",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheProducer",
+      "tenantNotAllowed",
+      "tenantIsNotTheDelegatedConsumer",
+      "tenantIsNotTheDelegate",
+
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
       "purposeNotFound",
       "purposeVersionNotFound",
+      "purposeTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const generateRiskAnalysisDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const generateRiskAnalysisSignedDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "riskAnalysisValidationFailed",
+      "tenantKindNotFound",
+      "riskAnalysisVersionMismatch",
+      "riskAnalysisMissingExpectedFieldError",
+      "riskAnalysisContainsNotEditableAnswers",
+      "riskAnalysisAnswerNotInSuggestValues",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "purposeTemplateNotFound",
+      "purposeNotFound",
+      "eserviceNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "purposeDraftVersionNotFound",
+      "duplicatedPurposeTitle",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

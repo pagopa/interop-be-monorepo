@@ -1,6 +1,9 @@
-FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
+#default value for compatibility
+ARG NODE_REGISTRY="docker.io"
 
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS build
+
+RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -12,6 +15,8 @@ COPY ./packages/ipa-certified-attributes-importer/package.json /app/packages/ipa
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -21,8 +26,11 @@ COPY ./packages/ipa-certified-attributes-importer /app/packages/ipa-certified-at
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
+COPY ./packages/readmodel /app/packages/readmodel
+COPY ./packages/readmodel-models /app/packages/readmodel-models
 
-RUN pnpm build && \
+ARG NODE_HEAP_SIZE=4096
+RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
     rm -rf /app/node_modules/.cache && \
     mkdir /out && \
@@ -32,12 +40,18 @@ RUN pnpm build && \
     packages/commons/ \
     packages/models/ \
     packages/api-clients \
+    packages/readmodel/ \
+    packages/readmodel-models/ \  
     packages/ipa-certified-attributes-importer/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
+FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
 
 COPY --from=build /out /app
+
+RUN groupadd -r app && useradd -rm -g app app
+RUN chown -R app:app /app && chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/ipa-certified-attributes-importer
 EXPOSE 3000

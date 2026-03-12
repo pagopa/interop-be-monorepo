@@ -20,14 +20,14 @@ headers {
 }
 
 body:json {
-  [
+  
     {
       "key": "{{keyEncodedPem}}",
       "use": "ENC",
       "alg": "RS256",
       "name": "{{randomName}}"
     }
-  ]
+  
 }
 
 vars:post-response {

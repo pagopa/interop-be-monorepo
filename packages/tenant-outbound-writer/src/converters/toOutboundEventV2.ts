@@ -60,6 +60,7 @@ export function toOutboundEventV2(
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -83,6 +84,7 @@ export function toOutboundEventV2(
             (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -97,6 +99,7 @@ export function toOutboundEventV2(
           (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "TenantKindUpdated" }, (msg) => ({
@@ -110,6 +113,7 @@ export function toOutboundEventV2(
           (toOutboundTenantV2(msg.data.tenant) as OutboundTenantV2),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(

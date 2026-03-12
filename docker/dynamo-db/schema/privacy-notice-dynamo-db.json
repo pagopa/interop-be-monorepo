@@ -1,11 +1,16 @@
 {
   "TableName": "privacy-notice",
-  "KeySchema": [{ "AttributeName": "privacyNoticeId", "KeyType": "HASH" }],
-  "AttributeDefinitions": [
-    { "AttributeName": "privacyNoticeId", "AttributeType": "S" }
+  "KeySchema": [
+    {
+      "AttributeName": "privacyNoticeId",
+      "KeyType": "HASH"
+    }
   ],
-  "ProvisionedThroughput": {
-    "ReadCapacityUnits": 10,
-    "WriteCapacityUnits": 5
-  }
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "privacyNoticeId",
+      "AttributeType": "S"
+    }
+  ],
+  "BillingMode": "PAY_PER_REQUEST"
 }

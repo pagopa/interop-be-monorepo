@@ -1,0 +1,87 @@
+{{> common-header }}
+<tr>
+  <td
+    align="left"
+    class="title"
+    style="
+      font-size: 0px;
+      padding: 10px 25px;
+      padding-top: 24px;
+      padding-right: 0px;
+      padding-bottom: 8px;
+      padding-left: 0px;
+      word-break: break-word;
+    "
+  >
+    <div
+      style="
+        font-family: Titillium Web, system-ui, sans-serif;
+        font-size: 13px;
+        font-weight: bold;
+        line-height: 1;
+        text-align: left;
+        color: #17324d;
+      "
+    >
+      <!-- H4 Desktop (from MUI Italia)-->
+      <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td
+    align="left"
+    class="text"
+    style="
+      font-size: 0px;
+      padding: 10px 25px;
+      padding-top: 8px;
+      padding-right: 0px;
+      padding-bottom: 0px;
+      padding-left: 0px;
+      word-break: break-word;
+    "
+  >
+    <div
+      style="
+        font-family: Titillium Web, system-ui, sans-serif;
+        font-size: 16px;
+        font-weight: regular;
+        line-height: 24px;
+        text-align: left;
+        color: #17324d;
+      "
+    >
+      <p style="margin-bottom: 0px">
+        Gentile
+        <strong>{{ preservePlaceholderIfMissing "recipientName" }}</strong>,
+      </p>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td
+    align="left"
+    class="text"
+    style="font-size: 0px; padding: 0px; word-break: break-word"
+  >
+    <div
+      style="
+        font-family: Titillium Web, system-ui, sans-serif;
+        font-size: 16px;
+        font-weight: regular;
+        line-height: 24px;
+        text-align: left;
+        color: #17324d;
+      "
+    >
+      <!-- Body 1 Desktop (from MUI Italia)-->
+      <p>
+        L'ente erogatore {{ producerName }} ha riattivato la versione {{
+        eserviceVersion }} dell'e-service "{{ eserviceName }}", precedentemente
+        sospesa. Puoi nuovamente effettuare chiamate a questa versione.
+      </p>
+    </div>
+  </td>
+</tr>
+{{> common-footer }}

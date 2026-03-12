@@ -2,14 +2,36 @@ import {
   PurposeEventEnvelopeV2,
   PurposeVersionV2,
   PurposeV2,
+  PurposeVersionStampsV2,
+  PurposeVersionStampV2,
 } from "pagopa-interop-models";
 import {
   PurposeEvent as OutboundPurposeEvent,
   PurposeVersionV2 as OutboundPurposeVersionV2,
   PurposeV2 as OutboundPurposeV2,
+  PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
+  PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
 } from "@pagopa/interop-outbound-models";
 import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+
+function toOutboundPurposeVersionStampV2(
+  stamp: PurposeVersionStampV2
+): Exact<OutboundPurposeVersionStampV2, PurposeVersionStampV2> {
+  return {
+    ...stamp,
+    who: undefined,
+  };
+}
+
+function toOutboundPurposeVersionStampsV2(
+  stamps: PurposeVersionStampsV2
+): Exact<OutboundPurposeVersionStampsV2, PurposeVersionStampsV2> {
+  return {
+    creation:
+      stamps.creation && toOutboundPurposeVersionStampV2(stamps.creation),
+  };
+}
 
 function toOutboundPurposeVersionV2(
   purposeVersion: PurposeVersionV2
@@ -17,6 +39,10 @@ function toOutboundPurposeVersionV2(
   return {
     ...purposeVersion,
     riskAnalysis: undefined,
+    stamps:
+      purposeVersion.stamps &&
+      toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
+    signedContract: undefined,
   };
 }
 
@@ -27,6 +53,7 @@ function toOutboundPurposeV2(
     ...purpose,
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
+    purposeTemplateId: purpose.purposeTemplateId,
   };
 }
 
@@ -50,6 +77,7 @@ export function toOutboundEventV2(
           purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -65,6 +93,8 @@ export function toOutboundEventV2(
       { type: "PurposeArchived" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionRejected" },
+      { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -74,6 +104,7 @@ export function toOutboundEventV2(
           versionId: msg.data.versionId,
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -87,6 +118,7 @@ export function toOutboundEventV2(
         purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeDeletedByRevokedDelegation" }, (msg) => ({
@@ -98,6 +130,7 @@ export function toOutboundEventV2(
         delegationId: msg.data.delegationId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeVersionArchivedByRevokedDelegation" }, (msg) => ({
@@ -110,6 +143,7 @@ export function toOutboundEventV2(
         delegationId: msg.data.delegationId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .exhaustive();

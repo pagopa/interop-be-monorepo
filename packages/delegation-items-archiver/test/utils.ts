@@ -1,30 +1,41 @@
 /* eslint-disable functional/no-let */
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
-import {
-  Agreement,
-  Purpose,
-  toReadModelAgreement,
-  toReadModelPurpose,
-} from "pagopa-interop-models";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Agreement, Purpose } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { readModelServiceBuilder } from "../src/readModelService.js";
+import {
+  agreementReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertPurpose,
+} from "pagopa-interop-readmodel/testUtils";
+import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  inject("readModelConfig")
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
 );
 afterEach(cleanup);
 
-export const { purposes, agreements } = readModelRepository;
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const readModelService = readModelServiceBuilderSQL({
+  readModelDB,
+  agreementReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+});
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
-  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+  await upsertPurpose(readModelDB, purpose, 1);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await upsertAgreement(readModelDB, agreement, 1);
 };

@@ -1,14 +1,14 @@
 import {
   APIEndpoint,
   LoggerConfig,
-  ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { SftpConfig } from "./sftpConfig.js";
 
 const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
-  ReadModelDbConfig
+  ReadModelSQLDbConfig
 )
   .and(SftpConfig)
   .and(TokenGenerationConfig)
@@ -26,7 +26,7 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-export type AnacCertifiedAttributesImporterConfig = z.infer<
+type AnacCertifiedAttributesImporterConfig = z.infer<
   typeof AnacCertifiedAttributesImporterConfig
 >;
 

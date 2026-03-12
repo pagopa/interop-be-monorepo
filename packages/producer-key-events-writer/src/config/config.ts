@@ -5,10 +5,10 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ProducerKeyReadModelWriterConfig =
+const ProducerKeyReadModelWriterConfig =
   AuthorizationTopicConfig.and(EventStoreConfig).and(KafkaConsumerConfig);
 
-export type ProducerKeyReadModelWriterConfig = z.infer<
+type ProducerKeyReadModelWriterConfig = z.infer<
   typeof ProducerKeyReadModelWriterConfig
 >;
 

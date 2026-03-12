@@ -1,23 +1,32 @@
-import {
-  initFileManager,
-  logger,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { initFileManager, logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnectionWithCleanup,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "./services/dtdCatalogExporterService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
-await dtdCatalogExporterServiceBuilder({
-  readModelService: readModelServiceBuilder(ReadModelRepository.init(config)),
-  fileManager: initFileManager(config),
-  loggerInstance: logger({
-    serviceName: "dtd-catalog-exporter",
-    correlationId: generateId<CorrelationId>(),
-  }),
-}).exportDtdPublicCatalog();
+const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
+const attributeReadModelService = attributeReadModelServiceBuilder(db);
+const tenantReadModelService = tenantReadModelServiceBuilder(db);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  attributeReadModelService,
+  tenantReadModelService
+);
 
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+try {
+  await dtdCatalogExporterServiceBuilder({
+    readModelService: readModelServiceSQL,
+    fileManager: initFileManager(config),
+    loggerInstance: logger({
+      serviceName: "dtd-catalog-exporter",
+      correlationId: generateId<CorrelationId>(),
+    }),
+  }).exportDtdData();
+} finally {
+  await cleanup();
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Remove client purpose
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/clients/:clientId/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Get producer JWK by kid
+  type: http
+  seq: 35
+}
+
+get {
+  url: {{host-authorization}}/producerKeys/:kid
+  body: none
+  auth: none
+}
+
+params:path {
+  kid: {{kid}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -26,8 +26,8 @@ import {
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import { retrieveEService } from "./agreementService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const {
   draft,
@@ -219,7 +219,7 @@ function updateAgreementState(
   eservices: EService[],
   correlationId: CorrelationId,
   logger: Logger
-): CreateEvent<AgreementEvent> | void {
+): CreateEvent<AgreementEvent> | undefined {
   const descriptor = eservices
     .find((eservice) => eservice.id === agreement.data.eserviceId)
     ?.descriptors.find(
@@ -290,13 +290,15 @@ function updateAgreementState(
           correlationId
         )
       )
-      .otherwise(
-        () =>
-          void logger.error(
-            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
-          )
-      );
+      .otherwise(() => {
+        logger.error(
+          `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
+        );
+        return undefined;
+      });
   }
+
+  return undefined;
 }
 
 function eserviceContainsAttribute(
@@ -317,7 +319,7 @@ function eserviceContainsAttribute(
 export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {

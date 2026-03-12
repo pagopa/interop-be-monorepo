@@ -1,4 +1,4 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -25,7 +25,7 @@ import {
 import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
@@ -35,7 +35,7 @@ import {
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
@@ -59,7 +59,7 @@ export async function assertVerifiedAttributeOperationAllowed({
   producerDelegation: Delegation | undefined;
   attributeId: AttributeId;
   agreement: Agreement;
-  readModelService: ReadModelService;
+  readModelService: ReadModelServiceSQL;
   error: Error;
 }): Promise<void> {
   if (producerDelegation && producerDelegation.delegateId !== requesterId) {
@@ -105,7 +105,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -143,36 +143,24 @@ export function getTenantKind(
 }
 
 export async function assertRequesterAllowed(
-  resourceId: string,
-  requesterId: string
+  tenantId: TenantId,
+  authData: UIAuthData | M2MAuthData
 ): Promise<void> {
-  if (resourceId !== requesterId) {
+  if (tenantId !== authData.organizationId) {
     throw operationForbidden;
   }
 }
 
 export function assertRequesterDelegationsAllowedOrigin(
-  authData: AuthData
+  authData: UIAuthData
 ): void {
   if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
   }
 }
 
-export async function assertResourceAllowed(
-  resourceId: string,
-  authData: AuthData
-): Promise<void> {
-  const roles = authData.userRoles;
-  const organizationId = authData.organizationId;
-
-  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    return await assertRequesterAllowed(resourceId, organizationId);
-  }
-}
-
 export async function getTenantKindLoadingCertifiedAttributes(
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   attributes: TenantAttribute[],
   externalId: ExternalId
 ): Promise<TenantKind> {
@@ -197,9 +185,8 @@ export async function getTenantKindLoadingCertifiedAttributes(
     });
 
   const tenantAttributesIds = getCertifiedAttributesIds(attributes);
-  const retrievedAttributes = await readModelService.getAttributesById(
-    tenantAttributesIds
-  );
+  const retrievedAttributes =
+    await readModelService.getAttributesById(tenantAttributesIds);
   tenantAttributesIds.forEach((attributeId) => {
     if (!retrievedAttributes.some((attr) => attr.id === attributeId)) {
       throw attributeNotFound(attributeId);
@@ -223,7 +210,7 @@ export function assertOrganizationIsInAttributeVerifiers(
   attribute: VerifiedTenantAttribute
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attribute.id);
   }
 }
 

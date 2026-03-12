@@ -141,7 +141,7 @@ export const contractBuilder = {
     const documentPath = await fileManager.storeBytes(
       {
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${delegation.id}`,
+        path: `${config.delegationDocumentsPath}/${delegation.id}`,
         resourceId: documentId,
         name: documentName,
         content: pdfBuffer,
@@ -225,7 +225,7 @@ export const contractBuilder = {
     const documentPath = await fileManager.storeBytes(
       {
         bucket: config.s3Bucket,
-        path: `${config.delegationDocumentPath}/${delegation.id}`,
+        path: `${config.delegationDocumentsPath}/${delegation.id}`,
         resourceId: documentId,
         name: documentName,
         content: pdfBuffer,

@@ -1,0 +1,42 @@
+{
+  "name": "audit-signer",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability audit signer",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/adm-zip": "catalog:",
+    "@types/archiver": "catalog:",
+    "@types/node": "catalog:",
+    "adm-zip": "catalog:",
+    "dotenv-flow": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "@aws-sdk/client-sqs": "catalog:",
+    "archiver": "catalog:",
+    "axios": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "zod": "catalog:"
+  }
+}

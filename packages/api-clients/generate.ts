@@ -7,7 +7,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable prefer-rest-params */
 /* eslint-disable no-eval */
-/* eslint-disable sonarjs/prefer-single-boolean-return */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import * as fs from "fs";
 import SwaggerParser from "@apidevtools/swagger-parser";
@@ -74,7 +73,14 @@ const main = async () => {
       templatePath:
         fileName === "bffApi" ? "./template-bff.hbs" : "./template.hbs",
       options: {
+        isMediaTypeAllowed(mediaType) {
+          return (
+            mediaType === "application/json" ||
+            mediaType === "application/problem+json"
+          );
+        },
         withAlias: true,
+        shouldExportAllSchemas: true,
         shouldExportAllTypes: true,
         groupStrategy: "tag",
         strictObjects: true,

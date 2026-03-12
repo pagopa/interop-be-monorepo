@@ -1,28 +1,46 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { TenantId } from "pagopa-interop-models";
+import { CorrelationId, TenantId } from "pagopa-interop-models";
 import {
   bffApi,
   selfcareV2ClientApi,
-  SelfcareV2InstitutionClient,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { missingSelfcareId, userNotFound } from "../model/errors.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
   toApiSelfcareUser,
+  toBffApiCompactUser,
 } from "../api/selfcareApiConverter.js";
 import { config } from "../config/config.js";
+import { assertRequesterCanRetrieveUsers } from "./validators.js";
 
-export function selfcareServiceBuilder(
-  selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
-  selfcareV2UsersClient: SelfcareV2UsersClient,
-  tenantProcessClient: TenantProcessClient
-) {
+export async function getSelfcareCompactUserById(
+  selfcareClient: SelfcareV2UsersClient,
+  userId: string,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.CompactUser> {
+  const user = await selfcareClient.getUserInfoUsingGET({
+    params: { id: userId },
+    queries: { institutionId: selfcareId },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
+  });
+
+  return toBffApiCompactUser(user, userId);
+}
+
+export function selfcareServiceBuilder({
+  tenantProcessClient,
+  selfcareV2InstitutionClient,
+  selfcareV2UserClient,
+}: PagoPAInteropBeClients) {
   const filterByUserNameOfSurname = (
     users: selfcareV2ClientApi.UserResource[],
     query?: string
@@ -45,7 +63,7 @@ export function selfcareServiceBuilder(
       }: WithLogger<BffAppContext>
     ): Promise<bffApi.User> {
       logger.info(
-        `Retrieving User with with istitution id ${institutionId}, user ${userId}`
+        `Retrieving User with institution id ${institutionId}, user ${userId}`
       );
 
       const users: selfcareV2ClientApi.UserResource[] =
@@ -93,7 +111,7 @@ export function selfcareServiceBuilder(
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
 
-      const institutions = await selfcareV2UsersClient.v2getUserInstitution({
+      const institutions = await selfcareV2UserClient.v2getUserInstitution({
         queries: {
           userId,
           states: "ACTIVE",
@@ -112,9 +130,11 @@ export function selfcareServiceBuilder(
       userId: string | undefined,
       roles: string[],
       query: string | undefined,
-      { logger, correlationId, headers }: WithLogger<BffAppContext>
+      { logger, correlationId, headers, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
+
+      assertRequesterCanRetrieveUsers(authData.organizationId, tenantId);
 
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },

@@ -8,6 +8,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
+import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 
 export const ClientAssertionAuditDetails = z.object({
   jwtId: z.string(),
@@ -22,6 +23,17 @@ export const ClientAssertionAuditDetails = z.object({
 export type ClientAssertionAuditDetails = z.infer<
   typeof ClientAssertionAuditDetails
 >;
+
+export const DPoPAuditDetails = z.object({
+  typ: z.string(),
+  alg: z.string(),
+  jwk: JWKKeyRS256.or(JWKKeyES256),
+  htm: z.string(),
+  htu: z.string(),
+  iat: z.number().int().min(0),
+  jti: z.string(),
+});
+export type DPoPAuditDetails = z.infer<typeof DPoPAuditDetails>;
 
 export const GeneratedTokenAuditDetails = z.object({
   jwtId: z.string(),
@@ -42,6 +54,7 @@ export const GeneratedTokenAuditDetails = z.object({
   expirationTime: z.number(),
   issuer: z.string(),
   clientAssertion: ClientAssertionAuditDetails,
+  dpop: DPoPAuditDetails.optional(),
 });
 export type GeneratedTokenAuditDetails = z.infer<
   typeof GeneratedTokenAuditDetails

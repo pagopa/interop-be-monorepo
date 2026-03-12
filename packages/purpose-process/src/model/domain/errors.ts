@@ -5,6 +5,7 @@ import {
   EServiceId,
   EServiceMode,
   PurposeId,
+  PurposeTemplateId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
@@ -15,17 +16,17 @@ import {
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
-export const errorCodes = {
+const errorCodes = {
   purposeNotFound: "0001",
   eserviceNotFound: "0002",
   tenantNotFound: "0003",
   tenantKindNotFound: "0004",
   purposeVersionNotFound: "0005",
   purposeVersionDocumentNotFound: "0006",
-  organizationNotAllowed: "0007",
-  organizationIsNotTheConsumer: "0008",
+  tenantNotAllowed: "0007",
+  tenantIsNotTheConsumer: "0008",
   purposeVersionCannotBeDeleted: "0009",
-  organizationIsNotTheProducer: "0010",
+  tenantIsNotTheProducer: "0010",
   notValidVersionState: "0011",
   eServiceModeNotAllowed: "0012",
   missingFreeOfChargeReason: "0013",
@@ -42,9 +43,20 @@ export const errorCodes = {
   missingRiskAnalysis: "0024",
   purposeVersionStateConflict: "0025",
   riskAnalysisConfigLatestVersionNotFound: "0026",
-  organizationIsNotTheDelegatedConsumer: "0027",
-  organizationIsNotTheDelegatedProducer: "0028",
+  tenantIsNotTheDelegatedConsumer: "0027",
+  tenantIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
+  purposeCannotBeUpdated: "0030",
+  tenantIsNotTheDelegate: "0031",
+  purposeTemplateNotFound: "0032",
+  invalidPurposeTenantKind: "0033",
+  riskAnalysisContainsNotEditableAnswers: "0034",
+  riskAnalysisAnswerNotInSuggestValues: "0035",
+  riskAnalysisMissingExpectedFieldError: "0036",
+  riskAnalysisVersionMismatch: "0037",
+  invalidPersonalData: "0038",
+  purposeDraftVersionNotFound: "0039",
+  purposeFromTemplateCannotBeModified: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -106,36 +118,39 @@ export function purposeVersionDocumentNotFound(
   });
 }
 
-export function organizationNotAllowed(
-  organizationId: TenantId
-): ApiError<ErrorCodes> {
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is neither producer/consumer nor delegate`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheConsumer(
-  organizationId: TenantId
+export function tenantIsNotTheConsumer(
+  tenantId: TenantId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the consumer`,
-    code: "organizationIsNotTheConsumer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId}${
+      delegationId
+        ? ` operating as delegate for delegation with ID ${delegationId}`
+        : ""
+    } is not allowed to perform the operation because is not operating as consumer`,
+    code: "tenantIsNotTheConsumer",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheDelegatedConsumer(
-  organizationId: TenantId,
+export function tenantIsNotTheDelegatedConsumer(
+  tenantId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegated consumer${
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegated consumer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegatedConsumer",
-    title: "Organization not allowed",
+    code: "tenantIsNotTheDelegatedConsumer",
+    title: "Tenant not allowed",
   });
 }
 
@@ -146,30 +161,35 @@ export function purposeVersionCannotBeDeleted(
   return new ApiError({
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
     code: "purposeVersionCannotBeDeleted",
-    title: "Purpose version canont be deleted",
+    title: "Purpose version cannot be deleted",
   });
 }
 
-export function organizationIsNotTheProducer(
-  organizationId: TenantId
+export function tenantIsNotTheProducer(
+  tenantId: TenantId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the producer`,
-    code: "organizationIsNotTheProducer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId}${
+      delegationId
+        ? ` operating as delegate for delegation with ID ${delegationId}`
+        : ""
+    } is not allowed to perform the operation because is not operating as producer`,
+    code: "tenantIsNotTheProducer",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheDelegatedProducer(
-  organizationId: TenantId,
+export function tenantIsNotTheDelegatedProducer(
+  tenantId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate producer${
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate producer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegatedProducer",
-    title: "Organization not allowed",
+    code: "tenantIsNotTheDelegatedProducer",
+    title: "Tenant not allowed",
   });
 }
 
@@ -212,12 +232,22 @@ export function purposeNotInDraftState(
   });
 }
 
+export function purposeDraftVersionNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not have a draft version`,
+    code: "purposeDraftVersionNotFound",
+    title: "Purpose draft version not found",
+  });
+}
+
 export function notValidVersionState(
   purposeVersionId: PurposeVersionId,
   versionState: PurposeVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
+    detail: `Purpose version ${purposeVersionId} is in an invalid state ${versionState} for this operation`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
   });
@@ -337,7 +367,7 @@ export function purposeVersionStateConflict(
   });
 }
 
-export function puroposeDelegationNotFound(
+export function purposeDelegationNotFound(
   purposeId: PurposeId,
   delegationId: DelegationId
 ): ApiError<ErrorCodes> {
@@ -345,5 +375,114 @@ export function puroposeDelegationNotFound(
     detail: `Delegation ${delegationId} not found for delegated purpose ${purposeId}`,
     code: "purposeDelegationNotFound",
     title: "Purpose delegation not found",
+  });
+}
+
+export function purposeCannotBeUpdated(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Archived purpose ${purposeId} cannot be updated`,
+    code: "purposeCannotBeUpdated",
+    title: "Purpose cannot be updated",
+  });
+}
+
+export function tenantIsNotTheDelegate(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation: operation is restricted to delegate, but delegation ID parameter is missing`,
+    code: "tenantIsNotTheDelegate",
+    title: "Missing delegation ID",
+  });
+}
+
+export function purposeTemplateNotFound(
+  templateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Template ${templateId} not found`,
+    code: "purposeTemplateNotFound",
+    title: "Purpose Template not found",
+  });
+}
+
+export function invalidPurposeTenantKind(
+  purposeTenantKind: TenantKind,
+  templateTenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose Tenant Kind ${purposeTenantKind} does not match template Tenant Kind ${templateTenantKind}`,
+    code: "invalidPurposeTenantKind",
+    title: "Invalid Purpose tenant kind",
+  });
+}
+
+export function riskAnalysisContainsNotEditableAnswers(
+  purposeTemplateId: PurposeTemplateId,
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis contains not editable answers for key ${key} in purpose template ${purposeTemplateId}`,
+    code: "riskAnalysisContainsNotEditableAnswers",
+    title: "Risk analysis contains not editable answers",
+  });
+}
+
+export function riskAnalysisAnswerNotInSuggestValues(
+  purposeTemplateId: PurposeTemplateId,
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis answer not in suggest values for key ${key} in purpose template ${purposeTemplateId}`,
+    code: "riskAnalysisAnswerNotInSuggestValues",
+    title: "Risk analysis answer not in suggest values",
+  });
+}
+
+export function riskAnalysisMissingExpectedFieldError(
+  key: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Expected field not found in form for key ${key}`,
+    code: "riskAnalysisMissingExpectedFieldError",
+    title: "Expected field not found in form",
+  });
+}
+
+export function riskAnalysisVersionMismatch(
+  seedVersion: string,
+  purposeTemplateVersion: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis version ${seedVersion} does not match purpose template version ${purposeTemplateVersion}`,
+    code: "riskAnalysisVersionMismatch",
+    title: "Risk analysis version mismatch",
+  });
+}
+
+export function invalidPersonalData(
+  eServicePersonalData: boolean | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-Service personal data ${
+      eServicePersonalData === undefined
+        ? "is invalid"
+        : "does not match purpose template handles personal data"
+    }`,
+    code: "invalidPersonalData",
+    title: "Invalid personal data",
+  });
+}
+
+export function purposeFromTemplateCannotBeModified(
+  purposeId: PurposeId,
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} created from template ${purposeTemplateId} cannot be modified entirely`,
+    code: "purposeFromTemplateCannotBeModified",
+    title: "Purpose from template cannot be modified",
   });
 }

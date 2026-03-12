@@ -1,18 +1,31 @@
 import {
   CommonHTTPServiceConfig,
-  ReadModelDbConfig,
   FileManagerConfig,
   EventStoreConfig,
   S3Config,
-  FeatureFlagsConfig,
+  ApplicationAuditProducerConfig,
+  ReadModelSQLDbConfig,
+  FeatureFlagAgreementApprovalPolicyUpdateConfig,
+  FeatureFlagEServicePersonalDataConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
+const EServiceTemplateS3Config = z
+  .object({
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
+  }));
+type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+
+const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
-  .and(FeatureFlagsConfig)
+  .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(
     z
       .object({
@@ -25,9 +38,12 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
           .map((origin) => origin.trim())
           .filter(Boolean),
       }))
-  );
+  )
+  .and(EServiceTemplateS3Config)
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagEServicePersonalDataConfig);
 
-export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
+type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
 export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
   process.env

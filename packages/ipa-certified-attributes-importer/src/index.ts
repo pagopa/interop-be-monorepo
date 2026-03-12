@@ -1,13 +1,16 @@
 import {
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   getInteropHeaders,
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnectionWithCleanup,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
@@ -18,6 +21,7 @@ import {
   getTenantUpsertData,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -27,11 +31,18 @@ const loggerInstance = logger({
 
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
-try {
-  const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
+const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
 
+try {
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+  const attributeReadModelServiceSQL =
+    attributeReadModelServiceBuilder(readModelDB);
+
+  const readModelServiceSQL = readModelServiceBuilderSQL({
+    readModelDB,
+    attributeReadModelServiceSQL,
+    tenantReadModelServiceSQL,
+  });
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
   await refreshableToken.init();
@@ -40,10 +51,10 @@ try {
 
   const registryData = await getRegistryData();
 
-  loggerInstance.info("Getting Plaform data");
+  loggerInstance.info("Getting Platform data");
 
-  const attributes = await readModelService.getAttributes();
-  const tenants = await readModelService.getIPATenants();
+  const attributes = await readModelServiceSQL.getAttributes();
+  const tenants = await readModelServiceSQL.getIPATenants();
 
   const tenantUpsertData = getTenantUpsertData(registryData, tenants);
 
@@ -59,12 +70,12 @@ try {
   const headers = getInteropHeaders({ token, correlationId });
   await createNewAttributes(
     newAttributes,
-    readModelService,
+    readModelServiceSQL,
     headers,
     loggerInstance
   );
 
-  loggerInstance.info("Assignin new attributes");
+  loggerInstance.info("Assigning new attributes");
 
   const attributesToAssign = await getAttributesToAssign(
     tenants,
@@ -88,9 +99,6 @@ try {
   loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {
   loggerInstance.error(error);
+} finally {
+  await cleanup();
 }
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.

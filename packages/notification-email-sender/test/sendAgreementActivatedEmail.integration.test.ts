@@ -38,7 +38,7 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
 } from "./utils.js";
 
@@ -96,8 +96,8 @@ describe("sendAgreementActivatedEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address],
@@ -110,7 +110,10 @@ describe("sendAgreementActivatedEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions,
+      expect.anything()
+    );
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
@@ -120,7 +123,7 @@ describe("sendAgreementActivatedEmail", () => {
     expect(lastEmail.body.html).toContain(mailOptions.html);
     expect(lastEmail).toMatchObject({
       subject: mailOptions.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions.to },
     });
   });

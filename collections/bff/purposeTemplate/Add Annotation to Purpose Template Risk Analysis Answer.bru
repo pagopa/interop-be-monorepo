@@ -1,0 +1,33 @@
+meta {
+  name: Add Annotation to Purpose Template Risk Analysis Answer
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{host-bff}}/purposeTemplates/{{purposeTemplateId}}/riskAnalysis/answers/{{answerId}}/annotation
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "text": "{{annotationText}}"
+  }
+}
+
+vars:put-response {
+  annotationId: res.body.id
+}
+
+script:pre-request {
+  // Set default values for adding annotation
+  bru.setVar("purposeTemplateId", "{{purpose-template-id}}");
+  bru.setVar("answerId", "{{answer-id}}");
+  bru.setVar("annotationText", "{{annotationText}}");
+}

@@ -1,17 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
-  InteropToken,
+  InteropInternalToken,
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
 import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
-import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
 import { importAttributes } from "../src/service/processor.js";
+import { config } from "../src/config/config.js";
 import {
   ATTRIBUTE_ANAC_ASSIGNED_ID,
   ATTRIBUTE_ANAC_ENABLED_ID,
@@ -37,10 +42,17 @@ describe("ANAC Certified Attributes Importer", () => {
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
   const sftpClientMock = new SftpClient(sftpConfigTest);
-  const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
 
-  const interopToken: InteropToken = {
+  const db = makeDrizzleConnection(config);
+  const tenantReadModelService = tenantReadModelServiceBuilder(db);
+  const attributeReadModelService = attributeReadModelServiceBuilder(db);
+  const readModelQueriesMock = readModelQueriesBuilderSQL(
+    db,
+    tenantReadModelService,
+    attributeReadModelService
+  );
+
+  const interopInternalToken: InteropInternalToken = {
     header: {
       alg: "algorithm",
       use: "use",
@@ -55,12 +67,12 @@ describe("ANAC Certified Attributes Importer", () => {
       iat: 0,
       nbf: 0,
       exp: 10,
-      role: "role1",
+      role: "internal",
     },
     serialized: "the-token",
   };
-  const generateInternalTokenMock = (): Promise<InteropToken> =>
-    Promise.resolve(interopToken);
+  const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+    Promise.resolve(interopInternalToken);
 
   const run = () =>
     importAttributes(

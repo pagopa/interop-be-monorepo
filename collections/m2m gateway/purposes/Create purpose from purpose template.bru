@@ -1,0 +1,71 @@
+meta {
+  name: Create purpose from purpose template
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/purposes
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "eserviceId": "{{eserviceId}}",
+    "delegationId": "{{delegationId}}",
+    "title": "{{randomLoremWord}} test",
+    "dailyCalls": {{randomInt}},
+    "riskAnalysisForm": {
+        "version": "3.1",
+        "answers": {
+            "purpose": ["INSTITUTIONAL"],
+            "institutionalPurpose": ["MyPurpose"],
+            "personalDataTypes": ["OTHER"],
+            "otherPersonalDataTypes": ["MyDataTypes"],
+            "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+            "legalObligationReference": ["somethingLegal"],
+            "legalBasisPublicInterest": ["RULE_OF_LAW"],
+            "ruleOfLawText": ["TheLaw"],
+            "knowsDataQuantity": ["NO"],
+            "dataQuantity": [],
+            "deliveryMethod": ["ANONYMOUS"],
+            "policyProvided": ["NO"],
+            "confirmPricipleIntegrityAndDiscretion": ["true"],
+            "reasonPolicyNotProvided": ["Because"],
+            "doneDpia": ["NO"],
+            "dataDownload": ["YES"],
+            "confirmDataRetentionPeriod": ["true"],
+            "purposePursuit": ["MERE_CORRECTNESS"],
+            "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
+            "usesThirdPartyData": ["NO"],
+            "declarationConfirmGDPR": ["true"]
+        }
+    }
+  }
+}
+
+vars:pre-request {
+  purposeTemplateId: ec2a22d6-70d6-4939-a8ea-4121dbd8c8ff
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000);
+  bru.setVar("randomInt", randomInt);
+  
+  const loremWords = ["example", "random", "data", "sample", "api", "bruno", "mock", "testing", "validation", "service", "response", "request"];
+  const randomLoremWord = loremWords[Math.floor(Math.random() * loremWords.length)];
+  bru.setVar("randomLoremWord", randomLoremWord);
+}
+
+docs {
+  Creates the Purpose from a Purpose Template
+}

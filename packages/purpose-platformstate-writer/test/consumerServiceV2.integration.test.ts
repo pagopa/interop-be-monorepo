@@ -18,8 +18,9 @@ import {
   readAllTokenGenStatesItems,
   writePlatformAgreementEntry,
   writePlatformCatalogEntry,
+  writePlatformPurposeEntry,
   writeTokenGenStatesConsumerClient,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   generateId,
@@ -54,7 +55,6 @@ import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  writePlatformPurposeEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -222,9 +222,8 @@ describe("integration tests for events V2", () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -284,9 +283,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -325,9 +323,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -372,9 +369,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -427,9 +423,8 @@ describe("integration tests for events V2", () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -498,23 +493,27 @@ describe("integration tests for events V2", () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -522,7 +521,10 @@ describe("integration tests for events V2", () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -541,6 +543,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -567,6 +570,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -580,9 +584,8 @@ describe("integration tests for events V2", () => {
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
@@ -594,12 +597,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -609,12 +613,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -654,9 +659,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -722,9 +726,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -761,9 +764,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -841,9 +843,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1023,9 +1024,8 @@ describe("integration tests for events V2", () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1086,9 +1086,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1127,9 +1126,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -1175,9 +1173,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1230,9 +1227,8 @@ describe("integration tests for events V2", () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1302,23 +1298,27 @@ describe("integration tests for events V2", () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -1326,7 +1326,10 @@ describe("integration tests for events V2", () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -1344,6 +1347,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -1369,6 +1373,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -1382,9 +1387,8 @@ describe("integration tests for events V2", () => {
 
       await handleMessageV2(message, dynamoDBClient, genericLogger);
 
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
@@ -1397,12 +1401,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -1413,12 +1418,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -1458,9 +1464,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1526,9 +1531,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -1564,9 +1568,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1638,9 +1641,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1691,9 +1693,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1770,9 +1771,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -1824,9 +1824,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1892,9 +1891,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -1930,9 +1928,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2004,9 +2001,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2057,9 +2053,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2136,9 +2131,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2191,9 +2185,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2260,9 +2253,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -2299,9 +2291,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2374,9 +2365,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2428,9 +2418,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2507,9 +2496,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2562,9 +2550,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2631,9 +2618,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
@@ -2670,9 +2656,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2745,9 +2730,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2799,9 +2783,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -2878,9 +2861,8 @@ describe("integration tests for events V2", () => {
       );
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -2932,9 +2914,8 @@ describe("integration tests for events V2", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -3009,9 +2990,8 @@ describe("integration tests for events V2", () => {
       expect(retrievedPlatformPurposeEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

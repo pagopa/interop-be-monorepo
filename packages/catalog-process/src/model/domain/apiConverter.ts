@@ -144,6 +144,7 @@ export const documentToApiDocument = (
   prettyName: document.prettyName,
   path: document.path,
   checksum: document.checksum,
+  uploadDate: document.uploadDate.toJSON(),
 });
 
 export const descriptorToApiDescriptor = (
@@ -178,6 +179,7 @@ export const descriptorToApiDescriptor = (
     rejectionReason: reason.rejectionReason,
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
+  templateVersionRef: descriptor.templateVersionRef,
 });
 
 export const eServiceToApiEService = (
@@ -204,4 +206,7 @@ export const eServiceToApiEService = (
   isSignalHubEnabled: eservice.isSignalHubEnabled,
   isConsumerDelegable: eservice.isConsumerDelegable,
   isClientAccessDelegable: eservice.isClientAccessDelegable,
+  templateId: eservice.templateId,
+  personalData: eservice.personalData,
+  instanceLabel: eservice.instanceLabel,
 });

@@ -1,16 +1,13 @@
 import { match } from "ts-pattern";
 import {
   agreementState,
+  Delegation,
   DelegationId,
-  DelegationV2,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { InteropHeaders } from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-} from "./clients/clientsProvider.js";
-import { ReadModelService } from "./readModelService.js";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const processPurposes = async ({
   readModelService,
@@ -18,8 +15,8 @@ export const processPurposes = async ({
   headers,
   delegationId,
 }: {
-  readModelService: ReadModelService;
-  purposeProcessClient: PurposeProcessClient;
+  readModelService: ReadModelServiceSQL;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
   headers: InteropHeaders;
   delegationId: DelegationId;
 }): Promise<void> => {
@@ -92,10 +89,10 @@ export const processAgreement = async ({
   headers,
   delegation,
 }: {
-  readModelService: ReadModelService;
-  agreementProcessClient: AgreementProcessClient;
+  readModelService: ReadModelServiceSQL;
+  agreementProcessClient: agreementApi.AgreementProcessClient;
   headers: InteropHeaders;
-  delegation: DelegationV2;
+  delegation: Delegation;
 }): Promise<void> => {
   const agreements = await readModelService.getAgreements(delegation);
 

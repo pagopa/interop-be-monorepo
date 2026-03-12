@@ -1,0 +1,19 @@
+meta {
+  name: Clone agreement
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host-m2m-gw}}/agreements/:agreementId/clone
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

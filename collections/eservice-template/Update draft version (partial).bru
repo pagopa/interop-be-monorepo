@@ -1,0 +1,40 @@
+meta {
+  name: Update draft version (partial)
+  type: http
+  seq: 19
+}
+
+patch {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "description": "Version description",
+    "voucherLifespan": 100,
+    "dailyCallsPerConsumer": null,
+    "dailyCallsTotal": null,
+    "agreementApprovalPolicy": null,
+    "attributes": {
+      "certified": [],
+      "verified": [],
+      "declared": []
+    }
+  }
+}
+
+vars:post-response {
+  eserviceTemplateId: res.body.id
+}

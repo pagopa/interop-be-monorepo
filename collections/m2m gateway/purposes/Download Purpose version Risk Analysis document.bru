@@ -1,0 +1,20 @@
+meta {
+  name: Download Purpose version Risk Analysis document
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{host-m2m-gw}}/purposes/:purposeId/versions/:versionId/riskAnalysisDocument
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

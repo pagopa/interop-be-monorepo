@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SelfCareConfig = z
+export const SelfCareClientConfig = z
   .object({
     SELFCARE_V2_URL: z.string(),
     SELFCARE_V2_API_KEY: z.string(),
@@ -10,4 +10,16 @@ export const SelfCareConfig = z
     selfcareApiKey: c.SELFCARE_V2_API_KEY,
   }));
 
-export type SelfCareConfig = z.infer<typeof SelfCareConfig>;
+export type SelfCareClientConfig = z.infer<typeof SelfCareClientConfig>;
+
+export const SelfcareConsumerConfig = z
+  .object({
+    SELFCARE_TOPIC: z.string(),
+    INTEROP_PRODUCT: z.string(),
+  })
+  .transform((c) => ({
+    selfcareTopic: c.SELFCARE_TOPIC,
+    interopProduct: c.INTEROP_PRODUCT,
+  }));
+
+export type SelfcareConsumerConfig = z.infer<typeof SelfcareConsumerConfig>;

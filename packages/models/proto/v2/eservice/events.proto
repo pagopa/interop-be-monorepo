@@ -38,6 +38,11 @@ message EServiceDescriptorQuotasUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
+message EServiceDescriptorAgreementApprovalPolicyUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceDescriptorActivatedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
@@ -157,4 +162,63 @@ message EServiceDescriptorAttributesUpdatedV2 {
 
 message EServiceNameUpdatedV2 {
     EServiceV2 eservice = 1;
+    optional string oldName = 2;
+}
+
+message EServiceNameUpdatedByTemplateUpdateV2 {
+    EServiceV2 eservice = 1;
+    optional string oldName = 2;
+}
+
+message EServiceDescriptionUpdatedByTemplateUpdateV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptorQuotasUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorAttributesUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  repeated string attributeIds = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentAddedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentDeletedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceSignalHubEnabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceSignalHubDisabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServicePersonalDataFlagUpdatedAfterPublicationV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceInstanceLabelUpdatedV2 {
+  EServiceV2 eservice = 1;
 }

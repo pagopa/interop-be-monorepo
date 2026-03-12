@@ -1,6 +1,7 @@
 {
   "name": "pagopa-interop-agreement-lifecycle",
   "version": "1.0.0",
+  "license": "MPL-2.0",
   "private": true,
   "description": "PagoPA Interoperability agreement lifecycle",
   "main": "dist",
@@ -9,24 +10,19 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
-    "start": "tsx --watch ./src/index.ts",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "20.14.6",
     "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
-    "typescript": "5.4.5"
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
   }
 }

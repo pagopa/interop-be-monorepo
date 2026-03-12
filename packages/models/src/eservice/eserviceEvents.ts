@@ -50,6 +50,19 @@ import {
   EServiceDescriptorRejectedByDelegatorV2,
   EServiceDescriptorAttributesUpdatedV2,
   EServiceNameUpdatedV2,
+  EServiceNameUpdatedByTemplateUpdateV2,
+  EServiceDescriptionUpdatedByTemplateUpdateV2,
+  EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
+  EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
+  EServiceDescriptorDocumentAddedByTemplateUpdateV2,
+  EServiceDescriptorDocumentUpdatedByTemplateUpdateV2,
+  EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
+  EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
+  EServiceSignalHubEnabledV2,
+  EServiceSignalHubDisabledV2,
+  EServicePersonalDataFlagUpdatedAfterPublicationV2,
+  EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
+  EServiceInstanceLabelUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -129,6 +142,11 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptorQuotasUpdated" }, ({ data }) =>
       EServiceDescriptorQuotasUpdatedV2.toBinary(data)
     )
+    .with(
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
+      ({ data }) =>
+        EServiceDescriptorAgreementApprovalPolicyUpdatedV2.toBinary(data)
+    )
     .with({ type: "EServiceDescriptorActivated" }, ({ data }) =>
       EServiceDescriptorActivatedV2.toBinary(data)
     )
@@ -200,6 +218,56 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceNameUpdated" }, ({ data }) =>
       EServiceNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, ({ data }) =>
+      EServiceNameUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptionUpdatedByTemplateUpdate" }, ({ data }) =>
+      EServiceDescriptionUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorQuotasUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorAttributesUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentAddedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentDeletedByTemplateUpdateV2.toBinary(data)
+    )
+    .with({ type: "EServiceSignalHubEnabled" }, ({ data }) =>
+      EServiceSignalHubEnabledV2.toBinary(data)
+    )
+    .with({ type: "EServiceSignalHubDisabled" }, ({ data }) =>
+      EServiceSignalHubDisabledV2.toBinary(data)
+    )
+    .with(
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      ({ data }) =>
+        EServicePersonalDataFlagUpdatedAfterPublicationV2.toBinary(data)
+    )
+    .with(
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServicePersonalDataFlagUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with({ type: "EServiceInstanceLabelUpdated" }, ({ data }) =>
+      EServiceInstanceLabelUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -312,6 +380,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorQuotasUpdated"),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAgreementApprovalPolicyUpdated"),
     data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
   }),
   z.object({
@@ -433,6 +506,68 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceNameUpdated"),
     data: protobufDecoder(EServiceNameUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceNameUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceNameUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptionUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptionUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorQuotasUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAttributesUpdatedByTemplateUpdate"),
+    data: protobufDecoder(
+      EServiceDescriptorAttributesUpdatedByTemplateUpdateV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentAddedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentAddedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentDeletedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentDeletedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceSignalHubEnabled"),
+    data: protobufDecoder(EServiceSignalHubEnabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceSignalHubDisabled"),
+    data: protobufDecoder(EServiceSignalHubDisabledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServicePersonalDataFlagUpdatedAfterPublication"),
+    data: protobufDecoder(EServicePersonalDataFlagUpdatedAfterPublicationV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServicePersonalDataFlagUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServicePersonalDataFlagUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceInstanceLabelUpdated"),
+    data: protobufDecoder(EServiceInstanceLabelUpdatedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

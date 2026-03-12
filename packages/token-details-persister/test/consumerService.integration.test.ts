@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
+import {
+  algorithm,
+  GeneratedTokenAuditDetails,
+  generateId,
+} from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   formatDateyyyyMMdd,
-  formatTimehhmmss,
+  formatTimeHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
 import { KafkaMessage } from "kafkajs";
@@ -44,7 +48,7 @@ describe("consumerService", () => {
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
-    const hmsTime = formatTimehhmmss(date);
+    const hmsTime = formatTimeHHmmss(date);
     const expectedFileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
     const expectedFilePathWithFileName = `token-details/${ymdDate}/${expectedFileName}`;
 
@@ -64,7 +68,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should write three entries on the bucket", async () => {
@@ -92,7 +96,7 @@ describe("consumerService", () => {
 
     const date = new Date();
     const ymdDate = formatDateyyyyMMdd(date);
-    const hmsTime = formatTimehhmmss(date);
+    const hmsTime = formatTimeHHmmss(date);
     const expectedFileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
     const expectedFilePathWithFileName = `token-details/${ymdDate}/${expectedFileName}`;
 
@@ -115,7 +119,7 @@ describe("consumerService", () => {
     );
 
     const decodedFileContent = Buffer.from(fileContent).toString();
-    expect(decodedFileContent).toMatchObject(expectedFileContent);
+    expect(decodedFileContent).toBe(expectedFileContent);
   });
 
   it("should throw error if write operation fails", async () => {
@@ -154,7 +158,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   subject: generateId(),
   audience: "uat.interop.pagopa.it",
   purposeId: generateId(),
-  algorithm: "RS256",
+  algorithm: algorithm.RS256,
   clientId: generateId(),
   keyId: generateId(),
   purposeVersionId: generateId(),
@@ -167,7 +171,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   clientAssertion: {
     subject: generateId(),
     audience: "uat.interop.pagopa.it",
-    algorithm: "RS256",
+    algorithm: algorithm.RS256,
     keyId: generateId(),
     jwtId: generateId(),
     issuedAt: new Date().getMilliseconds(),

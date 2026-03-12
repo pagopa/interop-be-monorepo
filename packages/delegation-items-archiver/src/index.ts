@@ -3,7 +3,6 @@ import {
   decodeKafkaMessage,
   InteropTokenGenerator,
   logger,
-  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -14,19 +13,31 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
+
+const readModelDB = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  agreementReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+});
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
 );
 await refreshableToken.init();
-
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 
 const { agreementProcessClient, purposeProcessClient } = getInteropBeClients();
 
@@ -45,6 +56,7 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
+    streamVersion: decodedMessage.version,
     correlationId,
   });
   loggerInstance.debug(decodedMessage);
@@ -58,7 +70,7 @@ async function processMessage({
         offset: message.offset,
         logger: loggerInstance,
         correlationId,
-        readModelService,
+        readModelService: readModelServiceSQL,
         agreementProcessClient,
         purposeProcessClient,
       })
@@ -66,4 +78,9 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.delegationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.delegationTopic],
+  processMessage,
+  "delegation-items-archiver"
+);

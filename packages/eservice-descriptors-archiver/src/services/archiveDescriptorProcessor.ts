@@ -6,15 +6,15 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
-import { CatalogProcessClient } from "./catalogProcessClient.js";
+import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line max-params
 export async function archiveDescriptorForArchivedAgreement(
   archivedAgreement: Agreement,
   refreshableToken: RefreshableInteropToken,
-  readModelService: ReadModelService,
-  catalogProcessClient: CatalogProcessClient,
+  readModelService: ReadModelServiceSQL,
+  catalogProcessClient: CatalogProcessZodiosClient,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -29,7 +29,7 @@ export async function archiveDescriptorForArchivedAgreement(
 
   if (!allArchived) {
     logger.info(
-      `Skipping descriptors archiviation - not all agreements are archived for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId}`
+      `Skipping descriptors archiving - not all agreements are archived for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId}`
     );
     return undefined;
   }
@@ -98,13 +98,13 @@ export async function archiveDescriptorForArchivedAgreement(
         );
       } else {
         logger.info(
-          `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`
+          `Skipping descriptor archiving for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`
         );
       }
     })
     .otherwise(() => {
       logger.info(
-        `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
+        `Skipping descriptor archiving for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
       );
     });
 }

@@ -11,6 +11,7 @@ import {
   TenantId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  UserId,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
 import { clientKindTokenGenStates } from "./commons.js";
@@ -31,6 +32,7 @@ export const TokenGenerationStatesConsumerClient =
       TokenGenerationStatesClientKidPK
     ),
     clientKind: z.literal(clientKindTokenGenStates.consumer),
+    producerId: TenantId.optional(),
     consumerId: TenantId.optional(),
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
     agreementId: AgreementId.optional(),
@@ -61,6 +63,7 @@ export const TokenGenerationStatesApiClient =
     PK: TokenGenerationStatesClientKidPK,
     clientKind: z.literal(clientKindTokenGenStates.api),
     consumerId: TenantId,
+    adminId: UserId.optional(),
   });
 export type TokenGenerationStatesApiClient = z.infer<
   typeof TokenGenerationStatesApiClient
@@ -147,6 +150,7 @@ export const TokenGenStatesConsumerClientGSIPurpose =
     GSIPK_purposeId: true,
     agreementId: true,
     agreementState: true,
+    producerId: true,
     GSIPK_eserviceId_descriptorId: true,
     descriptorAudience: true,
     descriptorState: true,

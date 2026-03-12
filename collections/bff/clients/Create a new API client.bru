@@ -1,7 +1,7 @@
 meta {
   name: Create a new API client
   type: http
-  seq: 1
+  seq: 4
 }
 
 post {
@@ -12,10 +12,7 @@ post {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 body:json {
   {

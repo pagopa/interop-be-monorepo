@@ -3,7 +3,6 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   EmailManagerPEC,
-  ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
   initPecEmailManager,
@@ -17,25 +16,35 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import {
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { certifiedEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+const readModelDB = makeDrizzleConnection(config);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
 const templateService = buildHTMLTemplateService();
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
-const pecEmailsenderData = {
+const pecEmailSenderData = {
   label: config.pecSenderLabel,
   mail: config.pecSenderMail,
 };
 
 const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
-  pecEmailsenderData,
-  readModelService,
+  pecEmailSenderData,
+  readModelServiceSQL,
   templateService
 );
 
@@ -50,6 +59,7 @@ export async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
+    streamVersion: decodedMessage.version,
     correlationId: decodedMessage.correlation_id
       ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
       : generateId<CorrelationId>(),
@@ -93,7 +103,9 @@ export async function processMessage({
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementArchivedByRevokedDelegation",
-          "AgreementDeletedByRevokedDelegation"
+          "AgreementDeletedByRevokedDelegation",
+          "AgreementContractGenerated",
+          "AgreementSignedContractGenerated"
         ),
       },
       handleMessageToSkip

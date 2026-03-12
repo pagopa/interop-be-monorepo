@@ -36,7 +36,13 @@
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build", "^test", "test:integration", "test:api"]
+    },
+    "test:integration": {
+      "dependsOn": ["build", "^test:integration"]
+    },
+    "test:api": {
+      "dependsOn": ["build", "^test:api"]
     },
     "lint": {
       "dependsOn": ["build", "^lint"],
@@ -46,7 +52,13 @@
       "dependsOn": ["build"],
       "outputs": ["dist"]
     },
-    "format:check": {},
-    "format:write": {}
+    "lint:openapi": {
+      "dependsOn": ["^lint:openapi"],
+      "cache": false
+    },
+    "generate-db-models": {
+      "dependsOn": ["//#infra:start", "^generate-db-models"],
+      "outputs": ["src/generated/**"]
+    }
   }
 }

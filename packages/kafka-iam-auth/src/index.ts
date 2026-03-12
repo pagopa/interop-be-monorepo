@@ -6,6 +6,7 @@ import {
   EachMessagePayload,
   Kafka,
   KafkaConfig,
+  KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
   ProducerRecord,
@@ -26,9 +27,9 @@ import { P, match } from "ts-pattern";
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
-const processExit = (existStatusCode: number = 1): void => {
-  genericLogger.debug(`Process exit with code ${existStatusCode}`);
-  process.exit(existStatusCode);
+const processExit = (exitStatusCode: number = 1): void => {
+  genericLogger.debug(`Process exit with code ${exitStatusCode}`);
+  process.exit(exitStatusCode);
 };
 
 const errorEventsListener = (consumerOrProducer: Consumer | Producer): void => {
@@ -80,7 +81,7 @@ const consumerKafkaEventsListener = (consumer: Consumer): void => {
   });
 
   consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -94,7 +95,7 @@ const producerKafkaEventsListener = (producer: Producer): void => {
   }
   // eslint-disable-next-line sonarjs/no-identical-functions
   producer.on(producer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -140,14 +141,14 @@ async function oauthBearerTokenProvider(
   region: string,
   logger: Logger
 ): Promise<OauthbearerProviderResponse> {
-  logger.debug("Fetching token from AWS");
+  logger.info("Requesting AWS authentication token");
 
   const authTokenResponse = await generateAuthToken({
     region,
   });
 
-  logger.debug(
-    `Token fetched from AWS expires at ${authTokenResponse.expiryTime}`
+  logger.info(
+    `AWS authentication token obtained, expires at ${authTokenResponse.expiryTime}`
   );
 
   return {
@@ -204,7 +205,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   return new Kafka({
     ...kafkaConfig,
     logCreator:
-      (_logLevel) =>
+      () =>
       ({ level, log }) => {
         const { message, error } = log;
 
@@ -215,6 +216,16 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
               (level === logLevel.ERROR || level === logLevel.WARN) &&
               error.includes("The group is rebalancing, so a rejoin is needed"),
             () => logLevel.INFO
+          )
+          .with(
+            P.string,
+            (error) =>
+              level === logLevel.ERROR &&
+              (error.includes("Connection error: read ECONNRESET") ||
+                error.includes(
+                  "The replica is not available for the requested topic-partition"
+                )),
+            () => logLevel.WARN
           )
           .otherwise(() => level);
 
@@ -257,7 +268,7 @@ const initCustomConsumer = async ({
       maxRetryTime: 3000,
       retries: 3,
       restartOnFailure: (error) => {
-        genericLogger.error(`Error during restart service: ${error.message}`);
+        genericLogger.warn(`Error during restart service: ${error.message}`);
         return Promise.resolve(false);
       },
     },
@@ -293,9 +304,13 @@ const initCustomConsumer = async ({
   return consumer;
 };
 
+// This function is used to initialize a Kafka consumer with specific configurations.
+// Transactions are currently supported only for single-replica producers,
+// if scaling up/down is required, ensure proper handling of transactional IDs
 export const initProducer = async (
   config: KafkaProducerConfig,
-  topic: string
+  topic: string,
+  transactionalId?: string
 ): Promise<
   Producer & {
     send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
@@ -315,12 +330,13 @@ export const initProducer = async (
 
     const producer = kafka.producer({
       allowAutoTopicCreation: false,
+      transactionalId: transactionalId ? transactionalId : undefined,
       retry: {
         initialRetryTime: 100,
         maxRetryTime: 3000,
         retries: 3,
         restartOnFailure: (error) => {
-          genericLogger.error(`Error during restart service: ${error.message}`);
+          genericLogger.warn(`Error during restart service: ${error.message}`);
           return Promise.resolve(false);
         },
       },
@@ -358,7 +374,8 @@ export const initProducer = async (
 export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
-  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
+  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
+  serviceName?: string
 ): Promise<void> => {
   try {
     const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
@@ -368,10 +385,14 @@ export const runConsumer = async (
           await consumerHandler(payload);
           await kafkaCommitMessageOffsets(consumer, payload);
         } catch (e) {
+          const messageInfo = extractBasicMessageInfo(payload.message);
           throw kafkaMessageProcessError(
             payload.topic,
             payload.partition,
-            payload.message.offset,
+            {
+              ...messageInfo,
+              serviceName,
+            },
             e
           );
         }
@@ -390,7 +411,8 @@ export const runBatchConsumer = async (
   baseConsumerConfig: KafkaConsumerConfig,
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
-  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
+  serviceName?: string
 ): Promise<void> => {
   try {
     const consumerRunConfig = (): ConsumerRunConfig => ({
@@ -401,7 +423,10 @@ export const runBatchConsumer = async (
           throw kafkaMessageProcessError(
             payload.batch.topic,
             payload.batch.partition,
-            payload.batch.lastOffset().toString(),
+            {
+              offset: payload.batch.lastOffset().toString(),
+              serviceName,
+            },
             e
           );
         }
@@ -449,3 +474,32 @@ export const validateTopicMetadata = async (
     return false;
   }
 };
+
+export function extractBasicMessageInfo(message: KafkaMessage): {
+  offset: string;
+  streamId?: string;
+  eventType?: string;
+  eventVersion?: number;
+  streamVersion?: number;
+  correlationId?: string;
+} {
+  try {
+    if (!message.value) {
+      return { offset: message.offset };
+    }
+
+    const rawMessage = JSON.parse(message.value.toString());
+    const dataSource =
+      rawMessage.value?.after || rawMessage.after || rawMessage;
+    return {
+      offset: message.offset,
+      streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
+      eventType: dataSource.type,
+      eventVersion: dataSource.event_version,
+      streamVersion: dataSource.version,
+      correlationId: dataSource.correlation_id,
+    };
+  } catch {
+    return { offset: message.offset };
+  }
+}

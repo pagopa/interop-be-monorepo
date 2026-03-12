@@ -9,9 +9,15 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   Descriptor,
+  descriptorState,
+  DescriptorState,
   EServiceAttribute,
+  Technology,
+  technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -22,7 +28,6 @@ import { ConfigurationRiskAnalysis } from "../model/types.js";
 import {
   hasCertifiedAttributes,
   isAgreementSubscribed,
-  isAgreementUpgradable,
   isInvalidDescriptor,
   isRequesterEserviceProducer,
   isValidDescriptor,
@@ -36,6 +41,19 @@ export function toEserviceCatalogProcessQueryParams(
     ...queryParams,
     eservicesIds: [],
     name: queryParams.q,
+    templatesIds: [],
+  };
+}
+
+export function toBffCatalogTenant(
+  organization: tenantApi.Tenant,
+  hasNotifications?: boolean
+): bffApi.CatalogTenant {
+  return {
+    id: organization.id,
+    name: organization.name,
+    hasUnreadNotifications: hasNotifications || false,
+    selfcareId: organization.selfcareId,
   };
 }
 
@@ -43,8 +61,8 @@ export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
-  activeDescriptor?: catalogApi.EServiceDescriptor,
-  agreement?: agreementApi.Agreement
+  hasNotifications: boolean,
+  activeDescriptor?: catalogApi.EServiceDescriptor
 ): bffApi.CatalogEService {
   const partialEnhancedEservice = {
     id: eservice.id,
@@ -53,6 +71,7 @@ export function toBffCatalogApiEService(
     producer: {
       id: eservice.producerId,
       name: producerTenant.name,
+      selfcareId: producerTenant.selfcareId,
     },
     isMine: isRequesterEqProducer,
   };
@@ -69,26 +88,19 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
-    ...(agreement
-      ? {
-          agreement: {
-            id: agreement.id,
-            state: agreement.state,
-            canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-          },
-        }
-      : {}),
+    hasUnreadNotifications: hasNotifications,
+    personalData: eservice.personalData,
   };
 }
 
-export function toBffCatalogDescriptorEService(
+export async function toBffCatalogDescriptorEService(
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor,
   producerTenant: tenantApi.Tenant,
-  agreement: agreementApi.Agreement | undefined,
+  agreements: agreementApi.Agreement[],
   requesterTenant: tenantApi.Tenant,
   consumerDelegators: tenantApi.Tenant[]
-): bffApi.CatalogDescriptorEService {
+): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
     id: eservice.id,
@@ -101,7 +113,9 @@ export function toBffCatalogDescriptorEService(
     description: eservice.description,
     technology: eservice.technology,
     descriptors: getValidDescriptor(eservice).map(toCompactDescriptor),
-    agreement: agreement && toBffCompactAgreement(agreement, eservice),
+    agreements: agreements.map((agreement) =>
+      toBffCompactAgreement(agreement, eservice)
+    ),
     isMine: isRequesterEserviceProducer(requesterTenant.id, eservice),
     hasCertifiedAttributes: [requesterTenant, ...consumerDelegators].some(
       (t) => hasCertifiedAttributes(descriptor, t)
@@ -110,18 +124,21 @@ export function toBffCatalogDescriptorEService(
       - the requester is the delegated consumer for the eservice and
         the delegator has the certified attributes required to consume the eservice */
     ),
-    isSubscribed: isAgreementSubscribed(agreement),
+    isSubscribed: agreements.some((agreement) =>
+      isAgreementSubscribed(agreement)
+    ),
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
     mail: getLatestTenantContactEmail(producerTenant),
     mode: eservice.mode,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: eservice.riskAnalysis.map((ra) =>
+      toBffCatalogApiEserviceRiskAnalysis(ra, undefined)
     ),
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
   };
 }
 
@@ -155,7 +172,8 @@ export function toBffCatalogApiDescriptorDoc(
 }
 
 export function toBffCatalogApiEserviceRiskAnalysis(
-  riskAnalysis: catalogApi.EServiceRiskAnalysis
+  riskAnalysis: catalogApi.EServiceRiskAnalysis,
+  rulesetExpiration: string | undefined
 ): bffApi.EServiceRiskAnalysis {
   const answers: bffApi.RiskAnalysisForm["answers"] =
     riskAnalysis.riskAnalysisForm.singleAnswers
@@ -194,6 +212,7 @@ export function toBffCatalogApiEserviceRiskAnalysis(
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt,
     riskAnalysisForm,
+    rulesetExpiration,
   };
 }
 
@@ -237,10 +256,10 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
   };
 }
 
-export function toBffCatalogApiProducerDescriptorEService(
+export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
-): bffApi.ProducerDescriptorEService {
+): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
   const notDraftDecriptors = eservice.descriptors
@@ -266,14 +285,32 @@ export function toBffCatalogApiProducerDescriptorEService(
     draftDescriptor: draftDescriptor
       ? toCompactDescriptor(draftDescriptor)
       : undefined,
-    riskAnalysis: eservice.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+    riskAnalysis: await enhanceEServiceRiskAnalysisArray(
+      eservice.riskAnalysis,
+      producer.kind
     ),
     descriptors: notDraftDecriptors,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    personalData: eservice.personalData,
+    instanceLabel: eservice.instanceLabel,
   };
+}
+
+export async function enhanceEServiceRiskAnalysisArray(
+  riskAnalysisArray: catalogApi.EServiceRiskAnalysis[],
+  producerTenantKind: tenantApi.TenantKind | undefined
+): Promise<bffApi.EServiceRiskAnalysis[]> {
+  return riskAnalysisArray.map((riskAnalysis) =>
+    toBffCatalogApiEserviceRiskAnalysis(
+      riskAnalysis,
+      getRulesetExpiration(
+        producerTenantKind,
+        riskAnalysis.riskAnalysisForm.version
+      )?.toJSON()
+    )
+  );
 }
 
 export function toEserviceAttribute(
@@ -309,20 +346,20 @@ function toBffCatalogApiDescriptorAttributeGroups(
 
 export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
-  descriptor: catalogApi.EServiceDescriptor
+  descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
   return {
     certified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.certified
+      descriptorAttributes.certified
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.declared
+      descriptorAttributes.declared
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.verified
+      descriptorAttributes.verified
     ),
   };
 }
@@ -366,6 +403,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
+    templateVersionId: descriptor.templateVersionRef?.id,
   };
 }
 
@@ -386,4 +424,50 @@ export function toCompactProducerDescriptor(
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
   };
+}
+
+export function toBffEServiceTemplateInstance(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant,
+  showAllDescriptors: boolean = false
+): bffApi.EServiceTemplateInstance {
+  const descriptorsToInclude = (
+    showAllDescriptors
+      ? [...eservice.descriptors]
+      : [...eservice.descriptors].filter(isValidDescriptor)
+  )
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .map(toCompactDescriptor);
+
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producerId: producer.id,
+    producerName: producer.name,
+    latestDescriptor: descriptorsToInclude.at(-1),
+    descriptors: descriptorsToInclude,
+    instanceLabel: eservice.instanceLabel,
+  };
+}
+
+export function apiTechnologyToTechnology(
+  input: catalogApi.EServiceTechnology
+): Technology {
+  return match<catalogApi.EServiceTechnology, Technology>(input)
+    .with("REST", () => technology.rest)
+    .with("SOAP", () => technology.soap)
+    .exhaustive();
+}
+
+export function apiDescriptorStateToDescriptorState(
+  input: catalogApi.EServiceDescriptorState
+): DescriptorState {
+  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
+    .with("DRAFT", () => descriptorState.draft)
+    .with("PUBLISHED", () => descriptorState.published)
+    .with("SUSPENDED", () => descriptorState.suspended)
+    .with("DEPRECATED", () => descriptorState.deprecated)
+    .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .exhaustive();
 }

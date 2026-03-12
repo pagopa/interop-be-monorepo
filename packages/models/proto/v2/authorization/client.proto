@@ -14,6 +14,7 @@ message ClientV2 {
   int64 createdAt = 7;
   repeated string users = 8;
   repeated KeyV2 keys = 9;
+  optional string adminId = 10;
 }
 
 enum ClientKindV2 {

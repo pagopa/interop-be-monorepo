@@ -2,12 +2,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
-import { Readable } from "stream";
-import crypto from "crypto";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { DescriptorId, genericError } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceDocumentId,
+  generateId,
+  genericError,
+} from "pagopa-interop-models";
 import { missingInterface } from "../model/errors.js";
 import { verifyExportEligibility } from "../services/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
@@ -19,12 +22,12 @@ import { ConfigurationEservice } from "../model/types.js";
     (the same document name can be used multiple times in the same descriptor)
   - uniqueNames: a map that contains the unique name for each document id
 */
-export type FileDocumentsRegistry = {
+type FileDocumentsRegistry = {
   occurrences: Map<string, number>;
   uniqueNames: Map<string, string>;
 };
 
-export type FileData = {
+type FileData = {
   id: string;
   file: Uint8Array;
 };
@@ -46,7 +49,7 @@ function getUniqueNameByDocumentId(
     (the same document name can be used multiple times in the same descriptor)
   - uniqueNames: a map that contains the unique name for each document id
 */
-export function buildFileDocumentRegistry(
+function buildFileDocumentRegistry(
   eserviceDocuments: catalogApi.EServiceDoc[]
 ): FileDocumentsRegistry {
   return eserviceDocuments.reduce(
@@ -70,7 +73,7 @@ export function buildFileDocumentRegistry(
   );
 }
 
-export function buildJsonConfig(
+function buildJsonConfig(
   fileDocumentRegistry: FileDocumentsRegistry,
   eservice: catalogApi.EService,
   descriptor: catalogApi.EServiceDescriptor
@@ -207,20 +210,57 @@ export async function createDescriptorDocumentZipFile(
   return zip.toBuffer();
 }
 
-export async function calculateChecksum(stream: Readable): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash("sha256");
+export async function cloneEServiceDocument(params: {
+  doc: eserviceTemplateApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed>;
 
-    stream.on("data", (data) => {
-      hash.update(data);
-    });
+export async function cloneEServiceDocument(params: {
+  doc: catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed>;
 
-    stream.on("end", () => {
-      resolve(hash.digest("hex"));
-    });
+export async function cloneEServiceDocument({
+  doc,
+  documentsContainer,
+  documentsPath,
+  fileManager,
+  logger,
+}: {
+  doc: eserviceTemplateApi.EServiceDoc | catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<
+  | eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
+  | catalogApi.CreateEServiceDescriptorDocumentSeed
+> {
+  const clonedDocumentId: EServiceDocumentId = generateId();
 
-    stream.on("error", (err) => {
-      reject(err);
-    });
-  });
+  const clonedPath = await fileManager.copy(
+    documentsContainer,
+    doc.path,
+    documentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
+
+  return {
+    documentId: clonedDocumentId,
+    kind: "DOCUMENT",
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    fileName: doc.name,
+    filePath: clonedPath,
+    checksum: doc.checksum,
+    serverUrls: [],
+  };
 }

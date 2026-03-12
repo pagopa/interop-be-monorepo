@@ -2,7 +2,7 @@
 import {
   getMockPurpose,
   getMockPurposeVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   CorrelationId,
   generateId,
@@ -72,9 +72,8 @@ describe("PurposeArchived", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/clientPurposeUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/clientPurposeUpdaterConsumerServiceV2.js");
 
     await handleMessageV2({
       decodedKafkaMessage,
@@ -103,9 +102,8 @@ describe("PurposeArchived", () => {
       correlation_id: correlationId,
     };
 
-    const { handleMessageV2 } = await import(
-      "../src/clientPurposeUpdaterConsumerServiceV2.js"
-    );
+    const { handleMessageV2 } =
+      await import("../src/clientPurposeUpdaterConsumerServiceV2.js");
 
     await expect(
       handleMessageV2({

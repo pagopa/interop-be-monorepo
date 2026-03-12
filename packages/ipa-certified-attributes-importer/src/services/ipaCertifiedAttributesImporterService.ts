@@ -1,29 +1,32 @@
 import { createHash } from "crypto";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
 import {
   attributeKind,
   Tenant,
   Attribute,
   tenantAttributeType,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
+  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   RegistryData,
-  kindsToInclude,
   InternalCertifiedAttribute,
+  shouldKindBeIncluded,
 } from "./openDataService.js";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
 
 // Tipologia Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
+export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 
-// Categoria Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_CATEGORY = "L37";
+// Tipologia Società in Conto Economico Consolidato
+export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
+  "Societa' in Conto Economico Consolidato";
 
 export type TenantSeed = {
   origin: string;
@@ -47,7 +50,7 @@ function toAttributeKey(key: {
 }
 
 async function checkAttributesPresence(
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[]
 ): Promise<boolean> {
   const attributes = await readModelService.getAttributes();
@@ -72,13 +75,15 @@ export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenants: Tenant[]
 ): TenantSeed[] {
-  // get a set with the external id of all tenants
+  // Create a set of all existing tenant external IDs for quick lookup.
+  // This is used to filter out institutions from the registry that don't
+  // have a corresponding tenant in the platform.
   const platformTenantsIndex = new Set(
     platformTenants.map((t) => toTenantKey(t.externalId))
   );
 
-  // filter the institutions open data retrieving only the tenants
-  // that are already present in the platform
+  // Filter the full list of institutions from the registry to only include those
+  // that are already present as tenants on the platform.
   const institutionsAlreadyPresent = registryData.institutions.filter(
     (i) =>
       i.id.length > 0 &&
@@ -87,10 +92,33 @@ export function getTenantUpsertData(
       )
   );
 
-  // get a set with the attributes that should be created
+  // Map each institution to a "TenantSeed" object, which contains all the attributes
+  // that should be assigned to the corresponding tenant in the platform.
   return institutionsAlreadyPresent.map((i) => {
-    const attributesWithoutKind = match(i.classification)
-      .with(AGENCY_CLASSIFICATION, () => [
+    const attributesWithoutKind = match(i)
+      // Agency - SCEC -> Assign institution name attribute only
+      .with(
+        {
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+          classification: AGENCY_CLASSIFICATION,
+        },
+        () => [
+          {
+            origin: i.origin,
+            code: i.originId,
+          },
+        ]
+      )
+      // SCEC - AOO/UO -> Assign nothing
+      .with(
+        {
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+          classification: P.not(AGENCY_CLASSIFICATION),
+        },
+        () => []
+      )
+      // Agency - any -> Assign institution name attribute + category attribute
+      .with({ classification: AGENCY_CLASSIFICATION }, () => [
         {
           origin: i.origin,
           code: i.category,
@@ -100,6 +128,7 @@ export function getTenantUpsertData(
           code: i.originId,
         },
       ])
+      // AOO/UO -> Assign category attribute only
       .otherwise(() => [
         {
           origin: i.origin,
@@ -107,19 +136,35 @@ export function getTenantUpsertData(
         },
       ]);
 
-    const forcedGPSCategory = match(i.kind)
-      .with(PUBLIC_SERVICES_MANAGERS_TYPOLOGY, () => [
+    // This block handles the assignment of the "Gestore di Pubblico Servizio" (GPS) attribute (L37).
+    const forcedGPSCategory = match(i)
+      .with(
+        // 1. If the institution is a traditional Public Services Manager.
+        { kind: PUBLIC_SERVICES_MANAGERS_TYPOLOGY },
+        // 2. If the institution is a Società in Conto Economico Consolidato (SCEC) from the legacy allowlist (to be removed).
         {
-          origin: i.origin,
-          code: PUBLIC_SERVICES_MANAGERS_CATEGORY,
+          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          originId: P.when((originId) =>
+            config.economicAccountCompaniesAllowlist.includes(originId)
+          ),
         },
-      ])
+        // 3. If the institution is a new SCEC with the S01G category from IPA.
+        {
+          kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+          category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+        },
+        () => [
+          {
+            origin: i.origin,
+            code: PUBLIC_SERVICES_MANAGERS,
+          },
+        ]
+      )
       .otherwise(() => []);
 
-    const shouldKindBeIncluded = kindsToInclude.has(i.kind);
-
     const attributes = [
-      ...(shouldKindBeIncluded
+      // Some kinds (Tipologia) are mapped to specific certified attributes
+      ...(shouldKindBeIncluded(i)
         ? [
             {
               origin: i.origin,
@@ -142,7 +187,7 @@ export function getTenantUpsertData(
 
 export async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
-  readModelService: ReadModelService,
+  readModelService: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger
 ): Promise<void> {
@@ -162,7 +207,7 @@ export async function createNewAttributes(
   // wait until every event reaches the read model store
   do {
     loggerInstance.info("Waiting for attributes to be created");
-    await new Promise((r) => setTimeout(r, config.attributeCreationWaitTime));
+    await delay(config.attributeCreationWaitTime);
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
 
@@ -207,7 +252,7 @@ export async function getAttributesToAssign(
     platformTenants.map((t) => [toTenantKey(t.externalId), t])
   );
 
-  const certifiedsAttribute = new Map(
+  const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [a.id, a])
@@ -231,7 +276,7 @@ export async function getAttributesToAssign(
               attribute.type === tenantAttributeType.CERTIFIED &&
               !attribute.revocationTimestamp
           )
-          .map((attribute) => certifiedsAttribute.get(attribute.id))
+          .map((attribute) => certifiedAttributes.get(attribute.id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined)
           .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
@@ -289,7 +334,7 @@ export async function getAttributesToRevoke(
 ): Promise<
   Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>
@@ -318,8 +363,6 @@ export async function getAttributesToRevoke(
     },
     tenantExternalId: { origin: string; value: string }
   ): boolean => {
-    const externalId = { origin: attribute.origin, code: attribute.code };
-
     if (attribute.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
       return false;
     }
@@ -331,7 +374,9 @@ export async function getAttributesToRevoke(
       return true;
     }
 
-    return !registryAttributes.has(toAttributeKey(externalId));
+    return !registryAttributes.has(
+      toAttributeKey({ origin: attribute.origin, code: attribute.code })
+    );
   };
 
   return platformTenants.flatMap((t) =>
@@ -357,7 +402,7 @@ export async function getAttributesToRevoke(
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
-        tExtenalId: t.externalId.value,
+        tExternalId: t.externalId.value,
         aOrigin: a.origin,
         aCode: a.code,
       }))
@@ -367,7 +412,7 @@ export async function getAttributesToRevoke(
 export async function revokeAttributes(
   attributesToRevoke: Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>,
@@ -380,12 +425,12 @@ export async function revokeAttributes(
 
   for (const a of attributesToRevoke) {
     loggerInstance.info(
-      `Updating tenant ${a.tExtenalId}. Revoking attribute ${a.aCode}`
+      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
     await tenantClient.internalRevokeCertifiedAttribute(undefined, {
       params: {
         tOrigin: a.tOrigin,
-        tExternalId: a.tExtenalId,
+        tExternalId: a.tExternalId,
         aOrigin: a.aOrigin,
         aExternalId: a.aCode,
       },

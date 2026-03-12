@@ -1,0 +1,16 @@
+meta {
+  name: Get Tenant Notification Config
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/tenantNotificationConfigs
+  body: none
+  auth: none
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

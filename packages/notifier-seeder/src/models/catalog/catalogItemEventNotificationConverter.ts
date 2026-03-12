@@ -91,11 +91,18 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceCloned" }, // ClonedCatalogItemV1AddedV1
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
       { type: "EServiceDescriptionUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
       { type: "EServiceIsConsumerDelegableEnabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceIsConsumerDelegableDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceIsClientAccessDelegableEnabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceIsClientAccessDelegableDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceNameUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceSignalHubEnabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceSignalHubDisabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -117,7 +124,10 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorApprovedByDelegator" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
@@ -140,6 +150,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorDocumentAdded" }, // CatalogItemDocumentAddedV1
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
       (e): CatalogItemDocumentAddedNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
@@ -184,6 +195,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorDocumentDeleted" }, // CatalogItemDocumentDeletedV1
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorInterfaceDeleted" }, // CatalogItemDocumentDeletedV1
       (e): CatalogItemDocumentDeletedNotification => {
         if (!e.data.eservice) {
@@ -221,6 +233,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorDocumentUpdated" }, // CatalogItemDocumentUpdatedV1
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" }, // CatalogItemDocumentUpdatedV1
       (e): CatalogItemDocumentUpdateNotification => {
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(

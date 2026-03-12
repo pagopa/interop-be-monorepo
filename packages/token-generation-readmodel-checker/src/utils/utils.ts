@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Logger, ReadModelRepository } from "pagopa-interop-commons";
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementId,
@@ -56,8 +56,8 @@ import {
   ComparisonPlatformStatesPurposeEntry,
   ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]
@@ -76,7 +76,7 @@ export function getLastPurposeVersion(
     )[0];
 }
 
-export function getPurposeStateFromPurposeVersion(
+function getPurposeStateFromPurposeVersion(
   purposeVersion: PurposeVersion
 ): ItemState {
   return purposeVersion.state === purposeVersionState.active
@@ -108,7 +108,7 @@ export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
 }
 
 function getIdFromPlatformStatesPK<
-  T extends PurposeId | AgreementId | ClientId
+  T extends PurposeId | AgreementId | ClientId,
 >(
   pk:
     | PlatformStatesPurposePK
@@ -154,16 +154,9 @@ function getPurposeIdFromTokenGenStatesPK(
 
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
+  readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<number> {
-  logger.info(
-    "Token generation read model and read model comparison started.\n"
-  );
-  logger.info("> Connecting to database...");
-  const readModel = ReadModelRepository.init(config);
-  const readModelService = readModelServiceBuilder(readModel);
-  logger.info("> Connected to database!\n");
-
   const tokenGenerationService =
     tokenGenerationReadModelServiceBuilder(dynamoDBClient);
   const platformStatesEntries =
@@ -468,6 +461,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
           agreementId: agreement.id,
           agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
+          producerId: agreement.producerId,
         };
 
       const objectsDiff = diff(
@@ -717,7 +711,7 @@ function validateTokenGenerationStates({
           const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
           const agreements = agreementsByConsumerIdEserviceId.get(
             makeGSIPKConsumerIdEServiceId({
-              consumerId: client.consumerId,
+              consumerId: purpose.consumerId,
               eserviceId: purpose.eserviceId,
             })
           );
@@ -765,7 +759,7 @@ function validateTokenGenerationStates({
                     purposeId: purpose.id,
                   })
                 : undefined,
-              consumerId: client.consumerId,
+              consumerId: purpose.consumerId,
               clientKind: clientKindToTokenGenerationStatesClientKind(
                 client.kind
               ),
@@ -786,7 +780,7 @@ function validateTokenGenerationStates({
                       getPurposeStateFromPurposeVersion(lastPurposeVersion),
                     purposeVersionId: lastPurposeVersion.id,
                     GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-                      consumerId: client.consumerId,
+                      consumerId: purpose.consumerId,
                       eserviceId: purpose.eserviceId,
                     }),
                     agreementId: agreement.id,
@@ -884,7 +878,7 @@ function validateTokenGenerationStates({
   return missingEntriesCount + differencesCount;
 }
 
-export const agreementStateToItemState = (state: AgreementState): ItemState =>
+const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
 export const clientKindToTokenGenerationStatesClientKind = (
@@ -895,12 +889,12 @@ export const clientKindToTokenGenerationStatesClientKind = (
     .with(clientKind.api, () => clientKindTokenGenStates.api)
     .exhaustive();
 
-export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
+const descriptorStateToItemState = (state: DescriptorState): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;
 
-export const extractAgreementTimestamp = (agreement: Agreement): string =>
+const extractAgreementTimestamp = (agreement: Agreement): string =>
   agreement.stamps.upgrade?.when.toISOString() ||
   agreement.stamps.activation?.when.toISOString() ||
   agreement.createdAt.toISOString();

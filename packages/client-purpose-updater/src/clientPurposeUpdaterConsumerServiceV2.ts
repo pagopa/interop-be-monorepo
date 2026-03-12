@@ -40,6 +40,7 @@ export async function handleMessageV2({
           eventType: purposeMsg.type,
           eventVersion: purposeMsg.event_version,
           streamId: purposeMsg.stream_id,
+          streamVersion: purposeMsg.version,
           correlationId,
         });
 
@@ -81,6 +82,8 @@ export async function handleMessageV2({
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
       { type: "PurposeDeletedByRevokedDelegation" },
+      { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
       () => Promise.resolve
     )
     .exhaustive();

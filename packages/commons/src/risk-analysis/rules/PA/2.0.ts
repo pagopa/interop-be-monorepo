@@ -1,5 +1,6 @@
 export const pa2 = {
   version: "2.0",
+  expiration: new Date("2023-07-26T23:59:59"),
   questions: [
     {
       id: "purpose",
@@ -42,7 +43,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -62,7 +63,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -142,7 +143,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -215,7 +216,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -287,7 +288,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -315,7 +316,7 @@ export const pa2 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -343,7 +344,7 @@ export const pa2 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -500,7 +501,7 @@ export const pa2 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,

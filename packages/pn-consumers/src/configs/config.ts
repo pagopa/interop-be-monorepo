@@ -1,11 +1,11 @@
 import {
   AWSSesConfig,
   LoggerConfig,
-  ReadModelDbConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const PnConsumersConfig = LoggerConfig.and(ReadModelDbConfig)
+const PnConsumersConfig = LoggerConfig.and(ReadModelSQLDbConfig)
   .and(AWSSesConfig)
   .and(
     z
@@ -27,6 +27,6 @@ const PnConsumersConfig = LoggerConfig.and(ReadModelDbConfig)
       }))
   );
 
-export type PnConsumersConfig = z.infer<typeof PnConsumersConfig>;
+type PnConsumersConfig = z.infer<typeof PnConsumersConfig>;
 
 export const config: PnConsumersConfig = PnConsumersConfig.parse(process.env);

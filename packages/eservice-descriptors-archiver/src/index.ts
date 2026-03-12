@@ -3,7 +3,6 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
   decodeKafkaMessage,
   logger,
@@ -17,14 +16,26 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+const readModelDB = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+});
+
 const catalogProcessClient = catalogProcessClientBuilder(
   config.catalogProcessUrl
 );
@@ -46,6 +57,7 @@ async function processMessage({
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
+    streamVersion: decodedMsg.version,
     correlationId,
   });
 
@@ -67,7 +79,7 @@ async function processMessage({
           await archiveDescriptorForArchivedAgreement(
             fromAgreementV2(agreement),
             refreshableToken,
-            readModelService,
+            readModelServiceSQL,
             catalogProcessClient,
             loggerInstance,
             correlationId
@@ -80,4 +92,9 @@ async function processMessage({
     .otherwise(() => undefined);
 }
 
-await runConsumer(config, [config.agreementTopic], processMessage);
+await runConsumer(
+  config,
+  [config.agreementTopic],
+  processMessage,
+  "eservice-descriptors-archiver"
+);

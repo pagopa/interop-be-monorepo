@@ -2,6 +2,7 @@
 import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
+  algorithm,
   ClientId,
   clientKindTokenGenStates,
   generateId,
@@ -127,8 +128,7 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    // Note: this test is skipped to temporarily accept all claims in client assertion header
-    it.skip("clientAssertionInvalidClaims - header", async () => {
+    it("clientAssertionInvalidClaims - header", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: {
           invalidHeaderProp: "wrong",
@@ -138,14 +138,18 @@ describe("validation test", async () => {
         jws,
         undefined,
         expectedAudiences,
-        genericLogger
+        genericLogger,
+        true
       );
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "header").code
+      );
     });
 
+    // TODO: remove this test when we will only accept valid client assertion claims
     it("ignore unexpected claims in client assertion header", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: {
@@ -162,8 +166,7 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    // Note: this test is skipped to temporarily accept all claims in client assertion payload
-    it.skip("clientAssertionInvalidClaims - payload", async () => {
+    it("clientAssertionInvalidClaims - payload", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {
           wrongPayloadProp: "wrong",
@@ -173,11 +176,14 @@ describe("validation test", async () => {
         jws,
         undefined,
         expectedAudiences,
-        genericLogger
+        genericLogger,
+        true
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "payload").code
+      );
     });
 
     it("ignore unexpected claims in client assertion payload", async () => {
@@ -670,7 +676,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeUndefined();
     });
@@ -686,7 +692,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(
@@ -747,7 +753,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -763,7 +769,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "not-a-valid-jws",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -784,7 +790,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -800,7 +806,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "too.many.substrings.in.client.assertion",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -824,7 +830,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -856,7 +862,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);

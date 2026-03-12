@@ -1,0 +1,22 @@
+meta {
+  name: Delete Risk Analysis Template Answer Annotation Document
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  answerId: {{answerId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

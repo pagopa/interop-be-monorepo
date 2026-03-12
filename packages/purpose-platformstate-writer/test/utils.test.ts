@@ -44,6 +44,7 @@ import {
   getMockAgreement,
   writePlatformAgreementEntry,
   writePlatformCatalogEntry,
+  writePlatformPurposeEntry,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -54,7 +55,7 @@ import {
   updatePurposeDataInPlatformStatesEntry,
   updatePurposeDataInTokenGenStatesEntries,
   updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
-  writePlatformPurposeEntry,
+  upsertPlatformStatesPurposeEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -119,9 +120,8 @@ describe("utils tests", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
       const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
         dynamoDBClient,
@@ -134,10 +134,10 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("writePlatformPurposeEntry", async () => {
-    it("should throw error if previous entry exists", async () => {
+  describe("upsertPlatformStatesPurposeEntry", async () => {
+    it("should update the entry if the previous entry exists", async () => {
       const primaryKey = makePlatformStatesPurposePK(generateId());
-      const platformPurposeEntry: PlatformStatesPurposeEntry = {
+      const wrongPlatformStatesPurposeEntry: PlatformStatesPurposeEntry = {
         PK: primaryKey,
         state: itemState.inactive,
         purposeVersionId: generateId(),
@@ -146,18 +146,32 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
+      await upsertPlatformStatesPurposeEntry(
         dynamoDBClient,
-        platformPurposeEntry,
+        wrongPlatformStatesPurposeEntry,
         genericLogger
       );
-      await expect(
-        writePlatformPurposeEntry(
-          dynamoDBClient,
-          platformPurposeEntry,
-          genericLogger
-        )
-      ).rejects.toThrowError(ConditionalCheckFailedException);
+
+      const correctPlatformStatesPurposeEntry: PlatformStatesPurposeEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        purposeVersionId: generateId(),
+        purposeEserviceId: generateId(),
+        purposeConsumerId: generateId(),
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await upsertPlatformStatesPurposeEntry(
+        dynamoDBClient,
+        correctPlatformStatesPurposeEntry,
+        genericLogger
+      );
+
+      const retrievedPlatformStatesPurposeEntry =
+        await readPlatformPurposeEntry(dynamoDBClient, primaryKey);
+      expect(retrievedPlatformStatesPurposeEntry).toEqual(
+        correctPlatformStatesPurposeEntry
+      );
     });
 
     it("should write if previous entry doesn't exist", async () => {
@@ -174,7 +188,7 @@ describe("utils tests", async () => {
       expect(
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
-      await writePlatformPurposeEntry(
+      await upsertPlatformStatesPurposeEntry(
         dynamoDBClient,
         platformPurposeEntry,
         genericLogger
@@ -208,9 +222,8 @@ describe("utils tests", async () => {
         updatedAt: new Date().toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
       await deletePlatformPurposeEntry(
         dynamoDBClient,
@@ -372,9 +385,8 @@ describe("utils tests", async () => {
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
       await updatePurposeDataInPlatformStatesEntry({
         dynamoDBClient,
@@ -418,9 +430,8 @@ describe("utils tests", async () => {
         await readPlatformPurposeEntry(dynamoDBClient, primaryKey)
       ).toBeUndefined();
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
       const newPurposeVersionId = generateId<PurposeVersionId>();
       await updatePurposeDataInPlatformStatesEntry({
@@ -452,9 +463,8 @@ describe("utils tests", async () => {
 
   describe("updatePurposeDataInTokenGenerationStatesTable", async () => {
     it("should do nothing if previous entries don't exist", async () => {
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -471,9 +481,8 @@ describe("utils tests", async () => {
           logger: genericLogger,
         })
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -527,9 +536,8 @@ describe("utils tests", async () => {
         purposeConsumerId: purpose.consumerId,
         logger: genericLogger,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -559,9 +567,8 @@ describe("utils tests", async () => {
 
   describe("updatePurposeEntriesInTokenGenerationStatesTable", async () => {
     it("should do nothing if previous entries don't exist", async () => {
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -577,9 +584,8 @@ describe("utils tests", async () => {
           genericLogger
         )
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -653,9 +659,8 @@ describe("utils tests", async () => {
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
@@ -682,7 +687,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should update entries with purpose state, version id and agreement data if platform agreement entry exists", async () => {
+    it("should update entries with purpose state, version id and agreement data if platform-states agreement entry exists", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
@@ -708,17 +713,21 @@ describe("utils tests", async () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -775,9 +784,8 @@ describe("utils tests", async () => {
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -787,7 +795,8 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
@@ -798,7 +807,8 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -809,7 +819,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should update entries with purpose state, version id, agreement and descriptor data if platform agreement and descriptor entries exist", async () => {
+    it("should update entries with purpose state, version id, agreement and descriptor data if platform-states agreement and descriptor entries exist", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
@@ -835,23 +845,27 @@ describe("utils tests", async () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -859,7 +873,10 @@ describe("utils tests", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -877,6 +894,7 @@ describe("utils tests", async () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -901,6 +919,7 @@ describe("utils tests", async () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -921,9 +940,8 @@ describe("utils tests", async () => {
         genericLogger
       );
 
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       const gsiPKEserviceIdDescriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: purpose.eserviceId,
@@ -937,12 +955,13 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
@@ -952,12 +971,13 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(

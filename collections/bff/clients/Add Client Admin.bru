@@ -1,0 +1,25 @@
+meta {
+  name: Add Client Admin
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/clients/:clientId/admin
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "adminId": "{{adminId}}"
+  }
+}

@@ -1,12 +1,9 @@
-import {
-  initFileManager,
-  logger,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { initFileManager, logger } from "pagopa-interop-commons";
 import { generateId, CorrelationId } from "pagopa-interop-models";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { datalakeServiceBuilder } from "./services/datalakeService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const log = logger({
   serviceName: "datalake-data-export",
@@ -14,21 +11,19 @@ const log = logger({
 });
 
 const fileManager = initFileManager(config);
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const dataLakeService = datalakeServiceBuilder(
-  readModelService,
+  readModelServiceSQL,
   fileManager,
   log
 );
 
-log.info("Datalake Data Exporter job started");
-await dataLakeService.exportData();
-log.info("Done!");
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+try {
+  log.info("Datalake Data Exporter job started");
+  await dataLakeService.exportData();
+  log.info("Done!");
+} finally {
+  await cleanup();
+}

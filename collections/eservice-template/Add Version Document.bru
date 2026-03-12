@@ -1,0 +1,46 @@
+meta {
+  name: Add Version Document
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/documents
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "documentId": "{{randomUuid}}",
+      "kind": "INTERFACE",
+      "prettyName": "Test File Name",
+      "filePath": "eservices/templates/docs/5d6d2677-f6b3-4c2a-ae25-d9685cb464b0/testfile",
+      "fileName": "testfile",
+      "contentType": "test",
+      "checksum": "checksum",
+      "serverUrls": [
+          "server urls 1",
+          "server urls 2"
+      ]
+  }
+}
+
+vars:post-response {
+  interfaceId: res.body.versions[0].interface.id
+}
+
+script:pre-request {
+  const { v4 } = require('uuid');
+  bru.setVar("randomUuid", v4() );
+}

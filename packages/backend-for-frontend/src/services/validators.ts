@@ -1,6 +1,7 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -8,20 +9,23 @@ import {
   delegationKind,
   delegationState,
   EServiceId,
+  EServiceTemplateId,
   TenantId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
   toDelegationState,
 } from "../api/delegationApiConverter.js";
 import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,
   notValidDescriptor,
+  templateInstanceNotAllowed,
 } from "../model/errors.js";
 import {
   agreementApiState,
@@ -195,5 +199,47 @@ export function verifyExportEligibility(
 ): void {
   if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eservice: catalogApi.EService
+): asserts eservice is catalogApi.EService & {
+  templateId: EServiceTemplateId | undefined;
+} {
+  const templateId = eservice.templateId;
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eservice.id, templateId);
+  }
+}
+
+export function assertClientVisibilityIsFull(
+  client: authorizationApi.Client
+): asserts client is authorizationApi.Client & {
+  visibility: typeof authorizationApi.Visibility.Values.FULL;
+} {
+  if (client.visibility !== authorizationApi.Visibility.Values.FULL) {
+    throw unauthorizedError("Tenant is not the owner of the client");
+  }
+}
+
+export function assertProducerKeychainVisibilityIsFull(
+  keychain: authorizationApi.ProducerKeychain
+): asserts keychain is authorizationApi.ProducerKeychain & {
+  visibility: typeof authorizationApi.Visibility.Values.FULL;
+} {
+  if (keychain.visibility !== authorizationApi.Visibility.Values.FULL) {
+    throw unauthorizedError("Tenant is not the owner of the keychain");
+  }
+}
+
+export function assertRequesterCanRetrieveUsers(
+  requesterId: TenantId,
+  tenantId: TenantId
+): void {
+  if (requesterId !== tenantId) {
+    throw unauthorizedError(
+      `Requester ${requesterId} cannot retrieve users for tenant ${tenantId}`
+    );
   }
 }

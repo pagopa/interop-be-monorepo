@@ -9,16 +9,16 @@ export function formatDateyyyyMMddHHmmss(date: Date): string {
   return format(date, "yyyyMMddHHmmss");
 }
 
-export function formatDateyyyyMMddThhmmss(date: Date): string {
-  return format(date, "yyyy-MM-dd'T'hh:mm:ss");
+export function formatDateyyyyMMddTHHmmss(date: Date): string {
+  return format(date, "yyyy-MM-dd'T'HH:mm:ss");
 }
 
 export function formatDateyyyyMMdd(date: Date): string {
   return format(date, "yyyyMMdd");
 }
 
-export function formatTimehhmmss(date: Date): string {
-  return format(date, "hhmmss");
+export function formatTimeHHmmss(date: Date): string {
+  return format(date, "HHmmss");
 }
 
 export function dateAtRomeZone(date: Date): string {
@@ -37,6 +37,5 @@ export const secondsToMilliseconds = (timestamp: number): number => {
   if (timestamp.toString().length === 10) {
     return timestamp * 1000;
   }
-
   return timestamp;
 };

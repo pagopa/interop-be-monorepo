@@ -26,7 +26,7 @@ export function toApiGatewayCatalogEservice(
   };
 }
 
-export function toApiGatewayEserviceAttributeValue(
+function toApiGatewayEserviceAttributeValue(
   eserviceDescriptorAttribute: catalogApi.Attribute,
   registryAttributes: attributeRegistryApi.Attribute[]
 ): apiGatewayApi.EServiceAttributeValue {
@@ -48,7 +48,7 @@ export function toApiGatewayEserviceAttributeValue(
   };
 }
 
-export function toApiGatewayEserviceAttributesValues(
+function toApiGatewayEserviceAttributesValues(
   attributes: catalogApi.Attribute[][],
   registryAttributes: attributeRegistryApi.Attribute[]
 ): apiGatewayApi.EServiceAttribute[] {
@@ -87,7 +87,7 @@ export function toApiGatewayEserviceAttributes(
   };
 }
 
-export function toApiGatewayDescriptorDocument(
+function toApiGatewayDescriptorDocument(
   doc: catalogApi.EServiceDescriptor["docs"][number]
 ): apiGatewayApi.EServiceDescriptor["docs"][number] {
   return {

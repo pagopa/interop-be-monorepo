@@ -28,7 +28,7 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
@@ -44,14 +44,11 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
 } from "../model/errors.js";
-import {
-  PagoPAInteropBeClients,
-  AgreementProcessClient,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
@@ -78,7 +75,11 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           clientAssertion,
           clientId,
           config.clientAssertionAudience,
-          ctx.logger
+          ctx.logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
         );
 
       if (parametersErrors || clientAssertionErrors) {
@@ -197,7 +198,7 @@ function assertIsConsumer(
   keyWithClient: authorizationApi.KeyWithClient
 ) {
   if (requesterId !== keyWithClient.client.consumerId) {
-    throw organizationNotAllowed(keyWithClient.client.id);
+    throw tenantNotAllowed(keyWithClient.client.id);
   }
 }
 
@@ -368,13 +369,14 @@ async function retrieveKeyAndEservice(
 }
 
 async function retrieveAgreement(
-  agreementClient: AgreementProcessClient,
+  agreementClient: agreementApi.AgreementProcessClient,
   consumerId: string,
   eserviceId: string,
   ctx: WithLogger<BffAppContext>
 ): Promise<agreementApi.Agreement> {
   const agreements = await getAllAgreements(agreementClient, ctx.headers, {
     consumersIds: [consumerId],
+    exactConsumerIdMatch: true,
     eservicesIds: [eserviceId],
     states: [
       agreementApi.AgreementState.Values.ACTIVE,
@@ -414,8 +416,9 @@ async function retrieveDescriptor(
 function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
+      // sort versions in reverse order to find the latest with desired state
       (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     .find(
       (v) =>

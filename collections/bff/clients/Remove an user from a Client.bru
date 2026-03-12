@@ -1,7 +1,7 @@
 meta {
   name: Remove an user from a Client
   type: http
-  seq: 2
+  seq: 15
 }
 
 delete {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Removes an user from a Client

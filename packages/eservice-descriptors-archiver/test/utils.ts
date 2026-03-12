@@ -1,32 +1,40 @@
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
+import { Agreement, EService } from "pagopa-interop-models";
 import {
-  Agreement,
-  EService,
-  toReadModelAgreement,
-  toReadModelEService,
-} from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
+  upsertAgreement,
+  upsertEService,
+} from "pagopa-interop-readmodel/testUtils";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  inject("readModelConfig")
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
 );
 
 afterEach(cleanup);
 
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const readModelService = readModelServiceBuilderSQL({
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+});
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
+  await upsertEService(readModelDB, eservice, 0);
 };

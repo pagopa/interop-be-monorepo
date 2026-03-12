@@ -1,0 +1,32 @@
+meta {
+  name: Edit Eservice template instance Descriptor
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eserviceId/descriptors/:descriptorId
+  body: json
+  auth: none
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "audience": [
+          "string"
+      ],
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100,
+      "agreementApprovalPolicy": "AUTOMATIC",
+  }
+}

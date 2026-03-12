@@ -1,0 +1,33 @@
+meta {
+  name: List eservices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eservices?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+  ~name: 2
+  ~isSignalHubEnabled: true
+  ~producerIds: 
+  ~templateIds: 
+  ~technology: SOAP
+  ~mode: RECEIVE
+  ~isConsumerDelegable: true
+  ~isClientAccessDelegable: true
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+vars:post-response {
+  delegationId: res.body.results.at(-1).id
+}

@@ -1,49 +1,68 @@
 import { z } from "zod";
+import { UserId, TenantId } from "../brandedIds.js";
 
-export const certificationType = {
-  NONE: "NONE",
-  SPID: "SPID",
+export const userRole = {
+  ADMIN_ROLE: "admin",
+  SECURITY_ROLE: "security",
+  API_ROLE: "api",
+  SUPPORT_ROLE: "support",
 } as const;
 
-export const CertificationType = z.enum([
-  Object.values(certificationType)[0],
-  ...Object.values(certificationType).slice(1),
+export const UserRole = z.enum([
+  Object.values(userRole)[0],
+  ...Object.values(userRole).slice(1),
 ]);
+export type UserRole = z.infer<typeof UserRole>;
 
-export type CertificationType = z.infer<typeof CertificationType>;
-
-export const CertifiableFieldResourceOfLocalDate = z.object({
-  certification: CertificationType,
-  value: z.coerce.date(),
+export const User = z.object({
+  id: UserId,
+  tenantId: TenantId,
+  name: z.string(),
+  familyName: z.string(),
+  email: z.string().email(),
+  productRole: UserRole,
 });
-export type CertifiableFieldResourceOfLocalDate = z.infer<
-  typeof CertifiableFieldResourceOfLocalDate
->;
+export type User = z.infer<typeof User>;
 
-export const CertifiableFieldResourceOfstring = z.object({
-  certification: CertificationType,
-  value: z.string(),
+export const selfcareUserEventType = {
+  add: "ADD",
+  update: "UPDATE",
+} as const;
+
+export const SelfcareUserEventType = z.enum([
+  selfcareUserEventType.add,
+  selfcareUserEventType.update,
+]);
+export type SelfcareUserEventType = z.infer<typeof SelfcareUserEventType>;
+
+export const relationshipStatus = {
+  active: "ACTIVE",
+  suspended: "SUSPENDED",
+  deleted: "DELETED",
+  rejected: "REJECTED",
+} as const;
+export const RelationshipStatus = z.enum([
+  Object.values(relationshipStatus)[0],
+  ...Object.values(relationshipStatus).slice(1),
+]);
+export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
+
+const BaseUser = z.object({
+  userId: z.string().uuid().nullish(),
+  name: z.string(),
+  familyName: z.string(),
+  email: z.string(),
+  role: z.string(),
+  productRole: UserRole,
+  relationshipStatus: RelationshipStatus,
+  mobilePhone: z.string().nullish(),
 });
-export type CertifiableFieldResourceOfstring = z.infer<
-  typeof CertifiableFieldResourceOfstring
->;
 
-export const WorkContactResource = z.object({
-  email: CertifiableFieldResourceOfstring.optional(),
+export const BaseUsersEventPayload = z.object({
+  id: z.string(),
+  institutionId: z.string().trim().min(1), // Selfcare ID
+  productId: z.string().trim().min(1),
+  eventType: SelfcareUserEventType,
+  user: BaseUser,
 });
-export type WorkContactResource = z.infer<typeof WorkContactResource>;
-
-export const WorkContracts = z.map(z.string(), WorkContactResource);
-export type WorkContracts = z.infer<typeof WorkContracts>;
-
-export const UserResource = z.object({
-  birthDate: CertifiableFieldResourceOfLocalDate.optional(),
-  email: CertifiableFieldResourceOfstring.optional(),
-  familyName: CertifiableFieldResourceOfstring.optional(),
-  fiscalCode: z.string().optional(),
-  id: z.string().uuid(),
-  name: CertifiableFieldResourceOfstring.optional(),
-  workContacts: WorkContracts.optional(),
-});
-
-export type UserResource = z.infer<typeof UserResource>;
+export type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;

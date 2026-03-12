@@ -9,7 +9,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",
   purposeNotFound: "0003",
@@ -35,7 +35,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(
   errorCodes,
-  false // API Gateway shall not let Problem errors from other services to pass through
+  { problemErrorsPassthrough: false } // API Gateway shall not let Problem errors from other services to pass through
 );
 
 export function producerAndConsumerParamMissing(): ApiError<ErrorCodes> {

@@ -14,17 +14,21 @@ import {
   Tenant,
   ListResult,
   TenantId,
-  unsafeBrandId,
   WithMetadata,
+  DelegationSignedContractDocument,
 } from "pagopa-interop-models";
 
 import {
   AppContext,
+  AuthData,
   DB,
   eventRepository,
   FileManager,
-  Logger,
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
   PDFGenerator,
+  UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
@@ -45,8 +49,9 @@ import {
   toCreateEventProducerDelegationRejected,
   toCreateEventProducerDelegationRevoked,
   toCreateEventProducerDelegationSubmitted,
+  toCreateEventDelegationContractGenerated,
+  toCreateEventDelegationSignedContractGenerated,
 } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   activeDelegationStates,
   assertDelegationNotExists,
@@ -62,8 +67,9 @@ import {
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
 import { contractBuilder } from "./delegationContractBuilder.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const retrieveDelegationById = async (
+const retrieveDelegationById = async (
   {
     delegationId,
     kind,
@@ -71,7 +77,7 @@ export const retrieveDelegationById = async (
     delegationId: DelegationId;
     kind: DelegationKind | undefined;
   },
-  readModelService: ReadModelService
+  readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Delegation>> => {
   const delegation = await readModelService.getDelegationById(
     delegationId,
@@ -83,8 +89,8 @@ export const retrieveDelegationById = async (
   return delegation;
 };
 
-export const retrieveTenantById = async (
-  readModelService: ReadModelService,
+const retrieveTenantById = async (
+  readModelService: ReadModelServiceSQL,
   tenantId: TenantId
 ): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
@@ -94,8 +100,8 @@ export const retrieveTenantById = async (
   return tenant;
 };
 
-export const retrieveEserviceById = async (
-  readModelService: ReadModelService,
+const retrieveEserviceById = async (
+  readModelService: ReadModelServiceSQL,
   id: EServiceId
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(id);
@@ -107,8 +113,8 @@ export const retrieveEserviceById = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
-  readModelService: ReadModelService,
   dbInstance: DB,
+  readModelService: ReadModelServiceSQL,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
@@ -124,9 +130,13 @@ export function delegationServiceBuilder(
       eserviceId: EServiceId;
       kind: DelegationKind;
     },
-    { authData, logger, correlationId }: WithLogger<AppContext>
-  ): Promise<Delegation> {
-    const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
+    {
+      authData,
+      logger,
+      correlationId,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    const delegatorId = authData.organizationId;
 
     logger.info(
       `Creating a delegation for tenant ${delegateId} by ${
@@ -184,7 +194,7 @@ export function delegationServiceBuilder(
       },
     };
 
-    await repository.createEvent(
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationSubmitted(delegation, correlationId)
@@ -195,18 +205,25 @@ export function delegationServiceBuilder(
         .exhaustive()
     );
 
-    return delegation;
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
   }
 
   async function approveDelegation(
     delegationId: DelegationId,
     kind: DelegationKind,
-    { logger, correlationId, authData }: WithLogger<AppContext>
-  ): Promise<void> {
-    const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
-
+    {
+      logger,
+      correlationId,
+      authData,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
     logger.info(
-      `Approving delegation ${delegationId} by delegate ${delegateId}`
+      `Approving delegation ${delegationId} by delegate ${authData.organizationId}`
     );
 
     const { data: delegation, metadata } = await retrieveDelegationById(
@@ -217,7 +234,7 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    assertIsDelegate(delegation, delegateId);
+    assertIsDelegate(delegation, authData);
     assertIsState(delegationState.waitingForApproval, delegation);
 
     const [delegator, delegate, eservice] = await Promise.all([
@@ -240,50 +257,87 @@ export function delegationServiceBuilder(
       },
     };
 
-    const activationContract = await contractBuilder.createActivationContract({
-      delegation: approvedDelegationWithoutContract,
-      delegator,
-      delegate,
-      eservice,
-      pdfGenerator,
-      fileManager,
-      config,
-      logger,
-    });
+    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+      const activationContract = await contractBuilder.createActivationContract(
+        {
+          delegation: approvedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
 
-    const approvedDelegation = {
-      ...approvedDelegationWithoutContract,
-      activationContract,
-    };
+      const approvedDelegation = {
+        ...approvedDelegationWithoutContract,
+        activationContract,
+      };
+      const event = await repository.createEvent(
+        match(kind)
+          .with(delegationKind.delegatedProducer, () =>
+            toCreateEventProducerDelegationApproved(
+              { data: approvedDelegation, metadata },
+              correlationId
+            )
+          )
+          .with(delegationKind.delegatedConsumer, () =>
+            toCreateEventConsumerDelegationApproved(
+              { data: approvedDelegation, metadata },
+              correlationId
+            )
+          )
+          .exhaustive()
+      );
 
-    await repository.createEvent(
+      return {
+        data: approvedDelegation,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    }
+
+    // Feature flag disabled: persist approval without generating contracts
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationApproved(
-            { data: approvedDelegation, metadata },
+            { data: approvedDelegationWithoutContract, metadata },
             correlationId
           )
         )
         .with(delegationKind.delegatedConsumer, () =>
           toCreateEventConsumerDelegationApproved(
-            { data: approvedDelegation, metadata },
+            { data: approvedDelegationWithoutContract, metadata },
             correlationId
           )
         )
         .exhaustive()
     );
+
+    return {
+      data: approvedDelegationWithoutContract,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
   }
 
   async function rejectDelegation(
     delegationId: DelegationId,
     rejectionReason: string,
     kind: DelegationKind,
-    { logger, correlationId, authData }: WithLogger<AppContext>
-  ): Promise<void> {
-    const delegateId = unsafeBrandId<TenantId>(authData.organizationId);
-
+    {
+      logger,
+      correlationId,
+      authData,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
     logger.info(
-      `Rejecting delegation ${delegationId} by delegate ${delegateId}`
+      `Rejecting delegation ${delegationId} by delegate ${authData.organizationId}`
     );
 
     const { data: delegation, metadata } = await retrieveDelegationById(
@@ -294,7 +348,7 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    assertIsDelegate(delegation, delegateId);
+    assertIsDelegate(delegation, authData);
     assertIsState(delegationState.waitingForApproval, delegation);
 
     const now = new Date();
@@ -313,7 +367,7 @@ export function delegationServiceBuilder(
       },
     };
 
-    await repository.createEvent(
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationRejected(
@@ -329,18 +383,24 @@ export function delegationServiceBuilder(
         )
         .exhaustive()
     );
+
+    return {
+      data: rejectedDelegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
   }
 
   async function revokeDelegation(
     delegationId: DelegationId,
     kind: DelegationKind,
-    { authData, logger, correlationId }: WithLogger<AppContext>
+    { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
   ): Promise<void> {
-    const delegatorId = unsafeBrandId<TenantId>(authData.organizationId);
     logger.info(
       `Revoking delegation ${delegationId} by ${
         kind === delegationKind.delegatedProducer ? "producer" : "consumer"
-      } ${delegatorId}`
+      } ${authData.organizationId}`
     );
 
     const { data: delegation, metadata } = await retrieveDelegationById(
@@ -351,7 +411,7 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    assertIsDelegator(delegation, delegatorId);
+    assertIsDelegator(delegation, authData);
     assertIsState(activeDelegationStates, delegation);
 
     const [delegator, delegate, eservice] = await Promise.all([
@@ -374,21 +434,30 @@ export function delegationServiceBuilder(
       },
     };
 
-    const revocationContract = await contractBuilder.createRevocationContract({
-      delegation: revokedDelegationWithoutContract,
-      delegator,
-      delegate,
-      eservice,
-      pdfGenerator,
-      fileManager,
-      config,
-      logger,
-    });
-
-    const revokedDelegation = {
+    // eslint-disable-next-line functional/no-let
+    let revokedDelegation: Delegation = {
       ...revokedDelegationWithoutContract,
-      revocationContract,
     };
+
+    if (isFeatureFlagEnabled(config, "featureFlagDelegationsContractBuilder")) {
+      const revocationContract = await contractBuilder.createRevocationContract(
+        {
+          delegation: revokedDelegationWithoutContract,
+          delegator,
+          delegate,
+          eservice,
+          pdfGenerator,
+          fileManager,
+          config,
+          logger,
+        }
+      );
+      revokedDelegation = {
+        ...revokedDelegation,
+        revocationContract,
+      };
+    }
+
     await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
@@ -413,18 +482,115 @@ export function delegationServiceBuilder(
     );
   }
 
+  async function internalAddDelegationContract(
+    delegationId: DelegationId,
+    delegationContract: DelegationContractDocument,
+    { logger, correlationId }: WithLogger<AppContext<AuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    logger.info(
+      `Adding delegation contract to delegation ${delegationId}, document id ${delegationContract.id}`
+    );
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind: undefined,
+      },
+      readModelService
+    );
+    const delegationWithContract: Delegation = ((): Delegation => {
+      if (delegation.state === delegationState.revoked) {
+        return {
+          ...delegation,
+          revocationContract: delegationContract,
+        };
+      } else {
+        return {
+          ...delegation,
+          activationContract: delegationContract,
+        };
+      }
+    })();
+
+    const event = await repository.createEvent(
+      toCreateEventDelegationContractGenerated(
+        { data: delegationWithContract, metadata },
+        correlationId
+      )
+    );
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
+  }
+  async function internalAddDelegationSignedContract(
+    delegationId: DelegationId,
+    delegationContract: DelegationSignedContractDocument,
+    { logger, correlationId }: WithLogger<AppContext<AuthData>>
+  ): Promise<WithMetadata<Delegation>> {
+    logger.info(
+      `Adding delegation signed contract to delegation ${delegationId}`
+    );
+    const { data: delegation, metadata } = await retrieveDelegationById(
+      {
+        delegationId,
+        kind: undefined,
+      },
+      readModelService
+    );
+
+    assertIsState(
+      [delegationState.active, delegationState.revoked],
+      delegation
+    );
+
+    const delegationWithContract: Delegation = ((): Delegation => {
+      if (delegation.state === delegationState.revoked) {
+        return {
+          ...delegation,
+          revocationSignedContract: delegationContract,
+        };
+      } else {
+        return {
+          ...delegation,
+          activationSignedContract: delegationContract,
+        };
+      }
+    })();
+
+    const event = await repository.createEvent(
+      toCreateEventDelegationSignedContractGenerated(
+        { data: delegationWithContract, metadata },
+        correlationId
+      )
+    );
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
+  }
+
   return {
     async getDelegationById(
       delegationId: DelegationId,
-      logger: Logger
-    ): Promise<Delegation> {
+      { logger }: WithLogger<AppContext>
+    ): Promise<WithMetadata<Delegation>> {
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
       const delegation = await retrieveDelegationById(
         { delegationId, kind: undefined },
         readModelService
       );
-      return delegation.data;
+
+      return {
+        data: delegation.data,
+        metadata: {
+          version: delegation.metadata.version,
+        },
+      };
     },
     async getDelegations(
       {
@@ -444,7 +610,7 @@ export function delegationServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Delegation>> {
       logger.info(
         `Retrieving delegations with filters: delegateIds=${delegateIds}, delegatorIds=${delegatorIds}, delegationStates=${delegationStates}, eserviceIds=${eserviceIds}, kind=${kind}, offset=${offset}, limit=${limit}`
@@ -463,7 +629,7 @@ export function delegationServiceBuilder(
     async getDelegationContract(
       delegationId: DelegationId,
       contractId: DelegationContractId,
-      { logger, authData }: WithLogger<AppContext>
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<DelegationContractDocument> {
       logger.info(
         `Retrieving delegation ${delegationId} contract ${contractId}`
@@ -473,10 +639,7 @@ export function delegationServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsDelegateOrDelegator(
-        delegation.data,
-        authData.organizationId
-      );
+      assertRequesterIsDelegateOrDelegator(delegation.data, authData);
 
       const { activationContract, revocationContract } = delegation.data;
 
@@ -498,8 +661,8 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext>
-    ): Promise<Delegation> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,
@@ -517,8 +680,8 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext>
-    ): Promise<Delegation> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,
@@ -530,9 +693,9 @@ export function delegationServiceBuilder(
     },
     async approveProducerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext>
-    ): Promise<void> {
-      await approveDelegation(
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return approveDelegation(
         delegationId,
         delegationKind.delegatedProducer,
         ctx
@@ -540,9 +703,9 @@ export function delegationServiceBuilder(
     },
     async approveConsumerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext>
-    ): Promise<void> {
-      await approveDelegation(
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return approveDelegation(
         delegationId,
         delegationKind.delegatedConsumer,
         ctx
@@ -551,9 +714,9 @@ export function delegationServiceBuilder(
     async rejectProducerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext>
-    ): Promise<void> {
-      await rejectDelegation(
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return rejectDelegation(
         delegationId,
         rejectionReason,
         delegationKind.delegatedProducer,
@@ -563,9 +726,9 @@ export function delegationServiceBuilder(
     async rejectConsumerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext>
-    ): Promise<void> {
-      await rejectDelegation(
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return rejectDelegation(
         delegationId,
         rejectionReason,
         delegationKind.delegatedConsumer,
@@ -574,7 +737,7 @@ export function delegationServiceBuilder(
     },
     async revokeProducerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       await revokeDelegation(
         delegationId,
@@ -584,7 +747,7 @@ export function delegationServiceBuilder(
     },
     async revokeConsumerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       await revokeDelegation(
         delegationId,
@@ -594,13 +757,12 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegators(
       filters: {
-        requesterId: TenantId;
         delegatorName?: string;
         eserviceIds: EServiceId[];
         limit: number;
         offset: number;
       },
-      logger: Logger
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<delegationApi.CompactTenants> {
       logger.info(
         `Retrieving consumer delegators with filters: ${JSON.stringify(
@@ -608,35 +770,37 @@ export function delegationServiceBuilder(
         )}`
       );
 
-      return await readModelService.getConsumerDelegators(filters);
+      return await readModelService.getConsumerDelegators({
+        ...filters,
+        delegateId: authData.organizationId,
+      });
     },
     async getConsumerDelegatorsWithAgreements(
       filters: {
-        requesterId: TenantId;
         delegatorName?: string;
         limit: number;
         offset: number;
       },
-      logger: Logger
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<delegationApi.CompactTenants> {
       logger.info(
         `Retrieving consumer delegators with active agreements and filters: ${JSON.stringify(
           filters
         )}`
       );
-      return await readModelService.getConsumerDelegatorsWithAgreements(
-        filters
-      );
+      return await readModelService.getConsumerDelegatorsWithAgreements({
+        ...filters,
+        delegateId: authData.organizationId,
+      });
     },
     async getConsumerEservices(
       filters: {
-        requesterId: TenantId;
         delegatorId: TenantId;
         limit: number;
         offset: number;
         eserviceName?: string;
       },
-      logger: Logger
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<delegationApi.CompactEServices> {
       logger.info(
         `Retrieving delegated consumer eservices with filters: ${JSON.stringify(
@@ -644,7 +808,34 @@ export function delegationServiceBuilder(
         )}`
       );
 
-      return await readModelService.getConsumerEservices(filters);
+      return await readModelService.getConsumerEservices({
+        ...filters,
+        delegateId: authData.organizationId,
+      });
+    },
+    async internalAddDelegationContract(
+      delegationId: DelegationId,
+      delegationContract: DelegationContractDocument,
+      ctx: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return await internalAddDelegationContract(
+        delegationId,
+        delegationContract,
+        ctx
+      );
+    },
+    async internalAddDelegationSignedContract(
+      delegationId: DelegationId,
+      delegationContract: DelegationSignedContractDocument,
+      ctx: WithLogger<AppContext<AuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return await internalAddDelegationSignedContract(
+        delegationId,
+        delegationContract,
+        ctx
+      );
     },
   };
 }
+
+export type DelegationService = ReturnType<typeof delegationServiceBuilder>;

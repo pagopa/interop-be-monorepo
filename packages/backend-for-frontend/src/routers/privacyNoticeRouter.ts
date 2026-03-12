@@ -4,60 +4,38 @@ import {
   ExpressContext,
   ZodiosContext,
   fromAppContext,
-  initFileManager,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { bffApi } from "pagopa-interop-api-clients";
 import { makeApiProblem } from "../model/errors.js";
-import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js";
+import { PrivacyNoticeService } from "../services/privacyNoticeService.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
-import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";
-import { config } from "../config/config.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const privacyNoticeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  privacyNoticeService: PrivacyNoticeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const privacyNoticeRouter = ctx.router(bffApi.privacyNoticesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
-    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
-    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
-  ]);
-  const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
-    new DynamoDBClient(),
-    config.privacyNoticesDynamoTableName,
-    config.privacyNoticesUsersDynamoTableName
-  );
-
-  const privacyNoticeService = privacyNoticeServiceBuilder(
-    privacyNoticeStorage,
-    initFileManager(config),
-    consentTypeMap
-  );
-
   privacyNoticeRouter
     .get("/user/consent/:consentType", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const { consentType } = req.params;
-        const { userId } = ctx.authData;
-
         const notice = await privacyNoticeService.getPrivacyNotice(
           consentType,
-          userId,
-          ctx.logger
+          ctx
         );
         return res.status(200).send(bffApi.PrivacyNotice.parse(notice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving privacy notices for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -65,25 +43,22 @@ const privacyNoticeRouter = (
     })
 
     .post("/user/consent/:consentType", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const { consentType } = req.params;
-        const { userId } = ctx.authData;
 
         await privacyNoticeService.acceptPrivacyNotice(
           consentType,
-          userId,
           req.body,
-          ctx.logger
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error accepting privacy notices for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -105,8 +80,7 @@ const privacyNoticeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPrivacyNoticeErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving privacy notices content for consentType ${req.params.consentType}`
         );
         return res.status(errorRes.status).send(errorRes);

@@ -1,0 +1,18 @@
+documentationUrl: https://github.com/italia/api-oas-checker-rules
+extends:
+  [
+    "https://github.com/italia/api-oas-checker-rules/releases/download/1.1/spectral-modi.yml",
+  ]
+rules:
+  servers-use-https: off
+  paths-kebab-case: off # Disabled for compatibility with current endpoint naming
+  cache-responses-indeterminate-behavior: off # Disabled to avoid warnings on cache management
+  missing-ratelimit: off # Disabled to avoid warnings on rate limit headers
+  missing-retry-after: off
+  http-request-DELETE-no-body: off # Disabled to allow DELETE requests with bodies
+  no-method-name-in-operationId: off # Disabled to avoid warnings on method names in operationIds
+overrides:
+  - files:
+      - "packages/api-clients/open-api/authorizationApi.yml#/components/schemas/Visibility"
+    rules:
+      oas3-unused-component: off # Schema used in code but not referenced in OpenAPI spec

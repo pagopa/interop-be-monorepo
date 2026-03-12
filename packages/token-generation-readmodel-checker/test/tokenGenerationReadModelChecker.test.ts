@@ -13,6 +13,7 @@ import {
   writePlatformAgreementEntry,
   writePlatformCatalogEntry,
   writePlatformPurposeEntry,
+  writePlatformStatesClientEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -67,7 +68,7 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
-  writePlatformStatesClientEntry,
+  readModelService,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker tests", () => {
@@ -160,6 +161,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -243,9 +245,11 @@ describe("Token Generation Read Model Checker tests", () => {
         dynamoDBClient
       );
 
+      // Errors: 4 from platform-states (agreement, catalog, client, purpose) and 1 from token-generation-states
       const expectedDifferencesLength = 5;
       const differencesCount = await compareTokenGenerationReadModel(
         dynamoDBClient,
+        readModelService,
         genericLogger
       );
 
@@ -258,12 +262,10 @@ describe("Token Generation Read Model Checker tests", () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose1);
 
       const purpose2 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose2);
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
@@ -276,10 +278,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry1,
-        dynamoDBClient
-      );
 
       const purposeEntryPK2 = makePlatformStatesPurposePK(purpose2.id);
       const platformStatesPurposeEntry2: PlatformStatesPurposeEntry = {
@@ -291,10 +289,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry2,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
@@ -316,12 +310,10 @@ describe("Token Generation Read Model Checker tests", () => {
       const purpose1 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose1);
 
       const purpose2 = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose2);
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
@@ -334,10 +326,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry1,
-        dynamoDBClient
-      );
 
       const purposeEntryPK2 = makePlatformStatesPurposePK(purpose2.id);
       const platformStatesPurposeEntry2: PlatformStatesPurposeEntry = {
@@ -349,10 +337,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry2,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 2;
       const purposeDifferences =
@@ -374,7 +358,6 @@ describe("Token Generation Read Model Checker tests", () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.archived),
       ]);
-      await addOnePurpose(purpose);
 
       // platform-states
       const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
@@ -387,10 +370,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const purposeDifferences =
@@ -408,7 +387,6 @@ describe("Token Generation Read Model Checker tests", () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.active),
       ]);
-      await addOnePurpose(purpose);
 
       const expectedDifferencesLength = 1;
       const purposeDifferences =
@@ -424,7 +402,6 @@ describe("Token Generation Read Model Checker tests", () => {
       const purpose = getMockPurpose([
         getMockPurposeVersion(purposeVersionState.archived),
       ]);
-      await addOnePurpose(purpose);
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
@@ -452,10 +429,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformPurposeEntry(
-        platformStatesPurposeEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const purposeDifferences =
@@ -482,7 +455,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement1);
 
       const agreement2: Agreement = {
         ...getMockAgreement(),
@@ -494,7 +466,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement2);
 
       // platform-states
       const agreementEntryPK1 = makePlatformStatesAgreementPK({
@@ -509,13 +480,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry1,
-        dynamoDBClient
-      );
 
       const agreementEntryPK2 = makePlatformStatesAgreementPK({
         consumerId: agreement2.consumerId,
@@ -529,13 +497,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry2,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const agreementDifferences =
@@ -564,7 +529,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement1);
 
       const agreement2: Agreement = {
         ...getMockAgreement(),
@@ -576,7 +540,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement2);
 
       // platform-states
       const agreementEntryPK1 = makePlatformStatesAgreementPK({
@@ -591,13 +554,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry1,
-        dynamoDBClient
-      );
 
       const agreementEntryPK2 = makePlatformStatesAgreementPK({
         consumerId: agreement2.consumerId,
@@ -611,13 +571,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry2,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 2;
       const agreementDifferences =
@@ -646,7 +603,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement);
 
       // platform-states
       const agreementEntryPK = makePlatformStatesAgreementPK({
@@ -661,13 +617,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const agreementDifferences =
@@ -692,7 +645,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement);
 
       const expectedDifferencesLength = 1;
       const agreementDifferences =
@@ -715,7 +667,6 @@ describe("Token Generation Read Model Checker tests", () => {
           },
         },
       };
-      await addOneAgreement(agreement);
 
       const expectedDifferencesLength = 0;
       const agreementDifferences =
@@ -752,13 +703,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const agreementDifferences =
@@ -797,13 +745,10 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(
-        platformStatesAgreementEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const agreementDifferences =
@@ -844,8 +789,6 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2, descriptor3],
       };
-      await addOneEService(eservice1);
-      await addOneEService(eservice2);
 
       // platform-states
       const catalogEntryPK1 = makePlatformStatesEServiceDescriptorPK({
@@ -860,10 +803,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry1,
-        dynamoDBClient
-      );
 
       const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
@@ -877,10 +816,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry2,
-        dynamoDBClient
-      );
 
       const catalogEntryPK3 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
@@ -894,10 +829,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry3,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const catalogDifferences =
@@ -944,8 +875,6 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor2],
       };
-      await addOneEService(eservice1);
-      await addOneEService(eservice2);
 
       // platform-states
       const catalogEntryPK1 = makePlatformStatesEServiceDescriptorPK({
@@ -960,10 +889,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry1,
-        dynamoDBClient
-      );
 
       const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
         eserviceId: eservice2.id,
@@ -977,10 +902,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry2,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 2;
       const catalogDifferences =
@@ -1015,7 +936,6 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      await addOneEService(eservice);
 
       // platform-states
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
@@ -1030,10 +950,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const catalogDifferences =
@@ -1060,7 +976,6 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      await addOneEService(eservice);
 
       const expectedDifferencesLength = 1;
       const catalogDifferences =
@@ -1082,7 +997,6 @@ describe("Token Generation Read Model Checker tests", () => {
         ...getMockEService(),
         descriptors: [descriptor],
       };
-      await addOneEService(eservice);
 
       const expectedDifferencesLength = 0;
       const catalogDifferences =
@@ -1118,10 +1032,6 @@ describe("Token Generation Read Model Checker tests", () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(
-        platformStatesCatalogEntry,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const catalogDifferences =
@@ -1152,14 +1062,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1183,7 +1091,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1192,7 +1099,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1234,11 +1140,6 @@ describe("Token Generation Read Model Checker tests", () => {
           descriptorVoucherLifespan: descriptor.voucherLifespan,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
-
       const expectedDifferencesLength = 0;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
         tokenGenStatesByClient: new Map([
@@ -1264,14 +1165,11 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
-
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1295,7 +1193,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1304,7 +1201,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey(), getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1346,10 +1242,6 @@ describe("Token Generation Read Model Checker tests", () => {
           descriptorVoucherLifespan: descriptor.voucherLifespan,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1376,14 +1268,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1407,7 +1297,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1416,8 +1305,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1439,10 +1326,6 @@ describe("Token Generation Read Model Checker tests", () => {
           publicKey: client.keys[0].encodedPem,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1469,7 +1352,6 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([
@@ -1501,7 +1383,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1510,7 +1391,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1552,10 +1432,6 @@ describe("Token Generation Read Model Checker tests", () => {
           descriptorVoucherLifespan: descriptor.voucherLifespan,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 0;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1582,7 +1458,6 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
@@ -1612,7 +1487,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1621,8 +1495,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-      await addOneClient(client);
-
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
         makeTokenGenerationStatesClientKidPurposePK({
@@ -1663,10 +1535,6 @@ describe("Token Generation Read Model Checker tests", () => {
           descriptorVoucherLifespan: descriptor.voucherLifespan,
           updatedAt: new Date().toISOString(),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1693,14 +1561,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1724,7 +1590,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1733,8 +1598,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -1763,10 +1626,6 @@ describe("Token Generation Read Model Checker tests", () => {
           purposeVersionId: undefined,
           GSIPK_clientId_purposeId: undefined,
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1793,14 +1652,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1824,7 +1681,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1833,8 +1689,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-
-      await addOneClient(client);
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -1857,10 +1711,6 @@ describe("Token Generation Read Model Checker tests", () => {
           clientKind: clientKindTokenGenStates.consumer,
           publicKey: client.keys[0].encodedPem,
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1887,14 +1737,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1918,7 +1766,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -1927,8 +1774,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [],
       };
       const clientsById = new Map([[client.id, client]]);
-
-      await addOneClient(client);
 
       // token-generation-states
       const mockKey = getMockKey();
@@ -1952,10 +1797,6 @@ describe("Token Generation Read Model Checker tests", () => {
           clientKind: clientKindTokenGenStates.consumer,
           publicKey: mockKey.encodedPem,
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -1982,14 +1823,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -2013,7 +1852,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -2022,8 +1860,6 @@ describe("Token Generation Read Model Checker tests", () => {
         keys: [getMockKey()],
       };
       const clientsById = new Map([[client.id, client]]);
-
-      await addOneClient(client);
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -2048,14 +1884,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -2079,7 +1913,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -2087,7 +1920,6 @@ describe("Token Generation Read Model Checker tests", () => {
         consumerId: purpose.consumerId,
       };
       const clientsById = new Map([[client.id, client]]);
-      await addOneClient(client);
 
       const expectedDifferencesLength = 0;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({
@@ -2112,14 +1944,12 @@ describe("Token Generation Read Model Checker tests", () => {
         descriptors: [descriptor],
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
-      await addOneEService(eservice);
 
       const purpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
-      await addOnePurpose(purpose);
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -2143,7 +1973,6 @@ describe("Token Generation Read Model Checker tests", () => {
           [agreement],
         ],
       ]);
-      await addOneAgreement(agreement);
 
       const client: Client = {
         ...getMockClient(),
@@ -2151,21 +1980,6 @@ describe("Token Generation Read Model Checker tests", () => {
         purposes: [purpose.id],
         keys: [getMockKey()],
       };
-
-      const clientEntryPK = makePlatformStatesClientPK(client.id);
-      const platformStatesClientEntry: PlatformStatesClientEntry = {
-        PK: clientEntryPK,
-        state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-        clientConsumerId: client.consumerId,
-        clientPurposesIds: client.purposes,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-      await writePlatformStatesClientEntry(
-        platformStatesClientEntry,
-        dynamoDBClient
-      );
 
       // token-generation-states
       const tokenGenStatesClientKidPurposePK =
@@ -2192,10 +2006,6 @@ describe("Token Generation Read Model Checker tests", () => {
             purposeId: purpose.id,
           }),
         };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient,
-        dynamoDBClient
-      );
 
       const expectedDifferencesLength = 1;
       const clientDifferences = await compareReadModelClientsAndTokenGenStates({

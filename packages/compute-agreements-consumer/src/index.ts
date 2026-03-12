@@ -42,6 +42,7 @@ async function processMessage({
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
+    streamVersion: decodedMsg.version,
     correlationId,
   });
 
@@ -108,4 +109,9 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.tenantTopic], processMessage);
+await runConsumer(
+  config,
+  [config.tenantTopic],
+  processMessage,
+  "compute-agreements-consumer"
+);

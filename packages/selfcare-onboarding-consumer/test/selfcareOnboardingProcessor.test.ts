@@ -1,43 +1,40 @@
 /* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
-import {
-  vi,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  MockInstance,
-  it,
-  expect,
-} from "vitest";
+import { EachMessagePayload } from "kafkajs";
 import {
   getInteropHeaders,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
-import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import {
-  TenantProcessClient,
-  tenantProcessClientBuilder,
-} from "../src/clients/tenantProcessClient.js";
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from "vitest";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { tenantProcessClientBuilder } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
+import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import {
   allowedOrigins,
   correctEventPayload,
   correctInstitutionEventField,
   generateInternalTokenMock,
+  interopInternalToken,
   interopProductName,
-  interopToken,
   kafkaMessagePayload,
   selfcareUpsertTenantMock,
   uuidRegexp,
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let tenantProcessClientMock: TenantProcessClient = tenantProcessClientBuilder(
-    config.tenantProcessUrl
-  );
+  let tenantProcessClientMock: Pick<tenantApi.TenantProcessClient, "selfcare"> =
+    tenantProcessClientBuilder(config.tenantProcessUrl);
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareOnboardingProcessor: ReturnType<
@@ -174,12 +171,12 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         externalId: { origin: "IPA", value: "ipa_123" },
-        selfcareId: correctEventPayload.internalIstitutionID,
+        selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -213,12 +210,12 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         externalId: { origin: "IPA", value: "AOO_456" },
-        selfcareId: correctEventPayload.internalIstitutionID,
+        selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -253,12 +250,12 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         externalId: { origin: "ANAC", value: "tax789" },
-        selfcareId: correctEventPayload.internalIstitutionID,
+        selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -294,12 +291,12 @@ describe("Message processor", () => {
       expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           externalId: { origin: expectedOrigin, value: "tax789" },
-          selfcareId: correctEventPayload.internalIstitutionID,
+          selfcareId: correctEventPayload.institutionId,
           name: correctInstitutionEventField.description,
         }),
         expect.objectContaining({
           headers: getInteropHeaders({
-            token: interopToken.serialized,
+            token: interopInternalToken.serialized,
             correlationId: expect.stringMatching(uuidRegexp),
           }),
         })
@@ -334,12 +331,12 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         externalId: { origin: "ANAC", value: "anac_123" },
-        selfcareId: correctEventPayload.internalIstitutionID,
+        selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -374,12 +371,12 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         externalId: { origin: "ANAC", value: "anac_123" },
-        selfcareId: correctEventPayload.internalIstitutionID,
+        selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })

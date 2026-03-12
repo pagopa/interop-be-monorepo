@@ -3,11 +3,12 @@ import { match } from "ts-pattern";
 import { AuthorizationEventEnvelopeV2 } from "pagopa-interop-models";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { AuthorizationEventNotification } from "./authorizationEventNotification.js";
-export const eventV2TypeMapper = (
+const eventV2TypeMapper = (
   eventType: AuthorizationEventEnvelopeV2["type"]
 ): string =>
   match(eventType)
     .with("ClientAdded", () => "client-added")
+    .with("ClientAdminSet", () => "admin-set")
     .with("ClientDeleted", () => "client-deleted")
     .with("ClientKeyAdded", () => "keys-added")
     .with("ClientKeyDeleted", () => "key-deleted")
@@ -16,6 +17,8 @@ export const eventV2TypeMapper = (
     .with("ClientPurposeAdded", () => "client-purpose-added")
     .with("ClientPurposeRemoved", () => "client-purpose-removed")
     .with(
+      "ClientAdminRoleRevoked",
+      "ClientAdminRemoved",
       "ProducerKeychainAdded",
       "ProducerKeychainDeleted",
       "ProducerKeychainKeyAdded",

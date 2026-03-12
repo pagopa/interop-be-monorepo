@@ -2,37 +2,24 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   ExpressContext,
-  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import { makeApiProblem } from "../model/errors.js";
+import { DelegationService } from "../services/delegationService.js";
 
 const consumerDelegationRouter = (
   ctx: ZodiosContext,
-  {
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-  }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  delegationService: DelegationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const consumerDelegationRouter = ctx.router(
     bffApi.consumerDelegationsApi.api,
     {
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     }
-  );
-  const delegationService = delegationServiceBuilder(
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-    fileManager
   );
 
   consumerDelegationRouter
@@ -49,8 +36,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating delegation`
         );
 
@@ -70,8 +56,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error approving delegation with id ${req.params.delegationId}`
         );
 
@@ -92,8 +77,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error rejecting delegation with id ${req.params.delegationId}`
         );
 
@@ -114,8 +98,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error revoking delegation with id ${req.params.delegationId}`
         );
 
@@ -136,8 +119,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error getting delegators`
         );
 
@@ -163,8 +145,7 @@ const consumerDelegationRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error getting delegators with active agreements`
           );
 
@@ -186,8 +167,7 @@ const consumerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error getting consumer delegated eservices`
         );
 

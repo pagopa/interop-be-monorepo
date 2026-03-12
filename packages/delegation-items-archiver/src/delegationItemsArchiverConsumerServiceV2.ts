@@ -2,6 +2,7 @@ import {
   CorrelationId,
   DelegationEventEnvelopeV2,
   DelegationId,
+  fromDelegationV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -11,15 +12,12 @@ import {
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-} from "./clients/clientsProvider.js";
-import { ReadModelService } from "./readModelService.js";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   processAgreement,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function handleMessageV2({
   decodedMessage,
@@ -38,9 +36,9 @@ export async function handleMessageV2({
   offset: string;
   correlationId: CorrelationId;
   logger: Logger;
-  readModelService: ReadModelService;
-  agreementProcessClient: AgreementProcessClient;
-  purposeProcessClient: PurposeProcessClient;
+  readModelService: ReadModelServiceSQL;
+  agreementProcessClient: agreementApi.AgreementProcessClient;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
 }): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ConsumerDelegationRevoked" }, async (delegationMsg) => {
@@ -58,6 +56,8 @@ export async function handleMessageV2({
         correlationId,
       });
 
+      const delegation = fromDelegationV2(delegationMsg.data.delegation);
+
       await Promise.all([
         processPurposes({
           readModelService,
@@ -71,7 +71,7 @@ export async function handleMessageV2({
         processAgreement({
           agreementProcessClient,
           headers,
-          delegation: delegationMsg.data.delegation,
+          delegation,
           readModelService,
         }),
       ]);
@@ -84,6 +84,8 @@ export async function handleMessageV2({
       { type: "ProducerDelegationRevoked" },
       { type: "ConsumerDelegationSubmitted" },
       { type: "ConsumerDelegationRejected" },
+      { type: "DelegationContractGenerated" },
+      { type: "DelegationSignedContractGenerated" },
       () => Promise.resolve()
     )
     .exhaustive();

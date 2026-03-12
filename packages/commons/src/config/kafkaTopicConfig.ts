@@ -63,6 +63,59 @@ export const DelegationTopicConfig = z
   }));
 export type DelegationTopicConfig = z.infer<typeof DelegationTopicConfig>;
 
+export const EServiceTemplateTopicConfig = z
+  .object({
+    ESERVICE_TEMPLATE_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    eserviceTemplateTopic: c.ESERVICE_TEMPLATE_TOPIC,
+  }));
+export type EServiceTemplateTopicConfig = z.infer<
+  typeof EServiceTemplateTopicConfig
+>;
+
+export const NotificationConfigTopicConfig = z
+  .object({
+    NOTIFICATION_CONFIG_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    notificationConfigTopic: c.NOTIFICATION_CONFIG_TOPIC,
+  }));
+export type NotificationConfigTopicConfig = z.infer<
+  typeof NotificationConfigTopicConfig
+>;
+
+export const ApplicationAuditTopicConfig = z
+  .object({
+    APPLICATION_AUDIT_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    applicationAuditTopic: c.APPLICATION_AUDIT_TOPIC,
+  }));
+export type ApplicationAuditTopicConfig = z.infer<
+  typeof ApplicationAuditTopicConfig
+>;
+
+export const EmailDispatchTopicConfig = z
+  .object({
+    EMAIL_DISPATCH_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    emailDispatchTopic: c.EMAIL_DISPATCH_TOPIC,
+  }));
+export type EmailDispatchTopicConfig = z.infer<typeof EmailDispatchTopicConfig>;
+
+export const PurposeTemplateTopicConfig = z
+  .object({
+    PURPOSE_TEMPLATE_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    purposeTemplateTopic: c.PURPOSE_TEMPLATE_TOPIC,
+  }));
+export type PurposeTemplateTopicConfig = z.infer<
+  typeof PurposeTemplateTopicConfig
+>;
+
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
   AgreementTopicConfig,
@@ -71,5 +124,10 @@ export const KafkaTopicConfig = z.union([
   PurposeTopicConfig,
   AuthorizationTopicConfig,
   DelegationTopicConfig,
+  EServiceTemplateTopicConfig,
+  NotificationConfigTopicConfig,
+  ApplicationAuditTopicConfig,
+  EmailDispatchTopicConfig,
+  PurposeTemplateTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;

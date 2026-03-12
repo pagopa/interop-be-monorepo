@@ -49,7 +49,7 @@ const toCreateEventEServiceDescriptorAdded = (
 });
 
 describe("EventRepository tests", async () => {
-  it("should save events for the same streamId when using the correct version number sequence", async () => {
+  it("should save events for the same streamId when using the correct version number sequence (createEvent + createEvents)", async () => {
     const correlationId: CorrelationId = generateId();
 
     const eservice = getMockEService();
@@ -58,9 +58,10 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    expect(await repository.createEvent(eserviceCreationEvent)).toBe(
-      eservice.id
-    );
+    expect(await repository.createEvent(eserviceCreationEvent)).toStrictEqual({
+      streamId: eservice.id,
+      newVersion: 0,
+    });
 
     const descriptor1 = getMockDescriptor(descriptorState.draft);
     const descriptor2 = getMockDescriptor(descriptorState.draft);
@@ -83,7 +84,17 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([eservice.id, eservice.id]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestNewVersions: new Map(
+        Object.entries({
+          [eservice.id]: 2,
+        })
+      ),
+    });
   });
 
   it("should not save event for the same streamId with the same version number", async () => {
@@ -95,9 +106,10 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    expect(await repository.createEvent(eserviceCreationEvent)).toBe(
-      eservice.id
-    );
+    expect(await repository.createEvent(eserviceCreationEvent)).toStrictEqual({
+      streamId: eservice.id,
+      newVersion: 0,
+    });
 
     const descriptor1 = getMockDescriptor(descriptorState.draft);
     const descriptor2 = getMockDescriptor(descriptorState.draft);
@@ -122,12 +134,12 @@ describe("EventRepository tests", async () => {
       ])
     ).rejects.toThrowError(
       genericInternalError(
-        `Error creating event: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
+        `Error creating multiple events: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
       )
     );
   });
 
-  it("should not save event for the same streamId with the same version number (edge case)", async () => {
+  it("should save events for the same streamId when using the correct version number sequence (createEvents only)", async () => {
     const correlationId: CorrelationId = generateId();
 
     const eservice = getMockEService();
@@ -151,13 +163,78 @@ describe("EventRepository tests", async () => {
       descriptor2.id,
       correlationId
     );
-
     expect(
       await repository.createEvents([
         eserviceCreationEvent,
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([eservice.id, eservice.id, eservice.id]);
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice.id, newVersion: 0 },
+        { streamId: eservice.id, newVersion: 1 },
+        { streamId: eservice.id, newVersion: 2 },
+      ],
+      latestNewVersions: new Map(
+        Object.entries({
+          [eservice.id]: 2,
+        })
+      ),
+    });
+  });
+
+  it("should save events for multiple streamIds and track latestNewVersions for each", async () => {
+    const correlationId: CorrelationId = generateId();
+
+    const eservice1 = getMockEService();
+
+    const eservice2 = getMockEService();
+
+    const eservice1CreationEvent = toCreateEventEServiceAdded(
+      { ...eservice1, descriptors: [] },
+      correlationId
+    );
+    const eservice2CreationEvent = toCreateEventEServiceAdded(
+      { ...eservice2, descriptors: [] },
+      correlationId
+    );
+
+    const descriptor1 = getMockDescriptor(descriptorState.draft);
+    const descriptor2 = getMockDescriptor(descriptorState.draft);
+
+    const eservice1DescriptorEvent = toCreateEventEServiceDescriptorAdded(
+      { ...eservice1, descriptors: [descriptor1] },
+      0,
+      descriptor1.id,
+      correlationId
+    );
+    const eservice2DescriptorEvent = toCreateEventEServiceDescriptorAdded(
+      { ...eservice2, descriptors: [descriptor2] },
+      0,
+      descriptor2.id,
+      correlationId
+    );
+
+    expect(
+      await repository.createEvents([
+        eservice1CreationEvent,
+        eservice2CreationEvent,
+        eservice1DescriptorEvent,
+        eservice2DescriptorEvent,
+      ])
+    ).toStrictEqual({
+      events: [
+        { streamId: eservice1.id, newVersion: 0 },
+        { streamId: eservice2.id, newVersion: 0 },
+        { streamId: eservice1.id, newVersion: 1 },
+        { streamId: eservice2.id, newVersion: 1 },
+      ],
+      latestNewVersions: new Map(
+        Object.entries({
+          [eservice1.id]: 1,
+          [eservice2.id]: 1,
+        })
+      ),
+    });
   });
 });

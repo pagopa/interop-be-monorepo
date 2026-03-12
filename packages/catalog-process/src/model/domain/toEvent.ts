@@ -232,6 +232,26 @@ export const toCreateEventEServiceDescriptorQuotasUpdated = (
   correlationId,
 });
 
+export const toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceDescriptorActivated = (
   streamId: string,
   version: number,
@@ -630,12 +650,260 @@ export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
 export const toCreateEventEServiceNameUpdated = (
   version: number,
   eservice: EService,
+  oldName: string,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
   version,
   event: {
     type: "EServiceNameUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      oldName,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  oldName: string,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceNameUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      oldName,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptionUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptionUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorQuotasUpdatedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    attributeIds: AttributeId[],
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+      event_version: 2,
+      data: {
+        descriptorId,
+        attributeIds,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorDocumentAddedByTemplateUpdate = (
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorDocumentUpdatedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorDocumentDeletedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceSignalhubFlagEnabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceSignalHubEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceSignalhubFlagDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceSignalHubDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePersonalDataFlagUpdatedAfterPublication",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceInstanceLabelUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceInstanceLabelUpdated",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

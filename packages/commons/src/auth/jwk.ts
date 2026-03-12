@@ -1,12 +1,18 @@
-import crypto, { JsonWebKey, KeyObject } from "crypto";
+import crypto, { createHash, JsonWebKey, KeyObject } from "crypto";
 import {
   notAnRSAKey,
   invalidKeyLength,
   invalidPublicKey,
   jwkDecodingError,
+  invalidJWKClaim,
   notAllowedCertificateException,
+  notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
+  keyTypeNotAllowed,
+  JWKKeyRS256,
+  JWKKeyES256,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const decodeBase64ToPem = (base64String: string): string => {
   try {
@@ -18,13 +24,52 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (pemKeyBase64: string): JsonWebKey =>
-  createPublicKey(pemKeyBase64).export({ format: "jwk" });
+export const createJWK = ({
+  pemKeyBase64,
+  strictCheck = true,
+}: {
+  pemKeyBase64: string;
+  strictCheck?: boolean;
+}): JsonWebKey =>
+  createPublicKey({ key: pemKeyBase64, strictCheck }).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
   const jwkString = JSON.stringify(sortedJwk);
   return crypto.createHash("sha256").update(jwkString).digest("base64url");
+};
+/* This is to avoid repeating the logic of the "calculateKid",
+and to have a more meaningful name
+for the generation of the CNF field inside the DPoP tokens */
+export const calculateDPoPThumbprint = calculateKid;
+
+export const calculateJWKThumbprint = (jwk: JsonWebKey): string => {
+  const parsedJwk = match(jwk.kty)
+    .with("RSA", () => {
+      const result = JWKKeyRS256.safeParse(jwk);
+
+      if (!result.success) {
+        throw invalidJWKClaim();
+      }
+      return result.data;
+    })
+    .with("EC", () => {
+      const result = JWKKeyES256.safeParse(jwk);
+
+      if (!result.success) {
+        throw invalidJWKClaim();
+      }
+      return result.data;
+    })
+    .otherwise(() => {
+      throw keyTypeNotAllowed(jwk.kty);
+    });
+
+  const canonicalJwk = sortJWK(parsedJwk);
+
+  return createHash("sha256")
+    .update(JSON.stringify(canonicalJwk))
+    .digest("base64url");
 };
 
 function assertNotCertificate(key: string): void {
@@ -43,6 +88,14 @@ function assertNotPrivateKey(key: string): void {
     return;
   }
   throw notAllowedPrivateKeyException();
+}
+
+function assertSingleKey(keyString: string): void {
+  const beginMatches = keyString.match(/-----BEGIN [^\r\n]+-----/g);
+
+  if (beginMatches && beginMatches.length > 1) {
+    throw notAllowedMultipleKeysException();
+  }
 }
 
 export function assertValidRSAKey(key: KeyObject): void {
@@ -69,13 +122,24 @@ function tryToCreatePublicKey(key: string): KeyObject {
   }
 }
 
-export function createPublicKey(key: string): KeyObject {
+export function createPublicKey({
+  key,
+  strictCheck = true,
+}: {
+  key: string;
+  strictCheck?: boolean;
+}): KeyObject {
   const pemKey = decodeBase64ToPem(key);
+  if (strictCheck) {
+    assertSingleKey(pemKey);
+  }
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
   const publicKey = tryToCreatePublicKey(pemKey);
-  assertValidRSAKey(publicKey);
-  assertValidRSAKeyLength(publicKey);
+  if (strictCheck) {
+    assertValidRSAKey(publicKey);
+    assertValidRSAKeyLength(publicKey);
+  }
   return publicKey;
 }
 

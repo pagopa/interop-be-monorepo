@@ -42,6 +42,7 @@ export async function exportInterfaceV2(
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorUpdated" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorSuspended" },
@@ -64,6 +65,18 @@ export async function exportInterfaceV2(
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceNameUpdated" },
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+      { type: "EServiceSignalHubEnabled" },
+      { type: "EServiceSignalHubDisabled" },
+      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
+      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
       () => undefined
     )
     .exhaustive();

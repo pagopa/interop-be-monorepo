@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/agreement-process/{{version}}"
+  - url: "/"
     description: This service is the agreement process
 security:
   - bearerAuth: []
@@ -39,7 +39,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/submit":
@@ -68,6 +68,9 @@ paths:
       responses:
         "200":
           description: Draft agreement submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -75,25 +78,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/activate":
@@ -109,9 +112,17 @@ paths:
     post:
       summary: Agreement Activation
       operationId: activateAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Pending agreement activated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -119,25 +130,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -152,6 +163,49 @@ paths:
           type: string
           format: uuid
         required: true
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - agreement
+      summary: Retrieve consumer Documents of an Agreement
+      description: Retrieve consumer Documents of an Agreement
+      operationId: getAgreementConsumerDocuments
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documents"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -170,6 +224,9 @@ paths:
       responses:
         "200":
           description: Returns the document.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -177,19 +234,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/consumer-documents/{documentId}":
@@ -225,13 +282,13 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -244,17 +301,20 @@ paths:
       operationId: removeAgreementConsumerDocument
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Document removed
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/suspend":
@@ -270,9 +330,17 @@ paths:
     post:
       summary: Suspend Agreement
       operationId: suspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
       responses:
         "200":
           description: Active agreement suspended.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -280,19 +348,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -320,6 +388,9 @@ paths:
       responses:
         "200":
           description: Agreement rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -327,19 +398,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -368,19 +439,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -395,6 +466,9 @@ paths:
       responses:
         "200":
           description: Agreement created.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -402,19 +476,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -430,6 +504,7 @@ paths:
     get:
       summary: Retrieve a list of agreements
       operationId: getAgreements
+      description: Retrieves a list of agreements with optional filters
       responses:
         "200":
           description: Agreements found
@@ -440,7 +515,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -515,6 +590,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: exactConsumerIdMatch
+          description: use consumerIds to retrieve agreements with those specific consumersIds, regardless the delegations
+          schema:
+            type: boolean
+          required: true
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -555,7 +636,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/consumers":
@@ -598,7 +679,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}":
@@ -610,6 +691,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     get:
       tags:
         - agreement
@@ -619,6 +701,9 @@ paths:
       responses:
         "200":
           description: Agreement found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -626,7 +711,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -634,25 +719,26 @@ paths:
         - agreement
       summary: Delete an agreement
       operationId: deleteAgreement
+      description: Deletes an agreement for a given agreementId
       responses:
         "204":
           description: Agreement deleted
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/update":
@@ -663,7 +749,7 @@ paths:
         - agreement
       summary: update an agreement in draft state.
       description: update agreement fields.
-      operationId: updateAgreementById
+      operationId: updateAgreement
       parameters:
         - name: agreementId
           in: path
@@ -688,19 +774,19 @@ paths:
         "400":
           description: Invalid ID supplied
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/upgrade":
@@ -711,7 +797,7 @@ paths:
         - agreement
       summary: upgrades an agreement.
       description: upgrades an agreement with a newer eservice version, if any.
-      operationId: upgradeAgreementById
+      operationId: upgradeAgreement
       parameters:
         - name: agreementId
           in: path
@@ -723,26 +809,29 @@ paths:
       responses:
         "200":
           description: Agreement updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "400":
-          description: Invalid ID supplied
+          description: Agreement not upgradable
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -766,6 +855,9 @@ paths:
       responses:
         "200":
           description: Agreement cloned.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -773,25 +865,125 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/internal/agreement/{agreementId}/contract":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an unsigned contract document to the agreement
+      summary: Add unsigned contract metadata to agreement
+      tags:
+        - agreement
+      operationId: addUnsignedAgreementContractMetadata
+      requestBody:
+        description: The unsigned contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Document"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  "/internal/agreement/{agreementId}/signedContract":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Adds the metadata of an signed contract document to the agreement
+      summary: Add unsigned contract metadata to agreement
+      tags:
+        - agreement
+      operationId: addSignedAgreementContractMetadata
+      requestBody:
+        description: The signed contract document metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignedDocument"
+      responses:
+        "204":
+          description: Contract metadata added successfully
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/internal/compute/agreementsState":
@@ -815,7 +1007,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/filter/eservices":
@@ -878,7 +1070,7 @@ paths:
         "400":
           description: Invalid ID supplied
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
@@ -922,19 +1114,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/internal/delegations/{delegationId}/agreements/{agreementId}":
@@ -959,25 +1151,26 @@ paths:
         - agreement
       summary: Delete an agreement
       operationId: internalDeleteAgreementAfterDelegationRevocation
+      description: Deletes an agreement for a given agreementId
       responses:
         "204":
           description: Agreement deleted
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/internal/delegations/{delegationId}/agreements/{agreementId}/archive":
@@ -1009,23 +1202,29 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header
@@ -1034,6 +1233,14 @@ components:
       schema:
         type: string
   schemas:
+    DelegationRef:
+      type: object
+      additionalProperties: false
+      description: sets the delegation ID in order to operate as a delegate for a specific active delegation
+      properties:
+        delegationId:
+          type: string
+          format: uuid
     AgreementPayload:
       type: object
       additionalProperties: false
@@ -1120,6 +1327,10 @@ components:
         suspendedAt:
           type: string
           format: date-time
+        stamps:
+          $ref: "#/components/schemas/AgreementStamps"
+        signedContract:
+          $ref: "#/components/schemas/SignedDocument"
       required:
         - id
         - eserviceId
@@ -1132,7 +1343,45 @@ components:
         - declaredAttributes
         - consumerDocuments
         - createdAt
+        - stamps
       description: business representation of an agreement
+    AgreementStamps:
+      type: object
+      additionalProperties: false
+      properties:
+        submission:
+          $ref: "#/components/schemas/AgreementStamp"
+        activation:
+          $ref: "#/components/schemas/AgreementStamp"
+        rejection:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByProducer:
+          $ref: "#/components/schemas/AgreementStamp"
+        suspensionByConsumer:
+          $ref: "#/components/schemas/AgreementStamp"
+        upgrade:
+          $ref: "#/components/schemas/AgreementStamp"
+        archiving:
+          $ref: "#/components/schemas/AgreementStamp"
+    AgreementStamp:
+      type: object
+      additionalProperties: false
+      properties:
+        who:
+          description: identifier of the user that performed the action
+          type: string
+          format: uuid
+        when:
+          description: timestamp of when the action was performed
+          type: string
+          format: date-time
+        delegationId:
+          description: identifier of the delegation related to the action, if any
+          type: string
+          format: uuid
+      required:
+        - who
+        - when
     AgreementRejectionPayload:
       type: object
       additionalProperties: false
@@ -1383,6 +1632,20 @@ components:
           type: string
         path:
           type: string
+    Documents:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Document:
       type: object
       additionalProperties: false
@@ -1408,6 +1671,34 @@ components:
           format: date-time
         path:
           type: string
+    SignedDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - prettyName
+        - contentType
+        - createdAt
+        - path
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prettyName:
+          type: string
+        contentType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        path:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
     CompactEServices:
       type: object
       additionalProperties: false
@@ -1508,7 +1799,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

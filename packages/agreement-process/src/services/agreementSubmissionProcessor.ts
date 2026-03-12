@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import { UIAuthData, M2MAdminAuthData } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -27,12 +26,6 @@ import {
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { createStamp } from "./agreementStampUtils.js";
 
-export type AgremeentSubmissionResults = {
-  events: Array<CreateEvent<AgreementEvent>>;
-  initAgreement: Agreement;
-  version: number;
-};
-
 export const validateConsumerEmail = async (
   consumer: Tenant,
   agreement: Agreement
@@ -53,7 +46,7 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: agreementApi.AgreementSubmissionPayload,
   newState: AgreementState,
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   suspendedByPlatform: boolean | undefined,
   activeConsumerDelegation: Delegation | undefined
 ): UpdateAgreementSeed => {
@@ -67,12 +60,7 @@ export const createSubmissionUpdateAgreementSeed = (
   );
   const isActivation = newState === agreementState.active;
 
-  /* As we do in the upgrade, we copy suspendedByProducer, suspendedByProducer, and suspendedAt
-    event if the agreement was never activated before and thus never suspended.
-    In this way, if this is an agreement that was upgraded, we keep suspension flags
-    from the original agreement before the upgrade, so that if it is being activated
-    by the producer, it will be suspended right away if the original
-    agreement was suspended by the consumer, and viceversa. */
+  // On submission, clear suspension flags only when the agreement becomes ACTIVE
   return isActivation
     ? {
         state: newState,
@@ -83,9 +71,9 @@ export const createSubmissionUpdateAgreementSeed = (
           descriptor,
           consumer
         ),
-        suspendedByConsumer: agreement.suspendedByConsumer,
-        suspendedByProducer: agreement.suspendedByProducer,
-        suspendedAt: agreement.suspendedAt,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedAt: undefined,
         suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
@@ -107,7 +95,7 @@ export const createSubmissionUpdateAgreementSeed = (
 export const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;
 
-export const calculateStamps = (
+const calculateStamps = (
   agreement: Agreement,
   state: AgreementState,
   stamp: AgreementStamp
@@ -124,6 +112,7 @@ export const calculateStamps = (
       activation: stamp,
     }))
     .with(agreementState.missingCertifiedAttributes, () => agreement.stamps)
+    .with(agreementState.suspended, () => agreement.stamps)
     .otherwise(() => {
       throw agreementNotInExpectedState(agreement.id, state);
     });

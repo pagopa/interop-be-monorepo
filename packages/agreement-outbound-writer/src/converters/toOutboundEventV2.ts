@@ -53,6 +53,7 @@ function toOutboundAgreementV2(
     contract:
       agreement.contract && toOutboundAgreementDocumentV2(agreement.contract),
     stamps: agreement.stamps && toOutboundStampsV2(agreement.stamps),
+    signedContract: undefined,
   };
 }
 
@@ -92,6 +93,8 @@ export function toOutboundEventV2(
       { type: "AgreementArchivedByUpgrade" },
       { type: "AgreementSetDraftByPlatform" },
       { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
+      { type: "AgreementContractGenerated" },
+      { type: "AgreementSignedContractGenerated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -102,6 +105,7 @@ export function toOutboundEventV2(
             toOutboundAgreementV2(message.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -118,6 +122,7 @@ export function toOutboundEventV2(
             msg.data.agreement && toOutboundAgreementV2(msg.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -134,6 +139,7 @@ export function toOutboundEventV2(
             msg.data.agreement && toOutboundAgreementV2(msg.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )

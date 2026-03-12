@@ -1,0 +1,35 @@
+meta {
+  name: Create purpose version
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/versions
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "dailyCalls": {{randomInt}}
+  }
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000)
+  bru.setVar("randomInt", randomInt);
+}
+
+docs {
+  Creates a draft Purpose Version
+}

@@ -80,6 +80,7 @@
         "NonKeyAttributes": [
           "agreementId",
           "agreementState",
+          "producerId",
           "GSIPK_eserviceId_descriptorId",
           "descriptorAudience",
           "descriptorState",
@@ -103,7 +104,8 @@
           "consumerId",
           "clientKind",
           "publicKey",
-          "GSIPK_clientId_kid"
+          "GSIPK_clientId_kid",
+          "adminId"
         ]
       }
     },
@@ -140,9 +142,5 @@
       }
     }
   ],
-  "ProvisionedThroughput": {
-    "ReadCapacityUnits": 10,
-    "WriteCapacityUnits": 5
-  },
   "BillingMode": "PAY_PER_REQUEST"
 }
