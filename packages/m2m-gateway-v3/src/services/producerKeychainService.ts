@@ -3,7 +3,7 @@ import {
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { retry, WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -21,6 +21,7 @@ import {
 } from "../utils/polling.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
+import { config } from "../config/config.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -182,19 +183,22 @@ export function producerKeychainServiceBuilder(
       const { data: key, metadata } =
         await clients.authorizationClient.producerKeychain.createProducerKey(
           seed,
-          {
-            params: { producerKeychainId: keychainId },
-            headers,
-          }
+          { params: { producerKeychainId: keychainId }, headers }
         );
 
       await pollProducerKeychain({ data: producerKeychain, metadata }, headers);
 
-      const { data: jwkData } =
-        await clients.authorizationClient.key.getProducerJWKByKid({
-          params: { kid: key.kid },
-          headers,
-        });
+      const { data: jwkData } = await retry(
+        () =>
+          clients.authorizationClient.key.getProducerJWKByKid({
+            params: { kid: key.kid },
+            headers,
+          }),
+        {
+          retries: config.defaultPollingMaxRetries,
+          delay: config.defaultPollingRetryDelay,
+        }
+      );
 
       return toM2MProducerKey({
         jwk: jwkData.jwk,
