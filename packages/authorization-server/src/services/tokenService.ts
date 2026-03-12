@@ -8,73 +8,43 @@ import {
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   clientKindTokenGenStates,
-  DescriptorId,
-  EServiceId,
-  generateId,
-  genericInternalError,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
-  TokenGenerationStatesApiClient,
-  TokenGenerationStatesClientKidPK,
-  TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesGenericClient,
-  unsafeBrandId,
-  GeneratedTokenAuditDetails,
-  GSIPKEServiceIdDescriptorId,
-  ClientAssertion,
-  FullTokenGenerationStatesConsumerClient,
-  CorrelationId,
   ClientKindTokenGenStates,
   ClientId,
-  DPoPProof,
 } from "pagopa-interop-models";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  GetItemCommandOutput,
-  GetItemInput,
-} from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { match } from "ts-pattern";
 import {
   AuthServerAppContext,
   FileManager,
-  formatDateyyyyMMdd,
-  formatTimeHHmmss,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
   isFeatureFlagEnabled,
-  Logger,
   RateLimiter,
   RateLimiterStatus,
-  secondsToMilliseconds,
   WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
-import {
-  checkDPoPCache,
-  verifyDPoPProof,
-  verifyDPoPProofSignature,
-} from "pagopa-interop-dpop-validation";
+import { checkDPoPCache } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
-  fallbackAuditFailed,
-  incompleteTokenGenerationStatesConsumerClient,
-  kafkaAuditingFailed,
-  tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
-  dpopProofValidationFailed,
-  dpopProofSignatureValidationFailed,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
-
-const EXPECTED_HTM = "POST";
+import {
+  deconstructGSIPK_eserviceId_descriptorId,
+  logTokenGenerationInfo,
+  publishAudit,
+  retrieveKey,
+  validateDPoPProof,
+} from "./tokenServiceHelpers.js";
 
 export type GeneratedTokenData =
   | {
@@ -337,256 +307,12 @@ export function tokenServiceBuilder({
 
 export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 
-export const retrieveKey = async (
-  dynamoDBClient: DynamoDBClient,
-  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
-): Promise<
-  FullTokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
-> => {
-  const input: GetItemInput = {
-    Key: {
-      PK: { S: pk },
-    },
-    TableName: config.tokenGenerationStatesTable,
-  };
-
-  const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
-
-  if (!data.Item) {
-    throw tokenGenerationStatesEntryNotFound(pk);
-  } else {
-    const unmarshalled = unmarshall(data.Item);
-    const tokenGenStatesClient =
-      TokenGenerationStatesGenericClient.safeParse(unmarshalled);
-
-    if (!tokenGenStatesClient.success) {
-      throw genericInternalError(
-        `Unable to parse token-generation-states client: result ${JSON.stringify(
-          tokenGenStatesClient
-        )} - data ${JSON.stringify(data)} `
-      );
-    }
-
-    return match(tokenGenStatesClient.data)
-      .with({ clientKind: clientKindTokenGenStates.consumer }, (entry) => {
-        const tokenGenStatesConsumerClient =
-          FullTokenGenerationStatesConsumerClient.safeParse(entry);
-        if (!tokenGenStatesConsumerClient.success) {
-          throw incompleteTokenGenerationStatesConsumerClient(entry.PK);
-        }
-
-        return tokenGenStatesConsumerClient.data;
-      })
-      .with({ clientKind: clientKindTokenGenStates.api }, (entry) => entry)
-      .exhaustive();
-  }
-};
-
-export const publishAudit = async ({
-  producer,
-  generatedToken,
-  key,
-  clientAssertion,
-  dpop,
-  correlationId,
-  fileManager,
-  logger,
-}: {
-  producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropConsumerToken;
-  key: FullTokenGenerationStatesConsumerClient;
-  clientAssertion: ClientAssertion;
-  dpop: DPoPProof | undefined;
-  correlationId: CorrelationId;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<void> => {
-  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
-  );
-  const messageBody: GeneratedTokenAuditDetails = {
-    jwtId: generatedToken.payload.jti,
-    correlationId,
-    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
-    clientId: clientAssertion.payload.sub,
-    organizationId: key.consumerId,
-    agreementId: key.agreementId,
-    eserviceId,
-    descriptorId,
-    purposeId: key.GSIPK_purposeId,
-    purposeVersionId: unsafeBrandId(key.purposeVersionId),
-    algorithm: generatedToken.header.alg,
-    keyId: generatedToken.header.kid,
-    audience: [generatedToken.payload.aud].flat().join(","),
-    subject: generatedToken.payload.sub,
-    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
-    issuer: generatedToken.payload.iss,
-    clientAssertion: {
-      algorithm: clientAssertion.header.alg,
-      audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
-      issuer: clientAssertion.payload.iss,
-      jwtId: clientAssertion.payload.jti,
-      keyId: clientAssertion.header.kid,
-      subject: clientAssertion.payload.sub,
-    },
-    ...(dpop
-      ? {
-          dpop: {
-            typ: dpop.header.typ,
-            alg: dpop.header.alg,
-            jwk: dpop.header.jwk,
-            htm: dpop.payload.htm,
-            htu: dpop.payload.htu,
-            iat: secondsToMilliseconds(dpop.payload.iat),
-            jti: dpop.payload.jti,
-          },
-        }
-      : {}),
-  };
-
-  try {
-    const res = await producer.send({
-      messages: [
-        {
-          key: generatedToken.payload.jti,
-          value: JSON.stringify(messageBody),
-        },
-      ],
-    });
-    if (res.length === 0 || res[0].errorCode !== 0) {
-      throw kafkaAuditingFailed();
-    }
-  } catch (e) {
-    logger.error("Main auditing flow failed, going through fallback");
-    await fallbackAudit(messageBody, fileManager, logger);
-  }
-};
-
-export const fallbackAudit = async (
-  messageBody: GeneratedTokenAuditDetails,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
-  const date = new Date();
-  const ymdDate = formatDateyyyyMMdd(date);
-  const hmsTime = formatTimeHHmmss(date);
-
-  const fileName = `${ymdDate}_${hmsTime}_${generateId()}.ndjson`;
-  const filePath = `token-details/${ymdDate}`;
-
-  try {
-    await fileManager.storeBytes(
-      {
-        bucket: config.s3Bucket,
-        path: filePath,
-        name: fileName,
-        content: Buffer.from(JSON.stringify(messageBody)),
-      },
-      logger
-    );
-    logger.info("Auditing succeeded through fallback");
-  } catch (err) {
-    logger.error(`Auditing fallback failed: ${err}`);
-    throw fallbackAuditFailed(messageBody.clientId);
-  }
-};
-
-const deconstructGSIPK_eserviceId_descriptorId = (
-  gsi: GSIPKEServiceIdDescriptorId
-): { eserviceId: EServiceId; descriptorId: DescriptorId } => {
-  const substrings = gsi.split("#");
-  const eserviceId = substrings[0];
-  const descriptorId = substrings[1];
-  const parsedEserviceId = EServiceId.safeParse(eserviceId);
-
-  if (!parsedEserviceId.success) {
-    throw genericInternalError(
-      `Unable to parse extract eserviceId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
-    );
-  }
-
-  const parsedDescriptorId = DescriptorId.safeParse(descriptorId);
-
-  if (!parsedDescriptorId.success) {
-    throw genericInternalError(
-      `Unable to parse extract descriptorId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
-    );
-  }
-
-  return {
-    eserviceId: parsedEserviceId.data,
-    descriptorId: parsedDescriptorId.data,
-  };
-};
-
-export const logTokenGenerationInfo = ({
-  validatedJwt,
-  clientKind,
-  tokenJti,
-  message,
-  logger,
-}: {
-  validatedJwt: ClientAssertion;
-  clientKind: ClientKindTokenGenStates | undefined;
-  tokenJti: string | undefined;
-  message: string;
-  logger: Logger;
-}): void => {
-  const clientId = `[CLIENTID=${validatedJwt.payload.sub}]`;
-  const kid = `[KID=${validatedJwt.header.kid}]`;
-  const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
-  const tokenType = `[TYPE=${clientKind}]`;
-  const jti = `[JTI=${tokenJti}]`;
-  logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
-};
-
-export const validateDPoPProof = async (
-  dpopProofHeader: string | undefined,
-  clientId: string | undefined,
-  logger: Logger
-): Promise<{
-  dpopProofJWS: string | undefined;
-  dpopProofJWT: DPoPProof | undefined;
-}> => {
-  const { data, errors: dpopProofErrors } = dpopProofHeader
-    ? verifyDPoPProof({
-        dpopProofJWS: dpopProofHeader,
-        expectedDPoPProofHtu: config.dpopHtuBase,
-        expectedDPoPProofHtm: EXPECTED_HTM,
-        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
-        dpopProofDurationSeconds: config.dpopDurationSeconds,
-      })
-    : { data: undefined, errors: undefined };
-
-  if (dpopProofErrors) {
-    throw dpopProofValidationFailed(
-      clientId,
-      dpopProofErrors.map((error) => error.detail).join(", ")
-    );
-  }
-
-  const dpopProofJWT = data?.dpopProofJWT;
-  const dpopProofJWS = data?.dpopProofJWS;
-
-  if (dpopProofJWT && dpopProofJWS) {
-    const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
-      dpopProofJWS,
-      dpopProofJWT.header.jwk
-    );
-
-    if (dpopProofSignatureErrors) {
-      throw dpopProofSignatureValidationFailed(
-        clientId,
-        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
-      );
-    }
-
-    logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
-  }
-
-  return { dpopProofJWS, dpopProofJWT };
-};
+// Re-export shared helpers for backwards compatibility
+export {
+  deconstructGSIPK_eserviceId_descriptorId,
+  fallbackAudit,
+  logTokenGenerationInfo,
+  publishAudit,
+  retrieveKey,
+  validateDPoPProof,
+} from "./tokenServiceHelpers.js";
