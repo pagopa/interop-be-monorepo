@@ -49,7 +49,6 @@ import {
   count,
   eq,
   exists,
-  ilike,
   inArray,
   isNotNull,
   ne,
@@ -314,7 +313,7 @@ export function readModelServiceBuilderSQL({
         "template_instances"
       );
 
-      const escapedNewName = escapeRegExp(newName);
+      const escapedNewName = escapeSqlLike(newName);
 
       const queryResult = await readModelDB
         .select({ count: count() })
@@ -337,7 +336,7 @@ export function readModelServiceBuilderSQL({
                       WHEN ${templateInstances.instanceLabel} IS NOT NULL
                         THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
                       ELSE ${escapedNewName}
-                    END`
+                    END ESCAPE '\\'`
                   )
                 )
             )
