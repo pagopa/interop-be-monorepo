@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { config } from "../../src/config/config.js";
 import {
   readLastEserviceTemplateEvent,
   addOneEServiceTemplate,
@@ -141,6 +142,42 @@ describe("update eserviceTemplate", () => {
       });
     }
   );
+
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      technology: "Rest",
+      mode: "Receive",
+      isSignalHubEnabled: false,
+      intendedTarget: "old intended target",
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const updateResult =
+      await eserviceTemplateService.patchUpdateEServiceTemplate(
+        mockEServiceTemplate.id,
+        { asyncExchange: true },
+        getMockContextM2MAdmin({
+          organizationId: mockEServiceTemplate.creatorId,
+        })
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      mockEServiceTemplate.id
+    );
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updateResult.data.asyncExchange).toBeUndefined();
+    expect(writtenPayload.eserviceTemplate?.asyncExchange).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
 
   it("should throw eServiceTemplateNotFound if the eserviceTemplate doesn't exist", async () => {
     expect(
