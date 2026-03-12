@@ -95,7 +95,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -117,7 +117,7 @@ const clientRouter = (
           unsafeBrandId(req.params.purposeId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -160,7 +160,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(200).send(key);
+        return res.status(200).send(m2mGatewayApiV3.Key.parse(key));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -181,7 +181,7 @@ const clientRouter = (
           req.params.keyId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -222,10 +222,10 @@ const clientRouter = (
 
         await clientService.addClientUsers(
           unsafeBrandId(req.params.clientId),
-          req.body.userIds,
+          req.body.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -246,7 +246,7 @@ const clientRouter = (
           req.params.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

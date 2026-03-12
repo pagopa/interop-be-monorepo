@@ -15,7 +15,7 @@ export type Headers = {
 };
 
 export type M2MGatewayAppContext<
-  A extends M2MAuthData | M2MAdminAuthData = M2MAdminAuthData
+  A extends M2MAuthData | M2MAdminAuthData = M2MAdminAuthData,
 > = AppContext<A> & { headers: Headers };
 /* ^ M2M Gateway can be called only with m2m or m2m-admin tokens.
 This is enforced by the audience check during authentication, and by the
@@ -36,9 +36,14 @@ export function getInteropHeaders(
   ctx: AppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): Headers {
+  const rawAuthorization = headers.authorization;
+  const dpopPrefix = "dpop";
+  const authorization = rawAuthorization?.toLowerCase().startsWith(dpopPrefix)
+    ? "Bearer" + rawAuthorization.slice(dpopPrefix.length)
+    : rawAuthorization;
   return {
     "X-Correlation-Id": ctx.correlationId,
-    Authorization: headers.authorization,
+    Authorization: authorization,
     "X-Forwarded-For": headers["x-forwarded-for"],
   };
 }

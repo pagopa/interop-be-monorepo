@@ -133,7 +133,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
         userId: user.userId,
         tenantId: user.tenantId,
         body: expectedBody,
-        notificationType: "clientKeyAddedDeletedToClientUsers",
+        notificationType: "clientKeyConsumerAddedDeletedToClientUsers",
         entityId: client.id,
       }));
 
@@ -229,14 +229,14 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
           userId: userId2,
           tenantId: consumerId,
           body: expectedBody,
-          notificationType: "clientKeyAddedDeletedToClientUsers",
+          notificationType: "clientKeyConsumerAddedDeletedToClientUsers",
           entityId: client.id,
         },
         {
           userId: userId3,
           tenantId: consumerId,
           body: expectedBody,
-          notificationType: "clientKeyAddedDeletedToClientUsers",
+          notificationType: "clientKeyConsumerAddedDeletedToClientUsers",
           entityId: client.id,
         },
       ];
@@ -337,14 +337,14 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
           userId: userId2,
           tenantId: consumerId,
           body: expectedBody,
-          notificationType: "clientKeyAddedDeletedToClientUsers",
+          notificationType: "clientKeyConsumerAddedDeletedToClientUsers",
           entityId: client.id,
         },
         {
           userId: userId3,
           tenantId: consumerId,
           body: expectedBody,
-          notificationType: "clientKeyAddedDeletedToClientUsers",
+          notificationType: "clientKeyConsumerAddedDeletedToClientUsers",
           entityId: client.id,
         },
       ];

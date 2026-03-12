@@ -36,7 +36,7 @@ describe("API /events/eservices test", () => {
           eserviceId: e.eserviceId,
           descriptorId: e.descriptorId,
           producerDelegationId: e.producerDelegationId,
-        } as m2mEventApi.EServiceM2MEvent)
+        }) as m2mEventApi.EServiceM2MEvent
     ),
   };
 

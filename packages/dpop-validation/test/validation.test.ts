@@ -266,7 +266,7 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopConfig!.dpopHtuBaseBase,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtuBase,
         expectedDPoPProofHtm: EXPECTED_DPOP_PROOF_HTM,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
         dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,

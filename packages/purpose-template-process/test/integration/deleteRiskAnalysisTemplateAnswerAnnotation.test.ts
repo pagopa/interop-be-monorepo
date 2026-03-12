@@ -34,8 +34,8 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
@@ -183,7 +183,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(purposeTemplate);
@@ -195,7 +195,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
           authData: getMockAuthData(requesterId),
         }),
       })
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {
@@ -236,6 +236,31 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId,
       })
+    );
+  });
+
+  it("should throw riskAnalysisTemplateAnswerAnnotationNotFound if the answer has no annotation (already deleted)", async () => {
+    const riskAnalysisFormWithoutAnnotation =
+      getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
+    const purposeTemplateWithoutAnnotation: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      purposeRiskAnalysisForm: riskAnalysisFormWithoutAnnotation,
+    };
+
+    await addOnePurposeTemplate(purposeTemplateWithoutAnnotation);
+    expect(
+      purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation({
+        purposeTemplateId: purposeTemplateWithoutAnnotation.id,
+        answerId: riskAnalysisFormWithoutAnnotation.singleAnswers[0].id,
+        ctx: getMockContext({
+          authData: getMockAuthData(purposeTemplateWithoutAnnotation.creatorId),
+        }),
+      })
+    ).rejects.toThrowError(
+      riskAnalysisTemplateAnswerAnnotationNotFound(
+        purposeTemplateWithoutAnnotation.id,
+        riskAnalysisFormWithoutAnnotation.singleAnswers[0].id
+      )
     );
   });
 
