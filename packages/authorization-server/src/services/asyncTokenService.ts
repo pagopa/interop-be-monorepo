@@ -1,23 +1,18 @@
 import { IncomingHttpHeaders } from "http";
 import {
-  validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyAsyncClientAssertion,
-  verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   AsyncClientAssertion,
   ClientId,
   ClientKindTokenGenStates,
-  clientKindTokenGenStates,
   CorrelationId,
   DPoPProof,
   FullTokenGenerationStatesConsumerClient,
   InteractionState,
   interactionState,
-  makeTokenGenerationStatesClientKidPK,
-  makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
   TokenGenerationStatesApiClient,
 } from "pagopa-interop-models";
@@ -40,25 +35,24 @@ import { checkDPoPCache } from "pagopa-interop-dpop-validation";
 import {
   asyncRequestValidationFailed,
   asyncScopeNotYetImplemented,
-  clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   dpopProofJtiAlreadyUsed,
-  platformStateValidationFailed,
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
-import {
-  logTokenGenerationInfo,
-  publishAudit,
-  retrieveKey,
-  validateDPoPProof,
-} from "./tokenService.js";
+import { logTokenGenerationInfo, validateDPoPProof } from "./tokenService.js";
 
 type ScopeHandlerContext = {
-  key: FullTokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient;
+  dynamoDBClient: DynamoDBClient;
+  redisRateLimiter: RateLimiter;
+  producer: Awaited<ReturnType<typeof initProducer>>;
+  fileManager: FileManager;
   clientAssertionJWT: AsyncClientAssertion;
+  clientAssertionJWS: string;
   correlationId: CorrelationId;
   logger: Logger;
   dpopProofJWT: DPoPProof | undefined;
+  setCtxOrganizationId: (organizationId: TenantId) => void;
+  setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void;
 };
 
 export type AsyncGeneratedTokenData =
@@ -156,8 +150,6 @@ export function asyncTokenServiceBuilder({
       }
 
       const clientId = clientAssertionJWT.payload.sub;
-      const kid = clientAssertionJWT.header.kid;
-      const purposeId = clientAssertionJWT.payload.purposeId;
       const scope = clientAssertionJWT.payload.scope;
 
       setCtxClientId(clientId);
@@ -170,66 +162,7 @@ export function asyncTokenServiceBuilder({
         logger: getCtx().logger,
       });
 
-      // Client assertion signature verification
-      const pk = purposeId
-        ? makeTokenGenerationStatesClientKidPurposePK({
-            clientId,
-            kid,
-            purposeId,
-          })
-        : makeTokenGenerationStatesClientKidPK({ clientId, kid });
-
-      const key = await retrieveKey(dynamoDBClient, pk);
-
-      setCtxOrganizationId(key.consumerId);
-      setCtxClientKind(key.clientKind);
-
-      logTokenGenerationInfo({
-        validatedJwt: clientAssertionJWT,
-        clientKind: key.clientKind,
-        tokenJti: undefined,
-        message: "Key retrieved",
-        logger: getCtx().logger,
-      });
-
-      const { errors: clientAssertionSignatureErrors } =
-        await verifyClientAssertionSignature(
-          body.client_assertion,
-          key,
-          clientAssertionJWT.header.alg
-        );
-
-      if (clientAssertionSignatureErrors) {
-        throw clientAssertionSignatureValidationFailed(
-          body.client_id,
-          clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
-        );
-      }
-
-      // Platform states validation
-      const { errors: platformStateErrors } =
-        validateClientKindAndPlatformState(key, clientAssertionJWT);
-      if (platformStateErrors) {
-        throw platformStateValidationFailed(
-          platformStateErrors.map((error) => error.detail).join(", ")
-        );
-      }
-
-      // Rate limit check
-      const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(
-          key.consumerId,
-          getCtx().logger
-        );
-      if (limitReached) {
-        return {
-          limitReached: true,
-          rateLimitedTenantId: key.consumerId,
-          rateLimiterStatus,
-        };
-      }
-
-      // Check if the cache contains the DPoP proof
+      // DPoP cache check (does not depend on key retrieval)
       if (dpopProofJWT) {
         const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
@@ -243,75 +176,33 @@ export function asyncTokenServiceBuilder({
         }
       }
 
-      // Dispatch by async scope
-      const scopeResult = await generateTokenByScope(scope, {
-        key,
+      // Dispatch by async scope.
+      // Key retrieval, signature verification, platform state validation,
+      // rate limiting, token generation, and audit are scope-dependent
+      // (e.g. callback_invocation uses producer keychain, not token-generation-states).
+      return await generateTokenByScope(scope, {
+        dynamoDBClient,
+        redisRateLimiter,
+        producer,
+        fileManager,
         clientAssertionJWT,
+        clientAssertionJWS: body.client_assertion,
         correlationId: getCtx().correlationId,
         logger: getCtx().logger,
         dpopProofJWT,
+        setCtxOrganizationId,
+        setCtxClientKind,
       });
-
-      const result: AsyncGeneratedTokenData = {
-        limitReached: false,
-        rateLimiterStatus,
-        ...scopeResult,
-      };
-
-      // Audit publishing + final logging
-      if (result.tokenGenerated) {
-        await match(result)
-          .with(
-            { key: { clientKind: clientKindTokenGenStates.consumer } },
-            async (consumerResult) => {
-              await publishAudit({
-                producer,
-                generatedToken: consumerResult.token,
-                key: consumerResult.key,
-                clientAssertion: clientAssertionJWT,
-                dpop: dpopProofJWT,
-                correlationId: getCtx().correlationId,
-                fileManager,
-                logger: getCtx().logger,
-              });
-            }
-          )
-          .otherwise(() => Promise.resolve());
-
-        logTokenGenerationInfo({
-          validatedJwt: clientAssertionJWT,
-          clientKind: key.clientKind,
-          tokenJti: result.token.payload.jti,
-          message: "Async token generated",
-          logger: getCtx().logger,
-        });
-      }
-
-      return result;
     },
   };
 }
 
 export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
-// Internal type — does not include rateLimiterStatus (added by the caller)
-type ScopeHandlerResult =
-  | { tokenGenerated: false }
-  | {
-      tokenGenerated: true;
-      token: InteropConsumerToken;
-      key: FullTokenGenerationStatesConsumerClient;
-    }
-  | {
-      tokenGenerated: true;
-      token: InteropApiToken;
-      key: TokenGenerationStatesApiClient;
-    };
-
 const generateTokenByScope = async (
   scope: InteractionState,
   _ctx: ScopeHandlerContext
-): Promise<ScopeHandlerResult> =>
+): Promise<AsyncGeneratedTokenData> =>
   match(scope)
     .with(interactionState.startInteraction, async () => {
       throw asyncScopeNotYetImplemented(interactionState.startInteraction);
