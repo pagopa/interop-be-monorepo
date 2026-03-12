@@ -1271,22 +1271,22 @@ describe("validation test", async () => {
       );
     });
 
-    it("invalidEntityNumberClaimFormat - zero", async () => {
+    it("should succeed with entityNumber zero", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {
           scope: interactionState.callbackInvocation,
           entityNumber: 0,
         },
       });
-      const { errors } = verifyAsyncClientAssertion(
+      const { data, errors } = verifyAsyncClientAssertion(
         jws,
         undefined,
         expectedAudiences,
         genericLogger
       );
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidEntityNumberClaimFormat("0"));
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.entityNumber).toBe(0);
     });
 
     it("invalidEntityNumberClaimFormat - negative", async () => {

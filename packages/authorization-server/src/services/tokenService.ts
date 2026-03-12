@@ -13,6 +13,7 @@ import {
   TenantId,
   ClientKindTokenGenStates,
   ClientId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { match } from "ts-pattern";
@@ -307,12 +308,7 @@ export function tokenServiceBuilder({
 
 export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 
-// Re-export shared helpers for backwards compatibility
 export {
-  deconstructGSIPK_eserviceId_descriptorId,
   fallbackAudit,
-  logTokenGenerationInfo,
-  publishAudit,
   retrieveKey,
-  validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
