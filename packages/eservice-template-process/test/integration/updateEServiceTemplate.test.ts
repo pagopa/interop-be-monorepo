@@ -242,6 +242,43 @@ describe("update EService template", () => {
     );
   });
 
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [mockVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const returnedEServiceTemplate =
+      await eserviceTemplateService.updateEServiceTemplate(
+        eserviceTemplate.id,
+        eserviceTemplateToApiUpdateEServiceTemplateSeed({
+          ...eserviceTemplate,
+          asyncExchange: true,
+        }),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      );
+
+    const writtenEvent = await readLastEventByStreamId(
+      eserviceTemplate.id,
+      "eservice_template",
+      postgresDB
+    );
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedEServiceTemplate.data.asyncExchange).toBeUndefined();
+    expect(writtenPayload.eserviceTemplate?.asyncExchange).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
+
   it("should throw operationForbidden if the requester is not the creator", async () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
 
