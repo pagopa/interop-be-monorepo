@@ -42,7 +42,7 @@ import { HttpDPoPHeader } from "../model/domain/models.js";
 import {
   logTokenGenerationInfo,
   validateDPoPProof,
-} from "./tokenServiceHelpers.js";
+} from "../utilities/tokenServiceHelpers.js";
 
 type ScopeHandlerContext = {
   dynamoDBClient: DynamoDBClient;
