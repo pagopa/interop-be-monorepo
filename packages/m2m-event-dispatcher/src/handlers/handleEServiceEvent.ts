@@ -146,6 +146,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "EServiceRiskAnalysisFixed" }, () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      })
       .exhaustive()
   );
 }
