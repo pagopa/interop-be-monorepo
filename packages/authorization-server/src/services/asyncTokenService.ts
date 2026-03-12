@@ -20,7 +20,6 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
   TokenGenerationStatesApiClient,
-  tooManyRequestsError,
 } from "pagopa-interop-models";
 import {
   AuthServerAppContext,
@@ -30,6 +29,7 @@ import {
   isFeatureFlagEnabled,
   Logger,
   RateLimiter,
+  RateLimiterStatus,
   WithLogger,
 } from "pagopa-interop-commons";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -61,14 +61,27 @@ type ScopeHandlerContext = {
   dpopProofJWT: DPoPProof | undefined;
 };
 
-export type ScopeHandlerResult =
-  | { tokenGenerated: false }
+export type AsyncGeneratedTokenData =
   | {
+      limitReached: true;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    }
+  | {
+      limitReached: false;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      tokenGenerated: false;
+    }
+  | {
+      limitReached: false;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       tokenGenerated: true;
       token: InteropConsumerToken;
       key: FullTokenGenerationStatesConsumerClient;
     }
   | {
+      limitReached: false;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       tokenGenerated: true;
       token: InteropApiToken;
       key: TokenGenerationStatesApiClient;
@@ -95,7 +108,7 @@ export function asyncTokenServiceBuilder({
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
-    ): Promise<ScopeHandlerResult> {
+    ): Promise<AsyncGeneratedTokenData> {
       getCtx().logger.info(
         `[CLIENTID=${body.client_id}] Async token requested`
       );
@@ -203,12 +216,17 @@ export function asyncTokenServiceBuilder({
       }
 
       // Rate limit check
-      const { limitReached } = await redisRateLimiter.rateLimitByOrganization(
-        key.consumerId,
-        getCtx().logger
-      );
+      const { limitReached, ...rateLimiterStatus } =
+        await redisRateLimiter.rateLimitByOrganization(
+          key.consumerId,
+          getCtx().logger
+        );
       if (limitReached) {
-        throw tooManyRequestsError(key.consumerId);
+        return {
+          limitReached: true,
+          rateLimitedTenantId: key.consumerId,
+          rateLimiterStatus,
+        };
       }
 
       // Check if the cache contains the DPoP proof
@@ -226,13 +244,19 @@ export function asyncTokenServiceBuilder({
       }
 
       // Dispatch by async scope
-      const result = await generateTokenByScope(scope, {
+      const scopeResult = await generateTokenByScope(scope, {
         key,
         clientAssertionJWT,
         correlationId: getCtx().correlationId,
         logger: getCtx().logger,
         dpopProofJWT,
       });
+
+      const result: AsyncGeneratedTokenData = {
+        limitReached: false,
+        rateLimiterStatus,
+        ...scopeResult,
+      };
 
       // Audit publishing + final logging
       if (result.tokenGenerated) {
@@ -269,6 +293,20 @@ export function asyncTokenServiceBuilder({
 }
 
 export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
+
+// Internal type — does not include rateLimiterStatus (added by the caller)
+type ScopeHandlerResult =
+  | { tokenGenerated: false }
+  | {
+      tokenGenerated: true;
+      token: InteropConsumerToken;
+      key: FullTokenGenerationStatesConsumerClient;
+    }
+  | {
+      tokenGenerated: true;
+      token: InteropApiToken;
+      key: TokenGenerationStatesApiClient;
+    };
 
 const generateTokenByScope = async (
   scope: InteractionState,

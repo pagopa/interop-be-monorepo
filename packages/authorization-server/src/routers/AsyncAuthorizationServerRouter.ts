@@ -1,5 +1,6 @@
 import {
   ExpressContext,
+  rateLimiterHeadersFromStatus,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -7,7 +8,11 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { AsyncTokenService } from "../services/asyncTokenService.js";
-import { buildCtxHelpers, handleTokenError } from "../utilities/routerUtils.js";
+import {
+  buildCtxHelpers,
+  handleRateLimitResponse,
+  handleTokenError,
+} from "../utilities/routerUtils.js";
 
 const asyncAuthorizationServerRouter = (
   ctx: ZodiosContext,
@@ -22,7 +27,7 @@ const asyncAuthorizationServerRouter = (
       buildCtxHelpers(req.ctx);
 
     try {
-      await asyncTokenService.generateAsyncToken(
+      const result = await asyncTokenService.generateAsyncToken(
         req.headers,
         req.body,
         getCtx,
@@ -30,6 +35,17 @@ const asyncAuthorizationServerRouter = (
         setCtxClientKind,
         setCtxOrganizationId
       );
+
+      const headers = rateLimiterHeadersFromStatus(result.rateLimiterStatus);
+      res.set(headers);
+
+      if (result.limitReached) {
+        return handleRateLimitResponse(
+          res,
+          result.rateLimitedTenantId,
+          getCtx()
+        );
+      }
 
       // This should not be reached until individual scope handlers are implemented.
       // Each scope handler will return the appropriate response.

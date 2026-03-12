@@ -1,4 +1,5 @@
 import { constants } from "http2";
+import { Response } from "express";
 import {
   AuthServerAppContext,
   logger,
@@ -9,6 +10,7 @@ import {
   ClientKindTokenGenStates,
   Problem,
   TenantId,
+  tooManyRequestsError,
 } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "./errorMappers.js";
@@ -86,4 +88,18 @@ export function handleTokenError(
       correlationId: ctx.correlationId,
     },
   };
+}
+
+export function handleRateLimitResponse(
+  res: Response,
+  rateLimitedTenantId: TenantId,
+  ctx: WithLogger<AuthServerAppContext>
+): void {
+  const errorRes = makeApiProblem(
+    tooManyRequestsError(rateLimitedTenantId),
+    authorizationServerErrorMapper,
+    ctx
+  );
+
+  res.status(errorRes.status).send(errorRes);
 }

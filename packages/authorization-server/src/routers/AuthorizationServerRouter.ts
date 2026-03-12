@@ -4,14 +4,15 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { makeApiProblem } from "../model/domain/errors.js";
-import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { TokenService } from "../services/tokenService.js";
-import { buildCtxHelpers, handleTokenError } from "../utilities/routerUtils.js";
+import {
+  buildCtxHelpers,
+  handleRateLimitResponse,
+  handleTokenError,
+} from "../utilities/routerUtils.js";
 
 const authorizationServerRouter = (
   ctx: ZodiosContext,
@@ -45,13 +46,11 @@ const authorizationServerRouter = (
       res.set(headers);
 
       if (tokenResult.limitReached) {
-        const errorRes = makeApiProblem(
-          tooManyRequestsError(tokenResult.rateLimitedTenantId),
-          authorizationServerErrorMapper,
-          getCtx()
+        return handleRateLimitResponse(
+          res,
+          tokenResult.rateLimitedTenantId,
+          ctx
         );
-
-        return res.status(errorRes.status).send(errorRes);
       }
 
       return res.status(200).send({
