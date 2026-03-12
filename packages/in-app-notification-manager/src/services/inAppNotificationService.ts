@@ -97,7 +97,9 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilikeEscaped(notification.body, `%${escapeSqlLike(q)}%`) : undefined,
+            q
+              ? ilikeEscaped(notification.body, `%${escapeSqlLike(q)}%`)
+              : undefined,
             readAtFilter,
             notificationTypes.length > 0
               ? inArray(notification.notificationType, notificationTypes)

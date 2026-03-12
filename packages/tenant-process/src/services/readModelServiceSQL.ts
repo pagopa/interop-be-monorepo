@@ -39,15 +39,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  asc,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-} from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -101,7 +93,10 @@ export function readModelServiceBuilderSQL(
                 ? inArray(tenantFeatureInReadmodelTenant.kind, features)
                 : undefined,
               name
-                ? ilikeEscaped(tenantInReadmodelTenant.name, `%${escapeSqlLike(name)}%`)
+                ? ilikeEscaped(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeSqlLike(name)}%`
+                  )
                 : undefined,
               externalIdOrigin
                 ? eq(tenantInReadmodelTenant.externalIdOrigin, externalIdOrigin)
