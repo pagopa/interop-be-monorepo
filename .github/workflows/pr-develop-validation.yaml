@@ -1,0 +1,60 @@
+name: PR develop validation
+on:
+  pull_request:
+    branches:
+      - "develop"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ALLOWED_RELEASE: "release-1.0.0"
+
+jobs:
+  validate:
+    name: Validate PR release version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check release version in PR description
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking PR description for release tag..."
+          echo "Allowed release: $ALLOWED_RELEASE"
+
+          MATCHED_RELEASE=$(echo "$PR_BODY" | grep -oE 'release-[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
+
+          if [ -z "$MATCHED_RELEASE" ]; then
+            echo "::error::PR description does not contain a release tag (expected format: release-x.y.z)"
+            exit 1
+          fi
+
+          echo "Found release tag: $MATCHED_RELEASE"
+
+          if [ "$MATCHED_RELEASE" != "$ALLOWED_RELEASE" ]; then
+            echo "::error::Release tag '$MATCHED_RELEASE' does not match the allowed release '$ALLOWED_RELEASE'"
+
+            # Extract the version number from the matched release tag
+            VERSION=$(echo "$MATCHED_RELEASE" | sed 's/release-//')
+
+            # Look for an existing release branch matching release-x.y.z or release/x.y.z
+            RELEASE_BRANCH=$(gh api "repos/${{ github.repository }}/branches" --paginate --jq ".[].name" | grep -E "^release[-/]${VERSION}$" | head -n 1 || true)
+
+            if [ -n "$RELEASE_BRANCH" ]; then
+              echo "::warning::A release branch '$RELEASE_BRANCH' exists for version $VERSION. Consider targeting that branch instead of develop."
+              echo ""
+              echo "Suggestion: retarget this PR to branch '$RELEASE_BRANCH'"
+            fi
+
+            exit 1
+          fi
+
+          echo "Release tag matches. PR is allowed to merge."
