@@ -193,6 +193,9 @@ export const aggregateEServiceTemplate = ({
           personalData: eserviceTemplateSQL.personalData,
         }
       : {}),
+    ...(eserviceTemplateSQL.asyncExchange !== null
+      ? { asyncExchange: eserviceTemplateSQL.asyncExchange }
+      : {}),
   };
   return {
     data: eserviceTemplate,
