@@ -648,6 +648,7 @@ describe("Tenant Events V2", async () => {
       externalId: {
         origin: "o2",
         value: "v2",
+        selfcareInstitutionType: "SCP",
       },
       mails: [getMockTenantMail()],
       name: "new_name",
