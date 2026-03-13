@@ -17,8 +17,9 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "pagopa-interop-commons-test": "workspace:*",
+    "@types/pg": "catalog:",
     "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
@@ -27,12 +28,13 @@
   "dependencies": {
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",
-    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-tenant-kind-history-db-models": "workspace:*",
+    "pg": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

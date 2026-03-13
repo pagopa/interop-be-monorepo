@@ -16,7 +16,7 @@ export function tenantKindHistoryWriterServiceBuilder(
       tenantId: string,
       metadataVersion: number,
       kind: string | undefined,
-      modifiedAt: string
+      modifiedAt: Date
     ): Promise<void> {
       if (!kind) return; // no tenant kind change to register
 
@@ -24,7 +24,7 @@ export function tenantKindHistoryWriterServiceBuilder(
         tenantId: unsafeBrandId(tenantId),
         version: metadataVersion,
         kind: TenantKind.parse(kind),
-        modifiedAt: new Date(modifiedAt),
+        modifiedAt: modifiedAt,
       });
 
       await tenantKindHistoryDB.transaction(async (tx) => {
