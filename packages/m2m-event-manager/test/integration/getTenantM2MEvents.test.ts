@@ -12,10 +12,13 @@ describe("getTenantM2MEvents", () => {
       getMockedTenantM2MEvent(type),
       getMockedTenantM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockTenantM2MEvents.map(writeTenantM2MEvent));
+    for (const event of mockTenantM2MEvents) {
+      await writeTenantM2MEvent(event);
+    }
   });
 
   it("should list all tenant M2M events", async () => {

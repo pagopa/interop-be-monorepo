@@ -1,26 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
+  type EServiceTemplateEventEnvelopeV2,
   EServiceTemplateEventV2,
-  m2mEventVisibility,
-  generateId,
-  TenantId,
+  type EServiceTemplateId,
   eserviceTemplateVersionState,
-  EServiceTemplateId,
-  EServiceTemplateEventEnvelopeV2,
+  generateId,
+  m2mEventVisibility,
+  type TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { P, match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { describe, expect, it, vi } from "vitest";
 import { handleEServiceTemplateEvent } from "../src/handlers/handleEServiceTemplateEvent.js";
 import {
   getMockEventEnvelopeCommons,
-  retrieveLastEServiceTemplateM2MEvent,
   retrieveAllEServiceTemplateM2MEvents,
+  retrieveLastEServiceTemplateM2MEvent,
   testM2mEventWriterService,
 } from "./utils.js";
 
@@ -51,11 +50,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -79,11 +78,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -105,11 +104,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -132,11 +131,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -204,7 +203,7 @@ describe("handleEServiceTemplateEvent test", async () => {
           );
 
           const versionId = affectedVersion
-            ? eserviceTemplate.versions.at(affectedVersion)!.id
+            ? eserviceTemplate.versions.at(affectedVersion)?.id
             : undefined;
 
           const message = {

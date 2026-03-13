@@ -12,10 +12,13 @@ describe("getKeyM2MEvents", () => {
       getMockedKeyM2MEvent(type),
       getMockedKeyM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockKeyM2MEvents.map(writeKeyM2MEvent));
+    for (const event of mockKeyM2MEvents) {
+      await writeKeyM2MEvent(event);
+    }
   });
 
   it("should list all key M2M events", async () => {

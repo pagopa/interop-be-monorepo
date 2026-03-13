@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  getMockContextM2M,
-  randomArrayItem,
-} from "pagopa-interop-commons-test";
+import { getMockContextM2M } from "pagopa-interop-commons-test";
 import {
   AgreementM2MEventType,
   DelegationId,
@@ -77,14 +74,17 @@ describe("getAgreementM2MEvents", () => {
       }),
       getMockedAgreementM2MEvent({
         eventType,
-        visibility: randomArrayItem([
-          m2mEventVisibility.restricted,
-          m2mEventVisibility.owner,
-        ]),
-        // Visible only to some other producer
+        visibility: m2mEventVisibility.restricted,
+        // Visible only to some other producer (restricted)
+      }),
+      getMockedAgreementM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.owner,
+        // Visible only to some other producer (owner)
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const eventsVisibleToConsumer = AgreementM2MEventType.options.length * 4;
   const eventsVisibleToConsumerDelegate =
@@ -97,7 +97,9 @@ describe("getAgreementM2MEvents", () => {
   const eventsWithProducerDelegationIdCount =
     AgreementM2MEventType.options.length;
   beforeEach(async () => {
-    await Promise.all(mockAgreementM2MEvents.map(writeAgreementM2MEvent));
+    for (const event of mockAgreementM2MEvents) {
+      await writeAgreementM2MEvent(event);
+    }
   });
 
   it("should list owner & restricted agreement M2M events (requester = consumer)", async () => {
