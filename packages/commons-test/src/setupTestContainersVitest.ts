@@ -25,6 +25,7 @@ import {
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
+  TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -132,7 +133,8 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  m2mEventDbConfig?: M2MEventSQLDbConfig
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig
 ): Promise<{
   postgresDB: DB;
   fileManager: FileManager;
@@ -143,6 +145,7 @@ export async function setupTestContainersVitest(
   analyticsPostgresDB: DB;
   inAppNotificationDB: DrizzleReturnType;
   m2mEventDB: DrizzleReturnType;
+  tenantKindHistoryDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
@@ -154,7 +157,8 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  m2mEventDbConfig?: M2MEventSQLDbConfig
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig
 ): Promise<{
   postgresDB: DB;
   fileManager: FileManager;
@@ -165,6 +169,7 @@ export async function setupTestContainersVitest(
   analyticsPostgresDB: DB;
   inAppNotificationDB: DrizzleReturnType;
   m2mEventDB: DrizzleReturnType;
+  tenantKindHistoryDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -177,7 +182,8 @@ export async function setupTestContainersVitest(
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
-  m2mEventDbConfig?: M2MEventSQLDbConfig
+  m2mEventDbConfig?: M2MEventSQLDbConfig,
+  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig
 ): Promise<{
   postgresDB?: DB;
   fileManager?: FileManager;
@@ -188,6 +194,7 @@ export async function setupTestContainersVitest(
   analyticsPostgresDB?: DB;
   inAppNotificationDB?: DrizzleReturnType;
   m2mEventDB?: DrizzleReturnType;
+  tenantKindHistoryDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let postgresDB: DB | undefined;
@@ -200,6 +207,7 @@ export async function setupTestContainersVitest(
   let analyticsPostgresDB: DB | undefined;
   let inAppNotificationDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
+  let tenantKindHistoryDB: DrizzleReturnType | undefined;
 
   if (eventStoreConfig) {
     postgresDB = initDB({
@@ -285,6 +293,18 @@ export async function setupTestContainersVitest(
     m2mEventDB = drizzle({ client: pool });
   }
 
+  if (tenantKindHistoryDbConfig) {
+    const pool = new pg.Pool({
+      user: tenantKindHistoryDbConfig.tenantKindHistoryDBUsername,
+      password: tenantKindHistoryDbConfig.tenantKindHistoryDBPassword,
+      host: tenantKindHistoryDbConfig.tenantKindHistoryDBHost,
+      port: tenantKindHistoryDbConfig.tenantKindHistoryDBPort,
+      database: tenantKindHistoryDbConfig.tenantKindHistoryDBName,
+      ssl: tenantKindHistoryDbConfig.tenantKindHistoryDBUseSSL,
+    });
+    tenantKindHistoryDB = drizzle({ client: pool });
+  }
+
   return {
     postgresDB,
     fileManager,
@@ -295,6 +315,7 @@ export async function setupTestContainersVitest(
     analyticsPostgresDB,
     inAppNotificationDB,
     m2mEventDB,
+    tenantKindHistoryDB,
     cleanup: async (): Promise<void> => {
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -376,6 +397,11 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE domains.eservice, domains.eservice_risk_analysis_answer, domains.eservice_risk_analysis CASCADE"
       );
       await analyticsPostgresDB?.none("TRUNCATE TABLE domains.client CASCADE");
+      if (tenantKindHistoryDB && tenantKindHistoryDbConfig) {
+        await tenantKindHistoryDB.execute(
+          `TRUNCATE TABLE ${tenantKindHistoryDbConfig.tenantKindHistoryDBSchema}.tenant_kind_history CASCADE`
+        );
+      }
       await analyticsPostgresDB?.none(
         "TRUNCATE TABLE domains.delegation CASCADE"
       );
