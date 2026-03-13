@@ -1,11 +1,6 @@
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
-import {
-  logger,
-  decodeKafkaMessage,
-  InteropTokenGenerator,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
+import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
@@ -13,21 +8,29 @@ import {
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import { config } from "./config/config.js";
 import { tenantKindhistoryConsumerServiceBuilder } from "./tenantKindHistoryConsumerService.js";
-import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { tenantKindHistoryWriterServiceBuilder } from "./tenantKindHistoryWriterService.js";
 
-const refreshableToken = new RefreshableInteropToken(
-  new InteropTokenGenerator(config)
-);
+const tenantKindHistoryDB = drizzle({
+  client: new pg.Pool({
+    host: config.tenantKindHistoryDBHost,
+    port: config.tenantKindHistoryDBPort,
+    database: config.tenantKindHistoryDBName,
+    user: config.tenantKindHistoryDBUsername,
+    password: config.tenantKindHistoryDBPassword,
+    ssl: config.tenantKindHistoryDBUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
+  }),
+});
 
-await refreshableToken.init();
-
+const tenantKindHistoryWriterService =
+  tenantKindHistoryWriterServiceBuilder(tenantKindHistoryDB);
 const tenantKindHistoryConsumerService =
-  tenantKindhistoryConsumerServiceBuilder(
-    refreshableToken,
-    getInteropBeClients()
-  );
+  tenantKindhistoryConsumerServiceBuilder(tenantKindHistoryWriterService);
 
 async function processMessage({
   message,
@@ -53,18 +56,10 @@ async function processMessage({
 
   await match(decodedMessage)
     .with({ event_version: 1 }, (msg) =>
-      tenantKindHistoryConsumerService.handleMessageV1(
-        msg,
-        correlationId,
-        loggerInstance
-      )
+      tenantKindHistoryConsumerService.handleMessageV1(msg, loggerInstance)
     )
     .with({ event_version: 2 }, (msg) =>
-      tenantKindHistoryConsumerService.handleMessageV2(
-        msg,
-        correlationId,
-        loggerInstance
-      )
+      tenantKindHistoryConsumerService.handleMessageV2(msg, loggerInstance)
     )
     .exhaustive();
 }

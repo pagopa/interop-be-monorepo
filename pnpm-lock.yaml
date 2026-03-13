@@ -5558,6 +5558,9 @@ importers:
       pagopa-interop-tenant-kind-history-db-models:
         specifier: workspace:*
         version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -5568,6 +5571,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
