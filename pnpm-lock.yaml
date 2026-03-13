@@ -4,306 +4,6 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@anatine/zod-mock':
-      specifier: 3.14.0
-      version: 3.14.0
-    '@apidevtools/swagger-parser':
-      specifier: 10.1.1
-      version: 10.1.1
-    '@aws-sdk/client-dynamodb':
-      specifier: 3.840.0
-      version: 3.840.0
-    '@aws-sdk/client-kms':
-      specifier: 3.840.0
-      version: 3.840.0
-    '@aws-sdk/client-s3':
-      specifier: 3.842.0
-      version: 3.842.0
-    '@aws-sdk/client-sesv2':
-      specifier: 3.840.0
-      version: 3.840.0
-    '@aws-sdk/client-sqs':
-      specifier: 3.840.0
-      version: 3.840.0
-    '@aws-sdk/s3-request-presigner':
-      specifier: 3.842.0
-      version: 3.842.0
-    '@aws-sdk/util-dynamodb':
-      specifier: 3.840.0
-      version: 3.840.0
-    '@faker-js/faker':
-      specifier: 8.4.1
-      version: 8.4.1
-    '@pagopa/eslint-config':
-      specifier: 5.1.2
-      version: 5.1.2
-    '@protobuf-ts/plugin':
-      specifier: 2.9.4
-      version: 2.9.4
-    '@protobuf-ts/protoc':
-      specifier: 2.9.4
-      version: 2.9.4
-    '@protobuf-ts/runtime':
-      specifier: 2.9.4
-      version: 2.9.4
-    '@stoplight/spectral-cli':
-      specifier: 6.15.0
-      version: 6.15.0
-    '@tsconfig/node-lts':
-      specifier: 20.1.3
-      version: 20.1.3
-    '@tsconfig/strictest':
-      specifier: 2.0.5
-      version: 2.0.5
-    '@types/adm-zip':
-      specifier: 0.5.7
-      version: 0.5.7
-    '@types/archiver':
-      specifier: 6.0.2
-      version: 6.0.2
-    '@types/express':
-      specifier: 4.17.21
-      version: 4.17.21
-    '@types/json-diff':
-      specifier: 1.0.3
-      version: 1.0.3
-    '@types/jsonwebtoken':
-      specifier: 9.0.10
-      version: 9.0.10
-    '@types/lodash.isequal':
-      specifier: 4.5.8
-      version: 4.5.8
-    '@types/multer':
-      specifier: 1.4.13
-      version: 1.4.13
-    '@types/node':
-      specifier: 20.19.9
-      version: 20.19.9
-    '@types/nodemailer':
-      specifier: 6.4.17
-      version: 6.4.17
-    '@types/pg':
-      specifier: 8.11.11
-      version: 8.11.11
-    '@types/qs':
-      specifier: 6.9.15
-      version: 6.9.15
-    '@types/ssh2-sftp-client':
-      specifier: 9.0.5
-      version: 9.0.5
-    '@types/supertest':
-      specifier: 6.0.3
-      version: 6.0.3
-    '@types/swagger-ui-express':
-      specifier: 4.1.8
-      version: 4.1.8
-    '@xmldom/xmldom':
-      specifier: 0.9.8
-      version: 0.9.8
-    '@zodios/core':
-      specifier: 10.9.6
-      version: 10.9.6
-    '@zodios/express':
-      specifier: 10.6.1
-      version: 10.6.1
-    adm-zip:
-      specifier: 0.5.16
-      version: 0.5.16
-    archiver:
-      specifier: 7.0.1
-      version: 7.0.1
-    aws-msk-iam-sasl-signer-js:
-      specifier: 1.0.1
-      version: 1.0.1
-    aws-sdk-client-mock:
-      specifier: 4.0.1
-      version: 4.0.1
-    axios:
-      specifier: 1.13.5
-      version: 1.13.5
-    camelcase-keys:
-      specifier: 9.1.3
-      version: 9.1.3
-    connection-string:
-      specifier: 4.4.0
-      version: 4.4.0
-    cpx2:
-      specifier: 7.0.2
-      version: 7.0.2
-    csv:
-      specifier: 6.3.11
-      version: 6.3.11
-    csv-stringify:
-      specifier: 6.5.2
-      version: 6.5.2
-    date-fns:
-      specifier: 4.1.0
-      version: 4.1.0
-    date-fns-tz:
-      specifier: 3.1.3
-      version: 3.1.3
-    domhandler:
-      specifier: 5.0.3
-      version: 5.0.3
-    dotenv:
-      specifier: 16.4.7
-      version: 16.4.7
-    dotenv-flow:
-      specifier: 4.1.0
-      version: 4.1.0
-    drizzle-kit:
-      specifier: 0.30.4
-      version: 0.30.4
-    drizzle-orm:
-      specifier: 0.39.3
-      version: 0.39.3
-    drizzle-zod:
-      specifier: 0.7.1
-      version: 0.7.1
-    eslint:
-      specifier: 9.39.2
-      version: 9.39.2
-    express:
-      specifier: 4.20.0
-      version: 4.20.0
-    fast-xml-parser:
-      specifier: 5.3.8
-      version: 5.3.8
-    form-data-encoder:
-      specifier: 4.1.0
-      version: 4.1.0
-    handlebars:
-      specifier: 4.7.8
-      version: 4.7.8
-    htmlparser2:
-      specifier: 9.1.0
-      version: 9.1.0
-    jose:
-      specifier: 5.9.4
-      version: 5.9.4
-    json-diff:
-      specifier: 1.0.6
-      version: 1.0.6
-    jsonwebtoken:
-      specifier: 9.0.2
-      version: 9.0.2
-    jwks-rsa:
-      specifier: 3.1.0
-      version: 3.1.0
-    kafkajs:
-      specifier: 2.2.4
-      version: 2.2.4
-    knip:
-      specifier: 5.75.1
-      version: 5.75.1
-    lodash.isequal:
-      specifier: 4.5.0
-      version: 4.5.0
-    madge:
-      specifier: 8.0.0
-      version: 8.0.0
-    mime:
-      specifier: 4.0.7
-      version: 4.0.7
-    mkdirp:
-      specifier: 3.0.1
-      version: 3.0.1
-    multer:
-      specifier: 2.1.1
-      version: 2.1.1
-    nodemailer:
-      specifier: 7.0.11
-      version: 7.0.11
-    octokit:
-      specifier: 4.1.4
-      version: 4.1.4
-    openapi-types:
-      specifier: 12.1.3
-      version: 12.1.3
-    openapi-zod-client:
-      specifier: 1.18.3
-      version: 1.18.3
-    openapi3-ts:
-      specifier: 3.1.0
-      version: 3.1.0
-    p-limit:
-      specifier: 6.2.0
-      version: 6.2.0
-    p-retry:
-      specifier: 6.2.1
-      version: 6.2.1
-    pg:
-      specifier: 8.13.1
-      version: 8.13.1
-    pg-promise:
-      specifier: 11.8.0
-      version: 11.8.0
-    prettier:
-      specifier: 3.8.1
-      version: 3.8.1
-    puppeteer:
-      specifier: 22.11.2
-      version: 22.11.2
-    qs:
-      specifier: 6.14.2
-      version: 6.14.2
-    rate-limiter-flexible:
-      specifier: 5.0.5
-      version: 5.0.5
-    redis:
-      specifier: 4.6.15
-      version: 4.6.15
-    ssh2-sftp-client:
-      specifier: 9.1.0
-      version: 9.1.0
-    supertest:
-      specifier: 7.0.0
-      version: 7.0.0
-    swagger-ui-express:
-      specifier: 5.0.1
-      version: 5.0.1
-    testcontainers:
-      specifier: 10.9.0
-      version: 10.9.0
-    ts-pattern:
-      specifier: 5.2.0
-      version: 5.2.0
-    tsc-esm-fix:
-      specifier: 2.20.27
-      version: 2.20.27
-    tsx:
-      specifier: 4.19.1
-      version: 4.19.1
-    turbo:
-      specifier: 2.2.3
-      version: 2.2.3
-    typescript:
-      specifier: 5.4.5
-      version: 5.4.5
-    uuid:
-      specifier: 13.0.0
-      version: 13.0.0
-    vitest:
-      specifier: 4.0.18
-      version: 4.0.18
-    winston:
-      specifier: 3.16.0
-      version: 3.16.0
-    xml-crypto:
-      specifier: 6.0.1
-      version: 6.0.1
-    yaml:
-      specifier: 2.4.5
-      version: 2.4.5
-    zod:
-      specifier: 3.23.8
-      version: 3.23.8
-    zod-validation-error:
-      specifier: 3.3.0
-      version: 3.3.0
-
 importers:
 
   .:
@@ -1935,7 +1635,7 @@ importers:
         version: 4.0.7
       multer:
         specifier: 'catalog:'
-        version: 2.1.0
+        version: 2.1.1
       nodemailer:
         specifier: 'catalog:'
         version: 7.0.11
@@ -10196,8 +9896,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  multer@2.1.0:
-    resolution: {integrity: sha512-TBm6j41rxNohqawsxlsWsNNh/VdV4QFXcBvRcPhXaA05EZ79z0qJ2bQFpync6JBoHTeNY5Q1JpG7AlTjdlfAEA==}
+  multer@2.1.1:
+    resolution: {integrity: sha512-mo+QTzKlx8R7E5ylSXxWzGoXoZbOsRMpyitcht8By2KHvMbf3tjwosZ/Mu/XYU6UuJ3VZnODIrak5ZrPiPyB6A==}
     engines: {node: '>= 10.16.0'}
 
   nan@2.20.0:
@@ -11691,18 +11391,12 @@ catalogs:
     '@types/express':
       specifier: 4.17.21
       version: 4.17.21
-    '@types/html2json':
-      specifier: 1.0.4
-      version: 1.0.4
     '@types/json-diff':
       specifier: 1.0.3
       version: 1.0.3
     '@types/jsonwebtoken':
       specifier: 9.0.10
       version: 9.0.10
-    '@types/lodash.isempty':
-      specifier: 4.4.9
-      version: 4.4.9
     '@types/lodash.isequal':
       specifier: 4.5.8
       version: 4.5.8
@@ -11754,9 +11448,6 @@ catalogs:
     axios:
       specifier: 1.13.5
       version: 1.13.5
-    axios-logger:
-      specifier: 2.8.1
-      version: 2.8.1
     camelcase-keys:
       specifier: 9.1.3
       version: 9.1.3
@@ -11778,6 +11469,9 @@ catalogs:
     date-fns-tz:
       specifier: 3.1.3
       version: 3.1.3
+    domhandler:
+      specifier: 5.0.3
+      version: 5.0.3
     dotenv:
       specifier: 16.4.7
       version: 16.4.7
@@ -11808,9 +11502,9 @@ catalogs:
     handlebars:
       specifier: 4.7.8
       version: 4.7.8
-    html2json:
-      specifier: 1.0.2
-      version: 1.0.2
+    htmlparser2:
+      specifier: 9.1.0
+      version: 9.1.0
     jose:
       specifier: 5.9.4
       version: 5.9.4
@@ -11829,9 +11523,6 @@ catalogs:
     knip:
       specifier: 5.75.1
       version: 5.75.1
-    lodash.isempty:
-      specifier: 4.4.0
-      version: 4.4.0
     lodash.isequal:
       specifier: 4.5.0
       version: 4.5.0
@@ -11845,8 +11536,8 @@ catalogs:
       specifier: 3.0.1
       version: 3.0.1
     multer:
-      specifier: 2.1.0
-      version: 2.1.0
+      specifier: 2.1.1
+      version: 2.1.1
     nodemailer:
       specifier: 7.0.11
       version: 7.0.11
@@ -14078,7 +13769,7 @@ snapshots:
   '@pagopa/eslint-config@5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1))':
     dependencies:
       '@eslint/js': 9.39.4
-      '@vitest/eslint-plugin': 1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))
+      '@vitest/eslint-plugin': 1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1))
       eslint: 9.39.2(jiti@2.6.1)
       eslint-config-prettier: 10.1.8(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-perfectionist: 4.15.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
@@ -15506,7 +15197,7 @@ snapshots:
       '@typescript-eslint/types': 8.57.0
       eslint-visitor-keys: 5.0.1
 
-  '@vitest/eslint-plugin@1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.4.5))':
+  '@vitest/eslint-plugin@1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.0.18(@types/node@20.19.9)(jiti@2.6.1))':
     dependencies:
       '@typescript-eslint/scope-manager': 8.57.0
       '@typescript-eslint/utils': 8.57.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
@@ -17711,7 +17402,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  multer@2.1.0:
+  multer@2.1.1:
     dependencies:
       append-field: 1.0.0
       busboy: 1.6.0
