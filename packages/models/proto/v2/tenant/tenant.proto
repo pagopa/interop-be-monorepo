@@ -83,6 +83,7 @@ message TenantRevokerV2 {
 message ExternalIdV2 {
   string origin = 1;
   string value = 2;
+  optional string selfcareInstitutionType = 3;
 }
 
 message TenantCertifiedAttributeV2 {

@@ -124,24 +124,22 @@ export function getTenantKind(
   attributes: ExternalId[],
   externalId: ExternalId
 ): TenantKind {
-  return match(externalId.origin)
+  return match(externalId)
     .with(
-      PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-      // condition to be satisfied
-      (origin) =>
+      { origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER },
+      () =>
         attributes.some(
           (attr) =>
-            attr.origin === origin &&
+            attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
             (attr.value === PUBLIC_SERVICES_MANAGERS ||
               attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
         ),
       () => tenantKind.GSP
     )
-    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
-    .with(SCP, () => tenantKind.SCP)
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, () => tenantKind.PA)
+    .with({ selfcareInstitutionType: SCP }, () => tenantKind.SCP)
     .otherwise(() => tenantKind.PRIVATE);
 }
-
 export async function assertRequesterAllowed(
   tenantId: TenantId,
   authData: UIAuthData | M2MAuthData

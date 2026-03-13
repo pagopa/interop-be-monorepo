@@ -204,6 +204,7 @@ export const initMockTenant = ({
   const externalId: ExternalId = {
     origin: "IPA",
     value: generateId(),
+    selfcareInstitutionType: "SCP",
   };
 
   const tenantOptionalProps = {

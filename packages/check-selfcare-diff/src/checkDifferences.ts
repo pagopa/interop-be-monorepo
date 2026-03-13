@@ -35,8 +35,8 @@ function mergeUsersByIdWithRoles(
 }
 
 type TenantOriginMismatch = {
-  field: "origin" | "originId";
-  dbValue: string;
+  field: "origin" | "originId" | "institutionType";
+  dbValue: string | undefined;
   selfcareValue: string | undefined;
 };
 
@@ -81,37 +81,41 @@ type DiffResult = {
 
 /**
  * Derives the expected origin and originId from SelfCare data,
- * applying the same transformations used by the onboarding consumer:
- * - origin: SCP/PRV/PT institution types get a suffix appended
+ * following the new generalized onboarding rules:
+ * - origin: now always returns the clean origin without suffixes
  * - originId: non-IPA origins prefer taxCode over originId
+ * - institutionType: returned as a separate field
  */
 function deriveExpectedExternalId(institution: {
   origin?: string;
   originId?: string;
   institutionType?: string;
   taxCode?: string;
-}): { origin: string | undefined; originId: string | undefined } {
-  const suffixedTypes = ["SCP", "PRV", "PT"];
-  const origin =
-    institution.origin &&
-    institution.institutionType &&
-    suffixedTypes.includes(institution.institutionType)
-      ? `${institution.origin}-${institution.institutionType}`
-      : institution.origin;
+}): {
+  origin: string | undefined;
+  originId: string | undefined;
+  institutionType: string | undefined;
+} {
+  const origin = institution.origin;
 
   const originId =
     institution.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
       ? institution.originId
       : institution.taxCode || institution.originId;
 
-  return { origin, originId };
+  return {
+    origin,
+    originId,
+    institutionType: institution.institutionType,
+  };
 }
-
 function checkOriginMismatches(
   dbOrigin: string,
   dbOriginId: string,
+  dbInstitutionType: string | undefined,
   expectedOrigin: string | undefined,
-  expectedOriginId: string | undefined
+  expectedOriginId: string | undefined,
+  expectedInstitutionType: string | undefined
 ): TenantOriginMismatch[] {
   const mismatches: TenantOriginMismatch[] = [];
 
@@ -130,6 +134,15 @@ function checkOriginMismatches(
       field: "originId",
       dbValue: dbOriginId,
       selfcareValue: expectedOriginId,
+    });
+  }
+
+  if (dbInstitutionType !== expectedInstitutionType) {
+    // eslint-disable-next-line functional/immutable-data
+    mismatches.push({
+      field: "institutionType",
+      dbValue: dbInstitutionType,
+      selfcareValue: expectedInstitutionType,
     });
   }
 
@@ -177,6 +190,8 @@ export async function checkDifferences(
       selfcareId: tenantInReadmodelTenant.selfcareId,
       externalIdOrigin: tenantInReadmodelTenant.externalIdOrigin,
       externalIdValue: tenantInReadmodelTenant.externalIdValue,
+      externalIdSelfcareInstitutionType:
+        tenantInReadmodelTenant.externalIdSelfcareInstitutionType,
     })
     .from(tenantInReadmodelTenant)
     .where(isNotNull(tenantInReadmodelTenant.selfcareId));
@@ -246,8 +261,10 @@ export async function checkDifferences(
     const tenantDataMismatches = checkOriginMismatches(
       tenant.externalIdOrigin,
       tenant.externalIdValue,
+      tenant.externalIdSelfcareInstitutionType || undefined,
       expectedExternalId.origin,
-      expectedExternalId.originId
+      expectedExternalId.originId,
+      expectedExternalId.institutionType
     );
 
     const mergedSelfcareUsers = mergeUsersByIdWithRoles(

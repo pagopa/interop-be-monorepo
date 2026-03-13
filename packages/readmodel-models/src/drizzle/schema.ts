@@ -1121,6 +1121,9 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
     selfcareId: varchar("selfcare_id"),
     externalIdOrigin: varchar("external_id_origin").notNull(),
     externalIdValue: varchar("external_id_value").notNull(),
+    externalIdSelfcareInstitutionType: varchar(
+      "external_id_selfcare_institution_type"
+    ),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",

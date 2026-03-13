@@ -389,6 +389,11 @@ export function tenantServiceBuilder(
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           updatedAt: new Date(),
+          externalId: {
+            ...existingTenant.data.externalId,
+            selfcareInstitutionType:
+              tenantSeed.externalId.selfcareInstitutionType,
+          },
         };
 
         logger.info(
@@ -1450,6 +1455,7 @@ export function tenantServiceBuilder(
       const existingTenant = await retrieveTenantByExternalId({
         tenantOrigin: internalTenantSeed.externalId.origin,
         tenantExternalId: internalTenantSeed.externalId.value,
+
         readModelService,
       });
 

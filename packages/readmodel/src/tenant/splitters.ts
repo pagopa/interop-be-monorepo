@@ -52,6 +52,8 @@ export const splitTenantIntoObjectsSQL = (
     selfcareId: selfcareId || null,
     externalIdOrigin: externalId.origin,
     externalIdValue: externalId.value,
+    externalIdSelfcareInstitutionType:
+      externalId.selfcareInstitutionType || null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
     name,
