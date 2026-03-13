@@ -38,6 +38,7 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
   EServiceDescriptorQuotasUpdatedV2,
+  EServiceRiskAnalysisFixedV2,
   EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
@@ -184,6 +185,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
       EServiceRiskAnalysisUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisFixed" }, ({ data }) =>
+      EServiceRiskAnalysisFixedV2.toBinary(data)
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
       EServiceRiskAnalysisDeletedV2.toBinary(data)
@@ -447,6 +451,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceRiskAnalysisUpdated"),
     data: protobufDecoder(EServiceRiskAnalysisUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisFixed"),
+    data: protobufDecoder(EServiceRiskAnalysisFixedV2),
   }),
   z.object({
     event_version: z.literal(2),

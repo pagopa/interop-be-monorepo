@@ -74,6 +74,13 @@ describe("handleEServiceEvent test", async () => {
             const eventTimestamp = new Date();
 
             const testCasesData = await match(eventType)
+              .with("EServiceRiskAnalysisFixed", async () => [
+                {
+                  descriptors: [getMockDescriptor(descriptorState.draft)],
+                  affectedDescriptor: undefined,
+                  expectedVisibility: undefined,
+                },
+              ])
               .with(
                 P.union(
                   // Draft E-Service events, owner visibility
@@ -297,6 +304,13 @@ describe("handleEServiceEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+              if (eventType === "EServiceRiskAnalysisFixed") {
+                expect(
+                  testM2mEventWriterService.insertEServiceM2MEvent
+                ).not.toHaveBeenCalled();
+                continue;
+              }
+
               expect(
                 testM2mEventWriterService.insertEServiceM2MEvent
               ).toHaveBeenCalledTimes(1);
