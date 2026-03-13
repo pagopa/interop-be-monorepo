@@ -2476,132 +2476,69 @@ export function catalogServiceBuilder(
 
       assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
+      const oldIsConsumerDelegable = eservice.data.isConsumerDelegable || false;
+      const oldIsClientAccessDelegable =
+        eservice.data.isClientAccessDelegable || false;
+
+      if (
+        oldIsConsumerDelegable === isConsumerDelegable &&
+        oldIsClientAccessDelegable === isClientAccessDelegable
+      ) {
+        return eservice;
+      }
+
       const updatedEservice: EService = {
         ...eservice.data,
         isConsumerDelegable,
         isClientAccessDelegable,
       };
 
-      const events = match({
-        isConsumerDelegable,
-        oldIsConsumerDelegable: eservice.data.isConsumerDelegable || false,
-        isClientAccessDelegable,
-        oldIsClientAccessDelegable:
-          eservice.data.isClientAccessDelegable || false,
-      })
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true, // should never happen
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version + 1,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: false,
-          },
-          {
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: true,
-          },
-          {
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          () => undefined
-        )
-        .exhaustive();
+      const consumerDelegableEvent =
+        oldIsConsumerDelegable === isConsumerDelegable
+          ? undefined
+          : isConsumerDelegable
+            ? toCreateEventEServiceIsConsumerDelegableEnabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsConsumerDelegableDisabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              );
 
-      if (events) {
-        const createdEvents = await repository.createEvents(events);
+      const clientAccessEventVersion =
+        eservice.metadata.version + (consumerDelegableEvent ? 1 : 0);
 
-        return {
-          data: updatedEservice,
-          metadata: {
-            version:
-              createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
-          },
-        };
-      }
-      return eservice;
+      const clientAccessDelegableEvent =
+        oldIsClientAccessDelegable === isClientAccessDelegable
+          ? undefined
+          : isClientAccessDelegable
+            ? toCreateEventEServiceIsClientAccessDelegableEnabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsClientAccessDelegableDisabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              );
+
+      const events = [
+        consumerDelegableEvent,
+        clientAccessDelegableEvent,
+      ].filter(
+        (event): event is CreateEvent<EServiceEvent> => event !== undefined
+      );
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
+        },
+      };
     },
     async updateEServiceName(
       eserviceId: EServiceId,
