@@ -223,6 +223,25 @@ jobs:
             pnpm --filter "$PACKAGE" lint
           done
 
+  biome-lint:
+    name: Biome Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [build]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          run_install: true
+      - name: Run Biome lint
+        run: pnpm run biome:lint
+
   test:
     name: Tests sharded [ ${{ matrix.shard.shardIndex }} ]
     runs-on: ubuntu-latest
