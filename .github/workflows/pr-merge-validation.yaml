@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  ALLOWED_RELEASE: "release-2.16.0"
+  ALLOWED_RELEASE_DEVELOP: "release-2.16.0"
 
 jobs:
   validate-develop:
@@ -44,7 +44,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Checking PR description for release tag..."
-          echo "Allowed release: $ALLOWED_RELEASE"
+          echo "Allowed release: $ALLOWED_RELEASE_DEVELOP"
 
           MATCHED_RELEASE=$(echo "$PR_BODY" | grep -oP 'release[-/]\d+\.\d+\.\d+(?!\d)' | head -n 1 | sed 's|release/|release-|' || true)
 
@@ -55,8 +55,8 @@ jobs:
 
           echo "Found release tag: $MATCHED_RELEASE"
 
-          if [ "$MATCHED_RELEASE" != "$ALLOWED_RELEASE" ]; then
-            echo "::error::Release tag '$MATCHED_RELEASE' does not match the allowed release '$ALLOWED_RELEASE'"
+          if [ "$MATCHED_RELEASE" != "$ALLOWED_RELEASE_DEVELOP" ]; then
+            echo "::error::Release tag '$MATCHED_RELEASE' does not match the allowed release '$ALLOWED_RELEASE_DEVELOP'"
 
             # Extract the version number from the matched release tag
             VERSION=$(echo "$MATCHED_RELEASE" | sed 's/release-//')
