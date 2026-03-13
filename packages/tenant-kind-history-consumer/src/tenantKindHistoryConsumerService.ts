@@ -1,11 +1,9 @@
 import { isAxiosError } from "axios";
+import { Logger } from "pagopa-interop-commons";
 import {
-  Logger,
-} from "pagopa-interop-commons";
-import {
+  Tenant,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
-  TenantId,
   fromTenantV1,
   fromTenantV2,
   genericInternalError,
@@ -14,43 +12,34 @@ import {
 import { match, P } from "ts-pattern";
 import { TenantKindHistoryWriterService } from "./tenantKindHistoryWriterService.js";
 
-/* TODO:
-V1
-
-    TenantCreated
-
-    TenantUpdated
-
-V2
-
-    TenantOnboarded
-
-    TenantOnboardDetailsUpdated
-
-    MaintenanceTenantUpdated
-
-    TenantKindUpdated
-*/
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantKindhistoryConsumerServiceBuilder(
   tenantKindHistoryWriterService: TenantKindHistoryWriterService
 ) {
   const createTenantKindHistory = async (
-    tenantId: TenantId,
+    tenant: Tenant,
+    metadataVersion: number,
+    messageTimestamp: Date,
     logger: Logger
   ): Promise<void> => {
-    logger.info(`Creating default notification config for tenant ${tenantId}`);
+    logger.info(
+      `Creating tenant kind change history datapoint for tenant ${tenant.id}`
+    );
     try {
-      await tenantKindHistoryWriterService.createTenantKindHistory(/*TODO*/);
+      await tenantKindHistoryWriterService.createTenantKindHistory(
+        tenant.id,
+        metadataVersion,
+        tenant.kind,
+        messageTimestamp
+      );
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
         logger.info(
-          `Notification config for tenant ${tenantId} already exists, skipping creation`
+          `Notification config for tenant ${tenant.id} already exists, skipping creation`
         );
       } else {
         throw genericInternalError(
-          `Error creating default notification config for tenant ${tenantId}. Reason: ${error}`
+          `Error creating default notification config for tenant ${tenant.id}. Reason: ${error}`
         );
       }
     }
@@ -62,20 +51,24 @@ export function tenantKindhistoryConsumerServiceBuilder(
       logger: Logger
     ): Promise<void> {
       await match(message)
-        .with({ type: "TenantCreated" }, async (message) => {
-          if (!message.data.tenant) {
-            throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+        .with(
+          { type: P.union("TenantCreated", "TenantUpdated") },
+          async (message) => {
+            if (!message.data.tenant) {
+              throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+            }
+            await createTenantKindHistory(
+              fromTenantV1(message.data.tenant),
+              message.version,
+              message.log_date,
+              logger
+            );
           }
-          await createTenantKindHistory(
-            fromTenantV1(message.data.tenant).id,
-            logger
-          );
-        })
+        )
         .with(
           {
             type: P.union(
               "TenantDeleted",
-              "TenantUpdated",
               "SelfcareMappingCreated",
               "SelfcareMappingDeleted",
               "TenantMailAdded",
@@ -94,20 +87,31 @@ export function tenantKindhistoryConsumerServiceBuilder(
       logger: Logger
     ): Promise<void> {
       await match(message)
-        .with({ type: "TenantOnboarded" }, async (message) => {
-          if (!message.data.tenant) {
-            throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+        .with(
+          {
+            type: P.union(
+              "TenantOnboarded",
+              "TenantOnboardDetailsUpdated",
+              "MaintenanceTenantUpdated",
+              "TenantKindUpdated"
+            ),
+          },
+          async (message) => {
+            if (!message.data.tenant) {
+              throw missingKafkaMessageDataError("tenant", message.type);
+            }
+            await createTenantKindHistory(
+              fromTenantV2(message.data.tenant),
+              message.version,
+              message.log_date,
+              logger
+            );
           }
-          await createTenantKindHistory(
-            fromTenantV2(message.data.tenant).id,
-            logger
-          );
-        })
+        )
         .with(
           {
             type: P.union(
               "MaintenanceTenantDeleted",
-              "TenantOnboardDetailsUpdated",
               "TenantCertifiedAttributeAssigned",
               "TenantCertifiedAttributeRevoked",
               "TenantDeclaredAttributeAssigned",
@@ -118,9 +122,7 @@ export function tenantKindhistoryConsumerServiceBuilder(
               "TenantVerifiedAttributeExtensionUpdated",
               "TenantMailAdded",
               "MaintenanceTenantPromotedToCertifier",
-              "MaintenanceTenantUpdated",
               "TenantMailDeleted",
-              "TenantKindUpdated",
               "TenantDelegatedProducerFeatureAdded",
               "TenantDelegatedProducerFeatureRemoved",
               "TenantDelegatedConsumerFeatureAdded",
