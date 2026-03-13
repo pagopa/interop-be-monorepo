@@ -27,6 +27,48 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
+  /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: purposeId
+          in: path
+          description: the purpose id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - purpose
+      operationId: fixPurposeRiskAnalysisTenantKind
+      summary: Fix tenant kind for a purpose risk analysis
+      description: Fixes the tenant kind of a specific risk analysis on the specified Purpose
+      responses:
+        "200":
+          description: Purpose Risk Analysis Fixed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or tenant kind not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/delegations/{delegationId}/purposes/{id}:
     delete:
       parameters:
