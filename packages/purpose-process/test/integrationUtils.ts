@@ -28,6 +28,8 @@ import {
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
   Client,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
@@ -55,16 +57,26 @@ import {
   purposeServiceBuilder,
 } from "../src/services/purposeService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
-  await setupTestContainersVitest(
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const {
+  cleanup,
+  postgresDB,
+  fileManager,
+  readModelDB,
+  tenantKindHistoryDB,
+} = await setupTestContainersVitest(
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("tenantKindHistoryDBConfig")
+);
 
 afterEach(cleanup);
 
@@ -88,6 +100,7 @@ const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 });
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
@@ -142,6 +155,25 @@ export const addOnePurposeTemplate = async (
 ): Promise<void> => {
   await writePurposeTemplateInEventstore(purposeTemplate);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOneTenantKindHistory = async ({
+  tenantId,
+  metadataVersion,
+  kind,
+  modifiedAt,
+}: {
+  tenantId: TenantId;
+  metadataVersion: number;
+  kind: TenantKind;
+  modifiedAt: Date;
+}): Promise<void> => {
+  await tenantKindHistoryDB.insert(tenantKindHistory).values({
+    tenantId,
+    metadataVersion,
+    kind,
+    modifiedAt: modifiedAt.toISOString(),
+  });
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (
