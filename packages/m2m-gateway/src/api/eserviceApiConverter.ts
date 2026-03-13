@@ -61,7 +61,7 @@ export function toM2MGatewayApiEServiceDescriptor(
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
-    asyncExchange: descriptor.asyncExchange,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }
 
@@ -81,7 +81,7 @@ export function toCatalogApiEServiceDescriptorSeed(
       certified: [],
     },
     docs: [],
-    asyncExchange: descriptor.asyncExchange,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }
 
@@ -96,7 +96,7 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
     dailyCallsTotal: descriptor.dailyCallsTotal,
     agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
     attributes: undefined, // Attributes are updated with dedicated API calls
-    asyncExchange: descriptor.asyncExchange,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }
 

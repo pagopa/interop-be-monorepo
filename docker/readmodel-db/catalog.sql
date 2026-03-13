@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_template_versio
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_async_exchange (
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_async_exchange_properties (
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,

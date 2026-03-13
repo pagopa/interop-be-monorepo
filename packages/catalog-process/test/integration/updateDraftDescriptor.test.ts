@@ -463,7 +463,7 @@ describe("updateDraftDescriptor", () => {
 
     const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: true,
@@ -483,11 +483,13 @@ describe("updateDraftDescriptor", () => {
       (d) => d.id === descriptor.id
     )!;
 
-    expect(updatedDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(updatedDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(updatedDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(updatedDescriptor.asyncExchange?.bulk).toBe(true);
-    expect(updatedDescriptor.asyncExchange?.maxResultSet).toBe(1000);
+    expect(updatedDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(
+      updatedDescriptor.asyncExchangeProperties?.resourceAvailableTime
+    ).toBe(7200);
+    expect(updatedDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(updatedDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(updatedDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDraftDescriptorUpdatedV2,
@@ -496,11 +498,13 @@ describe("updateDraftDescriptor", () => {
     const protoDescriptor = writtenPayload.eservice!.descriptors.find(
       (d) => d.id === descriptor.id
     )!;
-    expect(protoDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(protoDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(protoDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(protoDescriptor.asyncExchange?.bulk).toBe(true);
-    expect(protoDescriptor.asyncExchange?.maxResultSet).toBe(1000);
+    expect(protoDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeProperties?.resourceAvailableTime).toBe(
+      7200
+    );
+    expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
   });
 
   it("should not update async exchange descriptor fields when flag ON but asyncExchange false", async () => {
@@ -517,7 +521,7 @@ describe("updateDraftDescriptor", () => {
 
     const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: false,
@@ -537,7 +541,7 @@ describe("updateDraftDescriptor", () => {
       (d) => d.id === descriptor.id
     )!;
 
-    expect(updatedDescriptor.asyncExchange).toBeUndefined();
+    expect(updatedDescriptor.asyncExchangeProperties).toBeUndefined();
   });
 
   it("should not update async exchange descriptor fields when flag OFF", async () => {
@@ -556,7 +560,7 @@ describe("updateDraftDescriptor", () => {
 
     const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: false,
@@ -576,7 +580,7 @@ describe("updateDraftDescriptor", () => {
       (d) => d.id === descriptor.id
     )!;
 
-    expect(updatedDescriptor.asyncExchange).toBeUndefined();
+    expect(updatedDescriptor.asyncExchangeProperties).toBeUndefined();
 
     config.featureFlagAsyncExchange = true;
   });

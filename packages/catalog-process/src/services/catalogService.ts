@@ -687,7 +687,7 @@ async function innerAddDocumentToEserviceEvent(
       throw eServiceAsyncExchangeNotEnabled(eService.data.id);
     }
 
-    if (descriptor.asyncExchange == null) {
+    if (descriptor.asyncExchangeProperties == null) {
       throw descriptorAsyncExchangeNotConfigured(descriptor.id);
     }
 
@@ -768,7 +768,7 @@ function createNextDescriptor(
     | "agreementApprovalPolicy"
     | "attributes"
     | "docs"
-    | "asyncExchange"
+    | "asyncExchangeProperties"
   > & {
     templateVersionId: EServiceTemplateVersionId | undefined;
   }
@@ -796,7 +796,7 @@ function createNextDescriptor(
     templateVersionRef: seed.templateVersionId
       ? { id: seed.templateVersionId }
       : undefined,
-    asyncExchange: seed.asyncExchange,
+    asyncExchangeProperties: seed.asyncExchangeProperties,
   };
 }
 
@@ -1440,15 +1440,19 @@ export function catalogServiceBuilder(
         attributes: parsedAttributes,
         docs: [],
         templateVersionId: undefined,
-        asyncExchange:
-          asyncExchangeEnabled && eserviceDescriptorSeed.asyncExchange
+        asyncExchangeProperties:
+          asyncExchangeEnabled && eserviceDescriptorSeed.asyncExchangeProperties
             ? {
-                responseTime: eserviceDescriptorSeed.asyncExchange.responseTime,
+                responseTime:
+                  eserviceDescriptorSeed.asyncExchangeProperties.responseTime,
                 resourceAvailableTime:
-                  eserviceDescriptorSeed.asyncExchange.resourceAvailableTime,
-                confirmation: eserviceDescriptorSeed.asyncExchange.confirmation,
-                bulk: eserviceDescriptorSeed.asyncExchange.bulk,
-                maxResultSet: eserviceDescriptorSeed.asyncExchange.maxResultSet,
+                  eserviceDescriptorSeed.asyncExchangeProperties
+                    .resourceAvailableTime,
+                confirmation:
+                  eserviceDescriptorSeed.asyncExchangeProperties.confirmation,
+                bulk: eserviceDescriptorSeed.asyncExchangeProperties.bulk,
+                maxResultSet:
+                  eserviceDescriptorSeed.asyncExchangeProperties.maxResultSet,
               }
             : undefined,
       });
@@ -4376,7 +4380,7 @@ async function updateDraftDescriptor(
     dailyCallsTotal,
     agreementApprovalPolicy,
     attributes,
-    asyncExchange: asyncExchangeSeed,
+    asyncExchangeProperties: asyncExchangeSeed,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -4421,11 +4425,11 @@ async function updateDraftDescriptor(
     dailyCallsTotal: updatedDailyCallsTotal,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     attributes: updatedAttributes,
-    asyncExchange: asyncExchangeEnabled
+    asyncExchangeProperties: asyncExchangeEnabled
       ? asyncExchangeSeed != null
         ? { ...asyncExchangeSeed }
-        : descriptor.asyncExchange
-      : descriptor.asyncExchange,
+        : descriptor.asyncExchangeProperties
+      : descriptor.asyncExchangeProperties,
   };
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);

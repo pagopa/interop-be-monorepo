@@ -66,7 +66,7 @@ function toOutboundDescriptorV2(
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
     asyncExchangeCallbackInterface: undefined,
-    asyncExchange: undefined,
+    asyncExchangeProperties: undefined,
   };
 }
 

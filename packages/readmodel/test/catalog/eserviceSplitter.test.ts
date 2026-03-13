@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
-  EServiceDescriptorAsyncExchangeSQL,
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -79,7 +79,7 @@ describe("E-service splitter", () => {
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: true,
@@ -111,7 +111,7 @@ describe("E-service splitter", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
-      asyncExchangesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -179,16 +179,17 @@ describe("E-service splitter", () => {
       serverUrls: descriptor.serverUrls,
     };
 
-    const expectedAsyncExchangeSQL: EServiceDescriptorAsyncExchangeSQL = {
-      eserviceId: eservice.id,
-      metadataVersion: 1,
-      descriptorId: descriptor.id,
-      responseTime: 3600,
-      resourceAvailableTime: 7200,
-      confirmation: true,
-      bulk: false,
-      maxResultSet: 500,
-    };
+    const expectedAsyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL =
+      {
+        eserviceId: eservice.id,
+        metadataVersion: 1,
+        descriptorId: descriptor.id,
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 500,
+      };
 
     const expectedAttributeSQL: EServiceDescriptorAttributeSQL = {
       metadataVersion: 1,
@@ -258,7 +259,9 @@ describe("E-service splitter", () => {
     );
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
     expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
-    expect(asyncExchangesSQL).toStrictEqual([expectedAsyncExchangeSQL]);
+    expect(asyncExchangePropertiesSQL).toStrictEqual([
+      expectedAsyncExchangePropertiesSQL,
+    ]);
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -305,7 +308,7 @@ describe("E-service splitter", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
-      asyncExchangesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -399,6 +402,6 @@ describe("E-service splitter", () => {
     );
     expect(rejectionReasonsSQL).toHaveLength(0);
     expect(templateVersionRefsSQL).toHaveLength(0);
-    expect(asyncExchangesSQL).toHaveLength(0);
+    expect(asyncExchangePropertiesSQL).toHaveLength(0);
   });
 });

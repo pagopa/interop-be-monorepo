@@ -2952,8 +2952,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3036,8 +3036,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3073,8 +3073,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3709,8 +3709,8 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
           $ref: "#/components/schemas/EServiceDoc"
     Attribute:
@@ -3749,7 +3749,7 @@ components:
         - certified
         - declared
         - verified
-    AsyncExchangeFields:
+    AsyncExchangeProperties:
       type: object
       required:
         - responseTime

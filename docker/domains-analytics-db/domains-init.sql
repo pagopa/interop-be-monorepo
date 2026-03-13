@@ -56,7 +56,7 @@ CREATE TABLE domains.eservice_descriptor (
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
-CREATE TABLE domains.eservice_descriptor_async_exchange (
+CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),

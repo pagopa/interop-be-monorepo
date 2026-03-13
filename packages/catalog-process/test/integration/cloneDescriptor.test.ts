@@ -525,7 +525,7 @@ describe("clone descriptor", () => {
       state: descriptorState.draft,
       docs: [],
       interface: undefined,
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: true,
@@ -547,21 +547,25 @@ describe("clone descriptor", () => {
     );
 
     const clonedDescriptor = clonedEService.descriptors[0];
-    expect(clonedDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(clonedDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(clonedDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(clonedDescriptor.asyncExchange?.bulk).toBe(false);
-    expect(clonedDescriptor.asyncExchange?.maxResultSet).toBe(500);
+    expect(clonedDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(
+      clonedDescriptor.asyncExchangeProperties?.resourceAvailableTime
+    ).toBe(7200);
+    expect(clonedDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(clonedDescriptor.asyncExchangeProperties?.bulk).toBe(false);
+    expect(clonedDescriptor.asyncExchangeProperties?.maxResultSet).toBe(500);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceClonedV2,
       payload: (await readLastEserviceEvent(clonedEService.id)).data,
     });
     const protoDescriptor = writtenPayload.eservice!.descriptors[0];
-    expect(protoDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(protoDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(protoDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(protoDescriptor.asyncExchange?.bulk).toBe(false);
-    expect(protoDescriptor.asyncExchange?.maxResultSet).toBe(500);
+    expect(protoDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeProperties?.resourceAvailableTime).toBe(
+      7200
+    );
+    expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(false);
+    expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(500);
   });
 });

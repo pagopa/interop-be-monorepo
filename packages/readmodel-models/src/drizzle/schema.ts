@@ -1640,9 +1640,9 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
     ]
   );
 
-export const eserviceDescriptorAsyncExchangeInReadmodelCatalog =
+export const eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog =
   readmodelCatalog.table(
-    "eservice_descriptor_async_exchange",
+    "eservice_descriptor_async_exchange_properties",
     {
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
@@ -1657,12 +1657,12 @@ export const eserviceDescriptorAsyncExchangeInReadmodelCatalog =
       foreignKey({
         columns: [table.eserviceId],
         foreignColumns: [eserviceInReadmodelCatalog.id],
-        name: "eservice_descriptor_async_exchange_eservice_id_fkey",
+        name: "eservice_descriptor_async_exchange_properties_eservice_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.descriptorId],
         foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
-        name: "eservice_descriptor_async_exchange_descriptor_id_fkey",
+        name: "eservice_descriptor_async_exchange_properties_descriptor_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.eserviceId, table.metadataVersion],
@@ -1670,11 +1670,11 @@ export const eserviceDescriptorAsyncExchangeInReadmodelCatalog =
           eserviceInReadmodelCatalog.id,
           eserviceInReadmodelCatalog.metadataVersion,
         ],
-        name: "eservice_descriptor_async_exch_eservice_id_metadata_version_fkey",
+        name: "eservice_descriptor_async_exch_prop_eservice_id_metadata_ver_fkey",
       }),
       primaryKey({
         columns: [table.descriptorId],
-        name: "eservice_descriptor_async_exchange_pkey",
+        name: "eservice_descriptor_async_exchange_properties_pkey",
       }),
     ]
   );

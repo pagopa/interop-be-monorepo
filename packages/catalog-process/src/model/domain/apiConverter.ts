@@ -180,13 +180,14 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
-  asyncExchange: descriptor.asyncExchange
+  asyncExchangeProperties: descriptor.asyncExchangeProperties
     ? {
-        responseTime: descriptor.asyncExchange.responseTime,
-        resourceAvailableTime: descriptor.asyncExchange.resourceAvailableTime,
-        confirmation: descriptor.asyncExchange.confirmation,
-        bulk: descriptor.asyncExchange.bulk,
-        maxResultSet: descriptor.asyncExchange.maxResultSet,
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
       }
     : undefined,
   asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface

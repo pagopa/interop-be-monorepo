@@ -89,7 +89,7 @@ message EServiceDescriptorV2 {
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
   optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
-  optional AsyncExchangeFieldsV2 asyncExchange = 22;
+  optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -104,7 +104,7 @@ message EServiceTemplateVersionRefV2 {
   optional TemplateInstanceInterfaceMetadataV2 interfaceMetadata = 2;
 }
 
-message AsyncExchangeFieldsV2 {
+message AsyncExchangePropertiesV2 {
   int32 responseTime = 1;
   int32 resourceAvailableTime = 2;
   bool confirmation = 3;

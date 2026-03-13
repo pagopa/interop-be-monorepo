@@ -93,14 +93,14 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
-export const AsyncExchangeFields = z.object({
+export const AsyncExchangeProperties = z.object({
   responseTime: z.number().int(),
   resourceAvailableTime: z.number().int(),
   confirmation: z.boolean(),
   bulk: z.boolean(),
   maxResultSet: z.number().int(),
 });
-export type AsyncExchangeFields = z.infer<typeof AsyncExchangeFields>;
+export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -124,7 +124,7 @@ export const Descriptor = z.object({
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
-  asyncExchange: AsyncExchangeFields.optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 

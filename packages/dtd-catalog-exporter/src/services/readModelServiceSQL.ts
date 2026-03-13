@@ -16,7 +16,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-  eserviceDescriptorAsyncExchangeInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -72,7 +72,7 @@ export function readModelServiceBuilderSQL(
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          asyncExchange: eserviceDescriptorAsyncExchangeInReadmodelCatalog,
+          asyncExchangeProperties: eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(
@@ -124,10 +124,10 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          eserviceDescriptorAsyncExchangeInReadmodelCatalog,
+          eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAsyncExchangeInReadmodelCatalog.descriptorId
+            eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
           )
         )
         .leftJoin(

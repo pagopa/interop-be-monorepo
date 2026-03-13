@@ -558,7 +558,7 @@ describe("create descriptor", async () => {
 
     const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: true,
@@ -577,11 +577,13 @@ describe("create descriptor", async () => {
       (d) => d.id === result.data.createdDescriptorId
     )!;
 
-    expect(createdDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(createdDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(createdDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(createdDescriptor.asyncExchange?.bulk).toBe(true);
-    expect(createdDescriptor.asyncExchange?.maxResultSet).toBe(1000);
+    expect(createdDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(
+      createdDescriptor.asyncExchangeProperties?.resourceAvailableTime
+    ).toBe(7200);
+    expect(createdDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(createdDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(createdDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
@@ -590,11 +592,13 @@ describe("create descriptor", async () => {
     const protoDescriptor = writtenPayload.eservice!.descriptors.find(
       (d) => d.id === result.data.createdDescriptorId
     )!;
-    expect(protoDescriptor.asyncExchange?.responseTime).toBe(3600);
-    expect(protoDescriptor.asyncExchange?.resourceAvailableTime).toBe(7200);
-    expect(protoDescriptor.asyncExchange?.confirmation).toBe(true);
-    expect(protoDescriptor.asyncExchange?.bulk).toBe(true);
-    expect(protoDescriptor.asyncExchange?.maxResultSet).toBe(1000);
+    expect(protoDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeProperties?.resourceAvailableTime).toBe(
+      7200
+    );
+    expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
   });
 
   it("should ignore async exchange descriptor fields when flag ON but asyncExchange false", async () => {
@@ -607,7 +611,7 @@ describe("create descriptor", async () => {
 
     const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: false,
@@ -626,7 +630,7 @@ describe("create descriptor", async () => {
       (d) => d.id === result.data.createdDescriptorId
     )!;
 
-    expect(createdDescriptor.asyncExchange).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeProperties).toBeUndefined();
   });
 
   it("should ignore async exchange descriptor fields when flag OFF", async () => {
@@ -641,7 +645,7 @@ describe("create descriptor", async () => {
 
     const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
-      asyncExchange: {
+      asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
         confirmation: false,
@@ -660,7 +664,7 @@ describe("create descriptor", async () => {
       (d) => d.id === result.data.createdDescriptorId
     )!;
 
-    expect(createdDescriptor.asyncExchange).toBeUndefined();
+    expect(createdDescriptor.asyncExchangeProperties).toBeUndefined();
 
     config.featureFlagAsyncExchange = true;
   });

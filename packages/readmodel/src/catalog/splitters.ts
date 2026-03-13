@@ -13,7 +13,7 @@ import {
   dateToString,
 } from "pagopa-interop-models";
 import {
-  EServiceDescriptorAsyncExchangeSQL,
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -67,7 +67,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
-    asyncExchangesSQL,
+    asyncExchangePropertiesSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -77,7 +77,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
-        asyncExchangesSQL: EServiceDescriptorAsyncExchangeSQL[];
+        asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
@@ -88,7 +88,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
-        asyncExchangeSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -105,9 +105,9 @@ export const splitEserviceIntoObjectsSQL = (
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
-        asyncExchangesSQL: asyncExchangeSQL
-          ? acc.asyncExchangesSQL.concat(asyncExchangeSQL)
-          : acc.asyncExchangesSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL
+          ? acc.asyncExchangePropertiesSQL.concat(asyncExchangePropsSQL)
+          : acc.asyncExchangePropertiesSQL,
       };
     },
     {
@@ -117,7 +117,7 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
-      asyncExchangesSQL: [],
+      asyncExchangePropertiesSQL: [],
     }
   );
 
@@ -131,7 +131,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
-    asyncExchangesSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -190,7 +190,9 @@ export const splitDescriptorIntoObjectsSQL = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
-  asyncExchangeSQL: EServiceDescriptorAsyncExchangeSQL | undefined;
+  asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -284,19 +286,21 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
-  const asyncExchangeSQL: EServiceDescriptorAsyncExchangeSQL | undefined =
-    descriptor.asyncExchange
-      ? {
-          eserviceId,
-          metadataVersion: version,
-          descriptorId: descriptor.id,
-          responseTime: descriptor.asyncExchange.responseTime,
-          resourceAvailableTime: descriptor.asyncExchange.resourceAvailableTime,
-          confirmation: descriptor.asyncExchange.confirmation,
-          bulk: descriptor.asyncExchange.bulk,
-          maxResultSet: descriptor.asyncExchange.maxResultSet,
-        }
-      : undefined;
+  const asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined = descriptor.asyncExchangeProperties
+    ? {
+        eserviceId,
+        metadataVersion: version,
+        descriptorId: descriptor.id,
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined;
 
   return {
     descriptorSQL,
@@ -305,7 +309,7 @@ export const splitDescriptorIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
-    asyncExchangeSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 

@@ -20721,8 +20721,8 @@ components:
         templateVersionId:
           type: string
           format: uuid
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -20793,8 +20793,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - audience
         - voucherLifespan
@@ -20836,8 +20836,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -20878,7 +20878,7 @@ components:
       required:
         - results
         - pagination
-    AsyncExchangeFields:
+    AsyncExchangeProperties:
       type: object
       required:
         - responseTime
@@ -21330,8 +21330,8 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
-        asyncExchange:
-          $ref: "#/components/schemas/AsyncExchangeFields"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     JWK:
       description: JSON Web Key
       type: object

@@ -21,7 +21,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-  eserviceDescriptorAsyncExchangeInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -44,7 +44,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceDescriptorAttributeInReadmodelCatalog,
       eserviceRiskAnalysisInReadmodelCatalog,
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
-      eserviceDescriptorAsyncExchangeInReadmodelCatalog,
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     ];
 
     for (const table of catalogTables) {
@@ -116,7 +116,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           documentsSQL,
           rejectionReasonsSQL,
           templateVersionRefsSQL,
-          asyncExchangesSQL,
+          asyncExchangePropertiesSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -169,10 +169,10 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             .values(templateVersionRefSQL);
         }
 
-        for (const asyncExchangeSQL of asyncExchangesSQL) {
+        for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
           await tx
-            .insert(eserviceDescriptorAsyncExchangeInReadmodelCatalog)
-            .values(asyncExchangeSQL);
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropsSQL);
         }
       });
     },
@@ -485,7 +485,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           interfacesSQL,
           documentsSQL,
           rejectionReasonsSQL,
-          asyncExchangeSQL,
+          asyncExchangePropertiesSQL,
         } = splitDescriptorIntoObjectsSQL(
           eserviceId,
           descriptor,
@@ -520,10 +520,10 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             .values(rejectionReasonSQL);
         }
 
-        if (asyncExchangeSQL) {
+        if (asyncExchangePropertiesSQL) {
           await tx
-            .insert(eserviceDescriptorAsyncExchangeInReadmodelCatalog)
-            .values(asyncExchangeSQL);
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropertiesSQL);
         }
 
         await updateMetadataVersionInCatalogTables(
