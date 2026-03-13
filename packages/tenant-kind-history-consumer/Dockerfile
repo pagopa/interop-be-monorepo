@@ -14,7 +14,7 @@ COPY .npmrc /app/
 COPY ./packages/tenant-kind-history-consumer/package.json /app/packages/tenant-kind-history-consumer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
-COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/tenant-kind-history-db-models/package.json /app/packages/tenant-kind-history-db-models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -24,7 +24,7 @@ COPY turbo.json /app/
 COPY ./packages/tenant-kind-history-consumer /app/packages/tenant-kind-history-consumer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
-COPY ./packages/api-clients /app/packages/api-clients
+COPY ./packages/tenant-kind-history-db-models /app/packages/tenant-kind-history-db-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 ARG NODE_HEAP_SIZE=4096
@@ -37,7 +37,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   package*.json packages/tenant-kind-history-consumer/package*.json \
   packages/commons \
   packages/models \
-  packages/api-clients \
+  packages/tenant-kind-history-db-models \
   packages/kafka-iam-auth \
   packages/tenant-kind-history-consumer/dist && \
   find /out -exec touch -h --date=@0 {} \;
