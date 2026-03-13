@@ -17,3 +17,12 @@ export const fromTenantKindHistorySQL = (
   kind: TenantKind.parse(tenantKindHistory.kind),
   modifiedAt: new Date(tenantKindHistory.modifiedAt),
 });
+
+export const toTenantKindHistorySQL = (
+  tenantKindHistory: TenantKindHistory
+): TenantKindHistorySQL => ({
+  tenantId: tenantKindHistory.tenantId,
+  metadataVersion: tenantKindHistory.version,
+  kind: tenantKindHistory.kind,
+  modifiedAt: new Date(tenantKindHistory.modifiedAt).toISOString(),
+});
