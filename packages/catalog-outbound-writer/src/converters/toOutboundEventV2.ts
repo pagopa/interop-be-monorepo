@@ -65,8 +65,8 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
-    // TODO: populate asyncExchangeCallbackInterface when @pagopa/interop-outbound-models is updated
     asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
   };
 }
 

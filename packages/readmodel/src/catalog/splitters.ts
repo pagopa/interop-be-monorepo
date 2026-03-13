@@ -13,6 +13,7 @@ import {
   dateToString,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -66,6 +67,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    asyncExchangePropertiesSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -75,6 +77,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+        asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
@@ -85,6 +88,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -101,6 +105,9 @@ export const splitEserviceIntoObjectsSQL = (
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL
+          ? acc.asyncExchangePropertiesSQL.concat(asyncExchangePropsSQL)
+          : acc.asyncExchangePropertiesSQL,
       };
     },
     {
@@ -110,6 +117,7 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
+      asyncExchangePropertiesSQL: [],
     }
   );
 
@@ -123,6 +131,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -181,6 +190,9 @@ export const splitDescriptorIntoObjectsSQL = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -274,6 +286,22 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
+  const asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined = descriptor.asyncExchangeProperties
+    ? {
+        eserviceId,
+        metadataVersion: version,
+        descriptorId: descriptor.id,
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined;
+
   return {
     descriptorSQL,
     attributesSQL,
@@ -281,6 +309,7 @@ export const splitDescriptorIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 

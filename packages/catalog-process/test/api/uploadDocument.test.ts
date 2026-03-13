@@ -26,6 +26,7 @@ import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
   asyncExchangeCallbackInterfaceAlreadyExists,
   checksumDuplicate,
+  descriptorAsyncExchangeNotConfigured,
   documentPrettyNameDuplicate,
   eServiceDescriptorNotFound,
   eServiceNotFound,
@@ -138,6 +139,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     {
       error: asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id),
       expectedStatus: 409,
+    },
+    {
+      error: descriptorAsyncExchangeNotConfigured(descriptor.id),
+      expectedStatus: 400,
     },
     {
       error: featureFlagNotEnabled("featureFlagAsyncExchange"),

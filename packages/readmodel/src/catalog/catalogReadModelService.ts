@@ -13,6 +13,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -32,7 +33,8 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
-                  ->7 risk analysis ->8 answers
+                      descriptor ->7 async exchange
+                  ->8 risk analysis ->9 answers
   */
   return db
     .select({
@@ -46,6 +48,8 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
       templateVersionRef:
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+      asyncExchangeProperties:
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     })
     .from(eserviceInReadmodelCatalog)
     .where(filter)
@@ -99,6 +103,14 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
     )
     .leftJoin(
       // 7
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
+      )
+    )
+    .leftJoin(
+      // 8
       eserviceRiskAnalysisInReadmodelCatalog,
       eq(
         eserviceInReadmodelCatalog.id,
@@ -106,7 +118,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       )
     )
     .leftJoin(
-      // 8
+      // 9
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
       and(
         eq(
