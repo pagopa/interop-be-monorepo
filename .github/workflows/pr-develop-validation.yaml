@@ -22,7 +22,19 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Check if branch is an align branch
+        id: check_align
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          if echo "$BRANCH_NAME" | grep -qi "align"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Branch '$BRANCH_NAME' contains 'align'. Skipping release check."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check release version in PR description
+        if: steps.check_align.outputs.skip != 'true' && github.actor != 'renovate-pagopa'
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           GH_TOKEN: ${{ github.token }}
