@@ -173,7 +173,10 @@ export function validateAndTransformRiskAnalysis(
   });
 
   return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(
+      validatedForm,
+      tenantKind
+    ),
     riskAnalysisId: undefined,
   };
 }
