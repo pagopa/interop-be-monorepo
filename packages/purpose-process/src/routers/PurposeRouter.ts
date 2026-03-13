@@ -52,6 +52,7 @@ import {
   updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -69,6 +70,7 @@ const purposeRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    MAINTENANCE_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -443,6 +445,40 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/purposes/:purposeId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          const { data, metadata } =
+            await purposeService.fixPurposeRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.purposeId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+          const { purpose, isRiskAnalysisValid } = data;
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

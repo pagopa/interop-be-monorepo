@@ -59,9 +59,9 @@ function toOutboundPurposeV2(
 
 export function toOutboundEventV2(
   message: PurposeEventEnvelopeV2
-): OutboundPurposeEvent {
+): OutboundPurposeEvent | undefined {
   return match(message)
-    .returnType<OutboundPurposeEvent>()
+    .returnType<OutboundPurposeEvent | undefined>()
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
@@ -108,6 +108,7 @@ export function toOutboundEventV2(
         timestamp: new Date(),
       })
     )
+    .with({ type: "PurposeRiskAnalysisFixed" }, () => undefined)
     .with({ type: "PurposeCloned" }, (msg) => ({
       event_version: msg.event_version,
       type: msg.type,

@@ -95,6 +95,18 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 /** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeNotFound",
+      "eserviceRiskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)

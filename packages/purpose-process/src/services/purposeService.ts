@@ -9,6 +9,7 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
+  MaintenanceAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
@@ -101,6 +102,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventPurposeRiskAnalysisFixed,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -361,6 +363,73 @@ export function purposeServiceBuilder(
       return {
         data: { purpose: purpose.data, isRiskAnalysisValid },
         metadata: purpose.metadata,
+      };
+    },
+    async fixPurposeRiskAnalysisTenantKind(
+      purposeId: PurposeId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(
+        `Fixing Risk Analysis ${riskAnalysisId} for Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+      if (riskAnalysisForm.riskAnalysisId !== riskAnalysisId) {
+        throw eserviceRiskAnalysisNotFound(
+          purpose.data.eserviceId,
+          riskAnalysisId
+        );
+      }
+
+      const historyKind = await readModelService.getTenantKindAt(
+        purpose.data.consumerId,
+        purpose.data.createdAt
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(purpose.data.consumerId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: {
+          ...riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const event = toCreateEventPurposeRiskAnalysisFixed({
+        purpose: updatedPurpose,
+        riskAnalysisId,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      const createdEvent = await repository.createEvent(event);
+
+      const eservice = await retrieveEService(
+        updatedPurpose.eserviceId,
+        readModelService
+      );
+      const isRiskAnalysisValid = purposeIsDraft(updatedPurpose)
+        ? isRiskAnalysisFormValid(
+            updatedPurpose.riskAnalysisForm,
+            false,
+            historyKind,
+            updatedPurpose.createdAt,
+            eservice.personalData
+          )
+        : true;
+
+      return {
+        data: { purpose: updatedPurpose, isRiskAnalysisValid },
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async getRiskAnalysisDocument({
