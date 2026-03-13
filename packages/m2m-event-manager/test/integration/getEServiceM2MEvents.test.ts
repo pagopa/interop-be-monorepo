@@ -46,7 +46,8 @@ describe("getEServiceM2MEvents", () => {
         // Visible only to some other producer
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const publicEventsCount = EServiceM2MEventType.options.length;
   const eventsWithDelegationIdCount = EServiceM2MEventType.options.length;
@@ -55,7 +56,9 @@ describe("getEServiceM2MEvents", () => {
     EServiceM2MEventType.options.length * 3; // public + owned by delegate + delegated
 
   beforeEach(async () => {
-    await Promise.all(mockEServiceM2MEvents.map(writeEServiceM2MEvent));
+    for (const event of mockEServiceM2MEvents) {
+      await writeEServiceM2MEvent(event);
+    }
   });
 
   it("should list only public eservice M2M events", async () => {

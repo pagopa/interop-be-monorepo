@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateEventV2,
@@ -49,14 +48,8 @@ describe("handleEServiceTemplateEvent test", async () => {
             async () => [
               {
                 versions: [
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                   // Visibility based only on event, versions state doesn't matter
                 ],
                 affectedVersion: undefined,
@@ -77,14 +70,8 @@ describe("handleEServiceTemplateEvent test", async () => {
             async () => [
               {
                 versions: [
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                   // Visibility based only on event, versions state doesn't matter
                 ],
                 affectedVersion: 1,
@@ -103,14 +90,8 @@ describe("handleEServiceTemplateEvent test", async () => {
             async () => [
               {
                 versions: [
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                   // Visibility based only on event, versions state doesn't matter
                 ],
                 affectedVersion: undefined,
@@ -130,14 +111,8 @@ describe("handleEServiceTemplateEvent test", async () => {
             async () => [
               {
                 versions: [
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                   // Visibility based only on event, versions state doesn't matter
                 ],
                 affectedVersion: 1,
@@ -165,10 +140,7 @@ describe("handleEServiceTemplateEvent test", async () => {
                     undefined,
                     eserviceTemplateVersionState.published
                   ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    eserviceTemplateVersionState.draft
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                 ],
                 affectedVersion: 1,
                 expectedVisibility: m2mEventVisibility.public,
@@ -180,10 +152,7 @@ describe("handleEServiceTemplateEvent test", async () => {
                     undefined,
                     eserviceTemplateVersionState.published
                   ),
-                  getMockEServiceTemplateVersion(
-                    undefined,
-                    eserviceTemplateVersionState.draft
-                  ),
+                  getMockEServiceTemplateVersion(undefined, eserviceTemplateVersionState.draft),
                 ],
                 affectedVersion: 1,
                 expectedVisibility: m2mEventVisibility.owner,

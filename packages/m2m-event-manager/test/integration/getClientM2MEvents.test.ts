@@ -30,13 +30,16 @@ describe("getClientM2MEvents", () => {
         // Visible only to some other consumer
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const publicEventsCount = ClientM2MEventType.options.length;
   const eventsVisibleToConsumer = ClientM2MEventType.options.length * 2; // public + owned by consumer
 
   beforeEach(async () => {
-    await Promise.all(mockClientM2MEvents.map(writeClientM2MEvent));
+    for (const event of mockClientM2MEvents) {
+      await writeClientM2MEvent(event);
+    }
   });
 
   it("should list only public client M2M events", async () => {

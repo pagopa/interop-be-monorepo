@@ -15,12 +15,13 @@ describe("getProducerDelegationM2MEvents", () => {
       getMockedProducerDelegationM2MEvent(type),
       getMockedProducerDelegationM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(
-      mockProducerDelegationM2MEvents.map(writeProducerDelegationM2MEvent)
-    );
+    for (const event of mockProducerDelegationM2MEvents) {
+      await writeProducerDelegationM2MEvent(event);
+    }
   });
 
   it("should list all producerDelegation M2M events", async () => {

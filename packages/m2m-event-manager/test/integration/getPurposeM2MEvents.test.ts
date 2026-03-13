@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  getMockContextM2M,
-  randomArrayItem,
-} from "pagopa-interop-commons-test";
+import { getMockContextM2M } from "pagopa-interop-commons-test";
 import {
   PurposeM2MEventType,
   DelegationId,
@@ -74,14 +71,17 @@ describe("getPurposeM2MEvents", () => {
       }),
       getMockedPurposeM2MEvent({
         eventType,
-        visibility: randomArrayItem([
-          m2mEventVisibility.restricted,
-          m2mEventVisibility.owner,
-        ]),
-        // Visible only to some other producer
+        visibility: m2mEventVisibility.restricted,
+        // Visible only to some other producer (restricted)
+      }),
+      getMockedPurposeM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.owner,
+        // Visible only to some other producer (owner)
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const eventsVisibleToConsumer = PurposeM2MEventType.options.length * 4;
   const eventsVisibleToConsumerDelegate =
@@ -94,7 +94,9 @@ describe("getPurposeM2MEvents", () => {
   const eventsWithProducerDelegationIdCount =
     PurposeM2MEventType.options.length;
   beforeEach(async () => {
-    await Promise.all(mockPurposeM2MEvents.map(writePurposeM2MEvent));
+    for (const event of mockPurposeM2MEvents) {
+      await writePurposeM2MEvent(event);
+    }
   });
 
   it("should list owner & restricted purpose M2M events (requester = consumer)", async () => {
