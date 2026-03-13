@@ -82,6 +82,7 @@ export const getMockMaintenanceTenantUpdate =
     externalId: {
       value: generateId(),
       origin: "IPA",
+      selfcareInstitutionType: "SCP",
     },
     mails: [],
     name: "A tenant",
