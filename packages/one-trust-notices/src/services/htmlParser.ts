@@ -1,7 +1,7 @@
 import { parseDocument } from "htmlparser2";
 import { type ChildNode, Element, Text, Comment } from "domhandler";
 
-export interface HtmlJsonNode {
+interface HtmlJsonNode {
   node: "root" | "element" | "text" | "comment";
   tag?: string;
   child?: HtmlJsonNode[];

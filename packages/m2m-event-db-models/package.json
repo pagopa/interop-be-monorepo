@@ -17,7 +17,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pg": "catalog:"
