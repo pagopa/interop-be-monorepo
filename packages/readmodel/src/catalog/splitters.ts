@@ -284,6 +284,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind ?? null,
   };
 
   const riskAnalysisSingleAnswers: EServiceRiskAnalysisAnswerSQL[] =

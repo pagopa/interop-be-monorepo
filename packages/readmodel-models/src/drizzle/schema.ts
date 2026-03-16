@@ -677,6 +677,7 @@ export const eserviceRiskAnalysisInReadmodelCatalog = readmodelCatalog.table(
     }).notNull(),
     riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
     riskAnalysisFormVersion: varchar("risk_analysis_form_version").notNull(),
+    tenantKind: varchar("tenant_kind"),
   },
   (table) => [
     foreignKey({
@@ -861,6 +862,7 @@ export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
     riskAnalysisId: uuid("risk_analysis_id"),
+    tenantKind: varchar("tenant_kind"),
   },
   (table) => [
     foreignKey({

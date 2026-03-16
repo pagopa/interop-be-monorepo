@@ -131,6 +131,7 @@ CREATE TABLE domains.eservice_risk_analysis (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR(2048) NOT NULL,
+  tenant_kind VARCHAR(2048),
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
   UNIQUE (risk_analysis_form_id, eservice_id)
@@ -253,6 +254,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_form (
   metadata_version INTEGER NOT NULL,
   version VARCHAR(2048) NOT NULL,
   risk_analysis_id VARCHAR(36),
+  tenant_kind VARCHAR(2048),
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id)
 );
