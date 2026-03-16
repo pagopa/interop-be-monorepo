@@ -322,6 +322,16 @@ export function purposeServiceBuilder(
   pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
+  const shouldWriteTenantKindInRiskAnalysis = isFeatureFlagEnabled(
+    config,
+    "featureFlagTenantKindInRiskAnalysisWrite"
+  );
+  const stripTenantKindIfNeeded = (
+    riskAnalysisForm: PurposeRiskAnalysisForm | undefined
+  ): PurposeRiskAnalysisForm | undefined =>
+    shouldWriteTenantKindInRiskAnalysis || !riskAnalysisForm
+      ? riskAnalysisForm
+      : { ...riskAnalysisForm, tenantKind: undefined };
 
   return {
     async getPurposeById(
@@ -1389,6 +1399,8 @@ export function purposeServiceBuilder(
         createdAt,
         eservice.personalData
       );
+      const riskAnalysisFormToWrite =
+        stripTenantKindIfNeeded(validatedFormSeed);
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
@@ -1415,7 +1427,7 @@ export function purposeServiceBuilder(
             createdAt: new Date(),
           },
         ],
-        riskAnalysisForm: validatedFormSeed,
+        riskAnalysisForm: riskAnalysisFormToWrite,
         isFreeOfCharge: purposeSeed.isFreeOfCharge,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
@@ -1493,10 +1505,10 @@ export function purposeServiceBuilder(
         versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
-        riskAnalysisForm: {
+        riskAnalysisForm: stripTenantKindIfNeeded({
           ...riskAnalysis.riskAnalysisForm,
           riskAnalysisId,
-        },
+        }),
       };
 
       const event = await repository.createEvent(
@@ -2121,12 +2133,14 @@ const performUpdatePurpose = async (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
-          true,
-          tenantKind,
-          new Date(),
-          eservice.personalData
+      ? stripTenantKindIfNeeded(
+          validateAndTransformRiskAnalysis(
+            riskAnalysisForm,
+            true,
+            tenantKind,
+            new Date(),
+            eservice.personalData
+          )
         )
       : purpose.data.riskAnalysisForm;
 
