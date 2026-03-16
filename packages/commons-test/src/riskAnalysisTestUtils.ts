@@ -357,14 +357,14 @@ export const getMockValidRiskAnalysis = (
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis3_1_Pa,
         generateMock(z.string()),
-        producerTenantKind
+        undefined
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Private,
         generateMock(z.string()),
-        producerTenantKind
+        undefined
       )
     )
     .exhaustive();
@@ -377,14 +377,14 @@ export const getMockExpiredRiskAnalysis = (
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis2_0_Pa_Expired,
         generateMock(z.string()),
-        producerTenantKind
+        undefined
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
         validatedRiskAnalysis1_0_Private_Expired,
         generateMock(z.string()),
-        producerTenantKind
+        undefined
       )
     )
     .exhaustive();
@@ -410,13 +410,13 @@ export const getMockExpiredRiskAnalysisForm = (
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
         validatedRiskAnalysis2_0_Pa_Expired,
-        producerTenantKind
+        undefined
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
         validatedRiskAnalysis1_0_Private_Expired,
-        producerTenantKind
+        undefined
       )
     )
     .exhaustive();
@@ -428,13 +428,13 @@ export const getMockValidRiskAnalysisForm = (
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
         validatedRiskAnalysis3_1_Pa,
-        producerTenantKind
+        undefined
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
         validatedRiskAnalysis2_0_Private,
-        producerTenantKind
+        undefined
       )
     )
     .exhaustive();
