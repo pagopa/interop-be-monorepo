@@ -39,7 +39,7 @@ const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
-  invalidEServiceFlags: "0025",
+  invalidDelegationFlags: "0025",
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
@@ -61,7 +61,6 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  invalidDelegationFlags: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
