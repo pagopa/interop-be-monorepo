@@ -49,7 +49,6 @@ catalog:
   aws-msk-iam-sasl-signer-js: 1.0.1
   aws-sdk-client-mock: 4.0.1
   axios: 1.13.5
-  axios-logger: 2.8.1
   camelcase-keys: 9.1.3
   connection-string: 4.4.0
   cpx2: 7.0.2
