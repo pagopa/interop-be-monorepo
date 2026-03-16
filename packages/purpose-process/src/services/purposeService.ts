@@ -186,6 +186,14 @@ const retrieveDraftPurposeVersion = (purpose: Purpose): PurposeVersion => {
   return draftVersion;
 };
 
+const stripTenantKindIfNeeded = (
+  riskAnalysisForm: PurposeRiskAnalysisForm | undefined
+): PurposeRiskAnalysisForm | undefined =>
+  isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite") ||
+  !riskAnalysisForm
+    ? riskAnalysisForm
+    : { ...riskAnalysisForm, tenantKind: undefined };
+
 const retrievePurposeVersionDocument = (
   purposeId: PurposeId,
   purposeVersion: PurposeVersion,
@@ -322,16 +330,6 @@ export function purposeServiceBuilder(
   pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
-  const shouldWriteTenantKindInRiskAnalysis = isFeatureFlagEnabled(
-    config,
-    "featureFlagTenantKindInRiskAnalysisWrite"
-  );
-  const stripTenantKindIfNeeded = (
-    riskAnalysisForm: PurposeRiskAnalysisForm | undefined
-  ): PurposeRiskAnalysisForm | undefined =>
-    shouldWriteTenantKindInRiskAnalysis || !riskAnalysisForm
-      ? riskAnalysisForm
-      : { ...riskAnalysisForm, tenantKind: undefined };
 
   return {
     async getPurposeById(
