@@ -127,6 +127,13 @@ const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   interface: eserviceTemplateVersion.interface
     ? documentToApiDocument(eserviceTemplateVersion.interface)
     : undefined,
+  ...(eserviceTemplateVersion.asyncExchangeCallbackInterface
+    ? {
+        asyncExchangeCallbackInterface: documentToApiDocument(
+          eserviceTemplateVersion.asyncExchangeCallbackInterface
+        ),
+      }
+    : {}),
   docs: eserviceTemplateVersion.docs.map(documentToApiDocument),
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
