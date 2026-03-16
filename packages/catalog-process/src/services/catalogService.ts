@@ -2208,7 +2208,8 @@ export function catalogServiceBuilder(
       const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name
+          eserviceRiskAnalysisSeed.name,
+          tenant.kind
         );
       if (
         !isFeatureFlagEnabled(
@@ -2306,7 +2307,8 @@ export function catalogServiceBuilder(
         ...riskAnalysisToUpdate,
         name: eserviceRiskAnalysisSeed.name,
         riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
+          validatedRiskAnalysisForm,
+          tenant.kind
         ),
       };
       if (

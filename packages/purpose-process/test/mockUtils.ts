@@ -214,12 +214,14 @@ export const getMockValidRiskAnalysisFormFromTemplate = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysisFormFromTemplate3_1_Pa
+        validatedRiskAnalysisFormFromTemplate3_1_Pa,
+        producerTenantKind
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysisFormFromTemplate2_0_Private
+        validatedRiskAnalysisFormFromTemplate2_0_Private,
+        producerTenantKind
       )
     )
     .exhaustive();
