@@ -1,5 +1,5 @@
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { retry, WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -22,6 +22,7 @@ import {
 import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById } from "./userService.js";
+import { config } from "../config/config.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -252,11 +253,17 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollClient({ data: client, metadata }, headers);
 
-      const { data: jwkData } =
-        await clients.authorizationClient.key.getJWKByKid({
-          params: { kid: key.kid },
-          headers,
-        });
+      const { data: jwkData } = await retry(
+        () =>
+          clients.authorizationClient.key.getJWKByKid({
+            params: { kid: key.kid },
+            headers,
+          }),
+        {
+          retries: config.defaultPollingMaxRetries,
+          delay: config.defaultPollingRetryDelay,
+        }
+      );
 
       return toM2MKey({ jwk: jwkData.jwk, clientId });
     },
