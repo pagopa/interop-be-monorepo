@@ -331,12 +331,10 @@ export class InteropTokenGenerator {
    */
   public async generateAgidIntegrityRest02Token({
     signedHeaders,
-    aud,
-    sub,
+    clientId,
   }: {
     signedHeaders: IntegrityRest02SignedHeaders;
-    aud: string | undefined;
-    sub: string | undefined;
+    clientId: string | undefined;
   }): Promise<string> {
     if (
       !this.config.integrityRestSignatureKid ||
@@ -356,14 +354,12 @@ export class InteropTokenGenerator {
     const payload: AgidIntegrityRest02TokenPayload = {
       jti: generateId(),
       iss: this.config.integrityRestSignatureIssuer,
-      aud: aud ? [aud] : [],
       iat: currentTimestamp,
-      nbf: currentTimestamp,
       exp:
         currentTimestamp +
         (this.config.integrityRestSignatureSecondsDuration ?? 100),
       signed_headers: signedHeaders,
-      sub,
+      ...(clientId ? { client_id: clientId } : {}),
     };
     return await this.createAndSignToken({
       header,
