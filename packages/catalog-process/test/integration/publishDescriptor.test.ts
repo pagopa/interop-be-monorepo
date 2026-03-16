@@ -28,6 +28,7 @@ import {
   EServiceDescriptorSubmittedByDelegateV2,
   delegationKind,
   agreementState,
+  technology,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -41,6 +42,9 @@ import {
   riskAnalysisNotValid,
   audienceCannotBeEmpty,
   missingPersonalDataFlag,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -50,12 +54,14 @@ import {
   addOneAgreement,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor: Descriptor = getMockDescriptor();
 
   const mockDocument = getMockDocument();
+  const mockCallbackInterfaceDocument = getMockDocument();
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -752,5 +758,233 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
+
+  it("should throw missingAsyncExchangeProperties if asyncExchange is true and descriptor asyncExchangeProperties is undefined", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: undefined,
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeProperties(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw missingAsyncExchangeCallbackInterface if asyncExchange is true and callback interface is missing", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeCallbackInterface(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is Soap and asyncExchange bulk is true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should not throw when asyncExchange is true, technology is REST, and all required fields are set", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      mode: eserviceMode.deliver,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+      technology: technology.rest,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
+  });
+
+  it("should not throw async exchange errors when asyncExchange is false even if fields are missing", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      mode: eserviceMode.deliver,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: false,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
+  });
+
+  it("should not throw async exchange errors when feature flag is OFF even if asyncExchange is true and fields are missing", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      mode: eserviceMode.deliver,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
+
+  it("should not throw asyncExchangeBulkNotAllowedForSoap when technology is REST and asyncExchange bulk is true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      mode: eserviceMode.deliver,
+      descriptors: [descriptor],
+      personalData: false,
+      asyncExchange: true,
+      technology: technology.rest,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
   });
 });
