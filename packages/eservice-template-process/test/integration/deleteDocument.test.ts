@@ -13,6 +13,7 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionDocumentDeletedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
   eserviceTemplateVersionState,
   operationForbidden,
   toEServiceTemplateV2,
@@ -403,4 +404,133 @@ describe("delete Document", () => {
       )
     );
   });
+
+  it("should write on event-store for the deletion of an asyncExchangeCallbackInterface, and delete the file from the bucket", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const callbackInterface = {
+      ...mockDocument,
+      path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+    };
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...mockEServiceTemplateVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeCallbackInterface: callbackInterface,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [eserviceTemplateVersion],
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceTemplateDocumentsPath,
+        resourceId: callbackInterface.id,
+        name: callbackInterface.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(callbackInterface.path);
+
+    const deleteDocumentResponse =
+      await eserviceTemplateService.deleteDocument(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        callbackInterface.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      );
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+    expect(writtenEvent.stream_id).toBe(eserviceTemplate.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
+    );
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType:
+        EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEserviceTemplate = {
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...eserviceTemplateVersion,
+          asyncExchangeCallbackInterface: undefined,
+        },
+      ],
+    };
+
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
+      eserviceTemplateVersion.id
+    );
+    expect(writtenPayload.documentId).toEqual(callbackInterface.id);
+
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      documentId: callbackInterface.id,
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      callbackInterface.path,
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(callbackInterface.path);
+
+    expect(deleteDocumentResponse).toEqual({
+      data: expectedEserviceTemplate,
+      metadata: {
+        version: 1,
+      },
+    });
+  });
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.draft
+    )
+  )(
+    "should throw notValidEServiceTemplateVersionState when trying to delete an asyncExchangeCallbackInterface with version in %s state",
+    async (state) => {
+      const eserviceTemplateVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state,
+        asyncExchangeCallbackInterface: mockDocument,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        asyncExchange: true,
+        versions: [eserviceTemplateVersion],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      expect(
+        eserviceTemplateService.deleteDocument(
+          eserviceTemplate.id,
+          eserviceTemplateVersion.id,
+          mockDocument.id,
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)
+      );
+    }
+  );
 });

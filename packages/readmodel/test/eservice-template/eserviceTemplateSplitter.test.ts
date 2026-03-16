@@ -20,6 +20,7 @@ import {
   EServiceTemplateSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
@@ -66,6 +67,7 @@ describe("E-service template splitter", () => {
       riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
       isSignalHubEnabled,
       personalData,
+      asyncExchange: true,
     };
 
     const {
@@ -90,6 +92,7 @@ describe("E-service template splitter", () => {
       mode: eserviceTemplate.mode,
       isSignalHubEnabled,
       personalData,
+      asyncExchange: true,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
@@ -157,12 +160,13 @@ describe("E-service template splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceTemplateVersionDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceTemplateVersionInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceTemplateId: eserviceTemplate.id,
       versionId: version.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     expect(eserviceTemplateSQL).toStrictEqual(expectedEServiceTemplateSQL);
@@ -239,6 +243,7 @@ describe("E-service template splitter", () => {
       mode: eserviceTemplate.mode,
       isSignalHubEnabled: null,
       personalData: null,
+      asyncExchange: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {

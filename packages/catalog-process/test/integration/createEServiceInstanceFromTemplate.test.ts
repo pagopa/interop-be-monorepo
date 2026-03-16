@@ -20,6 +20,7 @@ import {
   EServiceAddedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   EServiceDocumentId,
   eserviceMode,
   EServiceTemplate,
@@ -883,4 +884,101 @@ describe("create eService from template", () => {
       );
     }
   );
+
+  it("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
+    vi.spyOn(fileManager, "copy");
+
+    const callbackDocId = generateId<EServiceDocumentId>();
+    const callbackDoc: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(callbackDocId),
+      name: "callback.yaml",
+      prettyName: "Callback Interface",
+      path: `${config.eserviceDocumentsPath}/${callbackDocId}/callback.yaml`,
+      checksum: "callback-checksum",
+    };
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeCallbackInterface: callbackDoc,
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: callbackDoc.id,
+        name: callbackDoc.name,
+        content: Buffer.from("callback-content"),
+      },
+      genericLogger
+    );
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    // Events: 0=EServiceAdded, 1=EServiceDescriptorAdded, 2=AsyncExchangeCallbackInterfaceAdded
+    const callbackInterfaceEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      2,
+      "catalog",
+      postgresDB
+    );
+
+    expect(callbackInterfaceEvent).toMatchObject({
+      stream_id: eService.id,
+      version: "2",
+      type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      event_version: 2,
+    });
+
+    const callbackPayload = decodeProtobufPayload({
+      messageType:
+        EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+      payload: callbackInterfaceEvent.data,
+    });
+
+    const copiedCallbackInterface =
+      callbackPayload.eservice?.descriptors[0]
+        ?.asyncExchangeCallbackInterface;
+    expect(copiedCallbackInterface).toBeDefined();
+    expect(copiedCallbackInterface?.name).toEqual(callbackDoc.name);
+    expect(copiedCallbackInterface?.prettyName).toEqual(
+      callbackDoc.prettyName
+    );
+    expect(copiedCallbackInterface?.contentType).toEqual(
+      callbackDoc.contentType
+    );
+    expect(copiedCallbackInterface?.checksum).toEqual(callbackDoc.checksum);
+
+    // Verify fileManager.copy was called for the callback interface
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      callbackDoc.path,
+      config.eserviceDocumentsPath,
+      expect.any(String),
+      callbackDoc.name,
+      genericLogger
+    );
+  });
 });
