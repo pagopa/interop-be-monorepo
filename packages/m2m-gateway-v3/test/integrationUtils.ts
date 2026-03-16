@@ -74,7 +74,8 @@ export function expectApiClientGetToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockGet: (...args: unknown[]) => unknown;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  mockGet: (...args: any[]) => any;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {

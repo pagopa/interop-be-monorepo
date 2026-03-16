@@ -89,14 +89,16 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const client = await authorizationService.createConsumerClient(
-          {
-            clientSeed: req.body,
-          },
-          ctx
-        );
+        const { data: client, metadata } =
+          await authorizationService.createConsumerClient(
+            {
+              clientSeed: req.body,
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(

@@ -66,6 +66,9 @@ paths:
       responses:
         "200":
           description: Client created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
