@@ -12,10 +12,10 @@ import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
-describe("POST /clientsConsumer router test", () => {
+describe("POST /clients router test", () => {
   const makeRequest = async (token: string, seed: m2mGatewayApiV3.ClientSeed) =>
     request(api)
-      .post(`${appBasePath}/clientsConsumer`)
+      .post(`${appBasePath}/clients`)
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(seed);
@@ -37,14 +37,14 @@ describe("POST /clientsConsumer router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockClientService.createConsumerClient = vi
+      mockClientService.createClient = vi
         .fn()
         .mockImplementation(() => Promise.resolve(mockM2MFullClientResponse));
       const token = generateToken(role);
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MFullClientResponse);
-      expect(mockClientService.createConsumerClient).toHaveBeenCalledWith(
+      expect(mockClientService.createClient).toHaveBeenCalledWith(
         clientSeed,
         expect.any(Object) // context
       );

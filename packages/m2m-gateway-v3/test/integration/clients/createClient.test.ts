@@ -15,7 +15,7 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
-describe("createConsumerClient", () => {
+describe("createClient", () => {
   const mockConsumerClient = getMockedApiConsumerFullClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
@@ -25,7 +25,7 @@ describe("createConsumerClient", () => {
     2
   );
 
-  const mockCreateConsumerClient = vi
+  const mockcreateClient = vi
     .fn()
     .mockResolvedValue(mockConsumerClientWithMetadata);
 
@@ -34,7 +34,7 @@ describe("createConsumerClient", () => {
     .mockResolvedValue(mockConsumerClientWithMetadata);
   mockInteropBeClients.authorizationClient = {
     client: {
-      createConsumerClient: mockCreateConsumerClient,
+      createClient: mockcreateClient,
       getClient: mockGetClient,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
@@ -46,11 +46,11 @@ describe("createConsumerClient", () => {
   };
 
   beforeEach(() => {
-    mockCreateConsumerClient.mockClear();
+    mockcreateClient.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const result = await clientService.createConsumerClient(
+    const result = await clientService.createClient(
       clientSeed,
       getMockM2MAdminAppContext()
     );
@@ -59,7 +59,7 @@ describe("createConsumerClient", () => {
 
     // Create
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockCreateConsumerClient,
+      mockPost: mockcreateClient,
       body: clientSeed,
     });
 

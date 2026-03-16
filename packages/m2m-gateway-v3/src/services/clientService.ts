@@ -369,11 +369,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       await pollClient(response, headers);
     },
 
-    async createConsumerClient(
+    async createClient(
       seed: authorizationApi.ClientSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Client> {
-      logger.info(`Creating consumer client with name ${seed.name}`);
+      logger.info(`Creating client with name ${seed.name}`);
 
       const client =
         await clients.authorizationClient.client.createConsumerClient(seed, {
