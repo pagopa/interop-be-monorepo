@@ -2056,4 +2056,134 @@ describe("integration tests V2 events", async () => {
       );
     });
   });
+
+  describe("featureFlagAsyncExchange disabled", () => {
+    beforeEach(() => {
+      config.featureFlagAsyncExchange = false;
+    });
+
+    it("should not persist async exchange fields in platform-states on publish", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
+        asyncExchangeProperties: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        asyncExchange: true,
+        descriptors: [descriptor],
+      };
+
+      const payload: EServiceDescriptorPublishedV2 = {
+        eservice: toEServiceV2(eservice),
+        descriptorId: descriptor.id,
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: eservice.id,
+        version: 1,
+        type: "EServiceDescriptorPublished",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      const catalogEntryPrimaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const retrievedCatalogEntry = await readCatalogEntry(
+        catalogEntryPrimaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedCatalogEntry).toBeDefined();
+      expect(retrievedCatalogEntry).not.toHaveProperty("asyncExchange");
+      expect(retrievedCatalogEntry).not.toHaveProperty(
+        "asyncExchangeProperties"
+      );
+    });
+
+    it("should not propagate asyncExchange to token-generation-states on publish", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
+        asyncExchangeProperties: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        asyncExchange: true,
+        descriptors: [descriptor],
+      };
+
+      const payload: EServiceDescriptorPublishedV2 = {
+        eservice: toEServiceV2(eservice),
+        descriptorId: descriptor.id,
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: eservice.id,
+        version: 1,
+        type: "EServiceDescriptorPublished",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const tokenGenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK(
+        {
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        }
+      );
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: descriptor.audience,
+          descriptorVoucherLifespan: descriptor.voucherLifespan,
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
+      const retrievedTokenGenStatesEntry = retrievedTokenGenStatesEntries.find(
+        (entry) => entry.PK === tokenGenStatesEntryPK
+      );
+
+      expect(retrievedTokenGenStatesEntry).toBeDefined();
+      expect(retrievedTokenGenStatesEntry).not.toHaveProperty("asyncExchange");
+    });
+  });
 });
