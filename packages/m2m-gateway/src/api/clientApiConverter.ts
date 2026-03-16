@@ -44,7 +44,7 @@ export function toM2MGatewayApiConsumerClient(
         ({
           id: client.id,
           consumerId: client.consumerId,
-        } satisfies m2mGatewayApi.PartialClient)
+        }) satisfies m2mGatewayApi.PartialClient
     )
     .with(
       {

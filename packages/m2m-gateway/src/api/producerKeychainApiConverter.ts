@@ -38,7 +38,7 @@ export function toM2MGatewayApiProducerKeychain(
         ({
           id: producerKeychain.id,
           producerId: producerKeychain.producerId,
-        } satisfies m2mGatewayApi.PartialProducerKeychain)
+        }) satisfies m2mGatewayApi.PartialProducerKeychain
     )
     .with(
       {

@@ -434,6 +434,11 @@ export const getMockBffApiEServiceDescriptionUpdateSeed =
     description: generateMock(z.string()),
   });
 
+export const getMockBffApiEServiceInstanceLabelUpdateSeed =
+  (): bffApi.EServiceInstanceLabelUpdateSeed => ({
+    instanceLabel: "test",
+  });
+
 export const getMockBffApiUpdateEServiceDescriptorDocumentSeed =
   (): bffApi.UpdateEServiceDescriptorDocumentSeed => ({
     prettyName: generateMock(z.string()),
@@ -659,7 +664,7 @@ export const getMockBffApiCompactEService = (): bffApi.CompactEService => ({
 
 export const getMockBffApiEServiceTemplateSeed =
   (): bffApi.EServiceTemplateSeed => ({
-    name: generateMock(z.string().min(5).max(60)),
+    name: generateMock(z.string().min(5).max(45)),
     intendedTarget: generateMock(z.string().min(10).max(250)),
     description: generateMock(z.string().min(10).max(250)),
     technology: generateMock(bffApi.EServiceTechnology),
@@ -710,7 +715,7 @@ export const getMockBffApiEServiceTemplateDetails =
 
 export const getMockBffApiEServiceTemplateUpdateSeed =
   (): bffApi.UpdateEServiceTemplateSeed => ({
-    name: generateMock(z.string().min(5).max(60)),
+    name: generateMock(z.string().min(5).max(45)),
     intendedTarget: generateMock(z.string().min(10).max(250)),
     description: generateMock(z.string().min(10).max(250)),
     technology: generateMock(bffApi.EServiceTechnology),
@@ -769,7 +774,6 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     ),
     attributes: generateMock(bffApi.DescriptorAttributes),
     eserviceTemplate: generateMock(bffApi.EServiceTemplateDetails),
-    isAlreadyInstantiated: generateMock(z.boolean()),
     hasRequesterRiskAnalysis: generateMock(z.boolean().optional()),
   });
 

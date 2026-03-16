@@ -39,7 +39,7 @@ describe("API /events/eserviceTemplates test", () => {
             eventType: testToUpperSnakeCase(e.eventType),
             eserviceTemplateId: e.eserviceTemplateId,
             eserviceTemplateVersionId: e.eserviceTemplateVersionId,
-          } as m2mEventApi.EServiceTemplateM2MEvent)
+          }) as m2mEventApi.EServiceTemplateM2MEvent
       ),
     };
 

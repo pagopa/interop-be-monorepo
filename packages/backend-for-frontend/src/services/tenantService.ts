@@ -433,11 +433,12 @@ export function tenantServiceBuilder(
       });
     },
     async updateTenantDelegatedFeatures(
-      tenantId: TenantId,
       delegatedFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed,
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, authData }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
+      logger.info(
+        `Assigning delegated producer feature to tenant ${authData.organizationId}`
+      );
       await tenantProcessClient.tenant.updateTenantDelegatedFeatures(
         delegatedFeatures,
         { headers }
