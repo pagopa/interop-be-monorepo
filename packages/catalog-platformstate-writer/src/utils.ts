@@ -56,23 +56,23 @@ export const upsertPlatformStatesCatalogEntry = async (
     },
   };
 
-  if (catalogEntry.asyncExchange !== undefined) {
-    item.asyncExchange = {
+  if (catalogEntry.asyncExchangeProperties !== undefined) {
+    item.asyncExchangeProperties = {
       M: {
         responseTime: {
-          N: catalogEntry.asyncExchange.responseTime.toString(),
+          N: catalogEntry.asyncExchangeProperties.responseTime.toString(),
         },
         resourceAvailableTime: {
-          N: catalogEntry.asyncExchange.resourceAvailableTime.toString(),
+          N: catalogEntry.asyncExchangeProperties.resourceAvailableTime.toString(),
         },
         confirmation: {
-          BOOL: catalogEntry.asyncExchange.confirmation,
+          BOOL: catalogEntry.asyncExchangeProperties.confirmation,
         },
         bulk: {
-          BOOL: catalogEntry.asyncExchange.bulk,
+          BOOL: catalogEntry.asyncExchangeProperties.bulk,
         },
         maxResultSet: {
-          N: catalogEntry.asyncExchange.maxResultSet.toString(),
+          N: catalogEntry.asyncExchangeProperties.maxResultSet.toString(),
         },
       },
     };

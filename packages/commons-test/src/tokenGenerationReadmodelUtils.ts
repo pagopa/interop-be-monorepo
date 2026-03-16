@@ -273,16 +273,20 @@ export const writePlatformCatalogEntry = async (
     },
   };
 
-  if (catalogEntry.asyncExchange !== undefined) {
-    item.asyncExchange = {
+  if (catalogEntry.asyncExchangeProperties !== undefined) {
+    item.asyncExchangeProperties = {
       M: {
-        responseTime: { N: catalogEntry.asyncExchange.responseTime.toString() },
-        resourceAvailableTime: {
-          N: catalogEntry.asyncExchange.resourceAvailableTime.toString(),
+        responseTime: {
+          N: catalogEntry.asyncExchangeProperties.responseTime.toString(),
         },
-        confirmation: { BOOL: catalogEntry.asyncExchange.confirmation },
-        bulk: { BOOL: catalogEntry.asyncExchange.bulk },
-        maxResultSet: { N: catalogEntry.asyncExchange.maxResultSet.toString() },
+        resourceAvailableTime: {
+          N: catalogEntry.asyncExchangeProperties.resourceAvailableTime.toString(),
+        },
+        confirmation: { BOOL: catalogEntry.asyncExchangeProperties.confirmation },
+        bulk: { BOOL: catalogEntry.asyncExchangeProperties.bulk },
+        maxResultSet: {
+          N: catalogEntry.asyncExchangeProperties.maxResultSet.toString(),
+        },
       },
     };
   }

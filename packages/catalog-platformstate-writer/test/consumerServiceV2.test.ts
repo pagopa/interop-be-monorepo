@@ -1969,14 +1969,14 @@ describe("integration tests V2 events", async () => {
       config.featureFlagAsyncExchange = false;
     });
 
-    it("should propagate async descriptor fields and asyncExchange on publish", async () => {
+    it("should propagate async descriptor fields and asyncExchangeProperties on publish", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         interface: getMockDocument(),
         publishedAt: new Date(),
         audience: ["pagopa.it/test1", "pagopa.it/test2"],
-        asyncExchange: {
+        asyncExchangeProperties: {
           responseTime: 120,
           resourceAvailableTime: 600,
           confirmation: true,
@@ -2041,7 +2041,7 @@ describe("integration tests V2 events", async () => {
       expect(retrievedCatalogEntry).toEqual(
         expect.objectContaining({
           asyncExchangeEnabled: true,
-          asyncExchange: descriptor.asyncExchange,
+          asyncExchangeProperties: descriptor.asyncExchangeProperties,
         })
       );
 

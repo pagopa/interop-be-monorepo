@@ -81,7 +81,8 @@ export async function handleMessageV2(
               ...(isAsyncExchangeEnabled
                 ? {
                     asyncExchangeEnabled: eservice.asyncExchange,
-                    asyncExchange: descriptor.asyncExchange,
+                    asyncExchangeProperties:
+                      descriptor.asyncExchangeProperties,
                   }
                 : {}),
               version: msg.version,
