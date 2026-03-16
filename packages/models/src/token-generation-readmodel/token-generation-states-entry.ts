@@ -41,6 +41,7 @@ export const TokenGenerationStatesConsumerClient =
     descriptorState: ItemState.optional(),
     descriptorAudience: z.array(z.string()).optional(),
     descriptorVoucherLifespan: z.number().optional(),
+    asyncExchange: z.boolean().optional(),
     GSIPK_purposeId: PurposeId.optional(),
     purposeState: ItemState.optional(),
     purposeVersionId: PurposeVersionId.optional(),

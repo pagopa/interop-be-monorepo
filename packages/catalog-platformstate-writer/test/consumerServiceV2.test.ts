@@ -2040,7 +2040,7 @@ describe("integration tests V2 events", async () => {
       );
       expect(retrievedCatalogEntry).toEqual(
         expect.objectContaining({
-          asyncExchangeEnabled: true,
+          asyncExchange: true,
           asyncExchangeProperties: descriptor.asyncExchangeProperties,
         })
       );

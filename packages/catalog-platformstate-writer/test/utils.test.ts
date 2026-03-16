@@ -194,7 +194,7 @@ describe("utils tests", async () => {
         state: itemState.inactive,
         descriptorVoucherLifespan: 100,
         descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        asyncExchangeEnabled: true,
+        asyncExchange: true,
         asyncExchangeProperties: {
           responseTime: 120,
           resourceAvailableTime: 600,

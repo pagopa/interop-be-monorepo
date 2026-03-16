@@ -36,7 +36,7 @@ export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
   descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
-  asyncExchangeEnabled: z.boolean().optional(),
+  asyncExchange: z.boolean().optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
 });
 export type PlatformStatesCatalogEntry = z.infer<

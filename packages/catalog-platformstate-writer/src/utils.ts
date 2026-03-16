@@ -78,9 +78,9 @@ export const upsertPlatformStatesCatalogEntry = async (
     };
   }
 
-  if (catalogEntry.asyncExchangeEnabled !== undefined) {
-    item.asyncExchangeEnabled = {
-      BOOL: catalogEntry.asyncExchangeEnabled,
+  if (catalogEntry.asyncExchange !== undefined) {
+    item.asyncExchange = {
+      BOOL: catalogEntry.asyncExchange,
     };
   }
 

@@ -80,7 +80,7 @@ export async function handleMessageV2(
               descriptorVoucherLifespan: descriptor.voucherLifespan,
               ...(isAsyncExchangeEnabled
                 ? {
-                    asyncExchangeEnabled: eservice.asyncExchange,
+                    asyncExchange: eservice.asyncExchange,
                     asyncExchangeProperties:
                       descriptor.asyncExchangeProperties,
                   }
