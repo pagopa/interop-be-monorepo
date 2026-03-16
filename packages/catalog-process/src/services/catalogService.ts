@@ -2210,6 +2210,17 @@ export function catalogServiceBuilder(
           validatedRiskAnalysisForm,
           eserviceRiskAnalysisSeed.name
         );
+      if (
+        !isFeatureFlagEnabled(
+          config,
+          "featureFlagTenantKindInRiskAnalysisWrite"
+        )
+      ) {
+        newRiskAnalysis.riskAnalysisForm = {
+          ...newRiskAnalysis.riskAnalysisForm,
+          tenantKind: undefined,
+        };
+      }
 
       const newEservice: EService = {
         ...eservice.data,
@@ -2298,6 +2309,17 @@ export function catalogServiceBuilder(
           validatedRiskAnalysisForm
         ),
       };
+      if (
+        !isFeatureFlagEnabled(
+          config,
+          "featureFlagTenantKindInRiskAnalysisWrite"
+        )
+      ) {
+        updatedRiskAnalysis.riskAnalysisForm = {
+          ...updatedRiskAnalysis.riskAnalysisForm,
+          tenantKind: undefined,
+        };
+      }
 
       const newEservice = replaceRiskAnalysis(
         eservice.data,
