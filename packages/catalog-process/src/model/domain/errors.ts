@@ -64,6 +64,7 @@ const errorCodes = {
   invalidDelegationFlags: "0047",
   asyncExchangeCallbackInterfaceAlreadyExists: "0048",
   eServiceAsyncExchangeNotEnabled: "0049",
+  descriptorAsyncExchangeNotConfigured: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -556,6 +557,16 @@ export function eServiceAsyncExchangeNotEnabled(
     detail: `EService ${eServiceId} does not have async exchange enabled`,
     code: "eServiceAsyncExchangeNotEnabled",
     title: "EService does not have async exchange enabled",
+  });
+}
+
+export function descriptorAsyncExchangeNotConfigured(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} does not have async exchange configured`,
+    code: "descriptorAsyncExchangeNotConfigured",
+    title: "Descriptor does not have async exchange configured",
   });
 }
 

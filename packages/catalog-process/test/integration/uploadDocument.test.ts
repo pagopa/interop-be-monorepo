@@ -605,6 +605,13 @@ describe("upload Document", () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.draft),
         serverUrls: [],
+        asyncExchangeProperties: {
+          responseTime: 3600,
+          resourceAvailableTime: 3600,
+          confirmation: false,
+          bulk: false,
+          maxResultSet: 100,
+        },
       };
       const eservice: EService = {
         ...mockEService,
@@ -673,6 +680,13 @@ describe("upload Document", () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.draft),
         serverUrls: [],
+        asyncExchangeProperties: {
+          responseTime: 3600,
+          resourceAvailableTime: 3600,
+          confirmation: false,
+          bulk: false,
+          maxResultSet: 100,
+        },
       };
       const eservice: EService = {
         ...mockEService,
@@ -741,6 +755,13 @@ describe("upload Document", () => {
     it("should throw asyncExchangeCallbackInterfaceAlreadyExists if the descriptor already contains one", async () => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
+        asyncExchangeProperties: {
+          responseTime: 3600,
+          resourceAvailableTime: 3600,
+          confirmation: false,
+          bulk: false,
+          maxResultSet: 100,
+        },
         asyncExchangeCallbackInterface: mockDocument,
         state: descriptorState.draft,
       };

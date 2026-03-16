@@ -152,6 +152,17 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.asyncExchangeCallbackInterface != null
       ? fromDocumentV2(input.asyncExchangeCallbackInterface)
       : undefined,
+  asyncExchangeProperties:
+    input.asyncExchangeProperties != null
+      ? {
+          responseTime: input.asyncExchangeProperties.responseTime,
+          resourceAvailableTime:
+            input.asyncExchangeProperties.resourceAvailableTime,
+          confirmation: input.asyncExchangeProperties.confirmation,
+          bulk: input.asyncExchangeProperties.bulk,
+          maxResultSet: input.asyncExchangeProperties.maxResultSet,
+        }
+      : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
 });
 

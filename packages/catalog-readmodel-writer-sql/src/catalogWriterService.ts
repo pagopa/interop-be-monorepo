@@ -21,6 +21,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -43,6 +44,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceDescriptorAttributeInReadmodelCatalog,
       eserviceRiskAnalysisInReadmodelCatalog,
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     ];
 
     for (const table of catalogTables) {
@@ -114,6 +116,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           documentsSQL,
           rejectionReasonsSQL,
           templateVersionRefsSQL,
+          asyncExchangePropertiesSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -164,6 +167,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
             .values(templateVersionRefSQL);
+        }
+
+        for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+          await tx
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropsSQL);
         }
       });
     },
@@ -476,6 +485,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           interfacesSQL,
           documentsSQL,
           rejectionReasonsSQL,
+          asyncExchangePropertiesSQL,
         } = splitDescriptorIntoObjectsSQL(
           eserviceId,
           descriptor,
@@ -508,6 +518,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
             .values(rejectionReasonSQL);
+        }
+
+        if (asyncExchangePropertiesSQL) {
+          await tx
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropertiesSQL);
         }
 
         await updateMetadataVersionInCatalogTables(

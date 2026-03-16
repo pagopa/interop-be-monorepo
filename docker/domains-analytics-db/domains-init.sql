@@ -56,6 +56,19 @@ CREATE TABLE domains.eservice_descriptor (
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
+CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
+  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
+  metadata_version INTEGER,
+  descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
+  response_time INTEGER NOT NULL,
+  resource_available_time INTEGER NOT NULL,
+  confirmation BOOLEAN NOT NULL,
+  bulk BOOLEAN NOT NULL,
+  max_result_set INTEGER NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (descriptor_id)
+);
+
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
   eservice_template_version_id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),

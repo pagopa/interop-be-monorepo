@@ -104,6 +104,7 @@ import {
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
+  descriptorAsyncExchangeNotConfigured,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -686,6 +687,10 @@ async function innerAddDocumentToEserviceEvent(
       throw eServiceAsyncExchangeNotEnabled(eService.data.id);
     }
 
+    if (descriptor.asyncExchangeProperties == null) {
+      throw descriptorAsyncExchangeNotConfigured(descriptor.id);
+    }
+
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
       throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);
     }
@@ -763,6 +768,7 @@ function createNextDescriptor(
     | "agreementApprovalPolicy"
     | "attributes"
     | "docs"
+    | "asyncExchangeProperties"
   > & {
     templateVersionId: EServiceTemplateVersionId | undefined;
   }
@@ -790,6 +796,7 @@ function createNextDescriptor(
     templateVersionRef: seed.templateVersionId
       ? { id: seed.templateVersionId }
       : undefined,
+    asyncExchangeProperties: seed.asyncExchangeProperties,
   };
 }
 
@@ -1415,6 +1422,11 @@ export function catalogServiceBuilder(
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
       const eserviceVersion = eservice.metadata.version;
+
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: eserviceDescriptorSeed.description,
         voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
@@ -1428,6 +1440,21 @@ export function catalogServiceBuilder(
         attributes: parsedAttributes,
         docs: [],
         templateVersionId: undefined,
+        asyncExchangeProperties:
+          asyncExchangeEnabled && eserviceDescriptorSeed.asyncExchangeProperties
+            ? {
+                responseTime:
+                  eserviceDescriptorSeed.asyncExchangeProperties.responseTime,
+                resourceAvailableTime:
+                  eserviceDescriptorSeed.asyncExchangeProperties
+                    .resourceAvailableTime,
+                confirmation:
+                  eserviceDescriptorSeed.asyncExchangeProperties.confirmation,
+                bulk: eserviceDescriptorSeed.asyncExchangeProperties.bulk,
+                maxResultSet:
+                  eserviceDescriptorSeed.asyncExchangeProperties.maxResultSet,
+              }
+            : undefined,
       });
 
       const updatedEService: EService = {
@@ -4356,6 +4383,7 @@ async function updateDraftDescriptor(
     dailyCallsTotal,
     agreementApprovalPolicy,
     attributes,
+    asyncExchangeProperties: asyncExchangeSeed,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -4387,6 +4415,10 @@ async function updateDraftDescriptor(
       )
     : descriptor.agreementApprovalPolicy;
 
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eservice.data.asyncExchange === true;
+
   const updatedDescriptor: Descriptor = {
     ...descriptor,
     description: description ?? descriptor.description,
@@ -4396,6 +4428,11 @@ async function updateDraftDescriptor(
     dailyCallsTotal: updatedDailyCallsTotal,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
     attributes: updatedAttributes,
+    asyncExchangeProperties: asyncExchangeEnabled
+      ? asyncExchangeSeed != null
+        ? { ...asyncExchangeSeed }
+        : descriptor.asyncExchangeProperties
+      : descriptor.asyncExchangeProperties,
   };
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
