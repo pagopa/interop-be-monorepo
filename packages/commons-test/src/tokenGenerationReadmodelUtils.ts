@@ -282,7 +282,9 @@ export const writePlatformCatalogEntry = async (
         resourceAvailableTime: {
           N: catalogEntry.asyncExchangeProperties.resourceAvailableTime.toString(),
         },
-        confirmation: { BOOL: catalogEntry.asyncExchangeProperties.confirmation },
+        confirmation: {
+          BOOL: catalogEntry.asyncExchangeProperties.confirmation,
+        },
         bulk: { BOOL: catalogEntry.asyncExchangeProperties.bulk },
         maxResultSet: {
           N: catalogEntry.asyncExchangeProperties.maxResultSet.toString(),
