@@ -34,7 +34,7 @@ describe("createClient", () => {
     .mockResolvedValue(mockConsumerClientWithMetadata);
   mockInteropBeClients.authorizationClient = {
     client: {
-      createClient: mockcreateClient,
+      createConsumerClient: mockcreateClient,
       getClient: mockGetClient,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
