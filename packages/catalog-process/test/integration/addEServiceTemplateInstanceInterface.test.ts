@@ -496,7 +496,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         genericLogger
       );
-      const mockEserviceTemplateVersion = {
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(
           generateId<EServiceTemplateVersionId>(),
           eserviceTemplateVersionState.published
@@ -504,14 +504,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
         interface: { ...interfaceDoc, path: interfacePath },
       };
 
-      const mockEServiceTemplate = {
+      const mockEServiceTemplate: EServiceTemplate = {
         ...getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
           generateId<TenantId>(),
           [mockEserviceTemplateVersion]
         ),
       };
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         templateVersionRef: {
           id: mockEServiceTemplate.versions[0].id,
