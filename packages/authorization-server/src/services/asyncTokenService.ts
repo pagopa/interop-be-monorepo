@@ -45,6 +45,7 @@ import {
   logTokenGenerationInfo,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
+import { handleCallbackInvocation } from "./scopeHandlers/callbackInvocationHandler.js";
 import { handleStartInteraction } from "./scopeHandlers/startInteractionHandler.js";
 
 export type ScopeHandlerContext = {
@@ -63,6 +64,7 @@ export type ScopeHandlerContext = {
   platformStatesTable: string;
   interactionsTable: string;
   interactionTtlEpsilonSeconds: number;
+  producerKeychainPlatformStatesTable: string;
 };
 
 export type AsyncGeneratedTokenData =
@@ -90,6 +92,13 @@ export type AsyncGeneratedTokenData =
       tokenGenerated: true;
       token: InteropApiToken;
       key: TokenGenerationStatesApiClient;
+      isDPoP: boolean;
+    }
+  | {
+      limitReached: false;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      tokenGenerated: true;
+      token: InteropAsyncConsumerToken;
       isDPoP: boolean;
     };
 
@@ -210,6 +219,8 @@ export function asyncTokenServiceBuilder({
         platformStatesTable: config.platformStatesTable,
         interactionsTable: config.interactionsTable,
         interactionTtlEpsilonSeconds: config.interactionTtlEpsilonSeconds,
+        producerKeychainPlatformStatesTable:
+          config.producerKeychainPlatformStatesTable,
       });
     },
   };
@@ -225,9 +236,9 @@ const generateTokenByScope = async (
     .with(interactionState.startInteraction, async (scope) =>
       handleStartInteraction(scope, ctx)
     )
-    .with(interactionState.callbackInvocation, async () => {
-      throw asyncScopeNotYetImplemented(interactionState.callbackInvocation);
-    })
+    .with(interactionState.callbackInvocation, async (scope) =>
+      handleCallbackInvocation(scope, ctx)
+    )
     .with(interactionState.getResource, async () => {
       throw asyncScopeNotYetImplemented(interactionState.getResource);
     })

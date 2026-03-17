@@ -31,6 +31,12 @@ export const authorizationServerErrorMapper = (
       "urlCallbackNotProvided",
       "purposeIdNotProvided",
       "asyncExchangeNotEnabled",
+      "interactionIdNotProvided",
+      "entityNumberNotProvided",
+      "invalidEntityNumber",
+      "interactionNotFound",
+      "interactionStateNotAllowed",
+      "producerKeychainEntryNotFound",
       "catalogEntryNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
