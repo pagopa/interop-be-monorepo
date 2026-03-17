@@ -108,9 +108,7 @@ describe("E-service template aggregator", () => {
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [version],
-      riskAnalysis: [
-        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
-      ],
+      riskAnalysis: [getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)],
       isSignalHubEnabled: true,
       asyncExchange: true,
     };

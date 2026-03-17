@@ -439,15 +439,14 @@ describe("delete Document", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(callbackInterface.path);
 
-    const deleteDocumentResponse =
-      await eserviceTemplateService.deleteDocument(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        callbackInterface.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      );
+    const deleteDocumentResponse = await eserviceTemplateService.deleteDocument(
+      eserviceTemplate.id,
+      eserviceTemplateVersion.id,
+      callbackInterface.id,
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
     );
