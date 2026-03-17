@@ -58,7 +58,7 @@ type ScopeHandlerContext = {
   setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void;
 };
 
-export type AsyncGeneratedTokenData =
+type AsyncGeneratedTokenData =
   | {
       limitReached: true;
       rateLimitedTenantId: TenantId;
