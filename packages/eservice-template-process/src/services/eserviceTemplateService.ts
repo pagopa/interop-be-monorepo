@@ -257,7 +257,7 @@ function validateRiskAnalysisSchemaOrThrow(
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
-    riskAnalysisForm,
+    { ...riskAnalysisForm, tenantKind }, // TODO this could be avoided if EServiceTemplateRiskAnalysisSeed had tenantKind
     true,
     tenantKind,
     dateForExpirationValidation,

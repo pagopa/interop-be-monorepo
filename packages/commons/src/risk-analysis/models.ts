@@ -28,6 +28,7 @@ export type RiskAnalysisValidationResult<T> =
 
 export type RiskAnalysisFormToValidate = {
   version: string;
+  tenantKind: TenantKind;
   answers: Record<string, string[]>;
 };
 
@@ -53,6 +54,7 @@ export type RiskAnalysisValidatedSingleOrMultiAnswer =
 
 export type RiskAnalysisValidatedForm = {
   version: string;
+  tenantKind: TenantKind;
   singleAnswers: RiskAnalysisValidatedSingleAnswer[];
   multiAnswers: RiskAnalysisValidatedMultiAnswer[];
 };
@@ -72,17 +74,14 @@ export type ValidationRule = {
 
 export function riskAnalysisValidatedFormToNewRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"],
-  tenantKind?: TenantKind
+  name: RiskAnalysis["name"]
 ): RiskAnalysis {
   return {
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-      validatedForm,
-      tenantKind
-    ),
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
   };
 }
 
@@ -95,22 +94,19 @@ export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-      validatedForm,
-      tenantKind
-    ),
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
     tenantKind,
   };
 }
 
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
-  validatedForm: RiskAnalysisValidatedForm,
-  tenantKind?: TenantKind
+  validatedForm: RiskAnalysisValidatedForm
 ): RiskAnalysisForm {
   return {
     id: generateId<RiskAnalysisFormId>(),
     version: validatedForm.version,
-    tenantKind,
+    tenantKind: validatedForm.tenantKind,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       ...a,
       id: generateId<RiskAnalysisSingleAnswerId>(),
@@ -127,6 +123,8 @@ export function riskAnalysisFormToRiskAnalysisFormToValidate(
 ): RiskAnalysisFormToValidate {
   return {
     version: form.version,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    tenantKind: form.tenantKind!,
     answers: {
       ...form.singleAnswers.reduce(
         (acc, singleAnswer) => ({

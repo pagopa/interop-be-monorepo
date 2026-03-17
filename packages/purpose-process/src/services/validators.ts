@@ -140,7 +140,10 @@ export function validateRiskAnalysisOrThrow({
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
-    riskAnalysisForm,
+    {
+      ...riskAnalysisForm,
+      tenantKind: tenantKind,
+    }, // TODO this could be avoided if purposeApi.RiskAnalysisFormSeed had tenantKind
     schemaOnlyValidation,
     tenantKind,
     dateForExpirationValidation,
@@ -173,10 +176,7 @@ export function validateAndTransformRiskAnalysis(
   });
 
   return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(
-      validatedForm,
-      tenantKind
-    ),
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
     riskAnalysisId: undefined,
   };
 }

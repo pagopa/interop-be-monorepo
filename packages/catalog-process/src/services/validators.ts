@@ -204,7 +204,7 @@ export function validateRiskAnalysisSchemaOrThrow(
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
-    riskAnalysisForm,
+    { ...riskAnalysisForm, tenantKind }, // TODO this could be avoided if catalogApi.EServiceRiskAnalysisSeed had tenantKind
     true,
     tenantKind,
     dateForExpirationValidation,

@@ -96,6 +96,7 @@ export function validateRiskAnalysis(
       {
         singleAnswers: [],
         multiAnswers: [],
+        tenantKind: riskAnalysisForm.tenantKind,
       }
     );
     const personalDataInRiskAnalysis = match(
@@ -119,6 +120,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
+      tenantKind: riskAnalysisForm.tenantKind,
     });
   }
 }
