@@ -228,9 +228,7 @@ export const testToM2mGatewayApiPurpose = (
   purposeTemplateId: purpose.purposeTemplateId,
 });
 
-export const testToM2MJWK = (
-  key: authorizationApi.JWKKey
-): m2mGatewayApiV3.JWK => ({
+const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({
   kid: key.kid,
   kty: key.kty,
   "x5t#S256": key["x5t#S256"],

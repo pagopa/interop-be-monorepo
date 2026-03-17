@@ -15,7 +15,8 @@ import {
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
-  formatDateddMMyyyyHHmmss,
+  dateAtRomeZone,
+  timeAtRomeZone,
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
@@ -1040,10 +1041,11 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedInstanceName = buildInstanceName({
-        templateName: template.name,
-        instanceLabel: eserviceSeed.instanceLabel,
-      });
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel: eserviceSeed.instanceLabel,
+        });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -1061,7 +1063,7 @@ export function catalogServiceBuilder(
       const updatedEService: EService = {
         ...eservice.data,
         name: updatedInstanceName,
-        instanceLabel: eserviceSeed.instanceLabel,
+        instanceLabel: parsedInstanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
@@ -2001,9 +2003,20 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const clonedEServiceName = `${
-        eservice.data.name
-      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
+      const currentDate = new Date();
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
+      const dots = "...";
+      const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
+      const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
+      const clonedEServiceName =
+        eservice.data.name.length + suffix.length <= maxNameLength
+          ? `${eservice.data.name}${suffix}`
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -3051,7 +3064,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const updatedInstanceName = buildInstanceName({
+      const { instanceName: updatedInstanceName } = buildInstanceName({
         templateName: updatedTemplateName,
         instanceLabel: eservice.data.instanceLabel,
       });
@@ -3476,7 +3489,7 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const instanceName = buildInstanceName({
+      const { parsedInstanceLabel, instanceName } = buildInstanceName({
         templateName: template.name,
         instanceLabel: seed.instanceLabel,
       });
@@ -3531,7 +3544,7 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
             riskAnalysis,
           },
-          instanceLabel: seed.instanceLabel,
+          instanceLabel: parsedInstanceLabel,
         },
         readModelService,
         ctx
@@ -3842,10 +3855,11 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const updatedInstanceName = buildInstanceName({
-        templateName: template.name,
-        instanceLabel,
-      });
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel,
+        });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -3858,7 +3872,7 @@ export function catalogServiceBuilder(
       const updatedEservice: EService = {
         ...eservice.data,
         name: updatedInstanceName,
-        instanceLabel,
+        instanceLabel: parsedInstanceLabel,
       };
 
       const event = toCreateEventEServiceInstanceLabelUpdated(
@@ -4500,6 +4514,8 @@ async function updateDraftDescriptor(
  * - separator " - ": 3 characters
  * - instanceLabel: maxLength 12
  * - eservice name (result): maxLength 60
+ *
+ * Also, empty spaces are removed, and an empty string is treated as undefined
  */
 const buildInstanceName = ({
   templateName,
@@ -4507,7 +4523,17 @@ const buildInstanceName = ({
 }: {
   templateName: string;
   instanceLabel: string | undefined;
-}): string =>
-  instanceLabel ? `${templateName} - ${instanceLabel}` : templateName;
+}): { parsedInstanceLabel?: string; instanceName: string } => {
+  const trimmedInstanceLabel = instanceLabel?.trim();
+  const parsedInstanceLabel =
+    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
+      ? trimmedInstanceLabel
+      : undefined;
+
+  const instanceName = parsedInstanceLabel
+    ? `${templateName} - ${parsedInstanceLabel}`
+    : templateName;
+  return { parsedInstanceLabel, instanceName };
+};
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
