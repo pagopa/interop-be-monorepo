@@ -297,11 +297,9 @@ export const runConsumer = async (
       eachMessage: async (payload: KafkaJS.EachMessagePayload): Promise<void> => {
         try {
           await consumerHandler(payload);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await kafkaCommitMessageOffsets(consumer as any, payload as any);
+          await kafkaCommitMessageOffsets(consumer, payload);
         } catch (e) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const messageInfo = extractBasicMessageInfo(payload.message as any);
+          const messageInfo = extractBasicMessageInfo(payload.message);
           throw kafkaMessageProcessError(
             payload.topic,
             payload.partition,

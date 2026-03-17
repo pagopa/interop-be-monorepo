@@ -1,5 +1,23 @@
-import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { genericLogger } from "pagopa-interop-commons";
+
+/**
+ * Minimal message shape compatible with both kafkajs and Confluent KafkaJS.
+ * Only the properties actually used by common utilities are required.
+ */
+export type BasicKafkaMessage = {
+  value: Buffer | null;
+  offset: string;
+};
+
+/**
+ * Minimal message payload shape compatible with both kafkajs and Confluent KafkaJS.
+ * Only the properties actually used by common utilities are required.
+ */
+export type BasicMessagePayload = {
+  topic: string;
+  partition: number;
+  message: { offset: string };
+};
 
 export const errorTypes = ["unhandledRejection", "uncaughtException"];
 export const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
@@ -45,7 +63,7 @@ export const errorEventsListener = (consumerOrProducer: {
 
 export const kafkaCommitMessageOffsets = async (
   consumer: { commitOffsets: (offsets: Array<{ topic: string; partition: number; offset: string }>) => Promise<void> },
-  payload: EachMessagePayload
+  payload: BasicMessagePayload
 ): Promise<void> => {
   const { topic, partition, message } = payload;
   await consumer.commitOffsets([
@@ -57,7 +75,7 @@ export const kafkaCommitMessageOffsets = async (
   );
 };
 
-export function extractBasicMessageInfo(message: KafkaMessage): {
+export function extractBasicMessageInfo(message: BasicKafkaMessage): {
   offset: string;
   streamId?: string;
   eventType?: string;
