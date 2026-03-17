@@ -101,6 +101,10 @@ const initKafka = (config: InteropKafkaConfig): KafkaJS.Kafka => {
 
   // Note: Confluent KafkaJS compat layer does not support logCreator.
   // Logging is handled natively by librdkafka.
+  //
+  // reauthenticationThreshold is intentionally omitted: the Confluent library
+  // does not support it and throws ERR__INVALID_ARG if set. Re-authentication
+  // is handled automatically by librdkafka at 80% of connections.max.reauth.ms.
   return new KafkaJS.Kafka({ kafkaJS: kafkaConfig });
 };
 
