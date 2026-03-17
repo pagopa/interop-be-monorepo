@@ -19,7 +19,7 @@ import { handleEServiceTemplateEvent } from "../src/handlers/handleEServiceTempl
 import {
   getMockEventEnvelopeCommons,
   retrieveAllEServiceTemplateM2MEvents,
-  retrieveLastEServiceTemplateM2MEvent,
+  retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId,
   testM2mEventWriterService,
 } from "./utils.js";
 
@@ -227,7 +227,12 @@ describe("handleEServiceTemplateEvent test", async () => {
           ).toHaveBeenCalledTimes(1);
           vi.clearAllMocks();
 
-          const actualM2MEvent = await retrieveLastEServiceTemplateM2MEvent();
+          const actualM2MEvent =
+            await retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId(
+              eserviceTemplate.id,
+              versionId
+            );
+          expect(actualM2MEvent).toBeDefined();
           expect(actualM2MEvent).toEqual({
             id: expect.any(String),
             eventType,

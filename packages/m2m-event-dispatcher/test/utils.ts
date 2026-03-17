@@ -246,8 +246,43 @@ export async function retrieveLastProducerDelegationM2MEvent(): Promise<Producer
   return (await retrieveAllProducerDelegationM2MEvents({ limit: 1 }))[0];
 }
 
-export async function retrieveLastEServiceTemplateM2MEvent(): Promise<EServiceTemplateM2MEvent> {
-  return (await retrieveAllEServiceTemplateM2MEvents({ limit: 1 }))[0];
+export async function retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string | undefined
+): Promise<EServiceTemplateM2MEvent | undefined> {
+  const conditions = [
+    eq(eserviceTemplateInM2MEvent.eserviceTemplateId, eserviceTemplateId),
+  ];
+
+  if (eserviceTemplateVersionId === undefined) {
+    conditions.push(
+      isNull(eserviceTemplateInM2MEvent.eserviceTemplateVersionId)
+    );
+  } else {
+    conditions.push(
+      eq(
+        eserviceTemplateInM2MEvent.eserviceTemplateVersionId,
+        eserviceTemplateVersionId
+      )
+    );
+  }
+
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceTemplateInM2MEvent)
+    .where(and(...conditions))
+    .orderBy(desc(eserviceTemplateInM2MEvent.id))
+    .limit(1);
+
+  if (sqlEvents.length === 0) {
+    return undefined;
+  }
+
+  return EServiceTemplateM2MEvent.parse({
+    ...sqlEvents[0],
+    eserviceTemplateVersionId:
+      sqlEvents[0].eserviceTemplateVersionId ?? undefined,
+  });
 }
 
 export async function retrieveAllEServiceTemplateM2MEvents({
