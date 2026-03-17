@@ -327,7 +327,7 @@ export const setupTestData = async (): Promise<{
 /**
  * Creates a descriptor with specific version and publish date
  */
-export const createRecentDescriptor = (
+const createRecentDescriptor = (
   version: string,
   daysAgoCount = 1
 ): Descriptor => {
@@ -552,9 +552,7 @@ export const createTemplateScenario = async (
 /**
  * Creates a mock attribute for testing purposes
  */
-export const createMockAttribute = (
-  overrides?: Partial<Attribute>
-): Attribute => ({
+const createMockAttribute = (overrides?: Partial<Attribute>): Attribute => ({
   ...getMockAttribute(attributeKind.verified),
   name: `Test Attribute ${Math.random().toString(36).substring(7)}`,
   ...overrides,
@@ -563,14 +561,14 @@ export const createMockAttribute = (
 /**
  * Adds an attribute to the database
  */
-export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await upsertAttribute(readModelDB, attribute, 0);
 };
 
 /**
  * Creates a TenantVerifier for verified attributes
  */
-export const createMockTenantVerifier = (
+const createMockTenantVerifier = (
   verifierId: TenantId,
   verificationDate: Date,
   overrides?: Partial<TenantVerifier>
@@ -583,7 +581,7 @@ export const createMockTenantVerifier = (
 /**
  * Creates a TenantRevoker for revoked attributes
  */
-export const createMockTenantRevoker = (
+const createMockTenantRevoker = (
   revokerId: TenantId,
   verificationDate: Date,
   revocationDate: Date,
@@ -598,7 +596,7 @@ export const createMockTenantRevoker = (
 /**
  * Creates a VerifiedTenantAttribute
  */
-export const createMockVerifiedTenantAttribute = (
+const createMockVerifiedTenantAttribute = (
   attributeId: AttributeId,
   verifiedBy: TenantVerifier[] = [],
   revokedBy: TenantRevoker[] = []
@@ -613,7 +611,7 @@ export const createMockVerifiedTenantAttribute = (
 /**
  * Creates a tenant with a verified attribute
  */
-export const createTenantWithVerifiedAttribute = (
+const createTenantWithVerifiedAttribute = (
   tenantId: TenantId,
   attributeId: AttributeId,
   verifierId: TenantId,
@@ -633,7 +631,7 @@ export const createTenantWithVerifiedAttribute = (
 /**
  * Creates a tenant with a revoked attribute
  */
-export const createTenantWithRevokedAttribute = (
+const createTenantWithRevokedAttribute = (
   tenantId: TenantId,
   attributeId: AttributeId,
   revokerId: TenantId,
@@ -731,7 +729,7 @@ export const createRevokedAttributeScenario = async (config: {
 /**
  * Creates a CertifiedTenantAttribute
  */
-export const createMockCertifiedTenantAttribute = (
+const createMockCertifiedTenantAttribute = (
   attributeId: AttributeId,
   assignmentTimestamp: Date,
   revocationTimestamp?: Date
@@ -745,7 +743,7 @@ export const createMockCertifiedTenantAttribute = (
 /**
  * Creates a tenant with a certified assigned attribute
  */
-export const createTenantWithCertifiedAssignedAttribute = (
+const createTenantWithCertifiedAssignedAttribute = (
   tenantId: TenantId,
   attributeId: AttributeId,
   assignmentTimestamp: Date
@@ -764,7 +762,7 @@ export const createTenantWithCertifiedAssignedAttribute = (
 /**
  * Creates a tenant with a certified revoked attribute
  */
-export const createTenantWithCertifiedRevokedAttribute = (
+const createTenantWithCertifiedRevokedAttribute = (
   tenantId: TenantId,
   attributeId: AttributeId,
   assignmentTimestamp: Date,
@@ -1043,7 +1041,7 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 /**
  * Creates a mock purpose with specified versions
  */
-export const createMockPurpose = (
+const createMockPurpose = (
   consumerId: TenantId,
   eserviceId: EServiceId,
   versions: PurposeVersion[] = [],
@@ -1059,7 +1057,7 @@ export const createMockPurpose = (
 /**
  * Creates a mock purpose version with specified state and dates
  */
-export const createMockPurposeVersion = (
+const createMockPurposeVersion = (
   state: PurposeVersionState,
   createdAt: Date,
   updatedAt?: Date
