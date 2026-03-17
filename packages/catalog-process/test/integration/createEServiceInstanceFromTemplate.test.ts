@@ -901,8 +901,73 @@ describe("create eService from template", () => {
     }
   );
 
-  // Skipped: depends on PIN-9415 (asyncExchangeProperties in descriptor)
-  it.skip("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
+  it("should copy asyncExchangeProperties from template to instance descriptor", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    expect(descriptorCreationEvent).toMatchObject({
+      stream_id: eService.id,
+      version: "1",
+      type: "EServiceDescriptorAdded",
+      event_version: 2,
+    });
+
+    const descriptorCreationPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: descriptorCreationEvent.data,
+    });
+
+    const createdDescriptor =
+      descriptorCreationPayload.eservice?.descriptors[0];
+    expect(createdDescriptor).toBeDefined();
+    expect(createdDescriptor?.asyncExchangeProperties).toEqual({
+      responseTime: 3600,
+      resourceAvailableTime: 7200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 1000,
+    });
+  });
+
+  it("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
     vi.spyOn(fileManager, "copy");
 
     const callbackDocId = generateId<EServiceDocumentId>();

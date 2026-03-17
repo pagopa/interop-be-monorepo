@@ -13,6 +13,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -53,6 +54,7 @@ export function eserviceTemplateWriterServiceBuilder(
           attributesSQL,
           interfacesSQL,
           documentsSQL,
+          asyncExchangePropertiesSQL,
         } = splitEServiceTemplateIntoObjectsSQL(
           eserviceTemplate,
           metadataVersion
@@ -98,6 +100,14 @@ export function eserviceTemplateWriterServiceBuilder(
               eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate
             )
             .values(riskAnalysisAnswerSQL);
+        }
+
+        for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+          await tx
+            .insert(
+              eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+            )
+            .values(asyncExchangePropsSQL);
         }
       });
     },

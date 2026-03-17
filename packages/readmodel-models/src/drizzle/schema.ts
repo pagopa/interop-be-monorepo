@@ -1604,6 +1604,45 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
     ]
   );
 
+export const eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate =
+  readmodelEserviceTemplate.table(
+    "eservice_template_version_async_exchange_properties",
+    {
+      eserviceTemplateId: uuid("eservice_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      versionId: uuid("version_id").notNull(),
+      responseTime: integer("response_time").notNull(),
+      resourceAvailableTime: integer("resource_available_time").notNull(),
+      confirmation: boolean("confirmation").notNull(),
+      bulk: boolean("bulk").notNull(),
+      maxResultSet: integer("max_result_set").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceTemplateId],
+        foreignColumns: [eserviceTemplateInReadmodelEserviceTemplate.id],
+        name: "eservice_template_ver_async_exch_prop_eservice_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.versionId],
+        foreignColumns: [eserviceTemplateVersionInReadmodelEserviceTemplate.id],
+        name: "eservice_template_ver_async_exch_prop_version_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceTemplateId, table.metadataVersion],
+        foreignColumns: [
+          eserviceTemplateInReadmodelEserviceTemplate.id,
+          eserviceTemplateInReadmodelEserviceTemplate.metadataVersion,
+        ],
+        name: "eservice_template_ver_async_exch_prop_tmpl_id_metadata_ver_fkey",
+      }),
+      primaryKey({
+        columns: [table.versionId],
+        name: "eservice_template_version_async_exchange_properties_pkey",
+      }),
+    ]
+  );
+
 export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_descriptor_template_version_ref",

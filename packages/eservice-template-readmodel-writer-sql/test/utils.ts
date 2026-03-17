@@ -20,6 +20,8 @@ import {
   EServiceTemplateRiskAnalysisSQL,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
 import { eserviceTemplateWriterServiceBuilder } from "../src/eserviceTemplateWriterService.js";
 
@@ -71,6 +73,11 @@ export const checkCompleteEServiceTemplate = async (
       eserviceTemplate.id,
       readModelDB
     );
+  const asyncExchangePropertiesSQL =
+    await retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById(
+      eserviceTemplate.id,
+      readModelDB
+    );
 
   expect(eserviceTemplateSQL).toBeDefined();
   expect(versionsSQL).toHaveLength(eserviceTemplate.versions.length);
@@ -99,6 +106,7 @@ export const checkCompleteEServiceTemplate = async (
     attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -199,3 +207,20 @@ export const retrieveEServiceTemplateRiskAnalysisAnswersSQLById = async (
         eserviceTemplateId
       )
     );
+
+export const retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById =
+  async (
+    eserviceTemplateId: EServiceTemplateId,
+    db: DrizzleReturnType
+  ): Promise<EServiceTemplateVersionAsyncExchangePropertiesSQL[]> =>
+    await db
+      .select()
+      .from(
+        eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+      )
+      .where(
+        eq(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.eserviceTemplateId,
+          eserviceTemplateId
+        )
+      );

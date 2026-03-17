@@ -11634,6 +11634,8 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -11794,6 +11796,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
@@ -11825,6 +11829,8 @@ components:
           nullable: true
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceSeed:
       type: object
       additionalProperties: false

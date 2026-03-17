@@ -61,6 +61,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  AsyncExchangeProperties,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -511,6 +512,7 @@ async function innerCreateEService(
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
           riskAnalysis: RiskAnalysis[] | undefined;
+          asyncExchangeProperties?: AsyncExchangeProperties;
         }
       | undefined;
     instanceLabel?: string | undefined;
@@ -616,6 +618,7 @@ async function innerCreateEService(
     templateVersionRef: templateVersionId
       ? { id: templateVersionId }
       : undefined,
+    asyncExchangeProperties: template?.asyncExchangeProperties,
   };
 
   const eserviceWithDescriptor: EService = {
@@ -1680,6 +1683,10 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         audience: seed.audience,
@@ -1690,6 +1697,21 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+        asyncExchangeProperties:
+          asyncExchangeEnabled && descriptor.asyncExchangeProperties
+            ? {
+                ...descriptor.asyncExchangeProperties,
+                responseTime:
+                  seed.asyncExchangeResponseTime ??
+                  descriptor.asyncExchangeProperties.responseTime,
+                resourceAvailableTime:
+                  seed.asyncExchangeResourceAvailableTime ??
+                  descriptor.asyncExchangeProperties.resourceAvailableTime,
+                maxResultSet:
+                  seed.asyncExchangeMaxResultSet ??
+                  descriptor.asyncExchangeProperties.maxResultSet,
+              }
+            : descriptor.asyncExchangeProperties,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3548,6 +3570,11 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
+            asyncExchangeProperties:
+              isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+              template.asyncExchange === true
+                ? publishedVersion.asyncExchangeProperties
+                : undefined,
           },
           instanceLabel: parsedInstanceLabel,
         },
