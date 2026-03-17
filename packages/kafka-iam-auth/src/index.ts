@@ -97,5 +97,7 @@ export const runBatchConsumer = async (
   );
 };
 
-export const resetPartitionsOffsets = kafkajsClient.resetPartitionsOffsets;
-export const validateTopicMetadata = kafkajsClient.validateTopicMetadata;
+// resetPartitionsOffsets and validateTopicMetadata are not exported: they accept
+// library-specific instances (kafkajs Kafka/Consumer vs Confluent KafkaJS.Kafka/Consumer)
+// so routing via feature flag is not feasible. Each client module has its own copy
+// and uses it internally within initCustomConsumer and initProducer.
