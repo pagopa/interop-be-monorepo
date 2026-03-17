@@ -9,6 +9,7 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagImprovedProducerVerificationClaimsConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagAsyncExchangeConfig,
   DPoPConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -43,6 +44,7 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagAsyncExchangeConfig)
   .and(DPoPConfig);
 
 type AuthorizationServerConfig = z.infer<typeof AuthorizationServerConfig>;

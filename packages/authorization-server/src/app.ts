@@ -17,6 +17,7 @@ import asyncAuthorizationServerRouter from "./routers/AsyncAuthorizationServerRo
 import { config } from "./config/config.js";
 import { TokenService } from "./services/tokenService.js";
 import { AsyncTokenService } from "./services/asyncTokenService.js";
+import { asyncExchangeFeatureFlagMiddleware } from "./utilities/middleware.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
@@ -40,6 +41,7 @@ export async function createApp(
     express.urlencoded({ extended: true }),
     loggerMiddleware(serviceName),
     authorizationServerRouter(zodiosCtx, service),
+    asyncExchangeFeatureFlagMiddleware(),
     asyncAuthorizationServerRouter(zodiosCtx, asyncService)
   );
 
