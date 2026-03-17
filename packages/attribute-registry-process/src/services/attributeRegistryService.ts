@@ -266,14 +266,14 @@ export function attributeRegistryServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      const attributeWithSameName =
+      const duplicatedAttribute =
         await readModelService.getAttributeByCodeOriginOrName(
           apiCertifiedAttributeSeed.code,
           apiCertifiedAttributeSeed.name,
           certifierId
         );
 
-      if (attributeWithSameName) {
+      if (duplicatedAttribute) {
         throw attributeDuplicateByCodeOriginOrName(
           apiCertifiedAttributeSeed.name,
           apiCertifiedAttributeSeed.code,
@@ -315,13 +315,13 @@ export function attributeRegistryServiceBuilder(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
       );
 
-      const attributeWithSameNameAndCode =
+      const duplicatedAttribute =
         await readModelService.getAttributeByCodeOriginOrName(
           apiInternalCertifiedAttributeSeed.code,
           apiInternalCertifiedAttributeSeed.name,
           apiInternalCertifiedAttributeSeed.origin
         );
-      if (attributeWithSameNameAndCode) {
+      if (duplicatedAttribute) {
         throw attributeDuplicateByCodeOriginOrName(
           apiInternalCertifiedAttributeSeed.name,
           apiInternalCertifiedAttributeSeed.code,
