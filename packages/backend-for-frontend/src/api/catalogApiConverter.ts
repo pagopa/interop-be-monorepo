@@ -156,6 +156,7 @@ export function toBffCatalogApiDescriptorAttribute(
     name: foundAttribute.name,
     description: foundAttribute.description,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
+    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
   };
 }
 
