@@ -3,6 +3,8 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  InteractionId,
+  InteractionsPK,
   GSIPKClientIdKid,
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
@@ -97,6 +99,11 @@ export const makeTokenGenerationStatesClientKidPK = ({
   unsafeBrandId<TokenGenerationStatesClientKidPK>(
     `CLIENTKID#${clientId}#${kid}`
   );
+
+export const makeInteractionPK = (
+  interactionId: InteractionId
+): InteractionsPK =>
+  unsafeBrandId<InteractionsPK>(`INTERACTION#${interactionId}`);
 
 export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId,
