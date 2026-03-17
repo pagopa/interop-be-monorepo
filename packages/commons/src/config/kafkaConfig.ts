@@ -2,8 +2,10 @@ import { z } from "zod";
 import { AWSConfig } from "./awsConfig.js";
 
 /**
- * Kafka log level numeric values, matching both kafkajs and
- * @confluentinc/kafka-javascript conventions.
+ * Kafka log level numeric values using the kafkajs convention.
+ * The confluent client remaps these via toConfluentLogLevel()
+ * since @confluentinc/kafka-javascript uses different values
+ * (e.g. INFO=3, DEBUG=4).
  */
 export const KafkaLogLevel = {
   NOTHING: 0,
