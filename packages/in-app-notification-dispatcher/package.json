@@ -32,7 +32,6 @@
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-in-app-notification-db-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -1,5 +1,9 @@
 /* eslint-disable functional/immutable-data */
-import { runBatchConsumer, EachBatchPayload, KafkaMessage } from "kafka-iam-auth";
+import {
+  runBatchConsumer,
+  EachBatchPayload,
+  KafkaMessage,
+} from "kafka-iam-auth";
 import {
   genericLogger,
   initFileManager,

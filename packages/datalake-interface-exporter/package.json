@@ -27,7 +27,6 @@
   "dependencies": {
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
