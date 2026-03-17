@@ -12,11 +12,17 @@ import {
 import {
   decodeProtobufPayload,
   getMockAuthData,
+  getMockClient,
   getMockContext,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import {
+  addOneClient,
+  authorizationService,
+  postgresDB,
+} from "../integrationUtils.js";
+import { clientNameAlreadyExists } from "../../src/model/domain/errors.js";
 
 describe("createConsumerClient", () => {
   const organizationId: TenantId = generateId();
@@ -75,5 +81,24 @@ describe("createConsumerClient", () => {
 
     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
     expect(client).toEqual(expectedClient);
+  });
+
+  it("should throw an error if the client name already exists", async () => {
+    const client = getMockClient();
+
+    await addOneClient(client);
+
+    const newClient = authorizationService.createApiClient(
+      {
+        clientSeed: {
+          ...clientSeed,
+          name: client.name,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(client.consumerId) })
+    );
+    await expect(newClient).rejects.toThrowError(
+      clientNameAlreadyExists(client.name)
+    );
   });
 });

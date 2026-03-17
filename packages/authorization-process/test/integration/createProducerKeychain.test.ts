@@ -12,10 +12,16 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockProducerKeychain,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+  postgresDB,
+} from "../integrationUtils.js";
+import { producerKeychainNameAlreadyExists } from "../../src/model/domain/errors.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();
@@ -73,6 +79,26 @@ describe("createProducerKeychain", () => {
 
     expect(writtenPayload.producerKeychain).toEqual(
       toProducerKeychainV2(expectedProducerKeychain)
+    );
+  });
+
+  it("should throw an error if the producer keychain name already exists", async () => {
+    const producerKeychain = getMockProducerKeychain();
+
+    await addOneProducerKeychain(producerKeychain);
+
+    const newProducerKeychain = authorizationService.createProducerKeychain(
+      {
+        producerKeychainSeed: {
+          ...producerKeychainSeed,
+          name: producerKeychain.name,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(producerKeychain.producerId) })
+    );
+
+    await expect(newProducerKeychain).rejects.toThrowError(
+      producerKeychainNameAlreadyExists(producerKeychain.name)
     );
   });
 });
