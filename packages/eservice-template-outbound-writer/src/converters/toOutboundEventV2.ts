@@ -40,6 +40,7 @@ function toOutboundEServiceTemplateV2(
     ...template,
     versions: template.versions.map(toOutboundEServiceTemplateVersionV2),
     riskAnalysis: undefined,
+    asyncExchange: undefined,
   };
 }
 

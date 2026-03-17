@@ -20,6 +20,7 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
@@ -39,11 +40,13 @@ describe("create eservice template", () => {
   });
   it("should write on event-store for the creation of an eservice template", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const asyncExchange = randomArrayItem([false, true, undefined]);
     const eserviceTemplate =
       await eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           isSignalHubEnabled,
+          asyncExchange,
         }),
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
@@ -85,6 +88,7 @@ describe("create eservice template", () => {
         },
       ],
       isSignalHubEnabled,
+      asyncExchange,
     };
 
     expect(eserviceCreationPayload.eserviceTemplate).toEqual(
@@ -140,6 +144,39 @@ describe("create eservice template", () => {
     ).rejects.toThrowError(
       eserviceTemplateDuplicate(mockEServiceTemplate.name)
     );
+  });
+
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eserviceTemplate =
+      await eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed({
+          ...mockEServiceTemplate,
+          asyncExchange: true,
+        }),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      );
+
+    const eserviceTemplateCreationEvent = await readEventByStreamIdAndVersion(
+      eserviceTemplate.data.id,
+      0,
+      "eservice_template",
+      postgresDB
+    );
+    const eserviceCreationPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateAddedV2,
+      payload: eserviceTemplateCreationEvent.data,
+    });
+
+    expect(eserviceTemplate.data.asyncExchange).toBeUndefined();
+    expect(
+      eserviceCreationPayload.eserviceTemplate?.asyncExchange
+    ).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
   });
 
   it("should throw inconsistentDailyCalls if the version seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {

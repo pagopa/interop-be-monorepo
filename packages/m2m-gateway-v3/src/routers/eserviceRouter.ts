@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -31,7 +32,8 @@ const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
 const eserviceRouter = (
   ctx: ZodiosContext,
-  eserviceService: EserviceService
+  eserviceService: EserviceService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceRouter = ctx.router(m2mGatewayApiV3.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -471,7 +473,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -526,7 +529,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -554,7 +558,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(

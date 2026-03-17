@@ -13467,21 +13467,17 @@ components:
     IntegrityRest02DigestHeader:
       schema:
         type: string
-        # Base64 per l'hash SHA-256
-        # (43 chars valid + 1 symbol "=" as padding)
         pattern: ^SHA-256=[a-zA-Z0-9+/]{43}=$
       description: |
         Digest of the body using the canonical JSON representation of the response body.
         The digest is calculated using the SHA-256 algorithm on the response body
         exactly as it is sent to the client, encoded in Base64 as per RFC 3230
     IntegrityRest02AgidJwtSignatureHeader:
+      description: |
+        The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the PDND API private key.
+        It ensures payload integrity and non-repudiation across all responses (both success and error), in compliance with: 1) Linee Guida sull'interoperabilità tecnica delle Pubbliche Amministrazioni - Pattern di sicurezza,  2) RFC 7515 and 3) RFC 7519.
       schema:
         type: string
-        pattern: ^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+$
-      description: |
-        Agid-JWT-Signature header signed with the M2M gateway private key.
-        Inside the JWT there is a `signed_header` field containting the `digest` header value,
-        the `content-type` header and, optionally, the `content-encoding` header.
   securitySchemes:
     DPoPAuth:
       type: http

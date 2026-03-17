@@ -523,16 +523,6 @@ export function dpopProofSignatureValidationFailed(
   });
 }
 
-export function unexpectedDPoPProofForAPIToken(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
-    code: "unexpectedDPoPProofForAPIToken",
-    title: "Unexpected DPoP proof for API token",
-  });
-}
-
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `DPoP proof JTI ${jti} already in cache`,

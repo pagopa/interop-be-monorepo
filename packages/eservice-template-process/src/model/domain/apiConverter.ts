@@ -173,6 +173,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
   personalData: eserviceTemplate.personalData,
+  asyncExchange: eserviceTemplate.asyncExchange,
 });
 
 export const compactOrganizationToApi = (
