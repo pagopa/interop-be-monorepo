@@ -58,7 +58,8 @@ const errorCodes = {
   purposeTemplateRiskAnalysisFormNotFound: "0038",
   invalidSeedForPurposeFromTemplate: "0039",
   purposeVersionDocumentNotReady: "0040",
-  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0041",
+  clientNotFound: "0041",
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -77,7 +78,7 @@ export function missingMetadata(): ApiError<ErrorCodes> {
 }
 
 export function unexpectedDelegationKind(
-  delegation: delegationApi.Delegation
+  delegation: delegationApi.Delegation,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unexpected delegation kind "${delegation.kind}" for delegation ${delegation.id}`,
@@ -87,7 +88,7 @@ export function unexpectedDelegationKind(
 }
 
 export function unexpectedAttributeKind(
-  attribute: attributeRegistryApi.Attribute
+  attribute: attributeRegistryApi.Attribute,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unexpected attribute kind "${attribute.kind}" for attribute ${attribute.id}`,
@@ -97,7 +98,7 @@ export function unexpectedAttributeKind(
 }
 
 export function unexpectedUndefinedAttributeOriginOrCode(
-  attribute: attributeRegistryApi.Attribute
+  attribute: attributeRegistryApi.Attribute,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${attribute.id} has undefined origin or code`,
@@ -107,7 +108,7 @@ export function unexpectedUndefinedAttributeOriginOrCode(
 }
 
 export function attributeNotFound(
-  attribute: attributeRegistryApi.Attribute
+  attribute: attributeRegistryApi.Attribute,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${attribute.id} not found`,
@@ -117,7 +118,7 @@ export function attributeNotFound(
 }
 
 export function clientAdminIdNotFound(
-  client: authorizationApi.Client
+  client: authorizationApi.Client,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Admin id not found for client with id ${client.id}`,
@@ -128,7 +129,7 @@ export function clientAdminIdNotFound(
 
 export function eserviceTemplateVersionNotFound(
   templateId: EServiceTemplateId,
-  versionId: EServiceTemplateVersionId
+  versionId: EServiceTemplateVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found in eservice template ${templateId}`,
@@ -139,7 +140,7 @@ export function eserviceTemplateVersionNotFound(
 
 export function purposeVersionNotFound(
   purposeId: PurposeId,
-  versionId: string
+  versionId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found in purpose ${purposeId}`,
@@ -150,7 +151,7 @@ export function purposeVersionNotFound(
 
 export function missingPurposeVersionWithState(
   purposeId: string,
-  state: purposeApi.PurposeVersionState
+  state: purposeApi.PurposeVersionState,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `There is no ${state} version for purpose ${purposeId}`,
@@ -160,7 +161,7 @@ export function missingPurposeVersionWithState(
 }
 
 export function missingPurposeCurrentVersion(
-  purposeId: string
+  purposeId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `There is no current valid version for purpose ${purposeId}`,
@@ -170,7 +171,7 @@ export function missingPurposeCurrentVersion(
 }
 
 export function agreementNotInPendingState(
-  agreementId: string
+  agreementId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} is not in pending state`,
@@ -180,7 +181,7 @@ export function agreementNotInPendingState(
 }
 
 export function agreementNotInSuspendedState(
-  agreementId: string
+  agreementId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} is not in suspended state`,
@@ -199,7 +200,7 @@ export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
 
 export function eserviceDescriptorNotFound(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
@@ -210,7 +211,7 @@ export function eserviceDescriptorNotFound(
 
 export function tenantCertifiedAttributeNotFound(
   tenant: tenantApi.Tenant,
-  attributeId: string
+  attributeId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
@@ -221,7 +222,7 @@ export function tenantCertifiedAttributeNotFound(
 
 export function eserviceDescriptorInterfaceNotFound(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
@@ -232,7 +233,7 @@ export function eserviceDescriptorInterfaceNotFound(
 
 export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Async exchange callback interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
@@ -243,7 +244,7 @@ export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
 
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: PurposeVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
@@ -254,7 +255,7 @@ export function purposeVersionDocumentNotFound(
 
 export function purposeVersionDocumentNotReady(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: PurposeVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
@@ -264,7 +265,7 @@ export function purposeVersionDocumentNotReady(
 }
 
 export function unexpectedClientKind(
-  client: authorizationApi.Client
+  client: authorizationApi.Client,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
@@ -272,9 +273,18 @@ export function unexpectedClientKind(
     title: "Unexpected client kind",
   });
 }
+export function clientNotFound(
+  client: authorizationApi.Client,
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
+  });
+}
 
 export function purposeAgreementNotFound(
-  purposeId: PurposeId
+  purposeId: PurposeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No active agreement found for purpose ${purposeId}`,
@@ -284,7 +294,7 @@ export function purposeAgreementNotFound(
 }
 
 export function agreementContractNotFound(
-  agreementId: string
+  agreementId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Contract not found for agreement ${agreementId}`,
@@ -295,7 +305,7 @@ export function agreementContractNotFound(
 
 export function delegationEServiceMismatch(
   eserviceId: string,
-  delegation: delegationApi.Delegation
+  delegation: delegationApi.Delegation,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegation.id} is not a delegation for e-service ${eserviceId}`,
@@ -306,7 +316,7 @@ export function delegationEServiceMismatch(
 
 export function tenantDeclaredAttributeNotFound(
   tenant: tenantApi.Tenant,
-  attributeId: string
+  attributeId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Declared attribute ${attributeId} not found for tenant ${tenant.id}`,
@@ -317,7 +327,7 @@ export function tenantDeclaredAttributeNotFound(
 
 export function tenantVerifiedAttributeNotFound(
   tenant: tenantApi.Tenant,
-  attributeId: string
+  attributeId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Verified attribute ${attributeId} not found for tenant ${tenant.id}`,
@@ -327,7 +337,7 @@ export function tenantVerifiedAttributeNotFound(
 }
 
 export function requesterIsNotTheDelegateConsumer(
-  delegation: delegationApi.Delegation
+  delegation: delegationApi.Delegation,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Requester tenant is not the delegate consumer for delegation ${delegation.id}`,
@@ -338,7 +348,7 @@ export function requesterIsNotTheDelegateConsumer(
 
 export function cannotEditDeclaredAttributesForTenant(
   targetTenantId: TenantId,
-  delegation: delegationApi.Delegation | undefined
+  delegation: delegationApi.Delegation | undefined,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
@@ -353,7 +363,7 @@ export function cannotEditDeclaredAttributesForTenant(
 
 export function eserviceRiskAnalysisNotFound(
   eserviceId: string,
-  riskAnalysisId: string
+  riskAnalysisId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
@@ -364,7 +374,7 @@ export function eserviceRiskAnalysisNotFound(
 
 export function cannotDeleteLastEServiceDescriptor(
   eserviceId: EServiceId,
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
@@ -375,7 +385,7 @@ export function cannotDeleteLastEServiceDescriptor(
 
 export function cannotDeleteLastEServiceTemplateVersion(
   templateId: EServiceTemplateId,
-  versionId: EServiceTemplateVersionId
+  versionId: EServiceTemplateVersionId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Cannot delete version ${versionId} for e-service template ${templateId} because it is the last remaining version`,
@@ -386,7 +396,7 @@ export function cannotDeleteLastEServiceTemplateVersion(
 
 export function eserviceTemplateRiskAnalysisNotFound(
   templateId: string,
-  riskAnalysisId: string
+  riskAnalysisId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis ${riskAnalysisId} not found for e-service template ${templateId}`,
@@ -396,7 +406,7 @@ export function eserviceTemplateRiskAnalysisNotFound(
 }
 
 export function eserviceDescriptorAttributeNotFound(
-  descriptorId: string
+  descriptorId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute not found for descriptor ${descriptorId}`,
@@ -406,7 +416,7 @@ export function eserviceDescriptorAttributeNotFound(
 }
 
 export function eserviceTemplateVersionAttributeNotFound(
-  versionId: string
+  versionId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute not found for eservice template version ${versionId}`,
@@ -419,7 +429,7 @@ export function eserviceDescriptorAttributeGroupNotFound(
   kind: keyof catalogApi.Attributes,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  groupIndex: number
+  groupIndex: number,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `${kind} Attribute group with index ${groupIndex} not found for descriptor ${descriptorId} of e-service ${eserviceId}`,
@@ -432,7 +442,7 @@ export function eserviceTemplateVersionAttributeGroupNotFound(
   kind: keyof catalogApi.Attributes,
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId,
-  groupIndex: number
+  groupIndex: number,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `${kind} Attribute group with index ${groupIndex} not found for e-service template version ${versionId} of template ${templateId}`,
@@ -442,7 +452,7 @@ export function eserviceTemplateVersionAttributeGroupNotFound(
 }
 
 export function purposeTemplateRiskAnalysisFormNotFound(
-  purposeTemplateId: PurposeTemplateId
+  purposeTemplateId: PurposeTemplateId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
@@ -452,11 +462,11 @@ export function purposeTemplateRiskAnalysisFormNotFound(
 }
 
 export function invalidSeedForPurposeFromTemplate(
-  parsingErrors: string[]
+  parsingErrors: string[],
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingErrors.join(
-      ", "
+      ", ",
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",

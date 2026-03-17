@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { afterAll, beforeAll, describe, vi, it, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, vi, it, expect } from "vitest";
 import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
@@ -168,15 +168,27 @@ describe("create eService from template", () => {
   it.each([
     {
       instanceLabel: undefined as string | undefined,
+      expectedParsedInstanceLabel: undefined as string | undefined,
       description: "without instanceLabel",
     },
     {
       instanceLabel: "test",
+      expectedParsedInstanceLabel: "test",
       description: 'with instanceLabel "test"',
+    },
+    {
+      instanceLabel: "",
+      expectedParsedInstanceLabel: undefined,
+      description: 'with instanceLabel "" (treated as undefined)',
+    },
+    {
+      instanceLabel: " ",
+      expectedParsedInstanceLabel: undefined,
+      description: 'with instanceLabel " " (treated as undefined)',
     },
   ])(
     "should write on event-store for the creation of an eService from a template ($description) when another instance already exists",
-    async ({ instanceLabel }) => {
+    async ({ instanceLabel, expectedParsedInstanceLabel }) => {
       const publishedVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         state: eserviceTemplateVersionState.published,
@@ -209,8 +221,8 @@ describe("create eService from template", () => {
       await addOneEService(existingInstance);
 
       const expectedName =
-        instanceLabel !== undefined
-          ? `${eServiceTemplate.name} - ${instanceLabel}`
+        expectedParsedInstanceLabel !== undefined
+          ? `${eServiceTemplate.name} - ${expectedParsedInstanceLabel}`
           : eServiceTemplate.name;
 
       const eService = await catalogService.createEServiceInstanceFromTemplate(
@@ -265,7 +277,9 @@ describe("create eService from template", () => {
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
         asyncExchange: eServiceTemplate.asyncExchange,
-        ...(instanceLabel !== undefined ? { instanceLabel } : {}),
+        ...(expectedParsedInstanceLabel !== undefined
+          ? { instanceLabel: expectedParsedInstanceLabel }
+          : {}),
       };
 
       const expectedEServiceWithDescriptor: EService = {
@@ -280,7 +294,9 @@ describe("create eService from template", () => {
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
         asyncExchange: eServiceTemplate.asyncExchange,
-        ...(instanceLabel !== undefined ? { instanceLabel } : {}),
+        ...(expectedParsedInstanceLabel !== undefined
+          ? { instanceLabel: expectedParsedInstanceLabel }
+          : {}),
         descriptors: [
           {
             ...mockDescriptor,

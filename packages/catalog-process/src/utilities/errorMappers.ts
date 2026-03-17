@@ -26,7 +26,6 @@ export const createEServiceErrorMapper = (
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "invalidDelegationFlags",
-      "invalidEServiceFlags",
       "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -48,6 +47,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
       "eServiceTemplateWithoutPersonalDataFlag",
+      "invalidDelegationFlags",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -78,7 +78,6 @@ export const updateEServiceErrorMapper = (
     .with(
       "eserviceNotInDraftState",
       "invalidDelegationFlags",
-      "invalidEServiceFlags",
       "templateInstanceNotAllowed",
       "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
@@ -95,7 +94,6 @@ export const updateEServiceTemplateInstanceErrorMapper = (
     .with(
       "eserviceNotInDraftState",
       "invalidDelegationFlags",
-      "invalidEServiceFlags",
       "eServiceNotAnInstance",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -346,7 +344,7 @@ export const activateDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_CONFLICT)
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -470,11 +468,7 @@ export const updateEServiceFlagsErrorMapper = (
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
-    .with(
-      "invalidDelegationFlags",
-      "invalidEServiceFlags",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("invalidDelegationFlags", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceNameErrorMapper = (
