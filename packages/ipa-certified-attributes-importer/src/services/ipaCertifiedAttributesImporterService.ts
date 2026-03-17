@@ -37,11 +37,11 @@ export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
   "Societa' in Conto Economico Consolidato";
 
-export type TenantProcessClient = ZodiosClientWithMetadata<
+type TenantProcessClient = ZodiosClientWithMetadata<
   ReturnType<typeof tenantApi.createInternalApiClient>
 >;
 
-export type PollingConfig = {
+type PollingConfig = {
   defaultPollingMaxRetries: number;
   defaultPollingRetryDelay: number;
 };

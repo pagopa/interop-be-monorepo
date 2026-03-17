@@ -7,7 +7,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { InteropContext } from "../model/interopContextModel.js";
 
-export type MetadataVersion = {
+type MetadataVersion = {
   version: number;
 };
 

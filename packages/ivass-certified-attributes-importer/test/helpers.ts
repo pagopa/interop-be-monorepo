@@ -33,7 +33,7 @@ export const getTenantByIdMockGenerator =
   (f: (tenantId: TenantId) => Tenant) =>
   (tenantId: TenantId): Promise<Tenant> =>
     Promise.resolve(f(tenantId));
-export const getTenantByIdWithMetadataMockGenerator =
+const getTenantByIdWithMetadataMockGenerator =
   (f: (tenantId: TenantId) => Tenant) =>
   (tenantId: TenantId): Promise<WithMetadata<Tenant>> =>
     Promise.resolve({
