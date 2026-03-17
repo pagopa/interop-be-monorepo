@@ -10,7 +10,6 @@ import {
   AttributeEventEnvelope,
   attributeKind,
   toAttributeV1,
-  generateId,
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
 import { AttributeDbTable } from "../src/model/db/index.js";
