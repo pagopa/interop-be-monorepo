@@ -4,9 +4,9 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
   TenantId,
+  UserId,
   generateId,
   pollingMaxRetriesExceeded,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
@@ -15,8 +15,9 @@ import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
 describe("POST /producerKeychains/:producerKeychainId/users router test", () => {
+  const userId = generateId<UserId>();
   const linkUser: m2mGatewayApiV3.LinkUser = {
-    userId: generateId(),
+    userId,
   };
 
   const makeRequest = async (
@@ -87,7 +88,6 @@ describe("POST /producerKeychains/:producerKeychainId/users router test", () => 
   );
 
   it("Should return 404 if the user does not exist", async () => {
-    const userId = unsafeBrandId(linkUser.userId);
     const tenantId = generateId<TenantId>();
     mockProducerKeychainService.addProducerKeychainUsers = vi
       .fn()
