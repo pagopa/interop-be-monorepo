@@ -3494,6 +3494,11 @@ export function catalogServiceBuilder(
         instanceLabel: seed.instanceLabel,
       });
 
+      const instanceAsyncExchange =
+        template.mode === eserviceMode.receive
+          ? undefined
+          : template.asyncExchange;
+
       await assertEServiceNameAvailableForProducer(
         instanceName,
         ctx.authData.organizationId,
@@ -3535,7 +3540,7 @@ export function catalogServiceBuilder(
             isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
             personalData: template.personalData,
             ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
-              ? { asyncExchange: template.asyncExchange }
+              ? { asyncExchange: instanceAsyncExchange }
               : {}),
           },
           template: {
