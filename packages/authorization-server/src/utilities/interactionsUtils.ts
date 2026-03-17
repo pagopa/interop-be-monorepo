@@ -189,6 +189,15 @@ export const updateInteractionState = async ({
     );
   }
 
+  if (state === interactionState.getResource) {
+    expressionAttributeValues[":getResourceTokenIssuedAt"] = {
+      S: updatedAt,
+    };
+    updateExpressions.push(
+      "getResourceTokenIssuedAt = :getResourceTokenIssuedAt"
+    );
+  }
+
   const input: UpdateItemInput = {
     TableName: interactionsTable,
     Key: {

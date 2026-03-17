@@ -29,6 +29,7 @@ export const Interaction = z.object({
   state: InteractionState,
   startInteractionTokenIssuedAt: z.string().datetime().optional(),
   callbackInvocationTokenIssuedAt: z.string().datetime().optional(),
+  getResourceTokenIssuedAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime(),
   ttl: z.number(),
 });

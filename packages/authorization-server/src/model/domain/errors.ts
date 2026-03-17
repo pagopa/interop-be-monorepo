@@ -35,6 +35,7 @@ const errorCodes = {
   interactionStateNotAllowed: "0024",
   producerKeychainEntryNotFound: "0025",
   catalogEntryNotFound: "0026",
+  callbackInvocationTokenIssuedAtMissing: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -291,5 +292,15 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function callbackInvocationTokenIssuedAtMissing(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
+    code: "callbackInvocationTokenIssuedAtMissing",
+    title: "Callback invocation token issued at missing",
   });
 }

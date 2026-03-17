@@ -46,6 +46,7 @@ import {
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
 import { handleCallbackInvocation } from "./scopeHandlers/callbackInvocationHandler.js";
+import { handleGetResource } from "./scopeHandlers/getResourceHandler.js";
 import { handleStartInteraction } from "./scopeHandlers/startInteractionHandler.js";
 
 export type ScopeHandlerContext = {
@@ -239,9 +240,9 @@ const generateTokenByScope = async (
     .with(interactionState.callbackInvocation, async (scope) =>
       handleCallbackInvocation(scope, ctx)
     )
-    .with(interactionState.getResource, async () => {
-      throw asyncScopeNotYetImplemented(interactionState.getResource);
-    })
+    .with(interactionState.getResource, async (scope) =>
+      handleGetResource(scope, ctx)
+    )
     .with(interactionState.confirmation, async () => {
       throw asyncScopeNotYetImplemented(interactionState.confirmation);
     })
