@@ -48,6 +48,7 @@ export const createInteraction = async ({
   eServiceId,
   descriptorId,
   issuedAt,
+  ttlSeconds,
 }: {
   dynamoDBClient: DynamoDBClient;
   interactionsTable: string;
@@ -56,8 +57,10 @@ export const createInteraction = async ({
   eServiceId: EServiceId;
   descriptorId: DescriptorId;
   issuedAt: string;
+  ttlSeconds: number;
 }): Promise<Interaction> => {
   const PK = makeInteractionPK(interactionId);
+  const ttl = Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds;
   const interaction: Interaction = {
     PK,
     interactionId,
@@ -67,6 +70,7 @@ export const createInteraction = async ({
     state: interactionState.startInteraction,
     startInteractionTokenIssuedAt: issuedAt,
     updatedAt: issuedAt,
+    ttl,
   };
 
   const input: PutItemInput = {
@@ -83,6 +87,7 @@ export const createInteraction = async ({
         S: issuedAt,
       },
       updatedAt: { S: interaction.updatedAt },
+      ttl: { N: ttl.toString() },
     },
   };
 

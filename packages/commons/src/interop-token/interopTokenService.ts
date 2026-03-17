@@ -5,6 +5,8 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  InteractionId,
+  InteractionState,
   JWKKeyRS256,
   JWKKeyES256,
   PurposeId,
@@ -21,10 +23,12 @@ import { dateToSeconds } from "../utils/date.js";
 import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
   InteropApiToken,
+  InteropAsyncConsumerToken,
   InteropConsumerToken,
   InteropInternalToken,
   InteropJwtApiCommonPayload,
   InteropJwtApiPayload,
+  InteropJwtAsyncConsumerPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtUIPayload,
@@ -298,6 +302,78 @@ export class InteropTokenGenerator {
             descriptorId,
           }
         : {}),
+      ...(dpopJWK
+        ? {
+            cnf: {
+              jkt: calculateDPoPThumbprint(dpopJWK),
+            },
+          }
+        : {}),
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
+  public async generateInteropAsyncConsumerToken({
+    sub,
+    audience,
+    purposeId,
+    tokenDurationInSeconds,
+    interactionId,
+    urlCallback,
+    scope,
+    dpopJWK,
+  }: {
+    sub: ClientId;
+    audience: string[];
+    purposeId: PurposeId;
+    tokenDurationInSeconds: number;
+    interactionId: InteractionId;
+    urlCallback: string;
+    scope: InteractionState;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+  }): Promise<InteropAsyncConsumerToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const payload: InteropJwtAsyncConsumerPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: audience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp: currentTimestamp + tokenDurationInSeconds,
+      purposeId,
+      interactionId,
+      urlCallback,
+      scope,
       ...(dpopJWK
         ? {
             cnf: {

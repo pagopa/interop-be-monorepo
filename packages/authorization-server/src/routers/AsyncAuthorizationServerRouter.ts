@@ -47,8 +47,15 @@ const asyncAuthorizationServerRouter = (
         );
       }
 
-      // This should not be reached until individual scope handlers are implemented.
-      // Each scope handler will return the appropriate response.
+      if (result.tokenGenerated) {
+        return res.status(200).send({
+          access_token: result.token.serialized,
+          token_type: result.isDPoP ? "DPoP" : "Bearer",
+          expires_in: result.token.payload.exp - result.token.payload.iat,
+        });
+      }
+
+      // Fallthrough for unimplemented scopes
       return res.status(501).send();
     } catch (err) {
       const { status, body } = handleTokenError(err, getCtx());
