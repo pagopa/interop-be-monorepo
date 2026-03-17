@@ -1,4 +1,3 @@
-import { isAxiosError } from "axios";
 import { Logger } from "pagopa-interop-commons";
 import {
   Tenant,
@@ -6,7 +5,6 @@ import {
   TenantEventEnvelopeV2,
   fromTenantV1,
   fromTenantV2,
-  genericInternalError,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -16,33 +14,17 @@ import { TenantKindHistoryWriterService } from "./tenantKindHistoryWriterService
 export function tenantKindhistoryConsumerServiceBuilder(
   tenantKindHistoryWriterService: TenantKindHistoryWriterService
 ) {
-  const createTenantKindHistory = async (
+  const createTenantKindHistoryEntry = async (
     tenant: Tenant,
     metadataVersion: number,
-    messageTimestamp: Date,
-    logger: Logger
+    messageTimestamp: Date
   ): Promise<void> => {
-    logger.info(
-      `Creating tenant kind change history datapoint for tenant ${tenant.id}`
+    await tenantKindHistoryWriterService.createTenantKindHistory(
+      tenant.id,
+      metadataVersion,
+      tenant.kind,
+      messageTimestamp
     );
-    try {
-      await tenantKindHistoryWriterService.createTenantKindHistory(
-        tenant.id,
-        metadataVersion,
-        tenant.kind,
-        messageTimestamp
-      );
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 409) {
-        logger.info(
-          `Notification config for tenant ${tenant.id} already exists, skipping creation`
-        );
-      } else {
-        throw genericInternalError(
-          `Error creating default notification config for tenant ${tenant.id}. Reason: ${error}`
-        );
-      }
-    }
   };
 
   return {
@@ -57,11 +39,10 @@ export function tenantKindhistoryConsumerServiceBuilder(
             if (!message.data.tenant) {
               throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
             }
-            await createTenantKindHistory(
+            await createTenantKindHistoryEntry(
               fromTenantV1(message.data.tenant),
               message.version,
-              message.log_date,
-              logger
+              message.log_date
             );
           }
         )
@@ -100,11 +81,10 @@ export function tenantKindhistoryConsumerServiceBuilder(
             if (!message.data.tenant) {
               throw missingKafkaMessageDataError("tenant", message.type);
             }
-            await createTenantKindHistory(
+            await createTenantKindHistoryEntry(
               fromTenantV2(message.data.tenant),
               message.version,
-              message.log_date,
-              logger
+              message.log_date
             );
           }
         )
