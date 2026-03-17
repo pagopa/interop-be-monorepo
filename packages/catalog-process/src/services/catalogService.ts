@@ -19,7 +19,6 @@ import {
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
-  authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
@@ -770,11 +769,7 @@ export function catalogServiceBuilder(
       {
         authData,
         logger,
-      }: WithLogger<
-        AppContext<
-          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
-        >
-      >
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -3831,13 +3826,9 @@ async function createOpenApiInterfaceByTemplate(
 
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL
 ): Promise<EService> {
-  if (authData.systemRole === authRole.INTERNAL_ROLE) {
-    return eservice;
-  }
-
   if (hasRoleToAccessInactiveDescriptors(authData)) {
     /* Inactive descriptors are visible only if both conditions are met:
        1) The request is made with a role that can access inactive descriptors.
