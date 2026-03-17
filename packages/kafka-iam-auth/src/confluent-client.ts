@@ -118,15 +118,14 @@ export async function resetPartitionsOffsets(
   await admin.connect();
 
   const fetchedTopics = await admin.fetchTopicMetadata({ topics });
-  fetchedTopics.topics.forEach(
-    (t: KafkaJS.ITopicMetadata) =>
-      t.partitions.forEach((p: KafkaJS.PartitionMetadata) =>
-        consumer.seek({
-          topic: t.name,
-          partition: p.partitionId,
-          offset: "-2",
-        })
-      )
+  fetchedTopics.topics.forEach((t: KafkaJS.ITopicMetadata) =>
+    t.partitions.forEach((p: KafkaJS.PartitionMetadata) =>
+      consumer.seek({
+        topic: t.name,
+        partition: p.partitionId,
+        offset: "-2",
+      })
+    )
   );
   await admin.disconnect();
 }
@@ -232,7 +231,9 @@ export const initProducer = async (
   transactionalId?: string
 ): Promise<
   KafkaJS.Producer & {
-    send: (record: Omit<KafkaJS.ProducerRecord, "topic">) => Promise<KafkaJS.RecordMetadata[]>;
+    send: (
+      record: Omit<KafkaJS.ProducerRecord, "topic">
+    ) => Promise<KafkaJS.RecordMetadata[]>;
   }
 > => {
   try {
@@ -293,12 +294,18 @@ export const initProducer = async (
 export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
-  consumerHandler: (messagePayload: KafkaJS.EachMessagePayload) => Promise<void>,
+  consumerHandler: (
+    messagePayload: KafkaJS.EachMessagePayload
+  ) => Promise<void>,
   serviceName?: string
 ): Promise<void> => {
   try {
-    const consumerRunConfig = (consumer: KafkaJS.Consumer): KafkaJS.ConsumerRunConfig => ({
-      eachMessage: async (payload: KafkaJS.EachMessagePayload): Promise<void> => {
+    const consumerRunConfig = (
+      consumer: KafkaJS.Consumer
+    ): KafkaJS.ConsumerRunConfig => ({
+      eachMessage: async (
+        payload: KafkaJS.EachMessagePayload
+      ): Promise<void> => {
         try {
           await consumerHandler(payload);
           await kafkaCommitMessageOffsets(consumer, payload);
@@ -329,7 +336,9 @@ export const runBatchConsumer = async (
   baseConsumerConfig: KafkaConsumerConfig,
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
-  consumerHandlerBatch: (messagePayload: KafkaJS.EachBatchPayload) => Promise<void>,
+  consumerHandlerBatch: (
+    messagePayload: KafkaJS.EachBatchPayload
+  ) => Promise<void>,
   serviceName?: string
 ): Promise<void> => {
   try {

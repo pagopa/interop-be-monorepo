@@ -1,36 +1,35 @@
 import {
-  EachBatchPayload,
-  EachMessagePayload,
-  Producer,
-  ProducerRecord,
-  RecordMetadata,
-} from "kafkajs";
-import {
   KafkaConsumerConfig,
   KafkaProducerConfig,
   KafkaBatchConsumerConfig,
 } from "pagopa-interop-commons";
 import * as kafkajsClient from "./kafkajs-client.js";
 import * as confluentClient from "./confluent-client.js";
+import type {
+  EachMessagePayload,
+  EachBatchPayload,
+  Producer,
+  ProducerRecord,
+  RecordMetadata,
+} from "./types.js";
 
-// Re-export types from kafkajs for backward compatibility.
-// Consumers of this package should import these types from here
-// instead of directly from "kafkajs".
+// Re-export library-agnostic types for consumers of this package.
 export type {
   Batch,
   EachBatchPayload,
   EachMessagePayload,
   KafkaMessage,
-} from "kafkajs";
-export { logLevel } from "kafkajs";
+  ProducerRecord,
+  RecordMetadata,
+} from "./types.js";
 
 export { extractBasicMessageInfo } from "./common.js";
 
 type KafkaClientLibrary = "kafkajs" | "confluent";
 
-const getClientLibrary = (
-  config: { kafkaClientLibrary?: KafkaClientLibrary }
-): KafkaClientLibrary => config.kafkaClientLibrary ?? "kafkajs";
+const getClientLibrary = (config: {
+  kafkaClientLibrary?: KafkaClientLibrary;
+}): KafkaClientLibrary => config.kafkaClientLibrary ?? "kafkajs";
 
 // Transactions are currently supported only for single-replica producers,
 // if scaling up/down is required, ensure proper handling of transactional IDs
@@ -45,8 +44,7 @@ export const initProducer = async (
 > => {
   const library = getClientLibrary(config);
   if (library === "confluent") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return confluentClient.initProducer(config, topic, transactionalId) as any;
+    return confluentClient.initProducer(config, topic, transactionalId);
   }
   return kafkajsClient.initProducer(config, topic, transactionalId);
 };
@@ -62,12 +60,16 @@ export const runConsumer = async (
     return confluentClient.runConsumer(
       config,
       topics,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      consumerHandler as any,
+      consumerHandler,
       serviceName
     );
   }
-  return kafkajsClient.runConsumer(config, topics, consumerHandler, serviceName);
+  return kafkajsClient.runConsumer(
+    config,
+    topics,
+    consumerHandler,
+    serviceName
+  );
 };
 
 export const runBatchConsumer = async (
@@ -83,8 +85,7 @@ export const runBatchConsumer = async (
       baseConsumerConfig,
       batchConsumerConfig,
       topics,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      consumerHandlerBatch as any,
+      consumerHandlerBatch,
       serviceName
     );
   }

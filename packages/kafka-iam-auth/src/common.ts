@@ -62,7 +62,11 @@ export const errorEventsListener = (consumerOrProducer: {
 };
 
 export const kafkaCommitMessageOffsets = async (
-  consumer: { commitOffsets: (offsets: Array<{ topic: string; partition: number; offset: string }>) => Promise<void> },
+  consumer: {
+    commitOffsets: (
+      offsets: Array<{ topic: string; partition: number; offset: string }>
+    ) => Promise<void>;
+  },
   payload: BasicMessagePayload
 ): Promise<void> => {
   const { topic, partition, message } = payload;
