@@ -315,7 +315,7 @@ export const verifyAsyncClientAssertion = (
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key: TokenGenerationStatesGenericClient,
+  key: { publicKey: string },
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
