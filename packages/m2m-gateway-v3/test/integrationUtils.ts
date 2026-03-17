@@ -74,8 +74,7 @@ export function expectApiClientGetToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  mockGet: (...args: any[]) => any;
+  mockGet: (...args: never[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -97,7 +96,7 @@ export function expectApiClientGetToHaveBeenNthCalledWith({
   queries,
 }: {
   nthCall: number;
-  mockGet: (...args: unknown[]) => unknown;
+  mockGet: (...args: never[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -118,7 +117,7 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  mockPost: (...args: unknown[]) => unknown;
+  mockPost: (...args: never[]) => unknown;
   body?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
