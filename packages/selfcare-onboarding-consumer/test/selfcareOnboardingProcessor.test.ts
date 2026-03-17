@@ -33,7 +33,7 @@ import {
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let tenantProcessClientMock: Pick<tenantApi.TenantProcessClient, "selfcare"> =
+  let tenantProcessClientMock: Pick<tenantApi.TenantProcessClient, "internal"> =
     tenantProcessClientBuilder(config.tenantProcessUrl);
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
@@ -62,7 +62,7 @@ describe("Message processor", () => {
       .mockImplementation(generateInternalTokenMock);
 
     selfcareUpsertTenantSpy = vi
-      .spyOn(tenantProcessClientMock.selfcare, "selfcareUpsertTenant")
+      .spyOn(tenantProcessClientMock.internal, "internalSelfcareUpsertTenant")
       .mockImplementation(selfcareUpsertTenantMock);
   });
 
