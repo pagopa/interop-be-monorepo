@@ -1193,7 +1193,9 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             catalogEntry.descriptorVoucherLifespan
           ),
           ...setIfChanged("descriptorState", catalogEntry.state),
-          ...setIfChanged("asyncExchange", catalogEntry.asyncExchange),
+          ...(catalogEntry.asyncExchange !== undefined
+            ? setIfChanged("asyncExchange", catalogEntry.asyncExchange)
+            : {}),
         }
       : {}),
   };
