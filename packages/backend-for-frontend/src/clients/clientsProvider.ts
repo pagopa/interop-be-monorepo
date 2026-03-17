@@ -19,7 +19,7 @@ import { config } from "../config/config.js";
 
 export type TenantProcessClient = Pick<
   tenantApi.TenantProcessClient,
-  "tenant" | "tenantAttribute" | "selfcare"
+  "internal" | "tenant" | "tenantAttribute" | "selfcare"
 >;
 
 export type AuthorizationProcessClient = Pick<
@@ -51,6 +51,7 @@ export type PagoPAInteropBeClients = {
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     tenantProcessClient: {
+      internal: tenantApi.createInternalApiClient(config.tenantProcessUrl),
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
       tenantAttribute: tenantApi.createTenantAttributeApiClient(
         config.tenantProcessUrl
