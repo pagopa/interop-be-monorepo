@@ -1,6 +1,6 @@
 export type ProcessResult = "processed" | "skipped" | "error";
 
-export type ResultsCollector = {
+type ResultsCollector = {
   add: (result: ProcessResult) => void;
   addMany: (results: ProcessResult[]) => void;
   getStats: () => { processed: number; skipped: number; errors: number };
