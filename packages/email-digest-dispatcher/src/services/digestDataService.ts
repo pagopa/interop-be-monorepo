@@ -60,6 +60,7 @@ export type ReceivedPurposeDigest = BaseDigest & {
 export type AttributeDigest = BaseDigest & {
   items: Array<{
     attributeKind: "certified" | "verified";
+    attributeKindLabel: string;
   }>;
 };
 

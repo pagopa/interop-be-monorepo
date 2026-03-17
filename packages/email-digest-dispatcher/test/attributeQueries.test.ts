@@ -445,11 +445,12 @@ describe("ReadModelService - getCertifiedAssignedAttributes", () => {
     test("should return certified assigned attributes within the 7-day window", async () => {
       const tenantId = generateId<TenantId>();
 
-      const { attribute } = await createCertifiedAssignedAttributeScenario({
-        tenantId,
-        attributeName: "Test Certified Assigned",
-        assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
-      });
+      const { attribute, certifier } =
+        await createCertifiedAssignedAttributeScenario({
+          tenantId,
+          attributeName: "Test Certified Assigned",
+          assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+        });
 
       const result =
         await readModelService.getCertifiedAssignedAttributes(tenantId);
@@ -457,6 +458,7 @@ describe("ReadModelService - getCertifiedAssignedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
+        certifierName: certifier.name,
         state: "assigned",
         totalCount: 1,
       });
@@ -508,6 +510,7 @@ describe("ReadModelService - getCertifiedAssignedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
+        certifierName: expect.any(String),
         state: "assigned",
         totalCount: expect.any(Number),
       });
@@ -532,12 +535,13 @@ describe("ReadModelService - getCertifiedRevokedAttributes", () => {
     test("should return certified revoked attributes within the 7-day window", async () => {
       const tenantId = generateId<TenantId>();
 
-      const { attribute } = await createCertifiedRevokedAttributeScenario({
-        tenantId,
-        attributeName: "Test Certified Revoked",
-        assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
-        revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
-      });
+      const { attribute, certifier } =
+        await createCertifiedRevokedAttributeScenario({
+          tenantId,
+          attributeName: "Test Certified Revoked",
+          assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+          revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+        });
 
       const result =
         await readModelService.getCertifiedRevokedAttributes(tenantId);
@@ -545,6 +549,7 @@ describe("ReadModelService - getCertifiedRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         attributeName: attribute.name,
+        certifierName: certifier.name,
         state: "revoked",
         totalCount: 1,
       });
@@ -597,6 +602,7 @@ describe("ReadModelService - getCertifiedRevokedAttributes", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         attributeName: expect.any(String),
+        certifierName: expect.any(String),
         state: "revoked",
         totalCount: expect.any(Number),
       });

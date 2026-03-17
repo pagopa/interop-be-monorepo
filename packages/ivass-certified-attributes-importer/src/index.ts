@@ -7,7 +7,7 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -36,7 +36,7 @@ const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
 
-const db = makeDrizzleConnection(config);
+const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const readModelQueriesSQL = readModelQueriesBuilderSQL(
@@ -45,22 +45,21 @@ const readModelQueriesSQL = readModelQueriesBuilderSQL(
   attributeReadModelService
 );
 
-await importAttributes(
-  csvDownloader,
-  readModelQueriesSQL,
-  tenantProcess,
-  refreshableToken,
-  config.recordsProcessBatchSize,
-  {
+try {
+  await importAttributes(
+    csvDownloader,
+    readModelQueriesSQL,
+    tenantProcess,
+    refreshableToken,
+    config.recordsProcessBatchSize,
+    {
     defaultPollingMaxRetries: config.defaultPollingMaxRetries,
     defaultPollingRetryDelay: config.defaultPollingRetryDelay,
   },
   config.ivassTenantId,
-  loggerInstance,
-  correlationId
-);
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+    loggerInstance,
+    correlationId
+  );
+} finally {
+  await cleanup();
+}
