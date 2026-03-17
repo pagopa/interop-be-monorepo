@@ -22,6 +22,10 @@ const errorCodes = {
   asyncScopeNotYetImplemented: "0014",
   asyncRequestValidationFailed: "0015",
   asyncClientAssertionClaimsValidationFailed: "0016",
+  urlCallbackNotProvided: "0017",
+  purposeIdNotProvided: "0018",
+  asyncExchangeNotEnabled: "0019",
+  catalogEntryNotFound: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -174,5 +178,46 @@ export function asyncClientAssertionClaimsValidationFailed(
     detail: `Async client assertion claims validation failed for client ${clientId} - ${details}`,
     code: "asyncClientAssertionClaimsValidationFailed",
     title: "Async client assertion claims validation failed",
+  });
+}
+
+export function urlCallbackNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `urlCallback not provided in client assertion for client ${clientId}`,
+    code: "urlCallbackNotProvided",
+    title: "urlCallback not provided",
+  });
+}
+
+export function purposeIdNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `purposeId not provided in client assertion for client ${clientId}`,
+    code: "purposeIdNotProvided",
+    title: "purposeId not provided",
+  });
+}
+
+export function asyncExchangeNotEnabled(
+  clientId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange is not enabled for the eService associated with client ${clientId}`,
+    code: "asyncExchangeNotEnabled",
+    title: "Async exchange not enabled",
+  });
+}
+
+export function catalogEntryNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
+    code: "catalogEntryNotFound",
+    title: "Catalog entry not found",
   });
 }

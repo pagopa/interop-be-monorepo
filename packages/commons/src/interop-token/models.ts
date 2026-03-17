@@ -3,6 +3,8 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  InteractionId,
+  InteractionState,
   PurposeId,
   SelfcareId,
   TenantId,
@@ -77,6 +79,30 @@ export type InteropJwtConsumerPayload = z.infer<
 export type InteropConsumerToken = {
   header: InteropJwtHeader;
   payload: InteropJwtConsumerPayload;
+  serialized: string;
+};
+
+/* ==========================================
+    Interop ASYNC CONSUMER Token
+  ========================================== */
+export const InteropJwtAsyncConsumerPayload = InteropJwtCommonPayload.merge(
+  z.object({
+    client_id: ClientId,
+    sub: ClientId,
+    purposeId: PurposeId,
+    interactionId: InteractionId,
+    urlCallback: z.string(),
+    scope: InteractionState,
+    cnf: CNF.optional(),
+  })
+);
+export type InteropJwtAsyncConsumerPayload = z.infer<
+  typeof InteropJwtAsyncConsumerPayload
+>;
+
+export type InteropAsyncConsumerToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtAsyncConsumerPayload;
   serialized: string;
 };
 

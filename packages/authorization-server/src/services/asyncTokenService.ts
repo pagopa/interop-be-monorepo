@@ -19,8 +19,10 @@ import {
 import {
   AuthServerAppContext,
   FileManager,
+  InteropAsyncConsumerToken,
   InteropApiToken,
   InteropConsumerToken,
+  InteropTokenGenerator,
   Logger,
   RateLimiter,
   RateLimiterStatus,
@@ -42,8 +44,9 @@ import {
   logTokenGenerationInfo,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
+import { handleStartInteraction } from "./scopeHandlers/startInteractionHandler.js";
 
-type ScopeHandlerContext = {
+export type ScopeHandlerContext = {
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
@@ -55,9 +58,13 @@ type ScopeHandlerContext = {
   dpopProofJWT: DPoPProof | undefined;
   setCtxOrganizationId: (organizationId: TenantId) => void;
   setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void;
+  tokenGenerator: InteropTokenGenerator;
+  platformStatesTable: string;
+  interactionsTable: string;
+  interactionTtlEpsilonSeconds: number;
 };
 
-type AsyncGeneratedTokenData =
+export type AsyncGeneratedTokenData =
   | {
       limitReached: true;
       rateLimitedTenantId: TenantId;
@@ -72,8 +79,9 @@ type AsyncGeneratedTokenData =
       limitReached: false;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       tokenGenerated: true;
-      token: InteropConsumerToken;
+      token: InteropConsumerToken | InteropAsyncConsumerToken;
       key: FullTokenGenerationStatesConsumerClient;
+      isDPoP: boolean;
     }
   | {
       limitReached: false;
@@ -81,15 +89,18 @@ type AsyncGeneratedTokenData =
       tokenGenerated: true;
       token: InteropApiToken;
       key: TokenGenerationStatesApiClient;
+      isDPoP: boolean;
     };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function asyncTokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
   producer,
   fileManager,
 }: {
+  tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
@@ -103,17 +114,17 @@ export function asyncTokenServiceBuilder({
       getCtx: () => WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
-      setCtxOrganizationId: (organizationId: TenantId) => void
+      setCtxOrganizationId: (organizationId: TenantId) => void,
     ): Promise<AsyncGeneratedTokenData> {
       getCtx().logger.info(
-        `[CLIENTID=${body.client_id}] Async token requested`
+        `[CLIENTID=${body.client_id}] Async token requested`,
       );
 
       // DPoP proof validation
       const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
-        getCtx().logger
+        getCtx().logger,
       );
 
       // Request body parameters validation
@@ -127,7 +138,7 @@ export function asyncTokenServiceBuilder({
       if (parametersErrors) {
         throw asyncRequestValidationFailed(
           body.client_id,
-          parametersErrors.map((error) => error.detail).join(", ")
+          parametersErrors.map((error) => error.detail).join(", "),
         );
       }
 
@@ -137,13 +148,13 @@ export function asyncTokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          getCtx().logger
+          getCtx().logger,
         );
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
           body.client_id,
-          clientAssertionErrors.map((error) => error.detail).join(", ")
+          clientAssertionErrors.map((error) => error.detail).join(", "),
         );
       }
 
@@ -190,6 +201,10 @@ export function asyncTokenServiceBuilder({
         dpopProofJWT,
         setCtxOrganizationId,
         setCtxClientKind,
+        tokenGenerator,
+        platformStatesTable: config.platformStatesTable,
+        interactionsTable: config.interactionsTable,
+        interactionTtlEpsilonSeconds: config.interactionTtlEpsilonSeconds,
       });
     },
   };
@@ -199,12 +214,12 @@ export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
 const generateAsyncTokenByScope = async (
   scope: InteractionState,
-  _ctx: ScopeHandlerContext
+  ctx: ScopeHandlerContext,
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
-    .with(interactionState.startInteraction, async () => {
-      throw asyncScopeNotYetImplemented(interactionState.startInteraction);
-    })
+    .with(interactionState.startInteraction, async (scope) =>
+      handleStartInteraction(scope, ctx),
+    )
     .with(interactionState.callbackInvocation, async () => {
       throw asyncScopeNotYetImplemented(interactionState.callbackInvocation);
     })

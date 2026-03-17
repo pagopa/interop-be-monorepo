@@ -18,6 +18,7 @@ import {
 import { dynamoDBClient } from "../integrationUtils.js";
 
 const interactionsTable = "interactions";
+const ttlSeconds = 3600;
 
 describe("interactions utils integration", () => {
   beforeEach(async () => {
@@ -44,6 +45,7 @@ describe("interactions utils integration", () => {
       eServiceId,
       descriptorId,
       issuedAt,
+      ttlSeconds,
     });
 
     const retrieved = await readInteraction(
@@ -53,6 +55,9 @@ describe("interactions utils integration", () => {
     );
 
     expect(retrieved).toEqual(created);
+    expect(created.ttl).toBe(
+      Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds
+    );
   });
 
   it("should update interaction state and token timestamps", async () => {
@@ -70,6 +75,7 @@ describe("interactions utils integration", () => {
       eServiceId,
       descriptorId,
       issuedAt: startIssuedAt,
+      ttlSeconds,
     });
 
     const callbackIssuedAt = new Date("2026-01-01T10:01:00.000Z").toISOString();
