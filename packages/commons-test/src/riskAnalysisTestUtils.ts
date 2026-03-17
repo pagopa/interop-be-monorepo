@@ -391,17 +391,31 @@ export const getMockExpiredRiskAnalysis = (
 
 export const getMockValidEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
-  ...getMockValidRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
-});
+): EServiceTemplateRiskAnalysis => {
+  const validRiskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+  return {
+    ...validRiskAnalysis,
+    riskAnalysisForm: {
+      ...validRiskAnalysis.riskAnalysisForm,
+      tenantKind: producerTenantKind,
+    },
+    tenantKind: producerTenantKind,
+  };
+};
 
 export const getMockExpiredEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
-  ...getMockExpiredRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
-});
+): EServiceTemplateRiskAnalysis => {
+  const expiredRiskAnalysis = getMockExpiredRiskAnalysis(producerTenantKind);
+  return {
+    ...expiredRiskAnalysis,
+    riskAnalysisForm: {
+      ...expiredRiskAnalysis.riskAnalysisForm,
+      tenantKind: producerTenantKind,
+    },
+    tenantKind: producerTenantKind,
+  };
+};
 
 export const getMockExpiredRiskAnalysisForm = (
   producerTenantKind: TenantKind
