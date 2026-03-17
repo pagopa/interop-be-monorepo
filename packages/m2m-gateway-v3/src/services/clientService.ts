@@ -8,6 +8,7 @@ import { clientAdminIdNotFound } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
@@ -46,6 +47,14 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollClientUntilDeletion = (
+    clientId: ClientId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveClientById(clientId, headers)
+    )({});
 
   return {
     async getClientAdminId(
@@ -383,6 +392,20 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       await pollClient(client, headers);
 
       return toM2MGatewayApiConsumerClient(client.data);
+    },
+
+    async deleteClient(
+      clientId: ClientId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting client with id ${clientId}`);
+
+      await clients.authorizationClient.client.deleteClient(undefined, {
+        params: { clientId },
+        headers,
+      });
+
+      await pollClientUntilDeletion(clientId, headers);
     },
   };
 }
