@@ -101,6 +101,7 @@ import {
   attributeDuplicatedInGroup,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
+  asyncExchangeNotAllowedForReceiveMode,
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
@@ -187,6 +188,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertAsyncExchangeReadyForPublication,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -565,6 +567,14 @@ async function innerCreateEService(
       ? { asyncExchange: seed.asyncExchange }
       : {}),
   };
+
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    newEService.asyncExchange === true &&
+    newEService.mode === eserviceMode.receive
+  ) {
+    throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
+  }
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
     newEService,
@@ -1751,6 +1761,18 @@ export function catalogServiceBuilder(
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true
+      ) {
+        assertAsyncExchangeReadyForPublication(
+          eservice.data.technology,
+          descriptor,
+          eserviceId,
+          descriptorId
+        );
+      }
+
       if (producerDelegation) {
         const eserviceWithWaitingForApprovalDescriptor = replaceDescriptor(
           eservice.data,
@@ -2858,6 +2880,18 @@ export function catalogServiceBuilder(
         eservice.data.personalData === undefined
       ) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
+      }
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true
+      ) {
+        assertAsyncExchangeReadyForPublication(
+          eservice.data.technology,
+          descriptor,
+          eserviceId,
+          descriptorId
+        );
       }
 
       const updatedEService = await processDescriptorPublication(
@@ -4374,6 +4408,14 @@ async function updateDraftEService(
       ? { asyncExchange: updatedAsyncExchange }
       : {}),
   };
+
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    updatedEService.asyncExchange === true &&
+    updatedEService.mode === eserviceMode.receive
+  ) {
+    throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
+  }
 
   const event = await repository.createEvent(
     toCreateEventEServiceUpdated(
