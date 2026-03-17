@@ -1,0 +1,20 @@
+meta {
+  name: Internal Tenant by selfcare ID
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{host-tenant}}/internal/tenants/selfcare/:selfcareId
+  body: none
+  auth: none
+}
+
+params:path {
+  selfcareId: 026e8c72-7944-4dcd-8668-f596447fec6d
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
