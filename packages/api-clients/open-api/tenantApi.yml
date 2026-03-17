@@ -1254,8 +1254,6 @@ components:
           maxLength: 64
         value:
           type: string
-        selfcareInstitutionType:
-          type: string
       required:
         - origin
         - value
@@ -1689,6 +1687,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - externalId
         - selfcareId

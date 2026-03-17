@@ -77,7 +77,6 @@ export function selfcareOnboardingProcessorBuilder(
           externalId: {
             origin,
             value: externalIdValue,
-            selfcareInstitutionType: institution.institutionType,
           },
           selfcareId: eventPayload.institutionId,
           name: institution.description,
@@ -88,6 +87,7 @@ export function selfcareOnboardingProcessorBuilder(
             address: institution.digitalAddress,
           },
           subUnitType: institution.subUnitType || undefined,
+          selfcareInstitutionType: institution.institutionType,
         };
 
         const token = (await refreshableToken.get()).serialized;

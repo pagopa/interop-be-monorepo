@@ -17,7 +17,6 @@ export type TenantKind = z.infer<typeof TenantKind>;
 
 export const ExternalId = z.object({
   origin: z.string(),
-  selfcareInstitutionType: z.string().optional(),
   value: z.string(),
 });
 
@@ -176,6 +175,7 @@ export const Tenant = z.object({
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
+  selfcareInstitutionType: z.string().optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

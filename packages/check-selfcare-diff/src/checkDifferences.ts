@@ -190,8 +190,7 @@ export async function checkDifferences(
       selfcareId: tenantInReadmodelTenant.selfcareId,
       externalIdOrigin: tenantInReadmodelTenant.externalIdOrigin,
       externalIdValue: tenantInReadmodelTenant.externalIdValue,
-      externalIdSelfcareInstitutionType:
-        tenantInReadmodelTenant.externalIdSelfcareInstitutionType,
+      selfcareInstitutionType: tenantInReadmodelTenant.selfcareInstitutionType,
     })
     .from(tenantInReadmodelTenant)
     .where(isNotNull(tenantInReadmodelTenant.selfcareId));
@@ -261,7 +260,7 @@ export async function checkDifferences(
     const tenantDataMismatches = checkOriginMismatches(
       tenant.externalIdOrigin,
       tenant.externalIdValue,
-      tenant.externalIdSelfcareInstitutionType || undefined,
+      tenant.selfcareInstitutionType || undefined,
       expectedExternalId.origin,
       expectedExternalId.originId,
       expectedExternalId.institutionType

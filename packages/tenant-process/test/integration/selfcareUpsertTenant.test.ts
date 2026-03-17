@@ -48,7 +48,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: mockTenant.externalId.origin,
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
+        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId,
@@ -141,7 +141,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
+        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId: mockTenant.selfcareId!,
@@ -160,7 +160,7 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.externalId.selfcareInstitutionType,
+        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       selfcareId: generateId(),
       onboardedAt: mockTenant.onboardedAt!.toISOString(),

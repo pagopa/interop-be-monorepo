@@ -17,12 +17,12 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
-  SCP,
   TenantFeature,
   Agreement,
   Delegation,
+  SCP,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -122,24 +122,28 @@ export function assertExpirationDateExist(
 
 export function getTenantKind(
   attributes: ExternalId[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): TenantKind {
   return match(externalId)
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, () => {
+      const isGSP = attributes.some(
+        (attr) =>
+          attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+          (attr.value === PUBLIC_SERVICES_MANAGERS ||
+            attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+      );
+
+      return isGSP ? tenantKind.GSP : tenantKind.PA;
+    })
     .with(
-      { origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER },
-      () =>
-        attributes.some(
-          (attr) =>
-            attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-            (attr.value === PUBLIC_SERVICES_MANAGERS ||
-              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
-        ),
-      () => tenantKind.GSP
+      P.any,
+      () => selfcareInstitutionType === SCP,
+      () => tenantKind.SCP
     )
-    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, () => tenantKind.PA)
-    .with({ selfcareInstitutionType: SCP }, () => tenantKind.SCP)
     .otherwise(() => tenantKind.PRIVATE);
 }
+
 export async function assertRequesterAllowed(
   tenantId: TenantId,
   authData: UIAuthData | M2MAuthData
@@ -160,7 +164,8 @@ export function assertRequesterDelegationsAllowedOrigin(
 export async function getTenantKindLoadingCertifiedAttributes(
   readModelService: ReadModelServiceSQL,
   attributes: TenantAttribute[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): Promise<TenantKind> {
   function getCertifiedAttributesIds(
     attributes: TenantAttribute[]
@@ -191,7 +196,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
     }
   });
   const extIds = convertAttributes(retrievedAttributes);
-  return getTenantKind(extIds, externalId);
+  return getTenantKind(extIds, externalId, selfcareInstitutionType);
 }
 
 export function assertValidExpirationDate(

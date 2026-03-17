@@ -283,8 +283,8 @@ export const getMockTenant = (
   externalId: {
     value: generateId(),
     origin: "IPA",
-    selfcareInstitutionType: "SCP",
   },
+  selfcareInstitutionType: "SCP",
   features: [],
   mails: [],
 });

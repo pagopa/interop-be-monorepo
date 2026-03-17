@@ -176,10 +176,10 @@ describe("Message processor", () => {
         externalId: {
           origin: "IPA",
           value: "ipa_123",
-          selfcareInstitutionType: "PA",
         },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -219,10 +219,10 @@ describe("Message processor", () => {
         externalId: {
           origin: "IPA",
           value: "AOO_456",
-          selfcareInstitutionType: "PA",
         },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -263,10 +263,10 @@ describe("Message processor", () => {
         externalId: {
           origin: "ANAC",
           value: "tax789",
-          selfcareInstitutionType: "PA",
         },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -307,10 +307,10 @@ describe("Message processor", () => {
           externalId: {
             origin: origin,
             value: "tax789",
-            selfcareInstitutionType: institutionType,
           },
           selfcareId: correctEventPayload.institutionId,
           name: correctInstitutionEventField.description,
+          selfcareInstitutionType: institutionType,
         }),
         expect.objectContaining({
           headers: getInteropHeaders({
@@ -351,10 +351,10 @@ describe("Message processor", () => {
         externalId: {
           origin: "ANAC",
           value: "anac_123",
-          selfcareInstitutionType: "PA",
         },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -395,10 +395,10 @@ describe("Message processor", () => {
         externalId: {
           origin: "ANAC",
           value: "anac_123",
-          selfcareInstitutionType: "PA",
         },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({

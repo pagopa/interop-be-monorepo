@@ -90,7 +90,6 @@ describe("Tenant aggregators", () => {
     const externalId: ExternalId = {
       origin: "IPA",
       value: generateId(),
-      selfcareInstitutionType: "SCP",
     };
     const tenant: Tenant = {
       ...getMockTenant(),
@@ -193,7 +192,6 @@ describe("Tenant aggregators", () => {
     const externalId: ExternalId = {
       origin: "IPA",
       value: generateId(),
-      selfcareInstitutionType: "SCP",
     };
     const tenant: Tenant = {
       ...getMockTenant(),
