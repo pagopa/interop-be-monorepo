@@ -12,8 +12,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "build": "tsc"
   },
   "dependencies": {
     "aws-msk-iam-sasl-signer-js": "catalog:",
