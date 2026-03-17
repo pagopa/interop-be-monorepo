@@ -88,6 +88,105 @@ paths:
             schema:
               $ref: "#/components/schemas/InternalTenantSeed"
         required: true
+  /internal/tenants/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - internal
+      operationId: internalGetTenant
+      description: Retrieve the Tenant for internal callers
+      responses:
+        "200":
+          description: Tenant retrieved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/tenants/selfcare/{selfcareId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: selfcareId
+        in: path
+        description: the selfcareId of the tenant
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - internal
+      operationId: internalGetTenantBySelfcareId
+      description: Retrieve the Tenant by SelfcareId for internal callers
+      responses:
+        "200":
+          description: Tenant retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/selfcare/tenants:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - internal
+      operationId: internalSelfcareUpsertTenant
+      description: |
+        Creates the Tenant if it does not exist. Otherwise, set Tenant SelfcareId.
+        Used when the request source is an internal service.
+      responses:
+        "200":
+          description: Tenant created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceId"
+        "409":
+          description: Selfcare Id is already assigned and is different from the request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelfcareTenantSeed"
+        required: true
   /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
