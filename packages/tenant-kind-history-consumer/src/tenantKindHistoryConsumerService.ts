@@ -14,7 +14,7 @@ import { TenantKindHistoryWriterService } from "./tenantKindHistoryWriterService
 export function tenantKindhistoryConsumerServiceBuilder(
   tenantKindHistoryWriterService: TenantKindHistoryWriterService
 ) {
-  const createTenantKindHistory = async (
+  const createTenantKindHistoryEntry = async (
     tenant: Tenant,
     metadataVersion: number,
     messageTimestamp: Date
@@ -39,7 +39,7 @@ export function tenantKindhistoryConsumerServiceBuilder(
             if (!message.data.tenant) {
               throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
             }
-            await createTenantKindHistory(
+            await createTenantKindHistoryEntry(
               fromTenantV1(message.data.tenant),
               message.version,
               message.log_date
@@ -81,7 +81,7 @@ export function tenantKindhistoryConsumerServiceBuilder(
             if (!message.data.tenant) {
               throw missingKafkaMessageDataError("tenant", message.type);
             }
-            await createTenantKindHistory(
+            await createTenantKindHistoryEntry(
               fromTenantV2(message.data.tenant),
               message.version,
               message.log_date
