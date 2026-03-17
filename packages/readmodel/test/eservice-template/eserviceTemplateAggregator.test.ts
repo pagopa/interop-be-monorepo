@@ -62,6 +62,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const aggregatedEServiceTemplate = aggregateEServiceTemplate({
@@ -72,6 +73,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEServiceTemplate).toStrictEqual({
@@ -110,6 +112,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const aggregatedEServiceTemplate = aggregateEServiceTemplate({
@@ -120,6 +123,81 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
+    });
+
+    expect(aggregatedEServiceTemplate).toStrictEqual({
+      data: eserviceTemplate,
+      metadata: { version: 1 },
+    });
+  });
+
+  it("should convert e-service template SQL items with asyncExchangeProperties into an eservice template", () => {
+    const certifiedAttribute = getMockEServiceAttribute();
+    const doc = getMockDocument();
+    const interfaceDoc = getMockDocument();
+
+    const publishedAt = new Date();
+    const suspendedAt = new Date();
+    const deprecatedAt = new Date();
+    const isSignalHubEnabled = true;
+
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      attributes: {
+        certified: [[certifiedAttribute]],
+        declared: [],
+        verified: [],
+      },
+      docs: [doc],
+      interface: interfaceDoc,
+      description: "description test",
+      publishedAt,
+      suspendedAt,
+      deprecatedAt,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 10,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [version],
+      riskAnalysis: [
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
+      ],
+      isSignalHubEnabled,
+      asyncExchange: true,
+    };
+
+    const {
+      eserviceTemplateSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      asyncExchangePropertiesSQL,
+    } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
+
+    const aggregatedEServiceTemplate = aggregateEServiceTemplate({
+      eserviceTemplateSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEServiceTemplate).toStrictEqual({

@@ -43,6 +43,7 @@ import {
   Tenant,
   EServiceTemplateEvent,
   CompactOrganization,
+  technology,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -72,6 +73,8 @@ import {
   riskAnalysisNotFound,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  missingAsyncExchangeProperties,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -537,6 +540,27 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplateId,
           eserviceTemplateVersionId
         );
+      }
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eserviceTemplate.data.asyncExchange === true
+      ) {
+        if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+        if (
+          eserviceTemplate.data.technology === technology.soap &&
+          eserviceTemplateVersion.asyncExchangeProperties.bulk === true
+        ) {
+          throw asyncExchangeBulkNotAllowedForSoap(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -2319,6 +2343,8 @@ async function updateDraftEServiceTemplateVersion(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     agreementApprovalPolicy,
     attributes,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    asyncExchangeProperties,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -2405,6 +2431,22 @@ async function updateDraftEServiceTemplateVersion(
       )
     : eserviceTemplateVersion.attributes;
 
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eserviceTemplate.data.asyncExchange === true;
+
+  const updatedAsyncExchangeProperties = asyncExchangeEnabled
+    ? match(updateSeed)
+        .with({ type: "post" }, ({ seed }) => seed.asyncExchangeProperties)
+        .with({ type: "patch" }, ({ seed }) =>
+          resolvePatchValue(
+            seed.asyncExchangeProperties,
+            eserviceTemplateVersion.asyncExchangeProperties
+          )
+        )
+        .exhaustive()
+    : eserviceTemplateVersion.asyncExchangeProperties;
+
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
@@ -2413,6 +2455,7 @@ async function updateDraftEServiceTemplateVersion(
     description: description ?? eserviceTemplateVersion.description,
     voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
     attributes: parsedAttributes,
+    asyncExchangeProperties: updatedAsyncExchangeProperties,
   };
 
   const updatedEServiceTemplate = replaceEServiceTemplateVersion(

@@ -283,6 +283,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
           attribute: sql<null>`NULL`,
+          asyncExchangeProperties: sql<null>`NULL`,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(

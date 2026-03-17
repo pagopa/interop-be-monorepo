@@ -6,6 +6,7 @@ import {
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
 import { EserviceTemplateSchema } from "../eserviceTemplate/eserviceTemplate.js";
 import { EserviceTemplateRiskAnalysisSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysis.js";
@@ -14,6 +15,7 @@ import { EserviceTemplateVersionSchema } from "../eserviceTemplate/eserviceTempl
 import { EserviceTemplateVersionAttributeSchema } from "../eserviceTemplate/eserviceTemplateVersionAttribute.js";
 import { EserviceTemplateVersionDocumentSchema } from "../eserviceTemplate/eserviceTemplateVersionDocument.js";
 import { EserviceTemplateVersionInterfaceSchema } from "../eserviceTemplate/eserviceTemplateVersionInterface.js";
+import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "../eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.js";
 
 export const EserviceTemplateDbTableConfig = {
   eservice_template: EserviceTemplateSchema,
@@ -24,6 +26,8 @@ export const EserviceTemplateDbTableConfig = {
   eservice_template_risk_analysis: EserviceTemplateRiskAnalysisSchema,
   eservice_template_risk_analysis_answer:
     EserviceTemplateRiskAnalysisAnswerSchema,
+  eservice_template_version_async_exchange_properties:
+    EserviceTemplateVersionAsyncExchangePropertiesSchema,
 } as const;
 export type EserviceTemplateDbTableConfig =
   typeof EserviceTemplateDbTableConfig;
@@ -41,6 +45,8 @@ export const EserviceTemplateDbTableReadModel = {
     eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eservice_template_risk_analysis_answer:
     eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eservice_template_version_async_exchange_properties:
+    eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } as const;
 export type EserviceTemplateDbTableReadModel =
   typeof EserviceTemplateDbTableReadModel;

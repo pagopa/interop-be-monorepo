@@ -10,6 +10,7 @@ import {
   EServiceAttributes,
   Technology,
   EServiceMode,
+  AsyncExchangeProperties,
 } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { TenantKind } from "../tenant/tenant.js";
@@ -41,6 +42,7 @@ export const EServiceTemplateVersion = z.object({
   description: z.string().optional(),
   interface: Document.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),
   attributes: EServiceAttributes,

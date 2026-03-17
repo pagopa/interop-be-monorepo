@@ -134,6 +134,7 @@ const eserviceTemplateVersionToApiEServiceTemplateVersion = (
         ),
       }
     : {}),
+  asyncExchangeProperties: eserviceTemplateVersion.asyncExchangeProperties,
   docs: eserviceTemplateVersion.docs.map(documentToApiDocument),
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
