@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { generateId } from "pagopa-interop-models";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 

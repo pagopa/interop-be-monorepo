@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { logLevel } from "kafkajs";
 import { AWSConfig } from "./awsConfig.js";
+import { KafkaLogLevel } from "./kafkaConfig.js";
 
 export const KafkaProducerConfig = AWSConfig.and(
   z.object({
+    KAFKA_CLIENT_LIBRARY: z
+      .enum(["kafkajs", "confluent"])
+      .default("kafkajs"),
     PRODUCER_KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
     PRODUCER_KAFKA_CLIENT_ID: z.string(),
     PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
@@ -19,11 +22,12 @@ export const KafkaProducerConfig = AWSConfig.and(
   })
 ).transform((c) => ({
   awsRegion: c.awsRegion,
+  kafkaClientLibrary: c.KAFKA_CLIENT_LIBRARY,
   producerKafkaBrokers: c.PRODUCER_KAFKA_BROKERS,
   producerKafkaClientId: c.PRODUCER_KAFKA_CLIENT_ID,
   producerKafkaDisableAwsIamAuth:
     c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH === "true",
-  producerKafkaLogLevel: logLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
+  producerKafkaLogLevel: KafkaLogLevel[c.PRODUCER_KAFKA_LOG_LEVEL],
   producerKafkaReauthenticationThreshold:
     c.PRODUCER_KAFKA_REAUTHENTICATION_THRESHOLD,
   producerKafkaBrokerConnectionString:

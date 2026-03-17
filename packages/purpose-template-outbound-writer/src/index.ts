@@ -1,6 +1,5 @@
-import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
-import { initProducer, runConsumer } from "kafka-iam-auth";
+import { initProducer, runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import {
   encodeOutboundPurposeTemplateEvent,

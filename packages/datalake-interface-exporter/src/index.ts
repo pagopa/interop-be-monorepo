@@ -1,6 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { runConsumer } from "kafka-iam-auth";
-import { EachMessagePayload } from "kafkajs";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import {
   decodeKafkaMessage,
   initFileManager,

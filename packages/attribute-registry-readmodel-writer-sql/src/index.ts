@@ -1,4 +1,3 @@
-import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
   AttributeEvent,
@@ -6,7 +5,7 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 import { config } from "./config/config.js";

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
 import { Client, generateId, Tenant, UserId } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";

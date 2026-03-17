@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { InteropInternalToken } from "pagopa-interop-commons";
 

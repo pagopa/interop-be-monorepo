@@ -11,7 +11,7 @@ import {
   formatTimeHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 import { handleMessages } from ".././src/consumerService.js";
 import { config } from "../src/config/config.js";
 import { fileManager } from "./utils.js";

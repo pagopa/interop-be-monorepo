@@ -6,7 +6,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { exportInterface } from "./interfaceExporter.js";
 
 export async function exportInterfaceV1(

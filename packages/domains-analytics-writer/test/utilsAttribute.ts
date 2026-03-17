@@ -1,4 +1,4 @@
-import { Batch, KafkaMessage } from "kafkajs";
+import { Batch, KafkaMessage } from "kafka-iam-auth";
 import { config } from "../src/config/config.js";
 
 export const mockAttributeBatch: Batch = {
