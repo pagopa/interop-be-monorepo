@@ -109,6 +109,22 @@ export type FeatureFlagEServicePersonalDataConfig = z.infer<
   typeof FeatureFlagEServicePersonalDataConfig
 >;
 
+export const FeatureFlagTenantKindInRiskAnalysisWriteConfig = z
+  .object({
+    FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS_WRITE: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagTenantKindInRiskAnalysisWrite:
+      c.FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS_WRITE ?? false,
+  }));
+export type FeatureFlagTenantKindInRiskAnalysisWriteConfig = z.infer<
+  typeof FeatureFlagTenantKindInRiskAnalysisWriteConfig
+>;
+
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
@@ -179,6 +195,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagNotificationConfig &
   FeatureFlagPurposeTemplateConfig &
   FeatureFlagEServicePersonalDataConfig &
+  FeatureFlagTenantKindInRiskAnalysisWriteConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
