@@ -3521,6 +3521,9 @@ export function catalogServiceBuilder(
             isConsumerDelegable: seed.isConsumerDelegable ?? false,
             isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
             personalData: template.personalData,
+            ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+              ? { asyncExchange: template.asyncExchange }
+              : {}),
           },
           template: {
             id: template.id,
