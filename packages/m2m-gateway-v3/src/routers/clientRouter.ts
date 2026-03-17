@@ -84,7 +84,10 @@ const clientRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await clientService.deleteClient(unsafeBrandId(req.params.clientId), ctx);
+        await clientService.deleteClient(
+          unsafeBrandId(req.params.clientId),
+          ctx
+        );
         return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
