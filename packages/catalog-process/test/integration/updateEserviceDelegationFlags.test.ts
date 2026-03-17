@@ -542,7 +542,102 @@ describe("update eService flags", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+  it("should write TWO events on event-store when both flags are updated simultaneously (true, false -> false, false) - only consumer changes", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
+    };
+    await addOneEService(eservice);
+
+    const returnedEService = await catalogService.updateEServiceDelegationFlags(
+      eservice.id,
+      {
+        isConsumerDelegable: false,
+        isClientAccessDelegable: false,
+      },
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const expectedEService: EService = {
+      ...eservice,
+      isConsumerDelegable: false,
+      isClientAccessDelegable: false,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceIsConsumerDelegableDisabled",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceIsConsumerDelegableDisabledV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(returnedEService).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+  });
+  it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from true, true)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEServiceDelegationFlags(
+        eservice.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
+  });
+  it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from true, false)", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEServiceDelegationFlags(
+        eservice.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
+  });
+  it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from false, false)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -551,6 +646,7 @@ describe("update eService flags", () => {
       ...getMockEService(),
       descriptors: [descriptor],
       isConsumerDelegable: false,
+      isClientAccessDelegable: false,
     };
     await addOneEService(eservice);
 
