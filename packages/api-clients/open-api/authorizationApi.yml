@@ -1032,6 +1032,44 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/clients/purposes/{purposeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    delete:
+      tags:
+        - client
+      summary: Removes the purpose from all clients for internal callers
+      description: Removes the purpose from all clients for internal callers
+      operationId: internalRemovePurposeFromClients
+      parameters:
+        - name: purposeId
+          in: path
+          description: ID of Purpose
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Request succeed
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/clients/{clientId}/admin/{adminId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

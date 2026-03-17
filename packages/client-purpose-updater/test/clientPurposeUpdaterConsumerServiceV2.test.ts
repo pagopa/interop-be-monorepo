@@ -21,7 +21,7 @@ vi.doMock("pagopa-interop-api-clients", () => ({
   authorizationApi: {
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     createClientApiClient: () => ({
-      removePurposeFromClients: removePurposeFromClientsFn,
+      internalRemovePurposeFromClients: removePurposeFromClientsFn,
     }),
   },
 }));

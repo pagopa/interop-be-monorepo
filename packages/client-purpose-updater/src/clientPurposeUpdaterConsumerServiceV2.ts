@@ -54,13 +54,16 @@ export async function handleMessageV2({
           throw missingKafkaMessageDataError("purpose", purposeMsg.type);
         }
 
-        await authorizationClient.client.removePurposeFromClients(undefined, {
-          params: { purposeId: purposeMsg.data.purpose.id },
-          headers: getInteropHeaders({
-            token,
-            correlationId,
-          }),
-        });
+        await authorizationClient.client.internalRemovePurposeFromClients(
+          undefined,
+          {
+            params: { purposeId: purposeMsg.data.purpose.id },
+            headers: getInteropHeaders({
+              token,
+              correlationId,
+            }),
+          }
+        );
       }
     )
     .with(
