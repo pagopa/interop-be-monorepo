@@ -7,7 +7,7 @@
  * without requiring `as any` casts in the facade.
  */
 
-export type IHeaders = Record<
+type IHeaders = Record<
   string,
   Buffer | string | (Buffer | string)[] | undefined
 >;
@@ -57,7 +57,7 @@ export type EachBatchPayload = {
   isStale(): boolean;
 };
 
-export type Message = {
+type Message = {
   key?: Buffer | string | null;
   value: Buffer | string | null;
   partition?: number;
@@ -81,7 +81,7 @@ export type RecordMetadata = {
   logStartOffset?: string;
 };
 
-export type Transaction = {
+type Transaction = {
   send(record: ProducerRecord): Promise<RecordMetadata[]>;
   commit(): Promise<void>;
   abort(): Promise<void>;

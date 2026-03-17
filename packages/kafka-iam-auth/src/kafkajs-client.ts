@@ -173,7 +173,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   });
 };
 
-export async function resetPartitionsOffsets(
+async function resetPartitionsOffsets(
   topics: string[],
   kafka: Kafka,
   consumer: Consumer
@@ -195,7 +195,7 @@ export async function resetPartitionsOffsets(
   await admin.disconnect();
 }
 
-export const validateTopicMetadata = async (
+const validateTopicMetadata = async (
   kafka: Kafka,
   topicNames: string[]
 ): Promise<boolean> => {

@@ -4,7 +4,7 @@ import { genericLogger } from "pagopa-interop-commons";
  * Minimal message shape compatible with both kafkajs and Confluent KafkaJS.
  * Only the properties actually used by common utilities are required.
  */
-export type BasicKafkaMessage = {
+type BasicKafkaMessage = {
   value: Buffer | null;
   offset: string;
 };
@@ -13,14 +13,14 @@ export type BasicKafkaMessage = {
  * Minimal message payload shape compatible with both kafkajs and Confluent KafkaJS.
  * Only the properties actually used by common utilities are required.
  */
-export type BasicMessagePayload = {
+type BasicMessagePayload = {
   topic: string;
   partition: number;
   message: { offset: string };
 };
 
-export const errorTypes = ["unhandledRejection", "uncaughtException"];
-export const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
+const errorTypes = ["unhandledRejection", "uncaughtException"];
+const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
 export const processExit = (exitStatusCode: number = 1): void => {
   genericLogger.debug(`Process exit with code ${exitStatusCode}`);

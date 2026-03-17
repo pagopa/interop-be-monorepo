@@ -4,9 +4,7 @@ import { KafkaLogLevel } from "./kafkaConfig.js";
 
 export const KafkaProducerConfig = AWSConfig.and(
   z.object({
-    KAFKA_CLIENT_LIBRARY: z
-      .enum(["kafkajs", "confluent"])
-      .default("kafkajs"),
+    KAFKA_CLIENT_LIBRARY: z.enum(["kafkajs", "confluent"]).default("kafkajs"),
     PRODUCER_KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
     PRODUCER_KAFKA_CLIENT_ID: z.string(),
     PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
