@@ -252,7 +252,7 @@ export const initProducer = async (
     const producer = kafka.producer({
       kafkaJS: {
         allowAutoTopicCreation: false,
-        transactionalId: transactionalId ? transactionalId : undefined,
+        transactionalId,
         retry: {
           initialRetryTime: 100,
           maxRetryTime: 3000,
