@@ -9,7 +9,10 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
-import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import {
+  missingTenantKindError,
+  RiskAnalysisValidationIssue,
+} from "./riskAnalysisValidationErrors.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";
@@ -105,10 +108,12 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {
+  if (!form.tenantKind) {
+    throw missingTenantKindError();
+  }
   return {
     version: form.version,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tenantKind: form.tenantKind!,
+    tenantKind: form.tenantKind,
     answers: {
       ...form.singleAnswers.reduce(
         (acc, singleAnswer) => ({
