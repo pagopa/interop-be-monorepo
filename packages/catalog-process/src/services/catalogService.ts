@@ -3950,15 +3950,18 @@ async function extractEServiceRiskAnalysisFromTemplate(
   const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
     .filter((r) =>
       match(tenant.kind)
-        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.PA,
+          () => r.riskAnalysisForm.tenantKind === tenantKind.PA
+        )
         .with(
           tenantKind.GSP,
           tenantKind.PRIVATE,
           tenantKind.SCP,
           () =>
-            r.tenantKind === tenantKind.GSP ||
-            r.tenantKind === tenantKind.PRIVATE ||
-            r.tenantKind === tenantKind.SCP
+            r.riskAnalysisForm.tenantKind === tenantKind.GSP ||
+            r.riskAnalysisForm.tenantKind === tenantKind.PRIVATE ||
+            r.riskAnalysisForm.tenantKind === tenantKind.SCP
           /**
            * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
            * This may change in the future.

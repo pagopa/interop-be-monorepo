@@ -34,7 +34,6 @@ import {
   ListResult,
   Document,
   EServiceDocumentId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
   AttributeKind,
   attributeKind,
@@ -42,6 +41,7 @@ import {
   Tenant,
   EServiceTemplateEvent,
   CompactOrganization,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -136,7 +136,7 @@ const retrieveEServiceTemplate = async (
 const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
-): EServiceTemplateRiskAnalysis => {
+): RiskAnalysis => {
   const riskAnalysis = eserviceTemplate.riskAnalysis.find(
     (ra) => ra.id === riskAnalysisId
   );
@@ -991,11 +991,10 @@ export function eserviceTemplateServiceBuilder(
         template.data.personalData
       );
 
-      const newRiskAnalysis: EServiceTemplateRiskAnalysis =
+      const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
           validatedRiskAnalysisForm,
-          createRiskAnalysis.name,
-          createRiskAnalysis.tenantKind
+          createRiskAnalysis.name
         );
 
       const newTemplate: EServiceTemplate = {
@@ -1119,11 +1118,10 @@ export function eserviceTemplateServiceBuilder(
           : {}),
       };
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         id: riskAnalysisToUpdate.id,
         createdAt: riskAnalysisToUpdate.createdAt,
         name: updateRiskAnalysisSeed.name,
-        tenantKind: updateRiskAnalysisSeed.tenantKind,
         riskAnalysisForm: updatedRiskAnalysisForm,
       };
 

@@ -6,9 +6,9 @@ import {
   EServiceAttribute,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  RiskAnalysis,
   riskAnalysisAnswerKind,
 } from "pagopa-interop-models";
 import {
@@ -38,7 +38,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
           riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: EServiceTemplateRiskAnalysis
+        currentRiskAnalysis: RiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
@@ -219,7 +219,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 };
 
 const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: EServiceTemplateRiskAnalysis,
+  riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): {
@@ -234,7 +234,8 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    tenantKind: riskAnalysis.tenantKind,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!, // TODO how to avoid "!"
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =

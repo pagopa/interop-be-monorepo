@@ -1,5 +1,4 @@
 import {
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   RiskAnalysisFormId,
@@ -87,16 +86,14 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
 
 export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
   validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"],
-  tenantKind: TenantKind
-): EServiceTemplateRiskAnalysis {
+  name: RiskAnalysis["name"]
+): RiskAnalysis {
   return {
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
     riskAnalysisForm:
       riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    tenantKind,
   };
 }
 

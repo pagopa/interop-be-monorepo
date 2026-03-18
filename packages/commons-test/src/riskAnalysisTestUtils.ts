@@ -6,7 +6,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   TenantKind,
@@ -401,16 +400,14 @@ export const getMockExpiredRiskAnalysis = (
 
 export const getMockValidEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   ...getMockValidRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
 });
 
 export const getMockExpiredEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   ...getMockExpiredRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
 });
 
 export const getMockExpiredRiskAnalysisForm = (
