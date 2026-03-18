@@ -70,7 +70,6 @@ const purposeRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
-    MAINTENANCE_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -457,7 +456,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { data, metadata } =
             await purposeService.fixPurposeRiskAnalysisTenantKind(
