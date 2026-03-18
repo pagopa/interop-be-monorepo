@@ -5124,9 +5124,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      ts-pattern:
-        specifier: 'catalog:'
-        version: 5.2.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8
