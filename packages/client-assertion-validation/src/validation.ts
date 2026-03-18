@@ -44,6 +44,7 @@ import {
 import {
   unexpectedClientAssertionSignatureVerificationError,
   invalidAssertionType,
+  asyncExchangeNotAllowed,
   invalidClientAssertionFormat,
   invalidGrantType,
   jsonWebTokenError,
@@ -308,11 +309,18 @@ export const validateClientKindAndPlatformState = (
       const purposeIdError = jwt.payload.purposeId
         ? undefined
         : purposeIdNotProvided();
+      const asyncExchangeError = key.asyncExchange
+        ? asyncExchangeNotAllowed()
+        : undefined;
 
-      if (!platformStateErrors && !purposeIdError) {
+      if (!platformStateErrors && !purposeIdError && !asyncExchangeError) {
         return successfulValidation(jwt);
       }
 
-      return failedValidation([platformStateErrors, purposeIdError]);
+      return failedValidation([
+        platformStateErrors,
+        purposeIdError,
+        asyncExchangeError,
+      ]);
     })
     .exhaustive();

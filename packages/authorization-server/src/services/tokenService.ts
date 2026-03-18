@@ -1,5 +1,6 @@
 import { IncomingHttpHeaders } from "http";
 import {
+  asyncExchangeNotAllowed,
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
@@ -219,6 +220,13 @@ export function tokenServiceBuilder({
         throw platformStateValidationFailed(
           platformStateErrors.map((error) => error.detail).join(", ")
         );
+      }
+
+      if (
+        key.clientKind === clientKindTokenGenStates.consumer &&
+        key.asyncExchange
+      ) {
+        throw platformStateValidationFailed(asyncExchangeNotAllowed().detail);
       }
 
       // Rate limit check

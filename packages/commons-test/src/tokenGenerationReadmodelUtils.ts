@@ -92,6 +92,13 @@ export const writeTokenGenStatesConsumerClient = async (
             },
           }
         : {}),
+      ...(tokenGenStatesEntry.asyncExchange !== undefined
+        ? {
+            asyncExchange: {
+              BOOL: tokenGenStatesEntry.asyncExchange,
+            },
+          }
+        : {}),
       updatedAt: {
         S: tokenGenStatesEntry.updatedAt,
       },
