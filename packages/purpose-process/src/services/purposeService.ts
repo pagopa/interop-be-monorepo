@@ -1415,7 +1415,17 @@ export function purposeServiceBuilder(
             createdAt: new Date(),
           },
         ],
-        riskAnalysisForm: validatedFormSeed,
+        riskAnalysisForm: validatedFormSeed
+          ? {
+              ...validatedFormSeed,
+              ...(isFeatureFlagEnabled(
+                config,
+                "featureFlagTenantKindInRiskAnalysisWrite"
+              )
+                ? { tenantKind: validatedFormSeed.tenantKind }
+                : {}),
+            }
+          : undefined,
         isFreeOfCharge: purposeSeed.isFreeOfCharge,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
@@ -1496,6 +1506,12 @@ export function purposeServiceBuilder(
         riskAnalysisForm: {
           ...riskAnalysis.riskAnalysisForm,
           riskAnalysisId,
+          ...(isFeatureFlagEnabled(
+            config,
+            "featureFlagTenantKindInRiskAnalysisWrite"
+          )
+            ? { tenantKind: riskAnalysis.riskAnalysisForm.tenantKind }
+            : {}),
         },
       };
 
@@ -1761,7 +1777,17 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
         delegationId,
-        riskAnalysisForm: validatedFormSeed,
+        riskAnalysisForm: validatedFormSeed
+          ? {
+              ...validatedFormSeed,
+              ...(isFeatureFlagEnabled(
+                config,
+                "featureFlagTenantKindInRiskAnalysisWrite"
+              )
+                ? { tenantKind: validatedFormSeed.tenantKind }
+                : {}),
+            }
+          : undefined,
         isFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
         freeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason
           ? purposeTemplate.purposeFreeOfChargeReason
@@ -2121,13 +2147,26 @@ const performUpdatePurpose = async (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
-          true,
-          tenantKind,
-          new Date(),
-          eservice.personalData
-        )
+      ? (() => {
+          const validated = validateAndTransformRiskAnalysis(
+            riskAnalysisForm,
+            true,
+            tenantKind,
+            new Date(),
+            eservice.personalData
+          );
+          return validated
+            ? {
+                ...validated,
+                ...(isFeatureFlagEnabled(
+                  config,
+                  "featureFlagTenantKindInRiskAnalysisWrite"
+                )
+                  ? { tenantKind: validated.tenantKind }
+                  : {}),
+              }
+            : undefined;
+        })()
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
