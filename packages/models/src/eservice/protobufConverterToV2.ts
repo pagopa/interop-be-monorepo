@@ -12,7 +12,10 @@ import {
   EServiceTechnologyV2,
   EServiceV2,
 } from "../gen/v2/eservice/eservice.js";
-import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import {
+  RiskAnalysis,
+  RiskAnalysisForm,
+} from "../risk-analysis/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
@@ -132,7 +135,7 @@ export const toRiskAnalysisV2 = (
 });
 
 export const toRiskAnalysisFormV2 = (
-  input: RiskAnalysis["riskAnalysisForm"]
+  input: RiskAnalysisForm
 ): EServiceRiskAnalysisFormV2 => ({
   ...input,
   tenantKind: input.tenantKind ? toTenantKindV2(input.tenantKind) : undefined,
