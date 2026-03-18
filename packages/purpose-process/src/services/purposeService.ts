@@ -9,7 +9,6 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
-  MaintenanceAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
@@ -368,7 +367,7 @@ export function purposeServiceBuilder(
     async fixPurposeRiskAnalysisTenantKind(
       purposeId: PurposeId,
       riskAnalysisId: RiskAnalysisId,
-      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
     > {
