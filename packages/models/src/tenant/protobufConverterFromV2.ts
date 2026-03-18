@@ -45,7 +45,7 @@ export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
 };
 
 export const fromTenantMailKindV2 = (
-  input: TenantMailKindV2,
+  input: TenantMailKindV2
 ): TenantMailKind => {
   switch (input) {
     case TenantMailKindV2.CONTACT_EMAIL:
@@ -71,13 +71,13 @@ export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
     .with({ oneofKind: "delegatedProducer" }, ({ delegatedProducer }) => ({
       type: "DelegatedProducer",
       availabilityTimestamp: bigIntToDate(
-        delegatedProducer.availabilityTimestamp,
+        delegatedProducer.availabilityTimestamp
       ),
     }))
     .with({ oneofKind: "delegatedConsumer" }, ({ delegatedConsumer }) => ({
       type: "DelegatedConsumer",
       availabilityTimestamp: bigIntToDate(
-        delegatedConsumer.availabilityTimestamp,
+        delegatedConsumer.availabilityTimestamp
       ),
     }))
     .with({ oneofKind: undefined }, () => {
@@ -86,7 +86,7 @@ export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
     .exhaustive();
 
 export const fromTenantVerifierV2 = (
-  input: TenantVerifierV2,
+  input: TenantVerifierV2
 ): TenantVerifier => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -111,7 +111,7 @@ export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
 });
 
 export const fromTenantAttributesV2 = (
-  input: TenantAttributeV2,
+  input: TenantAttributeV2
 ): TenantAttribute => {
   const { sealedValue } = input;
 
@@ -121,10 +121,10 @@ export const fromTenantAttributesV2 = (
       return {
         id: unsafeBrandId(certifiedAttribute.id),
         assignmentTimestamp: bigIntToDate(
-          certifiedAttribute.assignmentTimestamp,
+          certifiedAttribute.assignmentTimestamp
         ),
         revocationTimestamp: bigIntToDate(
-          certifiedAttribute.revocationTimestamp,
+          certifiedAttribute.revocationTimestamp
         ),
         type: tenantAttributeType.CERTIFIED,
       };
@@ -134,7 +134,7 @@ export const fromTenantAttributesV2 = (
       return {
         id: unsafeBrandId(verifiedAttribute.id),
         assignmentTimestamp: bigIntToDate(
-          verifiedAttribute.assignmentTimestamp,
+          verifiedAttribute.assignmentTimestamp
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV2),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV2),
@@ -146,10 +146,10 @@ export const fromTenantAttributesV2 = (
       return {
         id: unsafeBrandId(declaredAttribute.id),
         assignmentTimestamp: bigIntToDate(
-          declaredAttribute.assignmentTimestamp,
+          declaredAttribute.assignmentTimestamp
         ),
         revocationTimestamp: bigIntToDate(
-          declaredAttribute.revocationTimestamp,
+          declaredAttribute.revocationTimestamp
         ),
         delegationId: declaredAttribute.delegationId
           ? unsafeBrandId<DelegationId>(declaredAttribute.delegationId)
@@ -163,7 +163,7 @@ export const fromTenantAttributesV2 = (
 };
 
 export const fromTenantUnitTypeV2 = (
-  input: TenantUnitTypeV2,
+  input: TenantUnitTypeV2
 ): TenantUnitType => {
   switch (input) {
     case TenantUnitTypeV2.AOO:
@@ -182,7 +182,7 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
   const externalId = ExternalId.safeParse(input.externalId);
   if (!externalId.success) {
     throw genericError(
-      `Error while deserializing TenantV2 (${input.id}): missing externalId`,
+      `Error while deserializing TenantV2 (${input.id}): missing externalId`
     );
   }
 
