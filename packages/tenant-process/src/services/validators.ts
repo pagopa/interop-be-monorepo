@@ -22,7 +22,7 @@ import {
   Delegation,
   SCP,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -125,22 +125,20 @@ export function getTenantKind(
   externalId: ExternalId,
   selfcareInstitutionType: string | undefined
 ): TenantKind {
-  return match(externalId)
-    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, () => {
+  if (selfcareInstitutionType === SCP) {
+    return tenantKind.SCP;
+  }
+
+  return match(externalId.origin)
+    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => {
       const isGSP = attributes.some(
         (attr) =>
           attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
           (attr.value === PUBLIC_SERVICES_MANAGERS ||
             attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
       );
-
       return isGSP ? tenantKind.GSP : tenantKind.PA;
     })
-    .with(
-      P.any,
-      () => selfcareInstitutionType === SCP,
-      () => tenantKind.SCP
-    )
     .otherwise(() => tenantKind.PRIVATE);
 }
 
