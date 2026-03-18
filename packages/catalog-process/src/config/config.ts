@@ -8,6 +8,7 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagEServicePersonalDataConfig,
   FeatureFlagTenantKindInRiskAnalysisWriteConfig,
+  TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
