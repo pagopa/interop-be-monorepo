@@ -13,17 +13,16 @@ import {
 
 describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
   const mockEService = getMockEService();
-  const defaultEServiceId = mockEService.id;
-  const defaultRiskAnalysisId = generateId<RiskAnalysisId>();
+  const mockRiskAnalysisId = generateId<RiskAnalysisId>();
 
   catalogService.fixEServiceRiskAnalysisTenantKind = vi
     .fn()
-    .mockResolvedValue({ data: mockEService, metadata: { version: 1 } });
+    .mockResolvedValue({ data: mockEService.id, metadata: { version: 1 } });
 
   const makeRequest = async (
     token: string,
-    eServiceId: EServiceId = defaultEServiceId,
-    riskAnalysisId: RiskAnalysisId = defaultRiskAnalysisId
+    eServiceId: EServiceId = mockEService.id,
+    riskAnalysisId: RiskAnalysisId = mockRiskAnalysisId
   ) =>
     request(api)
       .post(
@@ -49,7 +48,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
   it("Should return 404 for eServiceNotFound", async () => {
     catalogService.fixEServiceRiskAnalysisTenantKind = vi
       .fn()
-      .mockRejectedValue(eServiceNotFound(defaultEServiceId));
+      .mockRejectedValue(eServiceNotFound(mockEService.id));
 
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
@@ -60,7 +59,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
     catalogService.fixEServiceRiskAnalysisTenantKind = vi
       .fn()
       .mockRejectedValue(
-        eServiceRiskAnalysisNotFound(defaultEServiceId, defaultRiskAnalysisId)
+        eServiceRiskAnalysisNotFound(mockEService.id, mockRiskAnalysisId)
       );
 
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -87,8 +86,8 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(
         token,
-        eServiceId ?? defaultEServiceId,
-        riskAnalysisId ?? defaultRiskAnalysisId
+        eServiceId ?? mockEService.id,
+        riskAnalysisId ?? mockRiskAnalysisId
       );
       expect(res.status).toBe(400);
     }
