@@ -1274,9 +1274,9 @@ describe("submit agreement", () => {
           const producerAndConsumerId = generateId<TenantId>();
           const consumerNotesText = "This is a test";
 
-          const verifiedAttribute = getMockAttribute("Verified");
-          const declaredAttribute = getMockAttribute("Declared");
-          const certifiedAttribute = getMockAttribute("Certified");
+          const certifiedAttribute = getMockAttribute(attributeKind.certified);
+          const declaredAttribute = getMockAttribute(attributeKind.declared);
+          const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
           const descriptor = {
             ...getMockDescriptor(),
@@ -1865,20 +1865,9 @@ describe("submit agreement", () => {
           const producer = getMockTenant();
           const consumerNotesText = "This is a test";
 
-          const certifiedAttribute: Attribute = {
-            ...getMockAttribute(),
-            kind: "Certified",
-          };
-
-          const declaredAttribute: Attribute = {
-            ...getMockAttribute(),
-            kind: "Declared",
-          };
-
-          const verifiedAttribute: Attribute = {
-            ...getMockAttribute(),
-            kind: "Verified",
-          };
+          const certifiedAttribute = getMockAttribute(attributeKind.certified);
+          const declaredAttribute = getMockAttribute(attributeKind.declared);
+          const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
           const descriptor = {
             ...getMockDescriptor(),
@@ -2163,20 +2152,9 @@ describe("submit agreement", () => {
       const producer = getMockTenant();
       const consumerNotesText = "This is a test";
 
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Certified",
-      };
-
-      const declaredAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Declared",
-      };
-
-      const verifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Verified",
-      };
+      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
       const descriptor = {
         ...getMockDescriptor(),
@@ -2323,20 +2301,10 @@ describe("submit agreement", () => {
       const producer = getMockTenant();
       const consumerNotesText = "This is a test";
 
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Certified",
-      };
+      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-      const declaredAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Declared",
-      };
-
-      const verifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: "Verified",
-      };
       const descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,

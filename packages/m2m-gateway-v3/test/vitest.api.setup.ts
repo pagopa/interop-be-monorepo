@@ -30,7 +30,7 @@ vi.mock("../src/utils/tokenGenerator.js", async () => {
 
   return {
     ...actual,
-    getIntoropTokenGenerator: vi.fn(
+    getInteropTokenGenerator: vi.fn(
       () =>
         new InteropTokenGenerator(
           {
