@@ -92,12 +92,12 @@ describe("selfcareUpsertTenant", async () => {
         externalId: {
           origin,
           value: "0",
-          selfcareInstitutionType: type,
         },
         name: "A tenant",
         selfcareId: generateId(),
         onboardedAt: mockTenant.onboardedAt!.toISOString(),
         subUnitType: mockTenant.subUnitType,
+        selfcareInstitutionType: type,
       };
 
       const id = await tenantService.selfcareUpsertTenant(
@@ -160,11 +160,11 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       selfcareId: generateId(),
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
       subUnitType: mockTenant.subUnitType,
+      selfcareInstitutionType: mockTenant.selfcareInstitutionType,
     };
     expect(
       tenantService.selfcareUpsertTenant(
