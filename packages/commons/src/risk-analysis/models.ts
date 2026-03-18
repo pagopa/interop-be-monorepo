@@ -84,19 +84,6 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
   };
 }
 
-export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
-  validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"]
-): RiskAnalysis {
-  return {
-    id: generateId<RiskAnalysisId>(),
-    name,
-    createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-  };
-}
-
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
   validatedForm: RiskAnalysisValidatedForm
 ): RiskAnalysisForm {

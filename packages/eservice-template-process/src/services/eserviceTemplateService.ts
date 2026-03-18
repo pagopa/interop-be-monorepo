@@ -9,11 +9,11 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
-  riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   Logger,
   RiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -992,7 +992,7 @@ export function eserviceTemplateServiceBuilder(
       );
 
       const newRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+        riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
           createRiskAnalysis.name
         );
