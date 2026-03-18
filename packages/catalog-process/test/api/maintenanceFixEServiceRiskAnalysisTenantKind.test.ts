@@ -17,7 +17,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
 
   catalogService.fixEServiceRiskAnalysisTenantKind = vi
     .fn()
-    .mockResolvedValue({ data: mockEService.id, metadata: { version: 1 } });
+    .mockResolvedValue({ data: mockEService, metadata: { version: 1 } });
 
   const makeRequest = async (
     token: string,
