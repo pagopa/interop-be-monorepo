@@ -58,7 +58,6 @@ import {
   generateId,
   purposeEventToBinaryData,
   purposeVersionState,
-  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -1377,7 +1376,10 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const tenantKindToWriteInRA = tenantKind.PA; // TODO
+      const tenantKindToWriteInRA = await retrieveTenantKind(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId),
+        readModelService
+      );
 
       const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
         purposeSeed.riskAnalysisForm
