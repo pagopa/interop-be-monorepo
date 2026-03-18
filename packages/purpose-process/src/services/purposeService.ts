@@ -338,9 +338,8 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const [eservice, tenantKind] = await Promise.all([
+      const [eservice] = await Promise.all([
         retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
       ]);
 
       await assertRequesterCanRetrievePurpose(
@@ -354,7 +353,6 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             purpose.data.createdAt,
             eservice.personalData
           )
@@ -947,16 +945,14 @@ export function purposeServiceBuilder(
         );
       }
 
-      const [eservice, tenantKind] = await Promise.all([
+      const [eservice] = await Promise.all([
         retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
       ]);
 
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             new Date(),
             eservice.personalData
           )
@@ -1135,15 +1131,10 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
-          const tenantKind = await retrieveTenantKind(
-            purpose.data.consumerId,
-            readModelService
-          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
-            tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1402,7 +1393,6 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         riskAnalysisFormToValidate,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService),
         createdAt,
         eservice.personalData
       );
@@ -1557,11 +1547,6 @@ export function purposeServiceBuilder(
 
       logger.info(`Cloning Purpose ${purposeId}`);
 
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
-
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterCanActAsConsumer(
@@ -1648,7 +1633,6 @@ export function purposeServiceBuilder(
               clonedRiskAnalysisForm
             ),
             false,
-            tenantKind,
             currentDate,
             eservice.personalData
           ).type === "valid"
@@ -2199,7 +2183,6 @@ const performUpdatePurpose = async (
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
-            tenantKind,
             new Date(),
             eservice.personalData
           );
@@ -2256,7 +2239,6 @@ const performUpdatePurpose = async (
       isRiskAnalysisValid: isRiskAnalysisFormValid(
         updatedPurpose.riskAnalysisForm,
         false,
-        tenantKind,
         new Date(),
         eservice.personalData
       ),

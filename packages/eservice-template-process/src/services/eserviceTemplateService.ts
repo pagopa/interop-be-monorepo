@@ -29,7 +29,6 @@ import {
   unsafeBrandId,
   WithMetadata,
   RiskAnalysisId,
-  TenantKind,
   eserviceMode,
   generateId,
   ListResult,
@@ -253,14 +252,12 @@ const replaceEServiceTemplateVersion = (
 
 function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: RiskAnalysisFormToValidate,
-  tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -990,7 +987,6 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         formToValidate,
-        createRiskAnalysis.tenantKind,
         new Date(),
         template.data.personalData
       );
@@ -1100,7 +1096,6 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
         formToValidate,
-        updateRiskAnalysisSeed.tenantKind,
         new Date(),
         template.data.personalData
       );
