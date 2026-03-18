@@ -158,6 +158,7 @@ const setupGetResourceScenario = async (overrides?: {
     purposeVersionId: purpose.versions[0].id,
     agreementState: itemState.active,
     descriptorState: itemState.active,
+    asyncExchange: true,
     GSIPK_clientId: consumerClientId,
     GSIPK_clientId_kid: makeGSIPKClientIdKid({
       clientId: consumerClientId,
@@ -174,6 +175,32 @@ const setupGetResourceScenario = async (overrides?: {
     tokenClientPurposeEntry,
     dynamoDBClient
   );
+
+  // Create platform-states catalog entry BEFORE start_interaction
+  // (start_interaction reads it for asyncExchangeProperties and TTL)
+  const catalogPK = makePlatformStatesEServiceDescriptorPK({
+    eserviceId: eServiceId,
+    descriptorId,
+  });
+
+  const catalogEntry: PlatformStatesCatalogEntry = {
+    PK: catalogPK,
+    state: itemState.active,
+    descriptorAudience: ["https://eservice.example.com"],
+    descriptorVoucherLifespan: 3600,
+    asyncExchange: true,
+    asyncExchangeProperties: {
+      responseTime: 30,
+      resourceAvailableTime: 60,
+      confirmation: false,
+      bulk: false,
+      maxResultSet: 100,
+    },
+    version: 1,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
   mockProducer.send.mockImplementationOnce(async () => [
     { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
@@ -203,7 +230,7 @@ const setupGetResourceScenario = async (overrides?: {
     .interactionId as InteractionId;
 
   if (!overrides?.skipCallbackInvocation) {
-    // Step 2: Create producer keychain entry + catalog entry
+    // Step 2: Create producer keychain entry (catalog entry already created above)
     const producerKeychainId = generateId<ProducerKeychainId>();
 
     const {
@@ -239,22 +266,6 @@ const setupGetResourceScenario = async (overrides?: {
       },
       dynamoDBClient
     );
-
-    const catalogPK = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: eServiceId,
-      descriptorId,
-    });
-
-    const catalogEntry: PlatformStatesCatalogEntry = {
-      PK: catalogPK,
-      state: itemState.active,
-      descriptorAudience: ["https://eservice.example.com"],
-      descriptorVoucherLifespan: 3600,
-      version: 1,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
     // Step 3: Call callback_invocation to transition interaction
     mockProducer.send.mockImplementationOnce(async () => [
