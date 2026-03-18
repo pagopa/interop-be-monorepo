@@ -299,7 +299,7 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
+      "/internal/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

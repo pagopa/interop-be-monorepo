@@ -851,7 +851,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId}:
+  /internal/tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
