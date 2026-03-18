@@ -38,6 +38,10 @@ export async function getSelfcareCompactUserById(
 
     return toBffApiCompactUser(user, userId);
   } catch (error: unknown) {
+    /**
+     * To avoid breaking the user experience in case of a user that has been removed from selfcare but is still referenced in a client,
+     * we return a fallback user with the name "Utente rimosso" instead of throwing an error.
+     */
     if (isAxiosNotFoundError(error)) {
       return toBffApiCompactUser(
         {
