@@ -33,13 +33,13 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       .set("X-Correlation-Id", generateId());
 
   it("Should return 200 for user with role maintenance", async () => {
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
   });
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.MAINTENANCE_ROLE)
+    Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -51,7 +51,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       .fn()
       .mockRejectedValue(eServiceNotFound(defaultEServiceId));
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -63,7 +63,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
         eServiceRiskAnalysisNotFound(defaultEServiceId, defaultRiskAnalysisId)
       );
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -73,7 +73,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       .fn()
       .mockRejectedValue(tenantKindNotFound(mockEService.producerId));
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -84,7 +84,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, riskAnalysisId }) => {
-      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(
         token,
         eServiceId ?? defaultEServiceId,
