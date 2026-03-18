@@ -1502,7 +1502,6 @@ export function purposeServiceBuilder(
         riskAnalysisForm: {
           ...riskAnalysis.riskAnalysisForm,
           riskAnalysisId,
-          tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
         },
       };
 
@@ -1930,11 +1929,17 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        authData.organizationId,
+        readModelService
+      );
+
       const formToValidate: RiskAnalysisFormToValidate | undefined =
         purposeUpdateContent.riskAnalysisForm
           ? {
               ...purposeUpdateContent.riskAnalysisForm,
-              tenantKind: purposeTemplate.targetTenantKind, // TODO: use the actual kind
+              tenantKind,
             }
           : undefined;
 
