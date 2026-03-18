@@ -22,6 +22,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  RiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -2198,8 +2199,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        formToValidate,
         tenant.kind,
         new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
@@ -2284,8 +2290,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        formToValidate,
         tenant.kind,
         new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData

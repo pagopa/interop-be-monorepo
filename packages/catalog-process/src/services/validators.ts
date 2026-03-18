@@ -1,8 +1,8 @@
-import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   UIAuthData,
   hasAtLeastOneSystemRole,
@@ -198,7 +198,7 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
