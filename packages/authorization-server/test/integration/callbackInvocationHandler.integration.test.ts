@@ -203,7 +203,7 @@ const setupCallbackScenario = async (overrides?: {
       client_assertion: consumerJws,
       grant_type: "client_credentials",
     },
-    () => getMockContext({ correlationId: generateId() }),
+    () => getMockContext({ correlationId: generateId<CorrelationId>() }),
     () => {},
     () => {},
     () => {}
@@ -213,7 +213,7 @@ const setupCallbackScenario = async (overrides?: {
     fail("start_interaction should succeed");
   }
 
-  const interactionId = startResult.token.payload
+  const interactionId = (startResult.token.payload as { interactionId: string })
     .interactionId as InteractionId;
 
   // After start_interaction, modify catalog entry for callback_invocation test scenarios
@@ -308,7 +308,10 @@ const callAsyncTokenService = async (
       client_assertion: jws,
       grant_type: "client_credentials",
     },
-    () => getMockContext({ correlationId: correlationId ?? generateId() }),
+    () =>
+      getMockContext({
+        correlationId: correlationId ?? generateId<CorrelationId>(),
+      }),
     () => {},
     () => {},
     () => {}
@@ -381,13 +384,14 @@ describe("async token service - callback_invocation", () => {
       fail();
     }
 
-    expect(result.token.payload.scope).toBe(
-      interactionState.callbackInvocation
-    );
-    expect(result.token.payload.interactionId).toBe(interactionId);
-    expect(result.token.payload.urlCallback).toBe(
-      "https://callback.example.com"
-    );
+    const payload = result.token.payload as {
+      scope: string;
+      interactionId: string;
+      urlCallback: string;
+    };
+    expect(payload.scope).toBe(interactionState.callbackInvocation);
+    expect(payload.interactionId).toBe(interactionId);
+    expect(payload.urlCallback).toBe("https://callback.example.com");
   });
 
   it("should update interaction state to callback_invocation", async () => {
@@ -568,7 +572,7 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/not found in platform-states/);
+    ).rejects.toThrowError(/catalog entry not found/);
   });
 
   it("should throw platformStateValidationFailed when catalog entry state is INACTIVE", async () => {
