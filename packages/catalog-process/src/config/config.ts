@@ -7,7 +7,7 @@ import {
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagEServicePersonalDataConfig,
-  TenantKindHistoryDBConfig,
+  FeatureFlagTenantKindInRiskAnalysisWriteConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -28,6 +28,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(EventStoreConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(TenantKindHistoryDBConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisWriteConfig)
   .and(
     z
       .object({
@@ -39,7 +40,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-      }))
+      })),
   )
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
@@ -48,5 +49,5 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
 type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
 export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
-  process.env
+  process.env,
 );

@@ -13,17 +13,16 @@ import {
 
 describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
   const mockEService = getMockEService();
-  const defaultEServiceId = mockEService.id;
-  const defaultRiskAnalysisId = generateId<RiskAnalysisId>();
+  const mockRiskAnalysisId = generateId<RiskAnalysisId>();
 
   catalogService.fixEServiceRiskAnalysisTenantKind = vi
     .fn()
-    .mockResolvedValue({ data: mockEService, metadata: { version: 1 } });
+    .mockResolvedValue({ data: mockEService.id, metadata: { version: 1 } });
 
   const makeRequest = async (
     token: string,
-    eServiceId: EServiceId = defaultEServiceId,
-    riskAnalysisId: RiskAnalysisId = defaultRiskAnalysisId
+    eServiceId: EServiceId = mockEService.id,
+    riskAnalysisId: RiskAnalysisId = mockRiskAnalysisId
   ) =>
     request(api)
       .post(
@@ -33,13 +32,13 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       .set("X-Correlation-Id", generateId());
 
   it("Should return 200 for user with role maintenance", async () => {
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
   });
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.MAINTENANCE_ROLE)
+    Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -49,9 +48,9 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
   it("Should return 404 for eServiceNotFound", async () => {
     catalogService.fixEServiceRiskAnalysisTenantKind = vi
       .fn()
-      .mockRejectedValue(eServiceNotFound(defaultEServiceId));
+      .mockRejectedValue(eServiceNotFound(mockEService.id));
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -60,10 +59,10 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
     catalogService.fixEServiceRiskAnalysisTenantKind = vi
       .fn()
       .mockRejectedValue(
-        eServiceRiskAnalysisNotFound(defaultEServiceId, defaultRiskAnalysisId)
+        eServiceRiskAnalysisNotFound(mockEService.id, mockRiskAnalysisId)
       );
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -73,7 +72,7 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
       .fn()
       .mockRejectedValue(tenantKindNotFound(mockEService.producerId));
 
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -84,11 +83,11 @@ describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysi
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, riskAnalysisId }) => {
-      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(
         token,
-        eServiceId ?? defaultEServiceId,
-        riskAnalysisId ?? defaultRiskAnalysisId
+        eServiceId ?? mockEService.id,
+        riskAnalysisId ?? mockRiskAnalysisId
       );
       expect(res.status).toBe(400);
     }

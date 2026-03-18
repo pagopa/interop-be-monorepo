@@ -98,7 +98,6 @@ const eservicesRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-    MAINTENANCE_ROLE,
   } = authRole;
 
   eservicesRouter
@@ -1091,7 +1090,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { data: updatedEService, metadata } =
             await catalogService.fixEServiceRiskAnalysisTenantKind(
