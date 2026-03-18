@@ -398,7 +398,7 @@ export const logTokenGenerationInfo = ({
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
 
-export type ProducerKeychainPlatformStateEntry = {
+type ProducerKeychainPlatformStateEntry = {
   PK: ProducerKeychainPlatformStatesPK;
   publicKey: string;
   producerKeychainId: ProducerKeychainId;
