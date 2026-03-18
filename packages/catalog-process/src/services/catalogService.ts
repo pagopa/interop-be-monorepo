@@ -10,7 +10,6 @@ import {
   InternalAuthData,
   Logger,
   M2MAuthData,
-  MaintenanceAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -2387,7 +2386,7 @@ export function catalogServiceBuilder(
     async fixEServiceRiskAnalysisTenantKind(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(
         `Fixing Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
