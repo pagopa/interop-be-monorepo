@@ -190,10 +190,14 @@ const initCustomConsumer = async ({
         maxRetryTime: 3000,
         retries: 3,
       },
-      maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
-      minBytes: batchConsumerConfig?.minBytes,
-      maxBytes: batchConsumerConfig?.maxBytes,
-      sessionTimeout: batchConsumerConfig?.sessionTimeoutMillis,
+      ...(batchConsumerConfig
+        ? {
+            maxWaitTimeInMs: batchConsumerConfig.maxWaitKafkaBatchMillis,
+            minBytes: batchConsumerConfig.minBytes,
+            maxBytes: batchConsumerConfig.maxBytes,
+            sessionTimeout: batchConsumerConfig.sessionTimeoutMillis,
+          }
+        : {}),
     },
   });
 
