@@ -14,6 +14,7 @@ import {
   Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
+  RiskAnalysisFormToValidate,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -57,6 +58,7 @@ import {
   generateId,
   purposeEventToBinaryData,
   purposeVersionState,
+  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -1382,8 +1384,23 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      const tenantKindToWriteInRA = isFeatureFlagEnabled(
+        config,
+        "featureFlagTenantKindInRiskAnalysisWrite"
+      )
+        ? tenantKind.PA
+        : tenantKind.PA;
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeSeed.riskAnalysisForm
+          ? {
+              ...purposeSeed.riskAnalysisForm,
+              tenantKind: tenantKindToWriteInRA,
+            }
+          : undefined;
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        purposeSeed.riskAnalysisForm,
+        riskAnalysisFormToValidate,
         false,
         await retrieveTenantKind(authData.organizationId, readModelService),
         createdAt,
@@ -1762,9 +1779,17 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        body.riskAnalysisForm
+          ? {
+              ...body.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
-        body.riskAnalysisForm,
+        formToValidate,
         tenantKind,
         createdAt,
         eservicePersonalData
@@ -1947,10 +1972,18 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeUpdateContent.riskAnalysisForm
+          ? {
+              ...purposeUpdateContent.riskAnalysisForm,
+              tenantKind: purposeTemplate.targetTenantKind, // TODO: use the actual kind
+            }
+          : undefined;
+
+      const updatedRiskAnalysisForm = formToValidate
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
-            purposeUpdateContent.riskAnalysisForm,
+            formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
@@ -2145,11 +2178,26 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const tenantKindToWriteInRA = isFeatureFlagEnabled(
+    config,
+    "featureFlagTenantKindInRiskAnalysisWrite"
+  )
+    ? tenantKind
+    : tenantKind;
+
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind: tenantKindToWriteInRA,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
           const validated = validateAndTransformRiskAnalysis(
-            riskAnalysisForm,
+            riskAnalysisFormToValidate,
             true,
             tenantKind,
             new Date(),

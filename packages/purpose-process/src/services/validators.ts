@@ -4,6 +4,7 @@ import {
   Ownership,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -133,17 +134,14 @@ export function validateRiskAnalysisOrThrow({
   dateForExpirationValidation,
   personalDataInEService,
 }: {
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+  riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
   tenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
-    {
-      ...riskAnalysisForm,
-      tenantKind: tenantKind,
-    }, // TODO this could be avoided if purposeApi.RiskAnalysisFormSeed had tenantKind
+    riskAnalysisForm,
     schemaOnlyValidation,
     tenantKind,
     dateForExpirationValidation,
@@ -158,7 +156,7 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind,
   dateForExpirationValidation: Date,
@@ -719,7 +717,7 @@ function buildAnswersSeed(
 
 export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
   eservicePersonalData: boolean | undefined
@@ -743,9 +741,10 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     riskAnalysisForm
   );
 
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+  const formToValidate: RiskAnalysisFormToValidate = {
     version: purposeTemplate.purposeRiskAnalysisForm.version,
     answers: answersToSeed,
+    tenantKind,
   };
 
   return validateAndTransformRiskAnalysis(
