@@ -216,7 +216,7 @@ const setupGetResourceScenario = async (overrides?: {
       client_assertion: consumerStartJws,
       grant_type: "client_credentials",
     },
-    () => getMockContext({ correlationId: generateId() }),
+    () => getMockContext({ correlationId: generateId<CorrelationId>() }),
     () => {},
     () => {},
     () => {}
@@ -226,7 +226,7 @@ const setupGetResourceScenario = async (overrides?: {
     fail("start_interaction should succeed");
   }
 
-  const interactionId = startResult.token.payload
+  const interactionId = (startResult.token.payload as { interactionId: string })
     .interactionId as InteractionId;
 
   if (!overrides?.skipCallbackInvocation) {
@@ -281,7 +281,7 @@ const setupGetResourceScenario = async (overrides?: {
         client_assertion: producerJws,
         grant_type: "client_credentials",
       },
-      () => getMockContext({ correlationId: generateId() }),
+      () => getMockContext({ correlationId: generateId<CorrelationId>() }),
       () => {},
       () => {},
       () => {}
@@ -344,7 +344,10 @@ const callAsyncTokenService = async (
       client_assertion: jws,
       grant_type: "client_credentials",
     },
-    () => getMockContext({ correlationId: correlationId ?? generateId() }),
+    () =>
+      getMockContext({
+        correlationId: correlationId ?? generateId<CorrelationId>(),
+      }),
     () => {},
     () => {},
     () => {}
@@ -400,10 +403,16 @@ describe("async token service - get_resource", () => {
       fail();
     }
 
-    expect(result.token.payload.scope).toBe(interactionState.getResource);
-    expect(result.token.payload.interactionId).toBe(interactionId);
-    expect(result.token.payload.purposeId).toBe(purposeId);
-    expect(result.token.payload.urlCallback).toBeUndefined();
+    const payload = result.token.payload as {
+      scope: string;
+      interactionId: string;
+      purposeId: string;
+      urlCallback?: string;
+    };
+    expect(payload.scope).toBe(interactionState.getResource);
+    expect(payload.interactionId).toBe(interactionId);
+    expect(payload.purposeId).toBe(purposeId);
+    expect(payload.urlCallback).toBeUndefined();
   });
 
   it("should update interaction state to get_resource", async () => {
