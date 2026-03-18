@@ -19,12 +19,12 @@ describe("API POST /selfcare/tenants test", () => {
     externalId: {
       origin: tenant.externalId.origin,
       value: tenant.externalId.value,
-      selfcareInstitutionType: tenant.selfcareInstitutionType,
     },
     name: "A tenant",
     selfcareId,
     onboardedAt: tenant.onboardedAt.toISOString(),
     subUnitType: tenant.subUnitType,
+    selfcareInstitutionType: tenant.selfcareInstitutionType,
   };
 
   const apiResponse = tenantApi.ResourceId.parse({ id: tenant.id });

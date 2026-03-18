@@ -36,7 +36,6 @@ describe("getTenant", () => {
       externalId: {
         origin: mockApiTenant.data.externalId.origin,
         value: mockApiTenant.data.externalId.value,
-        selfcareInstitutionType: mockApiTenant.data.selfcareInstitutionType,
       },
       name: mockApiTenant.data.name,
       kind: mockApiTenant.data.kind,

@@ -48,11 +48,11 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: mockTenant.externalId.origin,
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId,
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       subUnitType: mockTenant.subUnitType,
     };
     await tenantService.selfcareUpsertTenant(
@@ -141,12 +141,12 @@ describe("selfcareUpsertTenant", async () => {
       externalId: {
         origin: "IPA",
         value: mockTenant.externalId.value,
-        selfcareInstitutionType: mockTenant.selfcareInstitutionType,
       },
       name: "A tenant",
       selfcareId: mockTenant.selfcareId!,
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
       subUnitType: mockTenant.subUnitType,
+      selfcareInstitutionType: mockTenant.selfcareInstitutionType,
     };
     expect(
       tenantService.selfcareUpsertTenant(tenantSeed, getMockContext({}))
