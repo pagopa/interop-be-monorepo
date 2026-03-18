@@ -167,5 +167,5 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
-  selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
+  selfcareInstitutionType: tenant.selfcareInstitutionType,
 });

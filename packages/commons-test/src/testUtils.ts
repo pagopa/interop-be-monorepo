@@ -284,7 +284,6 @@ export const getMockTenant = (
     value: generateId(),
     origin: "IPA",
   },
-  selfcareInstitutionType: undefined,
   features: [],
   mails: [],
 });
