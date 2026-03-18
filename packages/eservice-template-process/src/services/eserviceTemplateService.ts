@@ -13,6 +13,7 @@ import {
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   Logger,
+  RiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -251,13 +252,13 @@ const replaceEServiceTemplateVersion = (
 };
 
 function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
-    { ...riskAnalysisForm, tenantKind }, // TODO this could be avoided if EServiceTemplateRiskAnalysisSeed had tenantKind
+    riskAnalysisForm,
     true,
     tenantKind,
     dateForExpirationValidation,
@@ -982,8 +983,13 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...createRiskAnalysis.riskAnalysisForm,
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        createRiskAnalysis.riskAnalysisForm,
+        formToValidate,
         createRiskAnalysis.tenantKind,
         new Date(),
         template.data.personalData
@@ -1087,8 +1093,13 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysisId
       );
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...updateRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
+      };
+
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
-        updateRiskAnalysisSeed.riskAnalysisForm,
+        formToValidate,
         updateRiskAnalysisSeed.tenantKind,
         new Date(),
         template.data.personalData
