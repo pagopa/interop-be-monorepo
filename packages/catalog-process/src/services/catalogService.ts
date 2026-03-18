@@ -2212,7 +2212,12 @@ export function catalogServiceBuilder(
         riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
           eserviceRiskAnalysisSeed.name,
-          tenant.kind
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagTenantKindInRiskAnalysisWrite"
+          )
+            ? tenant.kind
+            : undefined
         );
 
       const newEservice: EService = {
@@ -2295,12 +2300,19 @@ export function catalogServiceBuilder(
         eservice.data.personalData
       );
 
+      const tenantKindToWrite = isFeatureFlagEnabled(
+        config,
+        "featureFlagTenantKindInRiskAnalysisWrite"
+      )
+        ? tenant.kind
+        : undefined;
+
       const updatedRiskAnalysis: RiskAnalysis = {
         ...riskAnalysisToUpdate,
         name: eserviceRiskAnalysisSeed.name,
         riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
           validatedRiskAnalysisForm,
-          tenant.kind
+          tenantKindToWrite
         ),
       };
 
