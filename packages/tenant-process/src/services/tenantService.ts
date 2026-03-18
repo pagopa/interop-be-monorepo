@@ -389,6 +389,7 @@ export function tenantServiceBuilder(
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
+          selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
           updatedAt: new Date(),
         };
 
