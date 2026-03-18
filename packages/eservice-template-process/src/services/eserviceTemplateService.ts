@@ -1110,12 +1110,7 @@ export function eserviceTemplateServiceBuilder(
           ...a,
           id: generateId(),
         })),
-        ...(isFeatureFlagEnabled(
-          config,
-          "featureFlagTenantKindInRiskAnalysisWrite"
-        )
-          ? { tenantKind: updateRiskAnalysisSeed.tenantKind }
-          : {}),
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
       };
 
       const updatedRiskAnalysis: RiskAnalysis = {

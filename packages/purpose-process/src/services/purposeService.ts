@@ -1377,12 +1377,7 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const tenantKindToWriteInRA = isFeatureFlagEnabled(
-        config,
-        "featureFlagTenantKindInRiskAnalysisWrite"
-      )
-        ? tenantKind.PA
-        : tenantKind.PA;
+      const tenantKindToWriteInRA = tenantKind.PA; // TODO
 
       const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
         purposeSeed.riskAnalysisForm
@@ -1424,17 +1419,7 @@ export function purposeServiceBuilder(
             createdAt: new Date(),
           },
         ],
-        riskAnalysisForm: validatedFormSeed
-          ? {
-              ...validatedFormSeed,
-              ...(isFeatureFlagEnabled(
-                config,
-                "featureFlagTenantKindInRiskAnalysisWrite"
-              )
-                ? { tenantKind: validatedFormSeed.tenantKind }
-                : {}),
-            }
-          : undefined,
+        riskAnalysisForm: validatedFormSeed,
         isFreeOfCharge: purposeSeed.isFreeOfCharge,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
@@ -1515,12 +1500,7 @@ export function purposeServiceBuilder(
         riskAnalysisForm: {
           ...riskAnalysis.riskAnalysisForm,
           riskAnalysisId,
-          ...(isFeatureFlagEnabled(
-            config,
-            "featureFlagTenantKindInRiskAnalysisWrite"
-          )
-            ? { tenantKind: riskAnalysis.riskAnalysisForm.tenantKind }
-            : {}),
+          tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
         },
       };
 
@@ -1788,17 +1768,7 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
         delegationId,
-        riskAnalysisForm: validatedFormSeed
-          ? {
-              ...validatedFormSeed,
-              ...(isFeatureFlagEnabled(
-                config,
-                "featureFlagTenantKindInRiskAnalysisWrite"
-              )
-                ? { tenantKind: validatedFormSeed.tenantKind }
-                : {}),
-            }
-          : undefined,
+        riskAnalysisForm: validatedFormSeed,
         isFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
         freeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason
           ? purposeTemplate.purposeFreeOfChargeReason
@@ -2164,12 +2134,7 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const tenantKindToWriteInRA = isFeatureFlagEnabled(
-    config,
-    "featureFlagTenantKindInRiskAnalysisWrite"
-  )
-    ? tenantKind
-    : tenantKind;
+  const tenantKindToWriteInRA = tenantKind; // TODO
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
@@ -2188,17 +2153,7 @@ const performUpdatePurpose = async (
             new Date(),
             eservice.personalData
           );
-          return validated
-            ? {
-                ...validated,
-                ...(isFeatureFlagEnabled(
-                  config,
-                  "featureFlagTenantKindInRiskAnalysisWrite"
-                )
-                  ? { tenantKind: validated.tenantKind }
-                  : {}),
-              }
-            : undefined;
+          return validated;
         })()
       : purpose.data.riskAnalysisForm;
 
