@@ -85,7 +85,7 @@ export function validateRiskAnalysis(
     );
 
     const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
-      Omit<RiskAnalysisValidatedForm, "version">
+      Omit<RiskAnalysisValidatedForm, "version" | "tenantKind">
     >(
       (validatedForm, answer) =>
         match(answer)
@@ -101,7 +101,6 @@ export function validateRiskAnalysis(
       {
         singleAnswers: [],
         multiAnswers: [],
-        tenantKind: riskAnalysisForm.tenantKind,
       }
     );
     const personalDataInRiskAnalysis = match(
