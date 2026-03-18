@@ -804,7 +804,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/archive",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

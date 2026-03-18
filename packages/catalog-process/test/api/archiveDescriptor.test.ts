@@ -23,7 +23,7 @@ import {
   eServiceDescriptorNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
+describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     interface: getMockDocument(),
@@ -43,7 +43,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
     descriptorId: DescriptorId
   ) =>
     request(api)
-      .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/archive`)
+      .post(
+        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/archive`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
