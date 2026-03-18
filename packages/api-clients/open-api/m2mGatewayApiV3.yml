@@ -1626,7 +1626,7 @@ paths:
       tags:
         - clients
       summary: Create a new consumer client
-      description: Create a new consumer client
+      description: Create a new consumer client for the requester's organization.
       operationId: createClient
       requestBody:
         required: true
