@@ -125,6 +125,7 @@ describe("selfcareUpsertTenant", async () => {
           .otherwise(() => tenantKind.PRIVATE),
         selfcareId: tenantSeed.selfcareId,
         onboardedAt: mockTenant.onboardedAt!,
+        selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
         createdAt: new Date(),
         name: tenantSeed.name,
         attributes: [],
