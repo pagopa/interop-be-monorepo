@@ -41,7 +41,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-      })),
+      }))
   )
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
@@ -50,5 +50,5 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
 type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
 export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
-  process.env,
+  process.env
 );
