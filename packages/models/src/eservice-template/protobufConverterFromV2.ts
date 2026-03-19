@@ -13,14 +13,13 @@ import {
   EServiceTemplateVersionV2,
   EServiceTemplateRiskAnalysisV2,
 } from "../gen/v2/eservice-template/eservice-template.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { bigIntToDate } from "../utils.js";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
-  EServiceTemplateRiskAnalysis,
 } from "./eserviceTemplate.js";
 
 export const fromEServiceTemplateVersionStateV2 = (
@@ -72,13 +71,12 @@ export const fromEServiceTemplateVersionV2 = (
 
 export function fromEServiceTemplateRiskAnalysisV2(
   input: EServiceTemplateRiskAnalysisV2
-): EServiceTemplateRiskAnalysis {
+): RiskAnalysis {
   return {
     ...input,
     id: unsafeBrandId(input.id),
     createdAt: bigIntToDate(input.createdAt),
     riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
-    tenantKind: fromTenantKindV2(input.tenantKind),
   };
 }
 

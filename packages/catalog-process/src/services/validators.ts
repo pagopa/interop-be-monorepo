@@ -1,8 +1,8 @@
-import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   UIAuthData,
   hasAtLeastOneSystemRole,
@@ -18,7 +18,6 @@ import {
   EServiceId,
   Tenant,
   TenantId,
-  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -198,15 +197,13 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -218,8 +215,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService,
-  tenantKind: TenantKind
+  eservice: EService
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
@@ -231,7 +227,6 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      tenantKind,
       new Date(),
       eservice.personalData
     );
