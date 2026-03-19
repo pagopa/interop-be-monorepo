@@ -76,7 +76,9 @@ export const isRiskAnalysisFormValid = (
   if (riskAnalysisForm === undefined) {
     return false;
   }
-  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")) {
+  if (
+    isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
+  ) {
     if (!isTenantKindMatching(riskAnalysisForm.tenantKind, tenantKind)) {
       return false;
     }
