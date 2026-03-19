@@ -3572,8 +3572,21 @@ export function catalogServiceBuilder(
             riskAnalysis,
             asyncExchangeProperties:
               isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
-              template.asyncExchange === true
-                ? publishedVersion.asyncExchangeProperties
+              template.asyncExchange === true &&
+              publishedVersion.asyncExchangeProperties
+                ? {
+                    ...publishedVersion.asyncExchangeProperties,
+                    responseTime:
+                      seed.asyncExchangeResponseTime ??
+                      publishedVersion.asyncExchangeProperties.responseTime,
+                    resourceAvailableTime:
+                      seed.asyncExchangeResourceAvailableTime ??
+                      publishedVersion.asyncExchangeProperties
+                        .resourceAvailableTime,
+                    maxResultSet:
+                      seed.asyncExchangeMaxResultSet ??
+                      publishedVersion.asyncExchangeProperties.maxResultSet,
+                  }
                 : undefined,
           },
           instanceLabel: parsedInstanceLabel,
