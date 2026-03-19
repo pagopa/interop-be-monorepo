@@ -109,14 +109,21 @@ function deriveExpectedExternalId(institution: {
     institutionType: institution.institutionType,
   };
 }
-function checkOriginMismatches(
-  dbOrigin: string,
-  dbOriginId: string,
-  dbInstitutionType: string | undefined,
-  expectedOrigin: string | undefined,
-  expectedOriginId: string | undefined,
-  expectedInstitutionType: string | undefined
-): TenantOriginMismatch[] {
+function checkOriginMismatches({
+  dbOrigin,
+  dbOriginId,
+  dbInstitutionType,
+  expectedOrigin,
+  expectedOriginId,
+  expectedInstitutionType,
+}: {
+  dbOrigin: string;
+  dbOriginId: string;
+  dbInstitutionType: string | undefined;
+  expectedOrigin: string | undefined;
+  expectedOriginId: string | undefined;
+  expectedInstitutionType: string | undefined;
+}): TenantOriginMismatch[] {
   const mismatches: TenantOriginMismatch[] = [];
 
   if (dbOrigin !== expectedOrigin) {
@@ -148,7 +155,6 @@ function checkOriginMismatches(
 
   return mismatches;
 }
-
 function computeUserDifferences(
   selfcareUserMap: Map<string, string[]>,
   configUserMap: Map<string, string[]>
@@ -257,14 +263,14 @@ export async function checkDifferences(
 
     const expectedExternalId = deriveExpectedExternalId(institutionData);
 
-    const tenantDataMismatches = checkOriginMismatches(
-      tenant.externalIdOrigin,
-      tenant.externalIdValue,
-      tenant.selfcareInstitutionType || undefined,
-      expectedExternalId.origin,
-      expectedExternalId.originId,
-      expectedExternalId.institutionType
-    );
+    const tenantDataMismatches = checkOriginMismatches({
+      dbOrigin: tenant.externalIdOrigin,
+      dbOriginId: tenant.externalIdValue,
+      dbInstitutionType: tenant.selfcareInstitutionType || undefined,
+      expectedOrigin: expectedExternalId.origin,
+      expectedOriginId: expectedExternalId.originId,
+      expectedInstitutionType: expectedExternalId.institutionType,
+    });
 
     const mergedSelfcareUsers = mergeUsersByIdWithRoles(
       selfcareUsers.map((u) => ({ id: u.id, roles: u.roles }))
