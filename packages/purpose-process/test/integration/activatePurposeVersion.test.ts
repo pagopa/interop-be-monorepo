@@ -33,7 +33,6 @@ import {
   Agreement,
   Descriptor,
   agreementState,
-  TenantKind,
   PurposeActivatedV2,
   toPurposeV2,
   PurposeVersionUnsuspendedByConsumerV2,
@@ -1646,7 +1645,6 @@ describe.skip("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
-      mockConsumer.kind as TenantKind,
       new Date(),
       undefined
     );

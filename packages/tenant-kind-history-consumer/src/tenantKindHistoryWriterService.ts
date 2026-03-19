@@ -12,7 +12,7 @@ export function tenantKindHistoryWriterServiceBuilder(
   tenantKindHistoryDB: ReturnType<typeof drizzle>
 ) {
   return {
-    async createTenantKindHistory(
+    async createTenantKindHistoryEntry(
       tenantId: string,
       metadataVersion: number,
       kind: string | undefined,
