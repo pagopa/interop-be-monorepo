@@ -2276,16 +2276,21 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
-      const actualTenantKind = riskAnalysisToUpdate.riskAnalysisForm.tenantKind;
-      // tenantKind mismatch is checked only here instead of validateRiskAnalysisSchemaOrThrow
-      // to avoid impacting draft/create flows that reuse the same validator.
-      if (actualTenantKind && actualTenantKind !== tenant.kind) {
-        throw riskAnalysisTenantKindMismatch(
-          actualTenantKind,
-          tenant.kind,
-          riskAnalysisToUpdate.id,
-          eservice.data.id
-        );
+      if (
+        isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
+      ) {
+        const actualTenantKind =
+          riskAnalysisToUpdate.riskAnalysisForm.tenantKind;
+        // tenantKind mismatch is checked only here instead of validateRiskAnalysisSchemaOrThrow
+        // to avoid impacting draft/create flows that reuse the same validator.
+        if (actualTenantKind && actualTenantKind !== tenant.kind) {
+          throw riskAnalysisTenantKindMismatch(
+            actualTenantKind,
+            tenant.kind,
+            riskAnalysisToUpdate.id,
+            eservice.data.id
+          );
+        }
       }
 
       const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(

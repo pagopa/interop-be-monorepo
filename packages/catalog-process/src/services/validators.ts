@@ -7,6 +7,7 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
@@ -27,6 +28,7 @@ import {
   EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
@@ -226,13 +228,17 @@ export function assertRiskAnalysisIsValidForPublication(
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
     const actualTenantKind = riskAnalysis.riskAnalysisForm.tenantKind;
-    if (actualTenantKind && actualTenantKind !== tenantKind) {
-      throw riskAnalysisTenantKindMismatch(
-        actualTenantKind,
-        tenantKind,
-        riskAnalysis.id,
-        eservice.id
-      );
+    if (
+      isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
+    ) {
+      if (actualTenantKind && actualTenantKind !== tenantKind) {
+        throw riskAnalysisTenantKindMismatch(
+          actualTenantKind,
+          tenantKind,
+          riskAnalysis.id,
+          eservice.id
+        );
+      }
     }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
