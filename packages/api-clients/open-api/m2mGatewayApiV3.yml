@@ -2039,7 +2039,7 @@ paths:
       tags:
         - producerKeychains
       summary: Create a producer keychain
-      description: Create a producer keychain
+      description: Create a producer keychain for the requester's organization.
       operationId: createProducerKeychain
       requestBody:
         required: true
