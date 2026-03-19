@@ -18,6 +18,7 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -44,6 +45,7 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  riskAnalysisTenantKindMismatch,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -215,13 +217,23 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService
+  eservice: EService,
+  tenantKind: TenantKind
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
+    const actualTenantKind = riskAnalysis.riskAnalysisForm.tenantKind;
+    if (actualTenantKind && actualTenantKind !== tenantKind) {
+      throw riskAnalysisTenantKindMismatch(
+        actualTenantKind,
+        tenantKind,
+        riskAnalysis.id,
+        eservice.id
+      );
+    }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
         riskAnalysis.riskAnalysisForm
