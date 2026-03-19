@@ -14,6 +14,7 @@ import {
   Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
+  RiskAnalysisFormToValidate,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -336,10 +337,10 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       await assertRequesterCanRetrievePurpose(
         purpose.data,
@@ -352,7 +353,6 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             purpose.data.createdAt,
             eservice.personalData
           )
@@ -945,16 +945,15 @@ export function purposeServiceBuilder(
         );
       }
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             new Date(),
             eservice.personalData
           )
@@ -1133,15 +1132,10 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
-          const tenantKind = await retrieveTenantKind(
-            purpose.data.consumerId,
-            readModelService
-          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
-            tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1382,10 +1376,22 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      const tenantKindToWriteInRA = await retrieveTenantKind(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId),
+        readModelService
+      );
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeSeed.riskAnalysisForm
+          ? {
+              ...purposeSeed.riskAnalysisForm,
+              tenantKind: tenantKindToWriteInRA,
+            }
+          : undefined;
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        purposeSeed.riskAnalysisForm,
+        riskAnalysisFormToValidate,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService),
         createdAt,
         eservice.personalData
       );
@@ -1415,17 +1421,7 @@ export function purposeServiceBuilder(
             createdAt: new Date(),
           },
         ],
-        riskAnalysisForm: validatedFormSeed
-          ? {
-              ...validatedFormSeed,
-              ...(isFeatureFlagEnabled(
-                config,
-                "featureFlagTenantKindInRiskAnalysisWrite"
-              )
-                ? { tenantKind: validatedFormSeed.tenantKind }
-                : {}),
-            }
-          : undefined,
+        riskAnalysisForm: validatedFormSeed,
         isFreeOfCharge: purposeSeed.isFreeOfCharge,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
@@ -1506,12 +1502,6 @@ export function purposeServiceBuilder(
         riskAnalysisForm: {
           ...riskAnalysis.riskAnalysisForm,
           riskAnalysisId,
-          ...(isFeatureFlagEnabled(
-            config,
-            "featureFlagTenantKindInRiskAnalysisWrite"
-          )
-            ? { tenantKind: riskAnalysis.riskAnalysisForm.tenantKind }
-            : {}),
         },
       };
 
@@ -1539,11 +1529,6 @@ export function purposeServiceBuilder(
       const organizationId = authData.organizationId;
 
       logger.info(`Cloning Purpose ${purposeId}`);
-
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
@@ -1631,7 +1616,6 @@ export function purposeServiceBuilder(
               clonedRiskAnalysisForm
             ),
             false,
-            tenantKind,
             currentDate,
             eservice.personalData
           ).type === "valid"
@@ -1762,9 +1746,17 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        body.riskAnalysisForm
+          ? {
+              ...body.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
-        body.riskAnalysisForm,
+        formToValidate,
         tenantKind,
         createdAt,
         eservicePersonalData
@@ -1777,17 +1769,7 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
         delegationId,
-        riskAnalysisForm: validatedFormSeed
-          ? {
-              ...validatedFormSeed,
-              ...(isFeatureFlagEnabled(
-                config,
-                "featureFlagTenantKindInRiskAnalysisWrite"
-              )
-                ? { tenantKind: validatedFormSeed.tenantKind }
-                : {}),
-            }
-          : undefined,
+        riskAnalysisForm: validatedFormSeed,
         isFreeOfCharge: purposeTemplate.purposeIsFreeOfCharge,
         freeOfChargeReason: purposeTemplate.purposeFreeOfChargeReason
           ? purposeTemplate.purposeFreeOfChargeReason
@@ -1947,10 +1929,24 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeUpdateContent.riskAnalysisForm
+          ? {
+              ...purposeUpdateContent.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
+      const updatedRiskAnalysisForm = formToValidate
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
-            purposeUpdateContent.riskAnalysisForm,
+            formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
@@ -2145,27 +2141,26 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const tenantKindToWriteInRA = tenantKind; // TODO
+
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind: tenantKindToWriteInRA,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
           const validated = validateAndTransformRiskAnalysis(
-            riskAnalysisForm,
+            riskAnalysisFormToValidate,
             true,
-            tenantKind,
             new Date(),
             eservice.personalData
           );
-          return validated
-            ? {
-                ...validated,
-                ...(isFeatureFlagEnabled(
-                  config,
-                  "featureFlagTenantKindInRiskAnalysisWrite"
-                )
-                  ? { tenantKind: validated.tenantKind }
-                  : {}),
-              }
-            : undefined;
+          return validated;
         })()
       : purpose.data.riskAnalysisForm;
 
@@ -2208,7 +2203,6 @@ const performUpdatePurpose = async (
       isRiskAnalysisValid: isRiskAnalysisFormValid(
         updatedPurpose.riskAnalysisForm,
         false,
-        tenantKind,
         new Date(),
         eservice.personalData
       ),

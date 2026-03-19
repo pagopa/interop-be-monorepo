@@ -166,7 +166,8 @@ export const eserviceTemplateToApiEServiceTemplate = (
       singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
     },
-    tenantKind: riskAnalysis.tenantKind,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!, // TODO how to avoid "!"
   })),
   versions: eserviceTemplate.versions.map(
     eserviceTemplateVersionToApiEServiceTemplateVersion
