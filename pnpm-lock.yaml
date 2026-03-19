@@ -314,18 +314,12 @@ importers:
       '@tsconfig/strictest':
         specifier: 'catalog:'
         version: 2.0.5
-      eslint:
-        specifier: 'catalog:'
-        version: 9.39.2(jiti@2.6.1)
       knip:
         specifier: 'catalog:'
         version: 5.75.1(@types/node@20.19.9)(typescript@5.9.3)
       madge:
         specifier: 'catalog:'
         version: 8.0.0(typescript@5.9.3)
-      prettier:
-        specifier: 'catalog:'
-        version: 3.8.1
       turbo:
         specifier: 'catalog:'
         version: 2.2.3
@@ -2765,9 +2759,6 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 'catalog:'
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2783,9 +2774,6 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.13.1
-      ts-pattern:
-        specifier: 'catalog:'
-        version: 5.2.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8
@@ -3889,9 +3877,6 @@ importers:
 
   packages/m2m-event-db-models:
     dependencies:
-      dotenv-flow:
-        specifier: 'catalog:'
-        version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
