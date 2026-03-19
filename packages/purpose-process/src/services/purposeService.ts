@@ -1151,14 +1151,21 @@ export function purposeServiceBuilder(
           // tenantKind mismatch is checked only on publish (not in validateRiskAnalysisOrThrow)
           // to avoid blocking draft create/update flows.
           if (
-            riskAnalysisForm.tenantKind &&
-            riskAnalysisForm.tenantKind !== tenantKind
+            isFeatureFlagEnabled(
+              config,
+              "featureFlagTenantKindInRiskAnalysisWrite"
+            )
           ) {
-            throw riskAnalysisTenantKindMismatch(
-              riskAnalysisForm.tenantKind,
-              tenantKind,
-              purposeId
-            );
+            if (
+              riskAnalysisForm.tenantKind &&
+              riskAnalysisForm.tenantKind !== tenantKind
+            ) {
+              throw riskAnalysisTenantKindMismatch(
+                riskAnalysisForm.tenantKind,
+                tenantKind,
+                purposeId
+              );
+            }
           }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:

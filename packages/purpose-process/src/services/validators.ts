@@ -3,6 +3,7 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -32,6 +33,7 @@ import {
   TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -74,8 +76,10 @@ export const isRiskAnalysisFormValid = (
   if (riskAnalysisForm === undefined) {
     return false;
   }
-  if (!isTenantKindMatching(riskAnalysisForm.tenantKind, tenantKind)) {
-    return false;
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")) {
+    if (!isTenantKindMatching(riskAnalysisForm.tenantKind, tenantKind)) {
+      return false;
+    }
   }
   return (
     validateRiskAnalysis(
