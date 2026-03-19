@@ -1626,7 +1626,7 @@ paths:
       tags:
         - clients
       summary: Create a new consumer client
-      description: Create a new consumer client
+      description: Create a new consumer client for the requester's organization.
       operationId: createClient
       requestBody:
         required: true
@@ -1656,6 +1656,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
@@ -11025,8 +11027,12 @@ components:
       properties:
         name:
           type: string
+          minLength: 5
+          maxLength: 60
         description:
           type: string
+          minLength: 10
+          maxLength: 250
         members:
           type: array
           items:
