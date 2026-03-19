@@ -451,8 +451,7 @@ describe("upload Document", () => {
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType:
-        EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
+      messageType: EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
       payload: writtenEvent.data,
     });
 
@@ -606,9 +605,7 @@ describe("upload Document", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(
-      featureFlagNotEnabled("featureFlagAsyncExchange")
-    );
+    ).rejects.toThrowError(featureFlagNotEnabled("featureFlagAsyncExchange"));
 
     config.featureFlagAsyncExchange = true;
   });
