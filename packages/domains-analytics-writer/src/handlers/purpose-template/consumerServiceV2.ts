@@ -11,14 +11,12 @@ import { z } from "zod";
 import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../../db/db.js";
 import {
-  PurposeTemplateDeletingSchema,
   PurposeTemplateItemsSchema,
-} from "../../model/purposeTemplate/purposeTemplate.js";
-import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
-import {
-  PurposeTemplateEServiceDescriptorDeletingSchema,
   PurposeTemplateEServiceDescriptorSchema,
-} from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+} from "pagopa-interop-kpi-models";
+import { PurposeTemplateDeletingSchema } from "../../model/purposeTemplate/purposeTemplate.js";
+import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 
 export async function handlePurposeTemplateMessageV2(
   messages: PurposeTemplateEventEnvelope[],

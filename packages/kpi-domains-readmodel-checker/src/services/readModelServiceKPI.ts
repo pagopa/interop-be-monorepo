@@ -28,19 +28,19 @@ import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
 import camelcaseKeys from "camelcase-keys";
 import { config } from "../configs/config.js";
-import { TenantDbTable } from "../model/db/tenant.js";
-import { AgreementDbTable } from "../model/db/agreement.js";
-import { AttributeDbTable } from "../model/db/attribute.js";
 import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
   ClientDbTable,
   ProducerKeychainDbTable,
-} from "../model/db/authorization.js";
-import { CatalogDbTable } from "../model/db/catalog.js";
-import { DelegationDbTable } from "../model/db/delegation.js";
-import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
-import { PurposeDbTable } from "../model/db/purpose.js";
+  DelegationDbTable,
+  EserviceTemplateDbTable,
+  PurposeDbTable,
+  PurposeTemplateDbTable,
+  TenantDbTable,
+} from "pagopa-interop-kpi-models";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
-import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
 
 type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {

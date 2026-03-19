@@ -6,13 +6,14 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
-
-import { PurposeTemplateSchema } from "../purposeTemplate/purposeTemplate.js";
-import { PurposeTemplateRiskAnalysisFormSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisForm.js";
-import { PurposeTemplateRiskAnalysisAnswerSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
-import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
-import { PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
-import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import {
+  PurposeTemplateSchema,
+  PurposeTemplateRiskAnalysisFormSchema,
+  PurposeTemplateRiskAnalysisAnswerSchema,
+  PurposeTemplateRiskAnalysisAnswerAnnotationSchema,
+  PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
+  PurposeTemplateEServiceDescriptorSchema,
+} from "pagopa-interop-kpi-models";
 
 export const PurposeTemplateDbTableConfig = {
   purpose_template: PurposeTemplateSchema,

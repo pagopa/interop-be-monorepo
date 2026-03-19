@@ -9,15 +9,17 @@ import {
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { EserviceSchema } from "../catalog/eservice.js";
-import { EserviceDescriptorSchema } from "../catalog/eserviceDescriptor.js";
-import { EserviceDescriptorAttributeSchema } from "../catalog/eserviceDescriptorAttribute.js";
-import { EserviceDescriptorDocumentSchema } from "../catalog/eserviceDescriptorDocument.js";
-import { EserviceDescriptorInterfaceSchema } from "../catalog/eserviceDescriptorInterface.js";
-import { EserviceDescriptorRejectionReasonSchema } from "../catalog/eserviceDescriptorRejection.js";
-import { EserviceDescriptorTemplateVersionRefSchema } from "../catalog/eserviceDescriptorTemplateVersionRef.js";
-import { EserviceRiskAnalysisSchema } from "../catalog/eserviceRiskAnalysis.js";
-import { EserviceRiskAnalysisAnswerSchema } from "../catalog/eserviceRiskAnalysisAnswer.js";
+import {
+  EserviceSchema,
+  EserviceDescriptorSchema,
+  EserviceDescriptorAttributeSchema,
+  EserviceDescriptorDocumentSchema,
+  EserviceDescriptorInterfaceSchema,
+  EserviceDescriptorRejectionReasonSchema,
+  EserviceDescriptorTemplateVersionRefSchema,
+  EserviceRiskAnalysisSchema,
+  EserviceRiskAnalysisAnswerSchema,
+} from "pagopa-interop-kpi-models";
 
 export const CatalogDbTableConfig = {
   eservice: EserviceSchema,

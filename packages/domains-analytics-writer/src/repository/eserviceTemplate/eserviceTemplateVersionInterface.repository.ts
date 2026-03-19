@@ -10,7 +10,7 @@ import {
 import { config } from "../../config/config.js";
 
 import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateVersionInterfaceSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
+import { EserviceTemplateVersionInterfaceSchema } from "pagopa-interop-kpi-models";
 
 export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

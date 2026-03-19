@@ -10,10 +10,8 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 import { splitEServiceTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDeletingSchema,
-} from "../../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateServiceBuilder } from "../../service/eserviceTemplateService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 

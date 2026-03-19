@@ -10,7 +10,7 @@ import {
 import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeDbTable } from "../../model/db/purpose.js";
-import { PurposeVersionSignedDocumentSchema } from "../../model/purpose/purposeVersionSignedDocument.js";
+import { PurposeVersionSignedDocumentSchema } from "pagopa-interop-kpi-models";
 
 export function purposeVersionSignedDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

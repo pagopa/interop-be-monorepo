@@ -8,7 +8,7 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { TenantFeatureSchema } from "../../model/tenant/tenantFeature.js";
+import { TenantFeatureSchema } from "pagopa-interop-kpi-models";
 import { TenantDbTable } from "../../model/db/index.js";
 
 export function tenantFeatureRepository(conn: DBConnection) {
