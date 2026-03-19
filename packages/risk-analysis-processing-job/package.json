@@ -26,8 +26,6 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "catalog:",
-    "@aws-sdk/util-dynamodb": "catalog:",
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "json-diff": "catalog:",

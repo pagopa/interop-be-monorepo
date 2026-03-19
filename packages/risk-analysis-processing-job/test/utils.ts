@@ -1,10 +1,7 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
+import { Client, EService, Purpose } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  upsertAgreement,
-  upsertClient,
   upsertEService,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
@@ -29,22 +26,10 @@ if (!config) {
 
 export const readModelService = readModelServiceBuilderSQL(readModelDB);
 
-export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-});
-
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
-};
-
-export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await upsertAgreement(readModelDB, agreement, 0);
-};
-
-export const addOneClient = async (client: Client): Promise<void> => {
-  await upsertClient(readModelDB, client, 0);
 };
