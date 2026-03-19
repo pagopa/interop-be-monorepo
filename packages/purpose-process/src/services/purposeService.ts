@@ -412,22 +412,8 @@ export function purposeServiceBuilder(
 
       const createdEvent = await repository.createEvent(event);
 
-      const eservice = await retrieveEService(
-        updatedPurpose.eserviceId,
-        readModelService
-      );
-      const isRiskAnalysisValid = purposeIsDraft(updatedPurpose)
-        ? isRiskAnalysisFormValid(
-            updatedPurpose.riskAnalysisForm,
-            false,
-            historyKind,
-            updatedPurpose.createdAt,
-            eservice.personalData
-          )
-        : true;
-
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid },
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
         metadata: { version: createdEvent.newVersion },
       };
     },
