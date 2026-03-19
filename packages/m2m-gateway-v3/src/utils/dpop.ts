@@ -91,8 +91,6 @@ export const verifyDPoPCompliance = async ({
     );
   }
 
-  logger.info(`[DPOPJTI=${validatedJWT.payload.jti}] - DPoP proof validated`);
-
   // ----------------------------------------------------------------------
   // Step 3: Key Binding Verification (Thumbprint Match)
   // ----------------------------------------------------------------------
@@ -126,4 +124,6 @@ export const verifyDPoPCompliance = async ({
     );
     throw dpopProofJtiAlreadyUsed(validatedJWT.payload.jti);
   }
+
+  logger.info(`[DPOPJTI=${validatedJWT.payload.jti}] - DPoP proof validated`);
 };
