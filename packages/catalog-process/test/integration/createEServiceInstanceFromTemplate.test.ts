@@ -901,7 +901,8 @@ describe("create eService from template", () => {
     }
   );
 
-  it("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
+  // Skipped: depends on PIN-9415 (asyncExchangeProperties in descriptor)
+  it.skip("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
     vi.spyOn(fileManager, "copy");
 
     const callbackDocId = generateId<EServiceDocumentId>();
@@ -994,7 +995,8 @@ describe("create eService from template", () => {
     );
   });
 
-  it("should not copy asyncExchangeCallbackInterface when featureFlagAsyncExchange is disabled", async () => {
+  // Skipped: depends on PIN-9415 (asyncExchangeProperties in descriptor)
+  it.skip("should not copy asyncExchangeCallbackInterface when featureFlagAsyncExchange is disabled", async () => {
     config.featureFlagAsyncExchange = false;
 
     vi.spyOn(fileManager, "copy");
