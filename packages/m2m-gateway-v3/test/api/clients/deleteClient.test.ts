@@ -2,9 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 
 describe("DELETE /clients/:clientId router test", () => {
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -46,5 +47,21 @@ describe("DELETE /clients/:clientId router test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, generateId());
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 500 in case of pollingMaxRetriesExceeded error", async () => {
+    mockClientService.deleteClient = vi
+      .fn()
+      .mockRejectedValue(
+        pollingMaxRetriesExceeded(
+          config.defaultPollingMaxRetries,
+          config.defaultPollingRetryDelay
+        )
+      );
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
+
+    expect(res.status).toBe(500);
   });
 });
