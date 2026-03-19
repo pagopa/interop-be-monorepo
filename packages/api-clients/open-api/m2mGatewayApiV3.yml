@@ -11031,8 +11031,12 @@ components:
       properties:
         name:
           type: string
+          minLength: 5
+          maxLength: 60
         description:
           type: string
+          minLength: 10
+          maxLength: 250
         members:
           type: array
           items:
