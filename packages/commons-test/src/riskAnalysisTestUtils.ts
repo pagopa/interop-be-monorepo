@@ -392,7 +392,10 @@ export const getMockExpiredRiskAnalysis = (
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskAnalysis1_0_Private_Expired,
+        {
+          ...validatedRiskAnalysis1_0_Private_Expired,
+          tenantKind: producerTenantKind,
+        },
         generateMock(z.string())
       )
     )
