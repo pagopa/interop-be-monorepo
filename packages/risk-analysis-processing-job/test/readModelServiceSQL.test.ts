@@ -1,10 +1,19 @@
 import {
   getMockEService,
+  getMockPurpose,
   getMockValidRiskAnalysis,
+  getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { EService, tenantKind } from "pagopa-interop-models";
+import {
+  EService,
+  generateId,
+  Purpose,
+  PurposeRiskAnalysisForm,
+  RiskAnalysisId,
+  tenantKind,
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { addOneEService, readModelService } from "./utils.js";
+import { addOneEService, addOnePurpose, readModelService } from "./utils.js";
 
 describe("eservices", () => {
   it("gets all eservice RAs with empty tenant kinds", async () => {
@@ -31,6 +40,41 @@ describe("eservices", () => {
 
     const RAs =
       await readModelService.getAllReadModelEServicesWithEmptyTenantKindRAs();
+
+    expect(RAs).toHaveLength(1);
+  });
+});
+
+describe("purposes", () => {
+  it("gets all purpose RAs with empty tenant kinds", async () => {
+    const purposeRiskAnalysisFormWithoutTK: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      riskAnalysisId: generateId<RiskAnalysisId>(),
+    };
+
+    delete purposeRiskAnalysisFormWithoutTK.tenantKind;
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: purposeRiskAnalysisFormWithoutTK,
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const safeRiskAnalysis: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      riskAnalysisId: generateId<RiskAnalysisId>(),
+    };
+
+    const mockPurpose2: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: safeRiskAnalysis,
+    };
+
+    await addOnePurpose(mockPurpose2);
+
+    const RAs =
+      await readModelService.getAllReadModelPurposesWithoutTenantKind();
 
     expect(RAs).toHaveLength(1);
   });

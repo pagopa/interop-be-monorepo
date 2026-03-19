@@ -1,5 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { Client, EService, Purpose } from "pagopa-interop-models";
+import { EService, Purpose } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   upsertEService,

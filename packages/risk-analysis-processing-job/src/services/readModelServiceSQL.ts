@@ -14,10 +14,6 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeVersionDocumentInReadmodelPurpose,
-  purposeVersionInReadmodelPurpose,
-  purposeVersionSignedDocumentInReadmodelPurpose,
-  purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -56,29 +52,24 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         .where(
           or(
             isNull(eserviceRiskAnalysisInReadmodelCatalog.tenantKind),
-            eq(eserviceRiskAnalysisInReadmodelCatalog.tenantKind, '')
+            eq(eserviceRiskAnalysisInReadmodelCatalog.tenantKind, "")
           )
         );
 
       return aggregateEserviceArray(
-        toEServiceAggregatorArray(queryResult as Parameters<typeof toEServiceAggregatorArray>[0])
-      ).map(
-        (e) => e.data
-      );
+        toEServiceAggregatorArray(
+          queryResult as Parameters<typeof toEServiceAggregatorArray>[0]
+        )
+      ).map((e) => e.data);
     },
 
-    async getAllReadModelPurposes(): Promise<Purpose[]> {
+    async getAllReadModelPurposesWithoutTenantKind(): Promise<Purpose[]> {
       const queryResult = await readModelDB
         .select({
           purpose: purposeInReadmodelPurpose,
           purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
           purposeRiskAnalysisAnswer:
             purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-          purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
-          purposeVersionSignedDocument:
-            purposeVersionSignedDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -101,38 +92,18 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             )
           )
         )
-        .leftJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionStampInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionStampInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .leftJoin(
-          purposeVersionSignedDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+        .where(
+          or(
+            isNull(purposeRiskAnalysisFormInReadmodelPurpose.tenantKind),
+            eq(purposeRiskAnalysisFormInReadmodelPurpose.tenantKind, "")
           )
         );
 
-      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult)).map(
-        (p) => p.data
-      );
+      return aggregatePurposeArray(
+        toPurposeAggregatorArray(
+          queryResult as Parameters<typeof toPurposeAggregatorArray>[0]
+        )
+      ).map((p) => p.data);
     },
   };
 }
