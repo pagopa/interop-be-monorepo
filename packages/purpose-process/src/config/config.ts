@@ -7,7 +7,7 @@ import {
   ReadModelSQLDbConfig,
   FeatureFlagPurposesProcessContractBuilderConfig,
   FeatureFlagPurposeTemplateConfig,
-  FeatureFlagTenantKindInRiskAnalysisWriteConfig,
+  FeatureFlagTenantKindInRiskAnalysisConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -16,7 +16,7 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(FeatureFlagPurposesProcessContractBuilderConfig)
-  .and(FeatureFlagTenantKindInRiskAnalysisWriteConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
     z
       .object({

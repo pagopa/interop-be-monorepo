@@ -12,7 +12,6 @@ import {
   EServiceMode,
 } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
-import { TenantKind } from "../tenant/tenant.js";
 
 export const eserviceTemplateVersionState = {
   draft: "Draft",
@@ -50,13 +49,6 @@ export const EServiceTemplateVersion = z.object({
 });
 export type EServiceTemplateVersion = z.infer<typeof EServiceTemplateVersion>;
 
-export const EServiceTemplateRiskAnalysis = RiskAnalysis.and(
-  z.object({ tenantKind: TenantKind })
-);
-export type EServiceTemplateRiskAnalysis = z.infer<
-  typeof EServiceTemplateRiskAnalysis
->;
-
 export const EServiceTemplate = z.object({
   id: EServiceTemplateId,
   creatorId: TenantId,
@@ -68,7 +60,7 @@ export const EServiceTemplate = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  riskAnalysis: z.array(EServiceTemplateRiskAnalysis),
+  riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   personalData: z.boolean().optional(),
 
