@@ -46,12 +46,12 @@ const handler = async (messagePayload: Message): Promise<void> => {
 
 await queueManager.runConsumer(
   handler,
-  logger({ serviceName: "signed-object-persister" }),
+  logger({ serviceName: "signed-objects-persister" }),
   {
     queueUrl: config.consumerQueueUrl,
     maxNumberOfMessages: config.maxNumberOfMessages,
     waitTimeSeconds: config.waitTimeSeconds,
     visibilityTimeout: config.visibilityTimeout,
-    serviceName: "signed-object-persister",
+    serviceName: "signed-objects-persister",
   }
 );

@@ -246,7 +246,7 @@ export const sqsMessageHandler = async (
   refreshableToken: RefreshableInteropToken
 ): Promise<void> => {
   const logInstance: Logger = logger({
-    serviceName: "signed-object-persister",
+    serviceName: "signed-objects-persister",
   });
 
   try {
