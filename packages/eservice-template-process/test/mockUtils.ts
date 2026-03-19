@@ -24,13 +24,17 @@ import {
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-  tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!,
-});
+  );
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: { version, answers },
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!,
+  };
+};
 
 export const eserviceTemplateToApiEServiceTemplateSeed = (
   eserviceTemplate: EServiceTemplate
