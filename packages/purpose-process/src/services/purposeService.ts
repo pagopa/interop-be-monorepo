@@ -1931,7 +1931,7 @@ export function purposeServiceBuilder(
 
       const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
         eservice,
-        authData.organizationId,
+        purpose.data.consumerId,
         readModelService
       );
 
