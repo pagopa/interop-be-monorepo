@@ -235,8 +235,8 @@ export function assertRiskAnalysisIsValidForPublication(
         throw riskAnalysisTenantKindMismatch(
           actualTenantKind,
           tenantKind,
-          riskAnalysis.id,
-          eservice.id
+          eservice.id,
+          riskAnalysis.id
         );
       }
     }

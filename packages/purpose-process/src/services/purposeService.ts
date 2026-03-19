@@ -1163,7 +1163,8 @@ export function purposeServiceBuilder(
               throw riskAnalysisTenantKindMismatch(
                 riskAnalysisForm.tenantKind,
                 tenantKind,
-                purposeId
+                purposeId,
+                riskAnalysisForm.id
               );
             }
           }

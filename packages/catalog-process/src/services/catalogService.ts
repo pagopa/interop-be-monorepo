@@ -2287,8 +2287,8 @@ export function catalogServiceBuilder(
           throw riskAnalysisTenantKindMismatch(
             actualTenantKind,
             tenant.kind,
-            riskAnalysisToUpdate.id,
-            eservice.data.id
+            eservice.data.id,
+            riskAnalysisToUpdate.id
           );
         }
       }
