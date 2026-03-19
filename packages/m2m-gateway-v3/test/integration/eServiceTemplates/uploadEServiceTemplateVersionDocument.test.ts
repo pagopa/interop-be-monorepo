@@ -113,9 +113,9 @@ describe("uploadEServiceTemplateVersionDocument", () => {
         config.eserviceTemplateDocumentsContainer,
         genericLogger
       )
-    ).toEqual([matchExpectedPath]);
+    ).toStrictEqual([matchExpectedPath]);
 
-    expect(result).toEqual(m2mEServiceDocumentResponse);
+    expect(result).toStrictEqual(m2mEServiceDocumentResponse);
 
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:

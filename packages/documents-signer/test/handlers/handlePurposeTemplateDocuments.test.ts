@@ -4,6 +4,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { genericInternalError } from "pagopa-interop-models";
 import { handlePurposeTemplateDocument } from "../../src/handlers/handlePurposeTemplateDocument.js";
 import { calculateSha256Base64 } from "../../src/utils/checksum.js";
+import {
+  makePurposeTemplate,
+  makePurposeTemplatePublishedEvent,
+  makeRiskAnalysisTemplateDocumentGeneratedEvent,
+} from "../purposeTemplateTestUtils.js";
 
 vi.mock("../../src/utils/checksum.js", () => ({
   calculateSha256Base64: vi.fn().mockResolvedValue("fake-checksum"),
@@ -14,6 +19,7 @@ describe("handlePurposeTemplateDocument", () => {
   const uploadUrl = "http://fake-upload-url";
   const secret = "fake-secret";
   const key = "safe-storage-key";
+  const correlationId = "test-correlation-id";
 
   let fileManagerMock: any;
   let safeStorageServiceMock: any;
@@ -33,24 +39,11 @@ describe("handlePurposeTemplateDocument", () => {
   });
 
   it("should handle RiskAnalysisTemplateDocumentGenerated with valid path", async () => {
-    const event = {
-      sequence_num: 1,
-      stream_id: "template-id",
-      version: 1,
-      log_date: new Date(),
-      correlation_id: "test-correlation-id",
-      type: "RiskAnalysisTemplateDocumentGenerated",
-      data: {
-        purposeTemplate: {
-          id: "template-id",
-          purposeRiskAnalysisForm: {
-            document: { path: "risk-analysis-template/file.pdf" },
-          },
-          createdAt: BigInt(120323424),
-        },
-      },
-      event_version: 2,
-    } as Parameters<typeof handlePurposeTemplateDocument>[0];
+    const purposeTemplate = makePurposeTemplate();
+    const event = makeRiskAnalysisTemplateDocumentGeneratedEvent({
+      purposeTemplate,
+      correlationId,
+    });
 
     await handlePurposeTemplateDocument(
       event,
@@ -75,36 +68,23 @@ describe("handlePurposeTemplateDocument", () => {
     ).toHaveBeenCalledWith(
       expect.objectContaining({
         fileKind: "RISK_ANALYSIS_TEMPLATE_DOCUMENT",
-        streamId: "template-id",
+        streamId: purposeTemplate.id,
         subObjectId: "",
         path: "risk-analysis-template/file.pdf",
         fileName: "file.pdf",
         version: 2,
-        correlationId: "test-correlation-id",
+        correlationId,
       }),
       expect.any(Object)
     );
   });
 
   it("should throw if riskAnalysis path is missing", async () => {
-    const event = {
-      sequence_num: 1,
-      stream_id: "template-id",
-      version: 1,
-      log_date: new Date(),
-      correlation_id: "test-correlation-id",
-      type: "RiskAnalysisTemplateDocumentGenerated",
-      data: {
-        purposeTemplate: {
-          id: "template-id",
-          purposeRiskAnalysisForm: {
-            document: { path: undefined },
-          },
-          createdAt: BigInt(120323424),
-        },
-      },
-      event_version: 2,
-    } as unknown as Parameters<typeof handlePurposeTemplateDocument>[0];
+    const purposeTemplate = makePurposeTemplate({ documentPath: "" });
+    const event = makeRiskAnalysisTemplateDocumentGeneratedEvent({
+      purposeTemplate,
+      correlationId,
+    });
 
     await expect(
       handlePurposeTemplateDocument(
@@ -116,7 +96,7 @@ describe("handlePurposeTemplateDocument", () => {
       )
     ).rejects.toEqual(
       genericInternalError(
-        "Handle Purpose Template Document - riskAnalysis path not found for purpose template id: template-id"
+        `Handle Purpose Template Document - riskAnalysis path not found for purpose template id: ${purposeTemplate.id}`
       )
     );
 
@@ -128,10 +108,7 @@ describe("handlePurposeTemplateDocument", () => {
   });
 
   it("should not log info for irrelevant events", async () => {
-    const event = {
-      type: "PurposeTemplatePublished",
-      data: { purposeTemplate: { id: "template-id" } },
-    } as Parameters<typeof handlePurposeTemplateDocument>[0];
+    const event = makePurposeTemplatePublishedEvent({ correlationId });
 
     await handlePurposeTemplateDocument(
       event,
