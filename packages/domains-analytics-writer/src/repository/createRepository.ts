@@ -28,13 +28,13 @@ interface RepositoryConfig<TSchema extends z.ZodRawShape> {
   keyColumns: string[];
 }
 
-export interface BaseRepository<TSchema> {
+interface BaseRepository<TSchema> {
   insert(t: ITask<unknown>, pgp: IMain, records: TSchema[]): Promise<void>;
   merge(t: ITask<unknown>): Promise<void>;
   clean(): Promise<void>;
 }
 
-export interface DeletingRepository<TDeletingSchema> {
+interface DeletingRepository<TDeletingSchema> {
   insertDeleting(
     t: ITask<unknown>,
     pgp: IMain,
