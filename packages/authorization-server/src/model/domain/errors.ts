@@ -36,6 +36,7 @@ const errorCodes = {
   producerKeychainEntryNotFound: "0025",
   catalogEntryNotFound: "0026",
   callbackInvocationTokenIssuedAtMissing: "0027",
+  resourceAvailableTimeExpired: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -302,5 +303,17 @@ export function callbackInvocationTokenIssuedAtMissing(
     detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
     code: "callbackInvocationTokenIssuedAtMissing",
     title: "Callback invocation token issued at missing",
+  });
+}
+
+export function resourceAvailableTimeExpired(
+  interactionId: InteractionId,
+  elapsedSeconds: number,
+  resourceAvailableTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Resource available time expired for interaction ${interactionId}: elapsed ${elapsedSeconds}s exceeds limit of ${resourceAvailableTime}s`,
+    code: "resourceAvailableTimeExpired",
+    title: "Resource available time expired",
   });
 }

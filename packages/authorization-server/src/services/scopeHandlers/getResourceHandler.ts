@@ -10,10 +10,12 @@ import {
   interactionIdNotProvided,
   interactionNotFound,
   interactionStateNotAllowed,
+  resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
 import {
   logTokenGenerationInfo,
   publishAudit,
+  retrieveCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
 import {
@@ -43,6 +45,7 @@ export const handleGetResource = async (
     setCtxOrganizationId,
     setCtxClientKind,
     tokenGenerator,
+    platformStatesTable,
     interactionsTable,
   } = ctx;
 
@@ -79,8 +82,32 @@ export const handleGetResource = async (
     throw callbackInvocationTokenIssuedAtMissing(interactionId);
   }
 
-  // 5. TODO: Validate asyncExchangeResourceAvailableTime once it's propagated to platform-states catalog entry
-  // Algorithm: Date.now() - Date.parse(interaction.callbackInvocationTokenIssuedAt) < catalogEntry.asyncExchangeResourceAvailableTime
+  // 5. Validate asyncExchangeResourceAvailableTime
+  const catalogEntry = await retrieveCatalogEntry(
+    dynamoDBClient,
+    interaction.eServiceId,
+    interaction.descriptorId,
+    platformStatesTable
+  );
+
+  const { asyncExchangeProperties } = catalogEntry;
+  if (!asyncExchangeProperties) {
+    throw genericInternalError(
+      `Catalog entry for eService ${interaction.eServiceId} descriptor ${interaction.descriptorId} has asyncExchange enabled but no asyncExchangeProperties`
+    );
+  }
+
+  const elapsedMs =
+    Date.now() - Date.parse(interaction.callbackInvocationTokenIssuedAt);
+  const resourceAvailableTimeMs =
+    asyncExchangeProperties.resourceAvailableTime * 1000;
+  if (elapsedMs >= resourceAvailableTimeMs) {
+    throw resourceAvailableTimeExpired(
+      interactionId,
+      elapsedMs / 1000,
+      asyncExchangeProperties.resourceAvailableTime
+    );
+  }
 
   // 6. Retrieve consumer key from token-generation-states using interaction's purposeId
   // This implicitly validates that the consumer is authorized for this interaction's purpose
