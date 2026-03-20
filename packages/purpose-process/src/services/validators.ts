@@ -62,6 +62,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
+  fallBackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): boolean => {
@@ -72,6 +73,7 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
+        fallBackTenantKind,
         dateForExpirationValidation,
         personalDataInEService
       ).type === "valid"
@@ -128,17 +130,20 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
+  fallbackTenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
+  fallbackTenantKind: TenantKind | undefined;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -153,6 +158,7 @@ export function validateRiskAnalysisOrThrow({
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
+  fallbackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -162,6 +168,7 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -743,6 +750,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
+    tenantKind,
     createdAt,
     eservicePersonalData
   );

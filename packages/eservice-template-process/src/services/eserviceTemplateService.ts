@@ -258,6 +258,7 @@ function validateRiskAnalysisSchemaOrThrow(
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
+    undefined,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -518,7 +519,10 @@ export function eserviceTemplateServiceBuilder(
       }
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
-        assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
+        assertRiskAnalysisIsValidForPublication(
+          eserviceTemplate.data,
+          undefined
+        );
       }
       if (
         isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&

@@ -24,6 +24,7 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -198,12 +199,14 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 
 export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: RiskAnalysisFormToValidate,
+  fallbackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -215,7 +218,8 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService
+  eservice: EService,
+  fallbackTenantKind: TenantKind | undefined
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
@@ -227,6 +231,7 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
+      fallbackTenantKind,
       new Date(),
       eservice.personalData
     );

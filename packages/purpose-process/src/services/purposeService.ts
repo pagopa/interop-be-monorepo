@@ -342,6 +342,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
       await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
@@ -353,6 +358,7 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
+            tenantKind,
             purpose.data.createdAt,
             eservice.personalData
           )
@@ -950,10 +956,16 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
+            tenantKind,
             new Date(),
             eservice.personalData
           )
@@ -1114,6 +1126,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
       if (
         isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
         purpose.data.purposeTemplateId
@@ -1136,6 +1153,7 @@ export function purposeServiceBuilder(
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
+            fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1392,6 +1410,7 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         riskAnalysisFormToValidate,
         false,
+        tenantKindToWriteInRA,
         createdAt,
         eservice.personalData
       );
@@ -1609,13 +1628,17 @@ export function purposeServiceBuilder(
       };
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
+      const tenantKind = await retrieveTenantKind(
+        clonedPurpose.consumerId,
+        readModelService
+      );
       const isRiskAnalysisValid = clonedRiskAnalysisForm
         ? validateRiskAnalysis(
             riskAnalysisFormToRiskAnalysisFormToValidate(
               clonedRiskAnalysisForm
             ),
             false,
+            tenantKind,
             currentDate,
             eservice.personalData
           ).type === "valid"
@@ -2157,6 +2180,7 @@ const performUpdatePurpose = async (
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
+            tenantKindToWriteInRA,
             new Date(),
             eservice.personalData
           );
@@ -2203,6 +2227,7 @@ const performUpdatePurpose = async (
       isRiskAnalysisValid: isRiskAnalysisFormValid(
         updatedPurpose.riskAnalysisForm,
         false,
+        tenantKindToWriteInRA,
         new Date(),
         eservice.personalData
       ),
