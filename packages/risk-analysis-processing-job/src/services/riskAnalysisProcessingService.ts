@@ -1,6 +1,6 @@
 import { CorrelationId } from "pagopa-interop-models";
-import type { catalogApi } from "pagopa-interop-api-clients";
-import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import type { catalogApi, purposeApi } from "pagopa-interop-api-clients";
+import { RefreshableInteropToken } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -13,18 +13,24 @@ const getHeaders = (correlationId: CorrelationId, token: string) => ({
 export function riskAnalysisProcessingServiceBuilder(
   readModelService: ReadModelServiceSQL,
   catalogProcessClient: catalogApi.CatalogProcessClient,
+  purposeProcessClient: purposeApi.PurposeProcessClient,
   refreshableToken: RefreshableInteropToken,
-  logger: Logger,
   correlationId: CorrelationId
 ) {
   return {
-    async processEServiceRiskAnalyses(): Promise<void> {
+    async processEServiceRiskAnalyses(): Promise<{
+      processed: {
+        eservices: number;
+        riskAnalyses: number;
+      };
+    }> {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
 
       const eservices =
         await readModelService.getAllReadModelEServicesWithEmptyTenantKindRAs();
 
+      let riskAnalysisCount = 0;
       for (const singleEService of eservices) {
         for (const riskAnalysis of singleEService.riskAnalysis) {
           await catalogProcessClient.fixEServiceRiskAnalysisTenantKind(
@@ -37,8 +43,41 @@ export function riskAnalysisProcessingServiceBuilder(
               },
             }
           );
+
+          riskAnalysisCount += 1;
         }
       }
+
+      return {
+        processed: {
+          eservices: eservices.length,
+          riskAnalyses: riskAnalysisCount,
+        },
+      };
+    },
+    async processPurposeRiskAnalyses(): Promise<{
+      processed: {
+        riskAnalyses: number;
+      };
+    }> {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      const purposes =
+        await readModelService.getAllReadModelPurposesWithoutTenantKind();
+
+      for (const singlePurpose of purposes) {
+        await purposeProcessClient.fixPurposeRiskAnalysisTenantKind(undefined, {
+          headers,
+          params: {
+            purposeId: singlePurpose.id,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            riskAnalysisId: singlePurpose.riskAnalysisForm!.id,
+          },
+        });
+      }
+
+      return { processed: { riskAnalyses: purposes.length } };
     },
   };
 }

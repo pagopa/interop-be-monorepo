@@ -1,5 +1,6 @@
 import {
   getMockValidRiskAnalysis,
+  getMockValidRiskAnalysisForm,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import { EService, Purpose, tenantKind } from "pagopa-interop-models";
@@ -41,4 +42,10 @@ export const mockRiskAnalysisWithoutTenantKind = () => {
   const mockedRA = getMockValidRiskAnalysis(tenantKind.PA);
   delete mockedRA.riskAnalysisForm.tenantKind;
   return mockedRA;
+};
+
+export const mockRiskAnalysisFormWithoutTenantKind = () => {
+  const mockedRAForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+  delete mockedRAForm.tenantKind;
+  return mockedRAForm;
 };

@@ -1,6 +1,6 @@
-import { catalogApi } from "pagopa-interop-api-clients";
-import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId, generateId } from "pagopa-interop-models";
+import { catalogApi, purposeApi } from "pagopa-interop-api-clients";
+import { RefreshableInteropToken } from "pagopa-interop-commons";
+import { CorrelationId, generateId, Purpose } from "pagopa-interop-models";
 import {
   describe,
   beforeAll,
@@ -15,16 +15,19 @@ import { getInteropBeClients } from "../src/clients/clientsProvider.js";
 import { riskAnalysisProcessingServiceBuilder } from "../src/services/riskAnalysisProcessingService.js";
 import {
   addOneEService,
+  addOnePurpose,
+  mockRiskAnalysisFormWithoutTenantKind,
   mockRiskAnalysisWithoutTenantKind,
   readModelService,
 } from "./utils.js";
-import { getMockEService } from "pagopa-interop-commons-test";
+import { getMockEService, getMockPurpose } from "pagopa-interop-commons-test";
 
 describe("riskAnalysisProcessingService", () => {
   const testCorrelationId: CorrelationId = generateId();
   const testToken = "mockToken";
 
   let catalogProcessClient: catalogApi.CatalogProcessClient;
+  let purposeProcessClient: purposeApi.PurposeProcessClient;
   let mockRefreshableToken: RefreshableInteropToken;
 
   type MockedFixEServiceRiskAnalysisTenantKind = {
@@ -35,18 +38,29 @@ describe("riskAnalysisProcessingService", () => {
     };
   };
 
+  type MockedFixPurposeRiskAnalysisTenantKind = {
+    mock: {
+      calls: Parameters<
+        typeof purposeProcessClient.fixPurposeRiskAnalysisTenantKind
+      >[];
+    };
+  };
+
   beforeAll(async () => {
     mockRefreshableToken = {
       get: () => Promise.resolve({ serialized: testToken }),
     } as unknown as RefreshableInteropToken;
 
-    catalogProcessClient = getInteropBeClients().catalogProcess.client;
+    const clients = getInteropBeClients();
+
+    catalogProcessClient = clients.catalogProcess.client;
+    purposeProcessClient = clients.purposeProcess.client;
   });
 
   beforeEach(async () => {
     // eslint-disable-next-line functional/immutable-data
     catalogProcessClient.fixEServiceRiskAnalysisTenantKind = vi.fn();
-    //TODO: catalogProcessClient.fixPurposeRiskAnalysisTenantKind = vi.fn();
+    purposeProcessClient.fixPurposeRiskAnalysisTenantKind = vi.fn();
   });
 
   afterEach(async () => {
@@ -57,8 +71,8 @@ describe("riskAnalysisProcessingService", () => {
     const riskAnalysisProcessingService = riskAnalysisProcessingServiceBuilder(
       readModelService,
       catalogProcessClient,
+      purposeProcessClient,
       mockRefreshableToken,
-      genericLogger,
       testCorrelationId
     );
 
@@ -101,6 +115,55 @@ describe("riskAnalysisProcessingService", () => {
           (couple) =>
             // [0]body, [1]params
             couple.eService === call[1].params.eServiceId &&
+            couple.riskAnalysis === call[1].params.riskAnalysisId
+        )
+      ).toBeTruthy();
+    });
+  });
+
+  it("calls fix endpoint for each purpose risk analysis", async () => {
+    const riskAnalysisProcessingService = riskAnalysisProcessingServiceBuilder(
+      readModelService,
+      catalogProcessClient,
+      purposeProcessClient,
+      mockRefreshableToken,
+      testCorrelationId
+    );
+
+    const testPurposes: Purpose[] = [
+      {
+        ...getMockPurpose(),
+        riskAnalysisForm: mockRiskAnalysisFormWithoutTenantKind(),
+      },
+      {
+        ...getMockPurpose(),
+        riskAnalysisForm: mockRiskAnalysisFormWithoutTenantKind(),
+      },
+    ];
+
+    const RAids = testPurposes.flatMap((p) => ({
+      riskAnalysis: p.riskAnalysisForm!.id,
+      purpose: p.id,
+    }));
+
+    for (const purpose of testPurposes) {
+      await addOnePurpose(purpose);
+    }
+
+    await riskAnalysisProcessingService.processPurposeRiskAnalyses();
+
+    expect(
+      purposeProcessClient.fixPurposeRiskAnalysisTenantKind
+    ).toHaveBeenCalledTimes(RAids.length);
+
+    (
+      purposeProcessClient.fixPurposeRiskAnalysisTenantKind as unknown as MockedFixPurposeRiskAnalysisTenantKind
+    ).mock.calls.forEach((call) => {
+      expect(
+        RAids.some(
+          (couple) =>
+            // [0]body, [1]params
+            couple.purpose === call[1].params.purposeId &&
             couple.riskAnalysis === call[1].params.riskAnalysisId
         )
       ).toBeTruthy();
