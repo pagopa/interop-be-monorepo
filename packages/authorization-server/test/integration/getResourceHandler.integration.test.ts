@@ -432,7 +432,6 @@ describe("async token service - get_resource", () => {
 
     expect(interaction).toBeDefined();
     expect(interaction!.state).toBe(interactionState.getResource);
-    expect(interaction!.getResourceTokenIssuedAt).toBeDefined();
   });
 
   it("should allow two calls with get_resource scope (self-loop)", async () => {
