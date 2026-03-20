@@ -9,6 +9,7 @@ import {
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockValidRiskAnalysisFormTemplate,
+  sortBy,
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
@@ -27,6 +28,7 @@ import { config } from "../../src/config/config.js";
 import {
   addOnePurposeTemplate,
   fileManager,
+  protobufCleanUndefined,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
@@ -35,7 +37,6 @@ import {
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
@@ -148,8 +149,19 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       },
     };
 
+    const expectedPurposeTemplateV2 = protobufCleanUndefined(
+      toPurposeTemplateV2(expectedPurposeTemplate)
+    );
+
+    annotationDocumentDeletionPayload.purposeTemplate?.purposeRiskAnalysisForm?.multiAnswers?.sort(
+      sortBy((a: { key: string }) => a.key)
+    );
+    expectedPurposeTemplateV2.purposeRiskAnalysisForm?.multiAnswers?.sort(
+      sortBy((a: { key: string }) => a.key)
+    );
+
     expect(annotationDocumentDeletionPayload).toEqual({
-      purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      purposeTemplate: expectedPurposeTemplateV2,
       documentId: annotationDocument1.id,
     });
 
@@ -187,7 +199,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(purposeTemplate);
@@ -202,7 +214,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           }),
         }
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis template", async () => {

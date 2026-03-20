@@ -33,7 +33,7 @@ export const DigestTrackingDbConfig = z
 export type DigestTrackingDbConfig = z.infer<typeof DigestTrackingDbConfig>;
 
 // Config for digest frequency
-export const DigestFrequencyConfig = z
+const DigestFrequencyConfig = z
   .object({
     DIGEST_FREQUENCY_HOURS: z.coerce.number().min(1).default(168),
   })
@@ -41,10 +41,10 @@ export const DigestFrequencyConfig = z
     digestFrequencyHours: c.DIGEST_FREQUENCY_HOURS,
   }));
 
-export type DigestFrequencyConfig = z.infer<typeof DigestFrequencyConfig>;
+type DigestFrequencyConfig = z.infer<typeof DigestFrequencyConfig>;
 
 // Config for BFF URL
-export const BffUrlConfig = z
+const BffUrlConfig = z
   .object({
     BFF_URL: z.string().url(),
   })
@@ -52,10 +52,10 @@ export const BffUrlConfig = z
     bffUrl: c.BFF_URL,
   }));
 
-export type BffUrlConfig = z.infer<typeof BffUrlConfig>;
+type BffUrlConfig = z.infer<typeof BffUrlConfig>;
 
 // Config for priority producer IDs (comma-separated list of tenant UUIDs)
-export const PriorityProducerIdsConfig = z
+const PriorityProducerIdsConfig = z
   .object({
     PRIORITY_PRODUCER_IDS: z.string().optional(),
   })
@@ -64,13 +64,9 @@ export const PriorityProducerIdsConfig = z
       c.PRIORITY_PRODUCER_IDS?.split(",").map((id) => id.trim()) ?? [],
   }));
 
-export type PriorityProducerIdsConfig = z.infer<
-  typeof PriorityProducerIdsConfig
->;
+type PriorityProducerIdsConfig = z.infer<typeof PriorityProducerIdsConfig>;
 
-export const EmailNotificationDigestConfig = LoggerConfig.and(
-  ReadModelSQLDbConfig
-)
+const EmailNotificationDigestConfig = LoggerConfig.and(ReadModelSQLDbConfig)
   .and(KafkaProducerConfig)
   .and(EmailDispatchTopicConfig)
   .and(DigestTrackingDbConfig)
@@ -78,7 +74,7 @@ export const EmailNotificationDigestConfig = LoggerConfig.and(
   .and(BffUrlConfig)
   .and(PriorityProducerIdsConfig);
 
-export type EmailNotificationDigestConfig = z.infer<
+type EmailNotificationDigestConfig = z.infer<
   typeof EmailNotificationDigestConfig
 >;
 

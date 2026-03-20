@@ -1,4 +1,4 @@
-import { PurposeEventEnvelopeV2, NewNotification } from "pagopa-interop-models";
+import { PurposeEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -10,11 +10,15 @@ import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToCons
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
-  decodedMessage: PurposeEventEnvelopeV2,
+  decodedMessage: PurposeEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union(

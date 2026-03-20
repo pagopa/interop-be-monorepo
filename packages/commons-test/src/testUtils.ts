@@ -246,6 +246,7 @@ export const getMockEService = (
   riskAnalysis: [],
   mode: "Deliver",
   ...(templateId && { templateId }),
+  ...(templateId && { instanceLabel: "instance 001" }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -330,9 +331,27 @@ export const getMockAgreement = (
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
   id: AttributeId = generateId()
+): Attribute => {
+  if (kind === attributeKind.certified) {
+    return getMockCertifiedAttribute(kind, id);
+  }
+  return {
+    id,
+    name: generateMock(z.string()),
+    kind,
+    description: "attribute description",
+    creationTime: new Date(),
+  };
+};
+
+export const getMockCertifiedAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: "attribute name",
+  name: `${generateMock(z.string())}-${generateId()}`,
+  code: generateId(),
+  origin: generateId(),
   kind,
   description: "attribute description",
   creationTime: new Date(),
