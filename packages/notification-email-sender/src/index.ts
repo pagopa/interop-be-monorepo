@@ -240,7 +240,8 @@ export async function handlePurposeMessage(
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "PurposeRiskAnalysisFixed"
         ),
       },
       () => {
