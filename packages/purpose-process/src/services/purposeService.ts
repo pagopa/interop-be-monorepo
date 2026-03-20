@@ -14,6 +14,7 @@ import {
   Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
+  RiskAnalysisFormToValidate,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -101,6 +102,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventPurposeRiskAnalysisFixed,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -336,10 +338,10 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       await assertRequesterCanRetrievePurpose(
         purpose.data,
@@ -352,7 +354,6 @@ export function purposeServiceBuilder(
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             purpose.data.createdAt,
             eservice.personalData
           )
@@ -361,6 +362,59 @@ export function purposeServiceBuilder(
       return {
         data: { purpose: purpose.data, isRiskAnalysisValid },
         metadata: purpose.metadata,
+      };
+    },
+    async fixPurposeRiskAnalysisTenantKind(
+      purposeId: PurposeId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(
+        `Fixing Risk Analysis ${riskAnalysisId} for Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+      if (riskAnalysisForm.riskAnalysisId !== riskAnalysisId) {
+        throw eserviceRiskAnalysisNotFound(
+          purpose.data.eserviceId,
+          riskAnalysisId
+        );
+      }
+
+      const historyKind = await readModelService.getTenantKindAt(
+        purpose.data.consumerId,
+        purpose.data.createdAt
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(purpose.data.consumerId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: {
+          ...riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const event = toCreateEventPurposeRiskAnalysisFixed({
+        purpose: updatedPurpose,
+        riskAnalysisId,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async getRiskAnalysisDocument({
@@ -945,16 +999,15 @@ export function purposeServiceBuilder(
         );
       }
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
-            tenantKind,
             new Date(),
             eservice.personalData
           )
@@ -1133,15 +1186,10 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
-          const tenantKind = await retrieveTenantKind(
-            purpose.data.consumerId,
-            readModelService
-          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
-            tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1382,10 +1430,22 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      const tenantKindToWriteInRA = await retrieveTenantKind(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId),
+        readModelService
+      );
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeSeed.riskAnalysisForm
+          ? {
+              ...purposeSeed.riskAnalysisForm,
+              tenantKind: tenantKindToWriteInRA,
+            }
+          : undefined;
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        purposeSeed.riskAnalysisForm,
+        riskAnalysisFormToValidate,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService),
         createdAt,
         eservice.personalData
       );
@@ -1524,11 +1584,6 @@ export function purposeServiceBuilder(
 
       logger.info(`Cloning Purpose ${purposeId}`);
 
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
-
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterCanActAsConsumer(
@@ -1615,7 +1670,6 @@ export function purposeServiceBuilder(
               clonedRiskAnalysisForm
             ),
             false,
-            tenantKind,
             currentDate,
             eservice.personalData
           ).type === "valid"
@@ -1746,9 +1800,17 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        body.riskAnalysisForm
+          ? {
+              ...body.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
-        body.riskAnalysisForm,
+        formToValidate,
         tenantKind,
         createdAt,
         eservicePersonalData
@@ -1921,10 +1983,24 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeUpdateContent.riskAnalysisForm
+          ? {
+              ...purposeUpdateContent.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
+      const updatedRiskAnalysisForm = formToValidate
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
-            purposeUpdateContent.riskAnalysisForm,
+            formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
@@ -2119,15 +2195,27 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const tenantKindToWriteInRA = tenantKind; // TODO
+
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind: tenantKindToWriteInRA,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
-          true,
-          tenantKind,
-          new Date(),
-          eservice.personalData
-        )
+      ? (() => {
+          const validated = validateAndTransformRiskAnalysis(
+            riskAnalysisFormToValidate,
+            true,
+            new Date(),
+            eservice.personalData
+          );
+          return validated;
+        })()
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
@@ -2169,7 +2257,6 @@ const performUpdatePurpose = async (
       isRiskAnalysisValid: isRiskAnalysisFormValid(
         updatedPurpose.riskAnalysisForm,
         false,
-        tenantKind,
         new Date(),
         eservice.personalData
       ),

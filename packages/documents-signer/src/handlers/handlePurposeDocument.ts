@@ -124,7 +124,8 @@ export async function handlePurposeDocument(
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionRejected",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "PurposeRiskAnalysisFixed"
         ),
       },
       () => Promise.resolve()

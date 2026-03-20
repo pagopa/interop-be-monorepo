@@ -36,18 +36,20 @@ import {
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const formRulesForValidation = getFormRulesByVersion(
-    tenantKind,
+    riskAnalysisForm.tenantKind,
     riskAnalysisForm.version
   );
 
   if (formRulesForValidation === undefined) {
     return invalidResult([
-      rulesVersionNotFoundError(tenantKind, riskAnalysisForm.version),
+      rulesVersionNotFoundError(
+        riskAnalysisForm.tenantKind,
+        riskAnalysisForm.version
+      ),
     ]);
   }
 
@@ -56,7 +58,10 @@ export function validateRiskAnalysis(
     formRulesForValidation.expiration < dateForExpirationValidation
   ) {
     return invalidResult([
-      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
+      expiredRulesVersionError(
+        riskAnalysisForm.version,
+        riskAnalysisForm.tenantKind
+      ),
     ]);
   }
 
@@ -80,7 +85,7 @@ export function validateRiskAnalysis(
     );
 
     const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
-      Omit<RiskAnalysisValidatedForm, "version">
+      Omit<RiskAnalysisValidatedForm, "version" | "tenantKind">
     >(
       (validatedForm, answer) =>
         match(answer)
@@ -106,7 +111,7 @@ export function validateRiskAnalysis(
       .otherwise(() => undefined);
 
     const personalDataFlagValidation = validatePersonalDataFlag({
-      tenantKind,
+      tenantKind: riskAnalysisForm.tenantKind,
       version: formRulesForValidation.version,
       personalDataInRiskAnalysis,
       personalDataInEService,
@@ -119,6 +124,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
+      tenantKind: riskAnalysisForm.tenantKind,
     });
   }
 }
