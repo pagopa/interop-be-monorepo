@@ -1153,9 +1153,11 @@ export function purposeServiceBuilder(
             schemaOnlyValidation: false,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
-            tenantKind,
-            purposeId,
-            riskAnalysisFormId: riskAnalysisForm.id,
+            tenantKindCheck: {
+              tenantKind,
+              purposeId,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            },
           });
         }
       }
@@ -1968,8 +1970,13 @@ export function purposeServiceBuilder(
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData,
-            purpose.data.id,
-            purpose.data.riskAnalysisForm?.id
+            purpose.data.riskAnalysisForm
+              ? {
+                  tenantKind: purposeTemplate.targetTenantKind,
+                  purposeId: purpose.data.id,
+                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+                }
+              : undefined
           )
         : undefined;
 
@@ -2174,14 +2181,19 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
+          const tenantKindCheck = purpose.data.riskAnalysisForm
+            ? {
+                tenantKind,
+                purposeId: purpose.data.id,
+                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+              }
+            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
             new Date(),
             eservice.personalData,
-            tenantKind,
-            purpose.data.id,
-            purpose.data.riskAnalysisForm?.id
+            tenantKindCheck
           );
           return validated;
         })()
