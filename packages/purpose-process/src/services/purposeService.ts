@@ -48,6 +48,7 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   Tenant,
   TenantId,
@@ -244,6 +245,22 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const assertRiskAnalysisTenantKindMatch = (
+  actualKind: TenantKind | undefined,
+  expectedKind: TenantKind,
+  purposeId: PurposeId,
+  riskAnalysisFormId: RiskAnalysisFormId
+): void => {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      purposeId,
+      riskAnalysisFormId
+    );
+  }
 };
 
 export const retrieveActiveAgreement = async (
@@ -1156,17 +1173,12 @@ export function purposeServiceBuilder(
               "featureFlagTenantKindInRiskAnalysisWrite"
             )
           ) {
-            if (
-              riskAnalysisForm.tenantKind &&
-              riskAnalysisForm.tenantKind !== tenantKind
-            ) {
-              throw riskAnalysisTenantKindMismatch(
-                riskAnalysisForm.tenantKind,
-                tenantKind,
-                purposeId,
-                riskAnalysisForm.id
-              );
-            }
+            assertRiskAnalysisTenantKindMatch(
+              riskAnalysisForm.tenantKind,
+              tenantKind,
+              purposeId,
+              riskAnalysisForm.id
+            );
           }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
