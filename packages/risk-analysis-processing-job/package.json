@@ -33,6 +33,7 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

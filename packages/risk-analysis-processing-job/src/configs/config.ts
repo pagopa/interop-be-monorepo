@@ -1,23 +1,25 @@
 import {
   LoggerConfig,
   ReadModelSQLDbConfig,
-  TokenGenerationReadModelDbConfig,
+  TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const TokenReadModelCheckerConfig = LoggerConfig.and(ReadModelSQLDbConfig)
-  .and(TokenGenerationReadModelDbConfig)
+const RiskAnalysisProcessingJobConfig = LoggerConfig.and(ReadModelSQLDbConfig)
+  .and(TokenGenerationConfig)
   .and(
     z
       .object({
-        AGREEMENTS_TO_SKIP: z.string(),
+        CATALOG_PROCESS_URL: z.string(),
       })
       .transform((c) => ({
-        agreementsToSkip: c.AGREEMENTS_TO_SKIP.split(","),
+        catalogProcessUrl: c.CATALOG_PROCESS_URL,
       }))
   );
 
-type TokenReadModelCheckerConfig = z.infer<typeof TokenReadModelCheckerConfig>;
+type RiskAnalysisProcessingJobConfig = z.infer<
+  typeof RiskAnalysisProcessingJobConfig
+>;
 
-export const config: TokenReadModelCheckerConfig =
-  TokenReadModelCheckerConfig.parse(process.env);
+export const config: RiskAnalysisProcessingJobConfig =
+  RiskAnalysisProcessingJobConfig.parse(process.env);

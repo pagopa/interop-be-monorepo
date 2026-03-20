@@ -5390,6 +5390,9 @@ importers:
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons

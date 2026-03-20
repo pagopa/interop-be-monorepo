@@ -1,5 +1,8 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { EService, Purpose } from "pagopa-interop-models";
+import {
+  getMockValidRiskAnalysis,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import { EService, Purpose, tenantKind } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   upsertEService,
@@ -7,7 +10,7 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-const config = inject("tokenGenerationReadModelConfig");
+const config = inject("readModelSQLConfig");
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -32,4 +35,10 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
+};
+
+export const mockRiskAnalysisWithoutTenantKind = () => {
+  const mockedRA = getMockValidRiskAnalysis(tenantKind.PA);
+  delete mockedRA.riskAnalysisForm.tenantKind;
+  return mockedRA;
 };
