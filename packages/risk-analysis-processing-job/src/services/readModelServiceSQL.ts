@@ -9,7 +9,6 @@ import {
 import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
-  eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
@@ -26,7 +25,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         .select({
           eservice: eserviceInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
@@ -34,19 +32,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceInReadmodelCatalog.id,
             eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          and(
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-            ),
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
-            )
           )
         )
         .where(
