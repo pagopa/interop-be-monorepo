@@ -48,7 +48,6 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
-  RiskAnalysisFormId,
   RiskAnalysisId,
   Tenant,
   TenantId,
@@ -81,7 +80,6 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   purposeVersionStateConflict,
-  riskAnalysisTenantKindMismatch,
   riskAnalysisConfigLatestVersionNotFound,
   riskAnalysisConfigVersionNotFound,
   tenantIsNotTheConsumer,
@@ -245,22 +243,6 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
-};
-
-const assertRiskAnalysisTenantKindMatch = (
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind,
-  purposeId: PurposeId,
-  riskAnalysisFormId: RiskAnalysisFormId
-): void => {
-  if (actualKind && actualKind !== expectedKind) {
-    throw riskAnalysisTenantKindMismatch(
-      actualKind,
-      expectedKind,
-      purposeId,
-      riskAnalysisFormId
-    );
-  }
 };
 
 export const retrieveActiveAgreement = async (
@@ -1165,27 +1147,15 @@ export function purposeServiceBuilder(
             purpose.data.consumerId,
             readModelService
           );
-          // tenantKind mismatch is checked only on publish (not in validateRiskAnalysisOrThrow)
-          // to avoid blocking draft create/update flows.
-          if (
-            isFeatureFlagEnabled(
-              config,
-              "featureFlagTenantKindInRiskAnalysisWrite"
-            )
-          ) {
-            assertRiskAnalysisTenantKindMatch(
-              riskAnalysisForm.tenantKind,
-              tenantKind,
-              purposeId,
-              riskAnalysisForm.id
-            );
-          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
+            tenantKind,
+            purposeId,
+            riskAnalysisFormId: riskAnalysisForm.id,
           });
         }
       }
@@ -1997,7 +1967,9 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData
+            eservice.personalData,
+            purpose.data.id,
+            purpose.data.riskAnalysisForm?.id
           )
         : undefined;
 
@@ -2206,7 +2178,10 @@ const performUpdatePurpose = async (
             riskAnalysisFormToValidate,
             true,
             new Date(),
-            eservice.personalData
+            eservice.personalData,
+            tenantKind,
+            purpose.data.id,
+            purpose.data.riskAnalysisForm?.id
           );
           return validated;
         })()

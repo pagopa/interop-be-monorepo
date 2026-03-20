@@ -228,9 +228,7 @@ export function assertRiskAnalysisIsValidForPublication(
   }
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
-    if (
-      isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
-    ) {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
       assertRiskAnalysisTenantKindMatch(
         riskAnalysis.riskAnalysisForm.tenantKind,
         tenantKind,

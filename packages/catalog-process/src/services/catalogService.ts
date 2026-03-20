@@ -2277,9 +2277,7 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
-      if (
-        isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
-      ) {
+      if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
         assertRiskAnalysisTenantKindMatch(
           riskAnalysisToUpdate.riskAnalysisForm.tenantKind,
           tenant.kind,

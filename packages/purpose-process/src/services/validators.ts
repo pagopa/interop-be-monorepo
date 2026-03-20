@@ -20,12 +20,14 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
   RiskAnalysisForm,
+  RiskAnalysisFormId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
@@ -46,6 +48,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -66,6 +69,22 @@ const isTenantKindMatching = (
   expectedKind: TenantKind
 ): boolean => !actualKind || actualKind === expectedKind;
 
+export const assertRiskAnalysisTenantKindMatch = (
+  actualKind: TenantKind | undefined,
+  expectedKind: TenantKind,
+  purposeId: PurposeId,
+  riskAnalysisFormId: RiskAnalysisFormId
+): void => {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      purposeId,
+      riskAnalysisFormId
+    );
+  }
+};
+
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
@@ -76,9 +95,7 @@ export const isRiskAnalysisFormValid = (
   if (riskAnalysisForm === undefined) {
     return false;
   }
-  if (
-    isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
-  ) {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
     if (!isTenantKindMatching(riskAnalysisForm.tenantKind, tenantKind)) {
       return false;
     }
@@ -144,12 +161,26 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   dateForExpirationValidation,
   personalDataInEService,
+  tenantKind,
+  purposeId,
+  riskAnalysisFormId,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
+  tenantKind?: TenantKind;
+  purposeId?: PurposeId;
+  riskAnalysisFormId?: RiskAnalysisFormId;
 }): RiskAnalysisValidatedForm {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+    assertRiskAnalysisTenantKindMatch(
+      riskAnalysisForm.tenantKind,
+      tenantKind,
+      purposeId,
+      riskAnalysisFormId
+    );
+  }
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -168,7 +199,10 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
   dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined
+  personalDataInEService: boolean | undefined,
+  tenantKind?: TenantKind,
+  purposeId?: PurposeId,
+  riskAnalysisFormId?: RiskAnalysisFormId
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -178,6 +212,9 @@ export function validateAndTransformRiskAnalysis(
     schemaOnlyValidation,
     dateForExpirationValidation,
     personalDataInEService,
+    tenantKind,
+    purposeId,
+    riskAnalysisFormId,
   });
 
   return {
@@ -727,7 +764,9 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
-  eservicePersonalData: boolean | undefined
+  eservicePersonalData: boolean | undefined,
+  purposeId?: PurposeId,
+  riskAnalysisFormId?: RiskAnalysisFormId
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
@@ -758,6 +797,9 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     formToValidate,
     false,
     createdAt,
-    eservicePersonalData
+    eservicePersonalData,
+    tenantKind,
+    purposeId,
+    riskAnalysisFormId
   );
 }
