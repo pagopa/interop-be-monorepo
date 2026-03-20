@@ -26,6 +26,7 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -227,18 +228,13 @@ export function assertRiskAnalysisIsValidForPublication(
   }
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
-    const actualTenantKind = riskAnalysis.riskAnalysisForm.tenantKind;
-    if (
-      isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
-    ) {
-      if (actualTenantKind && actualTenantKind !== tenantKind) {
-        throw riskAnalysisTenantKindMismatch(
-          actualTenantKind,
-          tenantKind,
-          eservice.id,
-          riskAnalysis.id
-        );
-      }
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+      assertRiskAnalysisTenantKindMatch(
+        riskAnalysis.riskAnalysisForm.tenantKind,
+        tenantKind,
+        eservice.id,
+        riskAnalysis.id
+      );
     }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -253,6 +249,22 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+export function assertRiskAnalysisTenantKindMatch(
+  actualKind: TenantKind | undefined,
+  expectedKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): void {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      eserviceId,
+      riskAnalysisId
+    );
+  }
 }
 
 export function assertInterfaceDeletableDescriptorState(

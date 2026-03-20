@@ -80,7 +80,6 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   purposeVersionStateConflict,
-  riskAnalysisTenantKindMismatch,
   riskAnalysisConfigLatestVersionNotFound,
   riskAnalysisConfigVersionNotFound,
   tenantIsNotTheConsumer,
@@ -1148,32 +1147,17 @@ export function purposeServiceBuilder(
             purpose.data.consumerId,
             readModelService
           );
-          // tenantKind mismatch is checked only on publish (not in validateRiskAnalysisOrThrow)
-          // to avoid blocking draft create/update flows.
-          if (
-            isFeatureFlagEnabled(
-              config,
-              "featureFlagTenantKindInRiskAnalysisWrite"
-            )
-          ) {
-            if (
-              riskAnalysisForm.tenantKind &&
-              riskAnalysisForm.tenantKind !== tenantKind
-            ) {
-              throw riskAnalysisTenantKindMismatch(
-                riskAnalysisForm.tenantKind,
-                tenantKind,
-                purposeId,
-                riskAnalysisForm.id
-              );
-            }
-          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
+            tenantKindCheck: {
+              tenantKind,
+              purposeId,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            },
           });
         }
       }
@@ -1985,7 +1969,14 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData
+            eservice.personalData,
+            purpose.data.riskAnalysisForm
+              ? {
+                  tenantKind: purposeTemplate.targetTenantKind,
+                  purposeId: purpose.data.id,
+                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+                }
+              : undefined
           )
         : undefined;
 
@@ -2190,11 +2181,19 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
+          const tenantKindCheck = purpose.data.riskAnalysisForm
+            ? {
+                tenantKind,
+                purposeId: purpose.data.id,
+                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+              }
+            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
             new Date(),
-            eservice.personalData
+            eservice.personalData,
+            tenantKindCheck
           );
           return validated;
         })()

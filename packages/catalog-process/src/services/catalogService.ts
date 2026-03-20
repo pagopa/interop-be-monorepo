@@ -95,7 +95,6 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
-  riskAnalysisTenantKindMismatch,
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
@@ -167,6 +166,7 @@ import {
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
+  assertRiskAnalysisTenantKindMatch,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
@@ -2276,21 +2276,13 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
-      if (
-        isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysisWrite")
-      ) {
-        const actualTenantKind =
-          riskAnalysisToUpdate.riskAnalysisForm.tenantKind;
-        // tenantKind mismatch is checked only here instead of validateRiskAnalysisSchemaOrThrow
-        // to avoid impacting draft/create flows that reuse the same validator.
-        if (actualTenantKind && actualTenantKind !== tenant.kind) {
-          throw riskAnalysisTenantKindMismatch(
-            actualTenantKind,
-            tenant.kind,
-            eservice.data.id,
-            riskAnalysisToUpdate.id
-          );
-        }
+      if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+        assertRiskAnalysisTenantKindMatch(
+          riskAnalysisToUpdate.riskAnalysisForm.tenantKind,
+          tenant.kind,
+          eservice.data.id,
+          riskAnalysisToUpdate.id
+        );
       }
 
       const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
