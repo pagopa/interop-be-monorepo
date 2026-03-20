@@ -95,7 +95,6 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
-  riskAnalysisTenantKindMismatch,
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
