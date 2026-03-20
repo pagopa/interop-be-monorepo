@@ -9,6 +9,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -57,6 +58,7 @@ const errorCodes = {
   invalidPersonalData: "0038",
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
+  riskAnalysisTenantKindMismatch: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,6 +70,19 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  expectedKind: TenantKind,
+  purposeId: PurposeId,
+  riskAnalysisFormId: RiskAnalysisFormId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for purposeId ${purposeId} and riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 

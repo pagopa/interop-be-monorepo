@@ -80,6 +80,7 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   purposeVersionStateConflict,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisConfigLatestVersionNotFound,
   riskAnalysisConfigVersionNotFound,
   tenantIsNotTheConsumer,
@@ -349,12 +350,18 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             purpose.data.createdAt,
-            eservice.personalData
+            eservice.personalData,
+            tenantKind
           )
         : true;
 
@@ -949,13 +956,18 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
 
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             new Date(),
-            eservice.personalData
+            eservice.personalData,
+            tenantKind
           )
         : true;
 
@@ -1132,6 +1144,30 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
+          // tenantKind mismatch is checked only on publish (not in validateRiskAnalysisOrThrow)
+          // to avoid blocking draft create/update flows.
+          if (
+            isFeatureFlagEnabled(
+              config,
+              "featureFlagTenantKindInRiskAnalysisWrite"
+            )
+          ) {
+            if (
+              riskAnalysisForm.tenantKind &&
+              riskAnalysisForm.tenantKind !== tenantKind
+            ) {
+              throw riskAnalysisTenantKindMismatch(
+                riskAnalysisForm.tenantKind,
+                tenantKind,
+                purposeId,
+                riskAnalysisForm.id
+              );
+            }
+          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -2204,7 +2240,8 @@ const performUpdatePurpose = async (
         updatedPurpose.riskAnalysisForm,
         false,
         new Date(),
-        eservice.personalData
+        eservice.personalData,
+        tenantKindToWriteInRA
       ),
     },
     metadata: { version: createdEvent.newVersion },
