@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, lte } from "drizzle-orm";
 import {
   TenantKind,
   toTenantKindHistorySQL,
@@ -12,7 +12,7 @@ export function tenantKindHistoryWriterServiceBuilder(
   tenantKindHistoryDB: ReturnType<typeof drizzle>
 ) {
   return {
-    async createTenantKindHistory(
+    async createTenantKindHistoryEntry(
       tenantId: string,
       metadataVersion: number,
       kind: string | undefined,
@@ -34,14 +34,16 @@ export function tenantKindHistoryWriterServiceBuilder(
           .where(
             and(
               eq(tenantKindHistory.tenantId, tenantKindHistorySQL.tenantId),
-              eq(
+              lte(
                 tenantKindHistory.metadataVersion,
                 tenantKindHistorySQL.metadataVersion
               )
             )
-          );
+          )
+          .orderBy(desc(tenantKindHistory.metadataVersion))
+          .limit(1);
 
-        if (match) return; // already saved this tenant kind change
+        if (match?.[0]?.kind === kind) return; // already saved this tenant kind change
 
         await tx.insert(tenantKindHistory).values(tenantKindHistorySQL);
       });

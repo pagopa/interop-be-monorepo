@@ -9,10 +9,11 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
-  riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   Logger,
+  RiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -28,13 +29,11 @@ import {
   unsafeBrandId,
   WithMetadata,
   RiskAnalysisId,
-  TenantKind,
   eserviceMode,
   generateId,
   ListResult,
   Document,
   EServiceDocumentId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
   AttributeKind,
   attributeKind,
@@ -42,6 +41,7 @@ import {
   Tenant,
   EServiceTemplateEvent,
   CompactOrganization,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -136,7 +136,7 @@ const retrieveEServiceTemplate = async (
 const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
-): EServiceTemplateRiskAnalysis => {
+): RiskAnalysis => {
   const riskAnalysis = eserviceTemplate.riskAnalysis.find(
     (ra) => ra.id === riskAnalysisId
   );
@@ -251,15 +251,13 @@ const replaceEServiceTemplateVersion = (
 };
 
 function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -982,18 +980,21 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...createRiskAnalysis.riskAnalysisForm,
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        createRiskAnalysis.riskAnalysisForm,
-        createRiskAnalysis.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
 
-      const newRiskAnalysis: EServiceTemplateRiskAnalysis =
-        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          createRiskAnalysis.name,
-          createRiskAnalysis.tenantKind
+          createRiskAnalysis.name
         );
 
       const newTemplate: EServiceTemplate = {
@@ -1087,9 +1088,13 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysisId
       );
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...updateRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
+      };
+
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
-        updateRiskAnalysisSeed.riskAnalysisForm,
-        updateRiskAnalysisSeed.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
@@ -1097,7 +1102,6 @@ export function eserviceTemplateServiceBuilder(
       const updatedRiskAnalysisForm: RiskAnalysisForm = {
         id: riskAnalysisToUpdate.riskAnalysisForm.id,
         version: validatedForm.version,
-        tenantKind: updateRiskAnalysisSeed.tenantKind,
         singleAnswers: validatedForm.singleAnswers.map((a) => ({
           ...a,
           id: generateId(),
@@ -1106,13 +1110,13 @@ export function eserviceTemplateServiceBuilder(
           ...a,
           id: generateId(),
         })),
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
       };
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         id: riskAnalysisToUpdate.id,
         createdAt: riskAnalysisToUpdate.createdAt,
         name: updateRiskAnalysisSeed.name,
-        tenantKind: updateRiskAnalysisSeed.tenantKind,
         riskAnalysisForm: updatedRiskAnalysisForm,
       };
 

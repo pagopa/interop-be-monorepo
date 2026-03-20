@@ -100,7 +100,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPA.tenantKind,
+      tenantKind: riskAnalysisPA.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -111,7 +111,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPrivate.tenantKind,
+      tenantKind: riskAnalysisPrivate.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -249,7 +249,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPA.tenantKind,
+      tenantKind: riskAnalysisPA.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -260,7 +260,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPrivate.tenantKind,
+      tenantKind: riskAnalysisPrivate.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =

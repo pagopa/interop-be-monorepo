@@ -10,7 +10,6 @@ import {
   InternalAuthData,
   Logger,
   M2MAuthData,
-  MaintenanceAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -23,6 +22,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  RiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -1621,7 +1621,7 @@ export function catalogServiceBuilder(
           readModelService
         );
         assertTenantKindExists(tenant);
-        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+        assertRiskAnalysisIsValidForPublication(eservice.data);
       }
 
       if (descriptor.audience.length === 0) {
@@ -2201,9 +2201,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind,
+        formToValidate,
         new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
       );
@@ -2211,8 +2215,7 @@ export function catalogServiceBuilder(
       const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name,
-          tenant.kind
+          eserviceRiskAnalysisSeed.name
         );
 
       const newEservice: EService = {
@@ -2288,9 +2291,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind,
+        formToValidate,
         new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
       );
@@ -2299,8 +2306,7 @@ export function catalogServiceBuilder(
         ...riskAnalysisToUpdate,
         name: eserviceRiskAnalysisSeed.name,
         riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm,
-          tenant.kind
+          validatedRiskAnalysisForm
         ),
       };
 
@@ -2375,7 +2381,7 @@ export function catalogServiceBuilder(
     async fixEServiceRiskAnalysisTenantKind(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(
         `Fixing Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -3994,15 +4000,18 @@ async function extractEServiceRiskAnalysisFromTemplate(
   const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
     .filter((r) =>
       match(tenant.kind)
-        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.PA,
+          () => r.riskAnalysisForm.tenantKind === tenantKind.PA
+        )
         .with(
           tenantKind.GSP,
           tenantKind.PRIVATE,
           tenantKind.SCP,
           () =>
-            r.tenantKind === tenantKind.GSP ||
-            r.tenantKind === tenantKind.PRIVATE ||
-            r.tenantKind === tenantKind.SCP
+            r.riskAnalysisForm.tenantKind === tenantKind.GSP ||
+            r.riskAnalysisForm.tenantKind === tenantKind.PRIVATE ||
+            r.riskAnalysisForm.tenantKind === tenantKind.SCP
           /**
            * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
            * This may change in the future.

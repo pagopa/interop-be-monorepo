@@ -1,17 +1,21 @@
-import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
-import { notificationTenantLifecycleConsumerServiceBuilder } from "../src/notificationTenantLifecycleConsumerService.js";
+import { inject, afterEach } from "vitest";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { tenantKindHistoryWriterServiceBuilder } from "../src/tenantKindHistoryWriterService.js";
 
-export const interopBeClients = {
-  notificationConfigProcess: {
-    client: {},
-  },
-} as PagoPAInteropBeClients;
+export const { cleanup, tenantKindHistoryDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("tenantKindHistoryDBConfig")
+);
 
-export const refreshableToken = {} as RefreshableInteropToken;
+afterEach(cleanup);
 
-export const notificationTenantLifecycleConsumerService =
-  notificationTenantLifecycleConsumerServiceBuilder(
-    refreshableToken,
-    interopBeClients
-  );
+export const tenantKindHistoryWriterService =
+  tenantKindHistoryWriterServiceBuilder(tenantKindHistoryDB);

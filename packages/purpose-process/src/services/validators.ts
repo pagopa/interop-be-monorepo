@@ -4,6 +4,7 @@ import {
   Ownership,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -61,7 +62,6 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): boolean => {
@@ -72,7 +72,6 @@ export const isRiskAnalysisFormValid = (
       validateRiskAnalysis(
         riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation,
-        tenantKind,
         dateForExpirationValidation,
         personalDataInEService
       ).type === "valid"
@@ -129,20 +128,17 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
-  tenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+  riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
-  tenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -155,9 +151,8 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -167,16 +162,12 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
 
   return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(
-      validatedForm,
-      tenantKind
-    ),
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
     riskAnalysisId: undefined,
   };
 }
@@ -719,7 +710,7 @@ function buildAnswersSeed(
 
 export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
   eservicePersonalData: boolean | undefined
@@ -743,15 +734,15 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     riskAnalysisForm
   );
 
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+  const formToValidate: RiskAnalysisFormToValidate = {
     version: purposeTemplate.purposeRiskAnalysisForm.version,
     answers: answersToSeed,
+    tenantKind,
   };
 
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
-    tenantKind,
     createdAt,
     eservicePersonalData
   );

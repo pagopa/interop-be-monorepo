@@ -11,7 +11,10 @@ import {
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { config } from "./config/config.js";
-import { tenantKindhistoryConsumerServiceBuilder } from "./tenantKindHistoryConsumerService.js";
+import {
+  handleMessageV1,
+  handleMessageV2,
+} from "./tenantKindHistoryConsumerService.js";
 import { tenantKindHistoryWriterServiceBuilder } from "./tenantKindHistoryWriterService.js";
 
 const tenantKindHistoryDB = drizzle({
@@ -29,8 +32,6 @@ const tenantKindHistoryDB = drizzle({
 
 const tenantKindHistoryWriterService =
   tenantKindHistoryWriterServiceBuilder(tenantKindHistoryDB);
-const tenantKindHistoryConsumerService =
-  tenantKindhistoryConsumerServiceBuilder(tenantKindHistoryWriterService);
 
 async function processMessage({
   message,
@@ -56,10 +57,10 @@ async function processMessage({
 
   await match(decodedMessage)
     .with({ event_version: 1 }, (msg) =>
-      tenantKindHistoryConsumerService.handleMessageV1(msg, loggerInstance)
+      handleMessageV1(msg, tenantKindHistoryWriterService, loggerInstance)
     )
     .with({ event_version: 2 }, (msg) =>
-      tenantKindHistoryConsumerService.handleMessageV2(msg, loggerInstance)
+      handleMessageV2(msg, tenantKindHistoryWriterService, loggerInstance)
     )
     .exhaustive();
 }
