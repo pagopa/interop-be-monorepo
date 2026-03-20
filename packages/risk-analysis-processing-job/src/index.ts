@@ -1,52 +1,58 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { logger } from "pagopa-interop-commons";
-import { CorrelationId, generateId } from "pagopa-interop-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { compareTokenGenerationReadModel } from "./utils/utils.js";
-import { config } from "./configs/config.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-
-const dynamoDBClient = new DynamoDBClient();
-const loggerInstance = logger({
-  serviceName: "risk-analysis-processing-job",
-  correlationId: generateId<CorrelationId>(),
-});
-
 import {
+  logger,
   InteropTokenGenerator,
   RefreshableInteropToken,
-  decodeKafkaMessage,
-  logger,
 } from "pagopa-interop-commons";
+import { CorrelationId, generateId } from "pagopa-interop-models";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { config } from "./configs/config.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { riskAnalysisProcessingServiceBuilder } from "./services/riskAnalysisProcessingService.js";
+
+const correlationId = generateId<CorrelationId>();
+const loggerInstance = logger({
+  serviceName: "risk-analysis-processing-job",
+  correlationId: correlationId,
+});
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+
+const readModelDB = makeDrizzleConnection(config);
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+
 await refreshableToken.init();
+const { catalogProcess, purposeProcess } = getInteropBeClients();
 
-async function main(): Promise<void> {
-  loggerInstance.info(
-    "Token generation read model and read model comparison started.\n"
-  );
-  loggerInstance.info("> Connecting to database...");
+export async function main(): Promise<void> {
+  loggerInstance.info("Tenant kind fix job is starting...\n");
 
-  const readModelDB = makeDrizzleConnection(config);
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-
-  loggerInstance.info("> Connected to database!\n");
-
-  const differencesCount = await compareTokenGenerationReadModel(
-    dynamoDBClient,
+  const riskAnalysisProcessingService = riskAnalysisProcessingServiceBuilder(
     readModelServiceSQL,
-    loggerInstance
+    catalogProcess.client,
+    purposeProcess.client,
+    refreshableToken,
+    correlationId
   );
 
-  if (differencesCount > 0) {
-    loggerInstance.error(`Differences count: ${differencesCount}`);
-  } else {
-    loggerInstance.info("No differences found");
+  const eservicesProcessingResult =
+    await riskAnalysisProcessingService.processEServiceRiskAnalyses();
+
+  if (eservicesProcessingResult.processed.riskAnalyses !== 0) {
+    loggerInstance.info(
+      `(EService RiskAnalysis) fixed ${eservicesProcessingResult.processed.riskAnalyses} tenantKind/s.`
+    );
+    return;
   }
+
+  const purposesProcessingResult =
+    await riskAnalysisProcessingService.processPurposeRiskAnalyses();
+
+  loggerInstance.info(
+    `(Purpose RiskAnalysisForm) fixed ${purposesProcessingResult.processed.riskAnalyses} tenantKind/s.`
+  );
 }
 
 await main();
-
 process.exit(0);
