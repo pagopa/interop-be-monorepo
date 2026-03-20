@@ -43,6 +43,27 @@ describe("eservices", () => {
 
     expect(RAs).toHaveLength(1);
   });
+
+  it("populate riskAnalysis array only with RAs without tenant kinds", async () => {
+    const riskAnalysisWithoutTenantKind = getMockValidRiskAnalysis(
+      tenantKind.PA
+    );
+    delete riskAnalysisWithoutTenantKind.riskAnalysisForm.tenantKind;
+    const safeRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      riskAnalysis: [riskAnalysisWithoutTenantKind, safeRiskAnalysis],
+    };
+
+    await addOneEService(mockEService);
+
+    const RAs =
+      await readModelService.getAllReadModelEServicesWithEmptyTenantKindRAs();
+
+    expect(RAs).toHaveLength(1);
+    expect(RAs[0].riskAnalysis).toHaveLength(1);
+  });
 });
 
 describe("purposes", () => {
