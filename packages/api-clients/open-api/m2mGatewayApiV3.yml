@@ -1626,7 +1626,7 @@ paths:
       tags:
         - clients
       summary: Create a new consumer client
-      description: Create a new consumer client
+      description: Create a new consumer client for the requester's organization.
       operationId: createClient
       requestBody:
         required: true
@@ -1656,6 +1656,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
@@ -2037,7 +2039,7 @@ paths:
       tags:
         - producerKeychains
       summary: Create a producer keychain
-      description: Create a producer keychain
+      description: Create a producer keychain for the requester's organization.
       operationId: createProducerKeychain
       requestBody:
         required: true
@@ -2047,7 +2049,7 @@ paths:
               $ref: "#/components/schemas/ProducerKeychainSeed"
       responses:
         "200":
-          description: Producer keychain created
+          description: Producer keychain created successfully
           content:
             application/json:
               schema:
@@ -2067,8 +2069,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}:
@@ -11063,8 +11065,12 @@ components:
       properties:
         name:
           type: string
+          minLength: 5
+          maxLength: 60
         description:
           type: string
+          minLength: 10
+          maxLength: 250
         members:
           type: array
           items:
