@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   pollingMaxRetriesExceeded,
   ProducerKeychainId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   getMockedApiFullProducerKeychain,
@@ -24,7 +25,8 @@ describe("deleteProducerKeychain", () => {
     mockProducerKeychain,
     2
   );
-  const keychainId = mockProducerKeychain.id as ProducerKeychainId;
+
+  const keychainId = unsafeBrandId<ProducerKeychainId>(mockProducerKeychain.id);
 
   const mockDeleteProducerKeychain = vi.fn();
   const mockGetProducerKeychain = vi.fn(
