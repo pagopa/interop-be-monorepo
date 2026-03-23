@@ -1,11 +1,13 @@
 import {
   getMockEService,
+  getMockEServiceTemplate,
   getMockPurpose,
   getMockValidRiskAnalysis,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  EServiceTemplate,
   generateId,
   Purpose,
   PurposeRiskAnalysisForm,
@@ -13,7 +15,53 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { addOneEService, addOnePurpose, readModelService } from "./utils.js";
+import {
+  addOneEService,
+  addOneEServiceTemplate,
+  addOnePurpose,
+  readModelService,
+} from "./utils.js";
+
+describe("eservice templates", () => {
+  it("gets all eservice templates RAs", async () => {
+    const newEServiceTemplates: EServiceTemplate[] = [
+      {
+        ...getMockEServiceTemplate(),
+        riskAnalysis: [
+          getMockValidRiskAnalysis(tenantKind.PA),
+          getMockValidRiskAnalysis(tenantKind.PA),
+        ],
+      },
+      {
+        ...getMockEServiceTemplate(),
+        riskAnalysis: [
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+        ],
+      },
+    ];
+
+    const idsToCheck = [];
+    for (const eTemplate of newEServiceTemplates) {
+      for (const ra of eTemplate.riskAnalysis) {
+        idsToCheck.push(ra.id);
+      }
+      await addOneEServiceTemplate(eTemplate);
+    }
+
+    const eserviceTemplates =
+      await readModelService.getAllReadModelEServiceTemplates();
+
+    const actualIds = eserviceTemplates
+      .flatMap((e) => e.riskAnalysis)
+      .map((r) => r.id);
+
+    expect(actualIds).toHaveLength(idsToCheck.length);
+    idsToCheck.forEach((id) => {
+      expect(actualIds).toContain(id);
+    });
+  });
+});
 
 describe("eservices", () => {
   it("gets all eservice RAs with empty tenant kinds", async () => {

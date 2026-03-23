@@ -1,4 +1,8 @@
-import { catalogApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { config } from "../configs/config.js";
 
 type PagoPAInteropBeClients = {
@@ -7,6 +11,9 @@ type PagoPAInteropBeClients = {
   };
   purposeProcess: {
     client: purposeApi.PurposeProcessClient;
+  };
+  eserviceTemplateProcess: {
+    client: eserviceTemplateApi.EServiceTemplateProcessClient;
   };
 };
 
@@ -17,6 +24,11 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     },
     purposeProcess: {
       client: purposeApi.createPurposeApiClient(config.purposeProcessUrl),
+    },
+    eserviceTemplateProcess: {
+      client: eserviceTemplateApi.createProcessApiClient(
+        config.eserviceTemplateProcessUrl
+      ),
     },
   };
 }

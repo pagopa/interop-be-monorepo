@@ -3,10 +3,16 @@ import {
   getMockValidRiskAnalysisForm,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { EService, Purpose, tenantKind } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceTemplate,
+  Purpose,
+  tenantKind,
+} from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
   upsertEService,
+  upsertEServiceTemplate,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -36,6 +42,12 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await upsertPurpose(readModelDB, purpose, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 export const mockRiskAnalysisWithoutTenantKind = () => {

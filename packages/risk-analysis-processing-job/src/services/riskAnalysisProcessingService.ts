@@ -1,5 +1,9 @@
 import { CorrelationId } from "pagopa-interop-models";
-import type { catalogApi, purposeApi } from "pagopa-interop-api-clients";
+import type {
+  catalogApi,
+  eserviceTemplateApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -14,6 +18,7 @@ export function riskAnalysisProcessingServiceBuilder(
   readModelService: ReadModelServiceSQL,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   purposeProcessClient: purposeApi.PurposeProcessClient,
+  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId
 ) {
@@ -78,6 +83,43 @@ export function riskAnalysisProcessingServiceBuilder(
       }
 
       return { processed: { riskAnalyses: purposes.length } };
+    },
+    async processEServiceTemplateRiskAnalyses(): Promise<{
+      processed: {
+        eserviceTemplates: number;
+        riskAnalyses: number;
+      };
+    }> {
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+
+      const eserviceTemplates =
+        await readModelService.getAllReadModelEServiceTemplates();
+
+      let riskAnalysisCount = 0;
+      for (const singleEServiceTemplate of eserviceTemplates) {
+        for (const riskAnalysis of singleEServiceTemplate.riskAnalysis) {
+          await eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind(
+            undefined,
+            {
+              headers,
+              params: {
+                eServiceTemplateId: singleEServiceTemplate.id,
+                riskAnalysisId: riskAnalysis.id,
+              },
+            }
+          );
+
+          riskAnalysisCount += 1;
+        }
+      }
+
+      return {
+        processed: {
+          eserviceTemplates: eserviceTemplates.length,
+          riskAnalyses: riskAnalysisCount,
+        },
+      };
     },
   };
 }

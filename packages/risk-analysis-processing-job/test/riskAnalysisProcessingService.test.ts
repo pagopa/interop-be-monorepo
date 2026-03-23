@@ -1,6 +1,16 @@
-import { catalogApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId, generateId, Purpose } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  EServiceTemplate,
+  generateId,
+  Purpose,
+  tenantKind,
+} from "pagopa-interop-models";
 import {
   describe,
   beforeAll,
@@ -15,12 +25,18 @@ import { getInteropBeClients } from "../src/clients/clientsProvider.js";
 import { riskAnalysisProcessingServiceBuilder } from "../src/services/riskAnalysisProcessingService.js";
 import {
   addOneEService,
+  addOneEServiceTemplate,
   addOnePurpose,
   mockRiskAnalysisFormWithoutTenantKind,
   mockRiskAnalysisWithoutTenantKind,
   readModelService,
 } from "./utils.js";
-import { getMockEService, getMockPurpose } from "pagopa-interop-commons-test";
+import {
+  getMockEService,
+  getMockEServiceTemplate,
+  getMockPurpose,
+  getMockValidRiskAnalysis,
+} from "pagopa-interop-commons-test";
 
 describe("riskAnalysisProcessingService", () => {
   const testCorrelationId: CorrelationId = generateId();
@@ -28,6 +44,15 @@ describe("riskAnalysisProcessingService", () => {
 
   let catalogProcessClient: catalogApi.CatalogProcessClient;
   let purposeProcessClient: purposeApi.PurposeProcessClient;
+
+  //TODO: remove once implementation is available
+  type temporaryTestEServiceTemplateProcessClient =
+    eserviceTemplateApi.EServiceTemplateProcessClient & {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fixEServiceTemplateRiskAnalysisTenantKind: (...args: any) => any;
+    };
+  let eserviceTemplateProcessClient: temporaryTestEServiceTemplateProcessClient;
+
   let mockRefreshableToken: RefreshableInteropToken;
 
   type MockedFixEServiceRiskAnalysisTenantKind = {
@@ -46,6 +71,14 @@ describe("riskAnalysisProcessingService", () => {
     };
   };
 
+  type MockedFixEServiceTemplateRiskAnalysisTenantKind = {
+    mock: {
+      calls: Parameters<
+        typeof eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind
+      >[];
+    };
+  };
+
   beforeAll(async () => {
     mockRefreshableToken = {
       get: () => Promise.resolve({ serialized: testToken }),
@@ -55,12 +88,17 @@ describe("riskAnalysisProcessingService", () => {
 
     catalogProcessClient = clients.catalogProcess.client;
     purposeProcessClient = clients.purposeProcess.client;
+    eserviceTemplateProcessClient =
+      //TODO: remove once implementation is available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      clients.eserviceTemplateProcess.client as any;
   });
 
   beforeEach(async () => {
-    // eslint-disable-next-line functional/immutable-data
     catalogProcessClient.fixEServiceRiskAnalysisTenantKind = vi.fn();
     purposeProcessClient.fixPurposeRiskAnalysisTenantKind = vi.fn();
+    eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind =
+      vi.fn();
   });
 
   afterEach(async () => {
@@ -72,6 +110,7 @@ describe("riskAnalysisProcessingService", () => {
       readModelService,
       catalogProcessClient,
       purposeProcessClient,
+      eserviceTemplateProcessClient,
       mockRefreshableToken,
       testCorrelationId
     );
@@ -126,6 +165,7 @@ describe("riskAnalysisProcessingService", () => {
       readModelService,
       catalogProcessClient,
       purposeProcessClient,
+      eserviceTemplateProcessClient,
       mockRefreshableToken,
       testCorrelationId
     );
@@ -164,6 +204,64 @@ describe("riskAnalysisProcessingService", () => {
           (couple) =>
             // [0]body, [1]params
             couple.purpose === call[1].params.purposeId &&
+            couple.riskAnalysis === call[1].params.riskAnalysisId
+        )
+      ).toBeTruthy();
+    });
+  });
+
+  it("calls fix endpoint for each eservice template risk analysis", async () => {
+    const riskAnalysisProcessingService = riskAnalysisProcessingServiceBuilder(
+      readModelService,
+      catalogProcessClient,
+      purposeProcessClient,
+      eserviceTemplateProcessClient,
+      mockRefreshableToken,
+      testCorrelationId
+    );
+
+    const newEServiceTemplates: EServiceTemplate[] = [
+      {
+        ...getMockEServiceTemplate(),
+        riskAnalysis: [
+          getMockValidRiskAnalysis(tenantKind.PA),
+          getMockValidRiskAnalysis(tenantKind.PA),
+        ],
+      },
+      {
+        ...getMockEServiceTemplate(),
+        riskAnalysis: [
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+        ],
+      },
+    ];
+
+    const idsToCheck: { eServiceTemplate: string; riskAnalysis: string }[] = [];
+    for (const eTemplate of newEServiceTemplates) {
+      for (const ra of eTemplate.riskAnalysis) {
+        idsToCheck.push({
+          eServiceTemplate: eTemplate.id,
+          riskAnalysis: ra.id,
+        });
+      }
+      await addOneEServiceTemplate(eTemplate);
+    }
+
+    await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses();
+
+    expect(
+      eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind
+    ).toHaveBeenCalledTimes(idsToCheck.length);
+
+    (
+      eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind as unknown as MockedFixEServiceTemplateRiskAnalysisTenantKind
+    ).mock.calls.forEach((call) => {
+      expect(
+        idsToCheck.some(
+          (couple) =>
+            // [0]body, [1]params
+            couple.eServiceTemplate === call[1].params.eServiceTemplateId &&
             couple.riskAnalysis === call[1].params.riskAnalysisId
         )
       ).toBeTruthy();

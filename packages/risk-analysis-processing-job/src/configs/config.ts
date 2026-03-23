@@ -12,10 +12,12 @@ const RiskAnalysisProcessingJobConfig = LoggerConfig.and(ReadModelSQLDbConfig)
       .object({
         CATALOG_PROCESS_URL: z.string(),
         PURPOSE_PROCESS_URL: z.string(),
+        ESERVICE_TEMPLATE_PROCESS_URL: z.string(),
       })
       .transform((c) => ({
         catalogProcessUrl: c.CATALOG_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
+        eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
       }))
   );
 

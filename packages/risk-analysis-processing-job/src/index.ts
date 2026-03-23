@@ -23,7 +23,8 @@ const readModelDB = makeDrizzleConnection(config);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 await refreshableToken.init();
-const { catalogProcess, purposeProcess } = getInteropBeClients();
+const { catalogProcess, purposeProcess, eserviceTemplateProcess } =
+  getInteropBeClients();
 
 export async function main(): Promise<void> {
   loggerInstance.info("Tenant kind fix job is starting...\n");
@@ -32,9 +33,20 @@ export async function main(): Promise<void> {
     readModelServiceSQL,
     catalogProcess.client,
     purposeProcess.client,
+    eserviceTemplateProcess.client,
     refreshableToken,
     correlationId
   );
+
+  const eserviceTemplatesProcessingResult =
+    await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses();
+
+  if (eserviceTemplatesProcessingResult.processed.riskAnalyses !== 0) {
+    loggerInstance.info(
+      `(EService Template RiskAnalysis) fixed ${eserviceTemplatesProcessingResult.processed.riskAnalyses} tenantKind/s.`
+    );
+    return;
+  }
 
   const eservicesProcessingResult =
     await riskAnalysisProcessingService.processEServiceRiskAnalyses();
@@ -49,9 +61,14 @@ export async function main(): Promise<void> {
   const purposesProcessingResult =
     await riskAnalysisProcessingService.processPurposeRiskAnalyses();
 
-  loggerInstance.info(
-    `(Purpose RiskAnalysisForm) fixed ${purposesProcessingResult.processed.riskAnalyses} tenantKind/s.`
-  );
+  if (purposesProcessingResult.processed.riskAnalyses !== 0) {
+    loggerInstance.info(
+      `(Purpose RiskAnalysisForm) fixed ${purposesProcessingResult.processed.riskAnalyses} tenantKind/s.`
+    );
+    return;
+  }
+
+  loggerInstance.info("No entities were fixed.");
 }
 
 await main();

@@ -1,15 +1,19 @@
 import { and, eq, isNull, or } from "drizzle-orm";
-import { EService, Purpose } from "pagopa-interop-models";
+import { EService, Purpose, EServiceTemplate } from "pagopa-interop-models";
 import {
   aggregateEserviceArray,
   toEServiceAggregatorArray,
   toPurposeAggregatorArray,
   aggregatePurposeArray,
+  aggregateEServiceTemplateArray,
+  toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -87,6 +91,28 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregatePurposeArray(
         toPurposeAggregatorArray(
           queryResult as Parameters<typeof toPurposeAggregatorArray>[0]
+        )
+      ).map((p) => p.data);
+    },
+
+    async getAllReadModelEServiceTemplates(): Promise<EServiceTemplate[]> {
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .leftJoin(
+          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        );
+
+      return aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(
+          queryResult as Parameters<typeof toEServiceTemplateAggregatorArray>[0]
         )
       ).map((p) => p.data);
     },
