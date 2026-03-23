@@ -1,15 +1,9 @@
-import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
 import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 export const AttributeDbTableConfig = {
   attribute: AttributeSchema,
 } as const;
 export type AttributeDbTableConfig = typeof AttributeDbTableConfig;
-
-export const AttributeDbTableReadModel = {
-  attribute: attributeInReadmodelAttribute,
-} as const;
-export type AttributeDbTableReadModel = typeof AttributeDbTableReadModel;
 
 export type AttributeDbTable = keyof typeof AttributeDbTableConfig;
 

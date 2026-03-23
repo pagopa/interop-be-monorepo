@@ -1,13 +1,4 @@
-import {
-  tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
-  tenantCertifiedAttributeInReadmodelTenant,
-  tenantDeclaredAttributeInReadmodelTenant,
-  tenantVerifiedAttributeInReadmodelTenant,
-  tenantVerifiedAttributeVerifierInReadmodelTenant,
-  tenantVerifiedAttributeRevokerInReadmodelTenant,
-  tenantFeatureInReadmodelTenant,
-} from "pagopa-interop-readmodel-models";
+import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import {
   TenantSchema,
   TenantCertifiedAttributeSchema,
@@ -47,20 +38,6 @@ export const TenantDbTableConfig = {
   tenant_feature: TenantFeatureSchema,
 } as const;
 export type TenantDbTableConfig = typeof TenantDbTableConfig;
-
-export const TenantDbTableReadModel = {
-  tenant: tenantInReadmodelTenant,
-  tenant_mail: tenantMailInReadmodelTenant,
-  tenant_certified_attribute: tenantCertifiedAttributeInReadmodelTenant,
-  tenant_declared_attribute: tenantDeclaredAttributeInReadmodelTenant,
-  tenant_verified_attribute: tenantVerifiedAttributeInReadmodelTenant,
-  tenant_verified_attribute_verifier:
-    tenantVerifiedAttributeVerifierInReadmodelTenant,
-  tenant_verified_attribute_revoker:
-    tenantVerifiedAttributeRevokerInReadmodelTenant,
-  tenant_feature: tenantFeatureInReadmodelTenant,
-} as const;
-export type TenantDbTableReadModel = typeof TenantDbTableReadModel;
 
 export type TenantDbTable = keyof typeof TenantDbTableConfig;
 export const TenantDbTable: { [K in TenantDbTable]: K } = Object.fromEntries(

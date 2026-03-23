@@ -1,12 +1,4 @@
 import {
-  purposeTemplateInReadmodelPurposeTemplate,
-  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-  purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-  purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-  purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-  purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-} from "pagopa-interop-readmodel-models";
-import {
   PurposeTemplateSchema,
   PurposeTemplateRiskAnalysisFormSchema,
   PurposeTemplateRiskAnalysisAnswerSchema,
@@ -27,22 +19,6 @@ export const PurposeTemplateDbTableConfig = {
     PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
 } as const;
 export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
-
-export const PurposeTemplateDbTableReadModel = {
-  purpose_template: purposeTemplateInReadmodelPurposeTemplate,
-  purpose_template_eservice_descriptor:
-    purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-  purpose_template_risk_analysis_form:
-    purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
-  purpose_template_risk_analysis_answer:
-    purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
-  purpose_template_risk_analysis_answer_annotation:
-    purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
-  purpose_template_risk_analysis_answer_annotation_document:
-    purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-} as const;
-export type PurposeTemplateDbTableReadModel =
-  typeof PurposeTemplateDbTableReadModel;
 
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;
 
