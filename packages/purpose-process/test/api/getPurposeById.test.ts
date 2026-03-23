@@ -19,9 +19,7 @@ import {
 describe("API GET /purposes/{purposeId} test", () => {
   const mockPurpose: Purpose = getMockPurpose();
 
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose)
   );

@@ -38,9 +38,7 @@ describe("API POST /reverse/purposes test", () => {
     generateId()
   );
   const mockPurpose: Purpose = getMockPurpose();
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
   const apiResponse = purposeToApiPurpose(mockPurpose);
 
