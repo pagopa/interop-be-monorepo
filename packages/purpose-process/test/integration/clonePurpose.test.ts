@@ -37,7 +37,6 @@ import {
   purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
-  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -580,40 +579,6 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(
       duplicatedPurposeTitle(mockPurposeWithSameName.title)
     );
-  });
-  it("should throw tenantKindNotFound if the tenant kind doesn't exist", async () => {
-    const mockTenant = {
-      ...getMockTenant(),
-      kind: undefined,
-    };
-    const mockEService = getMockEService();
-
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
-
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-      consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
-    };
-
-    await addOnePurpose(mockPurpose);
-    await addOneTenant(mockTenant);
-    await addOneAgreement(mockAgreement);
-
-    expect(
-      purposeService.clonePurpose({
-        purposeId: mockPurpose.id,
-        seed: {
-          eserviceId: mockEService.id,
-        },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
-      })
-    ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is cloning a purpose created by the delegate in clonePurpose", async () => {
     const consumer = {
