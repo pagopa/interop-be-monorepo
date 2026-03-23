@@ -40,6 +40,7 @@ const errorCodes = {
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
   eServiceTemplateUpdateSameNameConflict: "0031",
   eServiceTemplateUpdateSameDescriptionConflict: "0032",
+  tenantKindNotFound: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -53,6 +54,14 @@ export function eserviceTemplateNotFound(
     detail: `EService Template ${eserviceTemplateId} not found`,
     code: "eserviceTemplateNotFound",
     title: "EService Template not found",
+  });
+}
+
+export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant kind not found for tenant ${tenantId}`,
+    code: "tenantKindNotFound",
+    title: "Tenant kind not found",
   });
 }
 

@@ -186,6 +186,7 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
     .with(
       "eserviceTemplateNotFound",
       "riskAnalysisNotFound",
+      "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

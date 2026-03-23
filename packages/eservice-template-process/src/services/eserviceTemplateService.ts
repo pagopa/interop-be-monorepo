@@ -43,7 +43,6 @@ import {
   EServiceTemplateEvent,
   CompactOrganization,
   RiskAnalysis,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -57,6 +56,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
@@ -1161,9 +1161,7 @@ export function eserviceTemplateServiceBuilder(
 
       const existingTenantKind = riskAnalysisToFix.riskAnalysisForm.tenantKind;
       if (!existingTenantKind) {
-        throw genericInternalError(
-          `Risk analysis ${riskAnalysisId} is missing tenantKind`
-        );
+        throw tenantKindNotFound(template.data.creatorId);
       }
 
       const fixedRiskAnalysis: RiskAnalysis = {
