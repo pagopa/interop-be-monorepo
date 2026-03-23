@@ -33,9 +33,7 @@ export function eserviceTemplateVersionAsyncExchangePropertiesRepository(
         );
         await t.none(pgp.helpers.insert(records, cs));
 
-        await t.none(
-          generateStagingDeleteQuery(tableName, ["versionId"])
-        );
+        await t.none(generateStagingDeleteQuery(tableName, ["versionId"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`

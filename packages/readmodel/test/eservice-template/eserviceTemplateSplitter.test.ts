@@ -374,8 +374,10 @@ describe("E-service template splitter", () => {
       asyncExchange: true,
     };
 
-    const { asyncExchangePropertiesSQL } =
-      splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
+    const { asyncExchangePropertiesSQL } = splitEServiceTemplateIntoObjectsSQL(
+      eserviceTemplate,
+      1
+    );
 
     const expectedAsyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL =
       {

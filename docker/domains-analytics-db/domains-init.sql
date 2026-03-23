@@ -616,7 +616,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
   id VARCHAR(36),
   eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  version_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.eservice_template_version (id),
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
+  kind VARCHAR NOT NULL,
   name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
   pretty_name VARCHAR(2048) NOT NULL,
@@ -624,7 +625,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
   checksum VARCHAR(2048) NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  UNIQUE (version_id, kind)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_document (
