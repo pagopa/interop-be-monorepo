@@ -30,6 +30,7 @@ import {
   eServiceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
+  invalidDelegationFlags,
   notValidDescriptorState,
   originNotCompliant,
   templateMissingRequiredRiskAnalysis,
@@ -158,6 +159,10 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
         eServiceTemplate.id,
         publishedVersion.id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidDelegationFlags(true, false),
       expectedStatus: 400,
     },
   ])(

@@ -39,7 +39,7 @@ const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
-  invalidEServiceFlags: "0025",
+  invalidDelegationFlags: "0025",
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
@@ -61,11 +61,10 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  invalidDelegationFlags: "0047",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
-  eServiceAsyncExchangeNotEnabled: "0049",
-  descriptorAsyncExchangeNotConfigured: "0050",
-  templateVersionMissingAsyncExchangeProperties: "0051",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0047",
+  eServiceAsyncExchangeNotEnabled: "0048",
+  descriptorAsyncExchangeNotConfigured: "0049",
+  templateVersionMissingAsyncExchangeProperties: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -359,16 +358,6 @@ export function eserviceWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
     code: "eserviceWithActiveOrPendingDelegation",
     title: "E-service with active or pending delegation",
-  });
-}
-
-export function invalidEServiceFlags(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} flags are not valid`,
-    code: "invalidEServiceFlags",
-    title: "Invalid EService flags",
   });
 }
 
