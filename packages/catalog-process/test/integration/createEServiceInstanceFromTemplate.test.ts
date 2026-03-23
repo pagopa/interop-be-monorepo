@@ -380,7 +380,7 @@ describe("create eService from template", () => {
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
       personalData: eserviceTemplate.personalData,
-      asyncExchange: eserviceTemplate.asyncExchange,
+      asyncExchange: undefined,
       descriptors: [
         {
           ...mockDescriptor,
@@ -456,7 +456,7 @@ describe("create eService from template", () => {
       templateId: eserviceTemplate.id,
       riskAnalysis: [validRiskAnalysisPrivate],
       personalData: eserviceTemplate.personalData,
-      asyncExchange: eserviceTemplate.asyncExchange,
+      asyncExchange: undefined,
       descriptors: [
         {
           ...mockDescriptor,

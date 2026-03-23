@@ -588,6 +588,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template (
   mode VARCHAR(2048) NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   personal_data BOOLEAN,
+  async_exchange BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

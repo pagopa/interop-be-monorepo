@@ -23,6 +23,7 @@ import {
   inconsistentDailyCalls,
   invalidDelegationFlags,
   originNotCompliant,
+  asyncExchangeNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -422,5 +423,23 @@ describe("create eservice", () => {
     expect(eserviceCreationPayload.eservice?.asyncExchange).toBeUndefined();
 
     config.featureFlagAsyncExchange = true;
+  });
+
+  it("should throw asyncExchangeNotAllowedForReceiveMode when asyncExchange is true and mode is RECEIVE", async () => {
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "RECEIVE",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+          asyncExchange: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: asyncExchangeNotAllowedForReceiveMode(mockEService.id).code,
+    });
   });
 });

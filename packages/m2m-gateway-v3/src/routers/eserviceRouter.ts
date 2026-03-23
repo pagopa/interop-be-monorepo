@@ -558,7 +558,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(
