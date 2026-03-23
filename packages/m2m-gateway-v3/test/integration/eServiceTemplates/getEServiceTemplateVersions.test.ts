@@ -76,6 +76,7 @@ describe("getEServiceTemplateVersions", () => {
     description: template.description,
     publishedAt: template.publishedAt,
     suspendedAt: template.suspendedAt,
+    asyncExchangeProperties: template.asyncExchangeProperties,
   });
 
   const expectedM2MTemplateVersion1 =
