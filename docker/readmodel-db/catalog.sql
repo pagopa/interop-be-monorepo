@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   is_client_access_delegable BOOLEAN,
   template_id UUID,
   personal_data BOOLEAN,
+  instance_label VARCHAR,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );

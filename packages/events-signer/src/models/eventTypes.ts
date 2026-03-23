@@ -38,6 +38,7 @@ export type AuthorizationEventData = z.infer<typeof AuthorizationEventSchema>;
 export type CatalogEventData = z.infer<typeof CatalogEventSchema>;
 export type DelegationEventData = z.infer<typeof DelegationEventSchema>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AllEventSchemas = z.union([
   PurposeEventSchema,
   AgreementEventSchema,

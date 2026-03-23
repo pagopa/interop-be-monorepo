@@ -24,7 +24,6 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("PATCH /purposeTemplates/{id} router test", () => {
@@ -116,8 +115,8 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       purposeTitle: "updated purpose title",
       purposeDescription: "updated purpose description",
       purposeIsFreeOfCharge: false,
-      purposeFreeOfChargeReason: null,
       purposeDailyCalls: 10,
+      purposeFreeOfChargeReason: null,
     },
     {
       targetDescription: "updated target description",
@@ -179,10 +178,6 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     {
       error: missingFreeOfChargeReason(),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
     {
       error: purposeTemplateNotFound(generateId()),

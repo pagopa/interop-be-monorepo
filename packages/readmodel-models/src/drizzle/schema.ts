@@ -407,6 +407,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isClientAccessDelegable: boolean("is_client_access_delegable"),
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
+    instanceLabel: varchar("instance_label"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(

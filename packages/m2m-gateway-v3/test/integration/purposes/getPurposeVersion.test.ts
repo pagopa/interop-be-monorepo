@@ -55,7 +55,7 @@ describe("getPurposeVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MPurposeVersion);
+    expect(result).toStrictEqual(expectedM2MPurposeVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {

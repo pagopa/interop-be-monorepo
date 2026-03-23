@@ -123,7 +123,7 @@ const expectMissingClaimError =
     }
 
     const invalidToken = { ...payload };
-    // eslint-disable-next-line fp/no-delete, functional/immutable-data
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete invalidToken[claim as keyof typeof invalidToken];
 
     expect(() => {

@@ -17,9 +17,13 @@ const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
     z
       .object({
         NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
+        TENANT_LOOKUP_MAX_RETRIES: z.coerce.number().default(3),
+        TENANT_LOOKUP_RETRY_DELAY_MS: z.coerce.number().default(10000),
       })
       .transform((c) => ({
         notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
+        tenantLookupMaxRetries: c.TENANT_LOOKUP_MAX_RETRIES,
+        tenantLookupRetryDelayMs: c.TENANT_LOOKUP_RETRY_DELAY_MS,
       }))
   );
 

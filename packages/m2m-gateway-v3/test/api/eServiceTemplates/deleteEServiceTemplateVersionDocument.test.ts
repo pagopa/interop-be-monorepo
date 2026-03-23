@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
@@ -21,19 +21,21 @@ describe("DELETE /eserviceTemplates/:templateId/versions/:versionId/documents/:d
       .delete(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/documents/${documentId}`
       )
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockEServiceTemplateService.deleteEServiceTemplateVersionDocument = vi
         .fn()
         .mockResolvedValue(undefined);
       const token = generateToken(role);
       const res = await makeRequest(token, templateId, versionId, documentId);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEServiceTemplateService.deleteEServiceTemplateVersionDocument
       ).toHaveBeenCalledWith(

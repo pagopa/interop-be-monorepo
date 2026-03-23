@@ -23,7 +23,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         newEserviceTemplateVersionToInstantiator: 6,
         eserviceTemplateNameChangedToInstantiator: 2,
         eserviceTemplateStatusChangedToInstantiator: 1,
-        // Erogazione - portachiavi
+        // Gestione Client - api-e-service
+        clientKeyConsumerAddedDeletedToClientUsers: 2,
+        // Gestione Client - api-interop
         clientKeyAddedDeletedToClientUsers: 3,
         // Fruizione - richieste
         agreementActivatedRejectedToConsumer: 8,
@@ -69,8 +71,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         totalCount: 16, // 10 + 6
       },
       "gestione-client": {
-        "api-e-service": 3,
-        totalCount: 3,
+        "api-e-service": 2,
+        "api-interop": 3,
+        totalCount: 5,
       },
       notifiche: {
         totalCount: 100,
@@ -112,6 +115,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -154,6 +158,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -202,6 +207,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {
@@ -250,6 +256,7 @@ describe("toBffApiNotificationsCountBySection", () => {
       },
       "gestione-client": {
         "api-e-service": 0,
+        "api-interop": 0,
         totalCount: 0,
       },
       notifiche: {

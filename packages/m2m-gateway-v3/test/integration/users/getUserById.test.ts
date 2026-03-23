@@ -80,10 +80,12 @@ describe("getUserById", () => {
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
-  mockInteropBeClients.selfcareV2Client = {
-    getInstitutionUsersByProductUsingGET:
-      mockGetInstitutionUsersByProductUsingGET,
-  } as unknown as PagoPAInteropBeClients["selfcareV2Client"];
+  mockInteropBeClients.selfcareClient = {
+    institution: {
+      getInstitutionUsersByProductUsingGET:
+        mockGetInstitutionUsersByProductUsingGET,
+    },
+  } as unknown as PagoPAInteropBeClients["selfcareClient"];
 
   const userService = userServiceBuilder(mockInteropBeClients);
 
@@ -120,7 +122,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -147,7 +149,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -176,7 +178,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,
@@ -205,7 +207,7 @@ describe("getUserById", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
-        mockInteropBeClients.selfcareV2Client
+        mockInteropBeClients.selfcareClient.institution
           .getInstitutionUsersByProductUsingGET,
       params: {
         institutionId: mockTenantWithMetadata.data.selfcareId,

@@ -21,6 +21,7 @@ import {
   getMockContext,
   sortPurpose,
   getMockPurposeTemplate,
+  getMockExpiredRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -914,7 +915,107 @@ describe("activatePurposeVersion", () => {
       metadata: { version: 1 },
     });
   });
+  it("should succeed when risk analysis is expired and the purpose version in draft state is activated correctly for eservice in receive mode", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+    const eservice = {
+      ...mockEService,
+      mode: eserviceMode.receive,
+    };
+    const purposeVersionMock: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
+      versions: [purposeVersionMock],
+    };
 
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: purposeVersionMock.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: eservice.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Riceve",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
+      userId,
+      consumerId: mockPurpose.consumerId,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(updatedVersion.riskAnalysis!.path);
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
+  });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the purpose version in draft state is activated correctly", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
@@ -1635,32 +1736,6 @@ describe("activatePurposeVersion", () => {
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
-
-  it("should throw tenantKindNotFound if e-service mode is RECEIVE and the tenant producer has no kind", async () => {
-    const producer: Tenant = { ...mockProducer, kind: undefined };
-    const eservice: EService = {
-      ...mockEService,
-      mode: eserviceMode.receive,
-    };
-
-    await addOnePurpose(mockPurpose);
-    await addOneEService(eservice);
-    await addOneAgreement(mockAgreement);
-    await addOneTenant(mockConsumer);
-    await addOneTenant(producer);
-
-    expect(async () => {
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          delegationId: undefined,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
-    }).rejects.toThrowError(tenantKindNotFound(producer.id));
-  });
-
   it.each([
     purposeVersionState.active,
     purposeVersionState.archived,

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiDelegation,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -27,7 +28,8 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
   const makeRequest = async (token: string, delegationId: string) =>
     request(api)
       .post(`${appBasePath}/consumerDelegations/${delegationId}/accept`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

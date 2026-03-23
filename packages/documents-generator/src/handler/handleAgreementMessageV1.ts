@@ -129,6 +129,6 @@ export async function handleAgreementMessageV1(
 function hasStamp<S extends keyof AgreementStamps>(
   stamps: AgreementStamps | undefined,
   stamp: S
-): stamps is AgreementStamps & { [key in S]: AgreementStamp } {
+): stamps is AgreementStamps & Record<S, AgreementStamp> {
   return !!stamps && !!stamps[stamp];
 }

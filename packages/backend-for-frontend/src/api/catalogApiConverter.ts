@@ -295,6 +295,7 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    instanceLabel: eservice.instanceLabel,
   };
 }
 
@@ -428,10 +429,14 @@ export function toCompactProducerDescriptor(
 
 export function toBffEServiceTemplateInstance(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
+  producer: tenantApi.Tenant,
+  showAllDescriptors: boolean = false
 ): bffApi.EServiceTemplateInstance {
-  const validDescriptors = [...eservice.descriptors]
-    .filter(isValidDescriptor)
+  const descriptorsToInclude = (
+    showAllDescriptors
+      ? [...eservice.descriptors]
+      : [...eservice.descriptors].filter(isValidDescriptor)
+  )
     .sort((a, b) => Number(a.version) - Number(b.version))
     .map(toCompactDescriptor);
 
@@ -440,8 +445,9 @@ export function toBffEServiceTemplateInstance(
     name: eservice.name,
     producerId: producer.id,
     producerName: producer.name,
-    latestDescriptor: validDescriptors.at(-1),
-    descriptors: validDescriptors,
+    latestDescriptor: descriptorsToInclude.at(-1),
+    descriptors: descriptorsToInclude,
+    instanceLabel: eservice.instanceLabel,
   };
 }
 
