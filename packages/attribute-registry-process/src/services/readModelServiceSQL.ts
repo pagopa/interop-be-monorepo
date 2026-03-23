@@ -23,7 +23,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, or } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -129,14 +129,18 @@ export function readModelServiceBuilderSQL({
         )
       );
     },
-    async getAttributeByCodeAndName(
+    async getAttributeByCodeOriginOrName(
       code: string,
-      name: string
+      name: string,
+      origin: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
-        and(
-          ilikeEscaped(attributeInReadmodelAttribute.code, escapeSqlLike(code)),
-          ilikeEscaped(attributeInReadmodelAttribute.name, escapeSqlLike(name))
+        or(
+          and(
+            ilikeEscaped(attributeInReadmodelAttribute.code, escapeRegExp(code)),
+            eq(attributeInReadmodelAttribute.origin, origin)
+          ),
+          ilikeEscaped(attributeInReadmodelAttribute.name, escapeRegExp(name))
         )
       );
     },

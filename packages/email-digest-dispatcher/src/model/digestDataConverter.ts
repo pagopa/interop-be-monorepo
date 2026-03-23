@@ -71,11 +71,9 @@ async function getCachedDescriptorIds(
   return new Map(cachedEntries);
 }
 
-export type VerifiedAttribute =
-  | VerifiedAssignedAttribute
-  | VerifiedRevokedAttribute;
+type VerifiedAttribute = VerifiedAssignedAttribute | VerifiedRevokedAttribute;
 
-export type CertifiedAttribute =
+type CertifiedAttribute =
   | CertifiedAssignedAttribute
   | CertifiedRevokedAttribute;
 
