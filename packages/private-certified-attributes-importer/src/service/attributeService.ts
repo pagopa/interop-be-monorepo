@@ -27,7 +27,7 @@ export type ResolvedRegistryAttributes = Record<
 >;
 
 export function generateCodeFromName(name: string): string {
-  return crypto.createHash("sha256").update(name).digest("hex").toUpperCase();
+  return crypto.createHash("sha256").update(name).digest("hex");
 }
 
 export async function bootstrapRegistryAttributes(
@@ -40,13 +40,9 @@ export async function bootstrapRegistryAttributes(
     Object.entries(REGISTRY_ATTRIBUTES_SEEDS).map(async ([key, seed]) => {
       const code = generateCodeFromName(seed.name);
 
-      try {
-        const attr = await readmodel.getAttributeByExternalId(
-          seed.origin,
-          code
-        );
-        return [key, attr];
-      } catch (e) {
+      let attr = await readmodel.getAttributeByExternalId(seed.origin, code);
+
+      if (!attr) {
         logger.info(`Attribute ${seed.name} not found. Creating...`);
 
         await attributeClient.createInternalCertifiedAttribute(
@@ -68,12 +64,10 @@ export async function bootstrapRegistryAttributes(
           found = await checkAttributePresence(readmodel, seed.origin, code);
         }
 
-        const finalAttr = await readmodel.getAttributeByExternalId(
-          seed.origin,
-          code
-        );
-        return [key, finalAttr];
+        attr = await readmodel.getAttributeByExternalId(seed.origin, code);
       }
+
+      return [key, attr];
     })
   );
 
@@ -85,10 +79,6 @@ async function checkAttributePresence(
   origin: string,
   code: string
 ): Promise<boolean> {
-  try {
-    const attr = await readmodel.getAttributeByExternalId(origin, code);
-    return !!attr && attr.kind === attributeKind.certified;
-  } catch {
-    return false;
-  }
+  const attr = await readmodel.getAttributeByExternalId(origin, code);
+  return !!attr && attr.kind === attributeKind.certified;
 }

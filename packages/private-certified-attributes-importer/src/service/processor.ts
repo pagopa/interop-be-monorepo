@@ -1,4 +1,5 @@
-/* eslint-disable no-await-in-loop */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import {
   Logger,
   RefreshableInteropToken,
@@ -12,7 +13,6 @@ import {
   tenantAttributeType,
   SCP,
 } from "pagopa-interop-models";
-import { InteropContext } from "../model/interopContextModel.js";
 import { bootstrapRegistryAttributes } from "./attributeService.js";
 import { InteropClients } from "../client/client.js";
 import { ReadModelServiceSQL } from "./readModelService.js";
@@ -99,7 +99,7 @@ async function syncAttribute(
   );
 
   const token = await refreshableToken.get();
-  const context: InteropContext = {
+  const context = {
     correlationId,
     bearerToken: token.serialized,
   };

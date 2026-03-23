@@ -30,24 +30,6 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
-    getIPATenants: async (): Promise<Tenant[]> =>
-      await readModelDB.transaction(async (tx) => {
-        const queryRes = await tx
-          .select({ id: tenantInReadmodelTenant.id })
-          .from(tenantInReadmodelTenant)
-          .where(
-            eq(
-              tenantInReadmodelTenant.externalIdOrigin,
-              PUBLIC_ADMINISTRATIONS_IDENTIFIER
-            )
-          );
-
-        const tenantIds = queryRes.map((entry) => entry.id);
-
-        const tenantsWithMetadata =
-          await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx);
-        return tenantsWithMetadata.map((tenant) => tenant.data);
-      }),
     getAttributes: async (): Promise<Attribute[]> =>
       (
         await attributeReadModelServiceSQL.getAttributesByFilter(
