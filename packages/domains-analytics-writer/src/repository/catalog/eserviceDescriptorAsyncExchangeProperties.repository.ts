@@ -5,8 +5,8 @@ import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
+  generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceDescriptorAsyncExchangePropertiesSchema } from "../../model/catalog/eserviceDescriptorAsyncExchangeProperties.js";
 import { CatalogDbTable } from "../../model/db/index.js";
