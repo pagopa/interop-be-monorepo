@@ -61,6 +61,13 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
+  eServiceAsyncExchangeNotEnabled: "0049",
+  descriptorAsyncExchangeNotConfigured: "0050",
+  missingAsyncExchangeProperties: "0051",
+  asyncExchangeBulkNotAllowedForSoap: "0052",
+  asyncExchangeNotAllowedForReceiveMode: "0053",
+  missingAsyncExchangeCallbackInterface: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -516,6 +523,49 @@ export function eServiceTemplateWithoutPersonalDataFlag(
   });
 }
 
+export function missingAsyncExchangeProperties(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because async exchange properties (responseTime, resourceAvailableTime, maxResultSet) must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeProperties",
+    title: "Missing required async exchange properties for publication",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP technology",
+  });
+}
+
+export function asyncExchangeNotAllowedForReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} can't have async exchange enabled with receive mode`,
+    code: "asyncExchangeNotAllowedForReceiveMode",
+    title: "Async exchange not allowed for receive mode",
+  });
+}
+
 export function eServiceUpdateSameDescriptionConflict(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -533,5 +583,35 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function eServiceAsyncExchangeNotEnabled(
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not have async exchange enabled`,
+    code: "eServiceAsyncExchangeNotEnabled",
+    title: "EService does not have async exchange enabled",
+  });
+}
+
+export function descriptorAsyncExchangeNotConfigured(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} does not have async exchange configured`,
+    code: "descriptorAsyncExchangeNotConfigured",
+    title: "Descriptor does not have async exchange configured",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
   });
 }

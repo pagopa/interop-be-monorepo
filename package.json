@@ -29,6 +29,7 @@
     "start:key-readmodel-writer-sql": "turbo start --filter pagopa-interop-key-readmodel-writer-sql",
     "start:producer-key-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-key-readmodel-writer-sql",
     "start:producer-keychain-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer-sql",
+    "start:producer-keychain-platformstate-writer": "turbo start --filter pagopa-interop-producer-keychain-platformstate-writer",
     "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",

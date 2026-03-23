@@ -100,6 +100,18 @@ export const buildDocumentSeed =
     checksum: "checksum",
   });
 
+export const buildAsyncExchangeCallbackInterfaceSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "callbackInterfacePrettyName",
+    serverUrls: [],
+    documentId: generateId(),
+    kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const getContextsAllowedToSeeInactiveDescriptors = (
   producerOrDelegateId: TenantId

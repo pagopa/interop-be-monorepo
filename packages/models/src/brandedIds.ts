@@ -77,6 +77,9 @@ export type SelfcareId = z.infer<typeof SelfcareId>;
 export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
 export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 
+export const InteractionId = z.string().uuid().brand("InteractionId");
+export type InteractionId = z.infer<typeof InteractionId>;
+
 export const DelegationId = z.string().uuid().brand("DelegationId");
 export type DelegationId = z.infer<typeof DelegationId>;
 
@@ -118,6 +121,17 @@ export const PlatformStatesClientPK = z
   .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
+const producerKeychainKidEServicePrefix = "PRODUCERKEYCHAINKIDESERVICE#";
+export const ProducerKeychainPlatformStatesPK = z
+  .string()
+  .refine((pk) => pk.startsWith(producerKeychainKidEServicePrefix))
+  .brand(
+    `${producerKeychainKidEServicePrefix}producerKeychainId#kid#eServiceId`
+  );
+export type ProducerKeychainPlatformStatesPK = z.infer<
+  typeof ProducerKeychainPlatformStatesPK
+>;
+
 export const GSIPKConsumerIdEServiceId = z
   .string()
   .brand(`tenantId#eserviceId`);
@@ -142,6 +156,13 @@ export const TokenGenerationStatesClientKidPK = z
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
 >;
+
+const interactionPrefix = "INTERACTION#";
+export const InteractionsPK = z
+  .string()
+  .refine((pk) => pk.startsWith(interactionPrefix))
+  .brand(`${interactionPrefix}interactionId`);
+export type InteractionsPK = z.infer<typeof InteractionsPK>;
 
 export const GSIPKEServiceIdDescriptorId = z
   .string()
@@ -331,15 +352,18 @@ export const IDS = z.union([
   UserId,
   SelfcareId,
   ProducerKeychainId,
+  InteractionId,
   DelegationId,
   DelegationContractId,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesAgreementPK,
   PlatformStatesPurposePK,
   PlatformStatesClientPK,
+  ProducerKeychainPlatformStatesPK,
   GSIPKConsumerIdEServiceId,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
+  InteractionsPK,
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   GSIPKClientIdKid,

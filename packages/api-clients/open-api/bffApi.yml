@@ -25774,6 +25774,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -25812,6 +25814,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -25901,6 +25905,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -26067,6 +26073,10 @@ components:
         archivedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     Client:
       description: Models Client details
       type: object
@@ -26189,6 +26199,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -26222,6 +26234,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceMode:
       type: string
@@ -26381,6 +26395,10 @@ components:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -26429,6 +26447,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+        asyncExchange:
+          type: boolean
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -26701,6 +26721,8 @@ components:
           description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -26909,6 +26931,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object
@@ -28308,6 +28332,28 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTechnology:
       type: string
       description: EService Descriptor State
@@ -29356,6 +29402,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
     EServiceTemplateVersionDetails:
@@ -29477,6 +29525,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -29508,6 +29558,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     InstanceEServiceSeed:
       type: object

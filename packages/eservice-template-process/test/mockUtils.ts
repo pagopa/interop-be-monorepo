@@ -56,6 +56,7 @@ export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  asyncExchange: eserviceTemplate.asyncExchange,
 });
 
 export const buildUpdateVersionSeed = (
