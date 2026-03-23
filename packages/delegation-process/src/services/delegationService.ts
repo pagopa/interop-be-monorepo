@@ -27,10 +27,10 @@ import {
   isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
-  PDFGenerator,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "pagopa-interop-commons-pdf";
 import { match } from "ts-pattern";
 import { delegationApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";

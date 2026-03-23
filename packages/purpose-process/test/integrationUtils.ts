@@ -2,7 +2,7 @@
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+} from "pagopa-interop-commons-pdf";
 import {
   ReadEvent,
   StoredEvent,

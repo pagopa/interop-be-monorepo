@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc",
+    "build": "tsc --noEmit && rm -rf dist && node esbuild.config.mjs",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
@@ -24,6 +24,7 @@
     "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
+    "esbuild": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {

@@ -12,20 +12,19 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
-  PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
   WithLogger,
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
-  getIpaCode,
   getLatestVersionFormRules,
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { PDFGenerator, getIpaCode } from "pagopa-interop-commons-pdf";
 import {
   Agreement,
   CorrelationId,

@@ -1,0 +1,28 @@
+{
+  "name": "pagopa-interop-commons-pdf",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability PDF generation utilities",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "build": "tsc && cpx './src/paged.polyfill.js' './dist'"
+  },
+  "dependencies": {
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "puppeteer": "catalog:"
+  },
+  "devDependencies": {
+    "cpx2": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

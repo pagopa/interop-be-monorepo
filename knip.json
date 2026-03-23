@@ -16,7 +16,7 @@
     "tsx"
   ],
   "ignore": [
-    "packages/commons/src/pdf-generator/paged.polyfill.js",
+    "packages/commons-pdf/src/paged.polyfill.js",
     "packages/documents-generator/src/model/purposeTemplateModels.ts"
   ],
   "ignoreIssues": {

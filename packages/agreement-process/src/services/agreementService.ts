@@ -10,13 +10,13 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
-  PDFGenerator,
   UIAuthData,
   WithLogger,
   eventRepository,
   isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "pagopa-interop-commons-pdf";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,

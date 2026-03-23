@@ -1,9 +1,9 @@
 import {
   initDB,
   initFileManager,
-  initPDFGenerator,
   startServer,
 } from "pagopa-interop-commons";
+import { initPDFGenerator } from "pagopa-interop-commons-pdf";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,

@@ -54,10 +54,10 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   genericLogger,
-  getIpaCode,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "pagopa-interop-commons-pdf";
 import {
   tenantKindNotFound,
   missingRiskAnalysis,

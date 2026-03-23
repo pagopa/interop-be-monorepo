@@ -19,7 +19,7 @@ import { afterAll, afterEach, inject, vi } from "vitest";
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+} from "pagopa-interop-commons-pdf";
 import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,

@@ -5,9 +5,9 @@ import {
   FileManager,
   formatDateyyyyMMddHHmmss,
   Logger,
-  PDFGenerator,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "pagopa-interop-commons-pdf";
 import {
   Delegation,
   DelegationContractDocument,

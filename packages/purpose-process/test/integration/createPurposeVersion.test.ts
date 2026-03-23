@@ -42,7 +42,8 @@ import {
   DelegationId,
   UserId,
 } from "pagopa-interop-models";
-import { genericLogger, getIpaCode } from "pagopa-interop-commons";
+import { genericLogger } from "pagopa-interop-commons";
+import { getIpaCode } from "pagopa-interop-commons-pdf";
 import {
   agreementNotFound,
   eserviceNotFound,

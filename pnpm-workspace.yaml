@@ -59,6 +59,7 @@ catalog:
   dotenv: 16.4.7
   domhandler: 5.0.3
   dotenv-flow: 4.1.0
+  esbuild: 0.27.2
   drizzle-kit: 0.30.4
   drizzle-orm: 0.39.3
   drizzle-zod: 0.7.1

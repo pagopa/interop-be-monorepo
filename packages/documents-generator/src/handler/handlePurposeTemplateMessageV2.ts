@@ -13,11 +13,10 @@ import { match, P } from "ts-pattern";
 import {
   FileManager,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
-  getIpaCode,
 } from "pagopa-interop-commons";
+import { PDFGenerator, getIpaCode } from "pagopa-interop-commons-pdf";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";

@@ -28,11 +28,11 @@ import {
   DeclaredAttributeV2,
   VerifiedAttributeV2,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  genericLogger,
   initPDFGenerator,
   launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+} from "pagopa-interop-commons-pdf";
 import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,

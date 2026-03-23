@@ -36,9 +36,9 @@ import {
   RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
-  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "pagopa-interop-commons-pdf";
 import {
   cleanup,
   readModelService,
