@@ -137,10 +137,13 @@ export function readModelServiceBuilderSQL({
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         or(
           and(
-            ilikeEscaped(attributeInReadmodelAttribute.code, escapeRegExp(code)),
+            ilikeEscaped(
+              attributeInReadmodelAttribute.code,
+              escapeSqlLike(code)
+            ),
             eq(attributeInReadmodelAttribute.origin, origin)
           ),
-          ilikeEscaped(attributeInReadmodelAttribute.name, escapeRegExp(name))
+          ilikeEscaped(attributeInReadmodelAttribute.name, escapeSqlLike(name))
         )
       );
     },
