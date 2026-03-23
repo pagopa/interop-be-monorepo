@@ -760,10 +760,12 @@ describe("createReversePurpose", () => {
       )
     ).resolves.toMatchObject(
       expect.objectContaining({
-        eserviceId: mockEService.id,
-        consumerId: consumer.id,
-        riskAnalysisForm: expect.objectContaining({
-          riskAnalysisId: mockRiskAnalysis.id,
+        data: expect.objectContaining({
+          eserviceId: mockEService.id,
+          consumerId: consumer.id,
+          riskAnalysisForm: expect.objectContaining({
+            riskAnalysisId: mockRiskAnalysis.id,
+          }),
         }),
       })
     );
