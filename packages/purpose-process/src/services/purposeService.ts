@@ -328,7 +328,7 @@ export function purposeServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ purpose: Purpose }>> {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -344,10 +344,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      return {
-        data: { purpose: purpose.data },
-        metadata: purpose.metadata,
-      };
+      return purpose;
     },
     async getRiskAnalysisDocument({
       purposeId,
@@ -1330,7 +1327,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ purpose: Purpose }>> {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
@@ -1395,7 +1392,7 @@ export function purposeServiceBuilder(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
       return {
-        data: { purpose },
+        data: purpose,
         metadata: {
           version: event.newVersion,
         },
@@ -1408,7 +1405,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ purpose: Purpose }>> {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
@@ -1473,9 +1470,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: {
-          purpose,
-        },
+        data: purpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -1647,7 +1642,7 @@ export function purposeServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ purpose: Purpose }>> {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Creating Purpose from Template ${purposeTemplateId}`);
 
       const consumerId = unsafeBrandId<TenantId>(body.consumerId);
@@ -1729,7 +1724,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose },
+        data: purpose,
         metadata: {
           version: event.newVersion,
         },

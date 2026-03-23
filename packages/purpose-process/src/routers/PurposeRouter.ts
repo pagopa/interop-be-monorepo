@@ -127,10 +127,10 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.createPurpose(req.body, ctx);
+        const { data: purpose, metadata } = await purposeService.createPurpose(
+          req.body,
+          ctx
+        );
 
         setMetadataVersionHeader(res, metadata);
 
@@ -148,10 +148,8 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.createReversePurpose(req.body, ctx);
+        const { data: purpose, metadata } =
+          await purposeService.createReversePurpose(req.body, ctx);
 
         setMetadataVersionHeader(res, metadata);
 
@@ -234,10 +232,7 @@ const purposeRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.getPurposeById(
+        const { data: purpose, metadata } = await purposeService.getPurposeById(
           unsafeBrandId(req.params.id),
           ctx
         );
@@ -680,14 +675,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.createPurposeFromTemplate(
-          unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
-          req.body,
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.createPurposeFromTemplate(
+            unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 
