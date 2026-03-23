@@ -44,14 +44,12 @@ export function integrityRest02Middleware(
     const originalSend = res.send.bind(res);
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
-      if (res.statusCode === 204 || res.statusCode === 304) {
-        next(
-          new Error(
-            `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
-          )
-        );
-        return res;
+
+      const handledResponse = handleExclusions(res, next, originalSend, body);
+      if (handledResponse) {
+        return handledResponse;
       }
+
       void (async (): Promise<void> => {
         try {
           const correlationId = res.getHeader("x-correlation-id") as
@@ -101,3 +99,27 @@ export function integrityRest02Middleware(
     next();
   };
 }
+
+
+const handleExclusions = (
+  res: Response,
+  next: NextFunction,
+  originalSend: (body?: unknown) => Response,
+  body?: unknown
+): Response | undefined => {
+  const statusCode = res.statusCode;
+
+  if (statusCode === 204 || statusCode === 304) {
+    next(new Error(
+      `Integrity REST 02 middleware should not be used for responses with status code ${statusCode} as they must not have a body`
+    ));
+    return res;
+  }
+
+  if (statusCode === 429) {
+    return originalSend(body);
+  }
+
+  return undefined;
+};
+
