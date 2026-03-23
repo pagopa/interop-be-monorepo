@@ -93,8 +93,8 @@ vi.doMock("pagopa-interop-commons", async (originalImports) => ({
 }));
 
 const tenantProcessClientMock: TenantProcessClient = {
-  selfcare: {
-    getTenantBySelfcareId: vi
+  internal: {
+    internalGetTenantBySelfcareId: vi
       .fn()
       .mockImplementation((req: { params: { selfcareId: string } }) =>
         match(req.params.selfcareId)
@@ -111,6 +111,7 @@ const tenantProcessClientMock: TenantProcessClient = {
             })
           )
       ),
+    internalGetTenant: vi.fn(),
   },
 } as unknown as TenantProcessClient;
 

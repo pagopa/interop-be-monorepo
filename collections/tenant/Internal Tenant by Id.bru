@@ -1,0 +1,20 @@
+meta {
+  name: Internal Tenant by Id
+  type: http
+  seq: 29
+}
+
+get {
+  url: {{host-tenant}}/internal/tenants/:tenantId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

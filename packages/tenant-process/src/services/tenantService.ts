@@ -11,7 +11,6 @@ import {
   InternalAuthData,
   MaintenanceAuthData,
   M2MAuthData,
-  isUiAuthData,
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -207,6 +206,87 @@ export function tenantServiceBuilder(
   readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+  const upsertTenantBySelfcare = async (
+    tenantSeed: tenantApi.SelfcareTenantSeed,
+    correlationId: CorrelationId,
+    logger: Logger,
+    onExistingTenant?: (tenantId: TenantId) => Promise<void>
+  ): Promise<TenantId> => {
+    logger.info(
+      `Upsert tenant by selfcare with externalId: ${JSON.stringify(
+        tenantSeed.externalId
+      )}`
+    );
+    const existingTenant = await readModelService.getTenantByExternalId(
+      tenantSeed.externalId
+    );
+    if (existingTenant) {
+      logger.info(
+        `Updating tenant with external id ${tenantSeed.externalId.origin}/${tenantSeed.externalId.value} via SelfCare request`
+      );
+
+      if (onExistingTenant) {
+        await onExistingTenant(existingTenant.data.id);
+      }
+
+      evaluateNewSelfcareId({
+        tenant: existingTenant.data,
+        newSelfcareId: tenantSeed.selfcareId,
+      });
+
+      const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        existingTenant.data.attributes,
+        existingTenant.data.externalId
+      );
+
+      const updatedTenant: Tenant = {
+        ...existingTenant.data,
+        kind: updatedTenantKind,
+        selfcareId: tenantSeed.selfcareId,
+        onboardedAt: new Date(tenantSeed.onboardedAt),
+        updatedAt: new Date(),
+      };
+
+      logger.info(
+        `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request`
+      );
+      await repository.createEvent(
+        toCreateEventTenantOnboardDetailsUpdated(
+          existingTenant.data.id,
+          existingTenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+      return existingTenant.data.id;
+    }
+
+    logger.info(
+      `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request`
+    );
+
+    const newTenant: Tenant = {
+      id: generateId(),
+      name: tenantSeed.name,
+      attributes: [],
+      externalId: tenantSeed.externalId,
+      features: [],
+      mails: formatTenantMail(tenantSeed.digitalAddress),
+      selfcareId: tenantSeed.selfcareId,
+      onboardedAt: new Date(tenantSeed.onboardedAt),
+      subUnitType: tenantSeed.subUnitType,
+      createdAt: new Date(),
+      kind: match(getTenantKind([], tenantSeed.externalId))
+        .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
+        .with(tenantKind.GSP, tenantKind.PA, () => undefined)
+        .exhaustive(),
+    };
+    await repository.createEvent(
+      toCreateEventTenantOnboarded(newTenant, correlationId)
+    );
+    return newTenant.id;
+  };
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
@@ -346,93 +426,21 @@ export function tenantServiceBuilder(
 
     async selfcareUpsertTenant(
       tenantSeed: tenantApi.SelfcareTenantSeed,
-      {
-        authData,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<TenantId> {
+      return upsertTenantBySelfcare(
+        tenantSeed,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
+        async (tenantId) => await assertRequesterAllowed(tenantId, authData)
+      );
+    },
+
+    async internalSelfcareUpsertTenant(
+      tenantSeed: tenantApi.SelfcareTenantSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<TenantId> {
-      logger.info(
-        `Upsert tenant by selfcare with externalId: ${JSON.stringify(
-          tenantSeed.externalId
-        )}`
-      );
-      const existingTenant = await readModelService.getTenantByExternalId(
-        tenantSeed.externalId
-      );
-      if (existingTenant) {
-        logger.info(
-          `Updating tenant with external id ${tenantSeed.externalId.origin}/${tenantSeed.externalId.value} via SelfCare request"`
-        );
-
-        if (isUiAuthData(authData)) {
-          // TODO this check is skipped in case of calls that do not come from the UI,
-          // e.g., internal calls - consider creating a dedicated internal route.
-          // Double check if the non-internal case is actually exposed by BFF/API GW.
-          await assertRequesterAllowed(existingTenant.data.id, authData);
-        }
-
-        evaluateNewSelfcareId({
-          tenant: existingTenant.data,
-          newSelfcareId: tenantSeed.selfcareId,
-        });
-
-        const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-          readModelService,
-          existingTenant.data.attributes,
-          existingTenant.data.externalId
-        );
-
-        const updatedTenant: Tenant = {
-          ...existingTenant.data,
-          kind: tenantKind,
-          selfcareId: tenantSeed.selfcareId,
-          onboardedAt: new Date(tenantSeed.onboardedAt),
-          updatedAt: new Date(),
-        };
-
-        logger.info(
-          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
-        );
-        await repository.createEvent(
-          toCreateEventTenantOnboardDetailsUpdated(
-            existingTenant.data.id,
-            existingTenant.metadata.version,
-            updatedTenant,
-            correlationId
-          )
-        );
-        return existingTenant.data.id;
-      } else {
-        logger.info(
-          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
-        );
-
-        const newTenant: Tenant = {
-          id: generateId(),
-          name: tenantSeed.name,
-          attributes: [],
-          externalId: tenantSeed.externalId,
-          features: [],
-          mails: formatTenantMail(tenantSeed.digitalAddress),
-          selfcareId: tenantSeed.selfcareId,
-          onboardedAt: new Date(tenantSeed.onboardedAt),
-          subUnitType: tenantSeed.subUnitType,
-          createdAt: new Date(),
-          kind: match(getTenantKind([], tenantSeed.externalId))
-            /**
-             * If the tenant kind is SCP or PRIVATE, set the kind straight away.
-             * If not, the kind will be evaluated when certified attributes are added.
-             */
-            .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
-            .with(tenantKind.GSP, tenantKind.PA, () => undefined)
-            .exhaustive(),
-        };
-        await repository.createEvent(
-          toCreateEventTenantOnboarded(newTenant, correlationId)
-        );
-        return newTenant.id;
-      }
+      return upsertTenantBySelfcare(tenantSeed, correlationId, logger);
     },
 
     async revokeDeclaredAttribute(

@@ -113,8 +113,8 @@ export function authorizationServiceBuilder(
     selfcareId: string,
     headers: Headers
   ): Promise<tenantApi.Tenant> =>
-    tenantProcessClient.selfcare
-      .getTenantBySelfcareId({
+    tenantProcessClient.internal
+      .internalGetTenantBySelfcareId({
         params: { selfcareId },
         headers,
       })
@@ -221,7 +221,7 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
+      const tenant = await tenantProcessClient.internal.internalGetTenant({
         params: { id: config.pagoPaTenantId },
         headers: {
           ...headers,

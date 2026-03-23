@@ -4,6 +4,7 @@ import { QueryParametersByAlias } from "./utils.js";
 type TenantApi = typeof tenantApi.tenantApi.api;
 
 export type TenantProcessClient = {
+  internal: ReturnType<typeof tenantApi.createInternalApiClient>;
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
   tenantAttribute: ReturnType<typeof tenantApi.createTenantAttributeApiClient>;
   selfcare: ReturnType<typeof tenantApi.createSelfcareApiClient>;

@@ -24,7 +24,7 @@ import {
   verifiedAttributeNotFoundInTenant,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId} test", () => {
+describe("API POST /internal/tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId} test", () => {
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );
@@ -63,7 +63,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
   ) =>
     request(api)
       .post(
-        `/tenants/${tenantId}/attributes/verified/${attributeId}/verifier/${verifierId}`
+        `/internal/tenants/${tenantId}/attributes/verified/${attributeId}/verifier/${verifierId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());

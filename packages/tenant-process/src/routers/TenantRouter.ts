@@ -186,7 +186,6 @@ const tenantsRouter = (
           M2M_ADMIN_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
-          INTERNAL_ROLE,
         ]);
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
@@ -300,7 +299,7 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
+      "/internal/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -596,7 +595,6 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
-          INTERNAL_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantBySelfcareId(
@@ -620,12 +618,7 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [
-          ADMIN_ROLE,
-          API_ROLE,
-          SECURITY_ROLE,
-          INTERNAL_ROLE,
-        ]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
 
         const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
         return res.status(200).send(tenantApi.ResourceId.parse({ id }));
@@ -643,6 +636,70 @@ const tenantsRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
   internalRouter
+    .get("/internal/tenants/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const { data: tenant, metadata } = await tenantService.getTenantById(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getTenantByIdErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/internal/tenants/selfcare/:selfcareId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const tenant = await tenantService.getTenantBySelfcareId(
+          req.params.selfcareId,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getTenantBySelfcareIdErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/internal/selfcare/tenants", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const id = await tenantService.internalSelfcareUpsertTenant(
+          req.body,
+          ctx
+        );
+        return res.status(200).send(tenantApi.ResourceId.parse({ id }));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          selfcareUpsertTenantErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/internal/tenants", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

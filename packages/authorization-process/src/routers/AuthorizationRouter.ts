@@ -572,9 +572,27 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, INTERNAL_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE]);
 
         await authorizationService.removePurposeFromClients(
+          {
+            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+          },
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/internal/clients/purposes/:purposeId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        await authorizationService.internalRemovePurposeFromClients(
           {
             purposeIdToRemove: unsafeBrandId(req.params.purposeId),
           },

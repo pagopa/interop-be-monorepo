@@ -1080,7 +1080,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:

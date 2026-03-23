@@ -25,10 +25,7 @@ describe("API /clients/purposes/{purposeId} authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send([mockClient1, mockClient2]);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.INTERNAL_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
   authorizationService.removePurposeFromClients = vi.fn().mockResolvedValue({});
 

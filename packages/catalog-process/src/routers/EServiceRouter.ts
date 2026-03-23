@@ -222,7 +222,6 @@ const eservicesRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
-          INTERNAL_ROLE,
         ]);
 
         const { data: eservice, metadata } =
@@ -805,7 +804,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/archive",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

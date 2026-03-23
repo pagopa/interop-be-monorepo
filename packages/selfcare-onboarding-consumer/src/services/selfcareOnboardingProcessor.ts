@@ -17,7 +17,7 @@ import { InstitutionEventPayload } from "../model/institutionEvent.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "selfcare">,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "internal">,
   productName: string,
   allowedOrigins: string[]
 ) {
@@ -98,7 +98,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         const headers = getInteropHeaders({ token, correlationId });
 
-        await tenantProcessClient.selfcare.selfcareUpsertTenant(seed, {
+        await tenantProcessClient.internal.internalSelfcareUpsertTenant(seed, {
           headers,
         });
 

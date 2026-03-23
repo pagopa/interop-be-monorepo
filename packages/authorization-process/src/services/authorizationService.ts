@@ -4,6 +4,7 @@ import {
   Client,
   ClientId,
   clientKind,
+  CorrelationId,
   Delegation,
   Descriptor,
   DescriptorId,
@@ -234,6 +235,33 @@ export function authorizationServiceBuilder(
     dbInstance,
     authorizationEventToBinaryData
   );
+  const removePurposeFromAllClients = async (
+    purposeIdToRemove: PurposeId,
+    correlationId: CorrelationId,
+    logger: WithLogger<AppContext>["logger"]
+  ): Promise<void> => {
+    logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
+
+    const clients =
+      await readModelService.getClientsRelatedToPurpose(purposeIdToRemove);
+    for (const client of clients) {
+      const updatedClient: Client = {
+        ...client.data,
+        purposes: client.data.purposes.filter(
+          (purposeId) => purposeId !== purposeIdToRemove
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventClientPurposeRemoved(
+          updatedClient,
+          purposeIdToRemove,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    }
+  };
 
   return {
     async getClientById(
@@ -551,32 +579,27 @@ export function authorizationServiceBuilder(
       }: {
         purposeIdToRemove: PurposeId;
       },
-      {
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
+      { correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
-      logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
-
-      const clients =
-        await readModelService.getClientsRelatedToPurpose(purposeIdToRemove);
-      for (const client of clients) {
-        const updatedClient: Client = {
-          ...client.data,
-          purposes: client.data.purposes.filter(
-            (purposeId) => purposeId !== purposeIdToRemove
-          ),
-        };
-
-        await repository.createEvent(
-          toCreateEventClientPurposeRemoved(
-            updatedClient,
-            purposeIdToRemove,
-            client.metadata.version,
-            correlationId
-          )
-        );
-      }
+      return await removePurposeFromAllClients(
+        purposeIdToRemove,
+        correlationId,
+        logger
+      );
+    },
+    async internalRemovePurposeFromClients(
+      {
+        purposeIdToRemove,
+      }: {
+        purposeIdToRemove: PurposeId;
+      },
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      return await removePurposeFromAllClients(
+        purposeIdToRemove,
+        correlationId,
+        logger
+      );
     },
     async getClientUsers(
       {
