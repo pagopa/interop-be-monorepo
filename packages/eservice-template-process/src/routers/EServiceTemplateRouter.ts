@@ -44,6 +44,7 @@ import {
   getEServiceTemplatesErrorMapper,
   updateEServiceTemplatePersonalDataFlagErrorMapper,
   deleteEServiceTemplateErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   compactOrganizationToApi,
@@ -64,6 +65,7 @@ const eserviceTemplatesRouter = (
     M2M_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    INTERNAL_ROLE,
   } = authRole;
 
   return ctx
@@ -689,6 +691,39 @@ const eserviceTemplatesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/templates/:templateId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data: updatedEServiceTemplate, metadata } =
+            await eserviceTemplateService.fixEServiceTemplateRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -179,6 +179,17 @@ export const updateRiskAnalysisErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateNotFound",
+      "riskAnalysisNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

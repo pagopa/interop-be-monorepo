@@ -9,6 +9,7 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
+  InternalAuthData,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   Logger,
@@ -42,6 +43,7 @@ import {
   EServiceTemplateEvent,
   CompactOrganization,
   RiskAnalysis,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -82,6 +84,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventEServiceTemplateRiskAnalysisFixed,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
@@ -1136,6 +1139,62 @@ export function eserviceTemplateServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async fixEServiceTemplateRiskAnalysisTenantKind(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      logger.info(
+        `Fixing risk analysis ${riskAnalysisId} for EService template ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+
+      const riskAnalysisToFix = retrieveEServiceTemplateRiskAnalysis(
+        template.data,
+        riskAnalysisId
+      );
+
+      const existingTenantKind = riskAnalysisToFix.riskAnalysisForm.tenantKind;
+      if (!existingTenantKind) {
+        throw genericInternalError(
+          `Risk analysis ${riskAnalysisId} is missing tenantKind`
+        );
+      }
+
+      const fixedRiskAnalysis: RiskAnalysis = {
+        ...riskAnalysisToFix,
+        riskAnalysisForm: {
+          ...riskAnalysisToFix.riskAnalysisForm,
+          tenantKind: existingTenantKind,
+        },
+      };
+
+      const updatedTemplate: EServiceTemplate = {
+        ...template.data,
+        riskAnalysis: template.data.riskAnalysis.map((ra) =>
+          ra.id === riskAnalysisToFix.id ? fixedRiskAnalysis : ra
+        ),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceTemplateRiskAnalysisFixed(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          updatedTemplate,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateVersionAttributes(
       eserviceTemplateId: EServiceTemplateId,
