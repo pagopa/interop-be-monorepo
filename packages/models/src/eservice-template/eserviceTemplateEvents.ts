@@ -14,6 +14,7 @@ import {
   EServiceTemplateRiskAnalysisAddedV2,
   EServiceTemplateRiskAnalysisDeletedV2,
   EServiceTemplateRiskAnalysisUpdatedV2,
+  EServiceTemplateRiskAnalysisFixedV2,
   EServiceTemplateVersionSuspendedV2,
   EServiceTemplateVersionAddedV2,
   EServiceTemplateVersionAttributesUpdatedV2,
@@ -50,6 +51,11 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceTemplateRiskAnalysisUpdated"),
     data: protobufDecoder(EServiceTemplateRiskAnalysisUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceTemplateRiskAnalysisFixed"),
+    data: protobufDecoder(EServiceTemplateRiskAnalysisFixedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -196,6 +202,9 @@ export function eserviceTemplateEventToBinaryDataV2(
     )
     .with({ type: "EServiceTemplateRiskAnalysisUpdated" }, ({ data }) =>
       EServiceTemplateRiskAnalysisUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceTemplateRiskAnalysisFixed" }, ({ data }) =>
+      EServiceTemplateRiskAnalysisFixedV2.toBinary(data)
     )
     .with({ type: "EServiceTemplateVersionSuspended" }, ({ data }) =>
       EServiceTemplateVersionSuspendedV2.toBinary(data)
