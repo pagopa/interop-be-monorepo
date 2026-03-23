@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   AttributeId,
@@ -32,7 +33,6 @@ import {
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";

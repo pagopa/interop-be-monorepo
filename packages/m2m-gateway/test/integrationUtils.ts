@@ -1,9 +1,9 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { afterEach, expect, inject } from "vitest";
+import { WithMaybeMetadata } from "pagopa-interop-api-clients";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
-import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { attributeServiceBuilder } from "../src/services/attributeService.js";
