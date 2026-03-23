@@ -220,9 +220,9 @@ export function purposeServiceBuilder(
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
-      const { data } = await retrievePurposeById(purposeId, headers);
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
 
-      return toM2MGatewayApiPurpose(data);
+      return toM2MGatewayApiPurpose(purpose, clients, headers);
     },
     async createPurpose(
       purposeSeed: m2mGatewayApi.PurposeSeed,

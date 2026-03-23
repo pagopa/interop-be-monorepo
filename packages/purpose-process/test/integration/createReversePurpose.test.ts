@@ -103,7 +103,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -213,7 +213,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(delegateTenant.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -353,7 +353,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -395,9 +395,7 @@ describe("createReversePurpose", () => {
     };
 
     expect(createReversePurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
