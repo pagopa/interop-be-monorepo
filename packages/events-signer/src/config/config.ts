@@ -27,16 +27,7 @@ export const EventSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
   .and(KafkaBatchConsumerConfig)
   .and(EventsSignerConfig)
   .and(SafeStorageApiConfig)
-  .and(DynamoDBClientConfig)
-  .and(
-    z
-      .object({
-        SERVICE_NAME: z.string(),
-      })
-      .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
-      }))
-  );
+  .and(DynamoDBClientConfig);
 
 export type EventSignerConfig = z.infer<typeof EventSignerConfig>;
 
