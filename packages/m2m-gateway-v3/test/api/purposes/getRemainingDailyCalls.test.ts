@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId, PurposeId } from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
@@ -20,7 +20,8 @@ describe("GET /purposes/:purposeId/remainingDailyCalls router test", () => {
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)
       .get(`${appBasePath}/purposes/${purposeId}/remainingDailyCalls`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   it.each(authorizedRoles)(
