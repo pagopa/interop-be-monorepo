@@ -47,6 +47,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
       "eServiceTemplateWithoutPersonalDataFlag",
+      "templateVersionMissingAsyncExchangeProperties",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

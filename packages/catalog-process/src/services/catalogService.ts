@@ -106,6 +106,7 @@ import {
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
   descriptorAsyncExchangeNotConfigured,
+  templateVersionMissingAsyncExchangeProperties,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -3480,6 +3481,17 @@ export function catalogServiceBuilder(
         template.personalData === undefined
       ) {
         throw eServiceTemplateWithoutPersonalDataFlag(
+          template.id,
+          publishedVersion.id
+        );
+      }
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        template.asyncExchange === true &&
+        !publishedVersion.asyncExchangeProperties
+      ) {
+        throw templateVersionMissingAsyncExchangeProperties(
           template.id,
           publishedVersion.id
         );

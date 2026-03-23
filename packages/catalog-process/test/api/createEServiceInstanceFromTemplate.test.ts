@@ -33,6 +33,7 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   templateMissingRequiredRiskAnalysis,
+  templateVersionMissingAsyncExchangeProperties,
   tenantKindNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -147,6 +148,13 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     },
     {
       error: eServiceTemplateWithoutPersonalDataFlag(
+        eServiceTemplate.id,
+        publishedVersion.id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: templateVersionMissingAsyncExchangeProperties(
         eServiceTemplate.id,
         publishedVersion.id
       ),
