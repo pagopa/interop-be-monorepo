@@ -6,6 +6,7 @@ import AdmZip from "adm-zip";
 import mime from "mime";
 import {
   ApiError,
+  badRequestError,
   CommonErrorCodes,
   EService,
   EServiceId,
@@ -346,6 +347,19 @@ export const retrieveServerUrlsAPI = async (
   }
 };
 
+export type FileSizeLimits = {
+  maxFileSizeBytes: number;
+  maxInterfaceFileSizeBytes?: number;
+};
+
+const resolveMaxSizeForKind = (
+  kind: "INTERFACE" | "DOCUMENT",
+  limits: FileSizeLimits
+): number =>
+  kind === "INTERFACE"
+    ? (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes)
+    : limits.maxFileSizeBytes;
+
 // eslint-disable-next-line max-params
 export async function verifyAndCreateDocument<T>(
   fileManager: FileManager,
@@ -371,11 +385,20 @@ export async function verifyAndCreateDocument<T>(
     contentType: string,
     checksum: string
   ) => Promise<T>,
+  fileSizeLimits: FileSizeLimits,
   logger: Logger
 ): Promise<T> {
   const contentType = doc.type;
   if (!contentType) {
     throw invalidContentTypeDetected(resource, "invalid", technology);
+  }
+
+  const maxSizeForKind = resolveMaxSizeForKind(kind, fileSizeLimits);
+
+  if (maxSizeForKind !== undefined && doc.size > maxSizeForKind) {
+    throw badRequestError(
+      `File size ${doc.size} bytes exceeds maximum allowed size of ${maxSizeForKind} bytes`
+    );
   }
 
   const serverUrls = await retrieveServerUrlsAPI(
@@ -436,6 +459,7 @@ export const verifyAndCreateImportedDocument = async <T>(
   ) => Promise<T>,
   eserviceDocumentsContainer: string,
   eserviceDocumentsPath: string,
+  fileSizeLimits: FileSizeLimits,
   logger: Logger
 ): // eslint-disable-next-line max-params
 Promise<void> => {
@@ -463,6 +487,7 @@ Promise<void> => {
     eserviceDocumentsPath,
     doc.prettyName,
     createDocumentHandler,
+    fileSizeLimits,
     logger
   );
 };
