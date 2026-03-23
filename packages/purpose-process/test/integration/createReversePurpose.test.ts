@@ -758,16 +758,14 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       )
-    ).resolves.toMatchObject({
-      data: {
-        purpose: expect.objectContaining({
-          eserviceId: mockEService.id,
-          consumerId: consumer.id,
-          riskAnalysisForm: expect.objectContaining({
-            riskAnalysisId: mockRiskAnalysis.id,
-          }),
+    ).resolves.toMatchObject(
+      expect.objectContaining({
+        eserviceId: mockEService.id,
+        consumerId: consumer.id,
+        riskAnalysisForm: expect.objectContaining({
+          riskAnalysisId: mockRiskAnalysis.id,
         }),
-      },
-    });
+      })
+    );
   });
 });
