@@ -55,6 +55,12 @@ describe("deleteEServiceTemplateVersion", () => {
       ...mockDoc2,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc2.id}/${mockDoc2.name}`,
     };
+    const mockAsyncCallback = getMockDocument();
+    const asyncExchangeCallbackInterfaceDoc = {
+      ...mockAsyncCallback,
+      name: `${mockAsyncCallback.name}_async_callback`,
+      path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,
+    };
 
     const eserviceTemplateVersion1: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -64,6 +70,7 @@ describe("deleteEServiceTemplateVersion", () => {
     const eserviceTemplateVersion2: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: interfaceDoc,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [doc1, doc2],
       state: descriptorState.draft,
     };
@@ -96,9 +103,23 @@ describe("deleteEServiceTemplateVersion", () => {
       );
     }
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceTemplateDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDoc.id,
+        name: asyncExchangeCallbackInterfaceDoc.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDoc.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDoc.path);
     for (const doc of [doc1, doc2]) {
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -146,6 +167,15 @@ describe("deleteEServiceTemplateVersion", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDoc.path);
 
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDoc.path,
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(asyncExchangeCallbackInterfaceDoc.path);
+
     for (const doc of [doc1, doc2]) {
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
@@ -177,10 +207,17 @@ describe("deleteEServiceTemplateVersion", () => {
       ...mockDoc2,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc2.id}/${mockDoc2.name}`,
     };
+    const mockAsyncCallback = getMockDocument();
+    const asyncExchangeCallbackInterfaceDoc = {
+      ...mockAsyncCallback,
+      name: `${mockAsyncCallback.name}_async_callback`,
+      path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,
+    };
 
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: interfaceDoc,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [doc1, doc2],
       state: descriptorState.draft,
     };
@@ -195,6 +232,17 @@ describe("deleteEServiceTemplateVersion", () => {
         path: config.eserviceTemplateDocumentsPath,
         resourceId: interfaceDoc.id,
         name: interfaceDoc.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceTemplateDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDoc.id,
+        name: asyncExchangeCallbackInterfaceDoc.name,
         content: Buffer.from("testtest"),
       },
       genericLogger
@@ -216,6 +264,9 @@ describe("deleteEServiceTemplateVersion", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDoc.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDoc.path);
     for (const doc of [doc1, doc2]) {
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -259,6 +310,15 @@ describe("deleteEServiceTemplateVersion", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDoc.path);
+
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDoc.path,
+      genericLogger
+    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(asyncExchangeCallbackInterfaceDoc.path);
 
     for (const doc of [doc1, doc2]) {
       expect(fileManager.delete).toHaveBeenCalledWith(

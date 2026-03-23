@@ -946,6 +946,14 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      if (version.asyncExchangeCallbackInterface !== undefined) {
+        await fileManager.delete(
+          config.s3Bucket,
+          version.asyncExchangeCallbackInterface.path,
+          logger
+        );
+      }
+
       for (const document of version.docs) {
         await fileManager.delete(config.s3Bucket, document.path, logger);
       }
