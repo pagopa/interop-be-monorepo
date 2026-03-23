@@ -160,6 +160,7 @@ describe("create eService from template", () => {
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -345,6 +346,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -399,6 +407,7 @@ describe("create eService from template", () => {
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -423,6 +432,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -475,6 +491,7 @@ describe("create eService from template", () => {
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -513,6 +530,13 @@ describe("create eService from template", () => {
         eserviceTemplateVersionState.published
       ),
       docs: [document1, document2],
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
@@ -660,6 +684,8 @@ describe("create eService from template", () => {
           dailyCallsTotal:
             eserviceTemplatePublishedVersion?.dailyCallsTotal ?? 1,
           templateVersionRef: { id: eserviceTemplatePublishedVersion.id },
+          asyncExchangeProperties:
+            eserviceTemplatePublishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -767,6 +793,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
