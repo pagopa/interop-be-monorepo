@@ -18,14 +18,12 @@ import {
 
 describe("API GET /purposes/{purposeId} test", () => {
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const serviceResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {

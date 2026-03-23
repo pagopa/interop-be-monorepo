@@ -81,7 +81,7 @@ describe("createPurposeFromTemplate", () => {
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
     id: mockPurposeProcessGetResponse.data.id,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
+    isRiskAnalysisValid: false, // TODO,
     title: mockPurposeProcessGetResponse.data.title,
     currentVersion: purposeVersion
       ? testToM2mGatewayApiPurposeVersion(purposeVersion)

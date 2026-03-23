@@ -128,10 +128,7 @@ export const purposeVersionToApiPurposeVersion = (
     : undefined,
 });
 
-export const purposeToApiPurpose = (
-  purpose: Purpose,
-  isRiskAnalysisValid: boolean
-): purposeApi.Purpose => ({
+export const purposeToApiPurpose = (purpose: Purpose): purposeApi.Purpose => ({
   id: purpose.id,
   eserviceId: purpose.eserviceId,
   consumerId: purpose.consumerId,
@@ -146,7 +143,6 @@ export const purposeToApiPurpose = (
     : undefined,
   createdAt: purpose.createdAt?.toJSON(),
   updatedAt: purpose.updatedAt?.toJSON(),
-  isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   purposeTemplateId: purpose.purposeTemplateId,

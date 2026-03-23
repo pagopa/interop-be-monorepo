@@ -241,7 +241,6 @@ describe("createPurposeFromTemplate", () => {
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });
@@ -423,7 +422,6 @@ describe("createPurposeFromTemplate", () => {
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });
@@ -550,7 +548,6 @@ describe("createPurposeFromTemplate", () => {
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });
@@ -664,7 +661,6 @@ describe("createPurposeFromTemplate", () => {
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });
@@ -835,7 +831,6 @@ describe("createPurposeFromTemplate", () => {
     expect(createPurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 0 },
     });

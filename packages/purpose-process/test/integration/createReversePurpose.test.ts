@@ -104,8 +104,6 @@ describe("createReversePurpose", () => {
       );
 
     const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -148,7 +146,6 @@ describe("createReversePurpose", () => {
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -217,8 +214,6 @@ describe("createReversePurpose", () => {
       );
 
     const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -262,7 +257,6 @@ describe("createReversePurpose", () => {
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -360,8 +354,6 @@ describe("createReversePurpose", () => {
       );
 
     const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -405,7 +397,6 @@ describe("createReversePurpose", () => {
     expect(createReversePurposeResponse).toEqual({
       data: {
         purpose: expectedPurpose,
-        isRiskAnalysisValid,
       },
       metadata: { version: 0 },
     });
@@ -778,7 +769,6 @@ describe("createReversePurpose", () => {
             riskAnalysisId: mockRiskAnalysis.id,
           }),
         }),
-        isRiskAnalysisValid: true,
       },
     });
   });

@@ -54,14 +54,12 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const purposeTemplateId = generateId<PurposeTemplateId>();
 
-  const isRiskAnalysisValid = true;
   const serviceResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {
