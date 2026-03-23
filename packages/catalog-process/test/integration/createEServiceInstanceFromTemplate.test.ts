@@ -1199,6 +1199,13 @@ describe("create eService from template", () => {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
       asyncExchangeCallbackInterface: callbackDoc,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,

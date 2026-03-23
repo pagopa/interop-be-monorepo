@@ -208,19 +208,18 @@ export const retrieveEServiceTemplateRiskAnalysisAnswersSQLById = async (
       )
     );
 
-export const retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById =
-  async (
-    eserviceTemplateId: EServiceTemplateId,
-    db: DrizzleReturnType
-  ): Promise<EServiceTemplateVersionAsyncExchangePropertiesSQL[]> =>
-    await db
-      .select()
-      .from(
-        eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+const retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById = async (
+  eserviceTemplateId: EServiceTemplateId,
+  db: DrizzleReturnType
+): Promise<EServiceTemplateVersionAsyncExchangePropertiesSQL[]> =>
+  await db
+    .select()
+    .from(
+      eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+    )
+    .where(
+      eq(
+        eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.eserviceTemplateId,
+        eserviceTemplateId
       )
-      .where(
-        eq(
-          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.eserviceTemplateId,
-          eserviceTemplateId
-        )
-      );
+    );

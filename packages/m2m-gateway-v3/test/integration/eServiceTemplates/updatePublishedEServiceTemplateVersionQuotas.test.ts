@@ -154,6 +154,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
       publishedAt: mockVersion.publishedAt,
       suspendedAt: mockVersion.suspendedAt,
       deprecatedAt: mockVersion.deprecatedAt,
+      asyncExchangeProperties: mockVersion.asyncExchangeProperties,
     };
 
     expect(result).toStrictEqual(expectedM2MDVersion);

@@ -248,12 +248,15 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
         eserviceTemplateId,
         metadataVersion,
         versionId: eserviceTemplateVersion.id,
-        responseTime: eserviceTemplateVersion.asyncExchangeProperties.responseTime,
+        responseTime:
+          eserviceTemplateVersion.asyncExchangeProperties.responseTime,
         resourceAvailableTime:
           eserviceTemplateVersion.asyncExchangeProperties.resourceAvailableTime,
-        confirmation: eserviceTemplateVersion.asyncExchangeProperties.confirmation,
+        confirmation:
+          eserviceTemplateVersion.asyncExchangeProperties.confirmation,
         bulk: eserviceTemplateVersion.asyncExchangeProperties.bulk,
-        maxResultSet: eserviceTemplateVersion.asyncExchangeProperties.maxResultSet,
+        maxResultSet:
+          eserviceTemplateVersion.asyncExchangeProperties.maxResultSet,
       }
     : undefined;
 
