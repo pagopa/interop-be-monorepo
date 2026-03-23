@@ -70,6 +70,8 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)

@@ -842,6 +842,37 @@ describe("create eService from template", () => {
     });
   });
 
+  it("should throw templateVersionMissingAsyncExchangeProperties when the template is async but published version has no asyncExchangeProperties", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eServiceTemplate.id,
+        {},
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toMatchObject({
+      code: "templateVersionMissingAsyncExchangeProperties",
+    });
+  });
+
   it.each([
     {
       existingLabel: undefined,
