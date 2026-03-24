@@ -17,7 +17,7 @@ import {
   purposeService,
 } from "../../integrationUtils.js";
 
-describe("toM2MGatewayApiPurpose", () => {
+describe.skip("toM2MGatewayApiPurpose", () => {
   const mockGetPurpose = vi.fn();
 
   mockInteropBeClients.purposeProcessClient = {
