@@ -1963,17 +1963,6 @@ export function purposeServiceBuilder(
           )
         : undefined;
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis") &&
-        updatedRiskAnalysisForm
-      ) {
-        assertRiskAnalysisTenantKindMatch({
-          actualKind: tenantKind,
-          expectedKind: updatedRiskAnalysisForm.tenantKind,
-          riskAnalysisFormId: updatedRiskAnalysisForm.id,
-        });
-      }
-
       const updatedVersions = purposeUpdateContent.dailyCalls
         ? replacePurposeVersion(purpose.data, {
             ...lastDraftVersion,
