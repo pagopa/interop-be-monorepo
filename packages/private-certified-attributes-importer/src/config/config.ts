@@ -28,9 +28,9 @@ const PrivateCertifiedAttributesImporterConfig = LoggerConfig.and(
       }))
   );
 
-export const config: PrivateCertifiedAttributesImporterConfig =
-  PrivateCertifiedAttributesImporterConfig.parse(process.env);
-
-export type PrivateCertifiedAttributesImporterConfig = z.infer<
+type PrivateCertifiedAttributesImporterConfig = z.infer<
   typeof PrivateCertifiedAttributesImporterConfig
 >;
+
+export const config: PrivateCertifiedAttributesImporterConfig =
+  PrivateCertifiedAttributesImporterConfig.parse(process.env);

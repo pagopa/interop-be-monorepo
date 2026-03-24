@@ -4715,9 +4715,6 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      ssh2-sftp-client:
-        specifier: 'catalog:'
-        version: 9.1.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8

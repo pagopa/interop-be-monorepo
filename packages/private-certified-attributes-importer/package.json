@@ -32,7 +32,6 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "ssh2-sftp-client": "catalog:",
     "zod": "catalog:"
   }
 }

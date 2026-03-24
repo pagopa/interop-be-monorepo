@@ -20,11 +20,8 @@ export const REGISTRY_ATTRIBUTES_SEEDS = {
   },
 } as const;
 
-export type RegistryAttributeLabels = keyof typeof REGISTRY_ATTRIBUTES_SEEDS;
-export type ResolvedRegistryAttributes = Record<
-  RegistryAttributeLabels,
-  Attribute
->;
+type RegistryAttributeLabels = keyof typeof REGISTRY_ATTRIBUTES_SEEDS;
+type ResolvedRegistryAttributes = Record<RegistryAttributeLabels, Attribute>;
 
 export function generateCodeFromName(name: string): string {
   return crypto.createHash("sha256").update(name).digest("hex");
