@@ -2280,8 +2280,8 @@ export function catalogServiceBuilder(
       if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
         assertRiskAnalysisTenantKindMatch({
           actualKind: tenant.kind,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          expectedKind: riskAnalysisToUpdate.riskAnalysisForm.tenantKind!,
+          expectedKind:
+            riskAnalysisToUpdate.riskAnalysisForm.tenantKind || tenant.kind,
           eserviceId: eservice.data.id,
           riskAnalysisId: riskAnalysisToUpdate.id,
         });
