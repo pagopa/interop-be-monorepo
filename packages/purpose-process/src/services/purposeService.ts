@@ -146,6 +146,7 @@ import {
   validateRiskAnalysisAgainstTemplateOrThrow,
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  getUpdatedQuotas,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -1937,6 +1938,46 @@ export function purposeServiceBuilder(
         version,
         documentId
       );
+    },
+    async getRemainingDailyCalls({
+      purposeId,
+      ctx: { authData, logger },
+    }: {
+      purposeId: PurposeId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<purposeApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const quotas = await getUpdatedQuotas(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      const remainingDailyCallsPerConsumer = Math.max(
+        0,
+        quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
+      );
+      const remainingDailyCallsTotal = Math.max(
+        0,
+        quotas.maxDailyCallsTotal - quotas.currentTotalCalls
+      );
+      return {
+        remainingDailyCallsPerConsumer,
+        remainingDailyCallsTotal,
+      };
     },
   };
 }

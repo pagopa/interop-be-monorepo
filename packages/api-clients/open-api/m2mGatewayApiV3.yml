@@ -7233,6 +7233,41 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/remainingDailyCalls:
+    parameters:
+      - name: purposeId
+        in: path
+        description: The ID of the Purpose to retrieve the remainingDailyCalls for
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposes
+      operationId: getRemainingDailyCalls
+      summary: Retrieve remaining dailyCalls for a purpose
+      description: Retrieve remaining available daily calls for a purpose
+      responses:
+        "200":
+          description: Retrieve remaining daily calls
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /tenants:
     get:
       tags:
@@ -12374,6 +12409,21 @@ components:
           $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
+    RemainingDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        remainingDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        remainingDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     EServiceRiskAnalysisSeed:
       type: object
       additionalProperties: false
