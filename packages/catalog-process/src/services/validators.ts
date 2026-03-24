@@ -26,7 +26,6 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
-  TenantKind,
   RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
