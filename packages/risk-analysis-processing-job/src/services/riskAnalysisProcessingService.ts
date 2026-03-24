@@ -104,7 +104,7 @@ export function riskAnalysisProcessingServiceBuilder(
             {
               headers,
               params: {
-                eServiceTemplateId: singleEServiceTemplate.id,
+                templateId: singleEServiceTemplate.id,
                 riskAnalysisId: riskAnalysis.id,
               },
             }

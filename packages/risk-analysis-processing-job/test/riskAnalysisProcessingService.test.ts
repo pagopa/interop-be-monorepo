@@ -44,14 +44,7 @@ describe("riskAnalysisProcessingService", () => {
 
   let catalogProcessClient: catalogApi.CatalogProcessClient;
   let purposeProcessClient: purposeApi.PurposeProcessClient;
-
-  //TODO: remove once implementation is available
-  type temporaryTestEServiceTemplateProcessClient =
-    eserviceTemplateApi.EServiceTemplateProcessClient & {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fixEServiceTemplateRiskAnalysisTenantKind: (...args: any) => any;
-    };
-  let eserviceTemplateProcessClient: temporaryTestEServiceTemplateProcessClient;
+  let eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
 
   let mockRefreshableToken: RefreshableInteropToken;
 
@@ -88,10 +81,7 @@ describe("riskAnalysisProcessingService", () => {
 
     catalogProcessClient = clients.catalogProcess.client;
     purposeProcessClient = clients.purposeProcess.client;
-    eserviceTemplateProcessClient =
-      //TODO: remove once implementation is available
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      clients.eserviceTemplateProcess.client as any;
+    eserviceTemplateProcessClient = clients.eserviceTemplateProcess.client;
   });
 
   beforeEach(async () => {
@@ -261,7 +251,7 @@ describe("riskAnalysisProcessingService", () => {
         idsToCheck.some(
           (couple) =>
             // [0]body, [1]params
-            couple.eServiceTemplate === call[1].params.eServiceTemplateId &&
+            couple.eServiceTemplate === call[1].params.templateId &&
             couple.riskAnalysis === call[1].params.riskAnalysisId
         )
       ).toBeTruthy();
