@@ -166,6 +166,7 @@ import {
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
+  assertRiskAnalysisTenantKindMatch,
   assertRiskAnalysisIsValidForPublication,
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
@@ -2276,6 +2277,14 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
+      if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+        assertRiskAnalysisTenantKindMatch(
+          riskAnalysisToUpdate.riskAnalysisForm.tenantKind,
+          tenant.kind,
+          eservice.data.id,
+          riskAnalysisToUpdate.id
+        );
+      }
 
       const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
         (ra: RiskAnalysis) =>

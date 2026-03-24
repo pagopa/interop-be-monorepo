@@ -354,13 +354,19 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             tenantKind,
             purpose.data.createdAt,
-            eservice.personalData
+            eservice.personalData,
+            tenantKind
           )
         : true;
 
@@ -955,6 +961,10 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -967,7 +977,8 @@ export function purposeServiceBuilder(
             false,
             tenantKind,
             new Date(),
-            eservice.personalData
+            eservice.personalData,
+            tenantKind
           )
         : true;
 
@@ -1149,6 +1160,10 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -1156,6 +1171,11 @@ export function purposeServiceBuilder(
             fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
+            tenantKindCheck: {
+              tenantKind,
+              purposeId,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            },
           });
         }
       }
@@ -1972,7 +1992,14 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData
+            eservice.personalData,
+            purpose.data.riskAnalysisForm
+              ? {
+                  tenantKind: purposeTemplate.targetTenantKind,
+                  purposeId: purpose.data.id,
+                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+                }
+              : undefined
           )
         : undefined;
 
@@ -2177,12 +2204,20 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
+          const tenantKindCheck = purpose.data.riskAnalysisForm
+            ? {
+                tenantKind,
+                purposeId: purpose.data.id,
+                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
+              }
+            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
             tenantKindToWriteInRA,
             new Date(),
-            eservice.personalData
+            eservice.personalData,
+            tenantKindCheck
           );
           return validated;
         })()
@@ -2229,7 +2264,8 @@ const performUpdatePurpose = async (
         false,
         tenantKindToWriteInRA,
         new Date(),
-        eservice.personalData
+        eservice.personalData,
+        tenantKindToWriteInRA
       ),
     },
     metadata: { version: createdEvent.newVersion },
