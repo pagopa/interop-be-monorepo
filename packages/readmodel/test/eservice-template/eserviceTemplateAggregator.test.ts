@@ -123,6 +123,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const aggregatedEServiceTemplate = aggregateEServiceTemplate({
@@ -133,6 +134,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEServiceTemplate).toStrictEqual({
@@ -171,6 +173,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const aggregatedEServiceTemplate = aggregateEServiceTemplate({
@@ -181,6 +184,7 @@ describe("E-service template aggregator", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEServiceTemplate).toStrictEqual({
