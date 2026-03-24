@@ -129,7 +129,7 @@ describe("getClientPurposes", () => {
     eserviceId: mockApiPurpose3.eserviceId,
     id: mockApiPurpose3.id,
     isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
-    isRiskAnalysisValid: false,
+    isRiskAnalysisValid: true,
     title: mockApiPurpose3.title,
     currentVersion: purposeVersion3
       ? testToM2mGatewayApiPurposeVersion(purposeVersion3)
