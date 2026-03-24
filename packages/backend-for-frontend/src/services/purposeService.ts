@@ -924,6 +924,19 @@ export function purposeServiceBuilder(
         logger
       );
     },
+    async getRemainingDailyCalls(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      return await purposeProcessClient.getRemainingDailyCalls({
+        params: {
+          purposeId,
+        },
+        headers,
+      });
+    },
   };
 }
 
