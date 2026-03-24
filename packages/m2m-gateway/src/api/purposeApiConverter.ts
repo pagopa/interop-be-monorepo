@@ -86,7 +86,9 @@ export async function toM2MGatewayApiPurpose(
       });
 
       if (!consumer.data.kind) {
-        throw genericInternalError("");
+        throw genericInternalError(
+          "Tenant kind is required to evaluate isRiskAnalysisValid"
+        );
       }
 
       const eservice = await clients.catalogProcessClient.getEServiceById({
