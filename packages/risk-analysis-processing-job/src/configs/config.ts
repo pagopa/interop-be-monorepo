@@ -13,11 +13,16 @@ const RiskAnalysisProcessingJobConfig = LoggerConfig.and(ReadModelSQLDbConfig)
         CATALOG_PROCESS_URL: z.string(),
         PURPOSE_PROCESS_URL: z.string(),
         ESERVICE_TEMPLATE_PROCESS_URL: z.string(),
+        FEATURE_FLAG_TENANT_KIND_RISK_ANALYSIS_FIX_ESERVICE_TEMPLATE: z.coerce
+          .boolean()
+          .default(false),
       })
       .transform((c) => ({
         catalogProcessUrl: c.CATALOG_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,
         eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+        featureFlagTenantKindRiskAnalysisFixEserviceTemplate:
+          c.FEATURE_FLAG_TENANT_KIND_RISK_ANALYSIS_FIX_ESERVICE_TEMPLATE,
       }))
   );
 

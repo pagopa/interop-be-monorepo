@@ -41,7 +41,7 @@ export async function main(): Promise<void> {
   const eserviceTemplatesProcessingResult =
     await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses();
 
-  if (eserviceTemplatesProcessingResult.processed.riskAnalyses !== 0) {
+  if (config.featureFlagTenantKindRiskAnalysisFixEserviceTemplate) {
     loggerInstance.info(
       `(EService Template RiskAnalysis) fixed ${eserviceTemplatesProcessingResult.processed.riskAnalyses} tenantKind/s.`
     );
