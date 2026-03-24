@@ -25941,6 +25941,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer

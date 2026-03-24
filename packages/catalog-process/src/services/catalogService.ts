@@ -2079,12 +2079,26 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      const updatedDescriptor: Descriptor = {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       };
+
+      if (seed.attributes) {
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
 
       const updatedEService = replaceDescriptor(
         eservice.data,
