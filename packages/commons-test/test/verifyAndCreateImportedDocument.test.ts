@@ -4,7 +4,7 @@ import {
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
 import {
-  badRequestError,
+  contentTooLargeError,
   generateId,
   genericError,
   Technology,
@@ -94,7 +94,7 @@ describe("verifyAndCreateImportedDocument", () => {
     ).rejects.toThrow(genericError("Invalid file"));
   });
 
-  it("should throw badRequestError when imported file size exceeds limit", async () => {
+  it("should throw contentTooLargeError when imported file size exceeds limit", async () => {
     const fileContent = JSON.stringify({
       openapi: "3.0.2",
       servers: [],
@@ -127,7 +127,7 @@ describe("verifyAndCreateImportedDocument", () => {
         genericLogger
       )
     ).rejects.toThrow(
-      badRequestError(
+      contentTooLargeError(
         `File size ${zipEntry.getData().byteLength} bytes exceeds maximum allowed size of ${maxFileSizeBytes} bytes`
       )
     );

@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
-  badRequestError,
+  contentTooLargeError,
   generateId,
   invalidContentTypeDetected,
   technology,
@@ -110,7 +110,7 @@ describe("verifyAndCreateDocument", async () => {
       invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
-  it("should throw badRequestError if file size is greater than max file size", async () => {
+  it("should throw contentTooLargeError if file size is greater than max file size", async () => {
     const maxFileSizeBytes = file.size - 1;
 
     await expect(
@@ -129,7 +129,7 @@ describe("verifyAndCreateDocument", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      badRequestError(
+      contentTooLargeError(
         `File size ${file.size} bytes exceeds maximum allowed size of ${maxFileSizeBytes} bytes`
       )
     );
@@ -157,7 +157,7 @@ describe("verifyAndCreateDocument", async () => {
         genericLogger
       )
     ).rejects.toThrowError(
-      badRequestError(
+      contentTooLargeError(
         `File size ${file.size} bytes exceeds maximum allowed size of ${maxInterfaceFileSizeBytes} bytes`
       )
     );

@@ -6,8 +6,8 @@ import AdmZip from "adm-zip";
 import mime from "mime";
 import {
   ApiError,
-  badRequestError,
   CommonErrorCodes,
+  contentTooLargeError,
   EService,
   EServiceId,
   genericError,
@@ -396,7 +396,7 @@ export async function verifyAndCreateDocument<T>(
   const maxSizeForKind = resolveMaxSizeForKind(kind, fileSizeLimits);
 
   if (maxSizeForKind !== undefined && doc.size > maxSizeForKind) {
-    throw badRequestError(
+    throw contentTooLargeError(
       `File size ${doc.size} bytes exceeds maximum allowed size of ${maxSizeForKind} bytes`
     );
   }
