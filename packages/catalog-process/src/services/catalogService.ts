@@ -2207,7 +2207,7 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         formToValidate,
-        undefined,
+        tenant.kind,
         new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
       );
@@ -2278,12 +2278,13 @@ export function catalogServiceBuilder(
         eservice
       );
       if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
-        assertRiskAnalysisTenantKindMatch(
-          riskAnalysisToUpdate.riskAnalysisForm.tenantKind,
-          tenant.kind,
-          eservice.data.id,
-          riskAnalysisToUpdate.id
-        );
+        assertRiskAnalysisTenantKindMatch({
+          actualKind: tenant.kind,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          expectedKind: riskAnalysisToUpdate.riskAnalysisForm.tenantKind!,
+          eserviceId: eservice.data.id,
+          riskAnalysisId: riskAnalysisToUpdate.id,
+        });
       }
 
       const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(

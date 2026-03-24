@@ -76,11 +76,10 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
 export function riskAnalysisTenantKindMismatch(
   actualKind: TenantKind,
   expectedKind: TenantKind,
-  purposeId: PurposeId,
   riskAnalysisFormId: RiskAnalysisFormId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk Analysis tenant kind mismatch for purposeId ${purposeId} and riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    detail: `Risk Analysis tenant kind mismatch for and riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
     code: "riskAnalysisTenantKindMismatch",
     title: "Risk Analysis tenant kind mismatch",
   });

@@ -133,6 +133,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertRiskAnalysisTenantKindMatch,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -141,7 +142,6 @@ import {
   isDeletableVersion,
   isOverQuota,
   isRejectable,
-  isRiskAnalysisFormValid,
   isSuspendable,
   purposeIsArchived,
   purposeIsDraft,
@@ -342,11 +342,6 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
       await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
@@ -354,21 +349,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
-      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
-        ? isRiskAnalysisFormValid(
-            purpose.data.riskAnalysisForm,
-            false,
-            tenantKind,
-            purpose.data.createdAt,
-            eservice.personalData,
-            tenantKind
-          )
-        : true;
+      const isRiskAnalysisValid = purposeIsDraft(purpose.data) ? false : true;
 
       return {
         data: { purpose: purpose.data, isRiskAnalysisValid },
@@ -961,26 +942,8 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
-      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
-        ? isRiskAnalysisFormValid(
-            purpose.data.riskAnalysisForm,
-            false,
-            tenantKind,
-            new Date(),
-            eservice.personalData,
-            tenantKind
-          )
-        : true;
+      const isRiskAnalysisValid = purposeIsDraft(purpose.data) ? false : true;
 
       // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
       const deltaDailyCalls =
@@ -1137,11 +1100,6 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
       if (
         isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
         purpose.data.purposeTemplateId
@@ -1164,6 +1122,20 @@ export function purposeServiceBuilder(
             purpose.data.consumerId,
             readModelService
           );
+          if (
+            isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
+          ) {
+            const currentTenantKind = await retrieveTenantKind(
+              purpose.data.consumerId,
+              readModelService
+            );
+
+            assertRiskAnalysisTenantKindMatch({
+              actualKind: tenantKind,
+              expectedKind: currentTenantKind,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            });
+          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -1171,11 +1143,6 @@ export function purposeServiceBuilder(
             fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
-            tenantKindCheck: {
-              tenantKind,
-              purposeId,
-              riskAnalysisFormId: riskAnalysisForm.id,
-            },
           });
         }
       }
@@ -1992,16 +1959,18 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData,
-            purpose.data.riskAnalysisForm
-              ? {
-                  tenantKind: purposeTemplate.targetTenantKind,
-                  purposeId: purpose.data.id,
-                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-                }
-              : undefined
+            eservice.personalData
           )
         : undefined;
+
+      if (updatedRiskAnalysisForm) {
+        assertRiskAnalysisTenantKindMatch({
+          actualKind: tenantKind,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          expectedKind: updatedRiskAnalysisForm.tenantKind!,
+          riskAnalysisFormId: updatedRiskAnalysisForm.id,
+        });
+      }
 
       const updatedVersions = purposeUpdateContent.dailyCalls
         ? replacePurposeVersion(purpose.data, {
@@ -2191,33 +2160,25 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const tenantKindToWriteInRA = tenantKind; // TODO
+  const currentTenantKind = tenantKind; // TODO
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
       ? {
           ...riskAnalysisForm,
-          tenantKind: tenantKindToWriteInRA,
+          tenantKind: currentTenantKind,
         }
       : undefined;
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
-          const tenantKindCheck = purpose.data.riskAnalysisForm
-            ? {
-                tenantKind,
-                purposeId: purpose.data.id,
-                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-              }
-            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
-            tenantKindToWriteInRA,
+            currentTenantKind,
             new Date(),
-            eservice.personalData,
-            tenantKindCheck
+            eservice.personalData
           );
           return validated;
         })()
@@ -2259,14 +2220,7 @@ const performUpdatePurpose = async (
   return {
     data: {
       purpose: updatedPurpose,
-      isRiskAnalysisValid: isRiskAnalysisFormValid(
-        updatedPurpose.riskAnalysisForm,
-        false,
-        tenantKindToWriteInRA,
-        new Date(),
-        eservice.personalData,
-        tenantKindToWriteInRA
-      ),
+      isRiskAnalysisValid: false,
     },
     metadata: { version: createdEvent.newVersion },
   };

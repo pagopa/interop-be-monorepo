@@ -519,10 +519,7 @@ export function eserviceTemplateServiceBuilder(
       }
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
-        assertRiskAnalysisIsValidForPublication(
-          eserviceTemplate.data,
-          undefined
-        );
+        assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
       if (
         isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&

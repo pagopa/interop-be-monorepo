@@ -17,7 +17,6 @@ import {
   TenantId,
   eserviceMode,
   RiskAnalysisId,
-  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -164,8 +163,7 @@ export async function assertEServiceTemplateNameAvailable(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eserviceTemplate: EServiceTemplate,
-  fallbackTenantKind: TenantKind | undefined
+  eserviceTemplate: EServiceTemplate
 ): void {
   if (eserviceTemplate.riskAnalysis.length === 0) {
     throw missingRiskAnalysis(eserviceTemplate.id);
@@ -177,7 +175,7 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      fallbackTenantKind,
+      undefined,
       new Date(),
       eserviceTemplate.personalData
     );
