@@ -1969,8 +1969,7 @@ export function purposeServiceBuilder(
       ) {
         assertRiskAnalysisTenantKindMatch({
           actualKind: tenantKind,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          expectedKind: updatedRiskAnalysisForm.tenantKind!,
+          expectedKind: updatedRiskAnalysisForm.tenantKind,
           riskAnalysisFormId: updatedRiskAnalysisForm.id,
         });
       }
