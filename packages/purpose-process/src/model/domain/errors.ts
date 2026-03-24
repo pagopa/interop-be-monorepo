@@ -79,7 +79,7 @@ export function riskAnalysisTenantKindMismatch(
   riskAnalysisFormId: RiskAnalysisFormId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk Analysis tenant kind mismatch for and riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    detail: `Risk Analysis tenant kind mismatch for riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
     code: "riskAnalysisTenantKindMismatch",
     title: "Risk Analysis tenant kind mismatch",
   });
