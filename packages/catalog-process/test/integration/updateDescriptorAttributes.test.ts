@@ -30,6 +30,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
+  inconsistentDailyCalls,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   notValidDescriptorState,
   unchangedAttributes,
@@ -963,6 +964,7 @@ describe("update descriptor", () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
+      dailyCallsTotal: 3000,
       attributes: {
         certified: [
           [
@@ -1209,5 +1211,55 @@ describe("update descriptor", () => {
     expect(writtenPayload.eservice).toEqual(
       toEServiceV2(returnedEService.data)
     );
+  });
+
+  it("should throw inconsistentDailyCalls if a certified attribute dailyCallsPerConsumer exceeds descriptor dailyCallsTotal", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 100,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 200,
+          },
+        ],
+      ],
+      verified: [],
+      declared: [],
+    };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
   });
 });
