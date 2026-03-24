@@ -1963,7 +1963,10 @@ export function purposeServiceBuilder(
           )
         : undefined;
 
-      if (updatedRiskAnalysisForm) {
+      if (
+        isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis") &&
+        updatedRiskAnalysisForm
+      ) {
         assertRiskAnalysisTenantKindMatch({
           actualKind: tenantKind,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
