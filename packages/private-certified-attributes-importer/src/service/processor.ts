@@ -1,9 +1,11 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import {
   Logger,
   RefreshableInteropToken,
   InteropHeaders,
+  waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -16,6 +18,7 @@ import {
 import { bootstrapRegistryAttributes } from "./attributeService.js";
 import { InteropClients } from "../client/client.js";
 import { ReadModelServiceSQL } from "./readModelService.js";
+import { config } from "../config/config.js";
 
 const INFOCAMERE_ORIGIN_PREFIX = "PDND_INFOCAMERE";
 
@@ -54,6 +57,11 @@ export async function importAttributes(
     alreadyAssignedTenants
   );
 
+  const pollingConfig = {
+    defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+    defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+  };
+
   for (const tenant of tenantsToProcess) {
     const isInfocamere = tenant.externalId.origin.startsWith(
       INFOCAMERE_ORIGIN_PREFIX
@@ -67,7 +75,9 @@ export async function importAttributes(
       clients.tenantProcessClient,
       refreshableToken,
       logger,
-      correlationId
+      correlationId,
+      readModel,
+      pollingConfig
     );
 
     await syncAttribute(
@@ -77,7 +87,9 @@ export async function importAttributes(
       clients.tenantProcessClient,
       refreshableToken,
       logger,
-      correlationId
+      correlationId,
+      readModel,
+      pollingConfig
     );
   }
 
@@ -91,18 +103,35 @@ async function syncAttribute(
   tenantProcess: InteropClients["tenantProcessClient"],
   refreshableToken: RefreshableInteropToken,
   logger: Logger,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  readModel: ReadModelServiceSQL,
+  pollingConfig: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  }
 ): Promise<void> {
   const hasAttribute = tenant.attributes.some(
     (attr: TenantAttribute) =>
       attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
   );
 
+  if ((shouldHave && hasAttribute) || (!shouldHave && !hasAttribute)) {
+    return;
+  }
+
   const token = await refreshableToken.get();
   const context = {
     correlationId,
     bearerToken: token.serialized,
   };
+
+  const currentTenant = await readModel.getTenantByIdWithMetadata(tenant.id);
+  if (!currentTenant) {
+    logger.warn(`Tenant ${tenant.id} not found`);
+    return;
+  }
+
+  const targetVersion = currentTenant.metadata.version + 1;
 
   if (shouldHave && !hasAttribute) {
     logger.info(
@@ -121,7 +150,6 @@ async function syncAttribute(
         "Content-Type": false,
       },
     });
-    await pollReadModel();
   } else if (!shouldHave && hasAttribute) {
     logger.info(
       `Revoking attribute ${attribute.name} (${attribute.id}) from tenant ${tenant.id}`
@@ -139,16 +167,17 @@ async function syncAttribute(
         "Content-Type": false,
       },
     });
-    await pollReadModel();
   }
+
+  await waitForReadModelMetadataVersion(
+    () => readModel.getTenantByIdWithMetadata(tenant.id),
+    targetVersion,
+    pollingConfig
+  );
 }
 
 function mergeTenants(listA: Tenant[], listB: Tenant[]): Tenant[] {
   const map = new Map<string, Tenant>();
   [...listA, ...listB].forEach((t) => map.set(t.id, t));
   return Array.from(map.values());
-}
-
-async function pollReadModel(): Promise<void> {
-  // TODO
 }

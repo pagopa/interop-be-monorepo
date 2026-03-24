@@ -1,9 +1,9 @@
 import crypto from "crypto";
 import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
 import { Attribute, attributeKind } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelService.js";
+import { InteropClients } from "../client/client.js";
 
 export const REGISTRY_ATTRIBUTES_SEEDS = {
   adesione: {
@@ -32,7 +32,7 @@ export function generateCodeFromName(name: string): string {
 
 export async function bootstrapRegistryAttributes(
   readmodel: ReadModelServiceSQL,
-  attributeClient: attributeRegistryApi.AttributeProcessClient,
+  attributeClient: InteropClients["attributeRegistryClient"],
   logger: Logger,
   headers: InteropHeaders
 ): Promise<ResolvedRegistryAttributes> {

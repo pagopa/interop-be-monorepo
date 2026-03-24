@@ -50,7 +50,6 @@ try {
   loggerInstance.info("Importer job finished successfully");
 } catch (error) {
   loggerInstance.error(`Error during import: ${error}`);
-  process.exitCode = 1;
 } finally {
   await cleanup();
 }

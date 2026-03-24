@@ -30,6 +30,14 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
+    getTenantByIdWithMetadata: async (id: string) =>
+      await readModelDB.transaction(async (tx) => {
+        const results = await tenantReadModelServiceSQL.getTenantsByIds(
+          [id],
+          tx
+        );
+        return results.length > 0 ? results[0] : undefined;
+      }),
     getAttributes: async (): Promise<Attribute[]> =>
       (
         await attributeReadModelServiceSQL.getAttributesByFilter(

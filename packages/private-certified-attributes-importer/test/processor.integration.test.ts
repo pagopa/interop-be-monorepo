@@ -26,6 +26,13 @@ import {
   addOneTenant,
 } from "./helpers.js";
 
+vi.mock("pagopa-interop-commons", async () => {
+  const actual = await vi.importActual("pagopa-interop-commons");
+  return {
+    ...actual,
+    waitForReadModelMetadataVersion: vi.fn().mockResolvedValue(undefined),
+  };
+});
 let attrAdesione: Attribute;
 let attrSCP: Attribute;
 

@@ -1,20 +1,32 @@
-import { tenantApi, attributeRegistryApi } from "pagopa-interop-api-clients";
+import {
+  tenantApi,
+  attributeRegistryApi,
+  createZodiosClientEnhancedWithMetadata,
+} from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
+function buildTenantProcessClient() {
+  return createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
+    config.tenantProcessUrl
+  );
+}
+
+function buildAttributeRegistryClient() {
+  return createZodiosClientEnhancedWithMetadata(
+    attributeRegistryApi.createAttributeApiClient,
+    config.attributeProcessUrl
+  );
+}
+
 export type InteropClients = {
-  tenantProcessClient: ReturnType<typeof tenantApi.createInternalApiClient>;
-  attributeRegistryClient: ReturnType<
-    typeof attributeRegistryApi.createAttributeApiClient
-  >;
+  tenantProcessClient: ReturnType<typeof buildTenantProcessClient>;
+  attributeRegistryClient: ReturnType<typeof buildAttributeRegistryClient>;
 };
 
 export function getInteropClients(): InteropClients {
   return {
-    tenantProcessClient: tenantApi.createInternalApiClient(
-      config.tenantProcessUrl
-    ),
-    attributeRegistryClient: attributeRegistryApi.createAttributeApiClient(
-      config.attributeProcessUrl
-    ),
+    tenantProcessClient: buildTenantProcessClient(),
+    attributeRegistryClient: buildAttributeRegistryClient(),
   };
 }

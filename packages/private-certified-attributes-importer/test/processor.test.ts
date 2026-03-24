@@ -27,6 +27,14 @@ import {
   addOneTenant,
 } from "./helpers.js";
 
+vi.mock("pagopa-interop-commons", async () => {
+  const actual = await vi.importActual("pagopa-interop-commons");
+  return {
+    ...actual,
+    waitForReadModelMetadataVersion: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 const mockRefreshableToken = {
   get: vi.fn().mockResolvedValue({ serialized: "mocked-token" }),
 };
@@ -92,7 +100,6 @@ describe("private-certified-attributes-importer", () => {
       mockCorrelationId
     );
 
-    // Se getAttributeByExternalId restituisce l'attributo, createInternalCertifiedAttribute NON deve essere chiamato.
     expect(
       attributeRegistryClientMock.createInternalCertifiedAttribute
     ).not.toHaveBeenCalled();
