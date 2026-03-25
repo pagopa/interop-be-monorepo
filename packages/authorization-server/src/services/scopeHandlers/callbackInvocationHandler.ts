@@ -15,7 +15,6 @@ import {
   interactionStateNotAllowed,
   invalidEntityNumber,
   platformStateValidationFailed,
-  urlCallbackNotProvided,
 } from "../../model/domain/errors.js";
 import {
   logTokenGenerationInfo,
@@ -69,11 +68,6 @@ export const handleCallbackInvocation = async (
   }
   if (entityNumber <= 0) {
     throw invalidEntityNumber(clientId, entityNumber);
-  }
-
-  const urlCallback = clientAssertionJWT.payload.urlCallback;
-  if (!urlCallback) {
-    throw urlCallbackNotProvided(clientId);
   }
 
   // 2. Read interaction by interactionId
@@ -178,7 +172,6 @@ export const handleCallbackInvocation = async (
       purposeId: interaction.purposeId,
       tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
       interactionId,
-      urlCallback,
       scope,
       dpopJWK: dpopProofJWT?.header.jwk,
     }),
