@@ -184,6 +184,7 @@ import {
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
+  assertAttributeDailyCallsConsistentWithTotal,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -1360,8 +1361,11 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
-
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        eserviceDescriptorSeed.dailyCallsTotal
+      );
 
       const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
@@ -2078,13 +2082,31 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        descriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
-      const updatedDescriptor: Descriptor = {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       };
+
+      if (seed.attributes) {
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2922,6 +2944,10 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        descriptor.dailyCallsTotal
+      );
 
       if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
@@ -4356,6 +4382,10 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertAttributeDailyCallsConsistentWithTotal(
+    updatedAttributes,
+    updatedDailyCallsTotal
+  );
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
