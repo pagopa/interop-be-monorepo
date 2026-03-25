@@ -242,8 +242,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating draft descriptor ${
-              req.params.descriptorId
+            `Error updating draft descriptor ${req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body
             )}`
@@ -272,10 +271,8 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating draft descriptor ${
-              req.params.descriptorId
-            } on eservice ${
-              req.params.eServiceId
+            `Error updating draft descriptor ${req.params.descriptorId
+            } on eservice ${req.params.eServiceId
             } template instance with seed: ${JSON.stringify(req.body)}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -341,8 +338,31 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating descriptor ${req.params.descriptorId} on service ${
-              req.params.eServiceId
+            `Error updating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId
+            } with seed: ${JSON.stringify(req.body)}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/toBeArchived",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { id } = await catalogService.descriptorToBeArchived(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId
             } with seed: ${JSON.stringify(req.body)}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -366,8 +386,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating agreementApprovalPolicy of descriptor ${
-              req.params.descriptorId
+            `Error updating agreementApprovalPolicy of descriptor ${req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body
             )}`
@@ -1112,8 +1131,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating template instance descriptor ${
-              req.params.descriptorId
+            `Error updating template instance descriptor ${req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body
             )}`

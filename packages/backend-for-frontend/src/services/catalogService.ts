@@ -132,22 +132,22 @@ const enhanceCatalogEservices = async (
       requesterId: TenantId,
       notifications: string[]
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
-    async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-      const producerTenant = getCachedTenant(eservice.producerId as TenantId);
+      async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
+        const producerTenant = getCachedTenant(eservice.producerId as TenantId);
 
-      const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+        const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const hasNotifications = notifications.includes(eservice.id);
-      const isRequesterEqProducer = requesterId === eservice.producerId;
+        const hasNotifications = notifications.includes(eservice.id);
+        const isRequesterEqProducer = requesterId === eservice.producerId;
 
-      return toBffCatalogApiEService(
-        eservice,
-        producerTenant,
-        isRequesterEqProducer,
-        hasNotifications,
-        latestActiveDescriptor
-      );
-    };
+        return toBffCatalogApiEService(
+          eservice,
+          producerTenant,
+          isRequesterEqProducer,
+          hasNotifications,
+          latestActiveDescriptor
+        );
+      };
 
   const notifications = await notificationsPromise;
 
@@ -170,7 +170,7 @@ const checkNewTemplateVersionAvailable = (
       (v) =>
         v.version > eserviceTemplateVersion?.version &&
         v.state ===
-          eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+        eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
     )
   );
 };
@@ -208,35 +208,35 @@ const enhanceProducerEService = (
     mode: eservice.mode,
     activeDescriptor: activeDescriptor
       ? toCompactProducerDescriptor(
-          activeDescriptor,
-          isRequesterDelegateProducer
-        )
+        activeDescriptor,
+        isRequesterDelegateProducer
+      )
       : undefined,
     draftDescriptor: draftDescriptor
       ? toCompactProducerDescriptor(
-          draftDescriptor,
-          isRequesterDelegateProducer
-        )
+        draftDescriptor,
+        isRequesterDelegateProducer
+      )
       : undefined,
     delegation:
       delegation !== undefined &&
-      delegator !== undefined &&
-      delegate !== undefined
+        delegator !== undefined &&
+        delegate !== undefined
         ? {
-            id: delegation.id,
-            delegator: {
-              id: delegator.id,
-              name: delegator.name,
-              kind: delegator.kind,
-              contactMail: getLatestTenantContactEmail(delegator),
-            },
-            delegate: {
-              id: delegate.id,
-              name: delegate.name,
-              kind: delegate.kind,
-              contactMail: getLatestTenantContactEmail(delegate),
-            },
-          }
+          id: delegation.id,
+          delegator: {
+            id: delegator.id,
+            name: delegator.name,
+            kind: delegator.kind,
+            contactMail: getLatestTenantContactEmail(delegator),
+          },
+          delegate: {
+            id: delegate.id,
+            name: delegate.name,
+            kind: delegate.kind,
+            contactMail: getLatestTenantContactEmail(delegate),
+          },
+        }
         : undefined,
     isTemplateInstance: eserviceTemplate !== undefined,
     isNewTemplateVersionAvailable:
@@ -277,16 +277,16 @@ const retrieveRiskAnalysis = (
 const getAttributeIds = (
   descriptor: catalogApi.EServiceDescriptor
 ): string[] => [
-  ...descriptor.attributes.certified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.declared.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.verified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-];
+    ...descriptor.attributes.certified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.declared.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.verified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+  ];
 
 const getAllEserviceConsumers = async (
   catalogProcessClient: catalogApi.CatalogProcessClient,
@@ -409,11 +409,11 @@ export function catalogServiceBuilder(
 
       const eserviceTemplate = eServiceTemplateId
         ? await eserviceTemplateProcessClient.getEServiceTemplateById({
-            headers,
-            params: {
-              templateId: eServiceTemplateId,
-            },
-          })
+          headers,
+          params: {
+            templateId: eServiceTemplateId,
+          },
+        })
         : undefined;
 
       const eserviceTemplateVersion = eserviceTemplate?.versions.find(
@@ -435,11 +435,11 @@ export function catalogServiceBuilder(
 
       const delegate = delegation
         ? await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: delegation.delegateId,
-            },
-          })
+          headers,
+          params: {
+            id: delegation.delegateId,
+          },
+        })
         : undefined;
 
       return {
@@ -486,20 +486,20 @@ export function catalogServiceBuilder(
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
-                id: delegation.id,
-                delegate: {
-                  id: delegate.id,
-                  name: delegate.name,
-                  kind: delegate.kind,
-                  contactMail: getLatestTenantContactEmail(delegate),
-                },
-                delegator: {
-                  id: producerTenant.id,
-                  name: producerTenant.name,
-                  kind: producerTenant.kind,
-                  contactMail: getLatestTenantContactEmail(producerTenant),
-                },
-              }
+              id: delegation.id,
+              delegate: {
+                id: delegate.id,
+                name: delegate.name,
+                kind: delegate.kind,
+                contactMail: getLatestTenantContactEmail(delegate),
+              },
+              delegator: {
+                id: producerTenant.id,
+                name: producerTenant.name,
+                kind: producerTenant.kind,
+                contactMail: getLatestTenantContactEmail(producerTenant),
+              },
+            }
             : undefined,
       };
     },
@@ -1368,6 +1368,23 @@ export function catalogServiceBuilder(
         },
       });
     },
+    descriptorToBeArchived: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      kind: catalogApi.EServiceDescriptorKind,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating descriptor ${descriptorId} of EService ${eServiceId} to be archived`
+      );
+      return await catalogProcessClient.descriptorToBeArchived(kind, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1841,15 +1858,15 @@ export function catalogServiceBuilder(
 
       const tenants = producerName
         ? await getAllFromPaginated((offset, limit) =>
-            tenantProcessClient.tenant.getTenants({
-              queries: {
-                name: producerName,
-                offset,
-                limit,
-              },
-              headers,
-            })
-          )
+          tenantProcessClient.tenant.getTenants({
+            queries: {
+              name: producerName,
+              offset,
+              limit,
+            },
+            headers,
+          })
+        )
         : [];
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));

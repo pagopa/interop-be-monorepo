@@ -115,6 +115,9 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  archivingStart: z.coerce.date().optional(),
+  archivingEnd: z.coerce.date().optional(),
+  archivingType: z.enum(["Manual", "Automatic"]).optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
