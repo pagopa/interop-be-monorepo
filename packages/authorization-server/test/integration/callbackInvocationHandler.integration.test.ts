@@ -50,7 +50,6 @@ import {
   interactionIdNotProvided,
   interactionNotFound,
   invalidEntityNumber,
-  urlCallbackNotProvided,
 } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
@@ -256,7 +255,6 @@ const setupCallbackScenario = async (overrides?: {
       scope: interactionState.callbackInvocation,
       interactionId,
       entityNumber: 1,
-      urlCallback: "https://callback.example.com",
       ...overrides?.producerCustomClaims,
     },
   });
@@ -387,11 +385,9 @@ describe("async token service - callback_invocation", () => {
     const payload = result.token.payload as {
       scope: string;
       interactionId: string;
-      urlCallback: string;
     };
     expect(payload.scope).toBe(interactionState.callbackInvocation);
     expect(payload.interactionId).toBe(interactionId);
-    expect(payload.urlCallback).toBe("https://callback.example.com");
   });
 
   it("should update interaction state to callback_invocation", async () => {
@@ -456,7 +452,6 @@ describe("async token service - callback_invocation", () => {
       customClaims: {
         scope: interactionState.callbackInvocation,
         entityNumber: 1,
-        urlCallback: "https://callback.example.com",
       },
     });
 
@@ -477,7 +472,6 @@ describe("async token service - callback_invocation", () => {
       customClaims: {
         scope: interactionState.callbackInvocation,
         interactionId,
-        urlCallback: "https://callback.example.com",
       },
     });
 
@@ -499,34 +493,12 @@ describe("async token service - callback_invocation", () => {
         scope: interactionState.callbackInvocation,
         interactionId,
         entityNumber: 0,
-        urlCallback: "https://callback.example.com",
       },
     });
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
     ).rejects.toThrowError(invalidEntityNumber(producerKeychainId, 0));
-  });
-
-  it("should throw urlCallbackNotProvided when urlCallback is missing", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const producerKeychainId = generateId<ProducerKeychainId>();
-    const interactionId = generateId<InteractionId>();
-    const { jws } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: producerKeychainId },
-      customClaims: {
-        scope: interactionState.callbackInvocation,
-        interactionId,
-        entityNumber: 1,
-      },
-    });
-
-    await expect(
-      callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(urlCallbackNotProvided(producerKeychainId));
   });
 
   it("should throw interactionNotFound when interaction does not exist", async () => {
@@ -538,7 +510,6 @@ describe("async token service - callback_invocation", () => {
         scope: interactionState.callbackInvocation,
         interactionId,
         entityNumber: 1,
-        urlCallback: "https://callback.example.com",
       },
     });
 
