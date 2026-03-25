@@ -145,6 +145,7 @@ describe("Tenant splitters", () => {
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        selfcareInstitutionType: tenant.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
@@ -363,6 +364,7 @@ describe("Tenant splitters", () => {
         subUnitType: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        selfcareInstitutionType: tenant.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {

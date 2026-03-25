@@ -12,7 +12,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
@@ -28,7 +27,7 @@ export const handleAuthorizationMessageV2 = async (
   const correlationId = generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: config.serviceName,
+    serviceName: "events-signer",
     correlationId,
   });
 
