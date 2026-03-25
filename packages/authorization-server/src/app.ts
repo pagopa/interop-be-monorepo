@@ -21,8 +21,8 @@ import { asyncExchangeFeatureFlagMiddleware } from "./utilities/middleware.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
-  service: TokenService,
-  asyncService: AsyncTokenService
+  tokenService: TokenService,
+  asyncTokenService: AsyncTokenService
 ) {
   const serviceName = modelsServiceName.AUTHORIZATION_SERVER;
 
@@ -40,9 +40,9 @@ export async function createApp(
     await applicationAuditAuthorizationServerEndMiddleware(serviceName, config),
     express.urlencoded({ extended: true }),
     loggerMiddleware(serviceName),
-    authorizationServerRouter(zodiosCtx, service),
+    authorizationServerRouter(zodiosCtx, tokenService),
     asyncExchangeFeatureFlagMiddleware(),
-    asyncAuthorizationServerRouter(zodiosCtx, asyncService)
+    asyncAuthorizationServerRouter(zodiosCtx, asyncTokenService)
   );
 
   app.use(errorsToApiProblemsMiddleware);
