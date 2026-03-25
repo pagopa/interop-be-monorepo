@@ -96,6 +96,7 @@ describe("Tenant aggregators", () => {
       selfcareId,
       kind: tenantKind.PA,
       subUnitType: tenantUnitType.AOO,
+      selfcareInstitutionType: "SCP",
       externalId,
       updatedAt: new Date(),
       mails: [tenantMail],
@@ -197,6 +198,7 @@ describe("Tenant aggregators", () => {
       ...getMockTenant(),
       selfcareId,
       externalId,
+      selfcareInstitutionType: "SCP",
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,

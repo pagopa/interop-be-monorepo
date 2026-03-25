@@ -121,3 +121,12 @@ export function toGetAgreementsApiQueryParamsForPurpose(
     limit: 1,
   };
 }
+
+export function toM2MGatewayApiRemainingDailyCallsResponse(
+  response: purposeApi.RemainingDailyCallsResponse
+): m2mGatewayApiV3.RemainingDailyCallsResponse {
+  return {
+    remainingDailyCallsPerConsumer: response.remainingDailyCallsPerConsumer,
+    remainingDailyCallsTotal: response.remainingDailyCallsTotal,
+  };
+}

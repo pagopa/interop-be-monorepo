@@ -15,7 +15,8 @@ import {
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
-  formatDateddMMyyyyHHmmss,
+  dateAtRomeZone,
+  timeAtRomeZone,
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
@@ -60,6 +61,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -181,6 +183,8 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertDailyCallsForCertifiedAttributesOnly,
+  assertAttributeDailyCallsConsistentWithTotal,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -1356,7 +1360,12 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        eserviceDescriptorSeed.dailyCallsTotal
+      );
 
       const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
@@ -1896,9 +1905,20 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const clonedEServiceName = `${
-        eservice.data.name
-      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
+      const currentDate = new Date();
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
+      const dots = "...";
+      const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
+      const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
+      const clonedEServiceName =
+        eservice.data.name.length + suffix.length <= maxNameLength
+          ? `${eservice.data.name}${suffix}`
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -2062,13 +2082,31 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        descriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
-      const updatedDescriptor: Descriptor = {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       };
+
+      if (seed.attributes) {
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2895,13 +2933,29 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        descriptor,
+        seed
+      );
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        descriptor.dailyCallsTotal
+      );
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -4005,6 +4059,34 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
+function hasCertifiedAttributeDailyCallsChanged(
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  return descriptor.attributes.certified.some(
+    (descriptorAttributesGroup, attributesGroupIndex) => {
+      const seedAttrGroup = seed.certified[attributesGroupIndex];
+
+      return descriptorAttributesGroup.some((descriptorAttribute) => {
+        const seedAttribute = seedAttrGroup.find(
+          (attribute) => attribute.id === descriptorAttribute.id
+        );
+
+        if (seedAttribute === undefined) {
+          throw genericInternalError(
+            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
+          );
+        }
+
+        return (
+          seedAttribute.dailyCallsPerConsumer !==
+          descriptorAttribute.dailyCallsPerConsumer
+        );
+      });
+    }
+  );
+}
+
 function evaluateTemplateVersionRef(
   descriptor: Descriptor,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
@@ -4298,6 +4380,12 @@ async function updateDraftDescriptor(
         readModelService
       )
     : descriptor.attributes;
+
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertAttributeDailyCallsConsistentWithTotal(
+    updatedAttributes,
+    updatedDailyCallsTotal
+  );
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
