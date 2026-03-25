@@ -1057,6 +1057,197 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     expect(tmplRefs.length).toBeGreaterThan(0);
   });
 
+  it("EServiceDescriptorAdded: inserts asyncExchangeProperties row", async () => {
+    const mock = getMockEService();
+    const descriptor = {
+      ...getMockDescriptor(),
+      asyncExchangeProperties: {
+        responseTime: 60,
+        resourceAvailableTime: 3600,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      },
+    };
+
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mock.id,
+          version: 1,
+          type: "EServiceAdded",
+          event_version: 2,
+          data: { eservice: toEServiceV2(mock) } as EServiceAddedV2,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const payload: EServiceDescriptorAddedV2 = {
+      eservice: toEServiceV2({ ...mock, descriptors: [descriptor] }),
+      descriptorId: descriptor.id,
+    };
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mock.id,
+          version: 2,
+          type: "EServiceDescriptorAdded",
+          event_version: 2,
+          data: payload,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_async_exchange_properties,
+      { descriptorId: descriptor.id }
+    );
+    expect(stored.length).toBe(1);
+    expect(stored[0].responseTime).toBe(60);
+    expect(stored[0].resourceAvailableTime).toBe(3600);
+    expect(stored[0].confirmation).toBe(true);
+    expect(stored[0].bulk).toBe(false);
+    expect(stored[0].maxResultSet).toBe(100);
+  });
+
+  it("EServiceDraftDescriptorUpdated: removes asyncExchangeProperties when absent in newer snapshot", async () => {
+    const mock = getMockEService();
+    const descriptor = {
+      ...getMockDescriptor(),
+      asyncExchangeProperties: {
+        responseTime: 60,
+        resourceAvailableTime: 3600,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      },
+    };
+
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mock.id,
+          version: 1,
+          type: "EServiceAdded",
+          event_version: 2,
+          data: {
+            eservice: toEServiceV2({ ...mock, descriptors: [descriptor] }),
+          } as EServiceAddedV2,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_async_exchange_properties,
+      { descriptorId: descriptor.id }
+    );
+    expect(storedBefore.length).toBe(1);
+
+    const descriptorWithout = {
+      ...descriptor,
+      asyncExchangeProperties: undefined,
+    };
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mock.id,
+          version: 2,
+          type: "EServiceDraftDescriptorUpdated",
+          event_version: 2,
+          data: {
+            eservice: toEServiceV2({
+              ...mock,
+              descriptors: [descriptorWithout],
+            }),
+            descriptorId: descriptor.id,
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedAfter = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_async_exchange_properties,
+      { descriptorId: descriptor.id }
+    );
+    expect(storedAfter.length).toBe(0);
+  });
+
+  it("EServiceDeleted: marks asyncExchangeProperties row as deleted", async () => {
+    const mock = getMockEService();
+    const descriptor = {
+      ...getMockDescriptor(),
+      asyncExchangeProperties: {
+        responseTime: 60,
+        resourceAvailableTime: 3600,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      },
+    };
+
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mock.id,
+          version: 1,
+          type: "EServiceAdded",
+          event_version: 2,
+          data: {
+            eservice: toEServiceV2({ ...mock, descriptors: [descriptor] }),
+          } as EServiceAddedV2,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_async_exchange_properties,
+      { descriptorId: descriptor.id }
+    );
+    expect(storedBefore.length).toBe(1);
+
+    await handleCatalogMessageV2(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mock.id,
+          version: 2,
+          type: "EServiceDeleted",
+          event_version: 2,
+          data: { eserviceId: mock.id } as EServiceDeletedV2,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    (
+      await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange_properties,
+        { descriptorId: descriptor.id }
+      )
+    ).forEach((r) => expect(r.deleted).toBe(true));
+  });
+
   it("EServiceDescriptorDocumentAdded: inserts new document", async () => {
     const mock = getMockEService();
     const descriptor = getMockDescriptor();
