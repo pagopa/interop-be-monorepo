@@ -143,7 +143,7 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 8–9. Create interaction and generate token in parallel (independent operations)
+  // 8. Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
   const issuedAt = new Date().toISOString();
 
@@ -152,28 +152,28 @@ export const handleStartInteraction = async (
     asyncExchangeProperties.resourceAvailableTime +
     interactionTtlEpsilonSeconds;
 
-  const [, token] = await Promise.all([
-    createInteraction({
-      dynamoDBClient,
-      interactionsTable,
-      interactionId,
-      purposeId,
-      eServiceId: eserviceId,
-      descriptorId,
-      issuedAt,
-      ttlSeconds,
-    }),
-    tokenGenerator.generateInteropAsyncConsumerToken({
-      sub: clientId,
-      audience: key.descriptorAudience,
-      purposeId,
-      tokenDurationInSeconds: key.descriptorVoucherLifespan,
-      interactionId,
-      urlCallback,
-      scope,
-      dpopJWK: dpopProofJWT?.header.jwk,
-    }),
-  ]);
+  const token = await tokenGenerator.generateInteropAsyncConsumerToken({
+    sub: clientId,
+    audience: key.descriptorAudience,
+    purposeId,
+    tokenDurationInSeconds: key.descriptorVoucherLifespan,
+    interactionId,
+    urlCallback,
+    scope,
+    dpopJWK: dpopProofJWT?.header.jwk,
+  });
+
+  // 9. Persist interaction only after successful token generation
+  await createInteraction({
+    dynamoDBClient,
+    interactionsTable,
+    interactionId,
+    purposeId,
+    eServiceId: eserviceId,
+    descriptorId,
+    issuedAt,
+    ttlSeconds,
+  });
 
   // 10. Publish audit
   await publishAudit({

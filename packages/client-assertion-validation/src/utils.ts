@@ -85,7 +85,7 @@ export const validateIss = (iss?: string): ValidationResult<string> => {
 
 export const validateSub = (
   sub?: string,
-  clientId?: string
+  clientId?: string,
 ): ValidationResult<ClientId> => {
   if (!sub) {
     return failedValidation([subjectNotFound()]);
@@ -106,13 +106,13 @@ export const validateSub = (
 };
 
 export const validatePurposeId = (
-  purposeId?: unknown
+  purposeId?: unknown,
 ): ValidationResult<PurposeId | undefined> => {
   const purposeIdParseResult = PurposeId.safeParse(purposeId);
   if (purposeId && !purposeIdParseResult.success) {
     return failedValidation([
       invalidPurposeIdClaimFormat(
-        typeof purposeId === "string" ? purposeId : ""
+        typeof purposeId === "string" ? purposeId : "",
       ),
     ]);
   }
@@ -124,7 +124,7 @@ export const validatePurposeId = (
 };
 
 export const validateScope = (
-  scope?: unknown
+  scope?: unknown,
 ): ValidationResult<InteractionState> => {
   if (scope === undefined || scope === null) {
     return failedValidation([scopeNotProvided()]);
@@ -137,7 +137,7 @@ export const validateScope = (
 };
 
 export const validateInteractionId = (
-  interactionId?: unknown
+  interactionId?: unknown,
 ): ValidationResult<InteractionId | undefined> => {
   const interactionIdParseResult = InteractionId.safeParse(interactionId);
   if (interactionId && !interactionIdParseResult.success) {
@@ -149,7 +149,7 @@ export const validateInteractionId = (
 };
 
 export const validateUrlCallback = (
-  urlCallback?: unknown
+  urlCallback?: unknown,
 ): ValidationResult<string | undefined> => {
   if (urlCallback === undefined || urlCallback === null) {
     return successfulValidation(undefined);
@@ -160,11 +160,16 @@ export const validateUrlCallback = (
       invalidUrlCallbackClaimFormat(String(urlCallback)),
     ]);
   }
-  return successfulValidation(parseResult.data);
+  try {
+    new URL(urlCallback);
+  } catch {
+    return failedValidation([invalidUrlCallbackClaimFormat(urlCallback)]);
+  }
+  return successfulValidation(urlCallback);
 };
 
 export const validateEntityNumber = (
-  entityNumber?: unknown
+  entityNumber?: unknown,
 ): ValidationResult<number | undefined> => {
   if (entityNumber === undefined || entityNumber === null) {
     return successfulValidation(undefined);
@@ -191,7 +196,7 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
 
 export const validateAudience = (
   receivedAudiences: string | string[] | undefined,
-  expectedAudiences: string[]
+  expectedAudiences: string[],
 ): ValidationResult<string[] | string> => {
   if (!receivedAudiences) {
     return failedValidation([audienceNotFound()]);
@@ -222,7 +227,7 @@ export const validateAlgorithm = (alg?: string): ValidationResult<string> => {
 };
 
 export const validateDigest = (
-  digest?: unknown
+  digest?: unknown,
 ): ValidationResult<ClientAssertionDigest | undefined> => {
   if (!digest) {
     return successfulValidation(undefined);
@@ -247,7 +252,7 @@ export const validateDigest = (
 };
 
 export const validatePlatformState = (
-  key: TokenGenerationStatesConsumerClient
+  key: TokenGenerationStatesConsumerClient,
 ): ValidationResult<TokenGenerationStatesConsumerClient> => {
   const agreementError =
     key.agreementState !== itemState.active
@@ -271,7 +276,7 @@ export const validatePlatformState = (
 };
 
 export const successfulValidation = <T>(
-  result: T
+  result: T,
 ): SuccessfulValidation<T> => ({
   data: result,
   errors: undefined,
@@ -281,12 +286,12 @@ export const failedValidation = (
   // errors: [[error1, error2, undefined], error3, undefined]
   errors: Array<
     Array<ApiError<ErrorCodes> | undefined> | ApiError<ErrorCodes> | undefined
-  >
+  >,
 ): FailedValidation<ErrorCodes> => {
   const nestedArrayWithoutUndefined = errors.filter((a) => a !== undefined);
   const flattenedArray = nestedArrayWithoutUndefined.flat(1);
   const flattenedArrayWithoutUndefined = flattenedArray.filter(
-    (e) => e !== undefined
+    (e) => e !== undefined,
   );
   return {
     data: undefined,
