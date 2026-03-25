@@ -307,8 +307,3 @@ export function tokenServiceBuilder({
 }
 
 export type TokenService = ReturnType<typeof tokenServiceBuilder>;
-
-export {
-  fallbackAudit,
-  retrieveKey,
-} from "../utilities/tokenServiceHelpers.js";

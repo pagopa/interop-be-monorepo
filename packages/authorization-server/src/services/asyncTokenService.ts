@@ -21,7 +21,6 @@ import {
   FileManager,
   InteropApiToken,
   InteropConsumerToken,
-  isFeatureFlagEnabled,
   Logger,
   RateLimiter,
   RateLimiterStatus,
@@ -138,11 +137,7 @@ export function asyncTokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          getCtx().logger,
-          isFeatureFlagEnabled(
-            config,
-            "featureFlagClientAssertionStrictClaimsValidation"
-          )
+          getCtx().logger
         );
 
       if (clientAssertionErrors) {
@@ -183,7 +178,7 @@ export function asyncTokenServiceBuilder({
       // Key retrieval, signature verification, platform state validation,
       // rate limiting, token generation, and audit are scope-dependent
       // (e.g. callback_invocation uses producer keychain, not token-generation-states).
-      return await generateTokenByScope(scope, {
+      return await generateAsyncTokenByScope(scope, {
         dynamoDBClient,
         redisRateLimiter,
         producer,
@@ -202,7 +197,7 @@ export function asyncTokenServiceBuilder({
 
 export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
-const generateTokenByScope = async (
+const generateAsyncTokenByScope = async (
   scope: InteractionState,
   _ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> =>

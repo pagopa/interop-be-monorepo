@@ -11,19 +11,15 @@ const {
   HTTP_STATUS_TOO_MANY_REQUESTS,
 } = constants;
 
-export const authorizationServerErrorMapper = (
+export const asyncAuthorizationServerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with(
-      "tokenGenerationStatesEntryNotFound",
-      "clientAssertionRequestValidationFailed",
-      "clientAssertionSignatureValidationFailed",
-      "clientAssertionValidationFailed",
-      "platformStateValidationFailed",
-      "dpopProofValidationFailed",
-      "dpopProofSignatureValidationFailed",
-      "dpopProofJtiAlreadyUsed",
+      "invalidAsyncScope",
+      "asyncScopeNotYetImplemented",
+      "asyncRequestValidationFailed",
+      "asyncClientAssertionClaimsValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

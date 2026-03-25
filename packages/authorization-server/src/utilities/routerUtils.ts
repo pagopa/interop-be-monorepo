@@ -13,6 +13,7 @@ import {
   tooManyRequestsError,
 } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { asyncAuthorizationServerErrorMapper } from "./asyncErrorMappers.js";
 import { authorizationServerErrorMapper } from "./errorMappers.js";
 
 export function buildCtxHelpers(reqCtx: AuthServerAppContext): {
@@ -51,6 +52,54 @@ export function handleTokenError(
   ctx: WithLogger<AuthServerAppContext>
 ): { status: number; body: Problem } {
   const errorRes = makeApiProblem(err, authorizationServerErrorMapper, ctx);
+
+  if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
+    return {
+      status: constants.HTTP_STATUS_BAD_REQUEST,
+      body: {
+        title: "The request contains bad syntax or cannot be fulfilled.",
+        type: "about:blank",
+        status: constants.HTTP_STATUS_BAD_REQUEST,
+        detail: "Bad request",
+        errors: [
+          {
+            code: "015-0008",
+            detail: "Unable to generate a token for the given request",
+          },
+        ],
+        correlationId: ctx.correlationId,
+      },
+    };
+  }
+
+  return {
+    status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+    body: {
+      title: "The request couldn't be fulfilled due to an internal error",
+      type: "internalServerError",
+      status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+      detail: "Internal server error",
+      errors: [
+        {
+          code: "015-0000",
+          detail:
+            "Unable to generate a token for the given request due to an internal error",
+        },
+      ],
+      correlationId: ctx.correlationId,
+    },
+  };
+}
+
+export function handleAsyncTokenError(
+  err: unknown,
+  ctx: WithLogger<AuthServerAppContext>
+): { status: number; body: Problem } {
+  const errorRes = makeApiProblem(
+    err,
+    asyncAuthorizationServerErrorMapper,
+    ctx
+  );
 
   if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
     return {

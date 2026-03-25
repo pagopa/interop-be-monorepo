@@ -61,7 +61,6 @@ import {
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
   clientAssertionSignatureVerificationError,
-  scopeNotProvided,
 } from "./errors.js";
 
 export const validateRequestParameters = (
@@ -248,9 +247,7 @@ export const verifyAsyncClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined,
   expectedAudiences: string[],
-  logger: Logger,
-  // TODO: delete when FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION is removed
-  featureFlagClientAssertionStrictClaimsValidation: boolean = false
+  logger: Logger
 ): ValidationResult<AsyncClientAssertion> => {
   // Run base validation with strict=false to avoid rejecting async-specific claims
   const baseResult = verifyClientAssertion(
@@ -278,11 +275,6 @@ export const verifyAsyncClientAssertion = (
   const { errors: entityNumberErrors, data: validatedEntityNumber } =
     validateEntityNumber(decodedPayload.entityNumber);
 
-  // scope is REQUIRED for async
-  if (!scopeErrors && !validatedScope) {
-    return failedValidation([scopeNotProvided()]);
-  }
-
   if (
     scopeErrors ||
     interactionIdErrors ||
@@ -297,27 +289,10 @@ export const verifyAsyncClientAssertion = (
     ]);
   }
 
-  // After the guards above, scope is guaranteed to be defined
-  const scope = validatedScope;
-  if (!scope) {
-    // Unreachable: scopeNotProvided guard already returned above
-    return failedValidation([scopeNotProvided()]);
-  }
-
-  // Strict validation with async schema (if feature flag enabled)
+  // Strict validation with async schema (always enforced for new async feature)
   const payloadStrictParseResult =
     AsyncClientAssertionPayloadStrict.safeParse(decodedPayload);
   if (!payloadStrictParseResult.success) {
-    logger.warn(
-      `[CLIENTID=${baseResult.data.payload.sub}] Invalid claims in async client assertion payload: ${JSON.stringify(
-        JSON.parse(payloadStrictParseResult.error.message)
-      )}`
-    );
-  }
-  if (
-    featureFlagClientAssertionStrictClaimsValidation &&
-    !payloadStrictParseResult.success
-  ) {
     return failedValidation([
       clientAssertionInvalidClaims(
         payloadStrictParseResult.error.message,
@@ -330,7 +305,7 @@ export const verifyAsyncClientAssertion = (
     header: baseResult.data.header,
     payload: {
       ...baseResult.data.payload,
-      scope,
+      scope: validatedScope,
       interactionId: validatedInteractionId,
       urlCallback: validatedUrlCallback,
       entityNumber: validatedEntityNumber,

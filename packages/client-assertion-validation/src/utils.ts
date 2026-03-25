@@ -42,6 +42,7 @@ import {
   invalidInteractionIdClaimFormat,
   invalidUrlCallbackClaimFormat,
   invalidEntityNumberClaimFormat,
+  scopeNotProvided,
 } from "./errors.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
@@ -123,16 +124,15 @@ export const validatePurposeId = (
 
 export const validateScope = (
   scope?: unknown
-): ValidationResult<InteractionState | undefined> => {
-  const scopeParseResult = InteractionState.safeParse(scope);
-  if (scope && !scopeParseResult.success) {
-    return failedValidation([
-      invalidScopeClaimFormat(typeof scope === "string" ? scope : ""),
-    ]);
+): ValidationResult<InteractionState> => {
+  if (scope === undefined || scope === null) {
+    return failedValidation([scopeNotProvided()]);
   }
-  return successfulValidation(
-    scopeParseResult.success ? scopeParseResult.data : undefined
-  );
+  const scopeParseResult = InteractionState.safeParse(scope);
+  if (!scopeParseResult.success) {
+    return failedValidation([invalidScopeClaimFormat(JSON.stringify(scope))]);
+  }
+  return successfulValidation(scopeParseResult.data);
 };
 
 export const validateInteractionId = (
@@ -141,9 +141,7 @@ export const validateInteractionId = (
   const interactionIdParseResult = InteractionId.safeParse(interactionId);
   if (interactionId && !interactionIdParseResult.success) {
     return failedValidation([
-      invalidInteractionIdClaimFormat(
-        typeof interactionId === "string" ? interactionId : ""
-      ),
+      invalidInteractionIdClaimFormat(JSON.stringify(interactionId)),
     ]);
   }
   return successfulValidation(
