@@ -155,27 +155,28 @@ export const handleCallbackInvocation = async (
     };
   }
 
-  // 11. Update interaction state + Generate token in parallel
+  // 11. Generate token first, then update interaction state.
+  //     These must be sequential: if token generation fails we must not
+  //     persist a state transition for a token that was never delivered.
   const issuedAt = new Date().toISOString();
 
-  const [, token] = await Promise.all([
-    updateInteractionState({
-      dynamoDBClient,
-      interactionsTable,
-      interactionId,
-      state: scope,
-      updatedAt: issuedAt,
-    }),
-    tokenGenerator.generateInteropAsyncConsumerToken({
-      sub: clientId,
-      audience: catalogEntry.descriptorAudience,
-      purposeId: interaction.purposeId,
-      tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
-      interactionId,
-      scope,
-      dpopJWK: dpopProofJWT?.header.jwk,
-    }),
-  ]);
+  const token = await tokenGenerator.generateInteropAsyncConsumerToken({
+    sub: clientId,
+    audience: catalogEntry.descriptorAudience,
+    purposeId: interaction.purposeId,
+    tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
+    interactionId,
+    scope,
+    dpopJWK: dpopProofJWT?.header.jwk,
+  });
+
+  await updateInteractionState({
+    dynamoDBClient,
+    interactionsTable,
+    interactionId,
+    state: scope,
+    updatedAt: issuedAt,
+  });
 
   // 12. Publish audit
   await publishProducerAudit({
