@@ -157,21 +157,6 @@ export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig
 >;
 
-export const FeatureFlagUseSignedDocumentConfig = z
-  .object({
-    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
-  }));
-export type FeatureFlagUseSignedDocumentConfig = z.infer<
-  typeof FeatureFlagUseSignedDocumentConfig
->;
-
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -181,8 +166,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagEServicePersonalDataConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
-  FeatureFlagPurposesProcessContractBuilderConfig &
-  FeatureFlagUseSignedDocumentConfig;
+  FeatureFlagPurposesProcessContractBuilderConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
