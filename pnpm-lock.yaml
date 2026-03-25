@@ -516,9 +516,6 @@ importers:
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
-      puppeteer:
-        specifier: 'catalog:'
-        version: 22.11.2(typescript@5.4.5)
       supertest:
         specifier: 'catalog:'
         version: 7.0.0

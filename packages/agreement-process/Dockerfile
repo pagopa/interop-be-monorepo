@@ -56,14 +56,6 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final 
 
-# Install dependencies for Puppeteer
-RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
-  chromium \
-  ca-certificates 
-
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
 COPY --from=build /out /app
 
 RUN groupadd -r app && useradd -rm -g app -G audio,video app
