@@ -2437,7 +2437,12 @@ async function updateDraftEServiceTemplateVersion(
 
   const updatedAsyncExchangeProperties = asyncExchangeEnabled
     ? match(updateSeed)
-        .with({ type: "post" }, ({ seed }) => seed.asyncExchangeProperties)
+        .with(
+          { type: "post" },
+          ({ seed }) =>
+            seed.asyncExchangeProperties ??
+            eserviceTemplateVersion.asyncExchangeProperties
+        )
         .with({ type: "patch" }, ({ seed }) =>
           resolvePatchValue(
             seed.asyncExchangeProperties,
