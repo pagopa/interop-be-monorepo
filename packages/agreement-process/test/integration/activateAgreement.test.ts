@@ -48,7 +48,7 @@ import {
   fromAgreementV2,
   generateId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { addDays } from "date-fns";
 import { match } from "ts-pattern";
 import {
@@ -69,7 +69,6 @@ import {
   tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,
@@ -78,7 +77,6 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-  fileManager,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "../integrationUtils.js";

@@ -59,10 +59,6 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-export const pdfGenerator = {
-  generate: async (): Promise<Buffer> => Buffer.from(""),
-};
-
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
