@@ -172,7 +172,7 @@ const retrieveAgreement = async (
   return agreement;
 };
 
-export const retrieveTenant = async (
+const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<Tenant> => {
@@ -183,7 +183,7 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-export const retrieveDescriptor = (
+const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {

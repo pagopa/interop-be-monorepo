@@ -29,7 +29,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   )
   .and(ApplicationAuditProducerConfig);
 
-export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
+type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 export const config: AgreementProcessConfig = AgreementProcessConfig.parse(
   process.env
 );

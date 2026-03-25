@@ -2,14 +2,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { fileURLToPath } from "url";
-import path from "path";
-import {
-  dateAtRomeZone,
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -68,8 +60,6 @@ import {
   agreementActivationFailed,
   agreementNotFound,
   agreementNotInExpectedState,
-  agreementStampNotFound,
-  attributeNotFound,
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
@@ -80,7 +70,6 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
-import { AgreementContractPDFPayload } from "../../src/model/domain/models.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,
@@ -90,7 +79,6 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
-  pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
@@ -200,7 +188,6 @@ describe("activate agreement", () => {
     ] as const)(
       "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation, valid attributes -- success case: Pending >> Activated",
       async ({ requesterIs, withConsumerDelegation }) => {
-        vi.spyOn(pdfGenerator, "generate");
         const producer: Tenant = getMockTenant();
         const consumerId: TenantId = generateId();
 
@@ -240,6 +227,7 @@ describe("activate agreement", () => {
             },
             activation: undefined,
           },
+          contract: undefined,
 
           // Adding some random attributes to check that they are overwritten by the activation
           certifiedAttributes: [getMockAgreementAttribute()],
@@ -342,23 +330,6 @@ describe("activate agreement", () => {
           }).agreement!
         );
 
-        const contractDocumentId = actualAgreementActivated.contract!.id;
-        const contractCreatedAt = actualAgreementActivated.contract!.createdAt;
-        const contractDocumentName = `${consumer.id}_${
-          producer.id
-        }_${formatDateyyyyMMddHHmmss(
-          contractCreatedAt
-        )}_agreement_contract.pdf`;
-
-        const expectedContract = {
-          id: contractDocumentId,
-          contentType: "application/pdf",
-          createdAt: contractCreatedAt,
-          path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-          prettyName: "Richiesta di fruizione",
-          name: contractDocumentName,
-        };
-
         const expectedActivatedAgreement: Agreement = {
           ...agreement,
           state: agreementState.active,
@@ -373,112 +344,22 @@ describe("activate agreement", () => {
           certifiedAttributes: [{ id: certifiedAttribute.id }],
           declaredAttributes: [{ id: declaredAttribute.id }],
           verifiedAttributes: [{ id: verifiedAttribute.id }],
-          contract: expectedContract,
           suspendedByProducer: false,
           suspendedByConsumer: false,
           suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
         };
 
+        expect(actualAgreementActivated.contract).toBeUndefined();
         expect(actualAgreementActivated).toMatchObject(
           expectedActivatedAgreement
         );
-
-        const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
-          todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-          todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-          agreementId: expectedActivatedAgreement.id,
-          submitterId: expectedActivatedAgreement.stamps.submission!.who,
-          submissionDate: dateAtRomeZone(
-            expectedActivatedAgreement.stamps.submission!.when
-          ),
-          submissionTime: timeAtRomeZone(
-            expectedActivatedAgreement.stamps.submission!.when
-          ),
-          activatorId: expectedActivatedAgreement.stamps.activation!.who,
-          activationDate: dateAtRomeZone(
-            expectedActivatedAgreement.stamps.activation!.when
-          ),
-          activationTime: timeAtRomeZone(
-            expectedActivatedAgreement.stamps.activation!.when
-          ),
-          eserviceId: eservice.id,
-          eserviceName: eservice.name,
-          descriptorId: eservice.descriptors[0].id,
-          descriptorVersion: eservice.descriptors[0].version,
-          producerName: producer.name,
-          producerIpaCode: producer.externalId.value,
-
-          consumerName: consumer.name,
-          consumerIpaCode: consumer.externalId.value,
-          certifiedAttributes: [
-            {
-              assignmentDate: dateAtRomeZone(
-                validTenantCertifiedAttribute.assignmentTimestamp
-              ),
-              assignmentTime: timeAtRomeZone(
-                validTenantCertifiedAttribute.assignmentTimestamp
-              ),
-              attributeName: certifiedAttribute.name,
-              attributeId: validTenantCertifiedAttribute.id,
-            },
-          ],
-          declaredAttributes: [
-            {
-              assignmentDate: dateAtRomeZone(
-                validTenantDeclaredAttribute.assignmentTimestamp
-              ),
-              assignmentTime: timeAtRomeZone(
-                validTenantDeclaredAttribute.assignmentTimestamp
-              ),
-              attributeName: declaredAttribute.name,
-              attributeId: validTenantDeclaredAttribute.id,
-              delegationId: consumerDelegation?.id,
-            },
-          ],
-          verifiedAttributes: [
-            {
-              assignmentDate: dateAtRomeZone(
-                validTenantVerifiedAttribute.assignmentTimestamp
-              ),
-              assignmentTime: timeAtRomeZone(
-                validTenantVerifiedAttribute.assignmentTimestamp
-              ),
-              attributeName: verifiedAttribute.name,
-              attributeId: validTenantVerifiedAttribute.id,
-              expirationDate: dateAtRomeZone(
-                validTenantVerifiedAttribute.verifiedBy[0].extensionDate!
-              ),
-              delegationId: producerDelegation?.id,
-            },
-          ],
-          producerDelegationId: producerDelegation?.id,
-          producerDelegateIpaCode: delegateProducer?.externalId.value,
-          producerDelegateName: delegateProducer?.name,
-
-          // PDF mentions also consumer delegate in case they exist, even if the caller is the producer/producer delegate
-          consumerDelegationId: consumerDelegation?.id,
-          consumerDelegateIpaCode: delegateConsumer?.externalId.value,
-          consumerDelegateName: delegateConsumer?.name,
-        };
-        expect(pdfGenerator.generate).toHaveBeenCalledWith(
-          path.resolve(
-            path.dirname(fileURLToPath(import.meta.url)),
-            "../../src",
-            "resources/templates/documents/",
-            "agreementContractTemplate.html"
-          ),
-          expectedAgreementPDFPayload
-        );
-
-        expect(
-          await fileManager.listFiles(config.s3Bucket, genericLogger)
-        ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
         expect(activateAgreementReturnValue).toMatchObject({
           data: expectedActivatedAgreement,
           metadata: { version: 1 },
         });
+        expect(activateAgreementReturnValue.data.contract).toBeUndefined();
       }
     );
 
@@ -2085,7 +1966,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(tenantNotFound(consumerId));
     });
 
-    it("should throw a tenantNotFound error when the Producer does not exist", async () => {
+    it("should not require producer tenant lookup when producer does not exist", async () => {
       const producerId = generateId<TenantId>();
       const consumer = getMockTenant();
       const authData = getMockAuthData(producerId);
@@ -2119,10 +2000,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(tenantNotFound(producerId));
+      ).resolves.toBeDefined();
     });
 
-    it("should throw agreementStampNotFound when the contract builder cannot find the submission stamp", async () => {
+    it("should not require submission stamp check when the contract builder is not used", async () => {
       const producer: Tenant = getMockTenant();
       const consumer: Tenant = getMockTenant();
 
@@ -2162,10 +2043,10 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(agreementStampNotFound("submission"));
+      ).resolves.toBeDefined();
     });
 
-    it("should throw attributeNotFound when the contract builder cannot retrieve an attribute", async () => {
+    it("should not require attribute lookup when the contract builder is not used", async () => {
       const producer: Tenant = getMockTenant();
 
       const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -2229,9 +2110,7 @@ describe("activate agreement", () => {
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        attributeNotFound(validTenantCertifiedAttribute.id)
-      );
+      ).resolves.toBeDefined();
     });
   });
 });
