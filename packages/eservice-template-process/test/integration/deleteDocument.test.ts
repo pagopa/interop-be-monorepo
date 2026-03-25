@@ -374,6 +374,7 @@ describe("delete Document", () => {
   });
 
   it("should fail if the file deletion fails", async () => {
+    const originalS3Bucket = config.s3Bucket;
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
     const eserviceTemplateVersion: EServiceTemplateVersion = {
@@ -403,6 +404,8 @@ describe("delete Document", () => {
         new Error("The specified bucket does not exist")
       )
     );
+
+    config.s3Bucket = originalS3Bucket;
   });
 
   it("should write on event-store for the deletion of an asyncExchangeCallbackInterface, and delete the file from the bucket", async () => {
