@@ -34,6 +34,7 @@ import {
 import { config } from "../../src/config/config.js";
 import {
   asyncScopeNotYetImplemented,
+  catalogEntryNotFound,
   purposeIdNotProvided,
   urlCallbackNotProvided,
 } from "../../src/model/domain/errors.js";
@@ -287,6 +288,64 @@ describe("async token service - start_interaction", () => {
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
       asyncScopeNotYetImplemented(interactionState.callbackInvocation)
+    );
+  });
+
+  it("should throw catalogEntryNotFound when catalog entry is missing", async () => {
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+    const clientId = generateId<ClientId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+        customClaims: {
+          purposeId: purpose.id,
+          urlCallback: "https://callback.example.com",
+          scope: interactionState.startInteraction,
+        },
+      });
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId: purpose.id,
+      }
+    );
+
+    const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+      consumerId: purpose.consumerId,
+      GSIPK_purposeId: purpose.id,
+      purposeState: itemState.active,
+      purposeVersionId: purpose.versions[0].id,
+      agreementState: itemState.active,
+      descriptorState: itemState.active,
+      asyncExchange: true,
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: clientAssertion.header.kid!,
+      }),
+      publicKey: publicKeyEncodedPem,
+    };
+
+    // Write only the token entry, NOT the catalog entry
+    await writeTokenGenStatesConsumerClient(
+      tokenClientPurposeEntry,
+      dynamoDBClient
+    );
+
+    const { eserviceId, descriptorId } =
+      deconstructGSIPK_eserviceId_descriptorId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!
+      );
+
+    await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
+      catalogEntryNotFound(eserviceId, descriptorId)
     );
   });
 

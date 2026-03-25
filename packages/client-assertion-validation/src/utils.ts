@@ -162,6 +162,11 @@ export const validateUrlCallback = (
       invalidUrlCallbackClaimFormat(String(urlCallback)),
     ]);
   }
+  try {
+    new URL(urlCallback);
+  } catch {
+    return failedValidation([invalidUrlCallbackClaimFormat(urlCallback)]);
+  }
   return successfulValidation(urlCallback);
 };
 
