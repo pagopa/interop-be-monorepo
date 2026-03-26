@@ -1176,7 +1176,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/toBeArchived:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/archivable:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1185,7 +1185,7 @@ paths:
       tags:
         - process
       summary: Mark the selected descriptor for archiving.
-      operationId: descriptorToBeArchived
+      operationId: descriptorArchivable
       description: Marks the specified descriptor for archiving
       parameters:
         - name: eServiceId
@@ -3153,6 +3153,8 @@ components:
         kind:
           type: string
           enum: [Manual, Automatic]
+      required:
+        - kind
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false

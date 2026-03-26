@@ -3864,7 +3864,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/toBeArchived:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/archivable:
     post:
       security:
         - bearerAuth: []
@@ -3872,7 +3872,7 @@ paths:
         - eservices
       summary: the selected descriptor will have to be archived.
       description: the selected descriptor will have to be archived
-      operationId: descriptorToBeArchived
+      operationId: descriptorArchivable
       parameters:
         - name: eServiceId
           in: path
@@ -26043,6 +26043,8 @@ components:
         kind:
           type: string
           enum: [Manual, Automatic]
+      required:
+        - kind
     UpdateEServiceDescriptorQuotas:
       required:
         - voucherLifespan

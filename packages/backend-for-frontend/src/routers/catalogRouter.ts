@@ -346,11 +346,11 @@ const catalogRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/toBeArchived",
+      "/eservices/:eServiceId/descriptors/:descriptorId/archivable",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const { id } = await catalogService.descriptorToBeArchived(
+          const { id } = await catalogService.descriptorArchivable(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,

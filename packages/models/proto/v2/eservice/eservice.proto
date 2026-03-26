@@ -88,6 +88,7 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
+  optional DescriptorArchivableV2 archivable = 21;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -134,4 +135,15 @@ enum AgreementApprovalPolicyV2 {
 enum EServiceModeV2 {
   RECEIVE = 0;
   DELIVER = 1;
+}
+
+message DescriptorArchivableV2 {
+  int64 archivingStart = 1;
+  int64 archivingEnd = 2;
+  EServiceDescriptorKindV2 archivingType = 3;
+}
+
+enum EServiceDescriptorKindV2 {
+  MANUAL_ARCHIVE = 0;
+  AUTOMATIC_ARCHIVE = 1;
 }

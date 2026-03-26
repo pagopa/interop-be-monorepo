@@ -2127,10 +2127,10 @@ export function catalogServiceBuilder(
       };
     },
 
-    async descriptorToBeArchived(
+    async descriptorArchivable(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      kind: catalogApi.EServiceDescriptorKind,
+      body: catalogApi.EServiceDescriptorKind,
       {
         authData,
         correlationId,
@@ -2161,9 +2161,11 @@ export function catalogServiceBuilder(
 
       let updatedDescriptor: Descriptor = {
         ...descriptor,
-        archivingStart: new Date(),
-        archivingEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days after the start date
-        archivingType: kind.kind,
+        archivable: {
+          archivingStart: new Date(),
+          archivingEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days after the start date
+          archivingType: body.kind,
+        },
       };
 
       // deleghiamo al frontend il cambiamento dello stato dallo stato attuale ad "in archiviazione".
@@ -2178,8 +2180,8 @@ export function catalogServiceBuilder(
       );
 
       // Qui si deve creare un nuovo evento di update descriptor, in quanto è necessario aggiornare la versione del descriptor con le date di inizio e fine archiviazione, che sono necessarie al frontend per mostrare il banner di preavviso di archiviazione.
-      // EServiceDescriptorToBeArchived
-      // Bisogna inviare al nuovo evento la data di fine periodo di prova, (anche tutti e 3 i valori del descriptor)
+      // EServiceDescriptorArchivable
+      // Bisogna inviare al nuovo evento la data di fine periodo di preavviso, (anche tutti e 3 i valori del descriptor)
       // Bisogna implementare un chroneJob che controlla se "oggi" è = a data fine preavviso
       // Se si, si fa partire l'evento di archiviazione (sarà un evento ad hoc che ignora la presenza degli agreement).
       const event = await repository.createEvent(

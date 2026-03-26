@@ -1368,7 +1368,7 @@ export function catalogServiceBuilder(
         },
       });
     },
-    descriptorToBeArchived: async (
+    descriptorArchivable: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       kind: catalogApi.EServiceDescriptorKind,
@@ -1377,7 +1377,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating descriptor ${descriptorId} of EService ${eServiceId} to be archived`
       );
-      return await catalogProcessClient.descriptorToBeArchived(kind, {
+      return await catalogProcessClient.descriptorArchivable(kind, {
         headers,
         params: {
           eServiceId,

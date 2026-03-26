@@ -862,15 +862,15 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/toBeArchived",
+      "/eservices/:eServiceId/descriptors/:descriptorId/archivable",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const { data: toBeArchivedEService, metadata } =
-            await catalogService.descriptorToBeArchived(
+          const { data: archivableEService, metadata } =
+            await catalogService.descriptorArchivable(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
@@ -882,7 +882,7 @@ const eservicesRouter = (
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(toBeArchivedEService))
+              catalogApi.EService.parse(eServiceToApiEService(archivableEService))
             );
         } catch (error) {
           const errorRes = makeApiProblem(

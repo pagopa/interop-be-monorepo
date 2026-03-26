@@ -3,6 +3,7 @@ import {
   AgreementApprovalPolicyV2,
   DescriptorRejectionReasonV2,
   EServiceAttributeV2,
+  EServiceDescriptorKindV2,
   EServiceDescriptorStateV2,
   EServiceDescriptorV2,
   EServiceDocumentV2,
@@ -21,6 +22,7 @@ import {
   Document,
   EService,
   EServiceAttribute,
+  EServiceDescriptorKind,
   EServiceMode,
   Technology,
   agreementApprovalPolicy,
@@ -98,6 +100,21 @@ export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   uploadDate: input.uploadDate.toISOString(),
 });
 
+const toEServiceDescriptorKindV2 = (
+  input: EServiceDescriptorKind | undefined
+): EServiceDescriptorKindV2 =>
+  match(input)
+    .with(P.nullish, () => EServiceDescriptorKindV2.AUTOMATIC_ARCHIVE)
+    .with(
+      EServiceDescriptorKind.Enum.Manual,
+      () => EServiceDescriptorKindV2.MANUAL_ARCHIVE
+    )
+    .with(
+      EServiceDescriptorKind.Enum.Automatic,
+      () => EServiceDescriptorKindV2.AUTOMATIC_ARCHIVE
+    )
+    .exhaustive();
+
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
@@ -120,6 +137,15 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  archivable: input.archivable
+    ? {
+      archivingStart: dateToBigInt(input.archivable.archivingStart),
+      archivingEnd: dateToBigInt(input.archivable.archivingEnd),
+      archivingType: toEServiceDescriptorKindV2(
+        input.archivable.archivingType
+      ),
+    }
+    : undefined,
 });
 
 export const toRiskAnalysisV2 = (

@@ -94,6 +94,17 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
+export const EServiceDescriptorKind = z.enum(["Manual", "Automatic"]);
+export type EServiceDescriptorKind = z.infer<typeof EServiceDescriptorKind>;
+
+export const Archivable = z.object({
+  archivingStart: z.coerce.date(),
+  archivingEnd: z.coerce.date(),
+  archivingType: EServiceDescriptorKind,
+});
+
+export type Archivable = z.infer<typeof Archivable>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -115,9 +126,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
-  archivingStart: z.coerce.date().optional(),
-  archivingEnd: z.coerce.date().optional(),
-  archivingType: z.enum(["Manual", "Automatic"]).optional(),
+  archivable: Archivable.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
