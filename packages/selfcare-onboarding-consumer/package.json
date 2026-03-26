@@ -32,7 +32,6 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "catalog:",
     "zod": "catalog:"
   }
 }

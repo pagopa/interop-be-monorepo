@@ -17,7 +17,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handlePurposeMessageV2 = async (
@@ -29,7 +28,7 @@ export const handlePurposeMessageV2 = async (
   const correlationId = generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: config.serviceName,
+    serviceName: "events-signer",
     correlationId,
   });
   const allPurposeDataToStore: PurposeEventData[] = [];

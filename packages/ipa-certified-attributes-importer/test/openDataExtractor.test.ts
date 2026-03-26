@@ -14,13 +14,24 @@ import { agency, aoo, categories, uo } from "./expectation.js";
 
 vi.mock("axios");
 
+const openDataConfig = {
+  institutionsUrl: "https://example.test/institutions",
+  aooUrl: "https://example.test/aoo",
+  uoUrl: "https://example.test/uo",
+  institutionsCategoriesUrl: "https://example.test/categories",
+};
+
 describe("OpenDataExtractor", async () => {
   it("getAllInstitutions should return an empty array if there's no open data", async () => {
     (axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
       data: {},
     });
 
-    const institutions = await getAllInstitutions("Agency", new Map());
+    const institutions = await getAllInstitutions(
+      "Agency",
+      new Map(),
+      openDataConfig
+    );
 
     expect(institutions).toEqual([]);
   });
@@ -30,7 +41,11 @@ describe("OpenDataExtractor", async () => {
       data: agencyDataset,
     });
 
-    const institutions = await getAllInstitutions("Agency", new Map());
+    const institutions = await getAllInstitutions(
+      "Agency",
+      new Map(),
+      openDataConfig
+    );
 
     expect(institutions).toEqual(agency);
   });
@@ -48,7 +63,8 @@ describe("OpenDataExtractor", async () => {
         ["Z9123GHI", { category: "L33", kind: "Pubbliche Amministrazioni" }],
         ["Z3456JKL", { category: "SA", kind: "Stazioni Appaltanti" }],
         ["Z6789MNO", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
-      ])
+      ]),
+      openDataConfig
     );
 
     expect(institutions).toEqual(aoo);
@@ -67,7 +83,8 @@ describe("OpenDataExtractor", async () => {
         ["Z9123GHI", { category: "L33", kind: "Pubbliche Amministrazioni" }],
         ["Z3456JKL", { category: "SA", kind: "Stazioni Appaltanti" }],
         ["Z6789MNO", { category: "SAG", kind: "Gestori di Pubblici Servizi" }],
-      ])
+      ]),
+      openDataConfig
     );
 
     expect(institutions).toEqual(uo);
@@ -78,7 +95,7 @@ describe("OpenDataExtractor", async () => {
       data: categoriesDataset,
     });
 
-    const extractedCategories = await getAllCategories();
+    const extractedCategories = await getAllCategories(openDataConfig);
 
     expect(extractedCategories).toEqual(categories);
   });
