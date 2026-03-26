@@ -49,6 +49,29 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/producerKeychains", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const producerKeychain =
+          await producerKeychainService.createProducerKeychain(req.body, ctx);
+
+        return res
+          .status(200)
+          .send(m2mGatewayApiV3.ProducerKeychain.parse(producerKeychain));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating producer keychain with seed: ${JSON.stringify(
+            req.body
+          )}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/producerKeychains/:keychainId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

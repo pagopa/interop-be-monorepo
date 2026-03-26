@@ -256,8 +256,12 @@ export function authorizationServiceBuilder(
       }: {
         clientSeed: authorizationApi.ClientSeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Client> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
@@ -273,11 +277,16 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientAdded(client, correlationId)
       );
 
-      return client;
+      return {
+        data: client,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async createApiClient(
       {
@@ -981,8 +990,12 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
@@ -998,11 +1011,16 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return producerKeychain;
+      return {
+        data: producerKeychain,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async getProducerKeychains(
       {
