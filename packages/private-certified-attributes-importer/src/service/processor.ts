@@ -30,7 +30,7 @@ export async function importAttributes(
   headers: InteropHeaders,
   correlationId: CorrelationId
 ): Promise<void> {
-  logger.info("Resolving Registry Imprese attributes from Read Model...");
+  logger.info("Resolving Registro Imprese attributes from Read Model...");
 
   const registryAttributes = await bootstrapRegistryAttributes(
     readModel,
@@ -44,7 +44,7 @@ export async function importAttributes(
     registryAttributes.scp.id,
   ];
 
-  logger.info("Syncing Registry Imprese certified attributes started");
+  logger.info("Syncing Registro Imprese certified attributes started");
 
   const infocamereTenants = await readModel.getTenantsByOriginPrefix(
     INFOCAMERE_ORIGIN_PREFIX
@@ -93,7 +93,7 @@ export async function importAttributes(
     );
   }
 
-  logger.info("Registry Imprese synchronization completed");
+  logger.info("Registro Imprese synchronization completed");
 }
 
 async function syncAttribute(
