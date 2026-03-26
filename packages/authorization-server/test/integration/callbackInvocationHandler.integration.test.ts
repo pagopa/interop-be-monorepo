@@ -35,6 +35,7 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
+  TenantId,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -67,6 +68,7 @@ const writeProducerKeychainEntry = async (
     PK: ProducerKeychainPlatformStatesPK;
     publicKey: string;
     producerKeychainId: ProducerKeychainId;
+    producerId: TenantId;
     kid: string;
     eServiceId: EServiceId;
     version: number;
@@ -80,6 +82,7 @@ const writeProducerKeychainEntry = async (
       PK: { S: entry.PK },
       publicKey: { S: entry.publicKey },
       producerKeychainId: { S: entry.producerKeychainId },
+      producerId: { S: entry.producerId },
       kid: { S: entry.kid },
       eServiceId: { S: entry.eServiceId },
       version: { N: entry.version.toString() },
@@ -275,6 +278,7 @@ const setupCallbackScenario = async (overrides?: {
         publicKey: producerPublicKey,
         producerKeychainId:
           unsafeBrandId<ProducerKeychainId>(producerKeychainId),
+        producerId: generateId<TenantId>(),
         kid: producerAssertion.header.kid!,
         eServiceId,
         version: 1,
