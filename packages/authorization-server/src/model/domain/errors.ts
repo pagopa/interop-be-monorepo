@@ -35,6 +35,9 @@ const errorCodes = {
   interactionStateNotAllowed: "0024",
   producerKeychainEntryNotFound: "0025",
   catalogEntryNotFound: "0026",
+  callbackInvocationTokenIssuedAtMissing: "0027",
+  resourceAvailableTimeExpired: "0028",
+  asyncExchangeConfirmationNotEnabled: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -291,5 +294,37 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function callbackInvocationTokenIssuedAtMissing(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
+    code: "callbackInvocationTokenIssuedAtMissing",
+    title: "Callback invocation token issued at missing",
+  });
+}
+
+export function asyncExchangeConfirmationNotEnabled(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange confirmation is not enabled for the eService associated with interaction ${interactionId}`,
+    code: "asyncExchangeConfirmationNotEnabled",
+    title: "Async exchange confirmation not enabled",
+  });
+}
+
+export function resourceAvailableTimeExpired(
+  interactionId: InteractionId,
+  elapsedSeconds: number,
+  resourceAvailableTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Resource available time expired for interaction ${interactionId}: elapsed ${elapsedSeconds}s exceeds limit of ${resourceAvailableTime}s`,
+    code: "resourceAvailableTimeExpired",
+    title: "Resource available time expired",
   });
 }

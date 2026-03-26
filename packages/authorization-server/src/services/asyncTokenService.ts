@@ -36,7 +36,6 @@ import { config } from "../config/config.js";
 import { checkDPoPCache } from "pagopa-interop-dpop-validation";
 import {
   asyncRequestValidationFailed,
-  asyncScopeNotYetImplemented,
   clientAssertionValidationFailed,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
@@ -46,6 +45,8 @@ import {
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
 import { handleCallbackInvocation } from "./scopeHandlers/callbackInvocationHandler.js";
+import { handleConfirmation } from "./scopeHandlers/confirmationHandler.js";
+import { handleGetResource } from "./scopeHandlers/getResourceHandler.js";
 import { handleStartInteraction } from "./scopeHandlers/startInteractionHandler.js";
 
 export type ScopeHandlerContext = {
@@ -239,10 +240,10 @@ const generateTokenByScope = async (
     .with(interactionState.callbackInvocation, async (scope) =>
       handleCallbackInvocation(scope, ctx)
     )
-    .with(interactionState.getResource, async () => {
-      throw asyncScopeNotYetImplemented(interactionState.getResource);
-    })
-    .with(interactionState.confirmation, async () => {
-      throw asyncScopeNotYetImplemented(interactionState.confirmation);
-    })
+    .with(interactionState.getResource, async (scope) =>
+      handleGetResource(scope, ctx)
+    )
+    .with(interactionState.confirmation, async (scope) =>
+      handleConfirmation(scope, ctx)
+    )
     .exhaustive();

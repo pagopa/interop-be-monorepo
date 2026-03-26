@@ -38,6 +38,9 @@ export const authorizationServerErrorMapper = (
       "interactionStateNotAllowed",
       "producerKeychainEntryNotFound",
       "catalogEntryNotFound",
+      "callbackInvocationTokenIssuedAtMissing",
+      "resourceAvailableTimeExpired",
+      "asyncExchangeConfirmationNotEnabled",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
