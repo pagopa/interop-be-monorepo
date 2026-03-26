@@ -42,6 +42,23 @@ const clientRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/clients", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const client = await clientService.createClient(req.body, ctx);
+        return res.status(200).send(m2mGatewayApiV3.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating client with name ${req.body.name}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/clients/:clientId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
