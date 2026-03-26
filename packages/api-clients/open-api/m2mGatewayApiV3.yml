@@ -7233,6 +7233,41 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/remainingDailyCalls:
+    parameters:
+      - name: purposeId
+        in: path
+        description: The ID of the Purpose to retrieve the remainingDailyCalls for
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposes
+      operationId: getRemainingDailyCalls
+      summary: Retrieve remaining dailyCalls for a purpose
+      description: Retrieve remaining available daily calls for a purpose
+      responses:
+        "200":
+          description: Retrieve remaining daily calls
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /tenants:
     get:
       tags:
@@ -12377,6 +12412,21 @@ components:
           $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
+    RemainingDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        remainingDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        remainingDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     EServiceRiskAnalysisSeed:
       type: object
       additionalProperties: false
@@ -12494,6 +12544,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantSubUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - certifier
@@ -13380,21 +13432,17 @@ components:
     IntegrityRest02DigestHeader:
       schema:
         type: string
-        # Base64 per l'hash SHA-256
-        # (43 chars valid + 1 symbol "=" as padding)
         pattern: ^SHA-256=[a-zA-Z0-9+/]{43}=$
       description: |
         Digest of the body using the canonical JSON representation of the response body.
         The digest is calculated using the SHA-256 algorithm on the response body
         exactly as it is sent to the client, encoded in Base64 as per RFC 3230
     IntegrityRest02AgidJwtSignatureHeader:
+      description: |
+        The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the PDND API private key.
+        It ensures payload integrity and non-repudiation across all responses (both success and error), in compliance with: 1) Linee Guida sull'interoperabilità tecnica delle Pubbliche Amministrazioni - Pattern di sicurezza,  2) RFC 7515 and 3) RFC 7519.
       schema:
         type: string
-        pattern: ^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+$
-      description: |
-        Agid-JWT-Signature header signed with the M2M gateway private key.
-        Inside the JWT there is a `signed_header` field containting the `digest` header value,
-        the `content-type` header and, optionally, the `content-encoding` header.
   securitySchemes:
     DPoPAuth:
       type: http

@@ -41,7 +41,8 @@ export const calculateKid = (jwk: JsonWebKey): string => {
 /* This is to avoid repeating the logic of the "calculateKid",
 and to have a more meaningful name
 for the generation of the CNF field inside the DPoP tokens */
-export const calculateDPoPThumbprint = calculateKid;
+export const calculateDPoPThumbprint = (jwk: JsonWebKey): string =>
+  calculateKid(jwk);
 
 export const calculateJWKThumbprint = (jwk: JsonWebKey): string => {
   const parsedJwk = match(jwk.kty)

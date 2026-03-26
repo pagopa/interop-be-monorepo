@@ -416,9 +416,9 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
-      const eserviceTemplateInterface = eserviceTemplate?.versions.find(
+      const eserviceTemplateVersion = eserviceTemplate?.versions.find(
         (v) => v.id === descriptor.templateVersionRef?.id
-      )?.interface;
+      );
 
       const delegation = (
         await delegationProcessClient.delegation.getDelegations({
@@ -472,13 +472,16 @@ export function catalogServiceBuilder(
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
           templateVersionId: descriptor.templateVersionRef?.id,
-          templateInterface: eserviceTemplateInterface
-            ? toBffCatalogApiDescriptorDoc(eserviceTemplateInterface)
+          templateInterface: eserviceTemplateVersion?.interface
+            ? toBffCatalogApiDescriptorDoc(eserviceTemplateVersion.interface)
             : undefined,
           interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
           isNewTemplateVersionAvailable:
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
+          templateDailyCallsPerConsumer:
+            eserviceTemplateVersion?.dailyCallsPerConsumer,
+          templateDailyCallsTotal: eserviceTemplateVersion?.dailyCallsTotal,
         },
         delegation:
           delegation !== undefined && delegate !== undefined
@@ -1851,6 +1854,17 @@ export function catalogServiceBuilder(
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
       const tenantsIds = Array.from(tenantsMap.keys());
+
+      if (producerName && tenantsIds.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            offset,
+            limit,
+            totalCount: 0,
+          },
+        };
+      }
 
       const defaultStates: catalogApi.EServiceDescriptorState[] = [
         catalogApi.EServiceDescriptorState.Values.PUBLISHED,

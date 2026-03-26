@@ -15,7 +15,8 @@ import {
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
-  formatDateddMMyyyyHHmmss,
+  dateAtRomeZone,
+  timeAtRomeZone,
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
@@ -60,6 +61,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -181,6 +183,8 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertDailyCallsForCertifiedAttributesOnly,
+  assertAttributeDailyCallsConsistentWithTotal,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -987,10 +991,11 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedInstanceName = buildInstanceName({
-        templateName: template.name,
-        instanceLabel: eserviceSeed.instanceLabel,
-      });
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel: eserviceSeed.instanceLabel,
+        });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -1008,7 +1013,7 @@ export function catalogServiceBuilder(
       const updatedEService: EService = {
         ...eservice.data,
         name: updatedInstanceName,
-        instanceLabel: eserviceSeed.instanceLabel,
+        instanceLabel: parsedInstanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
@@ -1355,7 +1360,12 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        eserviceDescriptorSeed.dailyCallsTotal
+      );
 
       const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
@@ -1895,9 +1905,20 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const clonedEServiceName = `${
-        eservice.data.name
-      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
+      const currentDate = new Date();
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
+      const dots = "...";
+      const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
+      const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
+      const clonedEServiceName =
+        eservice.data.name.length + suffix.length <= maxNameLength
+          ? `${eservice.data.name}${suffix}`
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -2061,13 +2082,31 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        descriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
-      const updatedDescriptor: Descriptor = {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       };
+
+      if (seed.attributes) {
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2894,13 +2933,29 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        descriptor,
+        seed
+      );
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        descriptor.dailyCallsTotal
+      );
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -2932,7 +2987,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const updatedInstanceName = buildInstanceName({
+      const { instanceName: updatedInstanceName } = buildInstanceName({
         templateName: updatedTemplateName,
         instanceLabel: eservice.data.instanceLabel,
       });
@@ -3357,7 +3412,7 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const instanceName = buildInstanceName({
+      const { parsedInstanceLabel, instanceName } = buildInstanceName({
         templateName: template.name,
         instanceLabel: seed.instanceLabel,
       });
@@ -3409,7 +3464,7 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
             riskAnalysis,
           },
-          instanceLabel: seed.instanceLabel,
+          instanceLabel: parsedInstanceLabel,
         },
         readModelService,
         ctx
@@ -3720,10 +3775,11 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const updatedInstanceName = buildInstanceName({
-        templateName: template.name,
-        instanceLabel,
-      });
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel,
+        });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -3736,7 +3792,7 @@ export function catalogServiceBuilder(
       const updatedEservice: EService = {
         ...eservice.data,
         name: updatedInstanceName,
-        instanceLabel,
+        instanceLabel: parsedInstanceLabel,
       };
 
       const event = toCreateEventEServiceInstanceLabelUpdated(
@@ -4001,6 +4057,34 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function hasCertifiedAttributeDailyCallsChanged(
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  return descriptor.attributes.certified.some(
+    (descriptorAttributesGroup, attributesGroupIndex) => {
+      const seedAttrGroup = seed.certified[attributesGroupIndex];
+
+      return descriptorAttributesGroup.some((descriptorAttribute) => {
+        const seedAttribute = seedAttrGroup.find(
+          (attribute) => attribute.id === descriptorAttribute.id
+        );
+
+        if (seedAttribute === undefined) {
+          throw genericInternalError(
+            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
+          );
+        }
+
+        return (
+          seedAttribute.dailyCallsPerConsumer !==
+          descriptorAttribute.dailyCallsPerConsumer
+        );
+      });
+    }
+  );
 }
 
 function evaluateTemplateVersionRef(
@@ -4297,6 +4381,12 @@ async function updateDraftDescriptor(
       )
     : descriptor.attributes;
 
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertAttributeDailyCallsConsistentWithTotal(
+    updatedAttributes,
+    updatedDailyCallsTotal
+  );
+
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
         agreementApprovalPolicy
@@ -4337,6 +4427,8 @@ async function updateDraftDescriptor(
  * - separator " - ": 3 characters
  * - instanceLabel: maxLength 12
  * - eservice name (result): maxLength 60
+ *
+ * Also, empty spaces are removed, and an empty string is treated as undefined
  */
 const buildInstanceName = ({
   templateName,
@@ -4344,7 +4436,17 @@ const buildInstanceName = ({
 }: {
   templateName: string;
   instanceLabel: string | undefined;
-}): string =>
-  instanceLabel ? `${templateName} - ${instanceLabel}` : templateName;
+}): { parsedInstanceLabel?: string; instanceName: string } => {
+  const trimmedInstanceLabel = instanceLabel?.trim();
+  const parsedInstanceLabel =
+    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
+      ? trimmedInstanceLabel
+      : undefined;
+
+  const instanceName = parsedInstanceLabel
+    ? `${templateName} - ${parsedInstanceLabel}`
+    : templateName;
+  return { parsedInstanceLabel, instanceName };
+};
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

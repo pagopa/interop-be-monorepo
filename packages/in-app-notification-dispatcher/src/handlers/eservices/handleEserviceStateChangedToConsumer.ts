@@ -49,7 +49,7 @@ export async function handleEserviceStateChangedToConsumer(
     throw missingKafkaMessageDataError("eservice", eserviceV2Msg.type);
   }
   logger.info(
-    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.data.eservice.id} eventType ${eserviceV2Msg.type}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer - entityId: ${eserviceV2Msg.data.eservice.id}, eventType: ${eserviceV2Msg.type}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
