@@ -328,7 +328,7 @@ describe("validation test", async () => {
       const { keySet } = generateKeySet();
 
       const jws = await new SignJWT({ val: "actualPayload" })
-        .setProtectedHeader({ kid: generateId(), alg: "RS256" })
+        .setProtectedHeader({ kid: generateId(), alg: algorithm.RS256 })
         .setJti(generateId())
         .setIssuedAt(new Date())
         .setExpirationTime("1h")

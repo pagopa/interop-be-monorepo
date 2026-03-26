@@ -1,10 +1,12 @@
-import { createHash, createHmac } from "crypto";
+import { createHash } from "crypto";
 import {
   generateKeyPair,
   exportJWK,
   calculateJwkThumbprint,
   SignJWT,
+  UnsecuredJWT,
   JWK,
+  JWTPayload,
   exportSPKI,
 } from "jose";
 import {
@@ -75,19 +77,10 @@ export const generateToken = (role: AuthRole): string =>
   signPayload(createPayload(role));
 
 export const signPayload = (payload: object): string => {
-  const header = Buffer.from(
-    JSON.stringify({ alg: "HS256", typ: "JWT" })
-  ).toString("base64url");
   const p = payload as Record<string, unknown>;
   const claims =
-    p.iat != null
-      ? payload
-      : { ...payload, iat: Math.floor(Date.now() / 1000) };
-  const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
-  const signature = createHmac("sha256", "test-secret")
-    .update(`${header}.${body}`)
-    .digest("base64url");
-  return `${header}.${body}.${signature}`;
+    p.iat != null ? p : { ...p, iat: Math.floor(Date.now() / 1000) };
+  return new UnsecuredJWT(claims as JWTPayload).encode();
 };
 
 export const mockTokenUserId = generateId<UserId>();

@@ -10,7 +10,6 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
-import { JOSEError, JWKSNoMatchingKey } from "jose/errors";
 import { Logger } from "../logging/index.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
 import {
@@ -94,26 +93,18 @@ export const verifyJwtToken = async (
       createRemoteJWKSet(new URL(url))
     );
 
-    for (const jwksClient of jwksClients) {
-      try {
-        await jwtVerify(jwtToken, jwksClient, {
+    const decoded = await Promise.any(
+      jwksClients.map(async (jwksClient) => {
+        const { payload } = await jwtVerify(jwtToken, jwksClient, {
           audience: acceptedAudiences,
         });
-        const decoded = decodeJwtToken(jwtToken, logger);
-        return { decoded };
-      } catch (error) {
-        // If it is a matching key error or a network problem try with the next client
-        if (
-          error instanceof JWKSNoMatchingKey ||
-          !(error instanceof JOSEError)
-        ) {
-          logger.debug(`Skip Jwks client: ${error}`);
-          continue;
-        }
-        throw error;
-      }
-    }
-    throw new Error("No JWKS client could verify the token");
+        return payload;
+      })
+    ).catch(() => {
+      throw new Error("No JWKS client could verify the token");
+    });
+
+    return { decoded };
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
     const { userId, selfcareId } = extractUserInfoForFailedToken();
