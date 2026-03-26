@@ -272,23 +272,12 @@ export const verifyAsyncClientAssertion = (
   const { errors: entityNumberErrors, data: validatedEntityNumber } =
     validateEntityNumber(decodedPayload.entityNumber);
 
-  // Strict validation with async schema (always enforced for new async feature)
-  const payloadStrictParseResult =
-    AsyncClientAssertionPayload.safeParse(decodedPayload);
-  const strictParsingErrors = !payloadStrictParseResult.success
-    ? clientAssertionInvalidClaims(
-        payloadStrictParseResult.error.message,
-        "payload"
-      )
-    : undefined;
-
   if (
     baseResult.errors ||
     scopeErrors ||
     interactionIdErrors ||
     urlCallbackErrors ||
-    entityNumberErrors ||
-    strictParsingErrors
+    entityNumberErrors
   ) {
     return failedValidation([
       baseResult.errors,
@@ -296,7 +285,19 @@ export const verifyAsyncClientAssertion = (
       interactionIdErrors,
       urlCallbackErrors,
       entityNumberErrors,
-      strictParsingErrors,
+    ]);
+  }
+
+  // Strict validation with async schema (always enforced for new async feature).
+  // Only runs when individual field validations pass — catches unknown extra fields.
+  const payloadStrictParseResult =
+    AsyncClientAssertionPayload.safeParse(decodedPayload);
+  if (!payloadStrictParseResult.success) {
+    return failedValidation([
+      clientAssertionInvalidClaims(
+        payloadStrictParseResult.error.message,
+        "payload"
+      ),
     ]);
   }
 
