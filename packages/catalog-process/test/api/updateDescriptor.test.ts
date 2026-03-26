@@ -108,7 +108,7 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/update test", 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
