@@ -67,7 +67,7 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
-    archivable: undefined, // check this
+    archivable: undefined, // FIXME: To be removed after it is added to outbound repo
   };
 }
 

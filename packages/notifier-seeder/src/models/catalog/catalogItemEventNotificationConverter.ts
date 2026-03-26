@@ -128,6 +128,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorArchivable" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(

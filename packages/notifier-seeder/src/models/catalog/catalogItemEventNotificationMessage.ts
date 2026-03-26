@@ -50,6 +50,7 @@ const eventV2TypeMapper = (
       "EServiceDescriptorAttributesUpdated",
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+      "EServiceDescriptorArchivable",
       () => "catalog_item_descriptor_updated"
     )
     .with(
