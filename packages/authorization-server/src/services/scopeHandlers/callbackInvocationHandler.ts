@@ -15,6 +15,8 @@ import {
   interactionStateNotAllowed,
   invalidEntityNumber,
   platformStateValidationFailed,
+  asyncExchangeResponseTimeExceeded,
+  entityNumberExceedsMaxResultSet,
 } from "../../model/domain/errors.js";
 import {
   logTokenGenerationInfo,
@@ -135,10 +137,31 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 8. TODO: validate asyncExchangeResponseTime once it's propagated to platform-states catalog entry
-  // Algorithm: Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt) < catalogEntry.asyncExchangeResponseTime
+  // 8. Validate asyncExchangeResponseTime (responseTime is in seconds)
+  const { asyncExchangeProperties } = catalogEntry;
+  if (asyncExchangeProperties && interaction.startInteractionTokenIssuedAt) {
+    const elapsedMs =
+      Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
+    const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
+    if (elapsedMs >= responseTimeLimitMs) {
+      throw asyncExchangeResponseTimeExceeded(
+        interactionId,
+        elapsedMs,
+        responseTimeLimitMs
+      );
+    }
+  }
 
-  // 9. TODO: validate entityNumber <= asyncExchangeMaxResultSet once it's available in platform-states
+  // 9. Validate entityNumber <= maxResultSet
+  if (asyncExchangeProperties) {
+    if (entityNumber > asyncExchangeProperties.maxResultSet) {
+      throw entityNumberExceedsMaxResultSet(
+        clientId,
+        entityNumber,
+        asyncExchangeProperties.maxResultSet
+      );
+    }
+  }
 
   // 10. Rate limiting
   // Using producerKeychainId as the rate limiter key since we don't have the producer's TenantId

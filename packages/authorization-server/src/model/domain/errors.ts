@@ -35,6 +35,8 @@ const errorCodes = {
   interactionStateNotAllowed: "0024",
   producerKeychainEntryNotFound: "0025",
   catalogEntryNotFound: "0026",
+  asyncExchangeResponseTimeExceeded: "0027",
+  entityNumberExceedsMaxResultSet: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -291,5 +293,29 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function asyncExchangeResponseTimeExceeded(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  responseTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange response time exceeded for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${responseTime}ms`,
+    code: "asyncExchangeResponseTimeExceeded",
+    title: "Async exchange response time exceeded",
+  });
+}
+
+export function entityNumberExceedsMaxResultSet(
+  clientId: string | undefined,
+  entityNumber: number,
+  maxResultSet: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} exceeds maxResultSet ${maxResultSet} for client ${clientId}`,
+    code: "entityNumberExceedsMaxResultSet",
+    title: "entityNumber exceeds maxResultSet",
   });
 }
