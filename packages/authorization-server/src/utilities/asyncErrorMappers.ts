@@ -30,6 +30,8 @@ export const asyncAuthorizationServerErrorMapper = (
       "interactionStateNotAllowed",
       "producerKeychainEntryNotFound",
       "catalogEntryNotFound",
+      "asyncExchangeResponseTimeExceeded",
+      "entityNumberExceedsMaxResultSet",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

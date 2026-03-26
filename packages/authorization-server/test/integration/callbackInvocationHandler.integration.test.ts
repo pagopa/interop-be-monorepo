@@ -43,6 +43,7 @@ import {
   DynamoDBClient,
   PutItemCommand,
   PutItemInput,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { config } from "../../src/config/config.js";
 import {
@@ -50,6 +51,8 @@ import {
   interactionIdNotProvided,
   interactionNotFound,
   invalidEntityNumber,
+  asyncExchangeResponseTimeExceeded,
+  entityNumberExceedsMaxResultSet,
 } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
@@ -558,5 +561,43 @@ describe("async token service - callback_invocation", () => {
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
     ).rejects.toThrowError(/Platform state validation failed/);
+  });
+
+  it("should throw asyncExchangeResponseTimeExceeded when response time is exceeded", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId, interactionId } =
+      await setupCallbackScenario();
+
+    // Set startInteractionTokenIssuedAt to 31 seconds ago, exceeding the 30s responseTime
+    const pastTime = new Date(Date.now() - 31_000).toISOString();
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: `INTERACTION#${interactionId}` } },
+        UpdateExpression: "SET startInteractionTokenIssuedAt = :t",
+        ExpressionAttributeValues: { ":t": { S: pastTime } },
+      })
+    );
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Async exchange response time exceeded/);
+  });
+
+  it("should throw entityNumberExceedsMaxResultSet when entityNumber exceeds maxResultSet", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      producerCustomClaims: { entityNumber: 101 },
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/entityNumber 101 exceeds maxResultSet 100/);
   });
 });
