@@ -347,6 +347,11 @@ describe("activate agreement", () => {
           suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
         };
 
+        const expectedActivatedAgreementForResponse: Partial<Agreement> = {
+          ...expectedActivatedAgreement,
+        };
+        delete expectedActivatedAgreementForResponse.contract;
+
         expect(actualAgreementActivated.contract).toBeUndefined();
         expect(actualAgreementActivated).toMatchObject(
           expectedActivatedAgreement
@@ -354,7 +359,7 @@ describe("activate agreement", () => {
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
         expect(activateAgreementReturnValue).toMatchObject({
-          data: expectedActivatedAgreement,
+          data: expectedActivatedAgreementForResponse,
           metadata: { version: 1 },
         });
         expect(activateAgreementReturnValue.data.contract).toBeUndefined();
