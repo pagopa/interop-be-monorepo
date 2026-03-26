@@ -373,5 +373,23 @@ export function producerKeychainServiceBuilder(
 
       await pollProducerKeychain(response, headers);
     },
+    async createProducerKeychain(
+      seed: m2mGatewayApiV3.ProducerKeychainSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.ProducerKeychain> {
+      logger.info(`Creating producer keychain with name ${seed.name}`);
+
+      const result =
+        await clients.authorizationClient.producerKeychain.createProducerKeychain(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(result, headers);
+
+      return toM2MGatewayApiProducerKeychain(result.data);
+    },
   };
 }
