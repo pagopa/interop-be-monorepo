@@ -12603,6 +12603,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantSubUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - certifier
