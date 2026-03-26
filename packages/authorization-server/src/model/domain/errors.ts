@@ -37,6 +37,7 @@ const errorCodes = {
   catalogEntryNotFound: "0026",
   callbackInvocationTokenIssuedAtMissing: "0027",
   resourceAvailableTimeExpired: "0028",
+  asyncExchangeConfirmationNotEnabled: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -303,6 +304,16 @@ export function callbackInvocationTokenIssuedAtMissing(
     detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
     code: "callbackInvocationTokenIssuedAtMissing",
     title: "Callback invocation token issued at missing",
+  });
+}
+
+export function asyncExchangeConfirmationNotEnabled(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange confirmation is not enabled for the eService associated with interaction ${interactionId}`,
+    code: "asyncExchangeConfirmationNotEnabled",
+    title: "Async exchange confirmation not enabled",
   });
 }
 

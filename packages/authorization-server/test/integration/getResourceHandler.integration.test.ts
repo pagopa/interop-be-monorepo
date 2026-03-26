@@ -28,6 +28,7 @@ import {
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
+  makeInteractionPK,
   makePlatformStatesEServiceDescriptorPK,
   makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -544,7 +545,6 @@ describe("async token service - get_resource", () => {
     });
 
     // Manually force interaction to callback_invocation state WITHOUT setting callbackInvocationTokenIssuedAt
-    const { makeInteractionPK } = await import("pagopa-interop-models");
     await dynamoDBClient.send(
       new UpdateItemCommand({
         TableName: config.interactionsTable,
@@ -571,6 +571,39 @@ describe("async token service - get_resource", () => {
     ).rejects.toThrowError(
       callbackInvocationTokenIssuedAtMissing(interactionId)
     );
+  });
+
+  it("should throw resourceAvailableTimeExpired when resourceAvailableTime window has elapsed", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { interactionId, consumerClientId } =
+      await setupGetResourceScenario();
+
+    // Backdate callbackInvocationTokenIssuedAt by more than resourceAvailableTime (60s)
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET callbackInvocationTokenIssuedAt = :ts",
+        ExpressionAttributeValues: {
+          ":ts": { S: new Date(Date.now() - 61_000).toISOString() },
+        },
+      })
+    );
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: consumerClientId },
+      customClaims: {
+        scope: interactionState.getResource,
+        interactionId,
+      },
+    });
+
+    await expect(
+      callAsyncTokenService(jws, consumerClientId)
+    ).rejects.toThrowError(/Resource available time expired/);
   });
 
   it("should verify generated token has correct audience and lifespan from consumer key", async () => {

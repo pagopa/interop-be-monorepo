@@ -5,6 +5,7 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
+  asyncExchangeConfirmationNotEnabled,
   callbackInvocationTokenIssuedAtMissing,
   clientAssertionSignatureValidationFailed,
   interactionIdNotProvided,
@@ -97,7 +98,12 @@ export const handleConfirmation = async (
     );
   }
 
-  // 6. Validate asyncExchangeResourceAvailableTime
+  // 6. Validate asyncExchangeConfirmation is enabled
+  if (!asyncExchangeProperties.confirmation) {
+    throw asyncExchangeConfirmationNotEnabled(interactionId);
+  }
+
+  // 7. Validate asyncExchangeResourceAvailableTime
   const elapsedMs =
     Date.now() - Date.parse(interaction.callbackInvocationTokenIssuedAt);
   const resourceAvailableTimeMs =
@@ -110,7 +116,7 @@ export const handleConfirmation = async (
     );
   }
 
-  // 7. Retrieve consumer key from token-generation-states using interaction's purposeId
+  // 8. Retrieve consumer key from token-generation-states using interaction's purposeId
   // This implicitly validates that the consumer is authorized for this interaction's purpose
   const kid = clientAssertionJWT.header.kid;
   const pk = makeTokenGenerationStatesClientKidPurposePK({
@@ -120,7 +126,7 @@ export const handleConfirmation = async (
   });
   const key = await retrieveKey(dynamoDBClient, pk);
 
-  // 8. Validate consumer client kind
+  // 9. Validate consumer client kind
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
       `Expected consumer client kind for confirmation, got ${key.clientKind}`
@@ -130,7 +136,7 @@ export const handleConfirmation = async (
   setCtxOrganizationId(key.consumerId);
   setCtxClientKind(key.clientKind);
 
-  // 9. Verify client assertion signature
+  // 10. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     key,
@@ -143,7 +149,7 @@ export const handleConfirmation = async (
     );
   }
 
-  // 10. Rate limiting
+  // 11. Rate limiting
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
   if (limitReached) {
@@ -154,7 +160,7 @@ export const handleConfirmation = async (
     };
   }
 
-  // 11. Generate token first, then update interaction state.
+  // 12. Generate token first, then update interaction state.
   //     These must be sequential: if token generation fails we must not
   //     persist a state transition for a token that was never delivered.
   const issuedAt = new Date().toISOString();
@@ -178,7 +184,7 @@ export const handleConfirmation = async (
     updatedAt: issuedAt,
   });
 
-  // 12. Publish audit
+  // 13. Publish audit
   await publishAudit({
     producer,
     generatedToken: token,
@@ -190,7 +196,7 @@ export const handleConfirmation = async (
     logger,
   });
 
-  // 13. Log and return
+  // 14. Log and return
   logTokenGenerationInfo({
     validatedJwt: clientAssertionJWT,
     clientKind: key.clientKind,

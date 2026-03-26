@@ -50,6 +50,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { config } from "../../src/config/config.js";
 import {
+  asyncExchangeConfirmationNotEnabled,
   callbackInvocationTokenIssuedAtMissing,
   interactionIdNotProvided,
   interactionNotFound,
@@ -194,7 +195,7 @@ const setupConfirmationScenario = async (overrides?: {
     asyncExchangeProperties: {
       responseTime: 30,
       resourceAvailableTime: 60,
-      confirmation: false,
+      confirmation: true,
       bulk: false,
       maxResultSet: 100,
     },
@@ -642,6 +643,83 @@ describe("async token service - confirmation", () => {
     ).rejects.toThrowError(
       callbackInvocationTokenIssuedAtMissing(interactionId)
     );
+  });
+
+  it("should throw asyncExchangeConfirmationNotEnabled when confirmation is false", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { interactionId, consumerClientId, eServiceId, descriptorId } =
+      await setupConfirmationScenario();
+
+    // Override catalog entry to set confirmation=false
+    const catalogPK = makePlatformStatesEServiceDescriptorPK({
+      eserviceId: eServiceId,
+      descriptorId,
+    });
+    const catalogEntry: PlatformStatesCatalogEntry = {
+      PK: catalogPK,
+      state: itemState.active,
+      descriptorAudience: ["https://eservice.example.com"],
+      descriptorVoucherLifespan: 3600,
+      asyncExchange: true,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 60,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      version: 2,
+      updatedAt: new Date().toISOString(),
+    };
+    await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: consumerClientId },
+      customClaims: {
+        scope: interactionState.confirmation,
+        interactionId,
+      },
+    });
+
+    await expect(
+      callAsyncTokenService(jws, consumerClientId)
+    ).rejects.toThrowError(asyncExchangeConfirmationNotEnabled(interactionId));
+  });
+
+  it("should throw resourceAvailableTimeExpired when resourceAvailableTime window has elapsed", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { interactionId, consumerClientId } =
+      await setupConfirmationScenario();
+
+    // Backdate callbackInvocationTokenIssuedAt by more than resourceAvailableTime (60s)
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET callbackInvocationTokenIssuedAt = :ts",
+        ExpressionAttributeValues: {
+          ":ts": { S: new Date(Date.now() - 61_000).toISOString() },
+        },
+      })
+    );
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: consumerClientId },
+      customClaims: {
+        scope: interactionState.confirmation,
+        interactionId,
+      },
+    });
+
+    await expect(
+      callAsyncTokenService(jws, consumerClientId)
+    ).rejects.toThrowError(/Resource available time expired/);
   });
 
   it("should verify generated token has correct audience and lifespan from consumer key", async () => {
