@@ -79,6 +79,26 @@ const clientRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/clients/:clientId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await clientService.deleteClient(
+          unsafeBrandId(req.params.clientId),
+          ctx
+        );
+        return res.status(200).send({});
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/clients/:clientId/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
