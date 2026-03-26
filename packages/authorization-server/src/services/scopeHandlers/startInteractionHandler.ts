@@ -185,6 +185,11 @@ export const handleStartInteraction = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId,
+      state: scope,
+      startInteractionTokenIssuedAt: issuedAt,
+    },
   });
 
   // 11. Log and return
