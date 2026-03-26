@@ -51,8 +51,8 @@ const asyncAuthorizationServerRouter = (
       // Each scope handler will return the appropriate response.
       return res.status(501).send();
     } catch (err) {
-      const { status, body } = handleAsyncTokenError(err, getCtx());
-      return res.status(status).send(body);
+      const problem = handleAsyncTokenError(err, getCtx());
+      return res.status(problem.status).send(problem);
     }
   });
 

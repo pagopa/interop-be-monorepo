@@ -3,7 +3,7 @@ import {
   clientKindTokenGenStates,
   ClientAssertion,
   AsyncClientAssertion,
-  AsyncClientAssertionPayloadStrict,
+  AsyncClientAssertionPayload,
   ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
@@ -257,9 +257,6 @@ export const verifyAsyncClientAssertion = (
     logger,
     false
   );
-  if (baseResult.errors) {
-    return failedValidation(baseResult.errors);
-  }
 
   // Re-decode JWT to access async claims (stripped by base non-strict parse)
   const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -275,29 +272,31 @@ export const verifyAsyncClientAssertion = (
   const { errors: entityNumberErrors, data: validatedEntityNumber } =
     validateEntityNumber(decodedPayload.entityNumber);
 
+  // Strict validation with async schema (always enforced for new async feature)
+  const payloadStrictParseResult =
+    AsyncClientAssertionPayload.safeParse(decodedPayload);
+  const strictParsingErrors = !payloadStrictParseResult.success
+    ? clientAssertionInvalidClaims(
+        payloadStrictParseResult.error.message,
+        "payload"
+      )
+    : undefined;
+
   if (
+    baseResult.errors ||
     scopeErrors ||
     interactionIdErrors ||
     urlCallbackErrors ||
-    entityNumberErrors
+    entityNumberErrors ||
+    strictParsingErrors
   ) {
     return failedValidation([
+      baseResult.errors,
       scopeErrors,
       interactionIdErrors,
       urlCallbackErrors,
       entityNumberErrors,
-    ]);
-  }
-
-  // Strict validation with async schema (always enforced for new async feature)
-  const payloadStrictParseResult =
-    AsyncClientAssertionPayloadStrict.safeParse(decodedPayload);
-  if (!payloadStrictParseResult.success) {
-    return failedValidation([
-      clientAssertionInvalidClaims(
-        payloadStrictParseResult.error.message,
-        "payload"
-      ),
+      strictParsingErrors,
     ]);
   }
 

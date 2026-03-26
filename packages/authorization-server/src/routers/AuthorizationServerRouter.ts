@@ -60,8 +60,8 @@ const authorizationServerRouter = (
           tokenResult.token.payload.exp - tokenResult.token.payload.iat,
       });
     } catch (err) {
-      const { status, body } = handleTokenError(err, ctx);
-      return res.status(status).send(body);
+      const problem = handleTokenError(err, ctx);
+      return res.status(problem.status).send(problem);
     }
   });
   return authorizationServerRouter;

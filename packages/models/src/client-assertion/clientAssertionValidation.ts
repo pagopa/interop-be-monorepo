@@ -50,17 +50,11 @@ export type ClientAssertion = z.infer<typeof ClientAssertion>;
 export const AsyncClientAssertionPayload = ClientAssertionPayload.extend({
   scope: InteractionState,
   interactionId: InteractionId.optional(),
-  urlCallback: z.string().optional(),
+  urlCallback: z.string().url().optional(),
   entityNumber: z.number().nonnegative().optional(),
-});
+}).strict();
 export type AsyncClientAssertionPayload = z.infer<
   typeof AsyncClientAssertionPayload
->;
-
-export const AsyncClientAssertionPayloadStrict =
-  AsyncClientAssertionPayload.strict();
-export type AsyncClientAssertionPayloadStrict = z.infer<
-  typeof AsyncClientAssertionPayloadStrict
 >;
 
 export const AsyncClientAssertion = z

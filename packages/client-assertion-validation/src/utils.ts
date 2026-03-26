@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   ApiError,
   ClientId,
@@ -144,10 +145,10 @@ export const validateInteractionId = (
       invalidInteractionIdClaimFormat(JSON.stringify(interactionId)),
     ]);
   }
-  return successfulValidation(
-    interactionIdParseResult.success ? interactionIdParseResult.data : undefined
-  );
+  return successfulValidation(interactionIdParseResult.data);
 };
+
+const UrlCallback = z.string().url();
 
 export const validateUrlCallback = (
   urlCallback?: unknown
@@ -155,12 +156,13 @@ export const validateUrlCallback = (
   if (urlCallback === undefined || urlCallback === null) {
     return successfulValidation(undefined);
   }
-  if (typeof urlCallback !== "string" || urlCallback.length === 0) {
+  const parseResult = UrlCallback.safeParse(urlCallback);
+  if (!parseResult.success) {
     return failedValidation([
       invalidUrlCallbackClaimFormat(String(urlCallback)),
     ]);
   }
-  return successfulValidation(urlCallback);
+  return successfulValidation(parseResult.data);
 };
 
 export const validateEntityNumber = (
