@@ -653,28 +653,21 @@ describe("async token service - confirmation", () => {
     const { interactionId, consumerClientId, eServiceId, descriptorId } =
       await setupConfirmationScenario();
 
-    // Override catalog entry to set confirmation=false
+    // Update existing catalog entry to set confirmation=false
     const catalogPK = makePlatformStatesEServiceDescriptorPK({
       eserviceId: eServiceId,
       descriptorId,
     });
-    const catalogEntry: PlatformStatesCatalogEntry = {
-      PK: catalogPK,
-      state: itemState.active,
-      descriptorAudience: ["https://eservice.example.com"],
-      descriptorVoucherLifespan: 3600,
-      asyncExchange: true,
-      asyncExchangeProperties: {
-        responseTime: 30,
-        resourceAvailableTime: 60,
-        confirmation: false,
-        bulk: false,
-        maxResultSet: 100,
-      },
-      version: 2,
-      updatedAt: new Date().toISOString(),
-    };
-    await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: "platform-states",
+        Key: { PK: { S: catalogPK } },
+        UpdateExpression: "SET asyncExchangeProperties.confirmation = :conf",
+        ExpressionAttributeValues: {
+          ":conf": { BOOL: false },
+        },
+      })
+    );
 
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
