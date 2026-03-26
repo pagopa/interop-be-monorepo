@@ -17,12 +17,14 @@ import {
   ProducerKeychain,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
+  TenantId,
 } from "pagopa-interop-models";
 
 export type ProducerKeychainPlatformStateEntry = {
   PK: ProducerKeychainPlatformStatesPK;
   publicKey: string;
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
   kid: string;
   eServiceId: EServiceId;
   version: number;
@@ -70,6 +72,7 @@ const readProducerKeychainPlatformStateEntryByPK = async ({
 
 const upsertProducerKeychainPlatformStateEntry = async ({
   producerKeychainId,
+  producerId,
   key,
   eServiceId,
   version,
@@ -78,6 +81,7 @@ const upsertProducerKeychainPlatformStateEntry = async ({
   logger,
 }: {
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
   key: Key;
   eServiceId: EServiceId;
   version: number;
@@ -110,6 +114,7 @@ const upsertProducerKeychainPlatformStateEntry = async ({
       PK: { S: pk },
       publicKey: { S: key.encodedPem },
       producerKeychainId: { S: producerKeychainId },
+      producerId: { S: producerId },
       kid: { S: key.kid },
       eServiceId: { S: eServiceId },
       version: { N: version.toString() },
@@ -183,6 +188,7 @@ export const upsertAllProducerKeychainPlatformStatesEntries = async ({
       producerKeychain.eservices.map(async (eServiceId) => {
         await upsertProducerKeychainPlatformStateEntry({
           producerKeychainId: producerKeychain.id,
+          producerId: producerKeychain.producerId,
           key,
           eServiceId,
           version,
@@ -197,6 +203,7 @@ export const upsertAllProducerKeychainPlatformStatesEntries = async ({
 
 export const upsertProducerKeychainPlatformStatesEntriesByEServiceId = async ({
   producerKeychainId,
+  producerId,
   eServiceId,
   keys,
   version,
@@ -205,6 +212,7 @@ export const upsertProducerKeychainPlatformStatesEntriesByEServiceId = async ({
   logger,
 }: {
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
   eServiceId: EServiceId;
   keys: Key[];
   version: number;
@@ -216,6 +224,7 @@ export const upsertProducerKeychainPlatformStatesEntriesByEServiceId = async ({
     keys.map(async (key) => {
       await upsertProducerKeychainPlatformStateEntry({
         producerKeychainId,
+        producerId,
         key,
         eServiceId,
         version,
@@ -229,6 +238,7 @@ export const upsertProducerKeychainPlatformStatesEntriesByEServiceId = async ({
 
 export const upsertProducerKeychainPlatformStatesEntriesByKid = async ({
   producerKeychainId,
+  producerId,
   kid,
   keys,
   eServiceIds,
@@ -238,6 +248,7 @@ export const upsertProducerKeychainPlatformStatesEntriesByKid = async ({
   logger,
 }: {
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
   kid: string;
   keys: Key[];
   eServiceIds: EServiceId[];
@@ -258,6 +269,7 @@ export const upsertProducerKeychainPlatformStatesEntriesByKid = async ({
     eServiceIds.map(async (eServiceId) => {
       await upsertProducerKeychainPlatformStateEntry({
         producerKeychainId,
+        producerId,
         key,
         eServiceId,
         version,

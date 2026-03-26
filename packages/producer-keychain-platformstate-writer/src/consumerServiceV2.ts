@@ -33,6 +33,7 @@ export async function handleMessageV2(
 
       await upsertProducerKeychainPlatformStatesEntriesByKid({
         producerKeychainId: parsedProducerKeychain.id,
+        producerId: parsedProducerKeychain.producerId,
         kid: msg.data.kid,
         keys: parsedProducerKeychain.keys,
         eServiceIds: parsedProducerKeychain.eservices,
@@ -52,6 +53,7 @@ export async function handleMessageV2(
 
       await upsertProducerKeychainPlatformStatesEntriesByEServiceId({
         producerKeychainId: parsedProducerKeychain.id,
+        producerId: parsedProducerKeychain.producerId,
         eServiceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
         keys: parsedProducerKeychain.keys,
         version: msg.version,
@@ -74,6 +76,7 @@ export async function handleMessageV2(
       // version check in the upsert/delete helpers and won't resurrect stale data.
       await upsertProducerKeychainPlatformStatesEntriesByKid({
         producerKeychainId: parsedProducerKeychain.id,
+        producerId: parsedProducerKeychain.producerId,
         kid: msg.data.kid,
         keys: parsedProducerKeychain.keys,
         eServiceIds: parsedProducerKeychain.eservices,
@@ -106,6 +109,7 @@ export async function handleMessageV2(
       // deleting, so older events processed later cannot recreate removed entries.
       await upsertProducerKeychainPlatformStatesEntriesByEServiceId({
         producerKeychainId: parsedProducerKeychain.id,
+        producerId: parsedProducerKeychain.producerId,
         eServiceId: removedEServiceId,
         keys: parsedProducerKeychain.keys,
         version: msg.version,

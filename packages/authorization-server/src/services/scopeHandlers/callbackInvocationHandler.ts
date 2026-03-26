@@ -205,7 +205,7 @@ export const handleCallbackInvocation = async (
   await publishProducerAudit({
     producer,
     generatedToken: token,
-    producerKeychainId,
+    organizationId: producerKey.producerId,
     eserviceId: eServiceId,
     descriptorId,
     purposeId: interaction.purposeId,
