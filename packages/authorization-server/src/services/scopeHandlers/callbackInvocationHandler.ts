@@ -255,6 +255,12 @@ export const handleCallbackInvocation = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId: interaction.interactionId,
+      state: scope,
+      startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
+      callbackInvocationTokenIssuedAt: issuedAt,
+    },
   });
 
   // 12. Log and return
