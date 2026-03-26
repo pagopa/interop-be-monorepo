@@ -132,15 +132,15 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-        certified: input.attributes.certified.map(fromEServiceAttributeV2),
-        declared: input.attributes.declared.map(fromEServiceAttributeV2),
-        verified: input.attributes.verified.map(fromEServiceAttributeV2),
-      }
+          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          declared: input.attributes.declared.map(fromEServiceAttributeV2),
+          verified: input.attributes.verified.map(fromEServiceAttributeV2),
+        }
       : {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
+          certified: [],
+          declared: [],
+          verified: [],
+        },
   docs: input.docs.map(fromDocumentV2),
   state: fromEServiceDescriptorStateV2(input.state),
   interface:
@@ -165,10 +165,12 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   archivable:
     input.archivable != null
       ? {
-        archivingStart: bigIntToDate(input.archivable.archivingStart),
-        archivingEnd: bigIntToDate(input.archivable.archivingEnd),
-        archivingType: fromEServiceDescriptorKindV2(input.archivable.archivingType),
-      }
+          archivingStart: bigIntToDate(input.archivable.archivingStart),
+          archivingEnd: bigIntToDate(input.archivable.archivingEnd),
+          archivingType: fromEServiceDescriptorKindV2(
+            input.archivable.archivingType
+          ),
+        }
       : undefined,
 });
 

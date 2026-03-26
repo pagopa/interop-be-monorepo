@@ -139,12 +139,12 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
   archivable: input.archivable
     ? {
-      archivingStart: dateToBigInt(input.archivable.archivingStart),
-      archivingEnd: dateToBigInt(input.archivable.archivingEnd),
-      archivingType: toEServiceDescriptorKindV2(
-        input.archivable.archivingType
-      ),
-    }
+        archivingStart: dateToBigInt(input.archivable.archivingStart),
+        archivingEnd: dateToBigInt(input.archivable.archivingEnd),
+        archivingType: toEServiceDescriptorKindV2(
+          input.archivable.archivingType
+        ),
+      }
     : undefined,
 });
 

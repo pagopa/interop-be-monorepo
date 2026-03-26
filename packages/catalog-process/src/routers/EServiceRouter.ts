@@ -882,7 +882,9 @@ const eservicesRouter = (
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(archivableEService))
+              catalogApi.EService.parse(
+                eServiceToApiEService(archivableEService)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
