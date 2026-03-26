@@ -1110,7 +1110,11 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting producer keychain ${producerKeychainId}`);
 
