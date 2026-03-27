@@ -1,7 +1,10 @@
 import {
   ApiError,
   ClientId,
+  InteractionId,
+  InteractionState,
   makeApiProblemBuilder,
+  ProducerKeychainPlatformStatesPK,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
@@ -25,7 +28,15 @@ const errorCodes = {
   urlCallbackNotProvided: "0017",
   purposeIdNotProvided: "0018",
   asyncExchangeNotEnabled: "0019",
-  catalogEntryNotFound: "0020",
+  interactionIdNotProvided: "0020",
+  entityNumberNotProvided: "0021",
+  invalidEntityNumber: "0022",
+  interactionNotFound: "0023",
+  interactionStateNotAllowed: "0024",
+  producerKeychainEntryNotFound: "0025",
+  catalogEntryNotFound: "0026",
+  asyncExchangeResponseTimeExceeded: "0027",
+  entityNumberExceedsMaxResultSet: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -211,6 +222,69 @@ export function asyncExchangeNotEnabled(
   });
 }
 
+export function interactionIdNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `interactionId not provided in client assertion for client ${clientId}`,
+    code: "interactionIdNotProvided",
+    title: "interactionId not provided",
+  });
+}
+
+export function entityNumberNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber not provided in client assertion for client ${clientId}`,
+    code: "entityNumberNotProvided",
+    title: "entityNumber not provided",
+  });
+}
+
+export function invalidEntityNumber(
+  clientId: string | undefined,
+  entityNumber: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
+    code: "invalidEntityNumber",
+    title: "Invalid entityNumber",
+  });
+}
+
+export function interactionNotFound(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} not found`,
+    code: "interactionNotFound",
+    title: "Interaction not found",
+  });
+}
+
+export function interactionStateNotAllowed(
+  interactionId: InteractionId,
+  currentState: InteractionState,
+  requestedScope: InteractionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} in state ${currentState} does not allow scope ${requestedScope}`,
+    code: "interactionStateNotAllowed",
+    title: "Interaction state not allowed",
+  });
+}
+
+export function producerKeychainEntryNotFound(
+  pk: ProducerKeychainPlatformStatesPK
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Entry with PK ${pk} not found in producer-keychain-platform-states table`,
+    code: "producerKeychainEntryNotFound",
+    title: "Producer keychain entry not found",
+  });
+}
+
 export function catalogEntryNotFound(
   eserviceId: string,
   descriptorId: string
@@ -219,5 +293,29 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function asyncExchangeResponseTimeExceeded(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  responseTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange response time exceeded for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${responseTime}ms`,
+    code: "asyncExchangeResponseTimeExceeded",
+    title: "Async exchange response time exceeded",
+  });
+}
+
+export function entityNumberExceedsMaxResultSet(
+  clientId: string | undefined,
+  entityNumber: number,
+  maxResultSet: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} exceeds maxResultSet ${maxResultSet} for client ${clientId}`,
+    code: "entityNumberExceedsMaxResultSet",
+    title: "entityNumber exceeds maxResultSet",
   });
 }

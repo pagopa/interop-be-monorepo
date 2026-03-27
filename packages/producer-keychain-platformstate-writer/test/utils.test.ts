@@ -10,6 +10,7 @@ import {
   makeProducerKeychainPlatformStatesPK,
   ProducerKeychain,
   ProducerKeychainId,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   deleteAllProducerKeychainPlatformStatesEntries,
@@ -45,6 +46,7 @@ describe("utils tests", () => {
 
     await upsertProducerKeychainPlatformStatesEntriesByEServiceId({
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       eServiceId,
       keys,
       version: 1,
@@ -69,6 +71,7 @@ describe("utils tests", () => {
 
     await upsertProducerKeychainPlatformStatesEntriesByKid({
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       kid: key.kid,
       keys: [key],
       eServiceIds: [eServiceId1, eServiceId2],
@@ -172,6 +175,7 @@ describe("utils tests", () => {
     await writeProducerKeychainPlatformStateEntry({
       PK: pk,
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       kid,
       eServiceId,
       publicKey: "current-key",
