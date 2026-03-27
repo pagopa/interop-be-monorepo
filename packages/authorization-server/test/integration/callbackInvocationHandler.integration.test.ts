@@ -52,8 +52,6 @@ import {
   interactionIdNotProvided,
   interactionNotFound,
   invalidEntityNumber,
-  asyncExchangeResponseTimeExceeded,
-  entityNumberExceedsMaxResultSet,
 } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
