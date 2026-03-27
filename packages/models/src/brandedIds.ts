@@ -80,6 +80,9 @@ export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 export const InteractionId = z.string().uuid().brand("InteractionId");
 export type InteractionId = z.infer<typeof InteractionId>;
 
+export const GSIPKInteractionId = z.string().brand("interactionId");
+export type GSIPKInteractionId = z.infer<typeof GSIPKInteractionId>;
+
 export const DelegationId = z.string().uuid().brand("DelegationId");
 export type DelegationId = z.infer<typeof DelegationId>;
 
@@ -121,7 +124,7 @@ export const PlatformStatesClientPK = z
   .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
-const producerKeychainKidEServicePrefix = "PRODUCERKEYCHAINKIDESERVICE#";
+export const producerKeychainKidEServicePrefix = "PRODUCERKEYCHAINKIDESERVICE#";
 export const ProducerKeychainPlatformStatesPK = z
   .string()
   .refine((pk) => pk.startsWith(producerKeychainKidEServicePrefix))
@@ -354,6 +357,7 @@ export const IDS = z.union([
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
   InteractionId,
+  GSIPKInteractionId,
   DelegationId,
   DelegationContractId,
   PlatformStatesEServiceDescriptorPK,

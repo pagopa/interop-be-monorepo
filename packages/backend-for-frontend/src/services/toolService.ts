@@ -1,28 +1,38 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { isAxiosError } from "axios";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   FailedValidation,
   SuccessfulValidation,
   validateClientKindAndPlatformState,
   validateRequestParameters,
+  verifyAsyncClientAssertion,
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
   AgreementId,
   ApiError,
+  AsyncClientAssertion,
   ClientAssertion,
   ClientId,
   DescriptorId,
   EServiceId,
   GSIPKClientIdKid,
+  Interaction as InteractionSchema,
+  InteractionId,
+  interactionState,
+  InteractionState,
   ItemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
+  makeGSIPKInteractionId,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  ProducerKeychainId,
   PurposeId,
   TenantId,
   TokenGenerationStatesGenericClient,
@@ -44,15 +54,73 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  tenantNotAllowed,
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
+  tenantNotAllowed,
 } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
+import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 
-export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
+type InteractionEntry = {
+  PK: string;
+  GSIPK_interactionId?: string;
+  interactionId: InteractionId;
+  purposeId: PurposeId;
+  eServiceId: EServiceId;
+  descriptorId: DescriptorId;
+  state: InteractionState;
+  startInteractionTokenIssuedAt?: string;
+  callbackInvocationTokenIssuedAt?: string;
+  confirmationTokenIssuedAt?: string;
+  updatedAt: string;
+  ttl: number;
+};
+
+type ToolServiceStorage = {
+  dynamoDBClient: DynamoDBClient;
+  interactionsTable: string;
+};
+
+type AsyncCatalogValidationContext = {
+  state: ItemState;
+  asyncExchange?: boolean;
+  asyncExchangeProperties?: catalogApi.AsyncExchangeProperties;
+};
+
+type AsyncValidationContext = {
+  verificationKey: { publicKey: string };
+  platformValidationKey?: TokenGenerationStatesGenericClient;
+  platformValidationJwt?: ClientAssertion;
+  clientKind?: authorizationApi.ClientKind;
+  eservice?: bffApi.TokenGenerationValidationEService;
+  platformStateErrors?: Array<ApiError<string>>;
+};
+
+const asyncInteractionStateAllowedByScope: Record<
+  InteractionState,
+  InteractionState[]
+> = {
+  [interactionState.startInteraction]: [],
+  [interactionState.callbackInvocation]: [
+    interactionState.startInteraction,
+    interactionState.callbackInvocation,
+  ],
+  [interactionState.getResource]: [
+    interactionState.callbackInvocation,
+    interactionState.getResource,
+  ],
+  [interactionState.confirmation]: [
+    interactionState.getResource,
+    interactionState.confirmation,
+  ],
+};
+
+export function toolsServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  storage?: ToolServiceStorage
+) {
   return {
     async validateTokenGeneration(
       clientId: string | undefined,
@@ -97,9 +165,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         ctx
       );
       if (keyRetrieveErrors) {
-        return handleValidationResults({
-          keyRetrieveErrors,
-        });
+        return handleValidationResults({ keyRetrieveErrors });
       }
 
       const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
@@ -116,9 +182,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         );
       if (clientAssertionSignatureErrors) {
         return handleValidationResults(
-          {
-            clientAssertionSignatureErrors,
-          },
+          { clientAssertionSignatureErrors },
           key.clientKind,
           eservice
         );
@@ -128,15 +192,100 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
         return handleValidationResults(
-          {
-            platformStateErrors,
-          },
+          { platformStateErrors },
           key.clientKind,
           eservice
         );
       }
 
       return handleValidationResults({}, key.clientKind, eservice);
+    },
+
+    async validateAsyncTokenGeneration(
+      clientId: string | undefined,
+      clientAssertion: string,
+      clientAssertionType: string,
+      grantType: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.TokenGenerationValidationResult> {
+      if (!storage) {
+        throw new Error("Async token validation storage is not configured");
+      }
+
+      ctx.logger.info(
+        `Validating async token generation for client ${clientId}`
+      );
+
+      const { errors: parametersErrors } = validateRequestParameters({
+        client_assertion: clientAssertion,
+        client_assertion_type: clientAssertionType,
+        grant_type: grantType,
+        client_id: clientId,
+      });
+
+      const { data: jwt, errors: clientAssertionErrors } =
+        verifyAsyncClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience,
+          ctx.logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
+        );
+
+      const asyncClaimErrors = jwt ? validateAsyncScopeClaims(jwt) : undefined;
+
+      if (parametersErrors || clientAssertionErrors || asyncClaimErrors) {
+        return handleValidationResults({
+          clientAssertionErrors: [
+            ...(parametersErrors ?? []),
+            ...(clientAssertionErrors ?? []),
+            ...(asyncClaimErrors ?? []),
+          ],
+        });
+      }
+
+      const { data, errors: keyRetrieveErrors } =
+        await retrieveAsyncValidationContext(clients, storage, jwt, ctx);
+      if (keyRetrieveErrors) {
+        return handleValidationResults({ keyRetrieveErrors });
+      }
+
+      const { errors: clientAssertionSignatureErrors } =
+        await verifyClientAssertionSignature(
+          clientAssertion,
+          data.verificationKey,
+          jwt.header.alg
+        );
+      if (clientAssertionSignatureErrors) {
+        return handleValidationResults(
+          { clientAssertionSignatureErrors },
+          data.clientKind,
+          data.eservice
+        );
+      }
+
+      const platformStateErrors = [
+        ...(data.platformStateErrors ?? []),
+        ...((data.platformValidationKey && data.platformValidationJwt
+          ? validateClientKindAndPlatformState(
+              data.platformValidationKey,
+              data.platformValidationJwt
+            ).errors
+          : undefined) ?? []),
+      ];
+
+      if (platformStateErrors.length > 0) {
+        return handleValidationResults(
+          { platformStateErrors },
+          data.clientKind,
+          data.eservice
+        );
+      }
+
+      return handleValidationResults({}, data.clientKind, data.eservice);
     },
   };
 }
@@ -191,6 +340,576 @@ function handleValidationResults(
       },
     },
   };
+}
+
+function validateAsyncScopeClaims(
+  jwt: AsyncClientAssertion
+): Array<ApiError<string>> | undefined {
+  const errors: Array<ApiError<string>> = [];
+
+  switch (jwt.payload.scope) {
+    case interactionState.startInteraction:
+      if (!jwt.payload.urlCallback) {
+        errors.push(
+          makeDiagnosticError(
+            "urlCallbackNotProvided",
+            `urlCallback not provided in client assertion for client ${jwt.payload.sub}`,
+            "urlCallback not provided"
+          )
+        );
+      }
+      if (!jwt.payload.purposeId) {
+        errors.push(
+          makeDiagnosticError(
+            "purposeIdNotProvided",
+            `purposeId not provided in client assertion for client ${jwt.payload.sub}`,
+            "purposeId not provided"
+          )
+        );
+      }
+      break;
+    case interactionState.callbackInvocation:
+      if (!jwt.payload.interactionId) {
+        errors.push(
+          makeDiagnosticError(
+            "interactionIdNotProvided",
+            `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
+            "interactionId not provided"
+          )
+        );
+      }
+      if (jwt.payload.entityNumber === undefined) {
+        errors.push(
+          makeDiagnosticError(
+            "entityNumberNotProvided",
+            `entityNumber not provided in client assertion for client ${jwt.payload.sub}`,
+            "entityNumber not provided"
+          )
+        );
+      }
+      break;
+    case interactionState.getResource:
+    case interactionState.confirmation:
+      if (!jwt.payload.interactionId) {
+        errors.push(
+          makeDiagnosticError(
+            "interactionIdNotProvided",
+            `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
+            "interactionId not provided"
+          )
+        );
+      }
+      break;
+  }
+
+  return errors.length > 0 ? errors : undefined;
+}
+
+async function retrieveAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  switch (jwt.payload.scope) {
+    case interactionState.startInteraction:
+      return retrieveStartInteractionValidationContext(clients, jwt, ctx);
+    case interactionState.getResource:
+    case interactionState.confirmation:
+      return retrieveConsumerAsyncValidationContext(clients, storage, jwt, ctx);
+    case interactionState.callbackInvocation:
+      return retrieveProducerAsyncValidationContext(clients, storage, jwt, ctx);
+  }
+}
+
+async function retrieveStartInteractionValidationContext(
+  clients: PagoPAInteropBeClients,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const { data, errors } = await retrieveKeyAndEservice(clients, jwt, ctx);
+  if (errors) {
+    return { data: undefined, errors };
+  }
+
+  const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
+  const eservice =
+    keyEservice && keyDescriptor
+      ? toTokenValidationEService(keyEservice, keyDescriptor)
+      : undefined;
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: key,
+      platformValidationKey: key,
+      platformValidationJwt: jwt as unknown as ClientAssertion,
+      clientKind: key.clientKind,
+      eservice,
+      platformStateErrors:
+        keyEservice?.asyncExchange === true
+          ? undefined
+          : [
+              makeDiagnosticError(
+                "asyncExchangeNotEnabled",
+                `Async exchange is not enabled for the eService associated with client ${jwt.payload.sub}`,
+                "Async exchange not enabled"
+              ),
+            ],
+    },
+  };
+}
+
+async function retrieveConsumerAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const interactionId = jwt.payload.interactionId;
+  if (!interactionId) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionIdNotProvided",
+          `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
+          "interactionId not provided"
+        ),
+      ],
+    };
+  }
+
+  const interaction = await readInteractionById(
+    storage.dynamoDBClient,
+    storage.interactionsTable,
+    interactionId
+  );
+  if (!interaction) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionNotFound",
+          `Interaction ${interactionId} not found`,
+          "Interaction not found"
+        ),
+      ],
+    };
+  }
+
+  const scope = jwt.payload.scope as InteractionState;
+
+  if (!isInteractionStateAllowedForScope(interaction.state, scope)) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionStateNotAllowed",
+          `Interaction ${interactionId} in state ${interaction.state} does not allow scope ${jwt.payload.scope}`,
+          "Interaction state not allowed"
+        ),
+      ],
+    };
+  }
+
+  const consumerJwt = {
+    ...jwt,
+    payload: {
+      ...jwt.payload,
+      purposeId: interaction.purposeId,
+    },
+  } as unknown as ClientAssertion;
+
+  const { data, errors } = await retrieveKeyAndEservice(
+    clients,
+    consumerJwt,
+    ctx
+  );
+  if (errors) {
+    return { data: undefined, errors };
+  }
+
+  if (
+    data.key.clientKind !== authorizationApi.ClientKind.enum.CONSUMER ||
+    !data.eservice ||
+    !data.descriptor
+  ) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "invalidClientKind",
+          `Client ${jwt.payload.sub} is not a consumer client`,
+          "Invalid client kind"
+        ),
+      ],
+    };
+  }
+
+  const eservice = toTokenValidationEService(data.eservice, data.descriptor);
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: data.key,
+      platformValidationKey: data.key,
+      platformValidationJwt: consumerJwt,
+      clientKind: authorizationApi.ClientKind.enum.CONSUMER,
+      eservice,
+      platformStateErrors: buildConsumerAsyncPlatformErrors(
+        jwt,
+        interaction,
+        toAsyncCatalogValidationContext(data.eservice, data.descriptor)
+      ),
+    },
+  };
+}
+
+async function retrieveProducerAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const interactionId = jwt.payload.interactionId;
+  if (!interactionId) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionIdNotProvided",
+          `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
+          "interactionId not provided"
+        ),
+      ],
+    };
+  }
+
+  const interaction = await readInteractionById(
+    storage.dynamoDBClient,
+    storage.interactionsTable,
+    interactionId
+  );
+  if (!interaction) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionNotFound",
+          `Interaction ${interactionId} not found`,
+          "Interaction not found"
+        ),
+      ],
+    };
+  }
+
+  const scope = jwt.payload.scope as InteractionState;
+
+  if (!isInteractionStateAllowedForScope(interaction.state, scope)) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionStateNotAllowed",
+          `Interaction ${interactionId} in state ${interaction.state} does not allow scope ${jwt.payload.scope}`,
+          "Interaction state not allowed"
+        ),
+      ],
+    };
+  }
+
+  const producerKeychainId = unsafeBrandId<ProducerKeychainId>(jwt.payload.sub);
+  const [producerKeychain, producerKey, eservice] = await Promise.all([
+    clients.authorizationClient.producerKeychain
+      .getProducerKeychain({
+        params: { producerKeychainId },
+        headers: ctx.headers,
+      })
+      .catch((e) => {
+        if (isAxiosError(e) && e.response?.status === 404) {
+          return undefined;
+        }
+        throw e;
+      }),
+    clients.authorizationClient.producerKeychain
+      .getProducerKeyById({
+        params: { producerKeychainId, keyId: jwt.header.kid },
+        headers: ctx.headers,
+      })
+      .catch((e) => {
+        if (isAxiosError(e) && e.response?.status === 404) {
+          return undefined;
+        }
+        throw e;
+      }),
+    clients.catalogProcessClient.getEServiceById({
+      params: { eServiceId: interaction.eServiceId },
+      headers: ctx.headers,
+    }),
+  ]);
+
+  if (!producerKeychain || !producerKey) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "producerKeychainEntryNotFound",
+          `Producer keychain entry not found for producer keychain ${producerKeychainId}, key ${jwt.header.kid}, eService ${interaction.eServiceId}`,
+          "Producer keychain entry not found"
+        ),
+      ],
+    };
+  }
+
+  assertProducerKeychainVisibilityIsFull(producerKeychain);
+
+  if (!producerKeychain.eservices.includes(interaction.eServiceId)) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "producerKeychainEServiceNotFound",
+          `Producer keychain ${producerKeychainId} is not linked to eService ${interaction.eServiceId}`,
+          "Producer keychain eService not found"
+        ),
+      ],
+    };
+  }
+
+  const descriptor = await retrieveDescriptor(eservice, interaction.descriptorId);
+  const validationCatalogContext = toAsyncCatalogValidationContext(
+    eservice,
+    descriptor
+  );
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: { publicKey: producerKey.encodedPem },
+      eservice: toTokenValidationEService(eservice, descriptor),
+      platformStateErrors: buildProducerAsyncPlatformErrors(
+        jwt,
+        interaction,
+        validationCatalogContext
+      ),
+    },
+  };
+}
+
+async function readInteractionById(
+  dynamoDBClient: DynamoDBClient,
+  interactionsTable: string,
+  interactionId: InteractionId
+): Promise<InteractionEntry | undefined> {
+  const data = await dynamoDBClient.send(
+    new QueryCommand({
+      TableName: interactionsTable,
+      IndexName: "GSIPK_interactionId-index",
+      KeyConditionExpression: "GSIPK_interactionId = :interactionId",
+      ExpressionAttributeValues: {
+        ":interactionId": { S: makeGSIPKInteractionId(interactionId) },
+      },
+      Limit: 1,
+    })
+  );
+
+  const item = data.Items?.[0];
+  if (!item) {
+    return undefined;
+  }
+
+  const parsed = InteractionSchema.safeParse(unmarshall(item));
+  if (!parsed.success) {
+    throw new Error(
+      `Unable to parse interaction entry: ${parsed.error.message}`
+    );
+  }
+
+  return parsed.data as InteractionEntry;
+}
+
+function buildConsumerAsyncPlatformErrors(
+  jwt: AsyncClientAssertion,
+  interaction: InteractionEntry,
+  catalogEntry: AsyncCatalogValidationContext
+): Array<ApiError<string>> | undefined {
+  const errors: Array<ApiError<string>> = [];
+
+  if (catalogEntry.state !== ItemState.Enum.ACTIVE) {
+    errors.push(
+      makeDiagnosticError(
+        "platformStateValidationFailed",
+        `Platform state validation failed - E-Service descriptor state is: ${catalogEntry.state}`,
+        "Platform state validation failed"
+      )
+    );
+  }
+
+  if (catalogEntry.asyncExchange !== true) {
+    errors.push(
+      makeDiagnosticError(
+        "asyncExchangeNotEnabled",
+        `Async exchange is not enabled for the eService associated with client ${jwt.payload.sub}`,
+        "Async exchange not enabled"
+      )
+    );
+  }
+
+  if (!catalogEntry.asyncExchangeProperties) {
+    errors.push(
+      makeDiagnosticError(
+        "platformStateValidationFailed",
+        `Platform state validation failed - Missing asyncExchangeProperties for interaction ${interaction.interactionId}`,
+        "Platform state validation failed"
+      )
+    );
+    return errors;
+  }
+
+  if (!interaction.callbackInvocationTokenIssuedAt) {
+    errors.push(
+      makeDiagnosticError(
+        "callbackInvocationTokenIssuedAtMissing",
+        `Interaction ${interaction.interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
+        "Callback invocation token issued at missing"
+      )
+    );
+    return errors;
+  }
+
+  const callbackInvocationTokenIssuedAt =
+    interaction.callbackInvocationTokenIssuedAt;
+  const elapsedMs =
+    Date.now() - Date.parse(String(callbackInvocationTokenIssuedAt));
+  const resourceAvailableTimeMs =
+    catalogEntry.asyncExchangeProperties.resourceAvailableTime * 1000;
+  if (elapsedMs >= resourceAvailableTimeMs) {
+    errors.push(
+      makeDiagnosticError(
+        "resourceAvailableTimeExpired",
+        `Resource available time expired for interaction ${interaction.interactionId}: elapsed ${elapsedMs / 1000}s exceeds limit of ${catalogEntry.asyncExchangeProperties.resourceAvailableTime}s`,
+        "Resource available time expired"
+      )
+    );
+  }
+
+  if (
+    jwt.payload.scope === interactionState.confirmation &&
+    !catalogEntry.asyncExchangeProperties.confirmation
+  ) {
+    errors.push(
+      makeDiagnosticError(
+        "asyncExchangeConfirmationNotEnabled",
+        `Async exchange confirmation is not enabled for the eService associated with interaction ${interaction.interactionId}`,
+        "Async exchange confirmation not enabled"
+      )
+    );
+  }
+
+  return errors.length > 0 ? errors : undefined;
+}
+
+function buildProducerAsyncPlatformErrors(
+  jwt: AsyncClientAssertion,
+  interaction: InteractionEntry,
+  catalogEntry: AsyncCatalogValidationContext
+): Array<ApiError<string>> | undefined {
+  const errors: Array<ApiError<string>> = [];
+
+  if (catalogEntry.state !== ItemState.Enum.ACTIVE) {
+    errors.push(
+      makeDiagnosticError(
+        "platformStateValidationFailed",
+        `Platform state validation failed - E-Service descriptor state is: ${catalogEntry.state}`,
+        "Platform state validation failed"
+      )
+    );
+  }
+
+  if (catalogEntry.asyncExchange !== true) {
+    errors.push(
+      makeDiagnosticError(
+        "asyncExchangeNotEnabled",
+        `Async exchange is not enabled for the eService associated with client ${jwt.payload.sub}`,
+        "Async exchange not enabled"
+      )
+    );
+  }
+
+  if (!catalogEntry.asyncExchangeProperties) {
+    errors.push(
+      makeDiagnosticError(
+        "platformStateValidationFailed",
+        `Platform state validation failed - Missing asyncExchangeProperties for interaction ${interaction.interactionId}`,
+        "Platform state validation failed"
+      )
+    );
+    return errors;
+  }
+
+  if (!interaction.startInteractionTokenIssuedAt) {
+    errors.push(
+      makeDiagnosticError(
+        "platformStateValidationFailed",
+        `Platform state validation failed - Interaction ${interaction.interactionId} is missing startInteractionTokenIssuedAt timestamp`,
+        "Platform state validation failed"
+      )
+    );
+    return errors;
+  }
+
+  const startInteractionTokenIssuedAt =
+    interaction.startInteractionTokenIssuedAt;
+  const elapsedMs =
+    Date.now() - Date.parse(String(startInteractionTokenIssuedAt));
+  const responseTimeMs =
+    catalogEntry.asyncExchangeProperties.responseTime * 1000;
+  if (elapsedMs >= responseTimeMs) {
+    errors.push(
+      makeDiagnosticError(
+        "responseTimeExpired",
+        `Response time expired for interaction ${interaction.interactionId}: elapsed ${elapsedMs / 1000}s exceeds limit of ${catalogEntry.asyncExchangeProperties.responseTime}s`,
+        "Response time expired"
+      )
+    );
+  }
+
+  return errors.length > 0 ? errors : undefined;
+}
+
+function toAsyncCatalogValidationContext(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor
+): AsyncCatalogValidationContext {
+  return {
+    state: descriptorStateToItemState(descriptor.state),
+    asyncExchange: eservice.asyncExchange,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+  };
+}
+
+function isInteractionStateAllowedForScope(
+  currentState: InteractionState,
+  scope: InteractionState
+): boolean {
+  return asyncInteractionStateAllowedByScope[scope].includes(currentState);
+}
+
+function makeDiagnosticError(
+  code: string,
+  detail: string,
+  title: string
+): ApiError<string> {
+  return new ApiError({ code, detail, title });
 }
 
 function assertIsConsumer(
@@ -392,7 +1111,6 @@ async function retrieveAgreement(
     return agreements[0];
   }
 
-  // If there are multiple agreements, give priority to active or suspended agreement
   const agreementPrioritized = agreements.find(
     (a) =>
       a.state === agreementApi.AgreementState.Values.SUSPENDED ||
@@ -416,7 +1134,6 @@ async function retrieveDescriptor(
 function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
-      // sort versions in reverse order to find the latest with desired state
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )

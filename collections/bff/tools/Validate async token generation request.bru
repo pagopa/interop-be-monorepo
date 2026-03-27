@@ -1,0 +1,26 @@
+meta {
+  name: Validate async token generation request
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/tools/validateAsyncTokenGeneration
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  Content-Type: application/x-www-form-urlencoded
+}
+
+body:form-urlencoded {
+  client_assertion: <string>
+  client_assertion_type: <string>
+  grant_type: <string>
+  client_id: <string>
+}
+
+docs {
+  Provides additional details about async token generation request failure
+}

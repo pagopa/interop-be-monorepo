@@ -8609,6 +8609,92 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/tools/validateAsyncTokenGeneration":
+    post:
+      tags:
+        - tools
+      summary: Validate async token generation request
+      description: Provides additional details about async token generation request failure
+      operationId: validateAsyncTokenGeneration
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AccessTokenRequest"
+      responses:
+        "200":
+          description: Request successfully validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenGenerationValidationResult"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Validation failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
           content:
@@ -25774,8 +25860,6 @@ components:
           type: boolean
         personalData:
           type: boolean
-        asyncExchange:
-          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -25814,8 +25898,6 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
-          type: boolean
-        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -25905,8 +25987,6 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
-        asyncExchangeProperties:
-          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -26393,12 +26473,12 @@ components:
             type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
-        delegation:
-          $ref: "#/components/schemas/DelegationWithCompactTenants"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
           $ref: "#/components/schemas/EServiceDoc"
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -26931,8 +27011,6 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
-          type: boolean
-        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object
@@ -28332,28 +28410,6 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
-    AsyncExchangeProperties:
-      type: object
-      required:
-        - responseTime
-        - resourceAvailableTime
-        - confirmation
-        - bulk
-        - maxResultSet
-      properties:
-        responseTime:
-          type: integer
-          format: int32
-        resourceAvailableTime:
-          type: integer
-          format: int32
-        confirmation:
-          type: boolean
-        bulk:
-          type: boolean
-        maxResultSet:
-          type: integer
-          format: int32
     EServiceTechnology:
       type: string
       description: EService Descriptor State
@@ -29406,6 +29462,29 @@ components:
           type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+    AsyncExchangeProperties:
+      type: object
+      additionalProperties: false
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false
@@ -29525,8 +29604,6 @@ components:
           type: boolean
         personalData:
           type: boolean
-        asyncExchange:
-          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -29558,8 +29635,6 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
-          type: boolean
-        asyncExchange:
           type: boolean
     InstanceEServiceSeed:
       type: object
