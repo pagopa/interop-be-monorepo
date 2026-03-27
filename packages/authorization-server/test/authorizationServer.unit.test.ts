@@ -168,6 +168,33 @@ describe("unit tests", () => {
       expect(key).toEqual(tokenClientPurposeEntry);
     });
 
+    it("should succeed - clientKidPurpose entry without asyncExchange", async () => {
+      const clientId = generateId<ClientId>();
+      const kid = "kid";
+      const purposeId = generateId<PurposeId>();
+
+      const tokenClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        });
+
+      const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+        clientKind: clientKindTokenGenStates.consumer,
+        asyncExchange: undefined,
+      };
+
+      await writeTokenGenStatesConsumerClient(
+        tokenClientPurposeEntry,
+        dynamoDBClient
+      );
+      const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
+
+      expect(key).toEqual(tokenClientPurposeEntry);
+    });
+
     it("should throw incompleteTokenGenerationStatesConsumerClient - clientKid entry with consumer key", async () => {
       const clientId = generateId<ClientId>();
       const kid = "kid";

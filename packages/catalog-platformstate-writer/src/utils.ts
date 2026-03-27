@@ -33,29 +33,59 @@ export const upsertPlatformStatesCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const input: PutItemInput = {
-    Item: {
-      PK: {
-        S: catalogEntry.PK,
-      },
-      state: {
-        S: catalogEntry.state,
-      },
-      descriptorAudience: {
-        L: catalogEntry.descriptorAudience.map((item) => ({
-          S: item,
-        })),
-      },
-      descriptorVoucherLifespan: {
-        N: catalogEntry.descriptorVoucherLifespan.toString(),
-      },
-      version: {
-        N: catalogEntry.version.toString(),
-      },
-      updatedAt: {
-        S: catalogEntry.updatedAt,
-      },
+  const item: Record<string, AttributeValue> = {
+    PK: {
+      S: catalogEntry.PK,
     },
+    state: {
+      S: catalogEntry.state,
+    },
+    descriptorAudience: {
+      L: catalogEntry.descriptorAudience.map((item) => ({
+        S: item,
+      })),
+    },
+    descriptorVoucherLifespan: {
+      N: catalogEntry.descriptorVoucherLifespan.toString(),
+    },
+    version: {
+      N: catalogEntry.version.toString(),
+    },
+    updatedAt: {
+      S: catalogEntry.updatedAt,
+    },
+  };
+
+  if (catalogEntry.asyncExchangeProperties !== undefined) {
+    item.asyncExchangeProperties = {
+      M: {
+        responseTime: {
+          N: catalogEntry.asyncExchangeProperties.responseTime.toString(),
+        },
+        resourceAvailableTime: {
+          N: catalogEntry.asyncExchangeProperties.resourceAvailableTime.toString(),
+        },
+        confirmation: {
+          BOOL: catalogEntry.asyncExchangeProperties.confirmation,
+        },
+        bulk: {
+          BOOL: catalogEntry.asyncExchangeProperties.bulk,
+        },
+        maxResultSet: {
+          N: catalogEntry.asyncExchangeProperties.maxResultSet.toString(),
+        },
+      },
+    };
+  }
+
+  if (catalogEntry.asyncExchange !== undefined) {
+    item.asyncExchange = {
+      BOOL: catalogEntry.asyncExchange,
+    };
+  }
+
+  const input: PutItemInput = {
+    Item: item,
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new PutItemCommand(input);
