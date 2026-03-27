@@ -685,7 +685,10 @@ async function retrieveProducerAsyncValidationContext(
     };
   }
 
-  const descriptor = await retrieveDescriptor(eservice, interaction.descriptorId);
+  const descriptor = await retrieveDescriptor(
+    eservice,
+    interaction.descriptorId
+  );
   const validationCatalogContext = toAsyncCatalogValidationContext(
     eservice,
     descriptor
