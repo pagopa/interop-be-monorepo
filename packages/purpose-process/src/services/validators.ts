@@ -264,10 +264,25 @@ export async function isOverQuota(
   );
 }
 
+/**
+ * Returns the current quota usage and limits for a consumer on a given eservice.
+ *
+ * By default, revoked certified attributes are ignored when computing the
+ * daily call limit. This is correct when checking whether a new purpose can
+ * be activated: if an attribute is revoked, the consumer no longer qualifies
+ * for the higher limit.
+ *
+ * Pass `includeRevokedCertifiedAttributes = true` when showing how many calls
+ * are still available for purposes that are already active. In that case the
+ * revoked attribute must still count, because the purpose was legitimately
+ * activated when the attribute was valid and its capacity should not suddenly
+ * drop to zero.
+ */
 export async function getUpdatedQuotas(
   eservice: EService,
   consumerId: TenantId,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  includeRevokedCertifiedAttributes = false
 ): Promise<UpdatedQuotas> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
@@ -316,7 +331,8 @@ export async function getUpdatedQuotas(
     tenant.attributes
       .filter(
         (a) =>
-          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
+          a.type === tenantAttributeType.CERTIFIED &&
+          (includeRevokedCertifiedAttributes || !a.revocationTimestamp)
       )
       .map((a) => a.id)
   );

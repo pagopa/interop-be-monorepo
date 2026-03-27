@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   Agreement,
+  AttributeId,
   EService,
   EServiceId,
   Purpose,
@@ -11,6 +12,7 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import {
   getMockAgreement,
@@ -102,6 +104,74 @@ describe("getRemainingDailyCalls", () => {
     expect(result).toEqual({
       remainingDailyCallsPerConsumer: 50,
       remainingDailyCallsTotal: 850,
+    });
+  });
+
+  it("should return remaining daily calls based on revoked certified attribute threshold", async () => {
+    const consumerId: TenantId = generateId();
+    const producerId: TenantId = generateId();
+    const eserviceId: EServiceId = generateId();
+    const attributeId: AttributeId = generateId();
+
+    const descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: attributeId,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 100,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = getMockEService(eserviceId, producerId, [
+      descriptor,
+    ]);
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+      descriptorId: descriptor.id,
+      producerId,
+    };
+    const consumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 11,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+
+    await addOneTenant(
+      getMockTenant(consumerId, [
+        {
+          id: attributeId,
+          type: tenantAttributeType.CERTIFIED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: new Date(),
+        },
+      ])
+    );
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(consumerPurpose);
+
+    const result = await purposeService.getRemainingDailyCalls({
+      purposeId: consumerPurpose.id,
+      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+    });
+
+    expect(result).toEqual({
+      remainingDailyCallsPerConsumer: 89,
+      remainingDailyCallsTotal: 989,
     });
   });
 
