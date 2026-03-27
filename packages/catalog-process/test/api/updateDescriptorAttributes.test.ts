@@ -22,6 +22,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
@@ -204,6 +205,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     },
     {
       error: notValidDescriptorState(generateId(), ""),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(
