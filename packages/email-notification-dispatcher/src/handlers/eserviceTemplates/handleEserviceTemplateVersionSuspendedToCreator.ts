@@ -58,7 +58,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService template ${eserviceTemplate.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEServiceTemplateVersionSuspendedToCreator - entityId: ${eserviceTemplate.id}, eventType: ${notificationType}`
     );
     return [];
   }

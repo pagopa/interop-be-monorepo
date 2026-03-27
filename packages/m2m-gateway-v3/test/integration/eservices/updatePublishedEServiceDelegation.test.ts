@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -7,7 +7,6 @@ import {
 import {
   getMockedApiEservice,
   getMockWithMetadata,
-  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -26,12 +25,16 @@ import {
 } from "../../mockUtils.js";
 
 describe("updatePublishedEServiceDelegation", () => {
-  const mockEService = getMockedApiEservice();
+  const mockEService: catalogApi.EService = {
+    ...getMockedApiEservice(),
+    isConsumerDelegable: true,
+    isClientAccessDelegable: true,
+  };
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
   const mockSeed: m2mGatewayApiV3.EServiceDelegationUpdateSeed = {
-    isClientAccessDelegable: randomBoolean(),
-    isConsumerDelegable: randomBoolean(),
+    isClientAccessDelegable: true,
+    isConsumerDelegable: true,
   };
 
   const pollingTentatives = 2;
@@ -89,10 +92,10 @@ describe("updatePublishedEServiceDelegation", () => {
 
   it.each([
     {
-      isClientAccessDelegable: randomBoolean(),
+      isConsumerDelegable: true,
     },
     {
-      isConsumerDelegable: randomBoolean(),
+      isClientAccessDelegable: false,
     },
     {},
   ])("Should apply patch logic when seed is partial", async (seed) => {
