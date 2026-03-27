@@ -192,6 +192,7 @@ export const createDescriptorErrorMapper = (
       "attributeNotFound",
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
+      "attributeDailyCallsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -230,6 +231,7 @@ export const updateDraftDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
+      "attributeDailyCallsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -270,6 +272,7 @@ export const updateDescriptorErrorMapper = (
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
+      "attributeDailyCallsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -500,6 +503,7 @@ export const updateDescriptorAttributesErrorMapper = (
       "descriptorAttributeGroupSupersetMissingInAttributesSeed",
       "attributeDuplicatedInGroup",
       "notValidDescriptor",
+      "attributeDailyCallsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
