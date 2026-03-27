@@ -142,8 +142,8 @@ catalogs:
       specifier: 4.1.0
       version: 4.1.0
     date-fns-tz:
-      specifier: 3.1.3
-      version: 3.1.3
+      specifier: 3.2.0
+      version: 3.2.0
     domhandler:
       specifier: 5.0.3
       version: 5.0.3
@@ -1899,7 +1899,7 @@ importers:
         version: 4.1.0
       date-fns-tz:
         specifier: 'catalog:'
-        version: 3.1.3(date-fns@4.1.0)
+        version: 3.2.0(date-fns@4.1.0)
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
@@ -4960,9 +4960,6 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
-      handlebars:
-        specifier: 'catalog:'
-        version: 4.7.8
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -8754,10 +8751,10 @@ packages:
     resolution: {integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ==}
     engines: {node: '>= 0.4'}
 
-  date-fns-tz@3.1.3:
-    resolution: {integrity: sha512-ZfbMu+nbzW0mEzC8VZrLiSWvUIaI3aRHeq33mTe7Y38UctKukgqPR4nTDwcwS4d64Gf8GghnVsroBuMY3eiTeA==}
+  date-fns-tz@3.2.0:
+    resolution: {integrity: sha512-sg8HqoTEulcbbbVXeg84u5UnlsQa8GS5QXMqjjYIhS4abEVVKIUwe0/l/UhrZdKaL/W5eWZNlbTeEIiOXTcsBQ==}
     peerDependencies:
-      date-fns: ^3.0.0
+      date-fns: ^3.0.0 || ^4.0.0
 
   date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
@@ -15825,7 +15822,7 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  date-fns-tz@3.1.3(date-fns@4.1.0):
+  date-fns-tz@3.2.0(date-fns@4.1.0):
     dependencies:
       date-fns: 4.1.0
 
