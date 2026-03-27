@@ -117,10 +117,6 @@ import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
-
-type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
-  clientId?: ClientId;
-};
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
@@ -150,6 +146,10 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
 } from "./validators.js";
+
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
+  clientId?: ClientId;
+};
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -2025,14 +2025,14 @@ export function purposeServiceBuilder(
         purpose.data.consumerId,
         readModelService
       );
-      const remainingDailyCallsPerConsumer = Math.max(
-        0,
-        quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
-      );
-      const remainingDailyCallsTotal = Math.max(
-        0,
-        quotas.maxDailyCallsTotal - quotas.currentTotalCalls
-      );
+      const remainingDailyCallsPerConsumer =
+        quotas.maxDailyCallsPerConsumer >= quotas.currentConsumerCalls
+          ? quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
+          : quotas.currentConsumerCalls;
+      const remainingDailyCallsTotal =
+        quotas.maxDailyCallsTotal >= quotas.currentTotalCalls
+          ? quotas.maxDailyCallsTotal - quotas.currentTotalCalls
+          : quotas.currentTotalCalls;
       return {
         remainingDailyCallsPerConsumer,
         remainingDailyCallsTotal,

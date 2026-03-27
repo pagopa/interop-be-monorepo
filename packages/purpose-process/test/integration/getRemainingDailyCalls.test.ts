@@ -105,6 +105,52 @@ describe("getRemainingDailyCalls", () => {
     });
   });
 
+  it("should return the committed daily calls when the threshold was retroactively reduced below it", async () => {
+    const consumerId: TenantId = generateId();
+    const producerId: TenantId = generateId();
+    const eserviceId: EServiceId = generateId();
+
+    const descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+    };
+    const eservice: EService = getMockEService(eserviceId, producerId, [
+      descriptor,
+    ]);
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+      descriptorId: descriptor.id,
+      producerId,
+    };
+
+    const consumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 5,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+
+    await addOneTenant({ ...getMockTenant(consumerId) });
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(consumerPurpose);
+
+    const result = await purposeService.getRemainingDailyCalls({
+      purposeId: consumerPurpose.id,
+      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+    });
+
+    expect(result).toEqual({
+      remainingDailyCallsPerConsumer: 5,
+      remainingDailyCallsTotal: 995,
+    });
+  });
+
   it("should throw purposeNotFound if purpose does not exist", async () => {
     const consumerId: TenantId = generateId();
     const nonExistentPurposeId: PurposeId = generateId();
