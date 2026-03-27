@@ -471,6 +471,57 @@ describe("update descriptor", () => {
     });
   });
 
+  it("should throw inconsistentDailyCalls when a new certified attribute has dailyCallsPerConsumer greater than the descriptor dailyCallsTotal", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsTotal: 100,
+      attributes: {
+        certified: [],
+        verified: [],
+        declared: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const seed: catalogApi.UpdateEServiceDescriptorQuotasSeed = {
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 50,
+      dailyCallsTotal: 100,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 200,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    expect(
+      catalogService.updateDescriptor(
+        eservice.id,
+        descriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
   it.each([attributeKind.declared, attributeKind.verified])(
     "should throw attributeDailyCallsNotAllowed when setting dailyCallsPerConsumer on a non-certifiedattribute",
     async (kind) => {
