@@ -2101,6 +2101,10 @@ export function catalogServiceBuilder(
         );
 
         assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+        assertAttributeDailyCallsConsistentWithTotal(
+          parsedAttributes,
+          seed.dailyCallsTotal
+        );
 
         updatedDescriptor = {
           ...updatedDescriptor,
