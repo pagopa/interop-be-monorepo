@@ -156,6 +156,7 @@ export function toBffCatalogApiDescriptorAttribute(
     name: foundAttribute.name,
     description: foundAttribute.description,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
+    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
   };
 }
 
@@ -373,7 +374,7 @@ export function toCatalogCreateEServiceSeed(
       audience: [],
       voucherLifespan: 60,
       dailyCallsPerConsumer: 1,
-      dailyCallsTotal: 1,
+      dailyCallsTotal: 10,
       agreementApprovalPolicy:
         catalogApi.AgreementApprovalPolicy.Values.AUTOMATIC,
     },

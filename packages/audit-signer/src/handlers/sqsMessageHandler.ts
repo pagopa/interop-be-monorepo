@@ -89,7 +89,7 @@ export const sqsMessageHandler = async (
 ): Promise<void> => {
   const correlationId = generateId<CorrelationId>();
   const logInstance: Logger = logger({
-    serviceName: config.serviceName,
+    serviceName: "audit-signer",
     correlationId,
   });
 

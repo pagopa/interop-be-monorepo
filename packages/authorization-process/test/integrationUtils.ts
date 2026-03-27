@@ -31,6 +31,7 @@ import {
   producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
@@ -70,6 +71,7 @@ const clientJWKKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
 const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -81,6 +83,7 @@ export const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 });
 
 export const selfcareV2Client: SelfcareV2InstitutionClient =
