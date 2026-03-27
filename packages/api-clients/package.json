@@ -15,7 +15,6 @@
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
-    "check": "tsc --project tsconfig.check.json",
     "generate-model": "tsx ./generate.ts",
     "clean-generated": "pnpm exec rm ./src/generated/*.ts"
   },
@@ -33,12 +32,12 @@
     "openapi3-ts": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@zodios/core": "catalog:",
     "axios": "catalog:",
-    "axios-logger": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "qs": "catalog:",
     "zod": "catalog:"
