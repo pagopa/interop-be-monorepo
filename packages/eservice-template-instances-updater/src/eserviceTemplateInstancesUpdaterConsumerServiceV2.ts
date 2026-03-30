@@ -375,7 +375,7 @@ export async function handleMessageV2({
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
-      { type: "EServiceTemplateRiskAnalysisFixed" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       { type: "EServiceTemplateVersionActivated" },
       { type: "EServiceTemplateVersionAdded" },
       { type: "EServiceTemplateVersionInterfaceAdded" },
