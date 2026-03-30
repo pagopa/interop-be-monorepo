@@ -160,12 +160,7 @@ export const validateUrlCallback = (
       invalidUrlCallbackClaimFormat(String(urlCallback)),
     ]);
   }
-  try {
-    new URL(urlCallback);
-  } catch {
-    return failedValidation([invalidUrlCallbackClaimFormat(urlCallback)]);
-  }
-  return successfulValidation(urlCallback);
+  return successfulValidation(parseResult.data);
 };
 
 export const validateEntityNumber = (
