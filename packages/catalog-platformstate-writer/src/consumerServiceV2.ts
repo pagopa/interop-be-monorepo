@@ -14,7 +14,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -26,12 +26,18 @@ import {
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
+import { config } from "./config/config.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> {
+  const isAsyncExchangeEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAsyncExchange"
+  );
+
   await match(message)
     .with(
       { type: "EServiceDescriptorPublished" },
@@ -72,6 +78,12 @@ export async function handleMessageV2(
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience,
               descriptorVoucherLifespan: descriptor.voucherLifespan,
+              ...(isAsyncExchangeEnabled
+                ? {
+                    asyncExchange: eservice.asyncExchange,
+                    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+                  }
+                : {}),
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
