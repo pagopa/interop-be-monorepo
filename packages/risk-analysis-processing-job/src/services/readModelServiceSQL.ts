@@ -47,7 +47,16 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregateEserviceArray(
         toEServiceAggregatorArray(
-          queryResult as Parameters<typeof toEServiceAggregatorArray>[0]
+          queryResult.map((e) => ({
+            ...e,
+            descriptor: null,
+            interface: null,
+            document: null,
+            attribute: null,
+            rejection: null,
+            riskAnalysisAnswer: null,
+            templateVersionRef: null,
+          }))
         )
       ).map((e) => e.data);
     },
@@ -90,7 +99,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregatePurposeArray(
         toPurposeAggregatorArray(
-          queryResult as Parameters<typeof toPurposeAggregatorArray>[0]
+          queryResult.map((p) => ({
+            ...p,
+            purposeVersion: null,
+            purposeVersionDocument: null,
+            purposeVersionStamp: null,
+            purposeVersionSignedDocument: null,
+          }))
         )
       ).map((p) => p.data);
     },
@@ -117,7 +132,14 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregateEServiceTemplateArray(
         toEServiceTemplateAggregatorArray(
-          queryResult as Parameters<typeof toEServiceTemplateAggregatorArray>[0]
+          queryResult.map((e) => ({
+            ...e,
+            version: null,
+            interface: null,
+            document: null,
+            attribute: null,
+            riskAnalysisAnswer: null,
+          }))
         )
       ).map((p) => p.data);
     },
