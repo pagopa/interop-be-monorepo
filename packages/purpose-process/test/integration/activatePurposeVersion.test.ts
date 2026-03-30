@@ -1624,7 +1624,7 @@ describe.skip("activatePurposeVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
-    const riskAnalysisForm = getMockValidRiskAnalysisForm("GSP");
+    const riskAnalysisForm = getMockExpiredRiskAnalysisForm("PA");
 
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
