@@ -9534,7 +9534,7 @@ paths:
       summary: Get Purpose Template events
       description: |
         Retrieve list of Purpose Template events that occurred after the specified event ID.
-        Results are ordered in ascending order (oldest events first).
+        Results are ordered in ascending order (oldest events first). Access to all events.
       operationId: getPurposeTemplateM2MEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
