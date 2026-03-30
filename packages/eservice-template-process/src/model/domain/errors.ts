@@ -40,6 +40,8 @@ const errorCodes = {
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
   eServiceTemplateUpdateSameNameConflict: "0031",
   eServiceTemplateUpdateSameDescriptionConflict: "0032",
+  eserviceTemplateAsyncExchangeNotEnabled: "0033",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -351,5 +353,25 @@ export function eServiceTemplateUpdateSameDescriptionConflict(
     detail: `The description provided is the same as the current one for EService template ${eserviceTemplateId}`,
     code: "eServiceTemplateUpdateSameDescriptionConflict",
     title: "Same eService template description update conflict",
+  });
+}
+
+export function eserviceTemplateAsyncExchangeNotEnabled(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange is not enabled for EService Template ${eserviceTemplateId}`,
+    code: "eserviceTemplateAsyncExchangeNotEnabled",
+    title: "Async exchange not enabled",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange callback interface already exists in version ${eserviceTemplateVersionId}`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Async exchange callback interface already exists",
   });
 }

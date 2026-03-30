@@ -99,6 +99,20 @@ function toApiEServiceTemplateM2MEventType(
       "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       () => "ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
     )
+    .with(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+      () => "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
+    )
+    .with(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+      () =>
+        "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED"
+    )
+    .with(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
+      () =>
+        "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"
+    )
     .exhaustive();
 }
 

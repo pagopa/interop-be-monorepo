@@ -28,6 +28,7 @@ message EServiceTemplateVersionV2 {
   optional int64 publishedAt = 13;
   optional int64 suspendedAt = 14;
   optional int64 deprecatedAt = 15;
+  optional eservice.v2.EServiceDocumentV2 asyncExchangeCallbackInterface = 16;
 }
 
 message EServiceTemplateRiskAnalysisV2 {
