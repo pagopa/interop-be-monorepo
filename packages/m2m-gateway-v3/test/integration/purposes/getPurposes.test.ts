@@ -54,7 +54,6 @@ describe("getPurposes", () => {
       eserviceId: mockApiPurpose1.eserviceId,
       id: mockApiPurpose1.id,
       isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
       title: mockApiPurpose1.title,
       currentVersion: purposeVersion1
         ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
@@ -77,7 +76,6 @@ describe("getPurposes", () => {
       eserviceId: mockApiPurpose2.eserviceId,
       id: mockApiPurpose2.id,
       isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
       title: mockApiPurpose2.title,
       currentVersion: purposeVersion2
         ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
