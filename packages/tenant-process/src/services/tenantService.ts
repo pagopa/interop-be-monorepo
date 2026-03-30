@@ -1269,6 +1269,7 @@ export function tenantServiceBuilder(
         ...tenant.data,
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
+        selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
         updatedAt: new Date(),
       };
 
