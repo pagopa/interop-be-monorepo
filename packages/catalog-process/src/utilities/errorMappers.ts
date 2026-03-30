@@ -134,6 +134,7 @@ export const documentCreateErrorMapper = (
     .with(
       "eServiceAsyncExchangeNotEnabled",
       "descriptorAsyncExchangeNotConfigured",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

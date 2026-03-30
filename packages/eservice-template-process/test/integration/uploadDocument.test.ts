@@ -14,6 +14,7 @@ import {
   generateId,
   EServiceTemplateVersionId,
   featureFlagNotEnabled,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -33,6 +34,8 @@ import {
   notValidEServiceTemplateVersionState,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  missingAsyncExchangeProperties,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -581,6 +584,67 @@ describe("upload Document", () => {
       );
     }
   );
+
+  it("should throw missingAsyncExchangeProperties when uploading asyncExchangeCallbackInterface without asyncExchangeProperties configured", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeProperties: undefined,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeProperties(eserviceTemplate.id, version.id)
+    );
+  });
+
+  it("should throw asyncExchangeBulkNotAllowedForSoap when uploading asyncExchangeCallbackInterface with SOAP technology and bulk enabled", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 3600,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      technology: technology.soap,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eserviceTemplate.id, version.id)
+    );
+  });
 
   it("should throw featureFlagNotEnabled when uploading asyncExchangeCallbackInterface with feature flag disabled", async () => {
     config.featureFlagAsyncExchange = false;
