@@ -20,14 +20,12 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
-  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
   RiskAnalysisForm,
-  RiskAnalysisFormId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
@@ -48,7 +46,6 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
-  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -68,28 +65,6 @@ const isTenantKindMatching = (
   actualKind: TenantKind | undefined,
   expectedKind: TenantKind
 ): boolean => !actualKind || actualKind === expectedKind;
-
-export const assertRiskAnalysisTenantKindMatch = (
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind,
-  purposeId: PurposeId,
-  riskAnalysisFormId: RiskAnalysisFormId
-): void => {
-  if (actualKind && actualKind !== expectedKind) {
-    throw riskAnalysisTenantKindMismatch(
-      actualKind,
-      expectedKind,
-      purposeId,
-      riskAnalysisFormId
-    );
-  }
-};
-
-type TenantKindCheckContext = {
-  tenantKind: TenantKind;
-  purposeId: PurposeId;
-  riskAnalysisFormId: RiskAnalysisFormId;
-};
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -167,25 +142,12 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   dateForExpirationValidation,
   personalDataInEService,
-  tenantKindCheck,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
-  tenantKindCheck?: TenantKindCheckContext;
 }): RiskAnalysisValidatedForm {
-  if (
-    isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis") &&
-    tenantKindCheck
-  ) {
-    assertRiskAnalysisTenantKindMatch(
-      riskAnalysisForm.tenantKind,
-      tenantKindCheck.tenantKind,
-      tenantKindCheck.purposeId,
-      tenantKindCheck.riskAnalysisFormId
-    );
-  }
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -204,8 +166,7 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
   dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined,
-  tenantKindCheck?: TenantKindCheckContext
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -215,7 +176,6 @@ export function validateAndTransformRiskAnalysis(
     schemaOnlyValidation,
     dateForExpirationValidation,
     personalDataInEService,
-    tenantKindCheck,
   });
 
   return {
@@ -765,8 +725,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
-  eservicePersonalData: boolean | undefined,
-  tenantKindCheck?: TenantKindCheckContext
+  eservicePersonalData: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
@@ -797,7 +756,6 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     formToValidate,
     false,
     createdAt,
-    eservicePersonalData,
-    tenantKindCheck
+    eservicePersonalData
   );
 }

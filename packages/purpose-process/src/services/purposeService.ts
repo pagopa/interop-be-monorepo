@@ -48,6 +48,7 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   Tenant,
   TenantId,
@@ -80,6 +81,7 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   purposeVersionStateConflict,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisConfigLatestVersionNotFound,
   riskAnalysisConfigVersionNotFound,
   tenantIsNotTheConsumer,
@@ -243,6 +245,22 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const assertRiskAnalysisTenantKindMatch = (
+  actualKind: TenantKind | undefined,
+  expectedKind: TenantKind,
+  purposeId: PurposeId,
+  riskAnalysisFormId: RiskAnalysisFormId
+): void => {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      purposeId,
+      riskAnalysisFormId
+    );
+  }
 };
 
 export const retrieveActiveAgreement = async (
@@ -1147,17 +1165,22 @@ export function purposeServiceBuilder(
             purpose.data.consumerId,
             readModelService
           );
+          if (
+            isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
+          ) {
+            assertRiskAnalysisTenantKindMatch(
+              riskAnalysisForm.tenantKind,
+              tenantKind,
+              purposeId,
+              riskAnalysisForm.id
+            );
+          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
-            tenantKindCheck: {
-              tenantKind,
-              purposeId,
-              riskAnalysisFormId: riskAnalysisForm.id,
-            },
           });
         }
       }
@@ -1969,14 +1992,7 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData,
-            purpose.data.riskAnalysisForm
-              ? {
-                  tenantKind: purposeTemplate.targetTenantKind,
-                  purposeId: purpose.data.id,
-                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-                }
-              : undefined
+            eservice.personalData
           )
         : undefined;
 
@@ -2181,19 +2197,11 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
-          const tenantKindCheck = purpose.data.riskAnalysisForm
-            ? {
-                tenantKind,
-                purposeId: purpose.data.id,
-                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-              }
-            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
             new Date(),
-            eservice.personalData,
-            tenantKindCheck
+            eservice.personalData
           );
           return validated;
         })()
