@@ -28,8 +28,6 @@ const authorizationServerRouter = (
     const { getCtx, setCtxClientId, setCtxClientKind, setCtxOrganizationId } =
       buildCtxHelpers(req.ctx);
 
-    const ctx = getCtx();
-
     try {
       const tokenResult = await tokenService.generateToken(
         req.headers,
@@ -49,7 +47,7 @@ const authorizationServerRouter = (
         return handleRateLimitResponse(
           res,
           tokenResult.rateLimitedTenantId,
-          ctx
+          getCtx()
         );
       }
 
@@ -60,7 +58,7 @@ const authorizationServerRouter = (
           tokenResult.token.payload.exp - tokenResult.token.payload.iat,
       });
     } catch (err) {
-      const problem = handleTokenError(err, ctx);
+      const problem = handleTokenError(err, getCtx());
       return res.status(problem.status).send(problem);
     }
   });

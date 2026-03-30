@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   ApiError,
   ClientId,
@@ -10,6 +9,7 @@ import {
   unsafeBrandId,
   ClientAssertionDigest,
   algorithm,
+  UrlCallback,
 } from "pagopa-interop-models";
 import {
   FailedValidation,
@@ -147,8 +147,6 @@ export const validateInteractionId = (
   }
   return successfulValidation(interactionIdParseResult.data);
 };
-
-const UrlCallback = z.string().url();
 
 export const validateUrlCallback = (
   urlCallback?: unknown

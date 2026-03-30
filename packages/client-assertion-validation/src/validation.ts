@@ -273,44 +273,44 @@ export const verifyAsyncClientAssertion = (
     validateEntityNumber(decodedPayload.entityNumber);
 
   if (
-    baseResult.errors ||
-    scopeErrors ||
-    interactionIdErrors ||
-    urlCallbackErrors ||
-    entityNumberErrors
+    !baseResult.errors &&
+    !scopeErrors &&
+    !interactionIdErrors &&
+    !urlCallbackErrors &&
+    !entityNumberErrors
   ) {
-    return failedValidation([
-      baseResult.errors,
-      scopeErrors,
-      interactionIdErrors,
-      urlCallbackErrors,
-      entityNumberErrors,
-    ]);
+    // Strict validation with async schema (always enforced for new async feature).
+    // Only runs when individual field validations pass — catches unknown extra fields.
+    const payloadStrictParseResult =
+      AsyncClientAssertionPayload.safeParse(decodedPayload);
+    if (!payloadStrictParseResult.success) {
+      return failedValidation([
+        clientAssertionInvalidClaims(
+          payloadStrictParseResult.error.message,
+          "payload"
+        ),
+      ]);
+    }
+
+    return successfulValidation({
+      header: baseResult.data.header,
+      payload: {
+        ...baseResult.data.payload,
+        scope: validatedScope,
+        interactionId: validatedInteractionId,
+        urlCallback: validatedUrlCallback,
+        entityNumber: validatedEntityNumber,
+      },
+    });
   }
 
-  // Strict validation with async schema (always enforced for new async feature).
-  // Only runs when individual field validations pass — catches unknown extra fields.
-  const payloadStrictParseResult =
-    AsyncClientAssertionPayload.safeParse(decodedPayload);
-  if (!payloadStrictParseResult.success) {
-    return failedValidation([
-      clientAssertionInvalidClaims(
-        payloadStrictParseResult.error.message,
-        "payload"
-      ),
-    ]);
-  }
-
-  return successfulValidation({
-    header: baseResult.data.header,
-    payload: {
-      ...baseResult.data.payload,
-      scope: validatedScope,
-      interactionId: validatedInteractionId,
-      urlCallback: validatedUrlCallback,
-      entityNumber: validatedEntityNumber,
-    },
-  });
+  return failedValidation([
+    baseResult.errors,
+    scopeErrors,
+    interactionIdErrors,
+    urlCallbackErrors,
+    entityNumberErrors,
+  ]);
 };
 
 export const verifyClientAssertionSignature = async (
