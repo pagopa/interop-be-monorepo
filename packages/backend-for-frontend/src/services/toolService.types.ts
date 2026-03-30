@@ -1,5 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { authorizationApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  bffApi,
+  catalogApi,
+} from "pagopa-interop-api-clients";
 import {
   ApiError,
   ClientAssertion,

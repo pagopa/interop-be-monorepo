@@ -220,7 +220,8 @@ export function buildConsumerAsyncPlatformErrors(
   }
 
   const elapsedMs =
-    Date.now() - Date.parse(String(interaction.callbackInvocationTokenIssuedAt));
+    Date.now() -
+    Date.parse(String(interaction.callbackInvocationTokenIssuedAt));
   const resourceAvailableTimeMs =
     catalogEntry.asyncExchangeProperties.resourceAvailableTime * 1000;
 
@@ -347,7 +348,9 @@ export function makeDiagnosticError(
   return new ApiError({ code, detail, title });
 }
 
-const parseInteraction = (item: Record<string, AttributeValue>): Interaction => {
+const parseInteraction = (
+  item: Record<string, AttributeValue>
+): Interaction => {
   const parsed = Interaction.safeParse(unmarshall(item));
   if (!parsed.success) {
     throw new Error(
