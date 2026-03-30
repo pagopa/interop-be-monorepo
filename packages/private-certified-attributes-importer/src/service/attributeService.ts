@@ -53,15 +53,20 @@ export async function bootstrapRegistryAttributes(
         );
 
         let found = false;
-        while (!found) {
-          logger.info(
-            `Waiting for attribute ${seed.name} to be available in ReadModel...`
-          );
-          await delay(config.attributeCreationWaitTime);
-          found = await checkAttributePresence(readmodel, seed.origin, code);
+        for (let i = 0; i < config.defaultPollingMaxRetries; i++) {
+          attr = await readmodel.getAttributeByExternalId(seed.origin, code);
+          if (attr && attr.kind === attributeKind.certified) {
+            found = true;
+            break;
+          }
+          await delay(config.defaultPollingRetryDelay);
         }
 
-        attr = await readmodel.getAttributeByExternalId(seed.origin, code);
+        if (!found) {
+          throw new Error(
+            `Timeout: Attribute ${seed.name} (${code}) not found in Read Model after ${config.defaultPollingMaxRetries} retries.`
+          );
+        }
       }
 
       return [key, attr];
@@ -69,13 +74,4 @@ export async function bootstrapRegistryAttributes(
   );
 
   return Object.fromEntries(entries) as ResolvedRegistryAttributes;
-}
-
-async function checkAttributePresence(
-  readmodel: ReadModelServiceSQL,
-  origin: string,
-  code: string
-): Promise<boolean> {
-  const attr = await readmodel.getAttributeByExternalId(origin, code);
-  return !!attr && attr.kind === attributeKind.certified;
 }
