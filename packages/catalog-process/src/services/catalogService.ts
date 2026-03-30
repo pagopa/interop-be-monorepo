@@ -144,7 +144,7 @@ import {
   toCreateEventEServiceNameUpdated,
   toCreateEventEServiceNameUpdatedByTemplateUpdate,
   toCreateEventEServiceRiskAnalysisAdded,
-  toCreateEventEServiceRiskAnalysisFixed,
+  toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
@@ -2411,7 +2411,7 @@ export function catalogServiceBuilder(
         fixedRiskAnalysis
       );
 
-      const event = toCreateEventEServiceRiskAnalysisFixed(
+      const event = toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind(
         eservice.data.id,
         eservice.metadata.version,
         fixedRiskAnalysis.id,
