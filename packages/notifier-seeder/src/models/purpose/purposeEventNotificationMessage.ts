@@ -46,7 +46,7 @@ const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
     .with(
       "RiskAnalysisDocumentGenerated",
       "RiskAnalysisSignedDocumentGenerated",
-      "PurposeRiskAnalysisFixed",
+      "MaintenancePurposeRiskAnalysisSetTenandKind",
       () => "purpose_updated"
     )
     .exhaustive();

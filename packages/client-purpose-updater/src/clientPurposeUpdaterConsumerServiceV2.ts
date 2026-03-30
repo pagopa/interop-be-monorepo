@@ -84,7 +84,7 @@ export async function handleMessageV2({
       { type: "PurposeDeletedByRevokedDelegation" },
       { type: "RiskAnalysisDocumentGenerated" },
       { type: "RiskAnalysisSignedDocumentGenerated" },
-      { type: "PurposeRiskAnalysisFixed" },
+      { type: "MaintenancePurposeRiskAnalysisSetTenandKind" },
       () => Promise.resolve
     )
     .exhaustive();

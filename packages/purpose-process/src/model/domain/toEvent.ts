@@ -73,7 +73,7 @@ export const toCreateEventDraftPurposeUpdated = ({
   correlationId,
 });
 
-export const toCreateEventPurposeRiskAnalysisFixed = ({
+export const toCreateEventMaintenancePurposeRiskAnalysisSetTenandKind = ({
   purpose,
   riskAnalysisId,
   version,
@@ -87,7 +87,7 @@ export const toCreateEventPurposeRiskAnalysisFixed = ({
   streamId: purpose.id,
   version,
   event: {
-    type: "PurposeRiskAnalysisFixed",
+    type: "MaintenancePurposeRiskAnalysisSetTenandKind",
     event_version: 2,
     data: { purpose: toPurposeV2(purpose), riskAnalysisId },
   },
