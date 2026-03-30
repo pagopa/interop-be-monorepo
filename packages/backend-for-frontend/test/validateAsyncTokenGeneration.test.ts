@@ -312,6 +312,101 @@ describe("validateAsyncTokenGeneration", () => {
     expect(result.steps.platformStatesVerification.result).toBe("PASSED");
   });
 
+  it("should fail callback_invocation when entityNumber is zero", async () => {
+    const producerKeychainId = generateId<ProducerKeychainId>();
+    const producerClientId = unsafeBrandId<ClientId>(producerKeychainId);
+
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: producerClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: producerClientId,
+          aud: ["audience"],
+          scope: interactionState.callbackInvocation,
+          interactionId: mockInteractionId,
+          entityNumber: 0,
+        },
+      },
+    });
+
+    const result = await service.validateAsyncTokenGeneration(
+      producerClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      ctx
+    );
+
+    expect(result.steps.clientAssertionValidation.result).toBe("FAILED");
+    expect(result.steps.clientAssertionValidation.failures).toEqual([
+      {
+        code: "invalidEntityNumber",
+        reason: `entityNumber 0 is not valid for client ${producerClientId} - must be greater than 0`,
+      },
+    ]);
+    expect(result.steps.publicKeyRetrieve.result).toBe("SKIPPED");
+  });
+
+  it("should fall back to a strongly consistent PK lookup when the GSI misses", async () => {
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          scope: interactionState.getResource,
+          interactionId: mockInteractionId,
+        },
+      },
+    });
+
+    dynamoDBClient.send = vi
+      .fn()
+      .mockResolvedValueOnce({ Items: [] })
+      .mockResolvedValueOnce({
+        Item: marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          GSIPK_interactionId: makeGSIPKInteractionId(mockInteractionId),
+          interactionId: mockInteractionId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.callbackInvocation,
+          callbackInvocationTokenIssuedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      });
+
+    const result = await service.validateAsyncTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      ctx
+    );
+
+    expect(result.steps.publicKeyRetrieve.result).toBe("PASSED");
+    expect(result.steps.platformStatesVerification.result).toBe("PASSED");
+    expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
+  });
+
   it("should fail confirmation when confirmation flag is disabled", async () => {
     vi.spyOn(
       clientAssertionValidation,
@@ -387,6 +482,62 @@ describe("validateAsyncTokenGeneration", () => {
       {
         code: "asyncExchangeConfirmationNotEnabled",
         reason: `Async exchange confirmation is not enabled for the eService associated with interaction ${mockInteractionId}`,
+      },
+    ]);
+  });
+
+  it("should fail start_interaction when asyncExchangeProperties are missing", async () => {
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          purposeId: mockPurposeId,
+          scope: interactionState.startInteraction,
+          urlCallback: "https://example.com/callback",
+        },
+      },
+    });
+
+    mockClients.catalogProcessClient.getEServiceById = vi
+      .fn()
+      .mockResolvedValue({
+        id: mockEServiceId,
+        name: "Test eService",
+        asyncExchange: true,
+        descriptors: [
+          {
+            id: mockDescriptorId,
+            version: "1",
+            state: "PUBLISHED",
+            audience: ["audience"],
+            voucherLifespan: 3600,
+          },
+        ],
+      });
+
+    const result = await service.validateAsyncTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      ctx
+    );
+
+    expect(result.steps.platformStatesVerification.result).toBe("FAILED");
+    expect(result.steps.platformStatesVerification.failures).toEqual([
+      {
+        code: "platformStateValidationFailed",
+        reason: `Platform state validation failed - Missing asyncExchangeProperties for client ${mockClientId}`,
       },
     ]);
   });
