@@ -23,7 +23,7 @@ import {
 } from "./utils.js";
 
 describe("eservice templates", () => {
-  it("gets all eservice templates RAs", async () => {
+  it("gets only the requested eservice templates RAs", async () => {
     const newEServiceTemplates: EServiceTemplate[] = [
       {
         ...getMockEServiceTemplate(),
@@ -39,26 +39,37 @@ describe("eservice templates", () => {
           getMockValidRiskAnalysis(tenantKind.PRIVATE),
         ],
       },
+      {
+        ...getMockEServiceTemplate(),
+        riskAnalysis: [
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+        ],
+      },
     ];
 
+    const eserviceTemplatesToProcess = newEServiceTemplates.slice(0, -1);
     const idsToCheck = [];
-    for (const eTemplate of newEServiceTemplates) {
+    for (const eTemplate of eserviceTemplatesToProcess) {
       for (const ra of eTemplate.riskAnalysis) {
         idsToCheck.push(ra.id);
       }
       await addOneEServiceTemplate(eTemplate);
     }
 
-    const eserviceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const ids = eserviceTemplatesToProcess.map((t) => t.id);
 
-    const actualIds = eserviceTemplates
+    const eserviceTemplates =
+      await readModelService.getReadModelEServiceTemplates(ids);
+
+    const actualRAIds = eserviceTemplates
       .flatMap((e) => e.riskAnalysis)
       .map((r) => r.id);
 
-    expect(actualIds).toHaveLength(idsToCheck.length);
+    expect(eserviceTemplates).toHaveLength(eserviceTemplatesToProcess.length);
+    expect(actualRAIds).toHaveLength(idsToCheck.length);
     idsToCheck.forEach((id) => {
-      expect(actualIds).toContain(id);
+      expect(actualRAIds).toContain(id);
     });
   });
 });

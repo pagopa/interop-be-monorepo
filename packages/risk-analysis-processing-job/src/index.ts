@@ -3,7 +3,11 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  EServiceTemplate,
+  generateId,
+} from "pagopa-interop-models";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { config } from "./configs/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
@@ -38,10 +42,13 @@ export async function main(): Promise<void> {
     correlationId
   );
 
-  const eserviceTemplatesProcessingResult =
-    await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses();
-
-  if (config.featureFlagTenantKindRiskAnalysisFixEserviceTemplate) {
+  if (config.fixListTenantKindRiskAnalysisEserviceTemplates) {
+    const templates =
+      config.fixListTenantKindRiskAnalysisEserviceTemplates as unknown as EServiceTemplate["id"][];
+    const eserviceTemplatesProcessingResult =
+      await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses(
+        templates
+      );
     loggerInstance.info(
       `(EService Template RiskAnalysis) fixed ${eserviceTemplatesProcessingResult.processed.riskAnalyses} tenantKind/s.`
     );

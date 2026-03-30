@@ -238,7 +238,11 @@ describe("riskAnalysisProcessingService", () => {
       await addOneEServiceTemplate(eTemplate);
     }
 
-    await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses();
+    const templateIds = newEServiceTemplates.map((t) => t.id);
+
+    await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses(
+      templateIds
+    );
 
     expect(
       eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind

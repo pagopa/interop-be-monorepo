@@ -1,4 +1,4 @@
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { EService, Purpose, EServiceTemplate } from "pagopa-interop-models";
 import {
   aggregateEserviceArray,
@@ -95,7 +95,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       ).map((p) => p.data);
     },
 
-    async getAllReadModelEServiceTemplates(): Promise<EServiceTemplate[]> {
+    async getReadModelEServiceTemplates(
+      filterIds: EServiceTemplate["id"][]
+    ): Promise<EServiceTemplate[]> {
       const queryResult = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
@@ -108,6 +110,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceTemplateInReadmodelEserviceTemplate.id,
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
           )
+        )
+        .where(
+          inArray(eserviceTemplateInReadmodelEserviceTemplate.id, filterIds)
         );
 
       return aggregateEServiceTemplateArray(
