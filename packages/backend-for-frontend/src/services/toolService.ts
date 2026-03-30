@@ -381,11 +381,7 @@ async function retrieveConsumerAsyncValidationContext(
 
   const consumerJwt = toClientAssertion(jwt, interaction.purposeId);
 
-  const keyValidation = await retrieveKeyAndEservice(
-    clients,
-    consumerJwt,
-    ctx
-  );
+  const keyValidation = await retrieveKeyAndEservice(clients, consumerJwt, ctx);
   if (keyValidation.errors) {
     return { data: undefined, errors: keyValidation.errors };
   }

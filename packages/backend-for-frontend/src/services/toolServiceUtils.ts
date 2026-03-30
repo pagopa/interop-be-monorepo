@@ -194,7 +194,9 @@ export async function retrieveInteractionForAsyncScope(
     };
   }
 
-  if (!isInteractionStateAllowedForScope(interaction.state, jwt.payload.scope)) {
+  if (
+    !isInteractionStateAllowedForScope(interaction.state, jwt.payload.scope)
+  ) {
     return {
       interaction: undefined,
       errors: [
