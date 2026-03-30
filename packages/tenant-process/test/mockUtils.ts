@@ -86,5 +86,6 @@ export const getMockMaintenanceTenantUpdate =
     mails: [],
     name: "A tenant",
     kind: tenantKind.PA,
+    selfcareInstitutionType: "SCP",
     onboardedAt: new Date().toISOString(),
   });
