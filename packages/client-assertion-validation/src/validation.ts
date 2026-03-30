@@ -2,6 +2,8 @@ import { match } from "ts-pattern";
 import {
   clientKindTokenGenStates,
   ClientAssertion,
+  AsyncClientAssertion,
+  AsyncClientAssertionPayload,
   ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
@@ -32,6 +34,10 @@ import {
   validateIss,
   validateKid,
   validatePurposeId,
+  validateScope,
+  validateInteractionId,
+  validateUrlCallback,
+  validateEntityNumber,
   validateSub,
   validatePlatformState,
   ALLOWED_ALGORITHM,
@@ -234,6 +240,77 @@ export const verifyClientAssertion = (
     const message = error instanceof Error ? error.message : "generic error";
     return failedValidation([unexpectedClientAssertionPayload(message)]);
   }
+};
+
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+export const verifyAsyncClientAssertion = (
+  clientAssertionJws: string,
+  clientId: string | undefined,
+  expectedAudiences: string[],
+  logger: Logger
+): ValidationResult<AsyncClientAssertion> => {
+  // Run base validation with strict=false to avoid rejecting async-specific claims
+  const baseResult = verifyClientAssertion(
+    clientAssertionJws,
+    clientId,
+    expectedAudiences,
+    logger,
+    false
+  );
+
+  // Re-decode JWT to access async claims (stripped by base non-strict parse)
+  const decodedPayload = jose.decodeJwt(clientAssertionJws);
+
+  // Validate async-specific claims (format only)
+  const { errors: scopeErrors, data: validatedScope } = validateScope(
+    decodedPayload.scope
+  );
+  const { errors: interactionIdErrors, data: validatedInteractionId } =
+    validateInteractionId(decodedPayload.interactionId);
+  const { errors: urlCallbackErrors, data: validatedUrlCallback } =
+    validateUrlCallback(decodedPayload.urlCallback);
+  const { errors: entityNumberErrors, data: validatedEntityNumber } =
+    validateEntityNumber(decodedPayload.entityNumber);
+
+  if (
+    !baseResult.errors &&
+    !scopeErrors &&
+    !interactionIdErrors &&
+    !urlCallbackErrors &&
+    !entityNumberErrors
+  ) {
+    // Strict validation with async schema (always enforced for new async feature).
+    // Only runs when individual field validations pass — catches unknown extra fields.
+    const payloadStrictParseResult =
+      AsyncClientAssertionPayload.safeParse(decodedPayload);
+    if (!payloadStrictParseResult.success) {
+      return failedValidation([
+        clientAssertionInvalidClaims(
+          payloadStrictParseResult.error.message,
+          "payload"
+        ),
+      ]);
+    }
+
+    return successfulValidation({
+      header: baseResult.data.header,
+      payload: {
+        ...baseResult.data.payload,
+        scope: validatedScope,
+        interactionId: validatedInteractionId,
+        urlCallback: validatedUrlCallback,
+        entityNumber: validatedEntityNumber,
+      },
+    });
+  }
+
+  return failedValidation([
+    baseResult.errors,
+    scopeErrors,
+    interactionIdErrors,
+    urlCallbackErrors,
+    entityNumberErrors,
+  ]);
 };
 
 export const verifyClientAssertionSignature = async (
