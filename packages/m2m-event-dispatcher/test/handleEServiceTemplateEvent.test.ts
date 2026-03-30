@@ -29,7 +29,9 @@ describe("handleEServiceTemplateEvent test", async () => {
 
   const eserviceTemplateEventTypes = EServiceTemplateEventV2.options
     .map((o) => o.shape.type.value)
-    .filter((type) => type !== "EServiceTemplateRiskAnalysisFixed");
+    .filter(
+      (type) => type !== "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind"
+    );
 
   describe.each(eserviceTemplateEventTypes)(
     "with %s event",
@@ -247,14 +249,14 @@ describe("handleEServiceTemplateEvent test", async () => {
       })
   );
 
-  it("should skip M2M event creation for EServiceTemplateRiskAnalysisFixed", async () => {
+  it("should skip M2M event creation for MaintenanceEServiceTemplateRiskAnalysisSetTenantKind", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     const eventTimestamp = new Date();
 
     const message = {
       ...getMockEventEnvelopeCommons(),
       stream_id: eserviceTemplate.id,
-      type: "EServiceTemplateRiskAnalysisFixed",
+      type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
       data: {
         eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
         riskAnalysisId: generateId(),

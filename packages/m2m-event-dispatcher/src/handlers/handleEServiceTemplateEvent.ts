@@ -92,10 +92,13 @@ export async function handleEServiceTemplateEvent(
         );
       }
     )
-    .with({ type: "EServiceTemplateRiskAnalysisFixed" }, () => {
-      logger.info(
-        `Skipping M2M event creation for ${decodedMessage.type} message`
-      );
-    })
+    .with(
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
+      () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      }
+    )
     .exhaustive();
 }

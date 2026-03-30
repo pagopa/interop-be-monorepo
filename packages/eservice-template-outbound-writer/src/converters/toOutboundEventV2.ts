@@ -131,7 +131,7 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
-      { type: "EServiceTemplateRiskAnalysisFixed" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       () => undefined
     )
     .exhaustive();

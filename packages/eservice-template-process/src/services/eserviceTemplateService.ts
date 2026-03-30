@@ -84,7 +84,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
-  toCreateEventEServiceTemplateRiskAnalysisFixed,
+  toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
@@ -1180,7 +1180,7 @@ export function eserviceTemplateServiceBuilder(
       };
 
       const event = await repository.createEvent(
-        toCreateEventEServiceTemplateRiskAnalysisFixed(
+        toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind(
           template.data.id,
           template.metadata.version,
           riskAnalysisId,

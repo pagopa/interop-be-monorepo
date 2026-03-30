@@ -80,7 +80,7 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
-          "EServiceTemplateRiskAnalysisFixed",
+          "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
           "EServiceTemplateDraftVersionUpdated",
           "EServiceTemplateDraftUpdated",
           "EServiceTemplateDraftVersionDeleted",

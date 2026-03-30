@@ -23,7 +23,7 @@ message EServiceTemplateRiskAnalysisUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 2;
 }
 
-message EServiceTemplateRiskAnalysisFixedV2 {
+message MaintenanceEServiceTemplateRiskAnalysisSetTenantKindV2 {
   string riskAnalysisId = 1;
   EServiceTemplateV2 eserviceTemplate = 2;
 }
