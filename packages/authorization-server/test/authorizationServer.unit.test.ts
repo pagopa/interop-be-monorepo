@@ -22,7 +22,10 @@ import {
 } from "pagopa-interop-models";
 import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
-import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
+import {
+  fallbackAudit,
+  retrieveKey,
+} from "../src/utilities/tokenServiceHelpers.js";
 import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
