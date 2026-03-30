@@ -247,17 +247,19 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const assertRiskAnalysisTenantKindMatch = (
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind,
-  purposeId: PurposeId,
-  riskAnalysisFormId: RiskAnalysisFormId
-): void => {
-  if (actualKind && actualKind !== expectedKind) {
+const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  expectedKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind;
+  expectedKind: TenantKind | undefined;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  if (expectedKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
       expectedKind,
-      purposeId,
       riskAnalysisFormId
     );
   }
@@ -2434,12 +2436,11 @@ async function activatePurposeLogic({
         purpose.data.consumerId,
         readModelService
       );
-      assertRiskAnalysisTenantKindMatch(
-        riskAnalysisForm.tenantKind,
-        tenantKind,
-        purpose.data.id,
-        riskAnalysisForm.id
-      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        riskAnalysisFormId: riskAnalysisForm.id,
+      });
     }
   }
 

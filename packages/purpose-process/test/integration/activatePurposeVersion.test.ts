@@ -1698,7 +1698,6 @@ describe.skip("activatePurposeVersion", () => {
       riskAnalysisTenantKindMismatch(
         tenantKind.PRIVATE,
         tenantKind.PA,
-        purpose.id,
         riskAnalysisForm.id
       )
     );
@@ -1736,7 +1735,6 @@ describe.skip("activatePurposeVersion", () => {
       riskAnalysisTenantKindMismatch(
         tenantKind.PRIVATE,
         tenantKind.PA,
-        purpose.id,
         riskAnalysisForm.id
       )
     );
