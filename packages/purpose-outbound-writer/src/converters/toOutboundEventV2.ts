@@ -108,7 +108,10 @@ export function toOutboundEventV2(
         timestamp: new Date(),
       })
     )
-    .with({ type: "PurposeRiskAnalysisFixed" }, () => undefined)
+    .with(
+      { type: "MaintenancePurposeRiskAnalysisSetTenandKind" },
+      () => undefined
+    )
     .with({ type: "PurposeCloned" }, (msg) => ({
       event_version: msg.event_version,
       type: msg.type,

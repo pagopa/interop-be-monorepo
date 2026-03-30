@@ -109,7 +109,7 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   PurposeV2 purpose = 2;
 }
 
-message PurposeRiskAnalysisFixedV2 {
+message MaintenancePurposeRiskAnalysisSetTenandKindV2 {
   string riskAnalysisId = 1;
   PurposeV2 purpose = 2;
 }
