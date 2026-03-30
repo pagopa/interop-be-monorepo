@@ -120,7 +120,7 @@ export function toClientAssertion(
   };
 }
 
-export async function readInteractionById(
+async function readInteractionById(
   dynamoDBClient: DynamoDBClient,
   interactionsTable: string,
   interactionId: InteractionId
@@ -411,7 +411,7 @@ export function toAsyncCatalogValidationContext(
   };
 }
 
-export function isInteractionStateAllowedForScope(
+function isInteractionStateAllowedForScope(
   currentState: InteractionState,
   scope: InteractionState
 ): boolean {
