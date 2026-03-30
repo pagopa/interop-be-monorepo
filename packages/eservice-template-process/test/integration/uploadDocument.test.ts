@@ -424,6 +424,13 @@ describe("upload Document", () => {
     const version: EServiceTemplateVersion = {
       ...mockVersion,
       state: eserviceTemplateVersionState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 3600,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
     };
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
@@ -528,6 +535,13 @@ describe("upload Document", () => {
       ...mockVersion,
       state: eserviceTemplateVersionState.draft,
       asyncExchangeCallbackInterface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 3600,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
     };
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
