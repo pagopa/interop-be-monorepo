@@ -53,6 +53,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -503,6 +504,7 @@ export const upsertEServiceTemplate = async (
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
 
     await tx
@@ -543,6 +545,14 @@ export const upsertEServiceTemplate = async (
       await tx
         .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
         .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+        )
+        .values(asyncExchangePropsSQL);
     }
   });
 };

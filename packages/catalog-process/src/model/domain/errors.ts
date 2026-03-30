@@ -68,6 +68,7 @@ const errorCodes = {
   asyncExchangeBulkNotAllowedForSoap: "0052",
   asyncExchangeNotAllowedForReceiveMode: "0053",
   missingAsyncExchangeCallbackInterface: "0054",
+  templateVersionMissingAsyncExchangeProperties: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -613,5 +614,16 @@ export function asyncExchangeCallbackInterfaceAlreadyExists(
     detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
     code: "asyncExchangeCallbackInterfaceAlreadyExists",
     title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
   });
 }

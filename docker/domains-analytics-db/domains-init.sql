@@ -629,6 +629,19 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
   UNIQUE (version_id, kind)
 );
 
+CREATE TABLE IF NOT EXISTS domains.eservice_template_version_async_exchange_properties (
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
+  response_time INTEGER NOT NULL,
+  resource_available_time INTEGER NOT NULL,
+  confirmation BOOLEAN NOT NULL,
+  bulk BOOLEAN NOT NULL,
+  max_result_set INTEGER NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (version_id)
+);
+
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_document (
   id VARCHAR(36),
   eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),

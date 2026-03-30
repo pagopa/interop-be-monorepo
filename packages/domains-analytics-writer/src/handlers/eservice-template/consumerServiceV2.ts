@@ -79,6 +79,8 @@ export async function handleEserviceTemplateMessageV2(
               attributesSQL: splitResult.attributesSQL,
               riskAnalysesSQL: splitResult.riskAnalysesSQL,
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceTemplateItemsSchema>)
           );
         }

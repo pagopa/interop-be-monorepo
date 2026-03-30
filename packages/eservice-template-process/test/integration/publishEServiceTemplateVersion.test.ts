@@ -24,6 +24,7 @@ import {
   EServiceTemplateVersionId,
   eserviceMode,
   EServiceTemplateRiskAnalysis,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
@@ -34,6 +35,8 @@ import {
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
+  missingAsyncExchangeProperties,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
@@ -451,5 +454,116 @@ describe("publishEServiceTemplateVersion", () => {
     ).rejects.toThrowError(
       missingPersonalDataFlag(eserviceTemplate.id, eserviceTemplateVersion.id)
     );
+  });
+
+  it("should throw missingAsyncExchangeProperties if asyncExchange is true but asyncExchangeProperties is undefined", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: descriptorState.draft,
+      asyncExchangeProperties: undefined,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      asyncExchange: true,
+      personalData: false,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeProperties(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id
+      )
+    );
+  });
+
+  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is SOAP and bulk is true", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: descriptorState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      asyncExchange: true,
+      personalData: false,
+      technology: technology.soap,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id
+      )
+    );
+  });
+
+  it("should succeed publishing when asyncExchange is true and asyncExchangeProperties is valid", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: descriptorState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      asyncExchange: true,
+      personalData: false,
+    };
+
+    await addOneTenant({
+      ...getMockTenant(eserviceTemplate.creatorId),
+      kind: tenantKind.PA,
+    });
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).resolves.not.toThrowError();
   });
 });
