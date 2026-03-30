@@ -9,16 +9,20 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import {
   ApiError,
   AsyncClientAssertion,
+  ClientAssertion,
   Interaction,
   InteractionId,
-  InteractionState,
   interactionState,
+  InteractionState,
   ItemState,
   makeGSIPKInteractionId,
   makeInteractionPK,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AsyncCatalogValidationContext } from "./toolService.types.js";
+import {
+  AsyncCatalogValidationContext,
+  RetrievedInteractionValidationResult,
+} from "./toolService.types.js";
 
 const asyncInteractionStateAllowedByScope: Record<
   InteractionState,
@@ -97,6 +101,25 @@ export function validateAsyncScopeClaims(
   return errors.length > 0 ? errors : undefined;
 }
 
+export function toClientAssertion(
+  jwt: AsyncClientAssertion,
+  purposeId: ClientAssertion["payload"]["purposeId"] = jwt.payload.purposeId
+): ClientAssertion {
+  return {
+    header: jwt.header,
+    payload: {
+      sub: jwt.payload.sub,
+      jti: jwt.payload.jti,
+      iat: jwt.payload.iat,
+      iss: jwt.payload.iss,
+      aud: jwt.payload.aud,
+      exp: jwt.payload.exp,
+      digest: jwt.payload.digest,
+      purposeId,
+    },
+  };
+}
+
 export async function readInteractionById(
   dynamoDBClient: DynamoDBClient,
   interactionsTable: string,
@@ -132,6 +155,59 @@ export async function readInteractionById(
   return fallbackResult.Item
     ? parseInteraction(fallbackResult.Item)
     : undefined;
+}
+
+export async function retrieveInteractionForAsyncScope(
+  dynamoDBClient: DynamoDBClient,
+  interactionsTable: string,
+  jwt: AsyncClientAssertion
+): Promise<RetrievedInteractionValidationResult> {
+  const interactionId = jwt.payload.interactionId;
+  if (!interactionId) {
+    return {
+      interaction: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionIdNotProvided",
+          `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
+          "interactionId not provided"
+        ),
+      ],
+    };
+  }
+
+  const interaction = await readInteractionById(
+    dynamoDBClient,
+    interactionsTable,
+    interactionId
+  );
+  if (!interaction) {
+    return {
+      interaction: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionNotFound",
+          `Interaction ${interactionId} not found`,
+          "Interaction not found"
+        ),
+      ],
+    };
+  }
+
+  if (!isInteractionStateAllowedForScope(interaction.state, jwt.payload.scope)) {
+    return {
+      interaction: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionStateNotAllowed",
+          `Interaction ${interactionId} in state ${interaction.state} does not allow scope ${jwt.payload.scope}`,
+          "Interaction state not allowed"
+        ),
+      ],
+    };
+  }
+
+  return { interaction, errors: undefined };
 }
 
 export function buildStartInteractionPlatformErrors({

@@ -7,6 +7,7 @@ import {
 import {
   ApiError,
   ClientAssertion,
+  Interaction,
   ItemState,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
@@ -29,4 +30,9 @@ export type AsyncValidationContext = {
   clientKind?: authorizationApi.ClientKind;
   eservice?: bffApi.TokenGenerationValidationEService;
   platformStateErrors?: Array<ApiError<string>>;
+};
+
+export type RetrievedInteractionValidationResult = {
+  interaction?: Interaction;
+  errors?: Array<ApiError<string>>;
 };

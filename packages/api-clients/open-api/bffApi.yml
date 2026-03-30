@@ -25860,6 +25860,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -25898,6 +25900,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -25987,6 +25991,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -27011,6 +27017,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object
@@ -29636,6 +29644,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     InstanceEServiceSeed:
       type: object
       additionalProperties: false
@@ -29650,6 +29660,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchange:
+          type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan

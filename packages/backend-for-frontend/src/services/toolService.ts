@@ -20,7 +20,6 @@ import {
   EServiceId,
   GSIPKClientIdKid,
   interactionState,
-  InteractionState,
   ItemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
@@ -65,9 +64,9 @@ import {
   buildConsumerAsyncPlatformErrors,
   buildProducerAsyncPlatformErrors,
   buildStartInteractionPlatformErrors,
-  isInteractionStateAllowedForScope,
   makeDiagnosticError,
-  readInteractionById,
+  retrieveInteractionForAsyncScope,
+  toClientAssertion,
   toAsyncCatalogValidationContext,
   validateAsyncScopeClaims,
 } from "./toolServiceUtils.js";
@@ -342,7 +341,7 @@ async function retrieveStartInteractionValidationContext(
     data: {
       verificationKey: key,
       platformValidationKey: key,
-      platformValidationJwt: jwt as unknown as ClientAssertion,
+      platformValidationJwt: toClientAssertion(jwt),
       clientKind: key.clientKind,
       eservice,
       platformStateErrors: buildStartInteractionPlatformErrors({
@@ -364,69 +363,36 @@ async function retrieveConsumerAsyncValidationContext(
 ): Promise<
   SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
 > {
-  const interactionId = jwt.payload.interactionId;
-  if (!interactionId) {
-    return {
-      data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionIdNotProvided",
-          `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
-          "interactionId not provided"
-        ),
-      ],
-    };
-  }
-
-  const interaction = await readInteractionById(
+  const interactionValidation = await retrieveInteractionForAsyncScope(
     storage.dynamoDBClient,
     storage.interactionsTable,
-    interactionId
+    jwt
   );
-  if (!interaction) {
+  if (interactionValidation.errors) {
     return {
       data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionNotFound",
-          `Interaction ${interactionId} not found`,
-          "Interaction not found"
-        ),
-      ],
+      errors: interactionValidation.errors,
     };
   }
-
-  const scope = jwt.payload.scope as InteractionState;
-
-  if (!isInteractionStateAllowedForScope(interaction.state, scope)) {
-    return {
-      data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionStateNotAllowed",
-          `Interaction ${interactionId} in state ${interaction.state} does not allow scope ${jwt.payload.scope}`,
-          "Interaction state not allowed"
-        ),
-      ],
-    };
+  if (!interactionValidation.interaction) {
+    throw new Error("Interaction validation succeeded without interaction");
   }
+  const { interaction } = interactionValidation;
 
-  const consumerJwt = {
-    ...jwt,
-    payload: {
-      ...jwt.payload,
-      purposeId: interaction.purposeId,
-    },
-  } as unknown as ClientAssertion;
+  const consumerJwt = toClientAssertion(jwt, interaction.purposeId);
 
-  const { data, errors } = await retrieveKeyAndEservice(
+  const keyValidation = await retrieveKeyAndEservice(
     clients,
     consumerJwt,
     ctx
   );
-  if (errors) {
-    return { data: undefined, errors };
+  if (keyValidation.errors) {
+    return { data: undefined, errors: keyValidation.errors };
   }
+  if (!keyValidation.data) {
+    throw new Error("Key validation succeeded without data");
+  }
+  const { data } = keyValidation;
 
   if (
     data.key.clientKind !== authorizationApi.ClientKind.enum.CONSUMER ||
@@ -472,52 +438,21 @@ async function retrieveProducerAsyncValidationContext(
 ): Promise<
   SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
 > {
-  const interactionId = jwt.payload.interactionId;
-  if (!interactionId) {
-    return {
-      data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionIdNotProvided",
-          `interactionId not provided in client assertion for client ${jwt.payload.sub}`,
-          "interactionId not provided"
-        ),
-      ],
-    };
-  }
-
-  const interaction = await readInteractionById(
+  const interactionValidation = await retrieveInteractionForAsyncScope(
     storage.dynamoDBClient,
     storage.interactionsTable,
-    interactionId
+    jwt
   );
-  if (!interaction) {
+  if (interactionValidation.errors) {
     return {
       data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionNotFound",
-          `Interaction ${interactionId} not found`,
-          "Interaction not found"
-        ),
-      ],
+      errors: interactionValidation.errors,
     };
   }
-
-  const scope = jwt.payload.scope as InteractionState;
-
-  if (!isInteractionStateAllowedForScope(interaction.state, scope)) {
-    return {
-      data: undefined,
-      errors: [
-        makeDiagnosticError(
-          "interactionStateNotAllowed",
-          `Interaction ${interactionId} in state ${interaction.state} does not allow scope ${jwt.payload.scope}`,
-          "Interaction state not allowed"
-        ),
-      ],
-    };
+  if (!interactionValidation.interaction) {
+    throw new Error("Interaction validation succeeded without interaction");
   }
+  const { interaction } = interactionValidation;
 
   const producerKeychainId = unsafeBrandId<ProducerKeychainId>(jwt.payload.sub);
   const [producerKeychain, producerKey, eservice] = await Promise.all([
