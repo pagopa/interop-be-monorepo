@@ -114,17 +114,17 @@ export function asyncTokenServiceBuilder({
       getCtx: () => WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
-      setCtxOrganizationId: (organizationId: TenantId) => void,
+      setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<AsyncGeneratedTokenData> {
       getCtx().logger.info(
-        `[CLIENTID=${body.client_id}] Async token requested`,
+        `[CLIENTID=${body.client_id}] Async token requested`
       );
 
       // DPoP proof validation
       const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
-        getCtx().logger,
+        getCtx().logger
       );
 
       // Request body parameters validation
@@ -138,7 +138,7 @@ export function asyncTokenServiceBuilder({
       if (parametersErrors) {
         throw asyncRequestValidationFailed(
           body.client_id,
-          parametersErrors.map((error) => error.detail).join(", "),
+          parametersErrors.map((error) => error.detail).join(", ")
         );
       }
 
@@ -148,13 +148,13 @@ export function asyncTokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          getCtx().logger,
+          getCtx().logger
         );
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
           body.client_id,
-          clientAssertionErrors.map((error) => error.detail).join(", "),
+          clientAssertionErrors.map((error) => error.detail).join(", ")
         );
       }
 
@@ -214,11 +214,11 @@ export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
 const generateAsyncTokenByScope = async (
   scope: InteractionState,
-  ctx: ScopeHandlerContext,
+  ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
     .with(interactionState.startInteraction, async (scope) =>
-      handleStartInteraction(scope, ctx),
+      handleStartInteraction(scope, ctx)
     )
     .with(interactionState.callbackInvocation, async () => {
       throw asyncScopeNotYetImplemented(interactionState.callbackInvocation);

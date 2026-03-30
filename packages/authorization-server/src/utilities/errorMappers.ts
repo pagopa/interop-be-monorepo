@@ -12,7 +12,7 @@ const {
 } = constants;
 
 export const authorizationServerErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with(
@@ -32,7 +32,7 @@ export const authorizationServerErrorMapper = (
       "purposeIdNotProvided",
       "asyncExchangeNotEnabled",
       "catalogEntryNotFound",
-      () => HTTP_STATUS_BAD_REQUEST,
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
