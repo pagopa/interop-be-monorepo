@@ -234,8 +234,8 @@ const generateTokenByScope = async (
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
-    .with(interactionState.startInteraction, async (scope) =>
-      handleStartInteraction(scope, ctx)
+    .with(interactionState.startInteraction, async () =>
+      handleStartInteraction(ctx)
     )
     .with(interactionState.callbackInvocation, async (scope) =>
       handleCallbackInvocation(scope, ctx)

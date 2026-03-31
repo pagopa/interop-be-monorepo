@@ -6,6 +6,7 @@ import {
   clientKindTokenGenStates,
   generateId,
   genericInternalError,
+  interactionState,
   InteractionId,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
@@ -30,7 +31,6 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleStartInteraction = async (
-  scope: "start_interaction",
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
@@ -159,7 +159,7 @@ export const handleStartInteraction = async (
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
     interactionId,
     urlCallback,
-    scope,
+    scope: interactionState.startInteraction,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
