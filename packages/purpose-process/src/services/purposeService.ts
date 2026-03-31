@@ -252,11 +252,11 @@ const assertRiskAnalysisTenantKindMatch = ({
   expectedKind,
   riskAnalysisFormId,
 }: {
-  actualKind: TenantKind;
-  expectedKind: TenantKind | undefined;
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
   riskAnalysisFormId: RiskAnalysisFormId;
 }): void => {
-  if (expectedKind && actualKind !== expectedKind) {
+  if (actualKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
       expectedKind,
