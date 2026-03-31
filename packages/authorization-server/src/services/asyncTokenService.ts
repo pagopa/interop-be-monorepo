@@ -217,8 +217,8 @@ const generateAsyncTokenByScope = async (
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
-    .with(interactionState.startInteraction, async (scope) =>
-      handleStartInteraction(scope, ctx)
+    .with(interactionState.startInteraction, async () =>
+      handleStartInteraction(ctx)
     )
     .with(interactionState.callbackInvocation, async () => {
       throw asyncScopeNotYetImplemented(interactionState.callbackInvocation);
