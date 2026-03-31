@@ -17,6 +17,7 @@ import {
   InteractionId,
   interactionState,
   InteractionState,
+  makeGSIPKInteractionId,
   makeInteractionPK,
   PurposeId,
 } from "pagopa-interop-models";
@@ -60,9 +61,11 @@ export const createInteraction = async ({
   ttlSeconds: number;
 }): Promise<Interaction> => {
   const PK = makeInteractionPK(interactionId);
+  const GSIPK_interactionId = makeGSIPKInteractionId(interactionId);
   const ttl = Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds;
   const interaction: Interaction = {
     PK,
+    GSIPK_interactionId,
     interactionId,
     purposeId,
     eServiceId,
@@ -78,6 +81,7 @@ export const createInteraction = async ({
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: { S: interaction.PK },
+      GSIPK_interactionId: { S: GSIPK_interactionId },
       interactionId: { S: interaction.interactionId },
       purposeId: { S: interaction.purposeId },
       eServiceId: { S: interaction.eServiceId },

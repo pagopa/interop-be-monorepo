@@ -4,12 +4,30 @@
     {
       "AttributeName": "PK",
       "AttributeType": "S"
+    },
+    {
+      "AttributeName": "GSIPK_interactionId",
+      "AttributeType": "S"
     }
   ],
   "KeySchema": [
     {
       "AttributeName": "PK",
       "KeyType": "HASH"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "GSIPK_interactionId-index",
+      "KeySchema": [
+        {
+          "AttributeName": "GSIPK_interactionId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      }
     }
   ],
   "BillingMode": "PAY_PER_REQUEST"

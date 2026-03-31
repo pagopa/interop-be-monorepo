@@ -6,23 +6,27 @@ import {
   SuccessfulValidation,
   validateClientKindAndPlatformState,
   validateRequestParameters,
+  verifyAsyncClientAssertion,
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
   AgreementId,
   ApiError,
+  AsyncClientAssertion,
   ClientAssertion,
   ClientId,
   DescriptorId,
   EServiceId,
   GSIPKClientIdKid,
+  interactionState,
   ItemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKEServiceIdDescriptorId,
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  ProducerKeychainId,
   PurposeId,
   TenantId,
   TokenGenerationStatesGenericClient,
@@ -36,6 +40,7 @@ import {
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
@@ -44,15 +49,33 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  tenantNotAllowed,
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
+  tenantNotAllowed,
 } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
+import {
+  AsyncValidationContext,
+  ToolServiceStorage,
+} from "./toolService.types.js";
+import {
+  buildConsumerAsyncPlatformErrors,
+  buildProducerAsyncPlatformErrors,
+  buildStartInteractionPlatformErrors,
+  makeDiagnosticError,
+  retrieveInteractionForAsyncScope,
+  toClientAssertion,
+  toAsyncCatalogValidationContext,
+  validateAsyncScopeClaims,
+} from "./toolServiceUtils.js";
+import { assertProducerKeychainVisibilityIsFull } from "./validators.js";
 
-export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
+export function toolsServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  storage?: ToolServiceStorage
+) {
   return {
     async validateTokenGeneration(
       clientId: string | undefined,
@@ -97,9 +120,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         ctx
       );
       if (keyRetrieveErrors) {
-        return handleValidationResults({
-          keyRetrieveErrors,
-        });
+        return handleValidationResults({ keyRetrieveErrors });
       }
 
       const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
@@ -116,9 +137,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         );
       if (clientAssertionSignatureErrors) {
         return handleValidationResults(
-          {
-            clientAssertionSignatureErrors,
-          },
+          { clientAssertionSignatureErrors },
           key.clientKind,
           eservice
         );
@@ -128,15 +147,100 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
         return handleValidationResults(
-          {
-            platformStateErrors,
-          },
+          { platformStateErrors },
           key.clientKind,
           eservice
         );
       }
 
       return handleValidationResults({}, key.clientKind, eservice);
+    },
+
+    async validateAsyncTokenGeneration(
+      clientId: string | undefined,
+      clientAssertion: string,
+      clientAssertionType: string,
+      grantType: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.TokenGenerationValidationResult> {
+      if (!storage) {
+        throw new Error("Async token validation storage is not configured");
+      }
+
+      ctx.logger.info(
+        `Validating async token generation for client ${clientId}`
+      );
+
+      const { errors: parametersErrors } = validateRequestParameters({
+        client_assertion: clientAssertion,
+        client_assertion_type: clientAssertionType,
+        grant_type: grantType,
+        client_id: clientId,
+      });
+
+      const { data: jwt, errors: clientAssertionErrors } =
+        verifyAsyncClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience,
+          ctx.logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
+        );
+
+      const asyncClaimErrors = jwt ? validateAsyncScopeClaims(jwt) : undefined;
+
+      if (parametersErrors || clientAssertionErrors || asyncClaimErrors) {
+        return handleValidationResults({
+          clientAssertionErrors: [
+            ...(parametersErrors ?? []),
+            ...(clientAssertionErrors ?? []),
+            ...(asyncClaimErrors ?? []),
+          ],
+        });
+      }
+
+      const { data, errors: keyRetrieveErrors } =
+        await retrieveAsyncValidationContext(clients, storage, jwt, ctx);
+      if (keyRetrieveErrors) {
+        return handleValidationResults({ keyRetrieveErrors });
+      }
+
+      const { errors: clientAssertionSignatureErrors } =
+        await verifyClientAssertionSignature(
+          clientAssertion,
+          data.verificationKey,
+          jwt.header.alg
+        );
+      if (clientAssertionSignatureErrors) {
+        return handleValidationResults(
+          { clientAssertionSignatureErrors },
+          data.clientKind,
+          data.eservice
+        );
+      }
+
+      const platformStateErrors = [
+        ...(data.platformStateErrors ?? []),
+        ...((data.platformValidationKey && data.platformValidationJwt
+          ? validateClientKindAndPlatformState(
+              data.platformValidationKey,
+              data.platformValidationJwt
+            ).errors
+          : undefined) ?? []),
+      ];
+
+      if (platformStateErrors.length > 0) {
+        return handleValidationResults(
+          { platformStateErrors },
+          data.clientKind,
+          data.eservice
+        );
+      }
+
+      return handleValidationResults({}, data.clientKind, data.eservice);
     },
   };
 }
@@ -189,6 +293,240 @@ function handleValidationResults(
         ),
         failures: apiErrorsToValidationFailures(platformStateErrors),
       },
+    },
+  };
+}
+
+async function retrieveAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  return match(jwt.payload.scope)
+    .with(interactionState.startInteraction, () =>
+      retrieveStartInteractionValidationContext(clients, jwt, ctx)
+    )
+    .with(interactionState.getResource, interactionState.confirmation, () =>
+      retrieveConsumerAsyncValidationContext(clients, storage, jwt, ctx)
+    )
+    .with(interactionState.callbackInvocation, () =>
+      retrieveProducerAsyncValidationContext(clients, storage, jwt, ctx)
+    )
+    .exhaustive();
+}
+
+async function retrieveStartInteractionValidationContext(
+  clients: PagoPAInteropBeClients,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const { data, errors } = await retrieveKeyAndEservice(clients, jwt, ctx);
+  if (errors) {
+    return { data: undefined, errors };
+  }
+
+  const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
+  const eservice =
+    keyEservice && keyDescriptor
+      ? toTokenValidationEService(keyEservice, keyDescriptor)
+      : undefined;
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: key,
+      platformValidationKey: key,
+      platformValidationJwt: toClientAssertion(jwt),
+      clientKind: key.clientKind,
+      eservice,
+      platformStateErrors: buildStartInteractionPlatformErrors({
+        clientId: jwt.payload.sub,
+        catalogEntry:
+          keyEservice && keyDescriptor
+            ? toAsyncCatalogValidationContext(keyEservice, keyDescriptor)
+            : undefined,
+      }),
+    },
+  };
+}
+
+async function retrieveConsumerAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const interactionValidation = await retrieveInteractionForAsyncScope(
+    storage.dynamoDBClient,
+    storage.interactionsTable,
+    jwt
+  );
+  if (interactionValidation.errors) {
+    return {
+      data: undefined,
+      errors: interactionValidation.errors,
+    };
+  }
+  if (!interactionValidation.interaction) {
+    throw new Error("Interaction validation succeeded without interaction");
+  }
+  const { interaction } = interactionValidation;
+
+  const consumerJwt = toClientAssertion(jwt, interaction.purposeId);
+
+  const keyValidation = await retrieveKeyAndEservice(clients, consumerJwt, ctx);
+  if (keyValidation.errors) {
+    return { data: undefined, errors: keyValidation.errors };
+  }
+  if (!keyValidation.data) {
+    throw new Error("Key validation succeeded without data");
+  }
+  const { data } = keyValidation;
+
+  if (
+    data.key.clientKind !== authorizationApi.ClientKind.enum.CONSUMER ||
+    !data.eservice ||
+    !data.descriptor
+  ) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "invalidClientKind",
+          `Client ${jwt.payload.sub} is not a consumer client`,
+          "Invalid client kind"
+        ),
+      ],
+    };
+  }
+
+  const eservice = toTokenValidationEService(data.eservice, data.descriptor);
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: data.key,
+      platformValidationKey: data.key,
+      platformValidationJwt: consumerJwt,
+      clientKind: authorizationApi.ClientKind.enum.CONSUMER,
+      eservice,
+      platformStateErrors: buildConsumerAsyncPlatformErrors(
+        jwt,
+        interaction,
+        toAsyncCatalogValidationContext(data.eservice, data.descriptor)
+      ),
+    },
+  };
+}
+
+async function retrieveProducerAsyncValidationContext(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage,
+  jwt: AsyncClientAssertion,
+  ctx: WithLogger<BffAppContext>
+): Promise<
+  SuccessfulValidation<AsyncValidationContext> | FailedValidation<string>
+> {
+  const interactionValidation = await retrieveInteractionForAsyncScope(
+    storage.dynamoDBClient,
+    storage.interactionsTable,
+    jwt
+  );
+  if (interactionValidation.errors) {
+    return {
+      data: undefined,
+      errors: interactionValidation.errors,
+    };
+  }
+  if (!interactionValidation.interaction) {
+    throw new Error("Interaction validation succeeded without interaction");
+  }
+  const { interaction } = interactionValidation;
+
+  const producerKeychainId = unsafeBrandId<ProducerKeychainId>(jwt.payload.sub);
+  const [producerKeychain, producerKey, eservice] = await Promise.all([
+    clients.authorizationClient.producerKeychain
+      .getProducerKeychain({
+        params: { producerKeychainId },
+        headers: ctx.headers,
+      })
+      .catch((e) => {
+        if (isAxiosError(e) && e.response?.status === 404) {
+          return undefined;
+        }
+        throw e;
+      }),
+    clients.authorizationClient.producerKeychain
+      .getProducerKeyById({
+        params: { producerKeychainId, keyId: jwt.header.kid },
+        headers: ctx.headers,
+      })
+      .catch((e) => {
+        if (isAxiosError(e) && e.response?.status === 404) {
+          return undefined;
+        }
+        throw e;
+      }),
+    clients.catalogProcessClient.getEServiceById({
+      params: { eServiceId: interaction.eServiceId },
+      headers: ctx.headers,
+    }),
+  ]);
+
+  if (!producerKeychain || !producerKey) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "producerKeychainEntryNotFound",
+          `Producer keychain entry not found for producer keychain ${producerKeychainId}, key ${jwt.header.kid}, eService ${interaction.eServiceId}`,
+          "Producer keychain entry not found"
+        ),
+      ],
+    };
+  }
+
+  assertProducerKeychainVisibilityIsFull(producerKeychain);
+
+  if (!producerKeychain.eservices.includes(interaction.eServiceId)) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "producerKeychainEServiceNotFound",
+          `Producer keychain ${producerKeychainId} is not linked to eService ${interaction.eServiceId}`,
+          "Producer keychain eService not found"
+        ),
+      ],
+    };
+  }
+
+  const descriptor = await retrieveDescriptor(
+    eservice,
+    interaction.descriptorId
+  );
+  const validationCatalogContext = toAsyncCatalogValidationContext(
+    eservice,
+    descriptor
+  );
+
+  return {
+    errors: undefined,
+    data: {
+      verificationKey: { publicKey: producerKey.encodedPem },
+      eservice: toTokenValidationEService(eservice, descriptor),
+      platformStateErrors: buildProducerAsyncPlatformErrors(
+        jwt,
+        interaction,
+        validationCatalogContext
+      ),
     },
   };
 }
@@ -392,7 +730,6 @@ async function retrieveAgreement(
     return agreements[0];
   }
 
-  // If there are multiple agreements, give priority to active or suspended agreement
   const agreementPrioritized = agreements.find(
     (a) =>
       a.state === agreementApi.AgreementState.Values.SUSPENDED ||
@@ -416,7 +753,6 @@ async function retrieveDescriptor(
 function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
-      // sort versions in reverse order to find the latest with desired state
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
