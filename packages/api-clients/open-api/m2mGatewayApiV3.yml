@@ -9530,12 +9530,12 @@ paths:
   /purposeTemplateEvents:
     get:
       tags:
-        - m2mEvents
+        - events
       summary: Get Purpose Template events
       description: |
         Retrieve list of Purpose Template events that occurred after the specified event ID.
-        Results are ordered in ascending order (oldest events first). Access to all events.
-      operationId: getPurposeTemplateM2MEvents
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateEvents
       parameters:
         - $ref: "#/components/parameters/LastEventId"
         - $ref: "#/components/parameters/EventsLimit"
@@ -9545,7 +9545,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeTemplateM2MEvents"
+                $ref: "#/components/schemas/PurposeTemplateEvents"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -10569,7 +10569,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProducerDelegationEvent"
-    PurposeTemplateM2MEvent:
+    PurposeTemplateEvent:
       type: object
       additionalProperties: false
       properties:
@@ -10604,7 +10604,7 @@ components:
         - eventTimestamp
         - purposeTemplateId
 
-    PurposeTemplateM2MEvents:
+    PurposeTemplateEvents:
       type: object
       additionalProperties: false
       required:
@@ -10613,7 +10613,7 @@ components:
         events:
           type: array
           items:
-            $ref: "#/components/schemas/PurposeTemplateM2MEvent"
+            $ref: "#/components/schemas/PurposeTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false

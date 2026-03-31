@@ -15,6 +15,7 @@ import {
   toM2MGatewayApiEServiceTemplateEvent,
   toM2MGatewayApiTenantEvent,
   toM2MGatewayApiPurposeEvent,
+  toM2MGatewayApiPurposeTemplateEvent,
 } from "../api/eventApiConverter.js";
 
 const normalizeDelegationId = (
@@ -115,6 +116,27 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
       return { events: events.map(toM2MGatewayApiTenantEvent) };
+    },
+
+    async getPurposeTemplateEvents(
+      {
+        lastEventId,
+        limit,
+      }: m2mGatewayApiV3.GetEventManagerPurposesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.PurposeTemplateEvents> {
+      logger.info(
+        `Retrieving purpose events with lastEventId: ${lastEventId} and limit: ${limit}`
+      );
+
+      const { events } = await clients.eventManagerClient.getPurposeTemplateM2MEvents({
+        queries: {
+          lastEventId,
+          limit,
+        },
+        headers,
+      });
+      return { events: events.map(toM2MGatewayApiPurposeTemplateEvent) };
     },
 
     async getKeyEvents(
