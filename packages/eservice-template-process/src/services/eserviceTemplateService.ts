@@ -1671,8 +1671,25 @@ export function eserviceTemplateServiceBuilder(
           );
         }
 
+        if (version.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplate.data.id,
+            version.id
+          );
+        }
+
         if (version.asyncExchangeCallbackInterface !== undefined) {
           throw asyncExchangeCallbackInterfaceAlreadyExists(version.id);
+        }
+
+        if (
+          eserviceTemplate.data.technology === technology.soap &&
+          version.asyncExchangeProperties.bulk === true
+        ) {
+          throw asyncExchangeBulkNotAllowedForSoap(
+            eserviceTemplate.data.id,
+            version.id
+          );
         }
       }
 
