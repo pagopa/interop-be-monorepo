@@ -122,20 +122,21 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
       {
         lastEventId,
         limit,
-      }: m2mGatewayApiV3.GetEventManagerPurposesQueryParams,
+      }: m2mGatewayApiV3.GetEventManagerPurposeTemplatesQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.PurposeTemplateEvents> {
       logger.info(
         `Retrieving purpose events with lastEventId: ${lastEventId} and limit: ${limit}`
       );
 
-      const { events } = await clients.eventManagerClient.getPurposeTemplateM2MEvents({
-        queries: {
-          lastEventId,
-          limit,
-        },
-        headers,
-      });
+      const { events } =
+        await clients.eventManagerClient.getPurposeTemplateM2MEvents({
+          queries: {
+            lastEventId,
+            limit,
+          },
+          headers,
+        });
       return { events: events.map(toM2MGatewayApiPurposeTemplateEvent) };
     },
 

@@ -114,7 +114,9 @@ const eventRouter = (
         ctx
       );
 
-      return res.status(200).send(m2mGatewayApiV3.PurposeTemplateEvents.parse(events));
+      return res
+        .status(200)
+        .send(m2mGatewayApiV3.PurposeTemplateEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
