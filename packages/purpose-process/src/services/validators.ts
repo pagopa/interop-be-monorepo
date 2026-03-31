@@ -87,15 +87,16 @@ export const isRiskAnalysisFormValid = (
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
+  } else {
+    return (
+      validateRiskAnalysis(
+        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+        schemaOnlyValidation,
+        dateForExpirationValidation,
+        personalDataInEService
+      ).type === "valid"
+    );
   }
-  return (
-    validateRiskAnalysis(
-      riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-      schemaOnlyValidation,
-      dateForExpirationValidation,
-      personalDataInEService
-    ).type === "valid"
-  );
 };
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
