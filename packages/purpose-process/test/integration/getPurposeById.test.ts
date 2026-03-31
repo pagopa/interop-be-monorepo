@@ -74,6 +74,11 @@ describe("getPurposeById", () => {
     await addOnePurpose(mockPurpose2);
     await addOneEService(mockEService);
     await addOneTenant(producer);
+    await addOneTenant({
+      ...getMockTenant(),
+      id: mockPurpose1.consumerId,
+      kind: tenantKind.PA,
+    });
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
@@ -210,6 +215,11 @@ describe("getPurposeById", () => {
     await addOnePurpose(mockPurpose1);
     await addOneEService(mockEService);
     await addOneTenant(producerDelegate);
+    await addOneTenant({
+      ...getMockTenant(),
+      id: mockPurpose1.consumerId,
+      kind: tenantKind.PA,
+    });
     await addOneDelegation(mockProducerDelegation);
 
     const purposeResponse = await purposeService.getPurposeById(
@@ -329,6 +339,11 @@ describe("getPurposeById", () => {
     await addOnePurpose(mockPurpose1);
     await addOneEService(mockEService);
     await addOneTenant(consumerDelegate);
+    await addOneTenant({
+      ...getMockTenant(),
+      id: mockPurpose1.consumerId,
+      kind: tenantKind.PA,
+    });
     await addOneDelegation(mockConsumerDelegation);
 
     const purposeResponse = await purposeService.getPurposeById(
@@ -395,6 +410,11 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(producer);
     await addOneTenant(producerDelegate);
+    await addOneTenant({
+      ...getMockTenant(),
+      id: mockPurpose1.consumerId,
+      kind: tenantKind.PA,
+    });
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
@@ -446,6 +466,11 @@ describe("getPurposeById", () => {
     await addSomeRandomDelegations(mockPurpose1, addOneDelegation);
     await addOneEService(mockEService);
     await addOneTenant(producer);
+    await addOneTenant({
+      ...getMockTenant(),
+      id: mockPurpose1.consumerId,
+      kind: tenantKind.PA,
+    });
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
