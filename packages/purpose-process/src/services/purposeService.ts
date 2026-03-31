@@ -48,7 +48,6 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
-  RiskAnalysisFormId,
   RiskAnalysisId,
   Tenant,
   TenantId,
@@ -81,7 +80,6 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   purposeVersionStateConflict,
-  riskAnalysisTenantKindMismatch,
   riskAnalysisConfigLatestVersionNotFound,
   riskAnalysisConfigVersionNotFound,
   tenantIsNotTheConsumer,
@@ -136,6 +134,7 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
   assertValidPurposeTenantKind,
+  assertRiskAnalysisTenantKindMatch,
   getOrganizationRole,
   isArchivable,
   isClonable,
@@ -245,24 +244,6 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
-};
-
-const assertRiskAnalysisTenantKindMatch = ({
-  actualKind,
-  expectedKind,
-  riskAnalysisFormId,
-}: {
-  actualKind: TenantKind | undefined;
-  expectedKind: TenantKind;
-  riskAnalysisFormId: RiskAnalysisFormId;
-}): void => {
-  if (actualKind && actualKind !== expectedKind) {
-    throw riskAnalysisTenantKindMismatch(
-      actualKind,
-      expectedKind,
-      riskAnalysisFormId
-    );
-  }
 };
 
 export const retrieveActiveAgreement = async (

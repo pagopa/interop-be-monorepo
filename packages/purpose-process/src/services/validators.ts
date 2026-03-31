@@ -26,6 +26,7 @@ import {
   PurposeVersion,
   purposeVersionState,
   RiskAnalysisForm,
+  RiskAnalysisFormId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
@@ -46,6 +47,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -65,6 +67,24 @@ const isTenantKindMatching = (
   actualKind: TenantKind | undefined,
   expectedKind: TenantKind
 ): boolean => !actualKind || actualKind === expectedKind;
+
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  expectedKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      riskAnalysisFormId
+    );
+  }
+};
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
