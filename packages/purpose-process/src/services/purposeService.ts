@@ -350,7 +350,8 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveTenantKind(
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
         purpose.data.consumerId,
         readModelService
       );
@@ -956,7 +957,8 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenantKind = await retrieveTenantKind(
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
         purpose.data.consumerId,
         readModelService
       );
@@ -2413,7 +2415,8 @@ async function activatePurposeLogic({
   if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
     const riskAnalysisForm = purpose.data.riskAnalysisForm;
     if (riskAnalysisForm) {
-      const tenantKind = await retrieveTenantKind(
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
         purpose.data.consumerId,
         readModelService
       );
