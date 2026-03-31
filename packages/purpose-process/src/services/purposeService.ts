@@ -350,19 +350,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-        eservice,
-        purpose.data.consumerId,
-        readModelService
-      );
-
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             purpose.data.createdAt,
-            eservice.personalData,
-            tenantKind
+            eservice.personalData
           )
         : true;
 
@@ -957,19 +950,12 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-        eservice,
-        purpose.data.consumerId,
-        readModelService
-      );
-
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             new Date(),
-            eservice.personalData,
-            tenantKind
+            eservice.personalData
           )
         : true;
 
@@ -2218,8 +2204,7 @@ const performUpdatePurpose = async (
         updatedPurpose.riskAnalysisForm,
         false,
         new Date(),
-        eservice.personalData,
-        tenantKindToWriteInRA
+        eservice.personalData
       ),
     },
     metadata: { version: createdEvent.newVersion },
