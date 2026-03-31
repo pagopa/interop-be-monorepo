@@ -1,5 +1,6 @@
 import {
   clientKindTokenGenStates,
+  interactionState,
   itemState,
   makeProducerKeychainPlatformStatesPK,
   unsafeBrandId,
@@ -33,7 +34,6 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleCallbackInvocation = async (
-  scope: "callback_invocation",
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
@@ -84,10 +84,14 @@ export const handleCallbackInvocation = async (
   if (
     !isInteractionStateAllowedForScope({
       currentState: interaction.state,
-      scope,
+      scope: interactionState.callbackInvocation,
     })
   ) {
-    throw interactionStateNotAllowed(interactionId, interaction.state, scope);
+    throw interactionStateNotAllowed(
+      interactionId,
+      interaction.state,
+      interactionState.callbackInvocation
+    );
   }
 
   // 4. Extract eServiceId and descriptorId from interaction
@@ -166,7 +170,7 @@ export const handleCallbackInvocation = async (
     purposeId: interaction.purposeId,
     tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
     interactionId,
-    scope,
+    scope: interactionState.callbackInvocation,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
@@ -174,7 +178,7 @@ export const handleCallbackInvocation = async (
     dynamoDBClient,
     interactionsTable,
     interactionId,
-    state: scope,
+    state: interactionState.callbackInvocation,
     updatedAt: issuedAt,
   });
 

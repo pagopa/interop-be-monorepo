@@ -2,6 +2,7 @@ import { verifyClientAssertionSignature } from "pagopa-interop-client-assertion-
 import {
   clientKindTokenGenStates,
   genericInternalError,
+  interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
@@ -30,7 +31,6 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleConfirmation = async (
-  scope: "confirmation",
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
@@ -72,10 +72,14 @@ export const handleConfirmation = async (
   if (
     !isInteractionStateAllowedForScope({
       currentState: interaction.state,
-      scope,
+      scope: interactionState.confirmation,
     })
   ) {
-    throw interactionStateNotAllowed(interactionId, interaction.state, scope);
+    throw interactionStateNotAllowed(
+      interactionId,
+      interaction.state,
+      interactionState.confirmation
+    );
   }
 
   // 4. Validate callbackInvocationTokenIssuedAt is present
@@ -172,7 +176,7 @@ export const handleConfirmation = async (
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
     interactionId,
     urlCallback: undefined,
-    scope,
+    scope: interactionState.confirmation,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
@@ -180,7 +184,7 @@ export const handleConfirmation = async (
     dynamoDBClient,
     interactionsTable,
     interactionId,
-    state: scope,
+    state: interactionState.confirmation,
     updatedAt: issuedAt,
   });
 

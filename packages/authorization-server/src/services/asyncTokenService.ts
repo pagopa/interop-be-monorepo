@@ -237,13 +237,9 @@ const generateTokenByScope = async (
     .with(interactionState.startInteraction, async () =>
       handleStartInteraction(ctx)
     )
-    .with(interactionState.callbackInvocation, async (scope) =>
-      handleCallbackInvocation(scope, ctx)
+    .with(interactionState.callbackInvocation, async () =>
+      handleCallbackInvocation(ctx)
     )
-    .with(interactionState.getResource, async (scope) =>
-      handleGetResource(scope, ctx)
-    )
-    .with(interactionState.confirmation, async (scope) =>
-      handleConfirmation(scope, ctx)
-    )
+    .with(interactionState.getResource, async () => handleGetResource(ctx))
+    .with(interactionState.confirmation, async () => handleConfirmation(ctx))
     .exhaustive();

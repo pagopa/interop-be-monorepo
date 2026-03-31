@@ -2,6 +2,7 @@ import { verifyClientAssertionSignature } from "pagopa-interop-client-assertion-
 import {
   clientKindTokenGenStates,
   genericInternalError,
+  interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
@@ -29,7 +30,6 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleGetResource = async (
-  scope: "get_resource",
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
@@ -71,10 +71,14 @@ export const handleGetResource = async (
   if (
     !isInteractionStateAllowedForScope({
       currentState: interaction.state,
-      scope,
+      scope: interactionState.getResource,
     })
   ) {
-    throw interactionStateNotAllowed(interactionId, interaction.state, scope);
+    throw interactionStateNotAllowed(
+      interactionId,
+      interaction.state,
+      interactionState.getResource
+    );
   }
 
   // 4. Validate callbackInvocationTokenIssuedAt is present
@@ -165,7 +169,7 @@ export const handleGetResource = async (
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
     interactionId,
     urlCallback: undefined,
-    scope,
+    scope: interactionState.getResource,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
@@ -173,7 +177,7 @@ export const handleGetResource = async (
     dynamoDBClient,
     interactionsTable,
     interactionId,
-    state: scope,
+    state: interactionState.getResource,
     updatedAt: issuedAt,
   });
 
