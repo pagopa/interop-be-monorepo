@@ -230,8 +230,8 @@ const generateAsyncTokenByScope = async (
     .with(interactionState.startInteraction, async () =>
       handleStartInteraction(ctx)
     )
-    .with(interactionState.callbackInvocation, async (scope) =>
-      handleCallbackInvocation(scope, ctx)
+    .with(interactionState.callbackInvocation, async () =>
+      handleCallbackInvocation(ctx)
     )
     .with(interactionState.getResource, async () => {
       throw asyncScopeNotYetImplemented(interactionState.getResource);
