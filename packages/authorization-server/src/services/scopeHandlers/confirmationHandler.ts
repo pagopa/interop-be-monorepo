@@ -194,6 +194,14 @@ export const handleConfirmation = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId: interaction.interactionId,
+      state: scope,
+      startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
+      callbackInvocationTokenIssuedAt:
+        interaction.callbackInvocationTokenIssuedAt,
+      confirmationTokenIssuedAt: issuedAt,
+    },
   });
 
   // 14. Log and return

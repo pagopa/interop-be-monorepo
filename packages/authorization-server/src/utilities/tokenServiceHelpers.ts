@@ -9,6 +9,7 @@ import {
   EServiceId,
   FullTokenGenerationStatesConsumerClient,
   GeneratedTokenAuditDetails,
+  InteractionAuditDetails,
   generateId,
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
@@ -19,6 +20,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  TenantId,
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -156,6 +158,7 @@ const buildAuditMessageBody = ({
   descriptorId,
   purposeId,
   purposeVersionId,
+  interaction,
 }: {
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
   clientAssertion: ClientAssertion | AsyncClientAssertion;
@@ -167,6 +170,7 @@ const buildAuditMessageBody = ({
   descriptorId: DescriptorId;
   purposeId: string;
   purposeVersionId: string;
+  interaction?: InteractionAuditDetails;
 }): GeneratedTokenAuditDetails => ({
   jwtId: generatedToken.payload.jti,
   correlationId,
@@ -208,6 +212,7 @@ const buildAuditMessageBody = ({
         },
       }
     : {}),
+  ...(interaction ? { interaction } : {}),
 });
 
 const sendAuditMessage = async ({
@@ -248,6 +253,7 @@ export const publishAudit = async ({
   correlationId,
   fileManager,
   logger,
+  interaction,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
@@ -257,6 +263,7 @@ export const publishAudit = async ({
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
+  interaction?: InteractionAuditDetails;
 }): Promise<void> => {
   const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
     key.GSIPK_eserviceId_descriptorId
@@ -272,6 +279,7 @@ export const publishAudit = async ({
     descriptorId,
     purposeId: key.GSIPK_purposeId,
     purposeVersionId: key.purposeVersionId,
+    interaction,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });
@@ -309,7 +317,7 @@ export const fallbackAudit = async (
 export const publishProducerAudit = async ({
   producer,
   generatedToken,
-  producerKeychainId,
+  organizationId,
   eserviceId,
   descriptorId,
   purposeId,
@@ -318,10 +326,11 @@ export const publishProducerAudit = async ({
   correlationId,
   fileManager,
   logger,
+  interaction,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropAsyncConsumerToken;
-  producerKeychainId: ProducerKeychainId;
+  organizationId: TenantId;
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   purposeId: string;
@@ -330,20 +339,20 @@ export const publishProducerAudit = async ({
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
+  interaction?: InteractionAuditDetails;
 }): Promise<void> => {
-  // Producer callback audit uses producerKeychainId as organizationId
-  // and placeholder values for consumer-specific fields (agreementId, purposeVersionId)
   const messageBody = buildAuditMessageBody({
     generatedToken,
     clientAssertion,
     dpop,
     correlationId,
-    organizationId: producerKeychainId,
+    organizationId,
     agreementId: NIL_UUID,
     eserviceId,
     descriptorId,
     purposeId,
     purposeVersionId: NIL_UUID,
+    interaction,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });
@@ -402,6 +411,7 @@ type ProducerKeychainPlatformStateEntry = {
   PK: ProducerKeychainPlatformStatesPK;
   publicKey: string;
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
   kid: string;
   eServiceId: EServiceId;
   version: number;
@@ -435,6 +445,7 @@ export const retrieveProducerKey = async (
     typeof unmarshalled.PK !== "string" ||
     typeof unmarshalled.publicKey !== "string" ||
     typeof unmarshalled.producerKeychainId !== "string" ||
+    typeof unmarshalled.producerId !== "string" ||
     typeof unmarshalled.kid !== "string" ||
     typeof unmarshalled.eServiceId !== "string" ||
     typeof unmarshalled.version !== "number"

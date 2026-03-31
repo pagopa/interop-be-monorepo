@@ -182,7 +182,7 @@ export const handleCallbackInvocation = async (
   await publishProducerAudit({
     producer,
     generatedToken: token,
-    producerKeychainId,
+    organizationId: producerKey.producerId,
     eserviceId: eServiceId,
     descriptorId,
     purposeId: interaction.purposeId,
@@ -191,6 +191,12 @@ export const handleCallbackInvocation = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId: interaction.interactionId,
+      state: scope,
+      startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
+      callbackInvocationTokenIssuedAt: issuedAt,
+    },
   });
 
   // 13. Log and return
