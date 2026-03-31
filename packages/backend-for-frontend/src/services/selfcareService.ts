@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { CorrelationId, TenantId } from "pagopa-interop-models";
+import { ApiError, CorrelationId, TenantId } from "pagopa-interop-models";
 import {
   bffApi,
   selfcareV2ClientApi,
@@ -34,6 +34,28 @@ export async function getSelfcareCompactUserById(
   });
 
   return toBffApiCompactUser(user, userId);
+}
+
+function toSafeApiSelfcareInstitution(
+  institution: selfcareV2ClientApi.UserInstitutionResource,
+  userId: string,
+  logger: WithLogger<BffAppContext>["logger"]
+): bffApi.SelfcareInstitution | undefined {
+  try {
+    return toApiSelfcareInstitution(institution);
+  } catch (error) {
+    if (
+      error instanceof ApiError &&
+      error.code === "selfcareEntityNotFilled"
+    ) {
+      logger.warn(
+        `Skipping incomplete selfcare institution for user ${userId} - ${error.detail}`
+      );
+      return undefined;
+    }
+
+    throw error;
+  }
 }
 
 export function selfcareServiceBuilder({
@@ -122,7 +144,15 @@ export function selfcareServiceBuilder({
         },
       });
 
-      return institutions.map(toApiSelfcareInstitution);
+      return institutions.flatMap((institution) => {
+        const selfcareInstitution = toSafeApiSelfcareInstitution(
+          institution,
+          userId,
+          logger
+        );
+
+        return selfcareInstitution ? [selfcareInstitution] : [];
+      });
     },
 
     async getInstitutionUsers(
