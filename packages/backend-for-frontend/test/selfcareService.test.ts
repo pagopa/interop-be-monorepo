@@ -73,11 +73,10 @@ describe("selfcareService", () => {
 
     expect(result).toEqual([expectedInstitution]);
     expect(warn).toHaveBeenCalledOnce();
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("Skipping incomplete selfcare institution")
+    const [[warningMessage]] = warn.mock.calls;
+    expect(warningMessage).toContain(
+      "Skipping incomplete selfcare institution"
     );
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("institutionDescription")
-    );
+    expect(warningMessage).toContain("institutionDescription");
   });
 });
