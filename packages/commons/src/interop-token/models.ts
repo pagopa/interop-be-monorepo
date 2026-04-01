@@ -90,6 +90,7 @@ export const InteropJwtAsyncConsumerPayload = InteropJwtCommonPayload.merge(
     client_id: ClientId,
     sub: ClientId,
     purposeId: PurposeId,
+    digest: ClientAssertionDigest.optional(),
     producerId: TenantId,
     consumerId: TenantId,
     eserviceId: EServiceId,

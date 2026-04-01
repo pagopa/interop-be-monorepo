@@ -329,6 +329,7 @@ export class InteropTokenGenerator {
     audience,
     purposeId,
     tokenDurationInSeconds,
+    digest,
     producerId,
     consumerId,
     eserviceId,
@@ -342,6 +343,7 @@ export class InteropTokenGenerator {
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
     producerId: TenantId;
     consumerId: TenantId;
     eserviceId: EServiceId;
@@ -379,6 +381,7 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
+      ...(digest ? { digest } : {}),
       producerId,
       consumerId,
       eserviceId,

@@ -248,6 +248,28 @@ describe("async token service - start_interaction", () => {
     expect(interaction.descriptorId).toBe(descriptorId);
   });
 
+  it("should include digest in token when client assertion has digest", async () => {
+    mockProducer.send.mockImplementationOnce(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const digest = { alg: "SHA256", value: "a".repeat(64) };
+    const { jws, clientId } = await setupConsumerClient({ digest });
+    const result = await callAsyncTokenService(jws, clientId);
+
+    expect(result.limitReached).toBe(false);
+    if (result.limitReached || !result.tokenGenerated) {
+      fail();
+    }
+
+    const token = result.token;
+    if (!("interactionId" in token.payload)) {
+      fail("Expected InteropAsyncConsumerToken");
+    }
+
+    expect(token.payload.digest).toEqual(digest);
+  });
+
   it("should throw urlCallbackNotProvided when urlCallback is missing", async () => {
     const { jws, clientId } = await setupConsumerClient({
       urlCallback: undefined,

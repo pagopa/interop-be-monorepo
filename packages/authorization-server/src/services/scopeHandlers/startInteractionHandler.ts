@@ -153,6 +153,7 @@ export const handleStartInteraction = async (
     audience: key.descriptorAudience,
     purposeId,
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
+    digest: clientAssertionJWT.payload.digest || undefined,
     producerId: key.producerId,
     consumerId: key.consumerId,
     eserviceId,
