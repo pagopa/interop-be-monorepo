@@ -16,10 +16,7 @@ import {
   toDelegationV2,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
-import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+import { launchPuppeteerBrowser } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,
@@ -36,7 +33,7 @@ import {
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
@@ -78,13 +75,9 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
 
-export const pdfGenerator = await initPDFGenerator();
-
 export const delegationService = delegationServiceBuilder(
   postgresDB,
-  readModelService,
-  pdfGenerator,
-  fileManager
+  readModelService
 );
 
 const writeSubmitDelegationInEventstore = async (
