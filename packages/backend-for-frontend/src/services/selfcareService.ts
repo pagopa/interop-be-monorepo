@@ -44,10 +44,7 @@ function toSafeApiSelfcareInstitution(
   try {
     return toApiSelfcareInstitution(institution);
   } catch (error) {
-    if (
-      error instanceof ApiError &&
-      error.code === "selfcareEntityNotFilled"
-    ) {
+    if (error instanceof ApiError && error.code === "selfcareEntityNotFilled") {
       logger.warn(
         `Skipping incomplete selfcare institution for user ${userId} - ${error.detail}`
       );

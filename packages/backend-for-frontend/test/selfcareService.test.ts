@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   bffApi,
@@ -15,17 +12,15 @@ import { selfcareServiceBuilder } from "../src/services/selfcareService.js";
 
 describe("selfcareService", () => {
   it("should skip incomplete institutions instead of failing the whole response", async () => {
-    const v2getUserInstitution = vi.fn<
-      SelfcareV2UsersClient["v2getUserInstitution"]
-    >();
+    const v2getUserInstitution =
+      vi.fn<SelfcareV2UsersClient["v2getUserInstitution"]>();
     const warn = vi.fn();
 
     const clients = {
       selfcareV2UserClient: {
         v2getUserInstitution,
       } as unknown as SelfcareV2UsersClient,
-      selfcareV2InstitutionClient:
-        {} as unknown as SelfcareV2InstitutionClient,
+      selfcareV2InstitutionClient: {} as unknown as SelfcareV2InstitutionClient,
       tenantProcessClient: {
         tenant: {},
         tenantAttribute: {},
