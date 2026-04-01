@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -22,7 +23,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, or } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -81,9 +82,9 @@ export function readModelServiceBuilderSQL({
               ? inArray(attributeInReadmodelAttribute.kind, kinds)
               : undefined,
             name
-              ? ilike(
+              ? ilikeEscaped(
                   attributeInReadmodelAttribute.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             origin
@@ -111,7 +112,7 @@ export function readModelServiceBuilderSQL({
       name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeByFilter(
-        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
+        ilikeEscaped(attributeInReadmodelAttribute.name, escapeSqlLike(name))
       );
     },
     async getAttributeByOriginAndCode({
@@ -123,19 +124,26 @@ export function readModelServiceBuilderSQL({
     }): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
-          eq(attributeInReadmodelAttribute.origin, escapeRegExp(origin)),
-          eq(attributeInReadmodelAttribute.code, escapeRegExp(code))
+          eq(attributeInReadmodelAttribute.origin, origin),
+          eq(attributeInReadmodelAttribute.code, code)
         )
       );
     },
-    async getAttributeByCodeAndName(
+    async getAttributeByCodeOriginOrName(
       code: string,
-      name: string
+      name: string,
+      origin: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
-        and(
-          ilike(attributeInReadmodelAttribute.code, escapeRegExp(code)),
-          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
+        or(
+          and(
+            ilikeEscaped(
+              attributeInReadmodelAttribute.code,
+              escapeSqlLike(code)
+            ),
+            eq(attributeInReadmodelAttribute.origin, origin)
+          ),
+          ilikeEscaped(attributeInReadmodelAttribute.name, escapeSqlLike(name))
         )
       );
     },
