@@ -119,6 +119,7 @@ enum EServiceDescriptorStateV2 {
   SUSPENDED = 3;
   ARCHIVED = 4;
   WAITING_FOR_APPROVAL = 5;
+  ARCHIVING = 6;
 }
 
 enum EServiceTechnologyV2 {
