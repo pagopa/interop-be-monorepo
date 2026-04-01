@@ -60,7 +60,6 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -103,6 +102,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -2866,6 +2866,7 @@ export function catalogServiceBuilder(
       );
 
       const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        eserviceId,
         descriptor,
         seed
       );
@@ -3989,31 +3990,34 @@ function updateEServiceDescriptorAttributeInAdd(
 }
 
 function hasCertifiedAttributeDailyCallsChanged(
+  eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  return descriptor.attributes.certified.some(
-    (descriptorAttributesGroup, attributesGroupIndex) => {
-      const seedAttrGroup = seed.certified[attributesGroupIndex];
+  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
+    const seedAttrGroup = seed.certified.find((seedGroup) =>
+      descriptorAttributesGroup.every((descriptorAttribute) =>
+        seedGroup.some(
+          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
+        )
+      )
+    );
 
-      return descriptorAttributesGroup.some((descriptorAttribute) => {
-        const seedAttribute = seedAttrGroup.find(
-          (attribute) => attribute.id === descriptorAttribute.id
-        );
-
-        if (seedAttribute === undefined) {
-          throw genericInternalError(
-            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
-          );
-        }
-
-        return (
-          seedAttribute.dailyCallsPerConsumer !==
-          descriptorAttribute.dailyCallsPerConsumer
-        );
-      });
+    if (seedAttrGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
     }
-  );
+
+    return descriptorAttributesGroup.some((descriptorAttribute) => {
+      const seedAttribute = seedAttrGroup.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+
+      return (
+        seedAttribute?.dailyCallsPerConsumer !==
+        descriptorAttribute.dailyCallsPerConsumer
+      );
+    });
+  });
 }
 
 function evaluateTemplateVersionRef(
