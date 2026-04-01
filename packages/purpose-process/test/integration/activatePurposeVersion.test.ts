@@ -1324,8 +1324,6 @@ describe("activatePurposeVersion", () => {
       state: purposeVersionState.waitingForApproval,
     };
     const purpose: Purpose = { ...mockPurpose, versions: [purposeVersion] };
-    const riskAnalysisForm =
-      purpose.riskAnalysisForm ?? getMockValidRiskAnalysisForm("PA");
 
     await addOnePurpose(purpose);
     await addOneEService(mockEService);
