@@ -27,6 +27,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   RiskAnalysisId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -34,6 +35,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -49,6 +51,7 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
   riskAnalysisTenantKindMismatch,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -181,6 +184,15 @@ export function assertIsDraftDescriptor(descriptor: Descriptor): void {
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
     throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
   }
 }
 
@@ -426,4 +438,15 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
 }

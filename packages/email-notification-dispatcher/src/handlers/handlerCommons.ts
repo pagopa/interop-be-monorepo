@@ -50,11 +50,6 @@ export type EServiceDescriptorHandlerParams = HandlerCommonParams & {
   descriptorId: string;
 };
 
-export type EServiceNameUpdatedHandlerParams = HandlerCommonParams & {
-  eserviceV2Msg?: EServiceV2;
-  oldName?: string;
-};
-
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };
@@ -211,9 +206,9 @@ export const getRecipientsForTenants = async ({
 }): Promise<EmailNotificationRecipient[]> => {
   if (config.notificationTypeBlocklist.includes(notificationType)) {
     logger.info(
-      `Notification type ${notificationType} is in the blocklist. Skipping notification for tenants: ${tenants
+      `Notification type ${notificationType} is in the blocklist. Skipping notification for tenants with ids: ${tenants
         .map((t) => t.id)
-        .join(", ")}`
+        .join(",")}`
     );
     return [];
   }

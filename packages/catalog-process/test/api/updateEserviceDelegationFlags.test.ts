@@ -23,7 +23,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/delegationFlags/update authorization test", () => {
@@ -106,7 +106,7 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       expectedStatus: 403,
     },
     {
-      error: invalidEServiceFlags(mockEService.id),
+      error: invalidDelegationFlags(false, true),
       expectedStatus: 400,
     },
   ])(
