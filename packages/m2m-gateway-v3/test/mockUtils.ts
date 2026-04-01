@@ -95,7 +95,7 @@ export const buildRiskAnalysisSeed = (
 };
 
 export const buildEserviceTemplateRiskAnalysisSeed = (
-  riskAnalysis: EServiceTemplateRiskAnalysis
+  riskAnalysis: RiskAnalysis
 ): m2mGatewayApiV3.EServiceTemplateRiskAnalysisSeed => {
   const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
