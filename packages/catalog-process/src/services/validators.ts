@@ -60,6 +60,7 @@ export function descriptorStatesNotAllowingDocumentOperations(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving,
       () => false
     )
     .with(
@@ -86,6 +87,7 @@ function isNotActiveDescriptor(descriptor: Descriptor): boolean {
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving,
       () => false
     )
     .exhaustive();
@@ -107,6 +109,7 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       descriptorState.draft,
       descriptorState.waitingForApproval,
       descriptorState.archived,
+      descriptorState.archiving, // FIXME: is this the correct approach?
       () => false
     )
     .exhaustive();
@@ -265,6 +268,7 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.waitingForApproval,
+      descriptorState.archiving,
       () => {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
@@ -282,6 +286,7 @@ export function assertDocumentDeletableDescriptorState(
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.waitingForApproval,
+      descriptorState.archiving,
       () => void 0
     )
     .with(descriptorState.archived, () => {

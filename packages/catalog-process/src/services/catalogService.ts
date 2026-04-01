@@ -392,6 +392,16 @@ const archiveDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.archived);
 };
 
+// const archivingDescriptor = (
+//   streamId: string,
+//   descriptor: Descriptor,
+//   logger: Logger
+// ): Descriptor => {
+//   logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
+
+//   return updateDescriptorState(descriptor, descriptorState.archiving);
+// };
+
 const replaceDescriptor = (
   eservice: EService,
   newDescriptor: Descriptor

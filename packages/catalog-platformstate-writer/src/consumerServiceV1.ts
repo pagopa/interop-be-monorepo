@@ -167,6 +167,7 @@ export async function handleMessageV1(
 
           return Promise.resolve();
         })
+        .with(descriptorState.archiving, Promise.resolve) // FIXME: New state
         .exhaustive();
     })
     .with(
