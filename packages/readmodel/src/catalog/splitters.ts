@@ -150,6 +150,7 @@ const attributeToAttributeSQL = ({
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
+  dailyCallsPerConsumer: attribute.dailyCallsPerConsumer || null,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (
@@ -381,6 +382,7 @@ export const eserviceToEserviceSQL = (
   isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
+  instanceLabel: eservice.instanceLabel ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

@@ -108,6 +108,7 @@ export function toGetAgreementsApiQueryParamsForPurpose(
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: [purpose.consumerId],
+    exactConsumerIdMatch: true,
     eservicesIds: [purpose.eserviceId],
     states: [
       m2mGatewayApiV3.AgreementState.Values.ACTIVE,
@@ -118,5 +119,14 @@ export function toGetAgreementsApiQueryParamsForPurpose(
     showOnlyUpgradeable: false,
     offset: 0,
     limit: 1,
+  };
+}
+
+export function toM2MGatewayApiRemainingDailyCallsResponse(
+  response: purposeApi.RemainingDailyCallsResponse
+): m2mGatewayApiV3.RemainingDailyCallsResponse {
+  return {
+    remainingDailyCallsPerConsumer: response.remainingDailyCallsPerConsumer,
+    remainingDailyCallsTotal: response.remainingDailyCallsTotal,
   };
 }

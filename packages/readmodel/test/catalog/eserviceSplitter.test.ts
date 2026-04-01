@@ -47,6 +47,7 @@ describe("E-service splitter", () => {
     const isConsumerDelegable = true;
     const templateId: EServiceTemplateId = generateId();
     const personalData = true;
+    const instanceLabel = "instance 001";
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -86,6 +87,7 @@ describe("E-service splitter", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      instanceLabel,
     };
 
     const {
@@ -114,6 +116,7 @@ describe("E-service splitter", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      instanceLabel,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -172,6 +175,7 @@ describe("E-service splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
+      dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {
@@ -291,6 +295,7 @@ describe("E-service splitter", () => {
       isConsumerDelegable: null,
       templateId: null,
       personalData: null,
+      instanceLabel: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {

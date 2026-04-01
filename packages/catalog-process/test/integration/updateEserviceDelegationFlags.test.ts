@@ -25,7 +25,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -316,7 +316,7 @@ describe("update eService flags", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  it("should throw invalidEServiceFlags if the isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+  it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -337,6 +337,6 @@ describe("update eService flags", () => {
         },
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(invalidEServiceFlags(eservice.id));
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 });
