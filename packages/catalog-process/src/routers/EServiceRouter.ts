@@ -2,7 +2,6 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  assertFeatureFlagEnabled,
   authRole,
   ExpressContext,
   fromAppContext,
@@ -80,7 +79,6 @@ import {
   updateEServiceInstanceLabelErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
-import { config } from "../config/config.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -1513,8 +1511,6 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
-
-        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
 
         const updatedEService =
           await catalogService.updateEServicePersonalDataFlagAfterPublication(

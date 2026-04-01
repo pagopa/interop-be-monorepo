@@ -22,7 +22,6 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -61,7 +60,6 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -104,6 +102,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -553,9 +552,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: seed.personalData }
-      : {}),
+    personalData: seed.personalData,
     instanceLabel: instanceLabel,
   };
 
@@ -1670,10 +1667,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -2101,6 +2095,10 @@ export function catalogServiceBuilder(
         );
 
         assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+        assertAttributeDailyCallsConsistentWithTotal(
+          parsedAttributes,
+          seed.dailyCallsTotal
+        );
 
         updatedDescriptor = {
           ...updatedDescriptor,
@@ -2744,10 +2742,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -2871,6 +2866,7 @@ export function catalogServiceBuilder(
       );
 
       const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        eserviceId,
         descriptor,
         seed
       );
@@ -3360,10 +3356,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        template.personalData === undefined
-      ) {
+      if (template.personalData === undefined) {
         throw eServiceTemplateWithoutPersonalDataFlag(
           template.id,
           publishedVersion.id
@@ -3997,31 +3990,34 @@ function updateEServiceDescriptorAttributeInAdd(
 }
 
 function hasCertifiedAttributeDailyCallsChanged(
+  eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  return descriptor.attributes.certified.some(
-    (descriptorAttributesGroup, attributesGroupIndex) => {
-      const seedAttrGroup = seed.certified[attributesGroupIndex];
+  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
+    const seedAttrGroup = seed.certified.find((seedGroup) =>
+      descriptorAttributesGroup.every((descriptorAttribute) =>
+        seedGroup.some(
+          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
+        )
+      )
+    );
 
-      return descriptorAttributesGroup.some((descriptorAttribute) => {
-        const seedAttribute = seedAttrGroup.find(
-          (attribute) => attribute.id === descriptorAttribute.id
-        );
-
-        if (seedAttribute === undefined) {
-          throw genericInternalError(
-            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
-          );
-        }
-
-        return (
-          seedAttribute.dailyCallsPerConsumer !==
-          descriptorAttribute.dailyCallsPerConsumer
-        );
-      });
+    if (seedAttrGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
     }
-  );
+
+    return descriptorAttributesGroup.some((descriptorAttribute) => {
+      const seedAttribute = seedAttrGroup.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+
+      return (
+        seedAttribute?.dailyCallsPerConsumer !==
+        descriptorAttribute.dailyCallsPerConsumer
+      );
+    });
+  });
 }
 
 function evaluateTemplateVersionRef(
@@ -4243,9 +4239,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(

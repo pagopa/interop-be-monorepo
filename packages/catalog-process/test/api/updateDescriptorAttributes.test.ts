@@ -29,6 +29,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
+  inconsistentDailyCalls,
   notValidDescriptorState,
   templateInstanceNotAllowed,
   unchangedAttributes,
@@ -209,6 +210,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
       expectedStatus: 400,
     },
   ])(
