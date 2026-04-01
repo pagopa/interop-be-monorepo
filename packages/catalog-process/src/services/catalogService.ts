@@ -3639,8 +3639,12 @@ export function catalogServiceBuilder(
     async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
       personalData: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
       );
@@ -3674,9 +3678,14 @@ export function catalogServiceBuilder(
           correlationId
         );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async updateEServiceInstanceLabelAfterPublication(
       eserviceId: EServiceId,
