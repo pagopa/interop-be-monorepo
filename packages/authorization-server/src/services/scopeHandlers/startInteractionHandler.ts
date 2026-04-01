@@ -1,5 +1,5 @@
 import {
-  validateClientKindAndPlatformState,
+  validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
@@ -102,11 +102,8 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 5. Validate platform state
-  const { errors: platformStateErrors } = validateClientKindAndPlatformState(
-    key,
-    clientAssertionJWT
-  );
+  // 5. Validate platform state (client kind already verified above)
+  const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
       platformStateErrors.map((error) => error.detail).join(", ")
