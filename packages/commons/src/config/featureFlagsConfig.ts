@@ -63,21 +63,6 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
-export const FeatureFlagNotificationConfig = z
-  .object({
-    FEATURE_FLAG_NOTIFICATION_CONFIG: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagNotificationConfig: c.FEATURE_FLAG_NOTIFICATION_CONFIG ?? false,
-  }));
-export type FeatureFlagNotificationConfig = z.infer<
-  typeof FeatureFlagNotificationConfig
->;
-
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
     FEATURE_FLAG_PURPOSE_TEMPLATE: z
@@ -160,7 +145,6 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagNotificationConfig &
   FeatureFlagPurposeTemplateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
