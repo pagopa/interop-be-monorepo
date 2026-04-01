@@ -26,12 +26,7 @@ describe("selfcareService", () => {
         tenantAttribute: {},
         selfcare: {},
       },
-    } as unknown as Pick<
-      PagoPAInteropBeClients,
-      | "selfcareV2UserClient"
-      | "selfcareV2InstitutionClient"
-      | "tenantProcessClient"
-    >;
+    } as unknown as PagoPAInteropBeClients;
 
     const service = selfcareServiceBuilder(clients);
     const authData = getMockAuthData();
@@ -64,7 +59,7 @@ describe("selfcareService", () => {
     };
 
     const expectedInstitution: bffApi.SelfcareInstitution = {
-      id: validInstitution.institutionId,
+      id: authData.organizationId,
       description: "Valid institution",
       userProductRoles: ["ADMIN"],
     };
