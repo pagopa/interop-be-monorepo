@@ -22,6 +22,21 @@ import { config } from "../config/config.js";
 
 const INFOCAMERE_ORIGIN_PREFIX = "PDND_INFOCAMERE";
 
+type SyncAttributeParams = {
+  tenant: Tenant;
+  attribute: Attribute;
+  shouldHave: boolean;
+  tenantProcess: InteropClients["tenantProcessClient"];
+  refreshableToken: RefreshableInteropToken;
+  logger: Logger;
+  correlationId: CorrelationId;
+  readModel: ReadModelServiceSQL;
+  pollingConfig: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  };
+};
+
 export async function importAttributes(
   readModel: ReadModelServiceSQL,
   clients: InteropClients,
@@ -44,7 +59,9 @@ export async function importAttributes(
     registryAttributes.scp.id,
   ];
 
-  logger.info("Syncing Registro Imprese certified attributes started");
+  logger.info(
+    `Syncing Registro Imprese certified attributes started for ${attributeIds.length} attributes`
+  );
 
   const infocamereTenants = await readModel.getTenantsByOriginPrefix(
     INFOCAMERE_ORIGIN_PREFIX
@@ -55,6 +72,10 @@ export async function importAttributes(
   const tenantsToProcess = mergeTenants(
     infocamereTenants,
     alreadyAssignedTenants
+  );
+
+  logger.info(
+    `Found ${infocamereTenants.length} InfoCamere tenants and ${alreadyAssignedTenants.length} tenants with existing attributes. Total unique tenants to process: ${tenantsToProcess.length}`
   );
 
   const pollingConfig = {
@@ -68,54 +89,58 @@ export async function importAttributes(
     );
     const isSCP = isInfocamere && tenant.selfcareInstitutionType === SCP;
 
-    await syncAttribute(
-      tenant,
-      registryAttributes.adesione,
-      isInfocamere,
-      clients.tenantProcessClient,
-      refreshableToken,
-      logger,
-      correlationId,
-      readModel,
-      pollingConfig
+    logger.debug(
+      `Processing tenant ${tenant.id} (${tenant.externalId.origin}/${tenant.externalId.value}) - isInfocamere: ${isInfocamere}, isSCP: ${isSCP}`
     );
 
-    await syncAttribute(
+    await syncAttribute({
       tenant,
-      registryAttributes.scp,
-      isSCP,
-      clients.tenantProcessClient,
+      attribute: registryAttributes.adesione,
+      shouldHave: isInfocamere,
+      tenantProcess: clients.tenantProcessClient,
       refreshableToken,
       logger,
       correlationId,
       readModel,
-      pollingConfig
-    );
+      pollingConfig,
+    });
+
+    await syncAttribute({
+      tenant,
+      attribute: registryAttributes.scp,
+      shouldHave: isSCP,
+      tenantProcess: clients.tenantProcessClient,
+      refreshableToken,
+      logger,
+      correlationId,
+      readModel,
+      pollingConfig,
+    });
   }
 
   logger.info("Registro Imprese synchronization completed");
 }
 
-async function syncAttribute(
-  tenant: Tenant,
-  attribute: Attribute,
-  shouldHave: boolean,
-  tenantProcess: InteropClients["tenantProcessClient"],
-  refreshableToken: RefreshableInteropToken,
-  logger: Logger,
-  correlationId: CorrelationId,
-  readModel: ReadModelServiceSQL,
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  }
-): Promise<void> {
+async function syncAttribute({
+  tenant,
+  attribute,
+  shouldHave,
+  tenantProcess,
+  refreshableToken,
+  logger,
+  correlationId,
+  readModel,
+  pollingConfig,
+}: SyncAttributeParams): Promise<void> {
   const hasAttribute = tenant.attributes.some(
     (attr: TenantAttribute) =>
       attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
   );
 
-  if ((shouldHave && hasAttribute) || (!shouldHave && !hasAttribute)) {
+  if (shouldHave === hasAttribute) {
+    logger.debug(
+      `Skipping attribute ${attribute.name} for tenant ${tenant.id}: state already correct (shouldHave: ${shouldHave})`
+    );
     return;
   }
 
@@ -127,53 +152,67 @@ async function syncAttribute(
 
   const currentTenant = await readModel.getTenantByIdWithMetadata(tenant.id);
   if (!currentTenant) {
-    logger.warn(`Tenant ${tenant.id} not found`);
+    logger.warn(
+      `Tenant ${tenant.id} not found in ReadModel during syncAttribute`
+    );
     return;
   }
 
   const targetVersion = currentTenant.metadata.version + 1;
 
-  if (shouldHave && !hasAttribute) {
-    logger.info(
-      `Assigning attribute ${attribute.name} (${attribute.id}) to tenant ${tenant.id}`
-    );
-    await tenantProcess.internalAssignCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: tenant.externalId.origin,
-        tExternalId: tenant.externalId.value,
-        aOrigin: attribute.origin!,
-        aExternalId: attribute.code!,
-      },
-      headers: {
-        "X-Correlation-Id": context.correlationId,
-        Authorization: `Bearer ${context.bearerToken}`,
-        "Content-Type": false,
-      },
-    });
-  } else if (!shouldHave && hasAttribute) {
-    logger.info(
-      `Revoking attribute ${attribute.name} (${attribute.id}) from tenant ${tenant.id}`
-    );
-    await tenantProcess.internalRevokeCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: tenant.externalId.origin,
-        tExternalId: tenant.externalId.value,
-        aOrigin: attribute.origin!,
-        aExternalId: attribute.code!,
-      },
-      headers: {
-        "X-Correlation-Id": context.correlationId,
-        Authorization: `Bearer ${context.bearerToken}`,
-        "Content-Type": false,
-      },
-    });
-  }
+  try {
+    if (shouldHave && !hasAttribute) {
+      logger.info(
+        `Assigning attribute ${attribute.name} (${attribute.id}) to tenant ${tenant.id}`
+      );
+      await tenantProcess.internalAssignCertifiedAttribute(undefined, {
+        params: {
+          tOrigin: tenant.externalId.origin,
+          tExternalId: tenant.externalId.value,
+          aOrigin: attribute.origin!,
+          aExternalId: attribute.code!,
+        },
+        headers: {
+          "X-Correlation-Id": context.correlationId,
+          Authorization: `Bearer ${context.bearerToken}`,
+          "Content-Type": false,
+        },
+      });
+    } else if (!shouldHave && hasAttribute) {
+      logger.info(
+        `Revoking attribute ${attribute.name} (${attribute.id}) from tenant ${tenant.id}`
+      );
+      await tenantProcess.internalRevokeCertifiedAttribute(undefined, {
+        params: {
+          tOrigin: tenant.externalId.origin,
+          tExternalId: tenant.externalId.value,
+          aOrigin: attribute.origin!,
+          aExternalId: attribute.code!,
+        },
+        headers: {
+          "X-Correlation-Id": context.correlationId,
+          Authorization: `Bearer ${context.bearerToken}`,
+          "Content-Type": false,
+        },
+      });
+    }
 
-  await waitForReadModelMetadataVersion(
-    () => readModel.getTenantByIdWithMetadata(tenant.id),
-    targetVersion,
-    pollingConfig
-  );
+    logger.debug(
+      `Waiting for ReadModel version ${targetVersion} for tenant ${tenant.id}...`
+    );
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
+      targetVersion,
+      pollingConfig
+    );
+  } catch (error) {
+    logger.error(
+      `Error syncing attribute ${attribute.name} for tenant ${tenant.id}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    throw error;
+  }
 }
 
 function mergeTenants(listA: Tenant[], listB: Tenant[]): Tenant[] {
