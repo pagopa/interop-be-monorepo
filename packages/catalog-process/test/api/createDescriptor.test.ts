@@ -21,6 +21,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -150,6 +151,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
       error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -170,6 +175,102 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     [{ ...descriptorSeed, attributes: undefined }, eservice.id],
     [{ ...descriptorSeed, docs: [{}] }, eservice.id],
     [{}, "invalidId"],
+    // dailyCalls validation tests on attributes
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 0,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: -10,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: "invalid",
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 3.14,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: null,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
   ])(
     "Should return 400 if passed invalid descriptor params: %s (eserviceId: %s)",
     async (body, eserviceId) => {

@@ -22,12 +22,14 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
+  inconsistentDailyCalls,
   notValidDescriptorState,
   templateInstanceNotAllowed,
   unchangedAttributes,
@@ -206,6 +208,14 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       error: notValidDescriptorState(generateId(), ""),
       expectedStatus: 400,
     },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -284,6 +294,87 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     ],
     [
       { certified: "wrong", verified: "wrong", declared: "wrong" },
+      mockEService.id,
+      descriptor.id,
+    ],
+    // dailyCalls validation tests
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 0,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: -5,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: "notANumber",
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 1.5,
+            },
+          ],
+        ],
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...validMockDescriptorAttributeSeed,
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: null,
+            },
+          ],
+        ],
+      },
       mockEService.id,
       descriptor.id,
     ],
