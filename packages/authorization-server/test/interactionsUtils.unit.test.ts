@@ -12,6 +12,7 @@ import {
   PurposeId,
   InteractionId,
 } from "pagopa-interop-models";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   createInteraction,
   isInteractionStateAllowedForScope,
@@ -110,7 +111,7 @@ describe("interactions utils", () => {
       state: "start_interaction",
       startInteractionTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + ttlSeconds,
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
@@ -149,7 +150,7 @@ describe("interactions utils", () => {
       state: "callback_invocation",
       callbackInvocationTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + ttlSeconds,
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });

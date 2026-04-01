@@ -82,7 +82,12 @@ export const handleStartInteraction = async (
   setCtxOrganizationId(key.consumerId);
   setCtxClientKind(key.clientKind);
 
-  // 3. Verify client assertion signature
+  // 3. Validate that the eService supports async exchange (cheap check before crypto)
+  if (key.asyncExchange !== true) {
+    throw asyncExchangeNotEnabled(clientId);
+  }
+
+  // 4. Verify client assertion signature
   const { errors: clientAssertionSignatureErrors } =
     await verifyClientAssertionSignature(
       clientAssertionJWS,
@@ -97,7 +102,7 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 4. Validate platform state
+  // 5. Validate platform state
   const { errors: platformStateErrors } = validateClientKindAndPlatformState(
     key,
     clientAssertionJWT
@@ -106,11 +111,6 @@ export const handleStartInteraction = async (
     throw platformStateValidationFailed(
       platformStateErrors.map((error) => error.detail).join(", ")
     );
-  }
-
-  // 5. Validate that the eService supports async exchange
-  if (key.asyncExchange !== true) {
-    throw asyncExchangeNotEnabled(clientId);
   }
 
   // 6. Rate limiting (before catalog fetch to short-circuit early)
@@ -145,7 +145,6 @@ export const handleStartInteraction = async (
 
   // 8. Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
-  const issuedAt = new Date().toISOString();
 
   const ttlSeconds =
     asyncExchangeProperties.responseTime +
@@ -157,11 +156,18 @@ export const handleStartInteraction = async (
     audience: key.descriptorAudience,
     purposeId,
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
+    producerId: key.producerId,
+    consumerId: key.consumerId,
+    eserviceId,
+    descriptorId,
     interactionId,
     urlCallback,
     scope: interactionState.startInteraction,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
+
+  // Use the token's iat to ensure interaction and token share the same timestamp
+  const issuedAt = new Date(token.payload.iat * 1000).toISOString();
 
   // 9. Persist interaction only after successful token generation
   await createInteraction({

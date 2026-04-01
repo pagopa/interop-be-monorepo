@@ -329,6 +329,10 @@ export class InteropTokenGenerator {
     audience,
     purposeId,
     tokenDurationInSeconds,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
     interactionId,
     urlCallback,
     scope,
@@ -338,6 +342,10 @@ export class InteropTokenGenerator {
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
     interactionId: InteractionId;
     urlCallback: string;
     scope: InteractionState;
@@ -371,6 +379,10 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
+      producerId,
+      consumerId,
+      eserviceId,
+      descriptorId,
       interactionId,
       urlCallback,
       scope,

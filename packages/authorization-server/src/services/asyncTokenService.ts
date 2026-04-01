@@ -21,7 +21,6 @@ import {
   FileManager,
   InteropAsyncConsumerToken,
   InteropApiToken,
-  InteropConsumerToken,
   InteropTokenGenerator,
   Logger,
   RateLimiter,
@@ -79,7 +78,7 @@ export type AsyncGeneratedTokenData =
       limitReached: false;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       tokenGenerated: true;
-      token: InteropConsumerToken | InteropAsyncConsumerToken;
+      token: InteropAsyncConsumerToken;
       key: FullTokenGenerationStatesConsumerClient;
       isDPoP: boolean;
     }

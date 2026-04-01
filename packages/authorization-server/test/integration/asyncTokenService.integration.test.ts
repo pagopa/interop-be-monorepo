@@ -213,11 +213,13 @@ describe("async token service - start_interaction", () => {
       fail();
     }
 
-    // Verify the token has async-specific claims
+    // Narrow to async consumer token (the only type returned by start_interaction)
     const token = result.token;
+    expect("interactionId" in token.payload).toBe(true);
     if (!("interactionId" in token.payload)) {
-      fail("Expected async consumer token with interactionId");
+      fail("Expected InteropAsyncConsumerToken with interactionId claim");
     }
+
     expect(token.payload.scope).toBe(interactionState.startInteraction);
     expect(token.payload.urlCallback).toBe("https://callback.example.com");
     expect(token.payload.interactionId).toBeDefined();
