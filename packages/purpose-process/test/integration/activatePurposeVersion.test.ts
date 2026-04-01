@@ -49,6 +49,7 @@ import {
   UserId,
   purposeTemplateState,
   PurposeTemplate,
+  PurposeRiskAnalysisForm,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -1323,12 +1324,21 @@ describe("activatePurposeVersion", () => {
       state: purposeVersionState.waitingForApproval,
     };
     const purpose: Purpose = { ...mockPurpose, versions: [purposeVersion] };
+    const riskAnalysisForm =
+      purpose.riskAnalysisForm ?? getMockValidRiskAnalysisForm("PA");
 
     await addOnePurpose(purpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
+
+    const result = validateRiskAnalysis(
+      riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+      false,
+      new Date(),
+      undefined
+    );
 
     expect(async () => {
       await purposeService.activatePurposeVersion(
@@ -1624,7 +1634,8 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
-    const riskAnalysisForm = getMockValidRiskAnalysisForm("GSP");
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockExpiredRiskAnalysisForm("PA");
 
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
