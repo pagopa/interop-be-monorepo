@@ -1333,13 +1333,6 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const result = validateRiskAnalysis(
-      riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-      false,
-      new Date(),
-      undefined
-    );
-
     expect(async () => {
       await purposeService.activatePurposeVersion(
         {
