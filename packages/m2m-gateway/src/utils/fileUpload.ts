@@ -81,6 +81,10 @@ export async function uploadEServiceDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }
@@ -147,6 +151,10 @@ export async function uploadEServiceTemplateDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }
