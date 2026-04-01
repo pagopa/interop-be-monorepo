@@ -11523,6 +11523,7 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
     EServiceDescriptorSeed:
       type: object
       additionalProperties: false

@@ -470,5 +470,6 @@ export function apiDescriptorStateToDescriptorState(
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .with("ARCHIVING", () => descriptorState.archiving)
     .exhaustive();
 }

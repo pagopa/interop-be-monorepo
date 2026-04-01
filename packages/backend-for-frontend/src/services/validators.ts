@@ -43,6 +43,7 @@ export function isValidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING, // FIXME: is this the correct approach?
       () => true
     )
     .with(
@@ -67,6 +68,7 @@ export function isInvalidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING, // FIXME: is this the correct approach?
       () => false
     )
     .exhaustive();

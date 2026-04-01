@@ -81,6 +81,7 @@ export function assertIsValidDescriptor(
     .with(
       catalogApi.EServiceDescriptorState.Values.DRAFT,
       catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
       () => {
         throw unexpectedDescriptorState(
           descriptor.state,

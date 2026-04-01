@@ -168,6 +168,7 @@ const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
     .with(
       catalogApi.EServiceDescriptorState.Values.DRAFT,
       catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
       () => false
     )
     .exhaustive();
