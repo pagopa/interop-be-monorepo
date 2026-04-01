@@ -3,6 +3,7 @@ import {
   agreementApi,
   delegationApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   AgreementDocumentId,
@@ -12,7 +13,6 @@ import {
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
