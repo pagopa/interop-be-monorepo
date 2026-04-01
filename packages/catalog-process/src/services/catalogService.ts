@@ -22,7 +22,6 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -553,9 +552,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: seed.personalData }
-      : {}),
+    personalData: seed.personalData,
     instanceLabel: instanceLabel,
   };
 
@@ -1670,10 +1667,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -2748,10 +2742,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -3365,10 +3356,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        template.personalData === undefined
-      ) {
+      if (template.personalData === undefined) {
         throw eServiceTemplateWithoutPersonalDataFlag(
           template.id,
           publishedVersion.id
@@ -4251,9 +4239,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
