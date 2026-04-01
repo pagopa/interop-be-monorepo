@@ -263,7 +263,7 @@ export function assertRiskAnalysisIsValidForPublication(
   });
 }
 
-export function assertRiskAnalysisTenantKindMatch({
+function assertRiskAnalysisTenantKindMatch({
   actualKind,
   expectedKind,
   eserviceId,
