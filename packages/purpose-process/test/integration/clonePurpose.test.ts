@@ -37,6 +37,7 @@ import {
   purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
+  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
