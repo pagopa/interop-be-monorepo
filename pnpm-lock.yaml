@@ -100,8 +100,8 @@ catalogs:
       specifier: 4.1.8
       version: 4.1.8
     '@xmldom/xmldom':
-      specifier: 0.9.8
-      version: 0.9.8
+      specifier: 0.9.9
+      version: 0.9.9
     '@zodios/core':
       specifier: 10.9.6
       version: 10.9.6
@@ -1274,7 +1274,7 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@xmldom/xmldom':
         specifier: 'catalog:'
-        version: 0.9.8
+        version: 0.9.9
       '@zodios/core':
         specifier: 'catalog:'
         version: 10.9.6(axios@1.13.5)(zod@3.23.8)
@@ -8283,10 +8283,9 @@ packages:
     engines: {node: '>=10.0.0'}
     deprecated: this version has critical issues, please update to the latest version
 
-  '@xmldom/xmldom@0.9.8':
-    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
+  '@xmldom/xmldom@0.9.9':
+    resolution: {integrity: sha512-qycIHAucxy/LXAYIjmLmtQ8q9GPnMbnjG1KXhWm9o5sCr6pOYDATkMPiTNa6/v8eELyqOQ2FsEqeoFYmgv/gJg==}
     engines: {node: '>=14.6'}
-    deprecated: this version has critical issues, please update to the latest version
 
   '@zodios/core@10.9.6':
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
@@ -15299,7 +15298,7 @@ snapshots:
 
   '@xmldom/xmldom@0.8.10': {}
 
-  '@xmldom/xmldom@0.9.8': {}
+  '@xmldom/xmldom@0.9.9': {}
 
   '@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8)':
     dependencies:
