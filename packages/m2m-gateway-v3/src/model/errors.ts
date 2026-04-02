@@ -66,7 +66,6 @@ const errorCodes = {
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
-  duplicatedMembersInSeed: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -516,13 +515,5 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
     detail: `DPoP proof JTI ${jti} already in cache`,
     code: "dpopProofJtiAlreadyUsed",
     title: "DPoP proof JTI already in cache",
-  });
-}
-
-export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The provided members list contains duplicate users`,
-    code: "duplicatedMembersInSeed",
-    title: "Duplicated members in seed",
   });
 }
