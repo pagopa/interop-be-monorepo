@@ -23,6 +23,8 @@ import {
   Agreement,
   Delegation,
   EServiceId,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   upsertAgreement,
@@ -34,16 +36,26 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
-  await setupTestContainersVitest(
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const {
+  cleanup,
+  postgresDB,
+  fileManager,
+  readModelDB,
+  tenantKindHistoryDB,
+} = await setupTestContainersVitest(
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("tenantKindHistoryDBConfig")
+);
 
 afterEach(cleanup);
 
@@ -56,7 +68,8 @@ export const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL
+  eserviceTemplateReadModelServiceSQL,
+  tenantKindHistoryDB
 );
 
 export const catalogService = catalogServiceBuilder(
@@ -131,4 +144,23 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
+};
+
+export const addOneTenantKindHistory = async ({
+  tenantId,
+  metadataVersion,
+  kind,
+  modifiedAt,
+}: {
+  tenantId: TenantId;
+  metadataVersion: number;
+  kind: TenantKind;
+  modifiedAt: Date;
+}): Promise<void> => {
+  await tenantKindHistoryDB.insert(tenantKindHistory).values({
+    tenantId,
+    metadataVersion,
+    kind,
+    modifiedAt: modifiedAt.toISOString(),
+  });
 };

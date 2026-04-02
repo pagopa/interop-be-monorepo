@@ -95,6 +95,7 @@ import {
   originNotCompliant,
   riskAnalysisDuplicated,
   descriptorTemplateVersionNotFound,
+  tenantKindNotFound,
   tenantNotFound,
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
@@ -143,6 +144,7 @@ import {
   toCreateEventEServiceNameUpdated,
   toCreateEventEServiceNameUpdatedByTemplateUpdate,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
@@ -2446,6 +2448,54 @@ export function catalogServiceBuilder(
       return {
         data: eserviceWithRiskAnalysisDeleted,
         metadata: { version: event.newVersion },
+      };
+    },
+    async fixEServiceRiskAnalysisTenantKind(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Fixing Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const riskAnalysisToFix = retrieveRiskAnalysis(riskAnalysisId, eservice);
+
+      const historyKind = await readModelService.getTenantKindAt(
+        eservice.data.producerId,
+        riskAnalysisToFix.createdAt
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(eservice.data.producerId);
+      }
+
+      const fixedRiskAnalysis: RiskAnalysis = {
+        ...riskAnalysisToFix,
+        riskAnalysisForm: {
+          ...riskAnalysisToFix.riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const updatedEService = replaceRiskAnalysis(
+        eservice.data,
+        fixedRiskAnalysis
+      );
+
+      const event = toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind(
+        eservice.data.id,
+        eservice.metadata.version,
+        fixedRiskAnalysis.id,
+        updatedEService,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async updateEServiceDescription(

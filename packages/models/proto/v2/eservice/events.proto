@@ -114,6 +114,11 @@ message EServiceRiskAnalysisUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
+message MaintenanceEServiceRiskAnalysisSetTenandKindV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceRiskAnalysisDeletedV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;

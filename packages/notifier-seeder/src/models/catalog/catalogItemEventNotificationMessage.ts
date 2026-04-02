@@ -73,6 +73,7 @@ const eventV2TypeMapper = (
     .with("EServiceRiskAnalysisAdded", () => "catalog_item_risk_analysis_added")
     .with(
       "EServiceRiskAnalysisUpdated",
+      "MaintenanceEServiceRiskAnalysisSetTenandKind",
       () => "catalog_item_risk_analysis_updated"
     )
     .with(
