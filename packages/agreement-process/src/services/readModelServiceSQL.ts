@@ -1,4 +1,4 @@
-import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import { inArray, or, and, eq, SQL, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -47,7 +47,8 @@ import {
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import {
-  escapeRegExp,
+  ilikeEscaped,
+  escapeSqlLike,
   createListResult,
   ascLower,
   withTotalCount,
@@ -55,16 +56,10 @@ import {
 import { match, P } from "ts-pattern";
 import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
 import { CompactEService } from "../model/domain/models.js";
-
-type AgreementQueryFilters = {
-  producerId?: TenantId | TenantId[];
-  consumerId?: TenantId | TenantId[];
-  eserviceId?: EServiceId | EServiceId[];
-  descriptorId?: DescriptorId | DescriptorId[];
-  agreementStates?: AgreementState[];
-  attributeId?: AttributeId | AttributeId[];
-  showOnlyUpgradeable?: boolean;
-};
+import {
+  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
+} from "./readModelService.js";
 
 type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
@@ -279,12 +274,12 @@ const getProducerIdsFilter = (
 
 const getConsumerIdsFilter = (
   consumerIds: TenantId[],
-  withDelegationFilter: boolean | undefined
+  exactConsumerIdMatch: boolean
 ): SQL | undefined =>
   consumerIds.length > 0
     ? or(
         inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-        withDelegationFilter
+        !exactConsumerIdMatch
           ? inArray(activeConsumerDelegations.delegateId, consumerIds)
           : undefined
       )
@@ -317,7 +312,7 @@ const getNameFilter = (
   comparisonName: string | undefined
 ): SQL | undefined =>
   comparisonName !== undefined
-    ? ilike(column, `%${escapeRegExp(comparisonName)}%`)
+    ? ilikeEscaped(column, `%${escapeSqlLike(comparisonName)}%`)
     : undefined;
 
 const getAgreementsFilters = <
@@ -329,10 +324,12 @@ const getAgreementsFilters = <
       },
 >({
   filters,
+  exactConsumerIdMatch,
   requesterId,
   withVisibilityAndDelegationFilters,
 }: {
   filters: AgreementQueryFilters;
+  exactConsumerIdMatch: boolean;
 } & T): SQL | undefined => {
   const {
     producerIds,
@@ -348,7 +345,7 @@ const getAgreementsFilters = <
       ? getVisibilityFilter(requesterId)
       : undefined,
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
+    getConsumerIdsFilter(consumerIds, exactConsumerIdMatch),
     getEServiceIdsFilter(eserviceIds),
     getDescriptorIdsFilter(descriptorIds),
     getAttributeIdsFilter(attributeIds),
@@ -368,7 +365,7 @@ export function readModelServiceBuilderSQL(
   return {
     async getAgreements(
       requesterId: TenantId,
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
@@ -405,6 +402,7 @@ export function readModelServiceBuilderSQL(
           .where(
             getAgreementsFilters({
               filters,
+              exactConsumerIdMatch: filters.exactConsumerIdMatch || false,
               requesterId,
               withVisibilityAndDelegationFilters: true,
             })
@@ -565,6 +563,7 @@ export function readModelServiceBuilderSQL(
         .where(
           getAgreementsFilters({
             filters,
+            exactConsumerIdMatch: true,
           })
         )
         .groupBy(
@@ -763,7 +762,7 @@ export function readModelServiceBuilderSQL(
             and(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
-              getConsumerIdsFilter(consumerIds, withDelegationFilter),
+              getConsumerIdsFilter(consumerIds, false),
               getVisibilityFilter(requesterId)
             )
           )

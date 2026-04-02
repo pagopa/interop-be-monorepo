@@ -33,7 +33,7 @@ import {
   InteropJwtInternalPayload,
   InteropJwtApiDPoPPayload,
   AgidIntegrityRest02TokenPayload,
-  IntegrityRest02SignedHeader,
+  IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -331,12 +331,10 @@ export class InteropTokenGenerator {
    */
   public async generateAgidIntegrityRest02Token({
     signedHeaders,
-    aud,
-    sub,
+    clientId,
   }: {
-    signedHeaders: IntegrityRest02SignedHeader;
-    aud: string | undefined;
-    sub: string | undefined;
+    signedHeaders: IntegrityRest02SignedHeaders;
+    clientId: string | undefined;
   }): Promise<string> {
     if (
       !this.config.integrityRestSignatureKid ||
@@ -356,14 +354,12 @@ export class InteropTokenGenerator {
     const payload: AgidIntegrityRest02TokenPayload = {
       jti: generateId(),
       iss: this.config.integrityRestSignatureIssuer,
-      aud: aud ? [aud] : [],
       iat: currentTimestamp,
-      nbf: currentTimestamp,
       exp:
         currentTimestamp +
         (this.config.integrityRestSignatureSecondsDuration ?? 100),
       signed_headers: signedHeaders,
-      sub,
+      ...(clientId ? { client_id: clientId } : {}),
     };
     return await this.createAndSignToken({
       header,

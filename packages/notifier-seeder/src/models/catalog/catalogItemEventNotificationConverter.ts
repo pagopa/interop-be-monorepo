@@ -102,6 +102,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })

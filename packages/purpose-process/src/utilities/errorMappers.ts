@@ -76,6 +76,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       "purposeNotInDraftState",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -167,6 +168,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
@@ -188,6 +190,7 @@ export const createReversePurposeErrorMapper = (
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
@@ -208,6 +211,7 @@ export const createPurposeFromTemplateErrorMapper = (
       "tenantKindNotFound",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       "invalidPurposeTenantKind",
       "riskAnalysisMissingExpectedFieldError",
       "riskAnalysisContainsNotEditableAnswers",
@@ -261,6 +265,7 @@ export const activatePurposeVersionErrorMapper = (
       "missingRiskAnalysis",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -300,6 +305,7 @@ export const updatePurposeByTemplateErrorMapper = (
   match(error.code)
     .with(
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       "tenantKindNotFound",
       "riskAnalysisVersionMismatch",
       "riskAnalysisMissingExpectedFieldError",
@@ -323,4 +329,12 @@ export const updatePurposeByTemplateErrorMapper = (
       "duplicatedPurposeTitle",
       () => HTTP_STATUS_CONFLICT
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getRemainingDailyCallsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
