@@ -43,7 +43,6 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
-  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
