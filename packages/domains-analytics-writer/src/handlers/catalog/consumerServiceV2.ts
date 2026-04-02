@@ -55,7 +55,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdated",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
-            "EServiceRiskAnalysisFixed",
+            "MaintenanceEServiceRiskAnalysisSetTenandKind",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
