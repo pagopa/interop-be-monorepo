@@ -38,7 +38,7 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
   EServiceDescriptorQuotasUpdatedV2,
-  EServiceRiskAnalysisFixedV2,
+  MaintenanceEServiceRiskAnalysisSetTenandKindV2,
   EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
   EServiceDescriptionUpdatedV2,
@@ -63,6 +63,7 @@ import {
   EServiceSignalHubDisabledV2,
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
+  EServiceInstanceLabelUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -186,8 +187,10 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
       EServiceRiskAnalysisUpdatedV2.toBinary(data)
     )
-    .with({ type: "EServiceRiskAnalysisFixed" }, ({ data }) =>
-      EServiceRiskAnalysisFixedV2.toBinary(data)
+    .with(
+      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" },
+      ({ data }) =>
+        MaintenanceEServiceRiskAnalysisSetTenandKindV2.toBinary(data)
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
       EServiceRiskAnalysisDeletedV2.toBinary(data)
@@ -268,6 +271,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       ({ data }) =>
         EServicePersonalDataFlagUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with({ type: "EServiceInstanceLabelUpdated" }, ({ data }) =>
+      EServiceInstanceLabelUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -454,8 +460,8 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceRiskAnalysisFixed"),
-    data: protobufDecoder(EServiceRiskAnalysisFixedV2),
+    type: z.literal("MaintenanceEServiceRiskAnalysisSetTenandKind"),
+    data: protobufDecoder(MaintenanceEServiceRiskAnalysisSetTenandKindV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -568,6 +574,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServicePersonalDataFlagUpdatedByTemplateUpdate"),
     data: protobufDecoder(EServicePersonalDataFlagUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceInstanceLabelUpdated"),
+    data: protobufDecoder(EServiceInstanceLabelUpdatedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

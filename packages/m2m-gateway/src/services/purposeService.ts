@@ -30,6 +30,7 @@ import {
 import {
   purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../model/errors.js";
 import {
@@ -205,7 +206,11 @@ export function purposeServiceBuilder(
       } = await clients.purposeProcessClient.getPurposes({ queries, headers });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: await Promise.all(
+          results.map((purpose) =>
+            toM2MGatewayApiPurpose(purpose, clients, headers)
+          )
+        ),
         pagination: {
           limit,
           offset,
@@ -219,9 +224,9 @@ export function purposeServiceBuilder(
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
-      const { data } = await retrievePurposeById(purposeId, headers);
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
 
-      return toM2MGatewayApiPurpose(data);
+      return await toM2MGatewayApiPurpose(purpose, clients, headers);
     },
     async createPurpose(
       purposeSeed: m2mGatewayApi.PurposeSeed,
@@ -251,7 +256,11 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return await toM2MGatewayApiPurpose(
+        polledResource.data,
+        clients,
+        headers
+      );
     },
     async getPurposeVersions(
       purposeId: PurposeId,
@@ -360,7 +369,7 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return await toM2MGatewayApiPurpose(polledPurpose.data, clients, headers);
     },
     async archivePurpose(
       purposeId: PurposeId,
@@ -384,7 +393,7 @@ export function purposeServiceBuilder(
         });
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return await toM2MGatewayApiPurpose(polledPurpose.data, clients, headers);
     },
     async suspendPurpose(
       purposeId: PurposeId,
@@ -412,7 +421,7 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return await toM2MGatewayApiPurpose(polledPurpose.data, clients, headers);
     },
     async approvePurpose(
       purposeId: PurposeId,
@@ -443,7 +452,7 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return await toM2MGatewayApiPurpose(polledPurpose.data, clients, headers);
     },
     async unsuspendPurpose(
       purposeId: PurposeId,
@@ -474,7 +483,7 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return await toM2MGatewayApiPurpose(polledPurpose.data, clients, headers);
     },
     async deletePurpose(
       purposeId: PurposeId,
@@ -535,7 +544,11 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return await toM2MGatewayApiPurpose(
+        polledResource.data,
+        clients,
+        headers
+      );
     },
     async downloadPurposeVersionRiskAnalysisDocument(
       purposeId: PurposeId,
@@ -557,6 +570,12 @@ export function purposeServiceBuilder(
       }
 
       if (!version.riskAnalysis) {
+        if (
+          version.state === purposeApi.PurposeVersionState.Values.ACTIVE ||
+          version.state === purposeApi.PurposeVersionState.Values.SUSPENDED
+        ) {
+          throw purposeVersionDocumentNotReady(purposeId, versionId);
+        }
         throw purposeVersionDocumentNotFound(purposeId, versionId);
       }
 
@@ -610,7 +629,11 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return await toM2MGatewayApiPurpose(
+        polledResource.data,
+        clients,
+        headers
+      );
     },
     async updateDraftReversePurpose(
       purposeId: PurposeId,
@@ -630,7 +653,11 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return await toM2MGatewayApiPurpose(
+        polledResource.data,
+        clients,
+        headers
+      );
     },
     async createPurposeFromTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -659,7 +686,11 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return await toM2MGatewayApiPurpose(
+        polledResource.data,
+        clients,
+        headers
+      );
     },
   };
 }

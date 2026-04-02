@@ -1569,7 +1569,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
@@ -1601,7 +1601,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
@@ -1625,7 +1625,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10

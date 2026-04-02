@@ -7,6 +7,7 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
@@ -18,18 +19,23 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  RiskAnalysisId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -44,6 +50,8 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  riskAnalysisTenantKindMismatch,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -179,6 +187,15 @@ export function assertIsReceiveEservice(eservice: EService): void {
   }
 }
 
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
+  }
+}
+
 export function assertTenantKindExists(
   tenant: Tenant
 ): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
@@ -215,13 +232,22 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService
+  eservice: EService,
+  tenantKind: TenantKind
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        eserviceId: eservice.id,
+        riskAnalysisId: riskAnalysis.id,
+      });
+    }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
         riskAnalysis.riskAnalysisForm
@@ -235,6 +261,27 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+function assertRiskAnalysisTenantKindMatch({
+  actualKind,
+  expectedKind,
+  eserviceId,
+  riskAnalysisId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  eserviceId: EServiceId;
+  riskAnalysisId: RiskAnalysisId;
+}): void {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      eserviceId,
+      riskAnalysisId
+    );
+  }
 }
 
 export function assertInterfaceDeletableDescriptorState(
@@ -391,4 +438,31 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertAttributeDailyCallsConsistentWithTotal(
+  attributes: EserviceAttributes,
+  dailyCallsTotal: number
+): void {
+  for (const attributeGroup of attributes.certified) {
+    for (const attribute of attributeGroup) {
+      if (
+        attribute.dailyCallsPerConsumer !== undefined &&
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+    }
+  }
 }
