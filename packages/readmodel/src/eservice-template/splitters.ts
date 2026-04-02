@@ -3,13 +3,14 @@ import {
   attributeKind,
   dateToString,
   Document,
-  EServiceAttribute,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  genericInternalError,
   RiskAnalysis,
   riskAnalysisAnswerKind,
+  type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -109,7 +110,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
   };
 };
 
-const attributeToAttributeSQL = ({
+const templateAttributeToTemplateAttributeSQL = ({
   attribute,
   eserviceTemplateVersionId,
   groupId,
@@ -117,7 +118,7 @@ const attributeToAttributeSQL = ({
   eserviceTemplateId,
   metadataVersion,
 }: {
-  attribute: EServiceAttribute;
+  attribute: EServiceTemplateAttribute;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
   kind: AttributeKind;
@@ -133,16 +134,16 @@ const attributeToAttributeSQL = ({
   groupId,
 });
 
-const attributesNestedArrayToAttributeSQLarray = (
+const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: EServiceAttribute[][],
+  attributes: EServiceTemplateAttribute[][],
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): EServiceTemplateVersionAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
-      attributeToAttributeSQL({
+      templateAttributeToTemplateAttributeSQL({
         attribute,
         eserviceTemplateVersionId,
         groupId: index,
@@ -170,21 +171,21 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   );
 
   const attributesSQL: EServiceTemplateVersionAttributeSQL[] = [
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.certified,
       attributeKind.certified,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.declared,
       attributeKind.declared,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.verified,
       attributeKind.verified,
@@ -226,6 +227,11 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
 } => {
+  if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+    throw genericInternalError(
+      `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} in eservice template ${eserviceTemplateId} is missing tenantKind`
+    );
+  }
   const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion,
@@ -234,8 +240,7 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!, // TODO how to avoid "!"
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =

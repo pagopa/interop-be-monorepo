@@ -1198,6 +1198,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/remainingDailyCalls:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        description: the purpose id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purpose
+      operationId: getRemainingDailyCalls
+      description: Retrieve remaining daily calls for a purpose
+      responses:
+        "200":
+          description: Remaining daily calls retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1550,8 +1590,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        isRiskAnalysisValid:
-          type: boolean
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -1570,7 +1608,6 @@ components:
         - title
         - description
         - createdAt
-        - isRiskAnalysisValid
         - isFreeOfCharge
       description: business representation of a purpose
     Purposes:
@@ -1978,6 +2015,21 @@ components:
       required:
         - version
         - answers
+    RemainingDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        remainingDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        remainingDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     CreatedPurposeVersion:
       type: object
       additionalProperties: false

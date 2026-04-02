@@ -39,7 +39,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "EServiceRiskAnalysisFixed" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceIsConsumerDelegableEnabled" },
@@ -62,6 +62,7 @@ export async function handleMessageV2(
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {

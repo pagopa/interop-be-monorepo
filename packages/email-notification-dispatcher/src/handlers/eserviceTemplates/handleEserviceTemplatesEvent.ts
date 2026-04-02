@@ -102,7 +102,7 @@ export async function handleEServiceTemplateEvent(
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

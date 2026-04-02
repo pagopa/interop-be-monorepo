@@ -22,9 +22,9 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
+  purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { archivableInitialStates } from "../../src/services/validators.js";
 
@@ -102,7 +102,7 @@ describe("archivePurposeTemplate", () => {
     }
   );
 
-  it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
+  it("should throw purposeTemplateNotFound if the caller is not the creator of the purpose template", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const otherTenantId = generateId<TenantId>();
@@ -112,7 +112,7 @@ describe("archivePurposeTemplate", () => {
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
+    }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it.each([

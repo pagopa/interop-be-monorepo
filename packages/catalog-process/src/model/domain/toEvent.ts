@@ -464,7 +464,7 @@ export const toCreateEventEServiceRiskAnalysisUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceRiskAnalysisFixed = (
+export const toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind = (
   streamId: string,
   version: number,
   riskAnalysisId: RiskAnalysisId,
@@ -474,7 +474,7 @@ export const toCreateEventEServiceRiskAnalysisFixed = (
   streamId,
   version,
   event: {
-    type: "EServiceRiskAnalysisFixed",
+    type: "MaintenanceEServiceRiskAnalysisSetTenandKind",
     event_version: 2,
     data: {
       riskAnalysisId,
@@ -907,6 +907,23 @@ export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
   version,
   event: {
     type: "EServicePersonalDataFlagUpdatedAfterPublication",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceInstanceLabelUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceInstanceLabelUpdated",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

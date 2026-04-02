@@ -55,7 +55,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdated",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
-            "EServiceRiskAnalysisFixed",
+            "MaintenanceEServiceRiskAnalysisSetTenandKind",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
@@ -80,7 +80,8 @@ export async function handleCatalogMessageV2(
             "EServiceSignalHubEnabled",
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
-            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+            "EServiceInstanceLabelUpdated"
           ),
         },
         (msg) => {

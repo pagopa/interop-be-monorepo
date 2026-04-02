@@ -2,6 +2,7 @@
 import {
   generateToken,
   getMockedApiPurposeTemplate,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId, tenantKind } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -26,7 +27,8 @@ describe("API GET /purposeTemplates router test", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/purposeTemplates`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .query(query)
       .send();
 

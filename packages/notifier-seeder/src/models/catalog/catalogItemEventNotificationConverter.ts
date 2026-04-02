@@ -102,6 +102,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -257,7 +258,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceRiskAnalysisAdded" }, // CatalogItemRiskAnalysisAddedV1
       { type: "EServiceRiskAnalysisDeleted" }, // CatalogItemRiskAnalysisDeletedV1
       { type: "EServiceRiskAnalysisUpdated" }, // CatalogItemRiskAnalysisUpdatedV1
-      { type: "EServiceRiskAnalysisFixed" }, // CatalogItemRiskAnalysisUpdatedV1
+      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" }, // CatalogItemRiskAnalysisUpdatedV1
       (e): CatalogItemRiskAnalysisNotification => ({
         catalogItem: getCatalogItem(e),
         catalogRiskAnalysisId: e.data.riskAnalysisId,

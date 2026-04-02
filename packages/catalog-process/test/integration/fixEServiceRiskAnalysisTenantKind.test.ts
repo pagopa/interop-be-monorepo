@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   EService,
-  EServiceRiskAnalysisFixedV2,
+  MaintenanceEServiceRiskAnalysisSetTenandKindV2,
   RiskAnalysis,
   TenantKind,
   tenantKind,
@@ -75,12 +75,12 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
         version: "1",
-        type: "EServiceRiskAnalysisFixed",
+        type: "MaintenanceEServiceRiskAnalysisSetTenandKind",
         event_version: 2,
       });
 
       const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceRiskAnalysisFixedV2,
+        messageType: MaintenanceEServiceRiskAnalysisSetTenandKindV2,
         payload: writtenEvent.data,
       });
 

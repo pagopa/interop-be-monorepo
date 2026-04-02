@@ -72,7 +72,8 @@ async function handleEServiceEventV2(
             "EServiceRiskAnalysisUpdated",
             "EServiceRiskAnalysisDeleted",
             "EServicePersonalDataFlagUpdatedAfterPublication",
-            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+            "EServiceInstanceLabelUpdated"
           ),
         },
         async (event) => {
@@ -146,7 +147,7 @@ async function handleEServiceEventV2(
           );
         }
       )
-      .with({ type: "EServiceRiskAnalysisFixed" }, () => {
+      .with({ type: "MaintenanceEServiceRiskAnalysisSetTenandKind" }, () => {
         logger.info(
           `Skipping M2M event creation for ${decodedMessage.type} message`
         );
