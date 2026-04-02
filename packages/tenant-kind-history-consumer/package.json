@@ -26,7 +26,6 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "axios": "catalog:",
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "kafka-iam-auth": "workspace:*",
