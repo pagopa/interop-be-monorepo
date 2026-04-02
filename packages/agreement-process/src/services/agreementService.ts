@@ -603,7 +603,7 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
-      const updatedAgreement = {
+      const updatedAgreement: Agreement = {
         ...agreement.data,
         ...updateSeed,
       };
@@ -1320,15 +1320,13 @@ export function agreementServiceBuilder(
         ...updatedAgreementSeed,
       };
 
-      const updatedAgreement: Agreement = updatedAgreementWithoutContract;
-
       const suspendedByPlatformChanged =
         agreement.data.suspendedByPlatform !==
-        updatedAgreement.suspendedByPlatform;
+        updatedAgreementWithoutContract.suspendedByPlatform;
 
       const activationEvents = await createActivationEvent(
         isFirstActivation,
-        updatedAgreement,
+        updatedAgreementWithoutContract,
         agreement.data.suspendedByPlatform,
         suspendedByPlatformChanged,
         agreement.metadata.version,
@@ -1350,10 +1348,12 @@ export function agreementServiceBuilder(
       ]);
 
       return {
-        data: updatedAgreement,
+        data: updatedAgreementWithoutContract,
         metadata: {
           version:
-            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
+            createdEvents.latestNewVersions.get(
+              updatedAgreementWithoutContract.id
+            ) ?? 0,
         },
       };
     },

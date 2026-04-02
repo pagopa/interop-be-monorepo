@@ -1014,26 +1014,14 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = undefined;
-
-      const newPurposeVersion: PurposeVersion = riskAnalysisDocument
-        ? {
-            id: generateId(),
-            riskAnalysis: riskAnalysisDocument,
-            state: purposeVersionState.active,
-            dailyCalls: seed.dailyCalls,
-            firstActivationAt: new Date(),
-            createdAt: new Date(),
-            stamps,
-          }
-        : {
-            id: generateId(),
-            state: purposeVersionState.active,
-            dailyCalls: seed.dailyCalls,
-            firstActivationAt: new Date(),
-            createdAt: new Date(),
-            stamps,
-          };
+      const newPurposeVersion: PurposeVersion = {
+        id: generateId(),
+        state: purposeVersionState.active,
+        dailyCalls: seed.dailyCalls,
+        firstActivationAt: new Date(),
+        createdAt: new Date(),
+        stamps,
+      };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
         purpose.data.versions
@@ -2296,24 +2284,13 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  const riskAnalysis = undefined;
-
-  const updatedPurposeVersion: PurposeVersion = riskAnalysis
-    ? {
-        ...purposeVersion,
-        state: purposeVersionState.active,
-        riskAnalysis,
-        stamps,
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-      }
-    : {
-        ...purposeVersion,
-        state: purposeVersionState.active,
-        stamps,
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-      };
+  const updatedPurposeVersion: PurposeVersion = {
+    ...purposeVersion,
+    state: purposeVersionState.active,
+    stamps,
+    updatedAt: new Date(),
+    firstActivationAt: new Date(),
+  };
 
   const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval

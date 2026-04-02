@@ -58,7 +58,7 @@ FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e
 
 COPY --from=build /out /app
 
-RUN groupadd -r app && useradd -rm -g app -G audio,video app
+RUN groupadd -r app && useradd -rm -g app app
 RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 

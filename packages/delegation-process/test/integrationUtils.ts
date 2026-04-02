@@ -16,8 +16,6 @@ import {
   toDelegationV2,
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
-import { launchPuppeteerBrowser } from "pagopa-interop-commons";
-import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -59,21 +57,9 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
-
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
 afterAll(() => {
   vi.useRealTimers();
 });
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
 
 export const delegationService = delegationServiceBuilder(
   postgresDB,
