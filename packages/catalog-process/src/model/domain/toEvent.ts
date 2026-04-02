@@ -914,3 +914,20 @@ export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceInstanceLabelUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceInstanceLabelUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

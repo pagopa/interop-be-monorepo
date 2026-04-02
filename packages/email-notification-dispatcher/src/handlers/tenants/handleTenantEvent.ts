@@ -1,7 +1,7 @@
 import {
   AttributeId,
   EmailNotificationMessagePayload,
-  TenantEventV2,
+  TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -12,7 +12,7 @@ import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAtt
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
 
 export async function handleTenantEvent(
-  params: HandlerParams<typeof TenantEventV2>
+  params: HandlerParams<typeof TenantEvent>
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -22,6 +22,10 @@ export async function handleTenantEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
@@ -93,7 +97,7 @@ export async function handleTenantEvent(
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

@@ -42,15 +42,13 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
       freeOfChargeReason: "Mock free of charge reason",
     };
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   const processResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
 
   beforeEach(() => {

@@ -98,7 +98,7 @@ describe("getAgreement", () => {
         getMockM2MAdminAppContext()
       );
 
-      expect(result).toEqual(m2mAgreementResponse);
+      expect(result).toStrictEqual(m2mAgreementResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
         params: {
