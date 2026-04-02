@@ -111,15 +111,15 @@ export type FeatureFlagEServicePersonalDataConfig = z.infer<
 
 export const FeatureFlagTenantKindInRiskAnalysisConfig = z
   .object({
-    FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS_WRITE: z
+    FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS: z
       .enum(["true", "false"])
       .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagTenantKindInRiskAnalysisWrite:
-      c.FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS_WRITE ?? false,
+    featureFlagTenantKindInRiskAnalysis:
+      c.FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS ?? false,
   }));
 export type FeatureFlagTenantKindInRiskAnalysisConfig = z.infer<
   typeof FeatureFlagTenantKindInRiskAnalysisConfig
