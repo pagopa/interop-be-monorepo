@@ -29,6 +29,7 @@ import {
   tenantKind,
   TenantKind,
   tenantAttributeType,
+  RiskAnalysisFormId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -43,6 +44,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -59,6 +61,24 @@ import {
   retrievePurposeDelegation,
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  expectedKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      riskAnalysisFormId
+    );
+  }
+};
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
