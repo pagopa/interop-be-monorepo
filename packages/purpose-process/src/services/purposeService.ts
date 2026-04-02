@@ -354,9 +354,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       riskAnalysisId: RiskAnalysisId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Fixing Risk Analysis ${riskAnalysisId} for Purpose ${purposeId}`
       );
@@ -399,7 +397,7 @@ export function purposeServiceBuilder(
       const createdEvent = await repository.createEvent(event);
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: createdEvent.newVersion },
       };
     },
