@@ -8,10 +8,9 @@ import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";
 import { getBffMockContext } from "./utils.js";
 
-describe("validateDPoPTokenGeneration", () => {
+describe("validateDPoPProof", () => {
   const MOCK_DPOP_PROOF = "test_dpop_proof_jws";
   const MOCK_HTU = "https://auth.interop.pagopa.it/token";
-  const MOCK_HTM = "POST";
 
   const mockAuthData: AuthData = {
     ...getMockAuthData(),
@@ -40,7 +39,7 @@ describe("validateDPoPTokenGeneration", () => {
               typ: "dpop+jwt",
               jwk: { kty: "RSA", n: "...", e: "..." },
             },
-            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: MOCK_HTM },
+            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: "POST" },
           },
           dpopProofJWS: MOCK_DPOP_PROOF,
         },
@@ -51,7 +50,7 @@ describe("validateDPoPTokenGeneration", () => {
         data: {},
       });
 
-      const validationResult = await toolService.validateDPoPTokenGeneration(
+      const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
         bffMockContext
@@ -92,7 +91,7 @@ describe("validateDPoPTokenGeneration", () => {
         data: undefined,
       });
 
-      const validationResult = await toolService.validateDPoPTokenGeneration(
+      const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
         bffMockContext
@@ -123,7 +122,7 @@ describe("validateDPoPTokenGeneration", () => {
         data: undefined,
       });
 
-      const validationResult = await toolService.validateDPoPTokenGeneration(
+      const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         "https://wrong-url.it",
         bffMockContext
@@ -145,7 +144,7 @@ describe("validateDPoPTokenGeneration", () => {
               typ: "dpop+jwt",
               jwk: { kty: "RSA", n: "...", e: "..." },
             },
-            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: MOCK_HTM },
+            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: "POST" },
           },
           dpopProofJWS: MOCK_DPOP_PROOF,
         },
@@ -165,7 +164,7 @@ describe("validateDPoPTokenGeneration", () => {
         data: undefined,
       });
 
-      const validationResult = await toolService.validateDPoPTokenGeneration(
+      const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
         bffMockContext
@@ -178,5 +177,6 @@ describe("validateDPoPTokenGeneration", () => {
         ],
       });
     });
+
   });
 });

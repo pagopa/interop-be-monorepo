@@ -1,11 +1,11 @@
 meta {
-  name: Validate DPoP token generation request
+  name: Validate DPoP proof
   type: http
   seq: 1
 }
 
 post {
-  url: {{host-bff}}/tools/validateDPoPTokenGeneration
+  url: {{host-bff}}/tools/validateDPoPProof
   body: formUrlEncoded
   auth: none
 }

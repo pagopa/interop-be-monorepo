@@ -7,13 +7,13 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { services, api } from "../../vitest.api.setup.js";
 
-describe("API POST /tools/validateDPoPTokenGeneration", () => {
-  const mockRequest: bffApi.AccessDPoPTokenRequest = {
+describe("API POST /tools/validateDPoPProof", () => {
+  const mockRequest: bffApi.AccessDPoPProofRequest = {
     dpop_proof: "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0IiwiaHdrIjp7... ",
     htu: "https://auth.interop.pagopa.it/token",
   };
 
-  const mockResult: bffApi.DPoPTokenGenerationValidationResult = {
+  const mockResult: bffApi.DPoPProofValidationResult = {
     steps: {
       dpopProofValidation: { result: "PASSED", failures: [] },
       dpopMatchValidation: { result: "PASSED", failures: [] },
@@ -22,18 +22,18 @@ describe("API POST /tools/validateDPoPTokenGeneration", () => {
   };
 
   beforeEach(() => {
-    services.toolsService.validateDPoPTokenGeneration = vi
-      .fn()
-      .mockResolvedValue(mockResult);
+    services.toolsService.validateDPoPProof = vi.fn().mockResolvedValue(
+      mockResult
+    );
   });
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const makeRequest = async (
     token: string,
-    body: bffApi.AccessDPoPTokenRequest = mockRequest
+    body: bffApi.AccessDPoPProofRequest = mockRequest
   ) =>
     request(api)
-      .post(`${appBasePath}/tools/validateDPoPTokenGeneration`)
+      .post(`${appBasePath}/tools/validateDPoPProof`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -52,7 +52,7 @@ describe("API POST /tools/validateDPoPTokenGeneration", () => {
     { body: { ...mockRequest, dpop_proof: 123 } },
   ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body as bffApi.AccessDPoPTokenRequest);
+    const res = await makeRequest(token, body as bffApi.AccessDPoPProofRequest);
     expect(res.status).toBe(400);
   });
 });

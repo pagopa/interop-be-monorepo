@@ -43,24 +43,24 @@ const toolRouter = (
       return res.status(errorRes.status).send(errorRes);
     }
   });
-  toolRouter.post("/tools/validateDPoPTokenGeneration", async (req, res) => {
+  toolRouter.post("/tools/validateDPoPProof", async (req, res) => {
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
     try {
-      const result = await toolsService.validateDPoPTokenGeneration(
+      const result = await toolsService.validateDPoPProof(
         req.body.dpop_proof,
         req.body.htu,
         ctx
       );
       return res
         .status(200)
-        .send(bffApi.DPoPTokenGenerationValidationResult.parse(result));
+        .send(bffApi.DPoPProofValidationResult.parse(result));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
         emptyErrorMapper,
         ctx,
-        "Error validating token generation request"
+        "Error validating DPoP proof"
       );
       return res.status(errorRes.status).send(errorRes);
     }

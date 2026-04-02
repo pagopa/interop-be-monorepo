@@ -8631,26 +8631,26 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/tools/validateDPoPTokenGeneration":
+  "/tools/validateDPoPProof":
     post:
       tags:
         - tools
-      summary: Validate DPoP token generation request
-      description: Provides additional details about DPoP token generation request failure
-      operationId: validateDPoPTokenGeneration
+      summary: Validate DPoP proof
+      description: Provides additional details about DPoP proof validation failure
+      operationId: validateDPoPProof
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/AccessDPoPTokenRequest"
+              $ref: "#/components/schemas/AccessDPoPProofRequest"
       responses:
         "200":
           description: Request successfully validated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DPoPTokenGenerationValidationResult"
+                $ref: "#/components/schemas/DPoPProofValidationResult"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -25668,7 +25668,7 @@ components:
           type: string
         grant_type:
           type: string
-    AccessDPoPTokenRequest:
+    AccessDPoPProofRequest:
       type: object
       additionalProperties: false
       required:
@@ -29071,12 +29071,12 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEService"
       required:
         - steps
-    DPoPTokenGenerationValidationResult:
+    DPoPProofValidationResult:
       type: object
       additionalProperties: false
       properties:
         steps:
-          $ref: "#/components/schemas/DPoPTokenGenerationValidationSteps"
+          $ref: "#/components/schemas/DPoPProofValidationSteps"
       required:
         - steps
     TokenGenerationValidationSteps:
@@ -29096,7 +29096,7 @@ components:
         - publicKeyRetrieve
         - clientAssertionSignatureVerification
         - platformStatesVerification
-    DPoPTokenGenerationValidationSteps:
+    DPoPProofValidationSteps:
       type: object
       additionalProperties: false
       properties:

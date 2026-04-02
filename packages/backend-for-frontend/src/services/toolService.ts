@@ -142,12 +142,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return handleValidationResults({}, key.clientKind, eservice);
     },
-    async validateDPoPTokenGeneration(
+    async validateDPoPProof(
       dpopProofJWS: string,
       htu: string,
       ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.DPoPTokenGenerationValidationResult> {
-      ctx.logger.info(`Validating DPoP for debug tool - HTU: ${htu}`);
+    ): Promise<bffApi.DPoPProofValidationResult> {
+      ctx.logger.info(`Validating DPoP proof for debug tool - HTU: ${htu}`);
 
       const validationResult = verifyDPoPProof({
         dpopProofJWS,
@@ -256,7 +256,7 @@ function handleDPoPValidationResults(errs: {
   dpopProofErrors?: Array<ApiError<string>>;
   dpopMatchErrors?: Array<ApiError<string>>;
   dpopSignatureErrors?: Array<ApiError<string>>;
-}): bffApi.DPoPTokenGenerationValidationResult {
+}): bffApi.DPoPProofValidationResult {
   const dpopProofErrors = errs.dpopProofErrors ?? [];
   const dpopMatchErrors = errs.dpopMatchErrors ?? [];
   const dpopSignatureErrors = errs.dpopSignatureErrors ?? [];
