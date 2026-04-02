@@ -14,6 +14,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
+import { duplicatedUsersInClientSeed } from "../../../src/model/errors.js";
 
 describe("createClient", () => {
   const mockConsumerClient = getMockedApiConsumerFullClient({
@@ -70,5 +71,19 @@ describe("createClient", () => {
         clientId: mockConsumerClient.id,
       },
     });
+  });
+
+  it("Should fail if duplicated users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedUsersInClientSeed(seed.members);
+
+    await expect(
+      clientService.createClient(seed, getMockM2MAdminAppContext())
+    ).rejects.toThrowError(error);
   });
 });

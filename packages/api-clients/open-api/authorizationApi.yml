@@ -1937,6 +1937,7 @@ components:
           items:
             type: string
             format: uuid
+          uniqueItems: true
       required:
         - name
         - members
@@ -2411,6 +2412,7 @@ components:
           items:
             type: string
             format: uuid
+          uniqueItems: true
       required:
         - name
         - description

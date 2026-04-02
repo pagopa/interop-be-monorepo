@@ -1,6 +1,9 @@
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { unauthorizedError } from "pagopa-interop-models";
-import { unexpectedClientKind } from "../../model/errors.js";
+import {
+  duplicatedUsersInClientSeed,
+  unexpectedClientKind,
+} from "../../model/errors.js";
 
 export function assertClientKindIs<K extends authorizationApi.ClientKind>(
   client: authorizationApi.Client,
@@ -20,5 +23,12 @@ export function assertClientVisibilityIsFull(
     throw unauthorizedError(
       `Tenant is not the owner of the client with id ${client.id}`
     );
+  }
+}
+
+export function assertClientUsersAreUnique(seed: m2mGatewayApiV3.ClientSeed) {
+  const uniqueUsers = [...new Set(seed.members)];
+  if (uniqueUsers.length !== seed.members.length) {
+    throw duplicatedUsersInClientSeed(seed.members);
   }
 }

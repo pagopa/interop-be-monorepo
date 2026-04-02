@@ -66,6 +66,8 @@ const errorCodes = {
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
+  duplicatedUsersInProducerKeychainSeed: "0047",
+  duplicatedUsersInClientSeed: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -515,5 +517,25 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
     detail: `DPoP proof JTI ${jti} already in cache`,
     code: "dpopProofJtiAlreadyUsed",
     title: "DPoP proof JTI already in cache",
+  });
+}
+
+export function duplicatedUsersInProducerKeychainSeed(
+  users: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Users ${users.join(", ")} are duplicated in the producer keychain seed`,
+    code: "duplicatedUsersInProducerKeychainSeed",
+    title: "Duplicated users in producer keychain seed",
+  });
+}
+
+export function duplicatedUsersInClientSeed(
+  users: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Users ${users.join(", ")} are duplicated in the client seed`,
+    code: "duplicatedUsersInClientSeed",
+    title: "Duplicated users in client seed",
   });
 }

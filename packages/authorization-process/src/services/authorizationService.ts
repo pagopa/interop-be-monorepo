@@ -118,6 +118,8 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
   assertTenantHasSelfcareId,
+  assertProducerKeychainUsersAreUnique,
+  assertClientUsersAreUnique,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -265,6 +267,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertClientUsersAreUnique(clientSeed);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -299,6 +304,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertClientUsersAreUnique(clientSeed);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -1003,6 +1011,8 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
+
+      assertProducerKeychainUsersAreUnique(producerKeychainSeed);
 
       const producerKeychain: ProducerKeychain = {
         id: generateId(),

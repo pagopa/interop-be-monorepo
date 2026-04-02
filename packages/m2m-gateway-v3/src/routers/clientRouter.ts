@@ -12,6 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { createClientErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -52,7 +53,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          createClientErrorMapper,
           ctx,
           `Error creating client with name ${req.body.name}`
         );

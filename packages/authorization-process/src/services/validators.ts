@@ -25,7 +25,10 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import {
+  SelfcareV2InstitutionClient,
+  authorizationApi,
+} from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
   tenantNotAllowedOnPurpose,
@@ -39,6 +42,8 @@ import {
   clientAdminIdNotFound,
   tenantNotAllowedOnClient,
   missingSelfcareId,
+  duplicatedUsersInProducerKeychainSeed,
+  duplicatedUsersInClientSeed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -215,5 +220,21 @@ export function assertTenantHasSelfcareId(
 ): asserts tenant is Tenant & { selfcareId: string } {
   if (!tenant.selfcareId) {
     throw missingSelfcareId(tenant.id);
+  }
+}
+
+export function assertProducerKeychainUsersAreUnique(
+  seed: authorizationApi.ProducerKeychainSeed
+) {
+  const uniqueUsers = [...new Set(seed.members)];
+  if (uniqueUsers.length !== seed.members.length) {
+    throw duplicatedUsersInProducerKeychainSeed(seed.members);
+  }
+}
+
+export function assertClientUsersAreUnique(seed: authorizationApi.ClientSeed) {
+  const uniqueUsers = [...new Set(seed.members)];
+  if (uniqueUsers.length !== seed.members.length) {
+    throw duplicatedUsersInClientSeed(seed.members);
   }
 }

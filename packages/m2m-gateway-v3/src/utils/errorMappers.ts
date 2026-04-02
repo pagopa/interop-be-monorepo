@@ -318,3 +318,18 @@ export const getRemainingDailyCallsErrorMapper = (
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createProducerKeychainErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "duplicatedUsersInProducerKeychainSeed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("duplicatedUsersInClientSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -16,6 +16,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
+import { duplicatedUsersInProducerKeychainSeed } from "../../src/model/domain/errors.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();
@@ -74,5 +75,21 @@ describe("createProducerKeychain", () => {
     expect(writtenPayload.producerKeychain).toEqual(
       toProducerKeychainV2(expectedProducerKeychain)
     );
+  });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedUsersInProducerKeychainSeed(seed.members);
+    await expect(
+      authorizationService.createProducerKeychain(
+        { producerKeychainSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
   });
 });

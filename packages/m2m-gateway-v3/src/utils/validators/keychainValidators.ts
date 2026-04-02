@@ -1,5 +1,6 @@
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { unauthorizedError } from "pagopa-interop-models";
+import { duplicatedUsersInProducerKeychainSeed } from "../../model/errors.js";
 
 export function assertProducerKeychainVisibilityIsFull(
   keychain: authorizationApi.ProducerKeychain
@@ -10,5 +11,14 @@ export function assertProducerKeychainVisibilityIsFull(
     throw unauthorizedError(
       `Tenant is not the owner of the producer keychain with id ${keychain.id}`
     );
+  }
+}
+
+export function assertProducerKeychainUsersAreUnique(
+  seed: m2mGatewayApiV3.ProducerKeychainSeed
+) {
+  const uniqueUsers = [...new Set(seed.members)];
+  if (uniqueUsers.length !== seed.members.length) {
+    throw duplicatedUsersInProducerKeychainSeed(seed.members);
   }
 }
