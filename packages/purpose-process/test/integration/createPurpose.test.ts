@@ -268,16 +268,23 @@ describe("createPurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
+    const delegator: Tenant = {
+      ...getMockTenant(),
+      id: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      kind: tenantKind.PA,
+    };
+
     const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eService1.id,
-      delegatorId: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      delegatorId: delegator.id,
       delegateId: delegateTenant.id,
       state: delegationState.active,
     });
 
+    await addOneTenant(delegator);
     await addOneTenant(delegateTenant);
     await addOneAgreement(agreementEservice1);
     await addOneEService(eService1);
@@ -417,6 +424,7 @@ describe("createPurpose", () => {
       consumerId: agreement.consumerId,
     };
 
+    await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);
     await addOneTenant(producerDelegate);
     await addOneAgreement(agreement);

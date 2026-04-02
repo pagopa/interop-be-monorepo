@@ -33,7 +33,6 @@ import {
   Agreement,
   Descriptor,
   agreementState,
-  TenantKind,
   PurposeActivatedV2,
   toPurposeV2,
   PurposeVersionUnsuspendedByConsumerV2,
@@ -50,6 +49,7 @@ import {
   UserId,
   purposeTemplateState,
   PurposeTemplate,
+  PurposeRiskAnalysisForm,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -1625,7 +1625,8 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
-    const riskAnalysisForm = getMockValidRiskAnalysisForm("GSP");
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockExpiredRiskAnalysisForm("PA");
 
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
@@ -1646,7 +1647,6 @@ describe("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
-      mockConsumer.kind as TenantKind,
       new Date(),
       undefined
     );

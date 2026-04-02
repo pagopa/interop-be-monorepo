@@ -355,10 +355,8 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPA1 } =
-      validEServiceTemplateRiskAnalysisPA1;
-    const { tenantKind: _tenantKind2, ...validRiskAnalysisPA2 } =
-      validEServiceTemplateRiskAnalysisPA2;
+    const validRiskAnalysisPA1 = validEServiceTemplateRiskAnalysisPA1;
+    const validRiskAnalysisPA2 = validEServiceTemplateRiskAnalysisPA2;
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
@@ -431,8 +429,7 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPrivate } =
-      validEServiceTemplateRiskAnalysisPrivate;
+    const validRiskAnalysisPrivate = validEServiceTemplateRiskAnalysisPrivate;
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,

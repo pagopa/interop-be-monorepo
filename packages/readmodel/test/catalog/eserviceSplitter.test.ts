@@ -127,6 +127,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisSQL2: EServiceRiskAnalysisSQL = {
@@ -137,6 +138,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
@@ -306,6 +308,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisSQL2: EServiceRiskAnalysisSQL = {
@@ -316,6 +319,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =

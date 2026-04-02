@@ -6,7 +6,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   TenantKind,
@@ -17,6 +16,7 @@ import { z } from "zod";
 
 export const expiredRiskAnalysis2_0_Pa: RiskAnalysisFormToValidate = {
   version: "2.0",
+  tenantKind: tenantKind.PA,
   answers: {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
@@ -41,6 +41,7 @@ export const expiredRiskAnalysis2_0_Pa: RiskAnalysisFormToValidate = {
 
 export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   version: "3.0",
+  tenantKind: tenantKind.PA,
   answers: {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
@@ -68,6 +69,7 @@ export const validRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
 
 export const validRiskAnalysis3_1_Pa: RiskAnalysisFormToValidate = {
   version: "3.1",
+  tenantKind: tenantKind.PA,
   answers: {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
@@ -98,6 +100,7 @@ export const validRiskAnalysis3_1_Pa: RiskAnalysisFormToValidate = {
 export const validRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisFormToValidate =
   {
     version: "3.1",
+    tenantKind: tenantKind.PA,
     answers: {
       purpose: ["INSTITUTIONAL"],
       institutionalPurpose: ["MyPurpose"],
@@ -110,6 +113,7 @@ export const validRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisFormToValidat
 
 export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
   version: "2.0",
+  tenantKind: tenantKind.PA,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
     { key: "institutionalPurpose", value: "MyPurpose" },
@@ -139,6 +143,7 @@ export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
 
 export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
   version: validRiskAnalysis3_0_Pa.version,
+  tenantKind: tenantKind.PA,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
     { key: "institutionalPurpose", value: "MyPurpose" },
@@ -170,6 +175,7 @@ export const validatedRiskAnalysis3_0_Pa: RiskAnalysisValidatedForm = {
 
 export const validatedRiskAnalysis3_1_Pa: RiskAnalysisValidatedForm = {
   version: validRiskAnalysis3_1_Pa.version,
+  tenantKind: tenantKind.PA,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
     { key: "institutionalPurpose", value: "MyPurpose" },
@@ -204,6 +210,7 @@ export const validatedRiskAnalysis3_1_Pa: RiskAnalysisValidatedForm = {
 export const validatedRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisValidatedForm =
   {
     version: validRiskAnalysis3_1_Pa.version,
+    tenantKind: tenantKind.PA,
     singleAnswers: [
       { key: "purpose", value: "INSTITUTIONAL" },
       { key: "institutionalPurpose", value: "MyPurpose" },
@@ -217,6 +224,7 @@ export const validatedRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisValidated
 
 export const expiredRiskAnalysis1_0_Private: RiskAnalysisFormToValidate = {
   version: "1.0",
+  tenantKind: tenantKind.PRIVATE,
   answers: {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
@@ -243,6 +251,7 @@ export const expiredRiskAnalysis1_0_Private: RiskAnalysisFormToValidate = {
 
 export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   version: "2.0",
+  tenantKind: tenantKind.PRIVATE,
   answers: {
     purpose: ["INSTITUTIONAL"],
     institutionalPurpose: ["MyPurpose"],
@@ -271,6 +280,7 @@ export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
 export const validatedRiskAnalysis1_0_Private_Expired: RiskAnalysisValidatedForm =
   {
     version: expiredRiskAnalysis1_0_Private.version,
+    tenantKind: tenantKind.PRIVATE,
     singleAnswers: [
       { key: "purpose", value: "INSTITUTIONAL" },
       { key: "institutionalPurpose", value: "MyPurpose" },
@@ -302,6 +312,7 @@ export const validatedRiskAnalysis1_0_Private_Expired: RiskAnalysisValidatedForm
 
 export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
   version: validRiskAnalysis2_0_Private.version,
+  tenantKind: tenantKind.PRIVATE,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
     { key: "institutionalPurpose", value: "MyPurpose" },
@@ -333,6 +344,7 @@ export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
 
 export const validSchemaOnlyRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   version: "3.0",
+  tenantKind: tenantKind.PA,
   answers: {
     purpose: ["INSTITUTIONAL"],
     usesThirdPartyData: [],
@@ -342,6 +354,7 @@ export const validSchemaOnlyRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
 export const validSchemaOnlyRiskAnalysis2_0_Private: RiskAnalysisFormToValidate =
   {
     version: "2.0",
+    tenantKind: tenantKind.PRIVATE,
     answers: {
       purpose: ["INSTITUTIONAL"],
       usesPersonalData: [],
@@ -361,7 +374,7 @@ export const getMockValidRiskAnalysis = (
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskAnalysis2_0_Private,
+        { ...validatedRiskAnalysis2_0_Private, tenantKind: producerTenantKind },
         generateMock(z.string())
       )
     )
@@ -379,7 +392,10 @@ export const getMockExpiredRiskAnalysis = (
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskAnalysis1_0_Private_Expired,
+        {
+          ...validatedRiskAnalysis1_0_Private_Expired,
+          tenantKind: producerTenantKind,
+        },
         generateMock(z.string())
       )
     )
@@ -387,16 +403,14 @@ export const getMockExpiredRiskAnalysis = (
 
 export const getMockValidEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   ...getMockValidRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
 });
 
 export const getMockExpiredEServiceTemplateRiskAnalysis = (
   producerTenantKind: TenantKind
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   ...getMockExpiredRiskAnalysis(producerTenantKind),
-  tenantKind: producerTenantKind,
 });
 
 export const getMockExpiredRiskAnalysisForm = (

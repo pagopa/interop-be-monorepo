@@ -98,9 +98,8 @@ export async function toM2MGatewayApiPurpose(
 
       const isRiskAnalysisValid =
         validateRiskAnalysis(
-          purpose.riskAnalysisForm,
+          { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind }, // TODO double-check
           false,
-          consumer.data.kind,
           new Date(),
           eservice.data.personalData
         ).type === "valid";

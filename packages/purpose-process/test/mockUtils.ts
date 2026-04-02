@@ -33,13 +33,27 @@ import { validateAndTransformRiskAnalysis } from "../src/services/validators.js"
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+): purposeApi.RiskAnalysisFormSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  );
+
+  return {
+    version,
+    answers,
+  };
+};
 
 export const buildRiskAnalysisFormSeed = (
   riskAnalysisForm: RiskAnalysisForm
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+): purposeApi.RiskAnalysisFormSeed => {
+  const { version, answers } =
+    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+  return {
+    version,
+    answers,
+  };
+};
 
 export const createUpdatedRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm,
@@ -105,9 +119,10 @@ export const createUpdatedPurpose = (
   updatedAt: new Date(),
   riskAnalysisForm: createUpdatedRiskAnalysisForm(
     validateAndTransformRiskAnalysis(
-      purposeUpdateContent.riskAnalysisForm,
+      purposeUpdateContent.riskAnalysisForm
+        ? { ...purposeUpdateContent.riskAnalysisForm, tenantKind }
+        : undefined,
       false,
-      tenantKind,
       new Date(),
       undefined
     )!,
@@ -172,6 +187,7 @@ export const getMockEServiceForPurposeFromTemplate = (
 
 const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
   version: validatedRiskAnalysisTemplate3_1_Pa.version,
+  tenantKind: tenantKind.PA,
   singleAnswers: [
     {
       key: "publicInterestTaskText",
@@ -204,6 +220,7 @@ const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
 const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
   {
     version: validRiskAnalysis2_0_Private.version,
+    tenantKind: tenantKind.PRIVATE,
     singleAnswers: [],
     multiAnswers: [],
   };
