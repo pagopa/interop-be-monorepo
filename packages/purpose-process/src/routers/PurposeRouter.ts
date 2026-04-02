@@ -460,16 +460,11 @@ const purposeRouter = (
               unsafeBrandId(req.params.riskAnalysisId),
               ctx
             );
-          const { purpose, isRiskAnalysisValid } = data;
 
           setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
+            .send(purposeApi.Purpose.parse(purposeToApiPurpose(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
