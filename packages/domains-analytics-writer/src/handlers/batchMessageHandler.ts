@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 import { decodeKafkaMessage } from "pagopa-interop-commons";
 import {
   EServiceEventEnvelopeV1,

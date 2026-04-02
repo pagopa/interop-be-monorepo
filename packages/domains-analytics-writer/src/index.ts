@@ -1,8 +1,11 @@
 /* eslint-disable functional/immutable-data */
-import { EachBatchPayload, KafkaMessage } from "kafkajs";
 import { genericLogger, initDB, logger } from "pagopa-interop-commons";
 
-import { runBatchConsumer } from "kafka-iam-auth";
+import {
+  runBatchConsumer,
+  EachBatchPayload,
+  KafkaMessage,
+} from "kafka-iam-auth";
 import {
   baseConsumerConfig,
   config,

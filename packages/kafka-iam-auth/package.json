@@ -15,6 +15,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@confluentinc/kafka-javascript": "catalog:",
     "aws-msk-iam-sasl-signer-js": "catalog:",
     "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",

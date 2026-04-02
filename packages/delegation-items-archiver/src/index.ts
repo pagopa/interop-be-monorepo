@@ -1,11 +1,10 @@
-import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import {
   CorrelationId,
   DelegationEvent,

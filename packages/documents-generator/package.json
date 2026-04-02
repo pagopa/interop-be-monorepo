@@ -37,7 +37,6 @@
     "drizzle-orm": "catalog:",
     "handlebars": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "catalog:",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
