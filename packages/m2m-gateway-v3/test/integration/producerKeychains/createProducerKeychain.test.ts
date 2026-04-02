@@ -14,7 +14,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
-import { duplicatedUsersInProducerKeychainSeed } from "../../../src/model/errors.js";
+import { duplicatedMembersInSeed } from "../../../src/model/errors.js";
 
 describe("createProducerKeychain", () => {
   const mockProducerKeychain = getMockedApiFullProducerKeychain();
@@ -79,14 +79,18 @@ describe("createProducerKeychain", () => {
       ...producerKeychainSeed,
       members: [userId, userId, generateId()],
     };
-
-    const error = duplicatedUsersInProducerKeychainSeed(seed.members);
+    mockInteropBeClients.authorizationClient.producerKeychain.createProducerKeychain =
+      vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.reject(duplicatedMembersInSeed(seed.members))
+        );
 
     await expect(
       producerKeychainService.createProducerKeychain(
         seed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(error);
+    ).rejects.toThrowError(duplicatedMembersInSeed(seed.members));
   });
 });

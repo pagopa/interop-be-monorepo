@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
-import { duplicatedUsersInProducerKeychainSeed } from "../../src/model/domain/errors.js";
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();
@@ -84,7 +84,7 @@ describe("createProducerKeychain", () => {
       members: [userId, userId, generateId()],
     };
 
-    const error = duplicatedUsersInProducerKeychainSeed(seed.members);
+    const error = duplicatedMembersInSeed(seed.members);
     await expect(
       authorizationService.createProducerKeychain(
         { producerKeychainSeed: seed },

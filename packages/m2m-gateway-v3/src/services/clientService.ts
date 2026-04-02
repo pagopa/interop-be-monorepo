@@ -11,10 +11,7 @@ import {
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import {
-  assertClientUsersAreUnique,
-  assertClientVisibilityIsFull,
-} from "../utils/validators/clientValidators.js";
+import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
@@ -384,8 +381,6 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Client> {
       logger.info(`Creating client with name ${seed.name}`);
-
-      assertClientUsersAreUnique(seed);
 
       const client =
         await clients.authorizationClient.client.createConsumerClient(seed, {

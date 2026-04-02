@@ -11,7 +11,6 @@ import { generateId, UserId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
-import { duplicatedUsersInClientSeed } from "../../../src/model/errors.js";
 
 describe("POST /clients router test", () => {
   const makeRequest = async (token: string, seed: m2mGatewayApiV3.ClientSeed) =>
@@ -68,24 +67,6 @@ describe("POST /clients router test", () => {
   ])("Should return 400 if passed invalid body", async (seed) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, seed as m2mGatewayApiV3.ClientSeed);
-
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if duplicated users are passed in the seed", async () => {
-    const userId = generateId();
-    const seed = {
-      ...clientSeed,
-      members: [userId, userId, generateId()],
-    };
-    mockClientService.createClient = vi
-      .fn()
-      .mockImplementation(() =>
-        Promise.reject(duplicatedUsersInClientSeed(seed.members))
-      );
-
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });

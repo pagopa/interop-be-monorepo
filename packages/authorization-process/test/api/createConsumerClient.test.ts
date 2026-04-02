@@ -12,7 +12,7 @@ import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { testToFullClient } from "../apiUtils.js";
-import { duplicatedUsersInClientSeed } from "../../src/model/domain/errors.js";
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 
 describe("API /clientsConsumer authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -90,7 +90,7 @@ describe("API /clientsConsumer authorization test", () => {
     authorizationService.createConsumerClient = vi
       .fn()
       .mockImplementation(() =>
-        Promise.reject(duplicatedUsersInClientSeed(seed.members))
+        Promise.reject(duplicatedMembersInSeed(seed.members))
       );
 
     const token = generateToken(authRole.ADMIN_ROLE);

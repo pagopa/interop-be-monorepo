@@ -12,10 +12,7 @@ import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
-import {
-  assertProducerKeychainUsersAreUnique,
-  assertProducerKeychainVisibilityIsFull,
-} from "../utils/validators/keychainValidators.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
@@ -390,8 +387,6 @@ export function producerKeychainServiceBuilder(
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.ProducerKeychain> {
       logger.info(`Creating producer keychain with name ${seed.name}`);
-
-      assertProducerKeychainUsersAreUnique(seed);
 
       const result =
         await clients.authorizationClient.producerKeychain.createProducerKeychain(

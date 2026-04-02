@@ -51,8 +51,7 @@ const errorCodes = {
   producerJwkNotFound: "0036",
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
-  duplicatedUsersInProducerKeychain: "0039",
-  duplicatedUsersInClient: "0040",
+  duplicatedMembersInSeed: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -450,22 +449,10 @@ export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function duplicatedUsersInProducerKeychainSeed(
-  users: string[]
-): ApiError<ErrorCodes> {
+export function duplicatedMembersInSeed(users: string[]): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Users ${users.join(", ")} are duplicated in the producer keychain`,
-    code: "duplicatedUsersInProducerKeychain",
-    title: "Duplicated users in producer keychain",
-  });
-}
-
-export function duplicatedUsersInClientSeed(
-  users: string[]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Users ${users.join(", ")} are duplicated in the client`,
-    code: "duplicatedUsersInClient",
-    title: "Duplicated users in client",
+    detail: `Members ${users.join(", ")} are duplicated in the seed`,
+    code: "duplicatedMembersInSeed",
+    title: "Duplicated members in seed",
   });
 }
