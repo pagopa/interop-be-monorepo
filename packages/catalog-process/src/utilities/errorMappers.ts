@@ -292,6 +292,7 @@ export const publishDescriptorErrorMapper = (
       "eServiceDescriptorWithoutInterface",
       "eServiceRiskAnalysisIsRequired",
       "riskAnalysisNotValid",
+      "riskAnalysisTenantKindMismatch",
       "notValidDescriptor",
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
@@ -365,6 +366,7 @@ export const createRiskAnalysisErrorMapper = (
       "eserviceNotInDraftState",
       "eserviceNotInReceiveMode",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)

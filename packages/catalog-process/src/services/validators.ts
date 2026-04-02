@@ -7,6 +7,7 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
@@ -18,15 +19,18 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  RiskAnalysisId,
   type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
@@ -46,6 +50,7 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -227,13 +232,22 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService
+  eservice: EService,
+  tenantKind: TenantKind
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        eserviceId: eservice.id,
+        riskAnalysisId: riskAnalysis.id,
+      });
+    }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
         riskAnalysis.riskAnalysisForm
@@ -247,6 +261,27 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+function assertRiskAnalysisTenantKindMatch({
+  actualKind,
+  expectedKind,
+  eserviceId,
+  riskAnalysisId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  eserviceId: EServiceId;
+  riskAnalysisId: RiskAnalysisId;
+}): void {
+  if (actualKind && actualKind !== expectedKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      expectedKind,
+      eserviceId,
+      riskAnalysisId
+    );
+  }
 }
 
 export function assertInterfaceDeletableDescriptorState(
