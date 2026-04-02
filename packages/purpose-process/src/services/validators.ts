@@ -3,6 +3,7 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
