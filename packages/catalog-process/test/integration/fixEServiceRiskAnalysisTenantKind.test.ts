@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import {
   decodeProtobufPayload,
-  getMockContextMaintenance,
+  getMockContextInternal,
   getMockEService,
   getMockTenant,
   getMockValidRiskAnalysis,
@@ -68,7 +68,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
       await catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
-        getMockContextMaintenance({})
+        getMockContextInternal({})
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -123,7 +123,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
       catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
-        getMockContextMaintenance({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(tenantKindNotFound(eservice.producerId));
   });
@@ -136,7 +136,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
       catalogService.fixEServiceRiskAnalysisTenantKind(
         unknownEServiceId,
         riskAnalysisId,
-        getMockContextMaintenance({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(eServiceNotFound(unknownEServiceId));
   });
