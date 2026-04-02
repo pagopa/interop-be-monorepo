@@ -5571,9 +5571,6 @@ importers:
 
   packages/tenant-kind-history-consumer:
     dependencies:
-      axios:
-        specifier: 'catalog:'
-        version: 1.13.5
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0

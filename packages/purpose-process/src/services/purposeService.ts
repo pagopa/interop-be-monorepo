@@ -134,7 +134,6 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
   assertValidPurposeTenantKind,
-  assertRiskAnalysisTenantKindMatch,
   getOrganizationRole,
   isArchivable,
   isClonable,
@@ -150,6 +149,7 @@ import {
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
+  assertRiskAnalysisTenantKindMatch,
 } from "./validators.js";
 
 const retrievePurpose = async (
