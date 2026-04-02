@@ -26,14 +26,10 @@ describe("API POST /purposes test", () => {
   const mockEService = getMockEService();
   const mockPurposeSeed = getMockPurposeSeed(mockEService.id);
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {

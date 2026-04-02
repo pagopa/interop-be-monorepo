@@ -189,7 +189,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -237,7 +237,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -277,7 +277,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -343,7 +343,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -398,7 +398,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -508,7 +508,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -606,7 +606,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });

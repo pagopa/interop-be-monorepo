@@ -7,6 +7,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  genericInternalError,
   RiskAnalysis,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
@@ -226,6 +227,11 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
 } => {
+  if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+    throw genericInternalError(
+      `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} in eservice template ${eserviceTemplateId} is missing tenantKind`
+    );
+  }
   const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion,
@@ -234,8 +240,7 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!, // TODO how to avoid "!"
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =

@@ -3,7 +3,6 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
@@ -24,8 +23,6 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
-  RiskAnalysisForm,
-  RiskAnalysisFormId,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
@@ -63,44 +60,6 @@ import {
   retrievePurposeDelegation,
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-
-export const assertRiskAnalysisTenantKindMatch = ({
-  actualKind,
-  expectedKind,
-  riskAnalysisFormId,
-}: {
-  actualKind: TenantKind | undefined;
-  expectedKind: TenantKind;
-  riskAnalysisFormId: RiskAnalysisFormId;
-}): void => {
-  if (actualKind && actualKind !== expectedKind) {
-    throw riskAnalysisTenantKindMismatch(
-      actualKind,
-      expectedKind,
-      riskAnalysisFormId
-    );
-  }
-};
-
-export const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        dateForExpirationValidation,
-        personalDataInEService
-      ).type === "valid"
-    );
-  }
-};
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);

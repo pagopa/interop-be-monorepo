@@ -1548,8 +1548,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        isRiskAnalysisValid:
-          type: boolean
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -1568,7 +1566,6 @@ components:
         - title
         - description
         - createdAt
-        - isRiskAnalysisValid
         - isFreeOfCharge
       description: business representation of a purpose
     Purposes:
