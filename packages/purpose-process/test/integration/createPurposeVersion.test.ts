@@ -248,7 +248,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -381,7 +380,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -502,7 +500,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -582,7 +579,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -725,7 +721,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -909,7 +904,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });

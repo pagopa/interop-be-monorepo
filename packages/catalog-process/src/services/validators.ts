@@ -450,3 +450,19 @@ export function assertDailyCallsForCertifiedAttributesOnly(
     }
   }
 }
+
+export function assertAttributeDailyCallsConsistentWithTotal(
+  attributes: EserviceAttributes,
+  dailyCallsTotal: number
+): void {
+  for (const attributeGroup of attributes.certified) {
+    for (const attribute of attributeGroup) {
+      if (
+        attribute.dailyCallsPerConsumer !== undefined &&
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+    }
+  }
+}

@@ -37,7 +37,6 @@ import {
   purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
-  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -82,7 +81,7 @@ describe("clonePurpose", async () => {
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       seed: {
         eserviceId: mockEService.id,
@@ -123,7 +122,6 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
     const mockTenant = {
@@ -151,7 +149,7 @@ describe("clonePurpose", async () => {
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       seed: {
         eserviceId: mockEService.id,
@@ -193,7 +191,6 @@ describe("clonePurpose", async () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(expectedPurpose.title.length).toBe(60);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a clonable state", async () => {
     const consumer = {
@@ -239,7 +236,7 @@ describe("clonePurpose", async () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(purposeCreatedByDelegate, addOneDelegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: purposeCreatedByDelegate.id,
       seed: {
         eserviceId: mockEService.id,
@@ -283,7 +280,6 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a clonable state", async () => {
     const producer = {
@@ -358,7 +354,7 @@ describe("clonePurpose", async () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: delegatePurpose.id,
       seed: {
         eserviceId: eservice.id,
@@ -402,7 +398,6 @@ describe("clonePurpose", async () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
     const mockTenant = {

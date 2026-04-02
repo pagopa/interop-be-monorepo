@@ -676,6 +676,47 @@ describe("create descriptor", async () => {
     });
   });
 
+  it("should throw inconsistentDailyCalls if a certified attribute dailyCallsPerConsumer exceeds dailyCallsTotal", async () => {
+    const mockCertifiedAttribute: Attribute = {
+      name: "Certified Attribute name",
+      id: generateId(),
+      kind: attributeKind.certified,
+      description: "Certified Attribute Description",
+      creationTime: new Date(),
+    };
+
+    await addOneAttribute(mockCertifiedAttribute);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      dailyCallsTotal: 100,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 200,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = { ...getMockEService(), descriptors: [] };
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
   it("should throw attributeDailyCallsNotAllowed when dailyCalls is on declared attribute", async () => {
     const mockDescriptor = {
       ...getMockDescriptor(),

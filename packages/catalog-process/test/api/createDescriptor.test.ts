@@ -21,6 +21,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -128,7 +129,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
@@ -148,6 +149,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(
