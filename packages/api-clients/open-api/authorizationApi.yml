@@ -79,6 +79,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /clientsApi:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -103,6 +109,12 @@ paths:
                 $ref: "#/components/schemas/FullClient"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1162,6 +1174,12 @@ paths:
                 $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:

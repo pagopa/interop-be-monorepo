@@ -51,6 +51,8 @@ const errorCodes = {
   producerJwkNotFound: "0036",
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
+  clientNameAlreadyExists: "0039",
+  producerKeychainNameAlreadyExists: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -445,5 +447,25 @@ export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
     detail: `SelfcareId in Tenant ${tenantId} not found`,
     code: "missingSelfcareId",
     title: "SelfcareId not found",
+  });
+}
+
+export function clientNameAlreadyExists(
+  clientName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client with name ${clientName} already exists`,
+    code: "clientNameAlreadyExists",
+    title: "Client name already exists",
+  });
+}
+
+export function producerKeychainNameAlreadyExists(
+  producerKeychainName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer keychain with name ${producerKeychainName} already exists`,
+    code: "producerKeychainNameAlreadyExists",
+    title: "Producer keychain name already exists",
   });
 }
