@@ -77,6 +77,7 @@ describe("unsuspendPurposeVersion", () => {
       currentVersion: purposeVersion,
       rejectedVersion: undefined,
       waitingForApprovalVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const purpose = await purposeService.unsuspendPurpose(
