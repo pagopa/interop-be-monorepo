@@ -452,7 +452,7 @@ describe("updateDraftDescriptor", () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
-      dailyCallsTotal: 100,
+      dailyCallsTotal: 1000,
       audience: ["audience1"],
       voucherLifespan: 30,
       attributes: {
@@ -486,7 +486,7 @@ describe("updateDraftDescriptor", () => {
 
     const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(descriptor),
-      dailyCallsTotal: 200,
+      dailyCallsTotal: 600,
       audience: ["audience1", "audience2"],
       voucherLifespan: 60,
       attributes: {
@@ -516,7 +516,7 @@ describe("updateDraftDescriptor", () => {
       descriptors: [
         {
           ...descriptor,
-          dailyCallsTotal: 200,
+          dailyCallsTotal: 600,
           audience: ["audience1", "audience2"],
           voucherLifespan: 60,
           attributes: {

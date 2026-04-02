@@ -210,11 +210,13 @@ export const testToM2mGatewayApiPurpose = (
     currentVersion,
     waitingForApprovalVersion,
     rejectedVersion,
+    isRiskAnalysisValid = false,
   }: {
     currentVersion?: m2mGatewayApi.PurposeVersion;
     waitingForApprovalVersion?: m2mGatewayApi.PurposeVersion;
     rejectedVersion?: m2mGatewayApi.PurposeVersion;
-  }
+    isRiskAnalysisValid?: boolean;
+  } = {}
 ): m2mGatewayApi.Purpose => ({
   id: purpose.id,
   eserviceId: purpose.eserviceId,
@@ -225,7 +227,7 @@ export const testToM2mGatewayApiPurpose = (
   description: purpose.description,
   createdAt: purpose.createdAt,
   updatedAt: purpose.updatedAt,
-  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
+  isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   delegationId: purpose.delegationId,

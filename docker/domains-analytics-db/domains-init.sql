@@ -388,6 +388,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   selfcare_id VARCHAR(2048),
   external_id_origin VARCHAR(2048) NOT NULL,
   external_id_value VARCHAR(2048) NOT NULL,
+  selfcare_institution_type VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   name VARCHAR(2048) NOT NULL,

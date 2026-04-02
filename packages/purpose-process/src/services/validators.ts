@@ -3,8 +3,6 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -24,7 +22,6 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
-  RiskAnalysisForm,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
@@ -61,26 +58,6 @@ import {
   retrievePurposeDelegation,
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-
-export const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        dateForExpirationValidation,
-        personalDataInEService
-      ).type === "valid"
-    );
-  }
-};
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
