@@ -130,17 +130,24 @@ export const authenticationDPoPMiddleware: (
       );
 
       // 4. Full DPoP Validation (Signature, Replay Check, Key Binding)
-      await verifyDPoPCompliance({
-        config,
-        dpopProofJWS,
-        accessToken,
-        accessTokenClientId: accessTokenDPoP.client_id,
-        accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
-        expectedHtu,
-        expectedHtm,
-        dynamoDBClient,
-        logger: ctx.logger,
-      });
+      try {
+        await verifyDPoPCompliance({
+          config,
+          dpopProofJWS,
+          accessToken,
+          accessTokenClientId: accessTokenDPoP.client_id,
+          accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
+          expectedHtu,
+          expectedHtm,
+          dynamoDBClient,
+          logger: ctx.logger,
+        });
+      } catch (dpopError) {
+        ctx.logger.warn(
+          `[JTI=${accessTokenDPoP.jti}] - Access token valid but DPoP validation failed`
+        );
+        throw dpopError;
+      }
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(accessTokenDPoP);

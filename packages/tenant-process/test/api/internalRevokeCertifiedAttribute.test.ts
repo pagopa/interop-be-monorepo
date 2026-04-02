@@ -24,7 +24,7 @@ describe("API DELETE /internal/origin/{tOrigin}/externalId/{tExternalId}/attribu
   beforeEach(() => {
     tenantService.internalRevokeCertifiedAttribute = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue({ version: 1 });
   });
 
   const makeRequest = async (token: string) =>
@@ -39,6 +39,7 @@ describe("API DELETE /internal/origin/{tOrigin}/externalId/{tExternalId}/attribu
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(res.headers["x-metadata-version"]).toBe("1");
   });
 
   it.each(
