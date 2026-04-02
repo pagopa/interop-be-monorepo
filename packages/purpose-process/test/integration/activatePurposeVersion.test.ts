@@ -49,6 +49,7 @@ import {
   UserId,
   purposeTemplateState,
   PurposeTemplate,
+  PurposeRiskAnalysisForm,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -70,6 +71,7 @@ import {
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
+  riskAnalysisTenantKindMismatch,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
@@ -86,7 +88,7 @@ import {
   purposeService,
 } from "../integrationUtils.js";
 
-describe.skip("activatePurposeVersion", () => {
+describe("activatePurposeVersion", () => {
   const userId: UserId = generateId();
 
   let mockConsumer: Tenant;
@@ -1624,7 +1626,8 @@ describe.skip("activatePurposeVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
-    const riskAnalysisForm = getMockValidRiskAnalysisForm("GSP");
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockExpiredRiskAnalysisForm("PA");
 
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
@@ -1661,6 +1664,80 @@ describe.skip("activatePurposeVersion", () => {
     }).rejects.toThrowError(
       riskAnalysisValidationFailed(
         result.type === "invalid" ? result.issues : []
+      )
+    );
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the purpose is in draft state and has a mismatching tenantKind", async () => {
+    const riskAnalysisForm = getMockValidRiskAnalysisForm("PRIVATE");
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      );
+    }).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        riskAnalysisForm.id
+      )
+    );
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the purpose is in waitingForApproval state and has a mismatching tenantKind", async () => {
+    const riskAnalysisForm = getMockValidRiskAnalysisForm("PRIVATE");
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      );
+    }).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        riskAnalysisForm.id
       )
     );
   });

@@ -208,4 +208,5 @@ export const eServiceToApiEService = (
   isClientAccessDelegable: eservice.isClientAccessDelegable,
   templateId: eservice.templateId,
   personalData: eservice.personalData,
+  instanceLabel: eservice.instanceLabel,
 });
