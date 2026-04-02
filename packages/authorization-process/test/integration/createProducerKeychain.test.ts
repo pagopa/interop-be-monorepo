@@ -43,13 +43,13 @@ describe("createProducerKeychain", () => {
     );
 
     const writtenEvent = await readLastEventByStreamId(
-      producerKeychain.id,
+      producerKeychain.data.id,
       '"authorization"',
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: producerKeychain.id,
+      stream_id: producerKeychain.data.id,
       version: "0",
       type: "ProducerKeychainAdded",
       event_version: 2,
@@ -61,14 +61,14 @@ describe("createProducerKeychain", () => {
     });
 
     const expectedProducerKeychain: ProducerKeychain = {
-      id: producerKeychain.id,
+      id: producerKeychain.data.id,
       keys: [],
-      name: producerKeychain.name,
+      name: producerKeychain.data.name,
       createdAt: new Date(),
       producerId: organizationId,
       eservices: [],
-      users: producerKeychain.users.map(unsafeBrandId<UserId>),
-      description: producerKeychain.description,
+      users: producerKeychain.data.users.map(unsafeBrandId<UserId>),
+      description: producerKeychain.data.description,
     };
 
     expect(writtenPayload.producerKeychain).toEqual(
