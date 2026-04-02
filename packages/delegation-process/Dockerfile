@@ -63,7 +63,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY --from=build /out /app
 
-RUN groupadd -r app && useradd -rm -g app -G audio,video app
+RUN groupadd -r app && useradd -rm -g app app
 RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
