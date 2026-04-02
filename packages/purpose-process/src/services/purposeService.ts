@@ -117,10 +117,6 @@ import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
-
-type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
-  clientId?: ClientId;
-};
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
@@ -150,6 +146,10 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
 } from "./validators.js";
+
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
+  clientId?: ClientId;
+};
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -258,6 +258,21 @@ export const retrieveActiveAgreement = async (
     throw agreementNotFound(eserviceId, consumerId);
   }
   return activeAgreement;
+};
+
+const retrieveActiveOrSuspendedAgreement = async (
+  eserviceId: EServiceId,
+  consumerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<Agreement> => {
+  const agreement = await readModelService.getActiveOrSuspendedAgreement(
+    eserviceId,
+    consumerId
+  );
+  if (agreement === undefined) {
+    throw agreementNotFound(eserviceId, consumerId);
+  }
+  return agreement;
 };
 
 const retrieveRiskAnalysis = (
@@ -2020,11 +2035,19 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const quotas = await getUpdatedQuotas(
-        eservice,
+      const agreement = await retrieveActiveOrSuspendedAgreement(
+        purpose.data.eserviceId,
         purpose.data.consumerId,
         readModelService
       );
+
+      const quotas = await getUpdatedQuotas(
+        eservice,
+        purpose.data.consumerId,
+        agreement.descriptorId,
+        readModelService
+      );
+
       const remainingDailyCallsPerConsumer = Math.max(
         0,
         quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls

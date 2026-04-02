@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   Agreement,
+  AttributeId,
   EService,
   EServiceId,
   Purpose,
@@ -11,6 +12,8 @@ import {
   descriptorState,
   generateId,
   purposeVersionState,
+  tenantAttributeType,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   getMockAgreement,
@@ -164,5 +167,80 @@ describe("getRemainingDailyCalls", () => {
     ).rejects.toThrowError(
       tenantIsNotTheConsumer(anotherConsumerId, undefined)
     );
+  });
+
+  it("should return remaining daily calls using base descriptor quota when the consumer agreement is suspended after certified attribute revocation", async () => {
+    const consumerId: TenantId = generateId();
+    const producerId: TenantId = generateId();
+    const eserviceId: EServiceId = generateId();
+    const certifiedAttributeId = unsafeBrandId<AttributeId>(generateId());
+
+    const descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttributeId,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 100,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = getMockEService(eserviceId, producerId, [
+      descriptor,
+    ]);
+
+    const suspendedAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumerId, agreementState.suspended),
+      descriptorId: descriptor.id,
+      producerId,
+    };
+
+    // Attribute has been revoked: revocationTimestamp is set
+    const consumerTenant = {
+      ...getMockTenant(consumerId),
+      attributes: [
+        {
+          id: certifiedAttributeId,
+          type: tenantAttributeType.CERTIFIED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const consumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 11,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+
+    await addOneTenant(consumerTenant);
+    await addOneEService(eservice);
+    await addOneAgreement(suspendedAgreement);
+    await addOnePurpose(consumerPurpose);
+
+    const result = await purposeService.getRemainingDailyCalls({
+      purposeId: consumerPurpose.id,
+      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+    });
+
+    expect(result).toEqual({
+      remainingDailyCallsPerConsumer: 0,
+      remainingDailyCallsTotal: 989,
+    });
   });
 });
