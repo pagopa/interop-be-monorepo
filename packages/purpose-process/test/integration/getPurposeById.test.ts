@@ -36,6 +36,8 @@ import {
   purposeNotFound,
   eserviceNotFound,
   tenantNotAllowed,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
