@@ -47,7 +47,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   const serviceResponse = getMockWithMetadata(mockPurpose, 2);
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, true)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {

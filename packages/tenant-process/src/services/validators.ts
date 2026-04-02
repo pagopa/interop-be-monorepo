@@ -17,10 +17,10 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
-  SCP,
   TenantFeature,
   Agreement,
   Delegation,
+  SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -122,23 +122,23 @@ export function assertExpirationDateExist(
 
 export function getTenantKind(
   attributes: ExternalId[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): TenantKind {
+  if (selfcareInstitutionType === SCP) {
+    return tenantKind.SCP;
+  }
+
   return match(externalId.origin)
-    .with(
-      PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-      // condition to be satisfied
-      (origin) =>
-        attributes.some(
-          (attr) =>
-            attr.origin === origin &&
-            (attr.value === PUBLIC_SERVICES_MANAGERS ||
-              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
-        ),
-      () => tenantKind.GSP
-    )
-    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
-    .with(SCP, () => tenantKind.SCP)
+    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => {
+      const isGSP = attributes.some(
+        (attr) =>
+          attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+          (attr.value === PUBLIC_SERVICES_MANAGERS ||
+            attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+      );
+      return isGSP ? tenantKind.GSP : tenantKind.PA;
+    })
     .otherwise(() => tenantKind.PRIVATE);
 }
 
@@ -162,7 +162,8 @@ export function assertRequesterDelegationsAllowedOrigin(
 export async function getTenantKindLoadingCertifiedAttributes(
   readModelService: ReadModelServiceSQL,
   attributes: TenantAttribute[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): Promise<TenantKind> {
   function getCertifiedAttributesIds(
     attributes: TenantAttribute[]
@@ -193,7 +194,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
     }
   });
   const extIds = convertAttributes(retrievedAttributes);
-  return getTenantKind(extIds, externalId);
+  return getTenantKind(extIds, externalId, selfcareInstitutionType);
 }
 
 export function assertValidExpirationDate(

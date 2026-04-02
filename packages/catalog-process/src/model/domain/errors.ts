@@ -62,6 +62,7 @@ const errorCodes = {
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
   attributeDailyCallsNotAllowed: "0047",
+  certifiedAttributeGroupNotFoundInSeed: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -544,5 +545,16 @@ export function attributeDailyCallsNotAllowed(
     detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDailyCallsNotAllowed",
     title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
   });
 }
