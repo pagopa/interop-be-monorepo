@@ -3,7 +3,6 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
-  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -20,7 +19,6 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
-  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
@@ -33,9 +31,9 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { config } from "../config/config.js";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -57,63 +55,51 @@ import {
   tenantIsNotTheDelegatedProducer,
   tenantIsNotTheProducer,
   tenantNotAllowed,
+  tenantNotFound,
 } from "../model/domain/errors.js";
+import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-const isTenantKindMatching = (
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind
-): boolean => !actualKind || actualKind === expectedKind;
-
-export const assertRiskAnalysisTenantKindMatch = (
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind,
-  purposeId: PurposeId,
-  riskAnalysisFormId: RiskAnalysisFormId
-): void => {
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  expectedKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
   if (actualKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
       expectedKind,
-      purposeId,
       riskAnalysisFormId
     );
   }
-};
-
-type TenantKindCheckContext = {
-  tenantKind: TenantKind;
-  purposeId: PurposeId;
-  riskAnalysisFormId: RiskAnalysisFormId;
 };
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
   dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined,
-  tenantKind: TenantKind
+  personalDataInEService: boolean | undefined
 ): boolean => {
   if (riskAnalysisForm === undefined) {
     return false;
+  } else {
+    return (
+      validateRiskAnalysis(
+        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+        schemaOnlyValidation,
+        dateForExpirationValidation,
+        personalDataInEService
+      ).type === "valid"
+    );
   }
-  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
-    if (!isTenantKindMatching(riskAnalysisForm.tenantKind, tenantKind)) {
-      return false;
-    }
-  }
-  return (
-    validateRiskAnalysis(
-      riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-      schemaOnlyValidation,
-      dateForExpirationValidation,
-      personalDataInEService
-    ).type === "valid"
-  );
 };
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
@@ -167,25 +153,12 @@ export function validateRiskAnalysisOrThrow({
   schemaOnlyValidation,
   dateForExpirationValidation,
   personalDataInEService,
-  tenantKindCheck,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
-  tenantKindCheck?: TenantKindCheckContext;
 }): RiskAnalysisValidatedForm {
-  if (
-    isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis") &&
-    tenantKindCheck
-  ) {
-    assertRiskAnalysisTenantKindMatch(
-      riskAnalysisForm.tenantKind,
-      tenantKindCheck.tenantKind,
-      tenantKindCheck.purposeId,
-      tenantKindCheck.riskAnalysisFormId
-    );
-  }
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -204,8 +177,7 @@ export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
   dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined,
-  tenantKindCheck?: TenantKindCheckContext
+  personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
@@ -215,7 +187,6 @@ export function validateAndTransformRiskAnalysis(
     schemaOnlyValidation,
     dateForExpirationValidation,
     personalDataInEService,
-    tenantKindCheck,
   });
 
   return {
@@ -294,6 +265,24 @@ export async function isOverQuota(
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
+  const quotas = await getUpdatedQuotas(
+    eservice,
+    purpose.consumerId,
+    readModelService
+  );
+
+  return !(
+    quotas.currentConsumerCalls + dailyCalls <=
+      quotas.maxDailyCallsPerConsumer &&
+    quotas.currentTotalCalls + dailyCalls <= quotas.maxDailyCallsTotal
+  );
+}
+
+export async function getUpdatedQuotas(
+  eservice: EService,
+  consumerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<UpdatedQuotas> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
     states: [purposeVersionState.active],
@@ -301,12 +290,12 @@ export async function isOverQuota(
   });
 
   const consumerPurposes = allPurposes.filter(
-    (p) => p.consumerId === purpose.consumerId
+    (p) => p.consumerId === consumerId
   );
 
   const agreement = await retrieveActiveAgreement(
     eservice.id,
-    purpose.consumerId,
+    consumerId,
     readModelService
   );
 
@@ -332,13 +321,39 @@ export async function isOverQuota(
     throw descriptorNotFound(eservice.id, agreement.descriptorId);
   }
 
-  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const tenant = await readModelService.getTenantById(consumerId);
+  if (!tenant) {
+    throw tenantNotFound(consumerId);
+  }
+
+  const consumerCertifiedAttributesIds = new Set(
+    tenant.attributes
+      .filter(
+        (a) =>
+          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
+      )
+      .map((a) => a.id)
+  );
+
+  const maxDailyCallsPerConsumer =
+    currentDescriptor.attributes.certified.flat().reduce((max, current) => {
+      if (!consumerCertifiedAttributesIds.has(current.id)) {
+        return max;
+      }
+      if (!current.dailyCallsPerConsumer) {
+        return max;
+      }
+      return Math.max(max, current.dailyCallsPerConsumer);
+    }, 0) || currentDescriptor.dailyCallsPerConsumer;
+
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
-  return !(
-    consumerLoadRequestsSum + dailyCalls <= maxDailyCallsPerConsumer &&
-    allPurposesRequestsSum + dailyCalls <= maxDailyCallsTotal
-  );
+  return {
+    currentConsumerCalls: consumerLoadRequestsSum,
+    currentTotalCalls: allPurposesRequestsSum,
+    maxDailyCallsPerConsumer,
+    maxDailyCallsTotal,
+  };
 }
 
 export const assertRequesterCanRetrievePurpose = async (
@@ -765,8 +780,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
-  eservicePersonalData: boolean | undefined,
-  tenantKindCheck?: TenantKindCheckContext
+  eservicePersonalData: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
   if (!purposeTemplate.purposeRiskAnalysisForm || !riskAnalysisForm) {
     return undefined;
@@ -797,7 +811,6 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     formToValidate,
     false,
     createdAt,
-    eservicePersonalData,
-    tenantKindCheck
+    eservicePersonalData
   );
 }

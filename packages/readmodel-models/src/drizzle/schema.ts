@@ -407,6 +407,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isClientAccessDelegable: boolean("is_client_access_delegable"),
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
+    instanceLabel: varchar("instance_label"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -1532,6 +1533,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({

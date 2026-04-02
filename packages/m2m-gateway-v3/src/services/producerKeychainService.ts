@@ -3,7 +3,7 @@ import {
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { retry, WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -18,10 +18,10 @@ import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
-  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
-import { getSelfcareUserById } from "./userService.js";
+import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
+import { config } from "../config/config.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -40,16 +40,6 @@ export function producerKeychainServiceBuilder(
       headers,
     });
 
-  const retrieveProducerKeychainKeyById = (
-    keychainId: ProducerKeychainId,
-    keyId: string,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
-    clients.authorizationClient.producerKeychain.getProducerKeyById({
-      params: { producerKeychainId: unsafeBrandId(keychainId), keyId },
-      headers,
-    });
-
   const pollProducerKeychain = (
     response: WithMaybeMetadata<authorizationApi.ProducerKeychain>,
     headers: M2MGatewayAppContext["headers"]
@@ -59,30 +49,6 @@ export function producerKeychainServiceBuilder(
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
-
-  const pollProducerKeychainKey = (
-    keychainId: ProducerKeychainId,
-    response: WithMaybeMetadata<authorizationApi.Key>,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<authorizationApi.Key>> =>
-    pollResourceWithMetadata(() =>
-      retrieveProducerKeychainKeyById(
-        unsafeBrandId(keychainId),
-        response.data.kid,
-        headers
-      )
-    )({
-      condition: isPolledVersionAtLeastResponseVersion(response),
-    });
-
-  const pollProducerKeychainKeyUntilDeletion = (
-    keychainId: ProducerKeychainId,
-    keyId: string,
-    headers: M2MGatewayAppContext["headers"]
-  ): Promise<void> =>
-    pollResourceUntilDeletion(() =>
-      retrieveProducerKeychainKeyById(keychainId, keyId, headers)
-    )({});
 
   return {
     async getProducerKeychain(
@@ -209,26 +175,30 @@ export function producerKeychainServiceBuilder(
         `Create a new key for producer keychain with id ${keychainId}`
       );
 
-      const response =
-        await clients.authorizationClient.producerKeychain.createProducerKey(
-          seed,
-          {
-            params: { producerKeychainId: keychainId },
-            headers,
-          }
-        );
-
-      const { data: key } = await pollProducerKeychainKey(
+      const { data: producerKeychain } = await retrieveProducerKeychainById(
         keychainId,
-        response,
         headers
       );
 
-      const { data: jwkData } =
-        await clients.authorizationClient.key.getJWKByKid({
-          params: { kid: key.kid },
-          headers,
-        });
+      const { data: key, metadata } =
+        await clients.authorizationClient.producerKeychain.createProducerKey(
+          seed,
+          { params: { producerKeychainId: keychainId }, headers }
+        );
+
+      await pollProducerKeychain({ data: producerKeychain, metadata }, headers);
+
+      const { data: jwkData } = await retry(
+        () =>
+          clients.authorizationClient.key.getProducerJWKByKid({
+            params: { kid: key.kid },
+            headers,
+          }),
+        {
+          retries: config.defaultPollingMaxRetries,
+          delay: config.defaultPollingRetryDelay,
+        }
+      );
 
       return toM2MProducerKey({
         jwk: jwkData.jwk,
@@ -286,15 +256,16 @@ export function producerKeychainServiceBuilder(
         `Deleting key for producer keychain with id ${keychainId} and its keyId ${keyId}`
       );
 
-      await clients.authorizationClient.producerKeychain.deleteProducerKeyById(
-        undefined,
-        {
-          params: { producerKeychainId: keychainId, keyId },
-          headers,
-        }
-      );
+      const { data, metadata } =
+        await clients.authorizationClient.producerKeychain.deleteProducerKeyById(
+          undefined,
+          {
+            params: { producerKeychainId: keychainId, keyId },
+            headers,
+          }
+        );
 
-      await pollProducerKeychainKeyUntilDeletion(keychainId, keyId, headers);
+      await pollProducerKeychain({ data, metadata }, headers);
     },
     async getProducerKeychainUsers(
       producerKeychainId: string,
@@ -349,10 +320,26 @@ export function producerKeychainServiceBuilder(
     async addProducerKeychainUsers(
       producerKeychainId: ProducerKeychainId,
       userId: string,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
         `Adding user ${userId} to producer keychain with id ${producerKeychainId}`
+      );
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: authData.organizationId },
+          headers,
+        });
+
+      assertTenantHasSelfcareId(tenant);
+
+      await getInstitutionUser(
+        clients,
+        unsafeBrandId(userId),
+        tenant.selfcareId,
+        unsafeBrandId(tenant.id),
+        headers
       );
 
       const response =

@@ -39,7 +39,7 @@ const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
-  invalidEServiceFlags: "0025",
+  invalidDelegationFlags: "0025",
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
@@ -61,7 +61,8 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  riskAnalysisTenantKindMismatch: "0047",
+  attributeDailyCallsNotAllowed: "0047",
+  riskAnalysisTenantKindMismatch: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -358,13 +359,14 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
-export function invalidEServiceFlags(
-  eserviceId: EServiceId
+export function invalidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} flags are not valid`,
-    code: "invalidEServiceFlags",
-    title: "Invalid EService flags",
+    detail: `Invalid delegation flags: isClientAccessDelegable cannot be true when isConsumerDelegable is false (isConsumerDelegable=${isConsumerDelegable}, isClientAccessDelegable=${isClientAccessDelegable})`,
+    code: "invalidDelegationFlags",
+    title: "Invalid delegation flags",
   });
 }
 
@@ -546,5 +548,15 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
   });
 }

@@ -27,6 +27,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   RiskAnalysisId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -34,6 +35,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -49,6 +51,7 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
   riskAnalysisTenantKindMismatch,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -184,6 +187,15 @@ export function assertIsReceiveEservice(eservice: EService): void {
   }
 }
 
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
+  }
+}
+
 export function assertTenantKindExists(
   tenant: Tenant
 ): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
@@ -229,12 +241,12 @@ export function assertRiskAnalysisIsValidForPublication(
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
     if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
-      assertRiskAnalysisTenantKindMatch(
-        riskAnalysis.riskAnalysisForm.tenantKind,
-        tenantKind,
-        eservice.id,
-        riskAnalysis.id
-      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        eserviceId: eservice.id,
+        riskAnalysisId: riskAnalysis.id,
+      });
     }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -251,12 +263,17 @@ export function assertRiskAnalysisIsValidForPublication(
   });
 }
 
-export function assertRiskAnalysisTenantKindMatch(
-  actualKind: TenantKind | undefined,
-  expectedKind: TenantKind,
-  eserviceId: EServiceId,
-  riskAnalysisId: RiskAnalysisId
-): void {
+function assertRiskAnalysisTenantKindMatch({
+  actualKind,
+  expectedKind,
+  eserviceId,
+  riskAnalysisId,
+}: {
+  actualKind: TenantKind | undefined;
+  expectedKind: TenantKind;
+  eserviceId: EServiceId;
+  riskAnalysisId: RiskAnalysisId;
+}): void {
   if (actualKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
@@ -421,4 +438,15 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
 }

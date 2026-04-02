@@ -134,6 +134,7 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
   assertValidPurposeTenantKind,
+  assertRiskAnalysisTenantKindMatch,
   getOrganizationRole,
   isArchivable,
   isClonable,
@@ -149,6 +150,7 @@ import {
   validateRiskAnalysisAgainstTemplateOrThrow,
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  getUpdatedQuotas,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -349,18 +351,12 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             purpose.data.createdAt,
-            eservice.personalData,
-            tenantKind
+            eservice.personalData
           )
         : true;
 
@@ -955,18 +951,12 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenantKind = await retrieveTenantKind(
-        purpose.data.consumerId,
-        readModelService
-      );
-
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
             purpose.data.riskAnalysisForm,
             false,
             new Date(),
-            eservice.personalData,
-            tenantKind
+            eservice.personalData
           )
         : true;
 
@@ -1143,21 +1133,12 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
-          const tenantKind = await retrieveTenantKind(
-            purpose.data.consumerId,
-            readModelService
-          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
-            tenantKindCheck: {
-              tenantKind,
-              purposeId,
-              riskAnalysisFormId: riskAnalysisForm.id,
-            },
           });
         }
       }
@@ -1969,14 +1950,7 @@ export function purposeServiceBuilder(
             formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
-            eservice.personalData,
-            purpose.data.riskAnalysisForm
-              ? {
-                  tenantKind: purposeTemplate.targetTenantKind,
-                  purposeId: purpose.data.id,
-                  riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-                }
-              : undefined
+            eservice.personalData
           )
         : undefined;
 
@@ -2045,6 +2019,46 @@ export function purposeServiceBuilder(
         version,
         documentId
       );
+    },
+    async getRemainingDailyCalls({
+      purposeId,
+      ctx: { authData, logger },
+    }: {
+      purposeId: PurposeId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<purposeApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const quotas = await getUpdatedQuotas(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      const remainingDailyCallsPerConsumer = Math.max(
+        0,
+        quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
+      );
+      const remainingDailyCallsTotal = Math.max(
+        0,
+        quotas.maxDailyCallsTotal - quotas.currentTotalCalls
+      );
+      return {
+        remainingDailyCallsPerConsumer,
+        remainingDailyCallsTotal,
+      };
     },
   };
 }
@@ -2181,19 +2195,11 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
-          const tenantKindCheck = purpose.data.riskAnalysisForm
-            ? {
-                tenantKind,
-                purposeId: purpose.data.id,
-                riskAnalysisFormId: purpose.data.riskAnalysisForm.id,
-              }
-            : undefined;
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
             new Date(),
-            eservice.personalData,
-            tenantKindCheck
+            eservice.personalData
           );
           return validated;
         })()
@@ -2239,8 +2245,7 @@ const performUpdatePurpose = async (
         updatedPurpose.riskAnalysisForm,
         false,
         new Date(),
-        eservice.personalData,
-        tenantKindToWriteInRA
+        eservice.personalData
       ),
     },
     metadata: { version: createdEvent.newVersion },
@@ -2433,6 +2438,22 @@ async function activatePurposeLogic({
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+    const riskAnalysisForm = purpose.data.riskAnalysisForm;
+    if (riskAnalysisForm) {
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        riskAnalysisFormId: riskAnalysisForm.id,
+      });
+    }
+  }
+
   // We generate the stamp in the transition draft -> active.
   // Instead, the transition waiting_for_approval -> active is performed by the producer,
   // so in this case the stamp doesn't have to be regenerated

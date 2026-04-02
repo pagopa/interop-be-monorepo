@@ -157,6 +157,7 @@ export function purposeServiceBuilder(
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
       purpose.consumerId,
+      true,
       eservice,
       headers
     );
@@ -822,27 +823,16 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const agreement = await getLatestAgreement(
-        agreementProcessClient,
-        purpose.consumerId,
-        eservice,
-        headers
-      );
-
-      if (!agreement) {
-        throw agreementNotFound(unsafeBrandId(purpose.consumerId));
-      }
-
       const [consumer, producer] = await Promise.all([
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.consumerId,
+            id: purpose.consumerId,
           },
           headers,
         }),
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.producerId,
+            id: eservice.producerId,
           },
           headers,
         }),
@@ -933,6 +923,19 @@ export function purposeServiceBuilder(
         signedDocument.path,
         logger
       );
+    },
+    async getRemainingDailyCalls(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      return await purposeProcessClient.getRemainingDailyCalls({
+        params: {
+          purposeId,
+        },
+        headers,
+      });
     },
   };
 }
