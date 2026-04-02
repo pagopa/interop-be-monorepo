@@ -3,7 +3,7 @@ info:
   title: PDND Interoperability API
   description: PDND Interoperability API for machine-to-machine interaction with interoperability features
   x-summary: PDND Interoperability API
-  version: "3.0.1"
+  version: "3.0.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -11195,7 +11195,6 @@ components:
           items:
             type: string
             format: uuid
-          uniqueItems: true
       required:
         - name
         - members
@@ -11275,7 +11274,6 @@ components:
           items:
             type: string
             format: uuid
-          uniqueItems: true
       required:
         - name
         - description

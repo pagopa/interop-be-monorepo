@@ -82,12 +82,10 @@ describe("createClient", () => {
 
     mockInteropBeClients.authorizationClient.client.createConsumerClient = vi
       .fn()
-      .mockImplementation(() =>
-        Promise.reject(duplicatedMembersInSeed(seed.members))
-      );
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
 
     await expect(
       clientService.createClient(seed, getMockM2MAdminAppContext())
-    ).rejects.toThrowError(duplicatedMembersInSeed(seed.members));
+    ).rejects.toThrowError(duplicatedMembersInSeed());
   });
 });

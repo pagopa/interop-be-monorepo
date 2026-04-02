@@ -82,15 +82,13 @@ describe("createProducerKeychain", () => {
     mockInteropBeClients.authorizationClient.producerKeychain.createProducerKeychain =
       vi
         .fn()
-        .mockImplementation(() =>
-          Promise.reject(duplicatedMembersInSeed(seed.members))
-        );
+        .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
 
     await expect(
       producerKeychainService.createProducerKeychain(
         seed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(duplicatedMembersInSeed(seed.members));
+    ).rejects.toThrowError(duplicatedMembersInSeed());
   });
 });

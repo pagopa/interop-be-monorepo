@@ -87,7 +87,7 @@ describe("createConsumerClient", () => {
     };
     const organizationId: TenantId = generateId();
 
-    const error = duplicatedMembersInSeed(seed.members);
+    const error = duplicatedMembersInSeed();
     await expect(
       authorizationService.createApiClient(
         { clientSeed: seed },

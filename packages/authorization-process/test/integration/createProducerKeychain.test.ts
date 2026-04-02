@@ -84,7 +84,7 @@ describe("createProducerKeychain", () => {
       members: [userId, userId, generateId()],
     };
 
-    const error = duplicatedMembersInSeed(seed.members);
+    const error = duplicatedMembersInSeed();
     await expect(
       authorizationService.createProducerKeychain(
         { producerKeychainSeed: seed },

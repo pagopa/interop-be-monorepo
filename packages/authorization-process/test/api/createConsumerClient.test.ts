@@ -89,9 +89,7 @@ describe("API /clientsConsumer authorization test", () => {
     };
     authorizationService.createConsumerClient = vi
       .fn()
-      .mockImplementation(() =>
-        Promise.reject(duplicatedMembersInSeed(seed.members))
-      );
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, seed);

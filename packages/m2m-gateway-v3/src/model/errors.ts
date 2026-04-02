@@ -519,9 +519,9 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   });
 }
 
-export function duplicatedMembersInSeed(users: string[]): ApiError<ErrorCodes> {
+export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Members ${users.join(", ")} are duplicated in the seed`,
+    detail: `The provided members list contains duplicate users`,
     code: "duplicatedMembersInSeed",
     title: "Duplicated members in seed",
   });

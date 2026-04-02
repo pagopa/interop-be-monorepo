@@ -85,7 +85,7 @@ describe("createConsumerClient", () => {
       members: [userId, userId, generateId()],
     };
 
-    const error = duplicatedMembersInSeed(seed.members);
+    const error = duplicatedMembersInSeed();
     await expect(
       authorizationService.createConsumerClient(
         { clientSeed: seed },

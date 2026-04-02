@@ -32,11 +32,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     description,
   };
 
-  // Get only the unique users to prevent the consumer from crashing on legacy messages
-  // The check will also be applied upstream in the process, but this is just for pre-existing messages
-  const uniqueUsers = [...new Set(users)];
-
-  const usersSQL: ProducerKeychainUserSQL[] = uniqueUsers.map((userId) => ({
+  const usersSQL: ProducerKeychainUserSQL[] = users.map((userId) => ({
     metadataVersion,
     producerKeychainId: id,
     userId,

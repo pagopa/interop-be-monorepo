@@ -222,6 +222,6 @@ export function assertTenantHasSelfcareId(
 export function assertMembersAreUnique(members: string[]) {
   const uniqueUsers = [...new Set(members)];
   if (uniqueUsers.length !== members.length) {
-    throw duplicatedMembersInSeed(members);
+    throw duplicatedMembersInSeed();
   }
 }

@@ -93,9 +93,7 @@ describe("API /producerKeychains authorization test", () => {
     };
     authorizationService.createProducerKeychain = vi
       .fn()
-      .mockImplementation(() =>
-        Promise.reject(duplicatedMembersInSeed(seed.members))
-      );
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, seed);
