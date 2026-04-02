@@ -11,6 +11,7 @@ import { getBffMockContext } from "./utils.js";
 describe("validateDPoPProof", () => {
   const MOCK_DPOP_PROOF = "test_dpop_proof_jws";
   const MOCK_HTU = "https://auth.interop.pagopa.it/token";
+  const MOCK_HTM = "POST";
 
   const mockAuthData: AuthData = {
     ...getMockAuthData(),
@@ -39,7 +40,7 @@ describe("validateDPoPProof", () => {
               typ: "dpop+jwt",
               jwk: { kty: "RSA", n: "...", e: "..." },
             },
-            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: "POST" },
+            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: MOCK_HTM },
           },
           dpopProofJWS: MOCK_DPOP_PROOF,
         },
@@ -53,6 +54,7 @@ describe("validateDPoPProof", () => {
       const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
+        MOCK_HTM,
         bffMockContext
       );
 
@@ -71,6 +73,13 @@ describe("validateDPoPProof", () => {
             failures: [],
           },
         },
+      });
+      expect(dpopValidation.verifyDPoPProof).toHaveBeenCalledWith({
+        dpopProofJWS: MOCK_DPOP_PROOF,
+        expectedDPoPProofHtu: MOCK_HTU,
+        expectedDPoPProofHtm: MOCK_HTM,
+        dpopProofIatToleranceSeconds: 60,
+        dpopProofDurationSeconds: 600,
       });
     });
   });
@@ -94,6 +103,7 @@ describe("validateDPoPProof", () => {
       const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
+        MOCK_HTM,
         bffMockContext
       );
 
@@ -125,6 +135,7 @@ describe("validateDPoPProof", () => {
       const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         "https://wrong-url.it",
+        MOCK_HTM,
         bffMockContext
       );
 
@@ -144,7 +155,7 @@ describe("validateDPoPProof", () => {
               typ: "dpop+jwt",
               jwk: { kty: "RSA", n: "...", e: "..." },
             },
-            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: "POST" },
+            payload: { jti: "123", iat: 123, htu: MOCK_HTU, htm: MOCK_HTM },
           },
           dpopProofJWS: MOCK_DPOP_PROOF,
         },
@@ -167,6 +178,7 @@ describe("validateDPoPProof", () => {
       const validationResult = await toolService.validateDPoPProof(
         MOCK_DPOP_PROOF,
         MOCK_HTU,
+        MOCK_HTM,
         bffMockContext
       );
 
@@ -178,5 +190,36 @@ describe("validateDPoPProof", () => {
       });
     });
 
+    it("should treat HTM mismatch as a match validation failure", async () => {
+      const htmError: ApiError<"invalidDPoPHtm"> = {
+        code: "invalidDPoPHtm",
+        message: "HTM mismatch",
+        detail: "HTM mismatch",
+        title: "Invalid HTM in DPoP proof",
+        errors: [],
+        name: "ApiError",
+      };
+
+      vi.spyOn(dpopValidation, "verifyDPoPProof").mockReturnValue({
+        errors: [htmError],
+        data: undefined,
+      });
+
+      const validationResult = await toolService.validateDPoPProof(
+        MOCK_DPOP_PROOF,
+        MOCK_HTU,
+        "GET",
+        bffMockContext
+      );
+
+      expect(validationResult.steps.dpopProofValidation.result).toBe("PASSED");
+      expect(validationResult.steps.dpopMatchValidation).toEqual({
+        result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
+        failures: [{ code: htmError.code, reason: htmError.message }],
+      });
+      expect(validationResult.steps.dpopSignatureVerification.result).toBe(
+        "SKIPPED"
+      );
+    });
   });
 });

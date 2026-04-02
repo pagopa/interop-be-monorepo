@@ -25674,11 +25674,14 @@ components:
       required:
         - dpop_proof
         - htu
+        - htm
       properties:
         dpop_proof:
           type: string
           format: jws
         htu:
+          type: string
+        htm:
           type: string
     PrivacyNotice:
       type: object

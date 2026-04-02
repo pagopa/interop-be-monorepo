@@ -145,14 +145,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
     async validateDPoPProof(
       dpopProofJWS: string,
       htu: string,
+      htm: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.DPoPProofValidationResult> {
-      ctx.logger.info(`Validating DPoP proof for debug tool - HTU: ${htu}`);
+      ctx.logger.info(
+        `Validating DPoP proof for debug tool - HTM: ${htm}, HTU: ${htu}`
+      );
 
       const validationResult = verifyDPoPProof({
         dpopProofJWS,
         expectedDPoPProofHtu: htu,
-        expectedDPoPProofHtm: "POST",
+        expectedDPoPProofHtm: htm,
         dpopProofIatToleranceSeconds: 60,
         dpopProofDurationSeconds: 600,
       });

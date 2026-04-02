@@ -50,6 +50,7 @@ const toolRouter = (
       const result = await toolsService.validateDPoPProof(
         req.body.dpop_proof,
         req.body.htu,
+        req.body.htm,
         ctx
       );
       return res

@@ -11,6 +11,7 @@ describe("API POST /tools/validateDPoPProof", () => {
   const mockRequest: bffApi.AccessDPoPProofRequest = {
     dpop_proof: "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0IiwiaHdrIjp7... ",
     htu: "https://auth.interop.pagopa.it/token",
+    htm: "POST",
   };
 
   const mockResult: bffApi.DPoPProofValidationResult = {
@@ -49,6 +50,7 @@ describe("API POST /tools/validateDPoPProof", () => {
   it.each([
     { body: {} },
     { body: { ...mockRequest, htu: 123 } },
+    { body: { ...mockRequest, htm: 123 } },
     { body: { ...mockRequest, dpop_proof: 123 } },
   ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
