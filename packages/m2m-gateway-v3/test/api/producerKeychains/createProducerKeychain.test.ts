@@ -11,6 +11,7 @@ import { generateId, UserId } from "pagopa-interop-models";
 import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
+import { duplicatedUsersInProducerKeychainSeed } from "../../../src/model/errors.js";
 
 describe("POST /producerKeychains router test", () => {
   const makeRequest = async (
@@ -75,6 +76,24 @@ describe("POST /producerKeychains router test", () => {
       token,
       seed as m2mGatewayApiV3.ProducerKeychainSeed
     );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed duplicated users in body", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+    mockProducerKeychainService.createProducerKeychain = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.reject(duplicatedUsersInProducerKeychainSeed(seed.members))
+      );
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });

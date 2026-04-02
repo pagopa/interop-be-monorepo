@@ -12,6 +12,7 @@ import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { testToFullClient } from "../apiUtils.js";
+import { duplicatedUsersInClientSeed } from "../../src/model/domain/errors.js";
 
 describe("API /clientsConsumer authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -76,6 +77,24 @@ describe("API /clientsConsumer authorization test", () => {
   ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as authorizationApi.ClientSeed);
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed duplicated users in body", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+    authorizationService.createConsumerClient = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.reject(duplicatedUsersInClientSeed(seed.members))
+      );
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });
