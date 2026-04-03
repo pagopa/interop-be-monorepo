@@ -132,6 +132,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertRiskAnalysisTenantKindMatch,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -1105,10 +1106,26 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
+
+          // TODO double-check
+          if (
+            isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
+          ) {
+            assertRiskAnalysisTenantKindMatch({
+              actualKind: riskAnalysisForm.tenantKind,
+              currentKind: tenantKind,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            });
+          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
+            fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1363,6 +1380,7 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         riskAnalysisFormToValidate,
         false,
+        tenantKindToWriteInRA,
         createdAt,
         eservice.personalData
       );
@@ -2130,13 +2148,13 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const tenantKindToWriteInRA = tenantKind; // TODO
+  const currentTenantKind = tenantKind; // TODO
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
       ? {
           ...riskAnalysisForm,
-          tenantKind: tenantKindToWriteInRA,
+          tenantKind: currentTenantKind,
         }
       : undefined;
 
@@ -2146,6 +2164,7 @@ const performUpdatePurpose = async (
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
+            currentTenantKind,
             new Date(),
             eservice.personalData
           );
@@ -2380,6 +2399,22 @@ async function activatePurposeLogic({
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+    const riskAnalysisForm = purpose.data.riskAnalysisForm;
+    if (riskAnalysisForm) {
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysisForm.tenantKind,
+        currentKind: tenantKind,
+        riskAnalysisFormId: riskAnalysisForm.id,
+      });
+    }
+  }
+
   // We generate the stamp in the transition draft -> active.
   // Instead, the transition waiting_for_approval -> active is performed by the producer,
   // so in this case the stamp doesn't have to be regenerated

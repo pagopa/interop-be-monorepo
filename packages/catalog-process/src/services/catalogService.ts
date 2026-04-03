@@ -1661,7 +1661,7 @@ export function catalogServiceBuilder(
           readModelService
         );
         assertTenantKindExists(tenant);
-        assertRiskAnalysisIsValidForPublication(eservice.data);
+        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
       }
 
       if (descriptor.audience.length === 0) {
@@ -2278,6 +2278,7 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         formToValidate,
+        tenant.kind,
         new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
       );
@@ -2368,6 +2369,7 @@ export function catalogServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         formToValidate,
+        tenant.kind,
         new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
       );
