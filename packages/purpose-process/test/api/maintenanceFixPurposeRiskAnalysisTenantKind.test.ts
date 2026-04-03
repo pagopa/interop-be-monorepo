@@ -17,11 +17,7 @@ import {
 
 describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
   const mockPurpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
   beforeEach(() => {
     purposeService.fixPurposeRiskAnalysisTenantKind = vi
@@ -41,7 +37,7 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisI
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it("Should return 200 for user with role maintenance", async () => {
+  it("Should return 200 for user with role internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
