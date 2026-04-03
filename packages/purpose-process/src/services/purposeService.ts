@@ -1112,20 +1112,20 @@ export function purposeServiceBuilder(
           );
 
           // TODO double-check
-          // if (
-          //   isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
-          // ) {
-          //   const currentTenantKind = await retrieveTenantKind(
-          //     purpose.data.consumerId,
-          //     readModelService
-          //   );
+          if (
+            isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
+          ) {
+            const currentTenantKind = await retrieveTenantKind(
+              purpose.data.consumerId,
+              readModelService
+            );
 
-          //   assertRiskAnalysisTenantKindMatch({
-          //     actualKind: tenantKind,
-          //     expectedKind: currentTenantKind,
-          //     riskAnalysisFormId: riskAnalysisForm.id,
-          //   });
-          // }
+            assertRiskAnalysisTenantKindMatch({
+              actualKind: tenantKind,
+              currentKind: currentTenantKind,
+              riskAnalysisFormId: riskAnalysisForm.id,
+            });
+          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
@@ -2414,7 +2414,7 @@ async function activatePurposeLogic({
       );
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysisForm.tenantKind,
-        expectedKind: tenantKind,
+        currentKind: tenantKind,
         riskAnalysisFormId: riskAnalysisForm.id,
       });
     }

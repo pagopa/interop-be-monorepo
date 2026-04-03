@@ -64,11 +64,11 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertRiskAnalysisTenantKindMatch = ({
   actualKind,
-  expectedKind,
+  currentKind,
   riskAnalysisFormId,
 }: {
   actualKind: TenantKind | undefined;
-  expectedKind: TenantKind;
+  currentKind: TenantKind;
   riskAnalysisFormId: RiskAnalysisFormId;
 }): void => {
   // TODO after the fix
@@ -76,10 +76,10 @@ export const assertRiskAnalysisTenantKindMatch = ({
   //   throw missingTenantKindError();
   // }
 
-  if (actualKind && actualKind !== expectedKind) {
+  if (actualKind && actualKind !== currentKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
-      expectedKind,
+      currentKind,
       riskAnalysisFormId
     );
   }
