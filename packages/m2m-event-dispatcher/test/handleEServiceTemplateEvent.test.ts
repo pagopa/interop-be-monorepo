@@ -196,6 +196,21 @@ describe("handleEServiceTemplateEvent test", async () => {
               },
             ]
           )
+          .with(
+            "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+            async () => [
+              {
+                versions: [
+                  getMockEServiceTemplateVersion(
+                    undefined,
+                    eserviceTemplateVersionState.published
+                  ),
+                ],
+                affectedVersion: undefined,
+                expectedVisibility: m2mEventVisibility.owner,
+              },
+            ]
+          )
           .exhaustive();
 
         for (const {
