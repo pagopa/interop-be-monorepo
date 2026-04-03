@@ -15,6 +15,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
+  inconsistentDailyCalls,
   invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
@@ -104,6 +105,10 @@ describe("API /eservices authorization test", () => {
     },
     {
       error: invalidDelegationFlags(false, true),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
       expectedStatus: 400,
     },
   ])(
