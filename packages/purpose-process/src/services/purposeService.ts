@@ -1115,14 +1115,9 @@ export function purposeServiceBuilder(
           if (
             isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
           ) {
-            const currentTenantKind = await retrieveTenantKind(
-              purpose.data.consumerId,
-              readModelService
-            );
-
             assertRiskAnalysisTenantKindMatch({
-              actualKind: tenantKind,
-              currentKind: currentTenantKind,
+              actualKind: riskAnalysisForm.tenantKind,
+              currentKind: tenantKind,
               riskAnalysisFormId: riskAnalysisForm.id,
             });
           }
