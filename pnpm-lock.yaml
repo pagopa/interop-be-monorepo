@@ -5418,9 +5418,6 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
-      json-diff:
-        specifier: 'catalog:'
-        version: 1.0.6
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -5436,16 +5433,10 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      ts-pattern:
-        specifier: 'catalog:'
-        version: 5.2.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
-      '@types/json-diff':
-        specifier: 'catalog:'
-        version: 1.0.3
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
