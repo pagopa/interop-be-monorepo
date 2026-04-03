@@ -14,6 +14,7 @@ import {
   DelegationId,
   delegationKind,
   delegationState,
+  DescriptorId,
   EService,
   EServiceId,
   EServiceMode,
@@ -251,9 +252,16 @@ export async function isOverQuota(
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
 ): Promise<boolean> {
+  const agreement = await retrieveActiveAgreement(
+    eservice.id,
+    purpose.consumerId,
+    readModelService
+  );
+
   const quotas = await getUpdatedQuotas(
     eservice,
     purpose.consumerId,
+    agreement.descriptorId,
     readModelService
   );
 
@@ -267,6 +275,7 @@ export async function isOverQuota(
 export async function getUpdatedQuotas(
   eservice: EService,
   consumerId: TenantId,
+  descriptorId: DescriptorId,
   readModelService: ReadModelServiceSQL
 ): Promise<UpdatedQuotas> {
   const allPurposes = await readModelService.getAllPurposes({
@@ -277,12 +286,6 @@ export async function getUpdatedQuotas(
 
   const consumerPurposes = allPurposes.filter(
     (p) => p.consumerId === consumerId
-  );
-
-  const agreement = await retrieveActiveAgreement(
-    eservice.id,
-    consumerId,
-    readModelService
   );
 
   const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
@@ -300,11 +303,11 @@ export async function getUpdatedQuotas(
   const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
 
   const currentDescriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
+    (d) => d.id === descriptorId
   );
 
   if (!currentDescriptor) {
-    throw descriptorNotFound(eservice.id, agreement.descriptorId);
+    throw descriptorNotFound(eservice.id, descriptorId);
   }
 
   const tenant = await readModelService.getTenantById(consumerId);

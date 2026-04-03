@@ -284,7 +284,6 @@ describe("getUpdatedQuotas", () => {
   const consumerId = "consumer-id" as TenantId;
   const descriptorId = "descriptor-id" as DescriptorId;
   const producerId = "producer-id" as TenantId;
-  const agreementId = "agreement-id";
   const selfcareId = "selfcare-id";
   const attributeId = "attribute-id" as AttributeId;
 
@@ -325,34 +324,6 @@ describe("getUpdatedQuotas", () => {
     riskAnalysis: [],
   };
 
-  const agreement: Agreement = {
-    id: unsafeBrandId(agreementId),
-    eserviceId,
-    descriptorId,
-    producerId: eservice.producerId,
-    consumerId,
-    state: "Active",
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
-    createdAt: new Date(),
-    updatedAt: undefined,
-    consumerDocuments: [],
-    stamps: {
-      submission: undefined,
-      activation: undefined,
-      rejection: undefined,
-      suspensionByProducer: undefined,
-      suspensionByConsumer: undefined,
-      upgrade: undefined,
-      archiving: undefined,
-    },
-    contract: undefined,
-  };
-
   const tenant: Tenant = {
     id: consumerId,
     kind: tenantKind.PA,
@@ -373,7 +344,6 @@ describe("getUpdatedQuotas", () => {
   });
 
   it("should return the correct updated quotas", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
     (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([
       {
         consumerId,
@@ -392,6 +362,7 @@ describe("getUpdatedQuotas", () => {
     const result = await getUpdatedQuotas(
       eservice,
       consumerId,
+      descriptorId,
       mockReadModelService
     );
 
@@ -438,7 +409,6 @@ describe("getUpdatedQuotas", () => {
       ],
     };
 
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
     (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(
       tenantWithCertifiedAttributes
@@ -447,6 +417,7 @@ describe("getUpdatedQuotas", () => {
     const result = await getUpdatedQuotas(
       eserviceWithCertifiedAttributes,
       consumerId,
+      descriptorId,
       mockReadModelService
     );
 
@@ -459,33 +430,26 @@ describe("getUpdatedQuotas", () => {
   });
 
   it("should throw descriptorNotFound if the descriptor is not found", async () => {
-    const agreementWithInvalidDescriptor: Agreement = {
-      ...agreement,
-      descriptorId: "invalid-descriptor-id" as DescriptorId,
-    };
-    (retrieveActiveAgreement as Mock).mockResolvedValue(
-      agreementWithInvalidDescriptor
-    );
+    const invalidDescriptorId = "invalid-descriptor-id" as DescriptorId;
     (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
     await expect(
-      getUpdatedQuotas(eservice, consumerId, mockReadModelService)
-    ).rejects.toThrow(
-      descriptorNotFound(
-        eservice.id,
-        agreementWithInvalidDescriptor.descriptorId
+      getUpdatedQuotas(
+        eservice,
+        consumerId,
+        invalidDescriptorId,
+        mockReadModelService
       )
-    );
+    ).rejects.toThrow(descriptorNotFound(eservice.id, invalidDescriptorId));
   });
 
   it("should throw tenantNotFound if the tenant is not found", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
     (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(undefined);
 
     await expect(
-      getUpdatedQuotas(eservice, consumerId, mockReadModelService)
+      getUpdatedQuotas(eservice, consumerId, descriptorId, mockReadModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 });

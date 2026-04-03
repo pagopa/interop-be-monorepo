@@ -400,6 +400,23 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
+    async getActiveOrSuspendedAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      return (
+        await agreementReadModelServiceSQL.getAgreementByFilter(
+          and(
+            eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.consumerId, consumerId),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
+      )?.data;
+    },
     async getAllPurposes(
       filters: Pick<
         GetPurposesFilters,
