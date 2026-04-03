@@ -38,6 +38,7 @@ export async function handleMessageV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       { type: "EServiceTemplateVersionSuspended" },
       { type: "EServiceTemplateVersionAdded" },
       { type: "EServiceTemplateVersionAttributesUpdated" },
