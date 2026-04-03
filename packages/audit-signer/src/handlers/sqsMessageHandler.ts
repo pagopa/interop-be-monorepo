@@ -51,7 +51,10 @@ async function processMessage(
       safeStorageRequest,
       logger
     );
-    logger.info(`Created file on safe storage with key: ${key}`);
+
+    logger.info(
+      `Created file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
+    );
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
@@ -60,6 +63,10 @@ async function processMessage(
       secret,
       checksum,
       logger
+    );
+
+    logger.info(
+      `Uploaded file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
     );
 
     await signatureService.saveSignatureReference(
