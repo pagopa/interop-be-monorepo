@@ -1,3 +1,4 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
@@ -21,7 +22,8 @@ import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  agreementService: AgreementService
+  agreementService: AgreementService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const agreementRouter = ctx.router(m2mGatewayApiV3.agreementsApi.api, {
@@ -79,7 +81,7 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -309,7 +311,12 @@ const agreementRouter = (
             ctx
           );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -330,7 +337,12 @@ const agreementRouter = (
           ctx
         );
 
-        return sendDownloadedDocumentAsFormData(file, res);
+        return sendDownloadedDocumentAsFormData(
+          file,
+          res,
+          ctx.authData.clientId,
+          kmsClient
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -354,7 +366,7 @@ const agreementRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

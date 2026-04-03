@@ -78,6 +78,9 @@ describe("toM2MGatewayApiPurpose", () => {
           currentVersion: purposeVersion2,
           rejectedVersion: purposeVersion4,
           waitingForApprovalVersion: purposeVersion3,
+          isRiskAnalysisValid:
+            state === m2mGatewayApi.PurposeVersionState.Enum.ACTIVE ||
+            state === m2mGatewayApi.PurposeVersionState.Enum.SUSPENDED,
         }
       );
 
@@ -122,6 +125,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion2,
       waitingForApprovalVersion: purposeVersion3,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -164,6 +168,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion2,
       rejectedVersion: purposeVersion3,
       waitingForApprovalVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -199,6 +204,7 @@ describe("toM2MGatewayApiPurpose", () => {
       waitingForApprovalVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
       currentVersion: undefined,
+      isRiskAnalysisValid: false,
     });
 
     const result = await purposeService.getPurpose(
@@ -234,6 +240,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
       waitingForApprovalVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -269,6 +276,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion2,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -311,6 +319,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion3,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(

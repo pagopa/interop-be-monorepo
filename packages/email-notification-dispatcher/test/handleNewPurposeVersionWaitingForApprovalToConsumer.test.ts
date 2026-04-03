@@ -320,8 +320,8 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
-      expect(message.email.body).toContain("2000");
-      expect(message.email.body).not.toContain("500");
+      expect(message.email.body).toContain("<strong>2000</strong>");
+      expect(message.email.body).not.toContain("<strong>500</strong>");
     });
   });
 });

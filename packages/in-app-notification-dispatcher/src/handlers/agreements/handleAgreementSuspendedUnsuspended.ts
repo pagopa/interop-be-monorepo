@@ -40,7 +40,7 @@ export async function handleAgreementSuspendedUnsuspended(
     throw missingKafkaMessageDataError("agreement", eventType);
   }
   logger.info(
-    `Handle agreement suspended/unsuspended/archived in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
+    `Sending in-app notification for handleAgreementSuspendedUnsuspended - entityId: ${agreementV2Msg.id}, eventType: ${eventType}`
   );
 
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -56,7 +56,7 @@ export async function handleAgreementSuspendedUnsuspended(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${eventType} agreement ${agreement.id}`
+      `No users with notifications enabled for handleAgreementSuspendedUnsuspended - entityId: ${agreement.id}, eventType: ${eventType}`
     );
     return [];
   }

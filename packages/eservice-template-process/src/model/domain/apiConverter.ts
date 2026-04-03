@@ -11,6 +11,7 @@ import {
   EServiceTemplateVersion,
   EServiceTemplate,
   CompactOrganization,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -156,19 +157,25 @@ export const eserviceTemplateToApiEServiceTemplate = (
   description: eserviceTemplate.description,
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
-  riskAnalysis: eserviceTemplate.riskAnalysis.map((riskAnalysis) => ({
-    id: riskAnalysis.id,
-    name: riskAnalysis.name,
-    createdAt: riskAnalysis.createdAt.toJSON(),
-    riskAnalysisForm: {
-      id: riskAnalysis.riskAnalysisForm.id,
-      version: riskAnalysis.riskAnalysisForm.version,
-      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
-      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!, // TODO how to avoid "!"
-  })),
+  riskAnalysis: eserviceTemplate.riskAnalysis.map((riskAnalysis) => {
+    if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+      throw genericInternalError(
+        `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} in eservice template ${eserviceTemplate.id} is missing tenantKind`
+      );
+    }
+    return {
+      id: riskAnalysis.id,
+      name: riskAnalysis.name,
+      createdAt: riskAnalysis.createdAt.toJSON(),
+      riskAnalysisForm: {
+        id: riskAnalysis.riskAnalysisForm.id,
+        version: riskAnalysis.riskAnalysisForm.version,
+        singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+        multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+      },
+      tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
+    };
+  }),
   versions: eserviceTemplate.versions.map(
     eserviceTemplateVersionToApiEServiceTemplateVersion
   ),

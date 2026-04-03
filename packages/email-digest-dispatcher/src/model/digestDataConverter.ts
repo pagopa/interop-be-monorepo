@@ -71,11 +71,9 @@ async function getCachedDescriptorIds(
   return new Map(cachedEntries);
 }
 
-export type VerifiedAttribute =
-  | VerifiedAssignedAttribute
-  | VerifiedRevokedAttribute;
+type VerifiedAttribute = VerifiedAssignedAttribute | VerifiedRevokedAttribute;
 
-export type CertifiedAttribute =
+type CertifiedAttribute =
   | CertifiedAssignedAttribute
   | CertifiedRevokedAttribute;
 
@@ -443,6 +441,7 @@ export async function verifiedAttributeToDigest(
       producerName: attr.entityProducerName,
       link: "",
       attributeKind: "verified" as const,
+      attributeKindLabel: "(verificato)",
     })),
     totalCount: data[0].totalCount,
   };
@@ -450,7 +449,7 @@ export async function verifiedAttributeToDigest(
 
 /**
  * Transforms certified attribute data into an AttributeDigest object.
- * Certified attributes don't have a producer/verifier, so producerName is empty.
+ * Uses the certifier name resolved from the attribute's origin via the tenant_feature table.
  */
 export function certifiedAttributeToDigest(
   data: CertifiedAttribute[]
@@ -462,9 +461,10 @@ export function certifiedAttributeToDigest(
   return {
     items: data.map((attr) => ({
       name: attr.attributeName,
-      producerName: "", // Certified attributes don't have a verifier/assigner
+      producerName: attr.certifierName,
       link: "#",
       attributeKind: "certified" as const,
+      attributeKindLabel: "(certificato)",
     })),
     totalCount: data[0].totalCount,
   };

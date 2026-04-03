@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Attribute, generateId } from "pagopa-interop-models";
+import { attributeKind, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByNameAndCode } from "../../src/model/domain/errors.js";
+import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 
 describe("API /internal/certifiedAttributes authorization test", () => {
   const mockInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed =
@@ -18,12 +18,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
       origin: "IPA",
     };
 
-  const mockAttribute: Attribute = {
-    ...getMockAttribute(),
-    id: generateId(),
-    kind: "Certified",
-    creationTime: new Date(),
-  };
+  const mockAttribute = getMockAttribute(attributeKind.certified);
 
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)
@@ -60,9 +55,10 @@ describe("API /internal/certifiedAttributes authorization test", () => {
     attributeRegistryService.internalCreateCertifiedAttribute = vi
       .fn()
       .mockRejectedValue(
-        attributeDuplicateByNameAndCode(
+        attributeDuplicateByCodeOriginOrName(
           mockInternalCertifiedAttributeSeed.name,
-          mockInternalCertifiedAttributeSeed.code
+          mockInternalCertifiedAttributeSeed.code,
+          mockInternalCertifiedAttributeSeed.origin
         )
       );
 

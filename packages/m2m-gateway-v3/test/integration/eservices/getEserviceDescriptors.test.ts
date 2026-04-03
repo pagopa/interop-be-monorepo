@@ -115,7 +115,7 @@ describe("getEserviceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceDescriptorsResponse);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },
@@ -143,7 +143,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result).toEqual(m2mEserviceDescriptorsResponse1);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
 
     const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
       {
@@ -165,7 +165,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
+    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
 
     const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
       {
@@ -184,7 +184,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mEserviceDescriptorsResponse3);
+    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
   });
 
   it("Should apply filters (offset, limit, state)", async () => {
@@ -209,7 +209,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result).toEqual(m2mEserviceDescriptorsResponse1);
+    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
 
     const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
       {
@@ -229,7 +229,7 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result2).toEqual(m2mEserviceDescriptorsResponse2);
+    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
     const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
       {
         pagination: {
@@ -248,6 +248,6 @@ describe("getEserviceDescriptors", () => {
       },
       getMockM2MAdminAppContext()
     );
-    expect(result3).toEqual(m2mEserviceDescriptorsResponse3);
+    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
   });
 });

@@ -35,9 +35,9 @@ import { describe, expect, it } from "vitest";
 import {
   purposeNotFound,
   eserviceNotFound,
-  tenantNotFound,
-  tenantKindNotFound,
   tenantNotAllowed,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -47,6 +47,13 @@ import {
   addOneEService,
   addOneTenant,
 } from "../integrationUtils.js";
+
+const sortPurposeResponse = <T extends { data: Purpose; metadata: unknown }>(
+  purposeResponse: T
+): T => ({
+  ...purposeResponse,
+  data: sortPurpose(purposeResponse.data),
+});
 
 describe("getPurposeById", () => {
   it("should get the purpose if the requester is the active e-service producer", async () => {
@@ -79,17 +86,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -118,68 +116,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumer.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
-      metadata: { version: 0 },
-    });
-  });
-
-  it("should get the purpose with isRiskAnalysisValid false if risk analysis form is invalid", async () => {
-    const consumer = {
-      ...getMockTenant(),
-      kind: tenantKind.PA,
-    };
-
-    const producer = {
-      ...getMockTenant(),
-      kind: tenantKind.PA,
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-    };
-    const mockPurpose1: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-      consumerId: consumer.id,
-    };
-
-    await addOnePurpose(mockPurpose1);
-    await addOneEService(mockEService);
-    await addOneTenant(consumer);
-    await addOneTenant(producer);
-
-    const producerResponse = await purposeService.getPurposeById(
-      mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(producer.id) })
-    );
-    expect(producerResponse).toMatchObject({
-      data: {
-        purpose: mockPurpose1,
-        isRiskAnalysisValid: false,
-      },
-      metadata: { version: 0 },
-    });
-
-    const consumerResponse = await purposeService.getPurposeById(
-      mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(consumer.id) })
-    );
-    expect(consumerResponse).toMatchObject({
-      data: {
-        purpose: mockPurpose1,
-        isRiskAnalysisValid: false,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -216,17 +154,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producerDelegate.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -335,17 +264,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -400,17 +320,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producerDelegate.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -451,17 +362,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -501,17 +403,8 @@ describe("getPurposeById", () => {
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumer.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(mockPurpose1),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(mockPurpose1),
       metadata: { version: 0 },
     });
   });
@@ -596,17 +489,8 @@ describe("getPurposeById", () => {
       delegatePurpose.id,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
-    expect({
-      ...purposeResponse,
-      data: {
-        ...purposeResponse.data,
-        purpose: sortPurpose(purposeResponse.data.purpose),
-      },
-    } satisfies typeof purposeResponse).toMatchObject({
-      data: {
-        purpose: sortPurpose(delegatePurpose),
-        isRiskAnalysisValid: true,
-      },
+    expect(sortPurposeResponse(purposeResponse)).toMatchObject({
+      data: sortPurpose(delegatePurpose),
       metadata: { version: 0 },
     });
   });

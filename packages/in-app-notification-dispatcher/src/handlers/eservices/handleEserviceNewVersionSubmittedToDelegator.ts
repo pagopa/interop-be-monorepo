@@ -25,7 +25,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     );
   }
   logger.info(
-    `Handle eservice new version submitted in-app notification for eservice ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eserviceV2Msg.id}, eventType: EServiceDescriptorSubmittedByDelegate`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
@@ -48,7 +48,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for eservice ${eserviceV2Msg.id}`
+      `No users with notifications enabled for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eservice.id}, eventType: EServiceDescriptorSubmittedByDelegate`
     );
     return [];
   }
