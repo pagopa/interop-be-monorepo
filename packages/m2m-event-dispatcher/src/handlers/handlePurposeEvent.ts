@@ -140,7 +140,10 @@ async function handlePurposeEventV2(
            * We avoid exposing the unsigned document generation.
            * The user will only be able to see only the signed one.
            */
-          type: P.union("RiskAnalysisDocumentGenerated"),
+          type: P.union(
+            "RiskAnalysisDocumentGenerated",
+            "MaintenancePurposeRiskAnalysisSetTenandKind"
+          ),
         },
         () => Promise.resolve(void 0)
       )

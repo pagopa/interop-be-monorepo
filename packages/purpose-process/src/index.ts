@@ -18,8 +18,20 @@ import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 
 const readModelDB = makeDrizzleConnection(config);
+const tenantKindHistoryDB = drizzle({
+  client: new pg.Pool({
+    host: config.tenantKindHistoryDBHost,
+    port: config.tenantKindHistoryDBPort,
+    database: config.tenantKindHistoryDBName,
+    user: config.tenantKindHistoryDBUsername,
+    password: config.tenantKindHistoryDBPassword,
+    ssl: config.tenantKindHistoryDBUseSSL,
+  }),
+});
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
@@ -40,6 +52,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 });
 
 const fileManager = initFileManager(config);
