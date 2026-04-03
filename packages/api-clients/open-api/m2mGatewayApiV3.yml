@@ -9527,6 +9527,33 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplateEvents:
+    get:
+      tags:
+        - events
+      summary: Get Purpose Template events
+      description: |
+        Retrieve list of Purpose Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Purpose Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateEvents"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /users:
     get:
       tags:
@@ -10542,6 +10569,51 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProducerDelegationEvent"
+    PurposeTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PURPOSE_TEMPLATE_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_DELETED
+            - PURPOSE_TEMPLATE_PUBLISHED
+            - PURPOSE_TEMPLATE_SUSPENDED
+            - PURPOSE_TEMPLATE_UNSUSPENDED
+            - PURPOSE_TEMPLATE_ARCHIVED
+            - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+            - PURPOSE_TEMPLATE_ESERVICE_LINKED
+            - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeTemplateId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeTemplateId
+
+    PurposeTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false
