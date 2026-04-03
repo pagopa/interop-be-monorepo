@@ -16,7 +16,6 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@types/json-diff": "catalog:",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
@@ -28,13 +27,11 @@
   "dependencies": {
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
-    "json-diff": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
-    "ts-pattern": "catalog:",
     "zod": "catalog:"
   }
 }

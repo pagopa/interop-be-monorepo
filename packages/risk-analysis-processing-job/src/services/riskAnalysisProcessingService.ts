@@ -125,7 +125,3 @@ export function riskAnalysisProcessingServiceBuilder(
     },
   };
 }
-
-export type RiskAnalysisProcessingService = ReturnType<
-  typeof riskAnalysisProcessingServiceBuilder
->;
