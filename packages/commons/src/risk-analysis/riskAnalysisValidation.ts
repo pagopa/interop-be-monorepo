@@ -15,6 +15,7 @@ import {
   expiredRulesVersionError,
   incompatiblePersonalDataError,
   missingExpectedFieldError,
+  missingTenantKindError,
   rulesVersionNotFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
@@ -36,20 +37,23 @@ import {
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
+  fallbackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
+  const tenantKind = riskAnalysisForm.tenantKind ?? fallbackTenantKind;
+
+  if (tenantKind === undefined) {
+    throw missingTenantKindError();
+  }
   const formRulesForValidation = getFormRulesByVersion(
-    riskAnalysisForm.tenantKind,
+    tenantKind,
     riskAnalysisForm.version
   );
 
   if (formRulesForValidation === undefined) {
     return invalidResult([
-      rulesVersionNotFoundError(
-        riskAnalysisForm.tenantKind,
-        riskAnalysisForm.version
-      ),
+      rulesVersionNotFoundError(tenantKind, riskAnalysisForm.version),
     ]);
   }
 
@@ -58,10 +62,7 @@ export function validateRiskAnalysis(
     formRulesForValidation.expiration < dateForExpirationValidation
   ) {
     return invalidResult([
-      expiredRulesVersionError(
-        riskAnalysisForm.version,
-        riskAnalysisForm.tenantKind
-      ),
+      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
     ]);
   }
 
@@ -111,7 +112,7 @@ export function validateRiskAnalysis(
       .otherwise(() => undefined);
 
     const personalDataFlagValidation = validatePersonalDataFlag({
-      tenantKind: riskAnalysisForm.tenantKind,
+      tenantKind: tenantKind,
       version: formRulesForValidation.version,
       personalDataInRiskAnalysis,
       personalDataInEService,
@@ -124,7 +125,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
-      tenantKind: riskAnalysisForm.tenantKind,
+      tenantKind: tenantKind,
     });
   }
 }

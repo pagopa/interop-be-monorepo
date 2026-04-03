@@ -9,10 +9,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
-import {
-  missingTenantKindError,
-  RiskAnalysisValidationIssue,
-} from "./riskAnalysisValidationErrors.js";
+import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";
@@ -30,7 +27,7 @@ export type RiskAnalysisValidationResult<T> =
 
 export type RiskAnalysisFormToValidate = {
   version: string;
-  tenantKind: TenantKind;
+  tenantKind: TenantKind | undefined; // TODO this will become required after the fix
   answers: Record<string, string[]>;
 };
 
@@ -108,9 +105,10 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {
-  if (!form.tenantKind) {
-    throw missingTenantKindError();
-  }
+  // TODO this will be added after release
+  // if (!form.tenantKind) {
+  //   throw missingTenantKindError();
+  // }
   return {
     version: form.version,
     tenantKind: form.tenantKind,
