@@ -187,7 +187,7 @@ jobs:
           echo "lint_matrix=$LINT_MATRIX" >> $GITHUB_OUTPUT
 
   build:
-    name: Full project build
+    name: Project build 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
