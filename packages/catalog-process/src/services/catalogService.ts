@@ -2126,6 +2126,80 @@ export function catalogServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
+
+    async descriptorArchivable(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.EServiceDescriptorKind,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateId
+      );
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorUpdatableAfterPublish(descriptor);
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        archivable: {
+          archivingStart: new Date(),
+          archivingEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days after the start date
+          archivingType: body.kind,
+        },
+      };
+
+      // deleghiamo al frontend il cambiamento dello stato dallo stato attuale ad "in archiviazione".
+      // Abbiamo deciso di fare cio perchè:
+      // Evitiamo di gestire un nuovo stato nei descriptor, con tutta la logica che ne consegue.
+      // Lo stato sotto il tappeto è lo stato precedente, solo da UI sarà mostrato in archiviazione.
+      // Fino alla scadenza del periodo di preavviso la versione si comporta come prima, non applicando nessuna variazione a livello di logica di business, ma solo mostrando allo user che è in fase di archiviazione.
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      // Qui si deve creare un nuovo evento di update descriptor, in quanto è necessario aggiornare la versione del descriptor con le date di inizio e fine archiviazione, che sono necessarie al frontend per mostrare il banner di preavviso di archiviazione.
+      // EServiceDescriptorArchivable
+      // Bisogna inviare al nuovo evento la data di fine periodo di preavviso, (anche tutti e 3 i valori del descriptor)
+      // Bisogna implementare un chroneJob che controlla se "oggi" è = a data fine preavviso
+      // Se si, si fa partire l'evento di archiviazione (sarà un evento ad hoc che ignora la presenza degli agreement).
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorQuotasUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedEService,
+        metadata: { version: event.newVersion },
+      };
+    },
+
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

@@ -147,6 +147,10 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "EServiceDescriptorArchivable" }, async (_event) => {
+        // FIXME: Fix me
+        logger.info("Skipping archivable event for EService M2M Event for now");
+      })
       .exhaustive()
   );
 }

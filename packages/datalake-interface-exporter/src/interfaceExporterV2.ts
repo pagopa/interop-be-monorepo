@@ -77,6 +77,7 @@ export async function exportInterfaceV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
+      { type: "EServiceDescriptorArchivable" }, // FIXME: Check this logic
       () => undefined
     )
     .exhaustive();

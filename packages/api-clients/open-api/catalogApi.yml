@@ -1176,6 +1176,61 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/archivable:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Mark the selected descriptor for archiving.
+      operationId: descriptorArchivable
+      description: Marks the specified descriptor for archiving
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Kind
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorKind"
+      responses:
+        "200":
+          description: EService descriptor updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3091,6 +3146,15 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+    EServiceDescriptorKind:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum: [Manual, Automatic]
+      required:
+        - kind
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
