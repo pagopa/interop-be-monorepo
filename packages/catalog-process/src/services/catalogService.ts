@@ -62,7 +62,6 @@ import {
   AttributeKind,
   attributeKind,
   AsyncExchangeProperties,
-  technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -110,7 +109,6 @@ import {
   eServiceAsyncExchangeNotEnabled,
   descriptorAsyncExchangeNotConfigured,
   templateVersionMissingAsyncExchangeProperties,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -711,13 +709,6 @@ async function innerAddDocumentToEserviceEvent(
 
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
       throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);
-    }
-
-    if (
-      eService.data.technology === technology.soap &&
-      descriptor.asyncExchangeProperties.bulk === true
-    ) {
-      throw asyncExchangeBulkNotAllowedForSoap(eService.data.id, descriptor.id);
     }
   }
 

@@ -552,15 +552,6 @@ export function eserviceTemplateServiceBuilder(
             eserviceTemplateVersionId
           );
         }
-        if (
-          eserviceTemplate.data.technology === technology.soap &&
-          eserviceTemplateVersion.asyncExchangeProperties.bulk === true
-        ) {
-          throw asyncExchangeBulkNotAllowedForSoap(
-            eserviceTemplateId,
-            eserviceTemplateVersionId
-          );
-        }
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -1680,16 +1671,6 @@ export function eserviceTemplateServiceBuilder(
 
         if (version.asyncExchangeCallbackInterface !== undefined) {
           throw asyncExchangeCallbackInterfaceAlreadyExists(version.id);
-        }
-
-        if (
-          eserviceTemplate.data.technology === technology.soap &&
-          version.asyncExchangeProperties.bulk === true
-        ) {
-          throw asyncExchangeBulkNotAllowedForSoap(
-            eserviceTemplate.data.id,
-            version.id
-          );
         }
       }
 

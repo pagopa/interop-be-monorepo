@@ -427,13 +427,6 @@ export function assertAsyncExchangeReadyForPublication(
   if (descriptor.asyncExchangeCallbackInterface === undefined) {
     throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
   }
-
-  assertAsyncExchangeBulkAllowedForDescriptor(
-    eserviceTechnology,
-    descriptor.asyncExchangeProperties,
-    eserviceId,
-    descriptorId
-  );
 }
 
 export function assertAsyncExchangeBulkAllowedForDescriptor(
