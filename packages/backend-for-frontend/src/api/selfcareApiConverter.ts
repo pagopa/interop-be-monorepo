@@ -40,26 +40,14 @@ export const toApiSelfcareInstitution = (
         };
       }
     )
-    .with({ institutionId: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
-    })
     .with({ institutionId: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
-    })
-    .with({ institutionDescription: P.nullish }, () => {
-      throw selfcareEntityNotFilled(
-        "UserInstitutionResource",
-        "institutionDescription"
-      );
     })
     .with({ institutionDescription: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled(
         "UserInstitutionResource",
         "institutionDescription"
       );
-    })
-    .with({ products: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "products");
     })
     .with({ products: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "products");
