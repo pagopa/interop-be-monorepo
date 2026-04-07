@@ -2446,7 +2446,7 @@ async function updateDraftEServiceTemplateVersion(
     updatedAsyncExchangeProperties?.bulk === true
   ) {
     throw asyncExchangeBulkNotAllowedForSoap(
-      eserviceTemplate.id,
+      eserviceTemplate.data.id,
       eserviceTemplateVersion.id
     );
   }
