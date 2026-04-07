@@ -13,6 +13,7 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  AsyncExchangeProperties,
   Descriptor,
   DescriptorId,
   EService,
@@ -430,7 +431,7 @@ export function assertAsyncExchangeReadyForPublication(
 
 export function assertAsyncExchangeBulkAllowedForDescriptor(
   eserviceTechnology: Technology,
-  asyncExchangeProperties: Descriptor["asyncExchangeProperties"],
+  asyncExchangeProperties: AsyncExchangeProperties | undefined,
   eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): void {
