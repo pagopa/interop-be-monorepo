@@ -395,7 +395,7 @@ export async function verifyAndCreateDocument<T>(
 
   const maxSizeForKind = resolveMaxSizeForKind(kind, fileSizeLimits);
 
-  if (maxSizeForKind !== undefined && doc.size > maxSizeForKind) {
+  if (doc.size > maxSizeForKind) {
     throw contentTooLargeError(
       `File size ${doc.size} bytes exceeds maximum allowed size of ${maxSizeForKind} bytes`
     );
