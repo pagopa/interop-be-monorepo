@@ -1,13 +1,4 @@
-import {
-  clientInReadmodelClient,
-  clientPurposeInReadmodelClient,
-  clientUserInReadmodelClient,
-  clientKeyInReadmodelClient,
-  producerKeychainEserviceInReadmodelProducerKeychain,
-  producerKeychainInReadmodelProducerKeychain,
-  producerKeychainKeyInReadmodelProducerKeychain,
-  producerKeychainUserInReadmodelProducerKeychain,
-} from "pagopa-interop-readmodel-models";
+import { clientKeyInReadmodelClient } from "pagopa-interop-readmodel-models";
 import {
   ClientSchema,
   ClientPurposeSchema,
@@ -26,13 +17,6 @@ export const ClientDbTableConfig = {
   client_key: ClientKeySchema,
 } as const;
 export type ClientDbTableConfig = typeof ClientDbTableConfig;
-
-export const ClientDbTableReadModel = {
-  client: clientInReadmodelClient,
-  client_purpose: clientPurposeInReadmodelClient,
-  client_user: clientUserInReadmodelClient,
-  client_key: clientKeyInReadmodelClient,
-} as const;
 
 export const ClientDbTablePartialTableConfig = {
   key_relationship_migrated: ClientKeySchema,
@@ -53,8 +37,6 @@ export const ClientDbTablePartialTable = Object.fromEntries(
   Object.keys(ClientDbTablePartialTableConfig).map((k) => [k, k])
 ) as { [K in ClientDbTablePartialTable]: K };
 
-export type ClientDbTableReadModel = typeof ClientDbTableReadModel;
-
 export type ClientDbTable = keyof typeof ClientDbTableConfig;
 
 export const ClientDbTable = Object.fromEntries(
@@ -69,16 +51,6 @@ export const ProducerKeychainDbTableConfig = {
 } as const;
 export type ProducerKeychainDbTableConfig =
   typeof ProducerKeychainDbTableConfig;
-
-export const ProducerKeychainDbTableReadModel = {
-  producer_keychain: producerKeychainInReadmodelProducerKeychain,
-  producer_keychain_user: producerKeychainUserInReadmodelProducerKeychain,
-  producer_keychain_eservice:
-    producerKeychainEserviceInReadmodelProducerKeychain,
-  producer_keychain_key: producerKeychainKeyInReadmodelProducerKeychain,
-} as const;
-export type ProducerKeychainDbTableReadModel =
-  typeof ProducerKeychainDbTableReadModel;
 
 export type ProducerKeychainDbTable =
   keyof typeof ProducerKeychainDbTableConfig;

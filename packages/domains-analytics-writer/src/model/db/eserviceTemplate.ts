@@ -1,13 +1,4 @@
 import {
-  eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-} from "pagopa-interop-readmodel-models";
-import {
   EserviceTemplateSchema,
   EserviceTemplateVersionSchema,
   EserviceTemplateVersionInterfaceSchema,
@@ -29,23 +20,6 @@ export const EserviceTemplateDbTableConfig = {
 } as const;
 export type EserviceTemplateDbTableConfig =
   typeof EserviceTemplateDbTableConfig;
-
-export const EserviceTemplateDbTableReadModel = {
-  eservice_template: eserviceTemplateInReadmodelEserviceTemplate,
-  eservice_template_version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eservice_template_version_interface:
-    eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  eservice_template_version_document:
-    eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eservice_template_version_attribute:
-    eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eservice_template_risk_analysis:
-    eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eservice_template_risk_analysis_answer:
-    eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-} as const;
-export type EserviceTemplateDbTableReadModel =
-  typeof EserviceTemplateDbTableReadModel;
 
 export type EserviceTemplateDbTable =
   keyof typeof EserviceTemplateDbTableConfig;

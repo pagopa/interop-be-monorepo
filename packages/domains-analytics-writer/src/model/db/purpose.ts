@@ -1,13 +1,4 @@
 import {
-  purposeInReadmodelPurpose,
-  purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeVersionDocumentInReadmodelPurpose,
-  purposeVersionInReadmodelPurpose,
-  purposeVersionSignedDocumentInReadmodelPurpose,
-  purposeVersionStampInReadmodelPurpose,
-} from "pagopa-interop-readmodel-models";
-import {
   PurposeSchema,
   PurposeRiskAnalysisFormSchema,
   PurposeRiskAnalysisAnswerSchema,
@@ -28,19 +19,6 @@ export const PurposeDbTableConfig = {
 } as const;
 
 export type PurposeDbTableConfig = typeof PurposeDbTableConfig;
-
-export const PurposeDbTableReadModel = {
-  purpose: purposeInReadmodelPurpose,
-  purpose_risk_analysis_form: purposeRiskAnalysisFormInReadmodelPurpose,
-  purpose_risk_analysis_answer: purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purpose_version: purposeVersionInReadmodelPurpose,
-  purpose_version_document: purposeVersionDocumentInReadmodelPurpose,
-  purpose_version_stamp: purposeVersionStampInReadmodelPurpose,
-  purpose_version_signed_document:
-    purposeVersionSignedDocumentInReadmodelPurpose,
-} as const;
-
-export type PurposeDbTableReadModel = typeof PurposeDbTableReadModel;
 
 export type PurposeDbTable = keyof PurposeDbTableConfig;
 

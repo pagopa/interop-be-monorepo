@@ -1,12 +1,4 @@
 import {
-  agreementInReadmodelAgreement,
-  agreementStampInReadmodelAgreement,
-  agreementAttributeInReadmodelAgreement,
-  agreementConsumerDocumentInReadmodelAgreement,
-  agreementContractInReadmodelAgreement,
-  agreementSignedContractInReadmodelAgreement,
-} from "pagopa-interop-readmodel-models";
-import {
   AgreementSchema,
   AgreementAttributeSchema,
   AgreementConsumerDocumentSchema,
@@ -25,17 +17,6 @@ export const AgreementDbTableConfig = {
 } as const;
 
 export type AgreementDbTableConfig = typeof AgreementDbTableConfig;
-
-export const AgreementDbTableReadModel = {
-  agreement: agreementInReadmodelAgreement,
-  agreement_stamp: agreementStampInReadmodelAgreement,
-  agreement_attribute: agreementAttributeInReadmodelAgreement,
-  agreement_consumer_document: agreementConsumerDocumentInReadmodelAgreement,
-  agreement_contract: agreementContractInReadmodelAgreement,
-  agreement_signed_contract: agreementSignedContractInReadmodelAgreement,
-} as const;
-
-export type AgreementDbTableReadModel = typeof AgreementDbTableReadModel;
 
 export type AgreementDbTable = keyof AgreementDbTableConfig;
 
