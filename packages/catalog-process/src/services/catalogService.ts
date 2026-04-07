@@ -61,12 +61,14 @@ import {
   AttributeKind,
   attributeKind,
   genericInternalError,
+  ArchivingKind,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiDescriptorKindToDescriptorKind,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
   eServiceModeToApiEServiceMode,
@@ -150,6 +152,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventEServiceDescriptorArchivingScheduled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -184,8 +187,12 @@ import {
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertDescriptorInRequiredState,
+  assertDescriptorIsNotLatestVersion,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { calculateArchivingEndDate } from "../utilities/dateCalculator.js";
+import { ArchivingKindSeed } from "../../../api-clients/dist/catalogApi.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -370,16 +377,31 @@ const updateDescriptorState = (
     }));
 };
 
-const deprecateDescriptor = (
-  eserviceId: EServiceId,
+const updateDescriptorInArchivingState = (
   descriptor: Descriptor,
-  logger: Logger
+  newState: DescriptorState,
+  archivingKind: ArchivingKind
 ): Descriptor => {
-  logger.info(
-    `Deprecating Descriptor ${descriptor.id} of EService ${eserviceId}`
-  );
+  const descriptorStateChange = [descriptor.state, newState];
 
-  return updateDescriptorState(descriptor, descriptorState.deprecated);
+  return match(descriptorStateChange)
+    .with(
+      [descriptorState.deprecated, descriptorState.archiving],
+      [descriptorState.suspended, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivingSchedule: {
+          archivingStartDate: new Date(),
+          archivingEndDate: calculateArchivingEndDate(new Date(), 90),
+          archivingKind,
+        },
+      })
+    )
+    .otherwise(() => ({
+      ...descriptor,
+      state: newState,
+    }));
 };
 
 const archiveDescriptor = (
@@ -4352,6 +4374,50 @@ async function updateDraftDescriptor(
       correlationId
     )
   );
+  return {
+    data: updatedEService,
+    metadata: { version: event.newVersion },
+  };
+}
+
+async function startEServiceDescriptorArchiving(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  archivingKindSeed: ArchivingKindSeed,
+  readModelService: ReadModelServiceSQL,
+  repository: ReturnType<typeof eventRepository<EServiceEvent>>,
+  {
+    authData,
+    correlationId,
+  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<WithMetadata<EService>> {
+  const eservice = await retrieveEService(eserviceId, readModelService);
+  const descriptor = await retrieveDescriptor(descriptorId, eservice);
+
+  await assertDescriptorInRequiredState(descriptor);
+  await assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.data.producerId,
+    eservice.data.id,
+    authData,
+    readModelService
+  );
+
+  const updatedDescriptor: Descriptor = updateDescriptorInArchivingState(
+    descriptor,
+    descriptorState.archiving,
+    apiDescriptorKindToDescriptorKind(archivingKindSeed.archivingKind)
+  );
+
+  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
+
+  const event = toCreateEventEServiceDescriptorArchivingScheduled(
+    eservice.metadata.version,
+    updatedEService,
+    correlationId
+  );
+
+  await repository.createEvent(event);
   return {
     data: updatedEService,
     metadata: { version: event.newVersion },

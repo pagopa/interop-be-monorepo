@@ -12,6 +12,8 @@ import {
   eserviceMode,
   Descriptor,
   Document,
+  archivingKind,
+  ArchivingKind,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -212,3 +214,12 @@ export const eServiceToApiEService = (
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
 });
+
+export function apiDescriptorKindToDescriptorKind(
+  input: catalogApi.ArchivingKind
+): ArchivingKind {
+  return match<catalogApi.ArchivingKind, ArchivingKind>(input)
+    .with("AUTO_ARCHIVING", () => archivingKind.autoArchive)
+    .with("REQUIRE_CONFIRMATION", () => archivingKind.requireConfirmation)
+    .exhaustive();
+}

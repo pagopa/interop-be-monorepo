@@ -12,6 +12,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
+  ArchivingKindV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -33,6 +34,7 @@ import {
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
+  ArchivingKind,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -121,15 +123,15 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-        certified: input.attributes.certified.map(fromEServiceAttributeV2),
-        declared: input.attributes.declared.map(fromEServiceAttributeV2),
-        verified: input.attributes.verified.map(fromEServiceAttributeV2),
-      }
+          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          declared: input.attributes.declared.map(fromEServiceAttributeV2),
+          verified: input.attributes.verified.map(fromEServiceAttributeV2),
+        }
       : {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
+          certified: [],
+          declared: [],
+          verified: [],
+        },
   docs: input.docs.map(fromDocumentV2),
   state: fromEServiceDescriptorStateV2(input.state),
   interface:
@@ -151,6 +153,20 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
+  archivingSchedule:
+    input.archivingSchedule != null
+      ? {
+          archivingStartDate: bigIntToDate(
+            input.archivingSchedule.archivingStartDate
+          ),
+          archivingEndDate: bigIntToDate(
+            input.archivingSchedule.archivingEndDate
+          ),
+          archivingKind: fromArchivingKindV2(
+            input.archivingSchedule.archivingKind
+          ),
+        }
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -201,3 +217,12 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
 });
+
+export const fromArchivingKindV2 = (input: ArchivingKindV2): ArchivingKind => {
+  switch (input) {
+    case ArchivingKindV2.REQUIRE_CONFIRMATION:
+      return ArchivingKind.Enum.RequireConfirmation;
+    case ArchivingKindV2.AUTO_ARCHIVING:
+      return ArchivingKind.Enum.AutoArchive;
+  }
+};

@@ -95,6 +95,26 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
+export const archivingKind = {
+  autoArchive: "AutoArchive",
+  requireConfirmation: "RequireConfirmation",
+} as const;
+
+export const ArchivingKind = z.enum([
+  Object.values(archivingKind)[0],
+  ...Object.values(archivingKind).slice(1),
+]);
+export type ArchivingKind = z.infer<typeof ArchivingKind>;
+
+export const EServiceDescriptorArchivingSchedule = z.object({
+  archivingStartDate: z.coerce.date(),
+  archivingEndDate: z.coerce.date(),
+  archivingKind: ArchivingKind,
+});
+export type EServiceDescriptorArchivingSchedule = z.infer<
+  typeof EServiceDescriptorArchivingSchedule
+>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -116,6 +136,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  archivingSchedule: EServiceDescriptorArchivingSchedule.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
