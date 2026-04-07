@@ -15,7 +15,7 @@ export function tenantKindHistoryWriterServiceBuilder(
     async createTenantKindHistoryEntry(
       tenantId: string,
       metadataVersion: number,
-      kind: string | undefined,
+      kind: TenantKind | undefined,
       modifiedAt: Date
     ): Promise<void> {
       if (!kind) return; // no tenant kind change to register
@@ -23,7 +23,7 @@ export function tenantKindHistoryWriterServiceBuilder(
       const tenantKindHistorySQL = toTenantKindHistorySQL({
         tenantId: unsafeBrandId(tenantId),
         version: metadataVersion,
-        kind: TenantKind.parse(kind),
+        kind: kind,
         modifiedAt: modifiedAt,
       });
 
