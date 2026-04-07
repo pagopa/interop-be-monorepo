@@ -193,6 +193,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -1481,6 +1482,13 @@ export function catalogServiceBuilder(
               }
             : undefined,
       });
+
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        eservice.data.technology,
+        newDescriptor.asyncExchangeProperties,
+        eservice.id,
+        newDescriptor.id
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
@@ -4593,6 +4601,13 @@ async function updateDraftDescriptor(
         : descriptor.asyncExchangeProperties
       : descriptor.asyncExchangeProperties,
   };
+
+  assertAsyncExchangeBulkAllowedForDescriptor(
+    eservice.data.technology,
+    updatedDescriptor.asyncExchangeProperties,
+    eservice.id,
+    descriptor.id
+  );
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 

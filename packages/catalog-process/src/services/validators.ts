@@ -428,9 +428,24 @@ export function assertAsyncExchangeReadyForPublication(
     throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
   }
 
+  assertAsyncExchangeBulkAllowedForDescriptor(
+    eserviceTechnology,
+    descriptor.asyncExchangeProperties,
+    eserviceId,
+    descriptorId
+  );
+}
+
+export function assertAsyncExchangeBulkAllowedForDescriptor(
+  eserviceTechnology: Technology,
+  asyncExchangeProperties: Descriptor["asyncExchangeProperties"],
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
   if (
+    asyncExchangeProperties !== undefined &&
     eserviceTechnology === technology.soap &&
-    descriptor.asyncExchangeProperties.bulk === true
+    asyncExchangeProperties.bulk === true
   ) {
     throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
   }

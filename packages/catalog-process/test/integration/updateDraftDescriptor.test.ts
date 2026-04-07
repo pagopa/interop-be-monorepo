@@ -22,6 +22,7 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
 import {
@@ -31,6 +32,7 @@ import {
   inconsistentDailyCalls,
   attributeNotFound,
   templateInstanceNotAllowed,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -505,6 +507,42 @@ describe("updateDraftDescriptor", () => {
     expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
     expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(true);
     expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
+  });
+
+  it("should reject descriptor update when technology is SOAP and async exchange bulk is true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    await expect(
+      catalogService.updateDraftDescriptor(
+        eservice.id,
+        descriptor.id,
+        updateSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
+    );
   });
 
   it("should not update async exchange descriptor fields when flag ON but asyncExchange false", async () => {

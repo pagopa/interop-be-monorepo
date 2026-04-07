@@ -2459,6 +2459,17 @@ async function updateDraftEServiceTemplateVersion(
         .exhaustive()
     : eserviceTemplateVersion.asyncExchangeProperties;
 
+  if (
+    asyncExchangeEnabled &&
+    eserviceTemplate.data.technology === technology.soap &&
+    updatedAsyncExchangeProperties?.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(
+      eserviceTemplate.id,
+      eserviceTemplateVersion.id
+    );
+  }
+
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
