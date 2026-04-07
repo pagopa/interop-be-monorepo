@@ -101,7 +101,9 @@ export const verifyDPoPCompliance = async ({
 
   if (bindingErrors) {
     const errorDetails = bindingErrors.map((e) => e.detail).join(", ");
-    logger.warn(`DPoP Key Binding verification failed: ${errorDetails}`);
+    logger.warn(
+      `[DPOPJTI=${validatedJWT.payload.jti}] - DPoP Key Binding verification failed: ${errorDetails}`
+    );
     throw dpopTokenBindingFailed(accessTokenClientId, errorDetails);
   }
 
@@ -117,6 +119,9 @@ export const verifyDPoPCompliance = async ({
   });
 
   if (dpopCacheErrors) {
+    logger.warn(
+      `[DPOPJTI=${validatedJWT.payload.jti}] - DPoP JTI already used`
+    );
     throw dpopProofJtiAlreadyUsed(validatedJWT.payload.jti);
   }
 

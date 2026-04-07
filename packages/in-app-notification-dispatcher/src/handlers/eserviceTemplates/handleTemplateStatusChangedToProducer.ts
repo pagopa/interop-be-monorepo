@@ -24,7 +24,7 @@ export async function handleTemplateStatusChangedToProducer(
   }
 
   logger.info(
-    `Sending in-app notification for handleTemplateStatusChangedToProducer ${eserviceTemplateV2Msg.id}/${eserviceTemplateVersionId}`
+    `Sending in-app notification for handleTemplateStatusChangedToProducer - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateVersionSuspended`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
