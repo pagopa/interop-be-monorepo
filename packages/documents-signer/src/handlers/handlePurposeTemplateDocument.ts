@@ -68,7 +68,9 @@ export async function handlePurposeTemplateDocument(
         logger
       );
 
-      logger.info(`Created file on safe storage with key: ${key}`);
+      logger.info(
+        `Created file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
+      );
 
       await safeStorageService.uploadFileContent(
         uploadUrl,
@@ -77,6 +79,10 @@ export async function handlePurposeTemplateDocument(
         secret,
         checksum,
         logger
+      );
+
+      logger.info(
+        `Uploaded file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
       );
 
       await signatureService.saveDocumentSignatureReference(
@@ -95,6 +101,10 @@ export async function handlePurposeTemplateDocument(
           correlationId: msg.correlation_id ?? "",
         },
         logger
+      );
+
+      logger.info(
+        `Processed purpose template document with key: ${key} and file: ${s3Key}`
       );
     })
     .with(

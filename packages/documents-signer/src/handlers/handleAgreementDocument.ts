@@ -53,7 +53,9 @@ export async function handleAgreementDocument(
           logger
         );
 
-        logger.info(`Created file on safe storage with key: ${key}`);
+        logger.info(
+          `Created file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
+        );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
@@ -62,6 +64,10 @@ export async function handleAgreementDocument(
           secret,
           checksum,
           logger
+        );
+
+        logger.info(
+          `Uploaded file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
         );
 
         await signatureService.saveDocumentSignatureReference(
@@ -79,6 +85,10 @@ export async function handleAgreementDocument(
             createdAt: msg.data.agreement.createdAt,
           },
           logger
+        );
+
+        logger.info(
+          `Processed agreement document with key: ${key} and file: ${s3Key}`
         );
       }
     })
