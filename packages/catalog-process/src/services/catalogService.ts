@@ -1477,7 +1477,7 @@ export function catalogServiceBuilder(
       assertAsyncExchangeBulkAllowedForDescriptor(
         eservice.data.technology,
         newDescriptor.asyncExchangeProperties,
-        eservice.id,
+        eservice.data.id,
         newDescriptor.id
       );
 
@@ -1799,7 +1799,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -2931,7 +2930,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -4596,7 +4594,7 @@ async function updateDraftDescriptor(
   assertAsyncExchangeBulkAllowedForDescriptor(
     eservice.data.technology,
     updatedDescriptor.asyncExchangeProperties,
-    eservice.id,
+    eservice.data.id,
     descriptor.id
   );
 

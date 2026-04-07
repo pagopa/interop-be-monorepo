@@ -415,7 +415,6 @@ export function hasRoleToAccessInactiveDescriptors(
 }
 
 export function assertAsyncExchangeReadyForPublication(
-  eserviceTechnology: Technology,
   descriptor: Descriptor,
   eserviceId: EServiceId,
   descriptorId: DescriptorId
