@@ -603,12 +603,10 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
-      const updatedAgreement: Agreement = {
+      const submittedAgreement: Agreement = {
         ...agreement.data,
         ...updateSeed,
       };
-
-      const submittedAgreement = updatedAgreement;
 
       const agreementEvent =
         submittedAgreement.state === agreementState.active

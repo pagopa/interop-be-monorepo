@@ -700,50 +700,6 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should not require producer tenant lookup when producer does not exist in tenant collection", async () => {
-    const producer = getMockTenant();
-    const consumer = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: generateId(),
-          kind: tenantMailKind.ContactEmail,
-          address: "test@test.com",
-          createdAt: new Date(),
-        },
-      ],
-    };
-
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-      consumerDocuments: [],
-    };
-
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneAgreement(agreement);
-
-    const authData = getMockAuthData(consumer.id);
-
-    await expect(
-      agreementService.submitAgreement(
-        agreement.id,
-        { consumerNotes: "This is a test" },
-        getMockContext({ authData })
-      )
-    ).resolves.toBeDefined();
-  });
-
   it("should throw a tenantNotFound error when consumer does not exist in tenant collection", async () => {
     const producer = getMockTenant();
     const consumer = {

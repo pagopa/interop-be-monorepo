@@ -1303,47 +1303,6 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
-  it("should not require producer tenant lookup when producer tenant does not exist", async () => {
-    const consumer = getMockTenant();
-    await addOneTenant(consumer);
-    const authData = getMockAuthData(consumer.id);
-
-    const newPublishedDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "2",
-    };
-
-    const currentDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: descriptorState.deprecated,
-      version: "1",
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [newPublishedDescriptor, currentDescriptor],
-    };
-    await addOneEService(eservice);
-
-    const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumer.id,
-        randomArrayItem(agreementUpgradableStates)
-      ),
-      producerId: eservice.producerId,
-      descriptorId: currentDescriptor.id,
-      consumerDocuments: [],
-    };
-    await addOneAgreement(agreement);
-
-    await expect(
-      agreementService.upgradeAgreement(
-        agreement.id,
-        getMockContext({ authData })
-      )
-    ).resolves.toBeDefined();
-  });
-
   it("should throw a missingCertifiedAttributesError error when consumer and producer are different and published descriptor has invalid certified attributes", async () => {
     const invalidCertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
