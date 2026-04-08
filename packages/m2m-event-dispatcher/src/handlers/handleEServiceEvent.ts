@@ -124,7 +124,11 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingScheduledDeleted",
+            "EServiceDescriptorArchivingScheduledExpired",  // FIXME: not to be in M2M events?
+            "EServiceDescriptorManualArchived"
           ),
         },
         async (event) => {

@@ -105,7 +105,8 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorRejectedByDelegator",
         "EServiceDescriptorInterfaceAdded",
         "EServiceDescriptorInterfaceUpdated",
-        "EServiceDescriptorInterfaceDeleted"
+        "EServiceDescriptorInterfaceDeleted",
+        "EServiceDescriptorArchivingScheduledExpired"
       ),
       () => m2mEventVisibility.owner
     )
@@ -130,7 +131,10 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorAttributesUpdated",
         "EServicePersonalDataFlagUpdatedAfterPublication",
         "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-        "EServiceInstanceLabelUpdated"
+        "EServiceInstanceLabelUpdated",
+        "EServiceDescriptorArchivingScheduled",
+        "EServiceDescriptorArchivingScheduledDeleted",
+        "EServiceDescriptorManualArchived"
       ),
       () => m2mEventVisibility.public
     )

@@ -64,6 +64,9 @@ import {
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
   EServiceInstanceLabelUpdatedV2,
   EServiceDescriptorArchivingScheduledV2,
+  EServiceDescriptorArchivingScheduledDeletedV2,
+  EServiceDescriptorArchivingScheduledExpiredV2,
+  EServiceDescriptorManualArchivedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -272,6 +275,15 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorArchivingScheduled" }, ({ data }) =>
       EServiceDescriptorArchivingScheduledV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorArchivingScheduledDeleted" }, ({ data }) =>
+      EServiceDescriptorArchivingScheduledDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorArchivingScheduledExpired" }, ({ data }) =>
+      EServiceDescriptorArchivingScheduledExpiredV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorManualArchived" }, ({ data }) =>
+      EServiceDescriptorManualArchivedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -577,6 +589,21 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorArchivingScheduled"),
     data: protobufDecoder(EServiceDescriptorArchivingScheduledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingScheduledDeleted"),
+    data: protobufDecoder(EServiceDescriptorArchivingScheduledDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingScheduledExpired"),
+    data: protobufDecoder(EServiceDescriptorArchivingScheduledExpiredV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorManualArchived"),
+    data: protobufDecoder(EServiceDescriptorManualArchivedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

@@ -224,5 +224,22 @@ message EServiceInstanceLabelUpdatedV2 {
 }
 
 message EServiceDescriptorArchivingScheduledV2 {
-  EServiceV2 eservice = 1;
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
 }
+
+message EServiceDescriptorArchivingScheduledDeletedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingScheduledExpiredV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorManualArchivedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+

@@ -33,7 +33,10 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
+  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+  | "EServiceDescriptorArchivingScheduled"
+  | "EServiceDescriptorArchivingScheduledDeleted"
+  | "EServiceDescriptorManualArchived";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -247,6 +250,21 @@ function getBodyAndDescriptorId(
             producerName
           ),
           descriptorId,
+        };
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingScheduledDeleted",
+          "EServiceDescriptorManualArchived",
+        ),
+      },
+      () => {
+        return {  //FIXME: Create specific templates for these events instead of using a generic one with empty body and no descriptorId
+          body: "",
+          descriptorId: undefined,
         };
       }
     )

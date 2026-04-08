@@ -153,7 +153,11 @@ export async function handleCatalogMessage(
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingScheduledDeleted",
+          "EServiceDescriptorArchivingScheduledExpired",
+          "EServiceDescriptorManualArchived"
         ),
       },
       () => {

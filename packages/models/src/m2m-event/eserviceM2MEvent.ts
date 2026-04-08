@@ -60,6 +60,10 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorInterfaceAdded",
   "EServiceDescriptorInterfaceUpdated",
   "EServiceDescriptorInterfaceDeleted",
+  "EServiceDescriptorArchivingScheduled",
+  "EServiceDescriptorArchivingScheduledDeleted",
+  "EServiceDescriptorArchivingScheduledExpired",
+  "EServiceDescriptorManualArchived"
 ]);
 export type EServiceM2MEventType = z.infer<typeof EServiceM2MEventType>;
 
