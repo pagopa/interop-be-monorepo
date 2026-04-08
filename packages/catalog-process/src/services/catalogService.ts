@@ -4003,29 +4003,35 @@ function hasCertifiedAttributeDailyCallsChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
-    const seedAttrGroup = seed.certified.find((seedGroup) =>
-      descriptorAttributesGroup.every((descriptorAttribute) =>
-        seedGroup.some(
-          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
-        )
+  const findMatchingSeedGroup = (
+    descriptorGroup: EServiceAttribute[],
+    seedGroups: catalogApi.Attribute[][]
+  ): catalogApi.Attribute[] | undefined =>
+    seedGroups.find((seedGroup) =>
+      descriptorGroup.every((descriptorAttr) =>
+        seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
       )
     );
 
-    if (seedAttrGroup === undefined) {
+  const hasDailyCallsChangedInGroup = (
+    descriptorGroup: EServiceAttribute[],
+    seedGroup: catalogApi.Attribute[]
+  ): boolean =>
+    descriptorGroup.some((descriptorAttr) => {
+      const seedAttr = seedGroup.find((attr) => attr.id === descriptorAttr.id);
+      return (
+        seedAttr?.dailyCallsPerConsumer !== descriptorAttr.dailyCallsPerConsumer
+      );
+    });
+
+  return descriptor.attributes.certified.some((descriptorGroup) => {
+    const seedGroup = findMatchingSeedGroup(descriptorGroup, seed.certified);
+
+    if (seedGroup === undefined) {
       throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
     }
 
-    return descriptorAttributesGroup.some((descriptorAttribute) => {
-      const seedAttribute = seedAttrGroup.find(
-        (attribute) => attribute.id === descriptorAttribute.id
-      );
-
-      return (
-        seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer
-      );
-    });
+    return hasDailyCallsChangedInGroup(descriptorGroup, seedGroup);
   });
 }
 
