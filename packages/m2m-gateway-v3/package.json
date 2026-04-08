@@ -8,6 +8,8 @@
   "scripts": {
     "test:api": "vitest --config vitest.api.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
+    "test-shard1": "pnpm test:api",
+    "test-shard2": "pnpm test:integration",
     "test": "pnpm test:api && pnpm test:integration",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
