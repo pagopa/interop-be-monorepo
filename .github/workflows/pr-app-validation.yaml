@@ -69,7 +69,7 @@ jobs:
         id: get_dedicated_packages
         run: |
           # Manually define packages that require dedicated test shards here and use the name from package.json.
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='[{"package":"pagopa-interop-backend-for-frontend","command":"test-shard1"},{"package":"pagopa-interop-backend-for-frontend","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard2"}]'
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='[{"package":"pagopa-interop-backend-for-frontend","command":"test-shard1"},{"package":"pagopa-interop-backend-for-frontend","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard3"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard3"}]'
           echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
