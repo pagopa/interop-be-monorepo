@@ -225,7 +225,6 @@ describe("activate agreement", () => {
             },
             activation: undefined,
           },
-          contract: undefined,
 
           // Adding some random attributes to check that they are overwritten by the activation
           certifiedAttributes: [getMockAgreementAttribute()],
@@ -346,6 +345,7 @@ describe("activate agreement", () => {
           suspendedByConsumer: false,
           suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
         };
+        delete (expectedActivatedAgreement as Partial<Agreement>).contract;
 
         expect(actualAgreementActivated).toMatchObject(
           expectedActivatedAgreement
@@ -459,6 +459,7 @@ describe("activate agreement", () => {
         state: agreementState.missingCertifiedAttributes,
         suspendedByPlatform: true,
       };
+      delete (expectedAgreement as Partial<Agreement>).contract;
 
       expect(sortAgreement(actualAgreement)).toMatchObject(
         sortAgreement(expectedAgreement)
