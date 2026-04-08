@@ -69,8 +69,14 @@ jobs:
         id: get_dedicated_packages
         run: |
           # Manually define packages that require dedicated test shards here and use the name from package.json.
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='[{"package":"pagopa-interop-backend-for-frontend","command":"test-shard1"},{"package":"pagopa-interop-backend-for-frontend","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway","command":"test-shard3"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard1"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard2"},{"package":"pagopa-interop-m2m-gateway-v3","command":"test-shard3"}]'
-          echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
+          DEDICATED_TEST_SHARDS=$(jq -nc '
+            [
+              {"package":"pagopa-interop-backend-for-frontend","commands":["test-shard1","test-shard2"]},
+              {"package":"pagopa-interop-m2m-gateway","commands":["test-shard1","test-shard2","test-shard3"]},
+              {"package":"pagopa-interop-m2m-gateway-v3","commands":["test-shard1","test-shard2","test-shard3"]}
+            ]
+          ')
+          echo "dedicated_packages=$DEDICATED_TEST_SHARDS" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
         id: get_test_packages
@@ -142,7 +148,16 @@ jobs:
             local START_INDEX=$2
 
             matrix=$(jq --argjson packs "$PACKAGES_JSON" --argjson startIndex "$START_INDEX" -n -c '
-              ($packs | to_entries)[] |
+              [
+                $packs[]
+                | .package as $package
+                | .commands[]
+                | {
+                    "package": $package,
+                    "command": .
+                  }
+              ]
+              | to_entries[] |
               {
                 "shardIndex": ($startIndex + .key),
                 "packages": [ .value.package ],
