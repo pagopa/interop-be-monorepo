@@ -114,7 +114,7 @@ jobs:
       - name: Create shards matrices
         id: sharded_packages
         run: |
-          SHARD_TEST_NUM=10
+          SHARD_TEST_NUM=20
           SHARD_LINT_NUM=5
 
           create_fixed_size_shard_matrix() {
