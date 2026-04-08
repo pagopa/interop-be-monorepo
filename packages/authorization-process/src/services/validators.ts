@@ -39,6 +39,8 @@ import {
   clientAdminIdNotFound,
   tenantNotAllowedOnClient,
   missingSelfcareId,
+  clientNameAlreadyExists,
+  producerKeychainNameAlreadyExists,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -217,3 +219,44 @@ export function assertTenantHasSelfcareId(
     throw missingSelfcareId(tenant.id);
   }
 }
+
+export const assertClientNameDoesNotAlreadyExist = async (
+  name: string,
+  consumerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> => {
+  const { results } = await readModelService.getClients(
+    {
+      name,
+      userIds: [],
+      consumerId,
+      purposeId: undefined,
+      kind: undefined,
+    },
+    { offset: 0, limit: 1 }
+  );
+
+  if (results.length > 0) {
+    throw clientNameAlreadyExists(name);
+  }
+};
+
+export const assertProducerKeychainNameDoesNotAlreadyExist = async (
+  name: string,
+  producerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> => {
+  const { results } = await readModelService.getProducerKeychains(
+    {
+      name,
+      userIds: [],
+      producerId,
+      eserviceId: undefined,
+    },
+    { offset: 0, limit: 1 }
+  );
+
+  if (results.length > 0) {
+    throw producerKeychainNameAlreadyExists(name);
+  }
+};

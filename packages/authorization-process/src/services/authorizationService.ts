@@ -118,6 +118,8 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
   assertTenantHasSelfcareId,
+  assertClientNameDoesNotAlreadyExist,
+  assertProducerKeychainNameDoesNotAlreadyExist,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -265,6 +267,13 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      await assertClientNameDoesNotAlreadyExist(
+        clientSeed.name,
+        authData.organizationId,
+        readModelService
+      );
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -299,6 +308,13 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      await assertClientNameDoesNotAlreadyExist(
+        clientSeed.name,
+        authData.organizationId,
+        readModelService
+      );
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -1002,6 +1018,12 @@ export function authorizationServiceBuilder(
     ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
+      );
+
+      await assertProducerKeychainNameDoesNotAlreadyExist(
+        producerKeychainSeed.name,
+        authData.organizationId,
+        readModelService
       );
 
       const producerKeychain: ProducerKeychain = {
