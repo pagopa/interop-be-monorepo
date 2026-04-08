@@ -68,8 +68,13 @@ jobs:
       - name: Load dedicated test packages
         id: get_dedicated_packages
         run: |
-          # Manually define packages that require dedicated test shards here and use the name from package.json
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='["pagopa-interop-backend-for-frontend", "pagopa-interop-m2m-gateway", "pagopa-interop-m2m-gateway-v3"]'
+          # Manually define packages that require dedicated test shards here and use the name from package.json.
+          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='[
+            {"package":"pagopa-interop-backend-for-frontend","command":"test:ci:shard1"},
+            {"package":"pagopa-interop-backend-for-frontend","command":"test:ci:shard2"},
+            {"package":"pagopa-interop-m2m-gateway","command":"test"},
+            {"package":"pagopa-interop-m2m-gateway-v3","command":"test"}
+          ]'
           echo "dedicated_packages=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
 
       - name: Find packages with test directories
@@ -99,16 +104,17 @@ jobs:
         id: filter_packages
         run: |
           ALL_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
+          DEDICATED_TEST_SHARDS='${{ steps.get_dedicated_packages.outputs.dedicated_packages }}'
+          DEDICATED_PACKAGE_NAMES=$(echo "$DEDICATED_TEST_SHARDS" | jq -c 'map(.package) | unique')
 
-          PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c --argjson dedicated "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" '
+          PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c --argjson dedicated "$DEDICATED_PACKAGE_NAMES" '
             . - $dedicated
           ')
 
           echo "Remaining packages for sharding: $(echo "$PACKAGES_TO_TEST" | jq 'length')"
 
           echo "packages_to_test=$PACKAGES_TO_TEST" >> $GITHUB_OUTPUT
-          echo "packages_test_dedicated_runner=$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST" >> $GITHUB_OUTPUT
+          echo "packages_test_dedicated_runner=$DEDICATED_TEST_SHARDS" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
         id: sharded_packages
@@ -144,7 +150,8 @@ jobs:
               ($packs | to_entries)[] |
               {
                 "shardIndex": ($startIndex + .key),
-                "packages": [ .value ]
+                "packages": [ .value.package ],
+                "command": .value.command
               }
             ')
 
@@ -156,7 +163,6 @@ jobs:
           PACK_TO_TEST_NUM=$(echo "$PACKAGES_TO_TEST_JSON" | jq -r length)
 
           PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
-          DEDICATED_PACK_NUM=$(echo "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" | jq -r length)
 
           SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
 
@@ -307,10 +313,18 @@ jobs:
       - name: Run tests for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
-          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
-            echo "Running tests for package: $PACKAGE"
-            pnpm --filter "$PACKAGE" test
-          done
+          CUSTOM_COMMAND='${{ matrix.shard.command || '' }}'
+
+          if [ -n "$CUSTOM_COMMAND" ]; then
+            PACKAGE=$(echo "$PACKAGES_JSON" | jq -r '.[0]')
+            echo "Running custom tests for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" "$CUSTOM_COMMAND"
+          else
+            echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+              echo "Running tests for package: $PACKAGE"
+              pnpm --filter "$PACKAGE" test
+            done
+          fi
 
   lint_result:
     name: Lint Result

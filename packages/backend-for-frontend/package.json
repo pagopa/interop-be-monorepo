@@ -8,6 +8,10 @@
   "scripts": {
     "test:unit": "vitest",
     "test:api": "vitest --config vitest.api.config.ts",
+    "test:api:shard1": "vitest --config vitest.api.config.ts --shard=1/2",
+    "test:api:shard2": "vitest --config vitest.api.config.ts --shard=2/2",
+    "test:ci:shard1": "pnpm test:unit && pnpm test:api:shard1",
+    "test:ci:shard2": "pnpm test:api:shard2",
     "test": "pnpm test:unit && pnpm test:api",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
