@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiEservice,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -65,7 +66,8 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedAttribu
       .post(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/certifiedAttributes/groups`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -129,7 +131,8 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedAttribu
       .post(
         `${appBasePath}/eservices/${mockEService.id}/descriptors/${mockDescriptor.id}/certifiedAttributes/groups`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send({ invalid: "body" });
 
     expect(res.status).toBe(400);

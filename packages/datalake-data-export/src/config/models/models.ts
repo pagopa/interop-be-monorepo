@@ -56,6 +56,7 @@ const ExportedDescriptor = Descriptor.pick({
   voucherLifespan: true,
   dailyCallsPerConsumer: true,
   dailyCallsTotal: true,
+  agreementApprovalPolicy: true,
   state: true,
   publishedAt: true,
   suspendedAt: true,
@@ -76,7 +77,6 @@ export const ExportedEService = EService.pick({
   createdAt: true,
   technology: true,
   templateId: true,
-  instanceLabel: true, // TODO double check if this is needed in the export
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),

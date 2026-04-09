@@ -64,6 +64,7 @@ describe("maintenanceTenantUpdate", async () => {
         createdAt: new Date(mail.createdAt),
       })),
       onboardedAt: new Date(tenantUpdate.onboardedAt),
+      selfcareInstitutionType: tenantUpdate.selfcareInstitutionType,
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedMockTenant));

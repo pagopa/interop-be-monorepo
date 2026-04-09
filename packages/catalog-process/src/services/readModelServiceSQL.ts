@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -81,7 +82,6 @@ import {
   desc,
   eq,
   exists,
-  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -174,9 +174,9 @@ export function readModelServiceBuilderSQL(
               and(
                 // name filter
                 name
-                  ? ilike(
+                  ? ilikeEscaped(
                       eserviceInReadmodelCatalog.name,
-                      `%${escapeRegExp(name)}%`
+                      `%${escapeSqlLike(name)}%`
                     )
                   : undefined,
                 // ids filter
@@ -542,7 +542,7 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .where(
           and(
-            ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
+            ilikeEscaped(eserviceInReadmodelCatalog.name, escapeSqlLike(name)),
             eq(eserviceInReadmodelCatalog.producerId, producerId)
           )
         )
@@ -559,9 +559,9 @@ export function readModelServiceBuilderSQL(
         .select({ count: count() })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);

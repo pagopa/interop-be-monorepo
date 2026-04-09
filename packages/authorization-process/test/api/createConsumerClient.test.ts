@@ -4,6 +4,7 @@ import { clientKind, generateId, TenantId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
+  getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -21,10 +22,12 @@ describe("API /clientsConsumer authorization test", () => {
     members: [organizationId],
   };
 
-  const mockClient = getMockClient({
-    kind: clientKind.consumer,
-    consumerId: mockTokenOrganizationId,
-  });
+  const mockClient = getMockWithMetadata(
+    getMockClient({
+      kind: clientKind.consumer,
+      consumerId: mockTokenOrganizationId,
+    })
+  );
 
   authorizationService.createConsumerClient = vi
     .fn()
@@ -40,7 +43,10 @@ describe("API /clientsConsumer authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 with a full client for user with role %s",
@@ -48,7 +54,7 @@ describe("API /clientsConsumer authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToFullClient(mockClient));
+      expect(res.body).toEqual(testToFullClient(mockClient.data));
     }
   );
 

@@ -51,6 +51,8 @@ describe("getCatalogEServiceDescriptor", () => {
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
+  const certifiedAttributeDailyCallsPerConsumer = 200;
+
   const eServiceDescriptor: catalogApi.EServiceDescriptor = {
     id: mockDescriptorId,
     state: "DRAFT",
@@ -68,6 +70,7 @@ describe("getCatalogEServiceDescriptor", () => {
           {
             id: certifiedAttributeId,
             explicitAttributeVerification: false,
+            dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
           },
         ],
       ],
@@ -143,6 +146,7 @@ describe("getCatalogEServiceDescriptor", () => {
             explicitAttributeVerification: false,
             id: certifiedAttributeId,
             name: certifiedAttributeName,
+            dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
           },
         ],
       ],
