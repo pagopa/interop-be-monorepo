@@ -15,6 +15,7 @@ import {
   delegationReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -49,6 +50,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
@@ -58,6 +61,7 @@ export const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
 });
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
