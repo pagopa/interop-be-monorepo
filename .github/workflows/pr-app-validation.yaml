@@ -84,10 +84,8 @@ jobs:
         run: |
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
-            API_TESTS=$(find "$DIR/test/api" -name "*.test.ts" 2>/dev/null | wc -l | tr -d ' ')
-            OTHER_TESTS=$(find "$DIR/test" -not -path "*/api/*" -name "*.test.ts" | wc -l | tr -d ' ')
-            WEIGHT=$(( API_TESTS * 2 + OTHER_TESTS ))
-            echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT}"
+            TEST_FILE_COUNT=$(find "$DIR/test" -name "*.test.ts" | wc -l | tr -d ' ')
+            echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$TEST_FILE_COUNT}"
           done | jq -s -c 'sort_by(.name)')
 
           echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
