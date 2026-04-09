@@ -233,7 +233,9 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
     expect(messages.length).toBeGreaterThan(0);
     messages.forEach((message) => {
       expect(message.email.subject).toContain(producerKeychain.name);
-      expect(message.email.subject).toContain("senza chiavi per e-service asincroni");
+      expect(message.email.subject).toContain(
+        "senza chiavi per e-service asincroni"
+      );
     });
   });
 

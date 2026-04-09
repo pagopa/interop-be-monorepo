@@ -75,8 +75,7 @@ export async function handleProducerKeychainNoKeysForAsyncEservice(
       producerKeychain.name,
       eserviceNamesStr
     ),
-    notificationType:
-      "producerKeychainKeyAddedDeletedToClientUsers" as const,
+    notificationType: "producerKeychainKeyAddedDeletedToClientUsers" as const,
     entityId: producerKeychain.id,
   }));
 }

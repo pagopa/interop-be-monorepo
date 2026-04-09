@@ -67,24 +67,21 @@ export async function handleAuthorizationEvent(
           readModelService
         )
     )
-    .with(
-      { type: "ProducerKeychainKeyDeleted" },
-      async (msg) => {
-        const [existingNotifications, newNotifications] = await Promise.all([
-          handleProducerKeychainKeyAddedDeletedToClientUsers(
-            msg,
-            logger,
-            readModelService
-          ),
-          handleProducerKeychainNoKeysForAsyncEservice(
-            msg,
-            logger,
-            readModelService
-          ),
-        ]);
-        return [...existingNotifications, ...newNotifications];
-      }
-    )
+    .with({ type: "ProducerKeychainKeyDeleted" }, async (msg) => {
+      const [existingNotifications, newNotifications] = await Promise.all([
+        handleProducerKeychainKeyAddedDeletedToClientUsers(
+          msg,
+          logger,
+          readModelService
+        ),
+        handleProducerKeychainNoKeysForAsyncEservice(
+          msg,
+          logger,
+          readModelService
+        ),
+      ]);
+      return [...existingNotifications, ...newNotifications];
+    })
     .with(
       {
         type: P.union(
