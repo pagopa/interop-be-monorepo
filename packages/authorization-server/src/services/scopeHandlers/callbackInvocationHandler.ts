@@ -36,7 +36,7 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleCallbackInvocation = async (
-  ctx: ScopeHandlerContext
+  ctx: ScopeHandlerContext,
 ): Promise<AsyncGeneratedTokenData> => {
   const {
     clientAssertionJWT,
@@ -76,7 +76,7 @@ export const handleCallbackInvocation = async (
   const interaction = await readInteraction(
     dynamoDBClient,
     interactionId,
-    interactionsTable
+    interactionsTable,
   );
   if (!interaction) {
     throw interactionNotFound(interactionId);
@@ -92,7 +92,7 @@ export const handleCallbackInvocation = async (
     throw interactionStateNotAllowed(
       interactionId,
       interaction.state,
-      interactionState.callbackInvocation
+      interactionState.callbackInvocation,
     );
   }
 
@@ -111,13 +111,13 @@ export const handleCallbackInvocation = async (
     retrieveProducerKey(
       dynamoDBClient,
       producerKeychainPlatformStatesTable,
-      producerKeyPK
+      producerKeyPK,
     ),
     retrieveCatalogEntry(
       dynamoDBClient,
       eServiceId,
       descriptorId,
-      platformStatesTable
+      platformStatesTable,
     ),
   ]);
 
@@ -125,19 +125,19 @@ export const handleCallbackInvocation = async (
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     { publicKey: producerKey.publicKey },
-    clientAssertionJWT.header.alg
+    clientAssertionJWT.header.alg,
   );
   if (signatureErrors) {
     throw clientAssertionSignatureValidationFailed(
       clientId,
-      signatureErrors.map((error) => error.detail).join(", ")
+      signatureErrors.map((error) => error.detail).join(", "),
     );
   }
 
   // 7. Validate catalog entry state
   if (catalogEntry.state !== itemState.active) {
     throw platformStateValidationFailed(
-      `E-Service descriptor state is: ${catalogEntry.state}`
+      `E-Service descriptor state is: ${catalogEntry.state}`,
     );
   }
 
@@ -151,7 +151,7 @@ export const handleCallbackInvocation = async (
       throw asyncExchangeResponseTimeExceeded(
         interactionId,
         elapsedMs,
-        responseTimeLimitMs
+        responseTimeLimitMs,
       );
     }
   }
@@ -162,7 +162,7 @@ export const handleCallbackInvocation = async (
       throw entityNumberExceedsMaxResultSet(
         clientId,
         entityNumber,
-        asyncExchangeProperties.maxResultSet
+        asyncExchangeProperties.maxResultSet,
       );
     }
   }
@@ -192,6 +192,11 @@ export const handleCallbackInvocation = async (
     audience: catalogEntry.descriptorAudience,
     purposeId: interaction.purposeId,
     tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
+    digest: clientAssertionJWT.payload.digest || undefined,
+    producerId: producerKey.producerId,
+    consumerId: interaction.consumerId,
+    eserviceId: eServiceId,
+    descriptorId,
     interactionId,
     scope: interactionState.callbackInvocation,
     dpopJWK: dpopProofJWT?.header.jwk,

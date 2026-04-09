@@ -11,6 +11,7 @@ import {
   generateId,
   PurposeId,
   InteractionId,
+  TenantId,
 } from "pagopa-interop-models";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
@@ -38,6 +39,7 @@ describe("interactions utils", () => {
   it("should create and read an interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -49,6 +51,7 @@ describe("interactions utils", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId,
       eServiceId,
       descriptorId,
       issuedAt,
@@ -65,7 +68,7 @@ describe("interactions utils", () => {
     const retrieved = await readInteraction(
       dynamoDBClient as never,
       interactionId,
-      interactionsTable
+      interactionsTable,
     );
 
     expect(retrieved).toEqual(created);
@@ -75,6 +78,7 @@ describe("interactions utils", () => {
   it("should not create duplicated interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -88,11 +92,12 @@ describe("interactions utils", () => {
         interactionsTable,
         interactionId,
         purposeId,
+        consumerId,
         eServiceId,
         descriptorId,
         issuedAt,
         ttlSeconds,
-      })
+      }),
     ).rejects.toThrow();
   });
 
@@ -104,6 +109,7 @@ describe("interactions utils", () => {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "start_interaction",
@@ -130,7 +136,7 @@ describe("interactions utils", () => {
     const updateCall = mockSend.mock.calls[1][0] as UpdateItemCommand;
     expect(updateCall).toBeInstanceOf(UpdateItemCommand);
     expect(JSON.stringify(updateCall.input)).toContain(
-      "callbackInvocationTokenIssuedAt"
+      "callbackInvocationTokenIssuedAt",
     );
     expect(updateCall.input.ConditionExpression).toBe("attribute_exists(PK)");
   });
@@ -143,6 +149,7 @@ describe("interactions utils", () => {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "callback_invocation",
@@ -160,7 +167,7 @@ describe("interactions utils", () => {
         interactionId,
         state: "confirmation",
         updatedAt: new Date().toISOString(),
-      })
+      }),
     ).rejects.toThrow("Unable to update interaction state");
 
     expect(mockSend).toHaveBeenCalledTimes(1);
@@ -171,21 +178,21 @@ describe("interactions utils", () => {
       isInteractionStateAllowedForScope({
         currentState: "start_interaction",
         scope: "callback_invocation",
-      })
+      }),
     ).toBe(true);
 
     expect(
       isInteractionStateAllowedForScope({
         currentState: "callback_invocation",
         scope: "confirmation",
-      })
+      }),
     ).toBe(false);
 
     expect(
       isInteractionStateAllowedForScope({
         currentState: "confirmation",
         scope: "confirmation",
-      })
+      }),
     ).toBe(true);
   });
 });

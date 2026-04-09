@@ -20,6 +20,7 @@ import {
   InteractionState,
   makeInteractionPK,
   PurposeId,
+  TenantId,
 } from "pagopa-interop-models";
 
 const interactionStateAllowedByScope: Record<
@@ -46,6 +47,7 @@ export const createInteraction = async ({
   interactionsTable,
   interactionId,
   purposeId,
+  consumerId,
   eServiceId,
   descriptorId,
   issuedAt,
@@ -55,6 +57,7 @@ export const createInteraction = async ({
   interactionsTable: string;
   interactionId: InteractionId;
   purposeId: PurposeId;
+  consumerId: TenantId;
   eServiceId: EServiceId;
   descriptorId: DescriptorId;
   issuedAt: string;
@@ -66,6 +69,7 @@ export const createInteraction = async ({
     PK,
     interactionId,
     purposeId,
+    consumerId,
     eServiceId,
     descriptorId,
     state: interactionState.startInteraction,
@@ -81,6 +85,7 @@ export const createInteraction = async ({
       PK: { S: interaction.PK },
       interactionId: { S: interaction.interactionId },
       purposeId: { S: interaction.purposeId },
+      consumerId: { S: interaction.consumerId },
       eServiceId: { S: interaction.eServiceId },
       descriptorId: { S: interaction.descriptorId },
       state: { S: interaction.state },
@@ -99,7 +104,7 @@ export const createInteraction = async ({
 export const readInteraction = async (
   dynamoDBClient: DynamoDBClient,
   interactionId: InteractionId,
-  interactionsTable: string
+  interactionsTable: string,
 ): Promise<Interaction | undefined> => {
   const input: GetItemInput = {
     TableName: interactionsTable,
@@ -110,7 +115,7 @@ export const readInteraction = async (
   };
 
   const data: GetItemCommandOutput = await dynamoDBClient.send(
-    new GetItemCommand(input)
+    new GetItemCommand(input),
   );
 
   if (!data.Item) {
@@ -123,8 +128,8 @@ export const readInteraction = async (
   if (!interaction.success) {
     throw genericInternalError(
       `Unable to parse interaction entry: result ${JSON.stringify(
-        interaction
-      )} - data ${JSON.stringify(data)} `
+        interaction,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -147,7 +152,7 @@ export const updateInteractionState = async ({
   const currentInteraction = await readInteraction(
     dynamoDBClient,
     interactionId,
-    interactionsTable
+    interactionsTable,
   );
 
   if (!currentInteraction) {
@@ -177,7 +182,7 @@ export const updateInteractionState = async ({
       S: updatedAt,
     };
     updateExpressions.push(
-      "startInteractionTokenIssuedAt = :startInteractionTokenIssuedAt"
+      "startInteractionTokenIssuedAt = :startInteractionTokenIssuedAt",
     );
   }
 
@@ -186,7 +191,7 @@ export const updateInteractionState = async ({
       S: updatedAt,
     };
     updateExpressions.push(
-      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt"
+      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt",
     );
   }
 

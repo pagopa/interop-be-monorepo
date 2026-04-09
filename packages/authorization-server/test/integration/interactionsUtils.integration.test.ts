@@ -10,6 +10,7 @@ import {
   generateId,
   PurposeId,
   InteractionId,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   createInteraction,
@@ -43,6 +44,7 @@ describe("interactions utils integration", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId,
       issuedAt,
@@ -52,7 +54,7 @@ describe("interactions utils integration", () => {
     const retrieved = await readInteraction(
       dynamoDBClient,
       interactionId,
-      interactionsTable
+      interactionsTable,
     );
 
     expect(retrieved).toEqual(created);
@@ -71,6 +73,7 @@ describe("interactions utils integration", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId,
       issuedAt: startIssuedAt,
@@ -107,7 +110,7 @@ describe("interactions utils integration", () => {
     const retrieved = await readInteraction(
       dynamoDBClient,
       interactionId,
-      interactionsTable
+      interactionsTable,
     );
 
     expect(retrieved).toBeDefined();
