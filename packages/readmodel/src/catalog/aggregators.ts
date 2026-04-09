@@ -21,6 +21,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  ArchivingKind,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -188,6 +189,17 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(descriptorSQL.archivingStartDate !== null &&
+    descriptorSQL.archivingEndDate !== null &&
+    descriptorSQL.archivingKind !== null
+      ? {
+          archivingSchedule: {
+            archivingStartDate: stringToDate(descriptorSQL.archivingStartDate),
+            archivingEndDate: stringToDate(descriptorSQL.archivingEndDate),
+            archivingKind: ArchivingKind.parse(descriptorSQL.archivingKind),
+          },
+        }
+      : {}),
   };
 };
 

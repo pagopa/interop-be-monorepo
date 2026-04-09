@@ -452,6 +452,15 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       withTimezone: true,
       mode: "string",
     }),
+    archivingStartDate: timestamp("archiving_start_date", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    archivingEndDate: timestamp("archiving_end_date", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    archivingKind: varchar("archiving_kind"),
   },
   (table) => [
     foreignKey({

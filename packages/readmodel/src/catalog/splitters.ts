@@ -363,6 +363,13 @@ export const descriptorToDescriptorSQL = (
   suspendedAt: dateToString(descriptor.suspendedAt),
   deprecatedAt: dateToString(descriptor.deprecatedAt),
   archivedAt: dateToString(descriptor.archivedAt),
+  archivingStartDate: dateToString(
+    descriptor.archivingSchedule?.archivingStartDate
+  ),
+  archivingEndDate: dateToString(
+    descriptor.archivingSchedule?.archivingEndDate
+  ),
+  archivingKind: descriptor.archivingSchedule?.archivingKind || null,
 });
 
 export const eserviceToEserviceSQL = (
