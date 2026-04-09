@@ -24,7 +24,6 @@ import {
 } from "../integrationUtils.js";
 
 describe("create consumer delegation", () => {
-
   it("should throw an eserviceNotConsumerDelegable error if Eservice is not consumer delegable", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);

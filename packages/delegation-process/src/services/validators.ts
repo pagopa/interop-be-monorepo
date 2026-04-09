@@ -78,9 +78,7 @@ export const assertDelegatorAndDelegateAllowedForDelegation = (
   delegator: Tenant,
   delegate: Tenant
 ): void => {
-  if (
-    isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")
-  ) {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
     return;
   }
 

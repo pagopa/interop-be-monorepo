@@ -157,9 +157,7 @@ export async function assertRequesterAllowed(
 }
 
 export function assertTenantAllowedForDelegation(tenant: Tenant): void {
-  if (
-    isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")
-  ) {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
     return;
   }
 

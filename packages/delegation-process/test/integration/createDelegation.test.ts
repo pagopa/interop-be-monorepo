@@ -99,58 +99,58 @@ describe.each([
       : delegationService.createProducerDelegation;
 
   it("should create a delegation if it does not exist", async () => {
-      const currentExecutionTime = new Date();
-      vi.useFakeTimers();
-      vi.setSystemTime(currentExecutionTime);
+    const currentExecutionTime = new Date();
+    vi.useFakeTimers();
+    vi.setSystemTime(currentExecutionTime);
 
-      const delegatorId = generateId<TenantId>();
-      const authData = getMockAuthData(delegatorId);
-      const delegator = getMockTenant(delegatorId);
+    const delegatorId = generateId<TenantId>();
+    const authData = getMockAuthData(delegatorId);
+    const delegator = getMockTenant(delegatorId);
 
-      const delegate = {
-        ...getMockTenant(),
-        features: [
-          {
-            type: kind,
-            availabilityTimestamp: currentExecutionTime,
-          },
-        ],
-      };
-      const eservice = {
-        ...getMockEService(generateId<EServiceId>(), delegatorId),
-        isConsumerDelegable: true,
-      };
-
-      await addOneTenant(delegator);
-      await addOneTenant(delegate);
-      await addOneEservice(eservice);
-
-      const response = await createFn(
+    const delegate = {
+      ...getMockTenant(),
+      features: [
         {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
+          type: kind,
+          availabilityTimestamp: currentExecutionTime,
         },
-        getMockContext({ authData })
-      );
+      ],
+    };
+    const eservice = {
+      ...getMockEService(generateId<EServiceId>(), delegatorId),
+      isConsumerDelegable: true,
+    };
 
-      const expectedDelegation: Delegation = {
-        id: response.data.id,
-        delegatorId,
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneEservice(eservice);
+
+    const response = await createFn(
+      {
         delegateId: delegate.id,
         eserviceId: eservice.id,
-        kind,
-        state: delegationState.waitingForApproval,
-        createdAt: currentExecutionTime,
-        stamps: {
-          submission: {
-            who: authData.userId,
-            when: currentExecutionTime,
-          },
-        },
-      };
+      },
+      getMockContext({ authData })
+    );
 
-      await expectedDelegationCreation(response, expectedDelegation);
-      vi.useRealTimers();
+    const expectedDelegation: Delegation = {
+      id: response.data.id,
+      delegatorId,
+      delegateId: delegate.id,
+      eserviceId: eservice.id,
+      kind,
+      state: delegationState.waitingForApproval,
+      createdAt: currentExecutionTime,
+      stamps: {
+        submission: {
+          who: authData.userId,
+          when: currentExecutionTime,
+        },
+      },
+    };
+
+    await expectedDelegationCreation(response, expectedDelegation);
+    vi.useRealTimers();
   });
 
   it.each(inactiveDelegationStates)(

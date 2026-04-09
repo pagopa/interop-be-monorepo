@@ -458,9 +458,7 @@ export function tenantServiceBuilder(
         `Checking if tenant ${tenantId} is allowed to use delegations`
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")
-      ) {
+      if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
         return { isAllowed: true };
       }
 

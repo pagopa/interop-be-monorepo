@@ -14,7 +14,6 @@ import {
 } from "../integrationUtils.js";
 
 describe("create producer delegation", () => {
-
   it("should throw a differentEServiceProducer error if requester is not Eservice producer", async () => {
     const currentExecutionTime = new Date();
     vi.useFakeTimers();
