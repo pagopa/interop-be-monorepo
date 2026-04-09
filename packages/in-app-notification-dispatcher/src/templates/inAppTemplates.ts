@@ -340,4 +340,6 @@ export const inAppTemplates = {
     producerKeychainName: string
   ): string =>
     `Una chiave associata al portachiavi erogatore ${producerKeychainName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
+  asyncEserviceWithoutKeychainToProducer: (eserviceName: string): string =>
+    `All'e-service asincrono "${eserviceName}" non è collegato nessun portachiavi. Per scambiare i dati in modalità asincrona con i fruitori, è necessario collegare almeno un portachiavi con una chiave.`,
 };

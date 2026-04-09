@@ -1,7 +1,9 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import {
+  EServiceId,
   ProducerKeychain,
   ProducerKeychainId,
+  TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -71,6 +73,42 @@ export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
       return aggregateProducerKeychain(
         toProducerKeychainAggregator(queryResult)
       );
+    },
+    async eserviceExistsInOtherProducerKeychains(
+      eserviceId: EServiceId,
+      producerId: TenantId,
+      excludeKeychainId: ProducerKeychainId
+    ): Promise<boolean> {
+      const result = await db
+        .select({
+          id: producerKeychainInReadmodelProducerKeychain.id,
+        })
+        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .innerJoin(
+          producerKeychainInReadmodelProducerKeychain,
+          eq(
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
+            producerKeychainInReadmodelProducerKeychain.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+              eserviceId
+            ),
+            eq(
+              producerKeychainInReadmodelProducerKeychain.producerId,
+              producerId
+            ),
+            ne(
+              producerKeychainInReadmodelProducerKeychain.id,
+              excludeKeychainId
+            )
+          )
+        )
+        .limit(1);
+      return result.length > 0;
     },
   };
 }

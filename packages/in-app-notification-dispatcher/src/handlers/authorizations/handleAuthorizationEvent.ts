@@ -9,6 +9,7 @@ import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedTo
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelope,
@@ -67,6 +68,9 @@ export async function handleAuthorizationEvent(
           readModelService
         )
     )
+    .with({ type: "ProducerKeychainEServiceRemoved" }, (msg) =>
+      handleAsyncEserviceWithoutKeychain(msg, logger, readModelService)
+    )
     .with(
       {
         type: P.union(
@@ -76,7 +80,6 @@ export async function handleAuthorizationEvent(
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
-          "ProducerKeychainEServiceRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded"
