@@ -3819,6 +3819,7 @@ components:
         - ARCHIVED
         - WAITING_FOR_APPROVAL
         - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDocumentKind:
       type: string
       description: EService Document Kind

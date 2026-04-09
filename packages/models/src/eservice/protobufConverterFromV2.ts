@@ -66,6 +66,8 @@ export const fromEServiceDescriptorStateV2 = (
       return descriptorState.waitingForApproval;
     case EServiceDescriptorStateV2.ARCHIVING:
       return descriptorState.archiving;
+    case EServiceDescriptorStateV2.ARCHIVING_SUSPENDED:
+      return descriptorState.archivingSuspended;
   }
 };
 

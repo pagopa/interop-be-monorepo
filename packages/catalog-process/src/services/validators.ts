@@ -50,8 +50,7 @@ import {
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { get } from "http";
-import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+// import { getLatestDescriptor } from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -63,6 +62,7 @@ export function descriptorStatesNotAllowingDocumentOperations(
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => false
     )
     .with(
@@ -90,6 +90,7 @@ function isNotActiveDescriptor(descriptor: Descriptor): boolean {
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => false
     )
     .exhaustive();
@@ -105,13 +106,14 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving, // FIXME: is this the correct approach?
+      descriptorState.archivingSuspended,
       () => true
     )
     .with(
       descriptorState.draft,
       descriptorState.waitingForApproval,
       descriptorState.archived,
-      descriptorState.archiving, // FIXME: is this the correct approach?
       () => false
     )
     .exhaustive();
@@ -271,6 +273,7 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.suspended,
       descriptorState.waitingForApproval,
       descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
@@ -289,6 +292,7 @@ export function assertDocumentDeletableDescriptorState(
       descriptorState.suspended,
       descriptorState.waitingForApproval,
       descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => void 0
     )
     .with(descriptorState.archived, () => {
@@ -444,21 +448,21 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
-  if (
-    descriptor.state !== descriptorState.deprecated &&
-    descriptor.state !== descriptorState.suspended
-  ) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-  }
-}
+// export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
+//   if (
+//     descriptor.state !== descriptorState.deprecated &&
+//     descriptor.state !== descriptorState.suspended
+//   ) {
+//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+//   }
+// }
 
-export function assertDescriptorIsNotLatestVersion(
-  descriptor: Descriptor,
-  eservice: EService
-): void {
-  const latestDescriptorVersion = getLatestDescriptor(eservice);
-  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-  }
-}
+// export function assertDescriptorIsNotLatestVersion(
+//   descriptor: Descriptor,
+//   eservice: EService
+// ): void {
+//   const latestDescriptorVersion = getLatestDescriptor(eservice);
+//   if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
+//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+//   }
+// }

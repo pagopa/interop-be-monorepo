@@ -46,6 +46,8 @@ const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
       return "WaitingForApproval";
     case descriptorState.archiving:
       return "Archiving";
+    case descriptorState.archivingSuspended:
+      return "ArchivingSuspended";
   }
 };
 

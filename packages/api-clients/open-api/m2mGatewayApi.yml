@@ -20661,6 +20661,7 @@ components:
         - ARCHIVED
         - WAITING_FOR_APPROVAL
         - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDescriptorSeed:
       type: object
       additionalProperties: false

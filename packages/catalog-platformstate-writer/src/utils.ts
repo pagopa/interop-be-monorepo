@@ -113,7 +113,9 @@ export const deleteCatalogEntry = async (
 export const descriptorStateToItemState = (
   state: DescriptorState
 ): ItemState =>
-  state === descriptorState.published || state === descriptorState.deprecated
+  state === descriptorState.published ||
+  state === descriptorState.deprecated ||
+  state === descriptorState.archiving
     ? itemState.active
     : itemState.inactive;
 

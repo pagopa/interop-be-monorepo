@@ -163,12 +163,13 @@ const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => true
     )
     .with(
       catalogApi.EServiceDescriptorState.Values.DRAFT,
       catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
-      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
       () => false
     )
     .exhaustive();

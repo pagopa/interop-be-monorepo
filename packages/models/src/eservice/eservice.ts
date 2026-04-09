@@ -25,6 +25,7 @@ export const descriptorState = {
   archived: "Archived",
   waitingForApproval: "WaitingForApproval",
   archiving: "Archiving",
+  archivingSuspended: "ArchivingSuspended",
 } as const;
 export const DescriptorState = z.enum([
   Object.values(descriptorState)[0],

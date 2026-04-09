@@ -471,5 +471,6 @@ export function apiDescriptorStateToDescriptorState(
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .with("ARCHIVING", () => descriptorState.archiving)
+    .with("ARCHIVING_SUSPENDED", () => descriptorState.archivingSuspended)
     .exhaustive();
 }

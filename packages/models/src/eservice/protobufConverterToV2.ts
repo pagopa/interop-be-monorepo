@@ -63,6 +63,10 @@ export const toEServiceDescriptorStateV2 = (
       () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
     )
     .with(descriptorState.archiving, () => EServiceDescriptorStateV2.ARCHIVING)
+    .with(
+      descriptorState.archivingSuspended,
+      () => EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
+    )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (

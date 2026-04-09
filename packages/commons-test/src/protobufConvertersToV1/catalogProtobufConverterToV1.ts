@@ -41,6 +41,7 @@ export const toEServiceDescriptorStateV1 = (
     .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
     .with("WaitingForApproval", () => EServiceDescriptorStateV1.DRAFT)
     .with("Archiving", () => EServiceDescriptorStateV1.DEPRECATED) // FIXME: is this the correct approach?
+    .with("ArchivingSuspended", () => EServiceDescriptorStateV1.SUSPENDED)
     .exhaustive();
 
 export const toEServiceTechnologyV1 = (

@@ -2710,6 +2710,7 @@ components:
         - ARCHIVED
         - WAITING_FOR_APPROVAL
         - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDescriptors:
       description: eservice descriptors list model
       type: object
