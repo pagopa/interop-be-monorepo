@@ -50,7 +50,7 @@ import {
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-// import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { getLatestDescriptor } from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -448,21 +448,21 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-// export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
-//   if (
-//     descriptor.state !== descriptorState.deprecated &&
-//     descriptor.state !== descriptorState.suspended
-//   ) {
-//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-//   }
-// }
+export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
+  if (
+    descriptor.state !== descriptorState.deprecated &&
+    descriptor.state !== descriptorState.suspended
+  ) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
 
-// export function assertDescriptorIsNotLatestVersion(
-//   descriptor: Descriptor,
-//   eservice: EService
-// ): void {
-//   const latestDescriptorVersion = getLatestDescriptor(eservice);
-//   if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
-//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-//   }
-// }
+export function assertDescriptorIsNotLatestVersion(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  const latestDescriptorVersion = getLatestDescriptor(eservice);
+  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
