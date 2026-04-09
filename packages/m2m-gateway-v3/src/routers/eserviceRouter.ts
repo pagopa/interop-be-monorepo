@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -30,7 +31,8 @@ const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
 const eserviceRouter = (
   ctx: ZodiosContext,
-  eserviceService: EserviceService
+  eserviceService: EserviceService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceRouter = ctx.router(m2mGatewayApiV3.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -230,6 +232,29 @@ const eserviceRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating Signal Hub flag for eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eserviceId/personalDataFlag", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updateEServicePersonalDataFlag(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating personalData flag for eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -470,7 +495,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -525,7 +551,8 @@ const eserviceRouter = (
           return sendDownloadedDocumentAsFormData(
             file,
             res,
-            ctx.authData.clientId
+            ctx.authData.clientId,
+            kmsClient
           );
         } catch (error) {
           const errorRes = makeApiProblem(
