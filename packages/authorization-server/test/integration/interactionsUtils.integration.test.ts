@@ -1,3 +1,4 @@
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -55,9 +56,7 @@ describe("interactions utils integration", () => {
     );
 
     expect(retrieved).toEqual(created);
-    expect(created.ttl).toBe(
-      Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds
-    );
+    expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
   it("should update interaction state and token timestamps", async () => {

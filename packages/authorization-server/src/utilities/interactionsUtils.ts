@@ -9,6 +9,7 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EServiceId,
@@ -60,7 +61,7 @@ export const createInteraction = async ({
   ttlSeconds: number;
 }): Promise<Interaction> => {
   const PK = makeInteractionPK(interactionId);
-  const ttl = Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds;
+  const ttl = dateToSeconds(new Date(issuedAt)) + ttlSeconds;
   const interaction: Interaction = {
     PK,
     interactionId,

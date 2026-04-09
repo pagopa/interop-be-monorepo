@@ -69,9 +69,7 @@ describe("interactions utils", () => {
     );
 
     expect(retrieved).toEqual(created);
-    expect(created.ttl).toBe(
-      Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds
-    );
+    expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
   it("should not create duplicated interaction", async () => {
