@@ -123,10 +123,10 @@ jobs:
 
           create_fixed_size_shard_matrix() {
             local PACKAGES_JSON=$1
-            local PACK_NUM=$2
-            local SHARD_NUM=$3
+            local SHARD_NUM=$2
 
-            matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
+            matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" -n -c '
+              ($packs | length) as $len |
               [range(0; [$shardNum, $len] | min) as $i |
               {
                 "shardIndex": ($i + 1),
@@ -181,15 +181,15 @@ jobs:
             .[] | del(.weight) | select(.packages | length > 0)
           ')
 
-          PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
+          DEDICATED_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
 
-          DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1)) # Start index after fixed shards
-          DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
+          DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1))
+          DEDICATED_SHARDS=$(create_dedicated_shards "$DEDICATED_JSON" "$DEDICATED_SHARD_START_INDEX")
 
           TEST_MATRIX=$(
             (echo "$SHARDS_FOR_TESTING"; echo "$DEDICATED_SHARDS") |
-            grep -v -e '^$' | # Rimuove linee vuote
-            jq -s -c . # Trasforma la lista di oggetti in un array
+            grep -v -e '^$' |
+            jq -s -c .
           )
 
           echo "Test Matrix Length: $(echo "$TEST_MATRIX" | jq 'length')"
@@ -199,9 +199,8 @@ jobs:
           echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
 
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
-          ALL_PACK_NUM=$(echo "$ALL_PACKAGES_JSON" | jq -r length)
 
-          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$ALL_PACK_NUM" "$SHARD_LINT_NUM")
+          LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$SHARD_LINT_NUM")
           LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
           echo "::group::Shards created for linting"
