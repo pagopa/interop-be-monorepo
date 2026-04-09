@@ -75,7 +75,7 @@ jobs:
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             WEIGHT=$(grep -rE '^\s*(it|test|it\.each|test\.each)\(' "$DIR/test" --include="*.test.ts" | wc -l | tr -d ' ')
             WEIGHT=${WEIGHT:-0}
-            SHARD_COMMANDS=$(jq -r '.scripts | keys[] | select(startswith("test:shard"))' "$DIR/package.json" | sort | jq -R -s -c 'split("\n")[:-1]')
+            SHARD_COMMANDS=$(jq -c '[.scripts | keys[] | select(startswith("test:shard"))] | sort' "$DIR/package.json")
             echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT,\"shardCommands\":$SHARD_COMMANDS}"
           done | jq -s -c 'sort_by(.name)')
 
@@ -84,12 +84,7 @@ jobs:
       - name: Find ALL packages
         id: get_all_packages
         run: |
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -print | while read -r DIR; do
-            PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json" 2>/dev/null)
-            if [ -n "$PACKAGE_NAME" ]; then
-              echo "$PACKAGE_NAME"
-            fi
-          done | sort | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES=$(jq -r '.name' packages/*/package.json 2>/dev/null | sort | jq -R -s -c 'split("\n")[:-1]')
 
           echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
           echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
@@ -188,7 +183,7 @@ jobs:
 
           TEST_MATRIX=$(
             (echo "$SHARDS_FOR_TESTING"; echo "$DEDICATED_SHARDS") |
-            grep -v -e '^$' |
+            grep . |
             jq -s -c .
           )
 
@@ -201,7 +196,7 @@ jobs:
           ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
 
           LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$SHARD_LINT_NUM")
-          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep -v -e '^$' | jq -s -c .)
+          LINT_MATRIX=$(echo "$LINT_SHARDS" | grep . | jq -s -c .)
           echo "Lint Matrix Length: $(echo "$LINT_MATRIX" | jq 'length')"
           echo "::group::Shards created for linting"
           echo "$LINT_MATRIX" | jq .
