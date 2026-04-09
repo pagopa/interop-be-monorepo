@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Find and classify test packages
+      - name: Find and categorize test packages
         id: get_test_packages
         run: |
           # Scan all packages with test dirs. For each, detect test:shard* scripts.
