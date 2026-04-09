@@ -23,9 +23,9 @@ describe("API POST /tools/validateDPoPProof", () => {
   };
 
   beforeEach(() => {
-    services.toolsService.validateDPoPProof = vi.fn().mockResolvedValue(
-      mockResult
-    );
+    services.toolsService.validateDPoPProof = vi
+      .fn()
+      .mockResolvedValue(mockResult);
   });
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
