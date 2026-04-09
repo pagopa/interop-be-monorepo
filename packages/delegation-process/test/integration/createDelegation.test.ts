@@ -9,6 +9,7 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
+  AttributeId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -17,15 +18,16 @@ import {
   EServiceId,
   generateId,
   TenantId,
+  tenantAttributeType,
   toDelegationV2,
   WithMetadata,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
   eserviceNotFound,
-  originNotCompliant,
+  delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -96,24 +98,14 @@ describe.each([
       ? delegationService.createConsumerDelegation
       : delegationService.createProducerDelegation;
 
-  config.delegationsAllowedOrigins = ["IPA", "TEST"];
-
-  it.each(config.delegationsAllowedOrigins)(
-    "should create a delegation if it does not exist (origin: %s)",
-    async (origin) => {
+  it("should create a delegation if it does not exist", async () => {
       const currentExecutionTime = new Date();
       vi.useFakeTimers();
       vi.setSystemTime(currentExecutionTime);
 
       const delegatorId = generateId<TenantId>();
       const authData = getMockAuthData(delegatorId);
-      const delegator = {
-        ...getMockTenant(delegatorId),
-        externalId: {
-          origin,
-          value: "test",
-        },
-      };
+      const delegator = getMockTenant(delegatorId);
 
       const delegate = {
         ...getMockTenant(),
@@ -159,8 +151,7 @@ describe.each([
 
       await expectedDelegationCreation(response, expectedDelegation);
       vi.useRealTimers();
-    }
-  );
+  });
 
   it.each(inactiveDelegationStates)(
     "should create a new delegation if the same delegation exists and is in state %s",
@@ -409,88 +400,136 @@ describe.each([
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
-  it("should throw a originNotCompliant error if delegator has externalId origin not compliant", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getMockAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "UNKNOWN_ORIGIN",
-        value: "test",
-      },
-    };
-    const delegate = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: kind,
-          availabilityTimestamp: new Date(),
-        },
-      ],
+  describe("with delegation constraint enabled (flag disabled)", () => {
+    const delegationAllowedAttribute = {
+      type: tenantAttributeType.CERTIFIED,
+      id: config.delegationsAllowedAttributeId as AttributeId,
+      assignmentTimestamp: new Date(),
     };
 
-    const eservice = {
-      ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isConsumerDelegable: true,
-    };
+    beforeEach(() => {
+      (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+        false;
+    });
 
-    await addOneTenant(delegator);
-    await addOneTenant(delegate);
-    await addOneEservice(eservice);
+    afterEach(() => {
+      (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+        true;
+    });
 
-    await expect(
-      createFn(
+    it("should throw delegationNotAllowedForTenant if delegator lacks the required certified attribute", async () => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getMockAuthData(delegatorId);
+      const delegator = getMockTenant(delegatorId);
+      const delegate = {
+        ...getMockTenant(undefined, [delegationAllowedAttribute]),
+        features: [
+          {
+            type: kind,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+
+      const eservice = {
+        ...getMockEService(generateId<EServiceId>(), delegatorId),
+        isConsumerDelegable: true,
+      };
+
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
+
+      await expect(
+        createFn(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrowError(
+        delegationNotAllowedForTenant(delegator, "Delegator")
+      );
+    });
+
+    it("should throw delegationNotAllowedForTenant if delegate lacks the required certified attribute", async () => {
+      const delegatorId = generateId<TenantId>();
+      const authData = getMockAuthData(delegatorId);
+      const delegator = getMockTenant(delegatorId, [
+        delegationAllowedAttribute,
+      ]);
+      const delegate = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: kind,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+
+      const eservice = {
+        ...getMockEService(generateId<EServiceId>(), delegatorId),
+        isConsumerDelegable: true,
+      };
+
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
+
+      await expect(
+        createFn(
+          {
+            delegateId: delegate.id,
+            eserviceId: eservice.id,
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrowError(
+        delegationNotAllowedForTenant(delegate, "Delegate")
+      );
+    });
+
+    it("should create a delegation when both tenants have the required certified attribute", async () => {
+      const currentExecutionTime = new Date();
+      vi.useFakeTimers();
+      vi.setSystemTime(currentExecutionTime);
+
+      const delegatorId = generateId<TenantId>();
+      const authData = getMockAuthData(delegatorId);
+      const delegator = getMockTenant(delegatorId, [
+        delegationAllowedAttribute,
+      ]);
+      const delegate = {
+        ...getMockTenant(undefined, [delegationAllowedAttribute]),
+        features: [
+          {
+            type: kind,
+            availabilityTimestamp: currentExecutionTime,
+          },
+        ],
+      };
+      const eservice = {
+        ...getMockEService(generateId<EServiceId>(), delegatorId),
+        isConsumerDelegable: true,
+      };
+
+      await addOneTenant(delegator);
+      await addOneTenant(delegate);
+      await addOneEservice(eservice);
+
+      const response = await createFn(
         {
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
         getMockContext({ authData })
-      )
-    ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
-  });
+      );
 
-  it("should throw a originNotCompliant error if delegate has externalId origin not compliant", async () => {
-    const delegatorId = generateId<TenantId>();
-    const authData = getMockAuthData(delegatorId);
-    const delegator = {
-      ...getMockTenant(delegatorId),
-      externalId: {
-        origin: "IPA",
-        value: "test",
-      },
-    };
-
-    const delegate = {
-      ...getMockTenant(),
-      externalId: {
-        origin: "UNKNOWN_ORIGIN",
-        value: "test",
-      },
-      features: [
-        {
-          type: kind,
-          availabilityTimestamp: new Date(),
-        },
-      ],
-    };
-    const eservice = {
-      ...getMockEService(generateId<EServiceId>(), delegatorId),
-      isConsumerDelegable: true,
-    };
-
-    await addOneTenant(delegator);
-    await addOneTenant(delegate);
-    await addOneEservice(eservice);
-
-    await expect(
-      createFn(
-        {
-          delegateId: delegate.id,
-          eserviceId: eservice.id,
-        },
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
+      expect(response.data.id).toBeDefined();
+      vi.useRealTimers();
+    });
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {

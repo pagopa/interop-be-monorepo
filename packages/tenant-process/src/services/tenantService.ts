@@ -104,7 +104,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  assertRequesterDelegationsAllowedOrigin,
+  assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
@@ -1838,12 +1838,12 @@ export function tenantServiceBuilder(
         `Updating tenant delegated features for tenant ${authData.organizationId}`
       );
 
-      assertRequesterDelegationsAllowedOrigin(authData);
-
       const requesterTenant = await retrieveTenant(
         authData.organizationId,
         readModelService
       );
+
+      assertTenantAllowedForDelegation(requesterTenant.data);
 
       const delegatedConsumerEvent = match(
         tenantFeatures.isDelegatedConsumerFeatureEnabled
