@@ -73,7 +73,7 @@ jobs:
           # Packages without go into the weighted bin-packing pool.
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
-            WEIGHT=$(find "$DIR/test" -name "*.test.ts" | wc -l | tr -d ' ')
+            WEIGHT=$(grep -rEc '^\s*(it|test|it\.each|test\.each)\(' "$DIR/test" --include="*.test.ts" || echo 0)
             SHARD_COMMANDS=$(jq -r '.scripts | keys[] | select(startswith("test:shard"))' "$DIR/package.json" | sort | jq -R -s -c 'split("\n")[:-1]')
             echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT,\"shardCommands\":$SHARD_COMMANDS}"
           done | jq -s -c 'sort_by(.name)')
