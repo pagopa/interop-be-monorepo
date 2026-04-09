@@ -359,7 +359,7 @@ export async function retrieveAllTenantM2MEvents({
   return sqlEvents.map((e) => TenantM2MEvent.parse(e));
 }
 
-export async function retrieveAllPurposeTemplateM2MEvents({
+async function retrieveAllPurposeTemplateM2MEvents({
   limit,
 }: {
   limit: number;
