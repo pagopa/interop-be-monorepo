@@ -58,7 +58,6 @@ export const handleCallbackInvocation = async (
 
   const clientId = clientAssertionJWT.payload.sub;
 
-  // 1. Validate callback_invocation-specific claims
   const interactionId = clientAssertionJWT.payload.interactionId;
   if (!interactionId) {
     throw interactionIdNotProvided(clientId);
@@ -72,7 +71,6 @@ export const handleCallbackInvocation = async (
     throw invalidEntityNumber(clientId, entityNumber);
   }
 
-  // 2. Read interaction by interactionId
   const interaction = await readInteraction(
     dynamoDBClient,
     interactionId,
@@ -82,7 +80,6 @@ export const handleCallbackInvocation = async (
     throw interactionNotFound(interactionId);
   }
 
-  // 3. Validate interaction state transition
   if (
     !isInteractionStateAllowedForScope({
       currentState: interaction.state,
@@ -96,10 +93,8 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 4. Extract eServiceId and descriptorId from interaction
   const { eServiceId, descriptorId } = interaction;
 
-  // 5–7. Retrieve producer key and catalog entry in parallel (both depend on interaction data)
   const kid = clientAssertionJWT.header.kid;
   const producerKeychainId = unsafeBrandId<ProducerKeychainId>(clientId);
   const producerKeyPK = makeProducerKeychainPlatformStatesPK({
@@ -121,7 +116,6 @@ export const handleCallbackInvocation = async (
     ),
   ]);
 
-  // 6. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     { publicKey: producerKey.publicKey },
@@ -134,30 +128,27 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 7. Validate catalog entry state
   if (catalogEntry.state !== itemState.active) {
     throw platformStateValidationFailed(
       `E-Service descriptor state is: ${catalogEntry.state}`,
     );
   }
 
-  // 8. Validate asyncExchangeResponseTime (responseTime is in seconds)
   const { asyncExchangeProperties } = catalogEntry;
-  if (asyncExchangeProperties && interaction.startInteractionTokenIssuedAt) {
-    const elapsedMs =
-      Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
-    const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
-    if (elapsedMs >= responseTimeLimitMs) {
-      throw asyncExchangeResponseTimeExceeded(
-        interactionId,
-        elapsedMs,
-        responseTimeLimitMs,
-      );
-    }
-  }
-
-  // 9. Validate entityNumber <= maxResultSet
   if (asyncExchangeProperties) {
+    if (interaction.startInteractionTokenIssuedAt) {
+      const elapsedMs =
+        Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
+      const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
+      if (elapsedMs >= responseTimeLimitMs) {
+        throw asyncExchangeResponseTimeExceeded(
+          interactionId,
+          elapsedMs,
+          responseTimeLimitMs,
+        );
+      }
+    }
+
     if (entityNumber > asyncExchangeProperties.maxResultSet) {
       throw entityNumberExceedsMaxResultSet(
         clientId,
@@ -167,7 +158,6 @@ export const handleCallbackInvocation = async (
     }
   }
 
-  // 10. Rate limiting
   // Using producerKeychainId as the rate limiter key since we don't have the producer's TenantId
   const rateLimiterTenantId = unsafeBrandId<TenantId>(clientId);
   setCtxOrganizationId(rateLimiterTenantId);
@@ -182,9 +172,8 @@ export const handleCallbackInvocation = async (
     };
   }
 
-  // 11. Generate token first, then update interaction state.
-  //     These must be sequential: if token generation fails we must not
-  //     persist a state transition for a token that was never delivered.
+  // These must be sequential: if token generation fails we must not
+  // persist a state transition for a token that was never delivered.
   const issuedAt = new Date().toISOString();
 
   const token = await tokenGenerator.generateInteropAsyncConsumerToken({
@@ -210,7 +199,6 @@ export const handleCallbackInvocation = async (
     updatedAt: issuedAt,
   });
 
-  // 12. Publish audit
   await publishProducerAudit({
     producer,
     generatedToken: token,
@@ -225,7 +213,6 @@ export const handleCallbackInvocation = async (
     logger,
   });
 
-  // 13. Log and return
   logTokenGenerationInfo({
     validatedJwt: clientAssertionJWT,
     clientKind: undefined,

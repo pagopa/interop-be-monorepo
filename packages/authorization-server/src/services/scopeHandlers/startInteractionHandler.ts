@@ -51,7 +51,6 @@ export const handleStartInteraction = async (
     interactionTtlEpsilonSeconds,
   } = ctx;
 
-  // 1. Validate start_interaction-specific claims
   const urlCallback = clientAssertionJWT.payload.urlCallback;
   if (!urlCallback) {
     throw urlCallbackNotProvided(clientAssertionJWT.payload.sub);
@@ -63,7 +62,6 @@ export const handleStartInteraction = async (
     throw purposeIdNotProvided(clientId);
   }
 
-  // 2. Retrieve key from token-generation-states (consumer key with purposeId)
   const kid = clientAssertionJWT.header.kid;
   const pk = makeTokenGenerationStatesClientKidPurposePK({
     clientId,
@@ -72,7 +70,6 @@ export const handleStartInteraction = async (
   });
   const key = await retrieveKey(dynamoDBClient, pk);
 
-  // start_interaction always uses a consumer key (purposeId PK guarantees this)
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
       `Expected consumer client kind for start_interaction, got ${key.clientKind}`,
@@ -82,12 +79,11 @@ export const handleStartInteraction = async (
   setCtxOrganizationId(key.consumerId);
   setCtxClientKind(key.clientKind);
 
-  // 3. Validate that the eService supports async exchange (cheap check before crypto)
+  // Cheap check before crypto
   if (key.asyncExchange !== true) {
     throw asyncExchangeNotEnabled(clientId);
   }
 
-  // 4. Verify client assertion signature
   const { errors: clientAssertionSignatureErrors } =
     await verifyClientAssertionSignature(
       clientAssertionJWS,
@@ -102,7 +98,6 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 5. Validate platform state (client kind already verified above)
   const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
@@ -110,7 +105,6 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 6. Rate limiting (before catalog fetch to short-circuit early)
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
   if (limitReached) {
@@ -121,7 +115,6 @@ export const handleStartInteraction = async (
     };
   }
 
-  // 7. Retrieve catalog entry from platform-states for async exchange properties
   const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
     key.GSIPK_eserviceId_descriptorId,
   );
@@ -140,7 +133,7 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 8. Generate token first, then persist interaction to avoid orphaned rows
+  // Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
 
   const ttlSeconds =
@@ -164,10 +157,9 @@ export const handleStartInteraction = async (
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
-  // Use the token's iat to ensure interaction and token share the same timestamp
+  // Use the token's iat so interaction and token share the same timestamp
   const issuedAt = new Date(token.payload.iat * 1000).toISOString();
 
-  // 9. Persist interaction only after successful token generation
   await createInteraction({
     dynamoDBClient,
     interactionsTable,
@@ -180,7 +172,6 @@ export const handleStartInteraction = async (
     ttlSeconds,
   });
 
-  // 10. Publish audit
   await publishAudit({
     producer,
     generatedToken: token,
@@ -192,7 +183,6 @@ export const handleStartInteraction = async (
     logger,
   });
 
-  // 11. Log and return
   logTokenGenerationInfo({
     validatedJwt: clientAssertionJWT,
     clientKind: key.clientKind,
