@@ -65,13 +65,13 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Find packages with test directories
+      - name: Find and classify test packages
         id: get_test_packages
         run: |
           # Scan all packages with test dirs. For each, detect test:shard* scripts.
           # Packages with test:shard* scripts get dedicated shards (one per script).
           # Packages without go into the weighted bin-packing pool.
-          PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
+          ALL_TEST_PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
             WEIGHT=$(grep -rE '^\s*(it|test|it\.each|test\.each)\(' "$DIR/test" --include="*.test.ts" | wc -l | tr -d ' ')
             WEIGHT=${WEIGHT:-0}
@@ -79,36 +79,21 @@ jobs:
             echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT,\"shardCommands\":$SHARD_COMMANDS}"
           done | jq -s -c 'sort_by(.name)')
 
-          echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
-
-      - name: Find ALL packages
-        id: get_all_packages
-        run: |
-          PACKAGES=$(jq -r '.name' packages/*/package.json 2>/dev/null | sort | jq -R -s -c 'split("\n")[:-1]')
-
-          echo "All valid packages found: $(echo "$PACKAGES" | jq 'length')"
-          echo "all_packages=$PACKAGES" >> $GITHUB_OUTPUT
-
-      - name: Classify packages for testing
-        id: filter_packages
-        run: |
-          ALL_PACKAGES='${{ steps.get_test_packages.outputs.test_packages }}'
-
           # Packages with test:shard* scripts → dedicated shards
-          DEDICATED_TEST_SHARDS=$(echo "$ALL_PACKAGES" | jq -c '
+          DEDICATED_SHARDS=$(echo "$ALL_TEST_PACKAGES" | jq -c '
             [.[] | select(.shardCommands | length > 0) | {package: .name, commands: .shardCommands}]
           ')
 
           # Packages without test:shard* scripts → bin-packing pool
-          PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c '
+          REMAINING_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq -c '
             [.[] | select(.shardCommands | length == 0)]
           ')
 
-          echo "Dedicated packages: $(echo "$DEDICATED_TEST_SHARDS" | jq 'length')"
-          echo "Remaining packages for sharding: $(echo "$PACKAGES_TO_TEST" | jq 'length')"
+          echo "Dedicated packages: $(echo "$DEDICATED_SHARDS" | jq 'length')"
+          echo "Remaining packages for bin-packing: $(echo "$REMAINING_PACKAGES" | jq 'length')"
 
-          echo "packages_to_test=$PACKAGES_TO_TEST" >> $GITHUB_OUTPUT
-          echo "packages_test_dedicated_runner=$DEDICATED_TEST_SHARDS" >> $GITHUB_OUTPUT
+          echo "dedicated_shards=$DEDICATED_SHARDS" >> $GITHUB_OUTPUT
+          echo "remaining_packages=$REMAINING_PACKAGES" >> $GITHUB_OUTPUT
 
       - name: Create shards matrices
         id: sharded_packages
@@ -159,7 +144,7 @@ jobs:
           }
 
 
-          PACKAGES_TO_TEST_JSON='${{ steps.filter_packages.outputs.packages_to_test }}'
+          PACKAGES_TO_TEST_JSON='${{ steps.get_test_packages.outputs.remaining_packages }}'
           # Greedy least-loaded bin packing (LPT scheduling):
           # Sort packages by weight descending, then assign each package
           # to the shard with the smallest current total weight.
@@ -167,7 +152,7 @@ jobs:
             sort_by(-.weight) as $sorted |
             ($sorted | length) as $len |
             ([$shardNum, $len] | min) as $effective |
-            [range(0; $effective) | {shardIndex: (. + 1), weight: 0, packages: []}] |
+            [range(0; $effective) | {shardIndex: (. + 1), weight: 0, packages: [], command: "test"}] |
             reduce $sorted[] as $pkg (.;
               (map(.weight) | to_entries | min_by(.value) | .key) as $minIdx |
               .[$minIdx].weight += $pkg.weight |
@@ -176,7 +161,7 @@ jobs:
             .[] | del(.weight) | select(.packages | length > 0)
           ')
 
-          DEDICATED_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
+          DEDICATED_JSON='${{ steps.get_test_packages.outputs.dedicated_shards }}'
 
           DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1))
           DEDICATED_SHARDS=$(create_dedicated_shards "$DEDICATED_JSON" "$DEDICATED_SHARD_START_INDEX")
@@ -193,7 +178,7 @@ jobs:
           echo "::endgroup::"
           echo "test_matrix=$TEST_MATRIX" >> $GITHUB_OUTPUT
 
-          ALL_PACKAGES_JSON='${{ steps.get_all_packages.outputs.all_packages }}'
+          ALL_PACKAGES_JSON=$(jq -r '.name' packages/*/package.json 2>/dev/null | sort | jq -R -s -c 'split("\n")[:-1]')
 
           LINT_SHARDS=$(create_fixed_size_shard_matrix "$ALL_PACKAGES_JSON" "$SHARD_LINT_NUM")
           LINT_MATRIX=$(echo "$LINT_SHARDS" | grep . | jq -s -c .)
@@ -324,18 +309,12 @@ jobs:
       - name: Run tests for shard
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
-          CUSTOM_COMMAND='${{ matrix.shard.command || '' }}'
+          COMMAND='${{ matrix.shard.command }}'
 
-          if [ -n "$CUSTOM_COMMAND" ]; then
-            PACKAGE=$(echo "$PACKAGES_JSON" | jq -r '.[0]')
-            echo "Running custom tests for package: $PACKAGE"
-            pnpm --filter "$PACKAGE" "$CUSTOM_COMMAND"
-          else
-            echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
-              echo "Running tests for package: $PACKAGE"
-              pnpm --filter "$PACKAGE" test
-            done
-          fi
+          echo "$PACKAGES_JSON" | jq -r '.[]' | while read -r PACKAGE; do
+            echo "Running $COMMAND for package: $PACKAGE"
+            pnpm --filter "$PACKAGE" "$COMMAND"
+          done
 
   lint_result:
     name: Lint Result
