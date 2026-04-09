@@ -83,8 +83,9 @@ jobs:
         run: |
           PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
-            echo "$PACKAGE_NAME"
-          done | sort | jq -R -s -c 'split("\n")[:-1]')
+            TEST_FILE_COUNT=$(find "$DIR/test" -name "*.test.ts" | wc -l | tr -d ' ')
+            echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$TEST_FILE_COUNT}"
+          done | jq -s -c 'sort_by(.name)')
 
           echo "test_packages=$PACKAGES" >> $GITHUB_OUTPUT
 
@@ -109,7 +110,7 @@ jobs:
           DEDICATED_PACKAGE_NAMES=$(echo "$DEDICATED_TEST_SHARDS" | jq -c 'map(.package) | unique')
 
           PACKAGES_TO_TEST=$(echo "$ALL_PACKAGES" | jq -c --argjson dedicated "$DEDICATED_PACKAGE_NAMES" '
-            . - $dedicated
+            [.[] | select(.name as $n | $dedicated | index($n) | not)]
           ')
 
           echo "Remaining packages for sharding: $(echo "$PACKAGES_TO_TEST" | jq 'length')"
@@ -129,13 +130,10 @@ jobs:
             local SHARD_NUM=$3
 
             matrix=$(jq --argjson shardNum "$SHARD_NUM" --argjson packs "$PACKAGES_JSON" --argjson len "$PACK_NUM" -n -c '
-              [range(0; $shardNum) as $i |
+              [range(0; [$shardNum, $len] | min) as $i |
               {
                 "shardIndex": ($i + 1),
-                "packages": ($packs[
-                ($i * $len / $shardNum | floor):
-                (($i + 1) * $len / $shardNum | floor)
-                ])
+                "packages": [$packs | to_entries[] | select(.key % ([$shardNum, $len] | min) == $i) | .value]
               }
               ] | .[] | select(.packages|length > 0)
               ')
@@ -170,11 +168,15 @@ jobs:
 
 
           PACKAGES_TO_TEST_JSON='${{ steps.filter_packages.outputs.packages_to_test }}'
-          PACK_TO_TEST_NUM=$(echo "$PACKAGES_TO_TEST_JSON" | jq -r length)
+          # Sort by weight (test file count) descending, then extract names.
+          # Round-robin on this sorted list implements LPT scheduling:
+          # heaviest packages land on different shards, balancing total weight.
+          SORTED_TEST_PACKAGES=$(echo "$PACKAGES_TO_TEST_JSON" | jq -c '[sort_by(-.weight)[].name]')
+          PACK_TO_TEST_NUM=$(echo "$SORTED_TEST_PACKAGES" | jq -r length)
 
           PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
 
-          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$PACKAGES_TO_TEST_JSON" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
+          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$SORTED_TEST_PACKAGES" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
 
           DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1)) # Start index after fixed shards
           DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
