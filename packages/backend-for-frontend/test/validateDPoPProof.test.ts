@@ -117,12 +117,49 @@ describe("validateDPoPProof", () => {
       );
     });
 
-    it("should handle HTU mismatch errors", async () => {
-      const htuError: ApiError<"dpopProofInvalidClaims"> = {
+    it("should keep invalid proof claims in proof validation", async () => {
+      const invalidClaimsError: ApiError<"dpopProofInvalidClaims"> = {
         code: "dpopProofInvalidClaims",
+        message: "Invalid claims",
+        detail: "Invalid claims",
+        title: "Invalid DPoP Proof Claims",
+        errors: [],
+        name: "ApiError",
+      };
+
+      vi.spyOn(dpopValidation, "verifyDPoPProof").mockReturnValue({
+        errors: [invalidClaimsError],
+        data: undefined,
+      });
+
+      const validationResult = await toolService.validateDPoPProof(
+        MOCK_DPOP_PROOF,
+        MOCK_HTU,
+        MOCK_HTM,
+        bffMockContext
+      );
+
+      expect(validationResult.steps.dpopProofValidation).toEqual({
+        result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
+        failures: [
+          {
+            code: invalidClaimsError.code,
+            reason: invalidClaimsError.message,
+          },
+        ],
+      });
+      expect(validationResult.steps.dpopMatchValidation.result).toBe("SKIPPED");
+      expect(validationResult.steps.dpopSignatureVerification.result).toBe(
+        "SKIPPED"
+      );
+    });
+
+    it("should handle HTU mismatch errors", async () => {
+      const htuError: ApiError<"invalidDPoPHtu"> = {
+        code: "invalidDPoPHtu",
         message: "HTU mismatch",
         detail: "HTU mismatch",
-        title: "Invalid DPoP Proof Claims",
+        title: "Invalid HTU in DPoP proof",
         errors: [],
         name: "ApiError",
       };
@@ -140,6 +177,7 @@ describe("validateDPoPProof", () => {
       );
 
       expect(validationResult.steps.dpopMatchValidation.result).toBe("FAILED");
+      expect(validationResult.steps.dpopProofValidation.result).toBe("PASSED");
       expect(validationResult.steps.dpopSignatureVerification.result).toBe(
         "SKIPPED"
       );

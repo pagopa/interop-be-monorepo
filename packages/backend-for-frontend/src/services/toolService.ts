@@ -163,9 +163,10 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       if (validationResult.errors) {
         const isMatchError = validationResult.errors.some(
           (e) =>
-            e.code === "dpopProofInvalidClaims" ||
             e.code === "dpopHtuNotFound" ||
-            e.code === "dpopHtmNotFound"
+            e.code === "invalidDPoPHtu" ||
+            e.code === "dpopHtmNotFound" ||
+            e.code === "invalidDPoPHtm"
         );
 
         return handleDPoPValidationResults({
