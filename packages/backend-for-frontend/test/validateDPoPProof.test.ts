@@ -5,6 +5,7 @@ import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { bffApi } from "pagopa-interop-api-clients";
 import * as dpopValidation from "pagopa-interop-dpop-validation";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";
 import { getBffMockContext } from "./utils.js";
 
@@ -78,8 +79,8 @@ describe("validateDPoPProof", () => {
         dpopProofJWS: MOCK_DPOP_PROOF,
         expectedDPoPProofHtu: MOCK_HTU,
         expectedDPoPProofHtm: MOCK_HTM,
-        dpopProofIatToleranceSeconds: 60,
-        dpopProofDurationSeconds: 600,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
       });
     });
   });

@@ -156,8 +156,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         dpopProofJWS,
         expectedDPoPProofHtu: htu,
         expectedDPoPProofHtm: htm,
-        dpopProofIatToleranceSeconds: 60,
-        dpopProofDurationSeconds: 600,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
       });
 
       if (validationResult.errors) {
