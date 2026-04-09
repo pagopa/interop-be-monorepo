@@ -168,15 +168,23 @@ jobs:
 
 
           PACKAGES_TO_TEST_JSON='${{ steps.filter_packages.outputs.packages_to_test }}'
-          # Sort by weight (test file count) descending, then extract names.
-          # Round-robin on this sorted list implements LPT scheduling:
-          # heaviest packages land on different shards, balancing total weight.
-          SORTED_TEST_PACKAGES=$(echo "$PACKAGES_TO_TEST_JSON" | jq -c '[sort_by(-.weight)[].name]')
-          PACK_TO_TEST_NUM=$(echo "$SORTED_TEST_PACKAGES" | jq -r length)
+          # Greedy least-loaded bin packing (LPT scheduling):
+          # Sort packages by weight descending, then assign each package
+          # to the shard with the smallest current total weight.
+          SHARDS_FOR_TESTING=$(echo "$PACKAGES_TO_TEST_JSON" | jq --argjson shardNum "$SHARD_TEST_NUM" -c '
+            sort_by(-.weight) as $sorted |
+            ($sorted | length) as $len |
+            ([$shardNum, $len] | min) as $effective |
+            [range(0; $effective) | {shardIndex: (. + 1), weight: 0, packages: []}] |
+            reduce $sorted[] as $pkg (.;
+              (map(.weight) | to_entries | min_by(.value) | .key) as $minIdx |
+              .[$minIdx].weight += $pkg.weight |
+              .[$minIdx].packages += [$pkg.name]
+            ) |
+            .[] | del(.weight) | select(.packages | length > 0)
+          ')
 
           PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON='${{ steps.filter_packages.outputs.packages_test_dedicated_runner }}'
-
-          SHARDS_FOR_TESTING=$(create_fixed_size_shard_matrix "$SORTED_TEST_PACKAGES" "$PACK_TO_TEST_NUM" "$SHARD_TEST_NUM")
 
           DEDICATED_SHARD_START_INDEX=$((SHARD_TEST_NUM + 1)) # Start index after fixed shards
           DEDICATED_SHARDS=$(create_dedicated_shards "$PACKAGES_WITH_DEDICATED_RUNNER_FOR_TEST_JSON" "$DEDICATED_SHARD_START_INDEX")
