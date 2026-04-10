@@ -5042,6 +5042,12 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      pagopa-interop-tenant-kind-history-db-models:
+        specifier: workspace:*
+        version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -5055,6 +5061,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
@@ -8356,6 +8365,7 @@ packages:
   '@xmldom/xmldom@0.9.8':
     resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@zodios/core@10.9.6':
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
