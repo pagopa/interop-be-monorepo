@@ -21,6 +21,7 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneTenant,
   postgresDB,
@@ -371,12 +372,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw operationForbidden if the requester tenant has externalId origin not compliant", async () => {
+  it("Should throw operationForbidden if the requester tenant lacks the required certified attribute", async () => {
+    (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+      false;
+
     const tenant = getMockTenant();
 
     await addOneTenant(tenant);
 
-    expect(
+    await expect(
       tenantService.updateTenantDelegatedFeatures(
         {
           tenantFeatures: {
@@ -384,13 +388,11 @@ describe("updateTenantDelegatedFeatures", async () => {
             isDelegatedProducerFeatureEnabled: true,
           },
         },
-        getMockContext({
-          authData: {
-            ...getMockAuthData(tenant.id),
-            externalId: { origin: "UNKNOWN", value: "test" },
-          },
-        })
+        getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(operationForbidden);
+
+    (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+      true;
   });
 });
