@@ -6,7 +6,6 @@ import {
   makeProducerKeychainPlatformStatesPK,
   unsafeBrandId,
   ProducerKeychainId,
-  TenantId,
 } from "pagopa-interop-models";
 import { verifyClientAssertionSignature } from "pagopa-interop-client-assertion-validation";
 import {
@@ -172,16 +171,17 @@ export const handleCallbackInvocation = async (
   }
 
   // 9. Rate limiting
-  // Using producerKeychainId as the rate limiter key since we don't have the producer's TenantId
-  const rateLimiterTenantId = unsafeBrandId<TenantId>(clientId);
-  setCtxOrganizationId(rateLimiterTenantId);
+  setCtxOrganizationId(producerKey.producerId);
   setCtxClientKind(clientKindTokenGenStates.consumer);
   const { limitReached, ...rateLimiterStatus } =
-    await redisRateLimiter.rateLimitByOrganization(rateLimiterTenantId, logger);
+    await redisRateLimiter.rateLimitByOrganization(
+      producerKey.producerId,
+      logger
+    );
   if (limitReached) {
     return {
       limitReached: true as const,
-      rateLimitedTenantId: rateLimiterTenantId,
+      rateLimitedTenantId: producerKey.producerId,
       rateLimiterStatus,
     };
   }
