@@ -1,38 +1,22 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "tags": [
-    "-lintignore"
-  ],
+  "tags": ["-lintignore"],
   "workspaces": {
     ".": {}
   },
-  "ignoreDependencies": [
-    "prettier",
-    "@types/qs",
-    "qs",
-    "@protobuf-ts/plugin"
-  ],
-  "ignoreBinaries": [
-    "tsx"
-  ],
+  "ignoreDependencies": ["prettier", "@types/qs", "qs", "@protobuf-ts/plugin"],
+  "ignoreBinaries": ["tsx"],
   "ignore": [
-    "packages/commons/src/pdf-generator/paged.polyfill.js",
+    "packages/documents-generator/src/pdf-generator/paged.polyfill.js",
     "packages/documents-generator/src/model/purposeTemplateModels.ts"
   ],
   "ignoreIssues": {
-    "packages/api-clients/src/axiosLogInterceptors.ts": [
-      "exports"
-    ],
-    "packages/m2m-event-db-models/src/config/config.ts": [
-      "exports"
-    ],
+    "packages/api-clients/src/axiosLogInterceptors.ts": ["exports"],
+    "packages/m2m-event-db-models/src/config/config.ts": ["exports"],
     "packages/notifier-seeder/src/protobuf-models/v1/events.ts": [
       "exports",
       "types"
     ],
-    "packages/m2m-gateway/test/multipartTestUtils.ts": [
-      "exports",
-      "types"
-    ]
+    "packages/m2m-gateway/test/multipartTestUtils.ts": ["exports", "types"]
   }
 }

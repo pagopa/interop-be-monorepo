@@ -1936,9 +1936,6 @@ importers:
       pg-promise:
         specifier: 'catalog:'
         version: 11.8.0
-      puppeteer:
-        specifier: 'catalog:'
-        version: 22.11.2(typescript@5.4.5)
       rate-limiter-flexible:
         specifier: 'catalog:'
         version: 5.0.5
@@ -1973,9 +1970,6 @@ importers:
       '@types/nodemailer':
         specifier: 'catalog:'
         version: 6.4.17
-      cpx2:
-        specifier: 'catalog:'
-        version: 7.0.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -2490,6 +2484,9 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      puppeteer:
+        specifier: 'catalog:'
+        version: 22.11.2(typescript@5.4.5)
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -2515,9 +2512,6 @@ importers:
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
-      puppeteer:
-        specifier: 'catalog:'
-        version: 22.11.2(typescript@5.4.5)
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
