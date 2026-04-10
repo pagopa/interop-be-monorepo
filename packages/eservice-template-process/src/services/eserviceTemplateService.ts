@@ -9,6 +9,7 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
+  InternalAuthData,
   retrieveOriginFromAuthData,
   Logger,
   RiskAnalysisFormToValidate,
@@ -54,6 +55,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
@@ -81,6 +83,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
@@ -1133,6 +1136,49 @@ export function eserviceTemplateServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async fixEServiceTemplateRiskAnalysisTenantKind(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      logger.info(
+        `Fixing risk analysis ${riskAnalysisId} for EService template ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+
+      const riskAnalysisToFix = retrieveEServiceTemplateRiskAnalysis(
+        template.data,
+        riskAnalysisId
+      );
+
+      const existingTenantKind = riskAnalysisToFix.riskAnalysisForm.tenantKind;
+      if (!existingTenantKind) {
+        throw tenantKindNotFound(template.data.creatorId);
+      }
+
+      const updatedTemplate: EServiceTemplate = {
+        ...template.data,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          updatedTemplate,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateVersionAttributes(
       eserviceTemplateId: EServiceTemplateId,
