@@ -131,6 +131,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",

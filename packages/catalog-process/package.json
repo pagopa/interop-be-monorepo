@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/express": "catalog:",
     "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "@types/supertest": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "eslint": "catalog:",
@@ -41,6 +42,8 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-tenant-kind-history-db-models": "workspace:*",
+    "pg": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

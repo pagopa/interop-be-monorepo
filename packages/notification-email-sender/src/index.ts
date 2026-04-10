@@ -131,6 +131,7 @@ export async function handleCatalogMessage(
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
