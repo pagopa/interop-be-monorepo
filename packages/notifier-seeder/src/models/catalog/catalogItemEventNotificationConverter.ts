@@ -258,7 +258,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceRiskAnalysisAdded" }, // CatalogItemRiskAnalysisAddedV1
       { type: "EServiceRiskAnalysisDeleted" }, // CatalogItemRiskAnalysisDeletedV1
       { type: "EServiceRiskAnalysisUpdated" }, // CatalogItemRiskAnalysisUpdatedV1
-      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" }, // CatalogItemRiskAnalysisUpdatedV1
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, // CatalogItemRiskAnalysisUpdatedV1
       (e): CatalogItemRiskAnalysisNotification => ({
         catalogItem: getCatalogItem(e),
         catalogRiskAnalysisId: e.data.riskAnalysisId,
