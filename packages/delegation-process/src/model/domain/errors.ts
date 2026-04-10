@@ -93,7 +93,7 @@ export function delegationNotAllowedForTenant(
     .with("Delegate", () => "Delegate")
     .exhaustive();
   return new ApiError({
-    detail: `${delegatorOrDelegateString} ${tenant.id} does not have the required certified attribute for delegation`,
+    detail: `Delegation not allowed for tenant ${delegatorOrDelegateString} ${tenant.id}`,
     code: "delegationNotAllowedForTenant",
     title: "Tenant not allowed for delegation",
   });
