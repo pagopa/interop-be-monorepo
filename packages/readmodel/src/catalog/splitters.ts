@@ -369,7 +369,6 @@ export const descriptorToDescriptorSQL = (
   archivingEndDate: dateToString(
     descriptor.archivingSchedule?.archivingEndDate
   ),
-  archivingKind: descriptor.archivingSchedule?.archivingKind || null,
 });
 
 export const eserviceToEserviceSQL = (

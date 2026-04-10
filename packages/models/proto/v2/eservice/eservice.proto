@@ -142,10 +142,5 @@ enum EServiceModeV2 {
 message EServiceDescriptorArchivingScheduleV2 {
   int64 archivingStartDate = 1;
   int64 archivingEndDate = 2;
-  ArchivingKindV2 archivingKind = 3;
 }
 
-enum ArchivingKindV2 {
-  AUTO_ARCHIVING = 0;
-  REQUIRE_CONFIRMATION = 1;
-}

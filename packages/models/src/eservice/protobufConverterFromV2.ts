@@ -12,7 +12,6 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
-  ArchivingKindV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -34,7 +33,6 @@ import {
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
-  ArchivingKind,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -164,9 +162,6 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
           archivingEndDate: bigIntToDate(
             input.archivingSchedule.archivingEndDate
           ),
-          archivingKind: fromArchivingKindV2(
-            input.archivingSchedule.archivingKind
-          ),
         }
       : undefined,
 });
@@ -219,12 +214,3 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
 });
-
-export const fromArchivingKindV2 = (input: ArchivingKindV2): ArchivingKind => {
-  switch (input) {
-    case ArchivingKindV2.REQUIRE_CONFIRMATION:
-      return ArchivingKind.Enum.RequireConfirmation;
-    case ArchivingKindV2.AUTO_ARCHIVING:
-      return ArchivingKind.Enum.AutoArchive;
-  }
-};

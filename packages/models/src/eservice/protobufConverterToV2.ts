@@ -1,7 +1,6 @@
 import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicyV2,
-  ArchivingKindV2,
   DescriptorRejectionReasonV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
@@ -16,7 +15,6 @@ import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
-  ArchivingKind,
   Descriptor,
   DescriptorRejectionReason,
   DescriptorState,
@@ -136,9 +134,6 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
           archivingEndDate: dateToBigInt(
             input.archivingSchedule.archivingEndDate
           ),
-          archivingKind: toArchivingKindV2(
-            input.archivingSchedule.archivingKind
-          ),
         }
       : undefined,
 });
@@ -158,13 +153,3 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
 });
-
-const toArchivingKindV2 = (input: ArchivingKind): ArchivingKindV2 =>
-  match(input)
-    .with(P.nullish, () => ArchivingKindV2.AUTO_ARCHIVING)
-    .with(
-      ArchivingKind.Enum.RequireConfirmation,
-      () => ArchivingKindV2.REQUIRE_CONFIRMATION
-    )
-    .with(ArchivingKind.Enum.AutoArchive, () => ArchivingKindV2.AUTO_ARCHIVING)
-    .exhaustive();

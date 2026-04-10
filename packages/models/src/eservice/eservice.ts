@@ -96,21 +96,9 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
-export const archivingKind = {
-  autoArchive: "AutoArchive",
-  requireConfirmation: "RequireConfirmation",
-} as const;
-
-export const ArchivingKind = z.enum([
-  Object.values(archivingKind)[0],
-  ...Object.values(archivingKind).slice(1),
-]);
-export type ArchivingKind = z.infer<typeof ArchivingKind>;
-
 export const EServiceDescriptorArchivingSchedule = z.object({
   archivingStartDate: z.coerce.date(),
   archivingEndDate: z.coerce.date(),
-  archivingKind: ArchivingKind,
 });
 export type EServiceDescriptorArchivingSchedule = z.infer<
   typeof EServiceDescriptorArchivingSchedule

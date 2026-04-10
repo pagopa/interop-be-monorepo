@@ -460,7 +460,6 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       withTimezone: true,
       mode: "string",
     }),
-    archivingKind: varchar("archiving_kind"),
   },
   (table) => [
     foreignKey({
