@@ -88,7 +88,7 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorDocumentDeleted",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
-            "MaintenanceEServiceRiskAnalysisSetTenandKind",
+            "MaintenanceEServiceRiskAnalysisSetTenantKind",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorAttributesUpdated",

@@ -55,7 +55,7 @@ export async function exportInterfaceV2(
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceIsConsumerDelegableEnabled" },
