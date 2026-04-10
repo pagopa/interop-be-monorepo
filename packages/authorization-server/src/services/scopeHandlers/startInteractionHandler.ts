@@ -31,7 +31,7 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleStartInteraction = async (
-  ctx: ScopeHandlerContext,
+  ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
     clientAssertionJWT,
@@ -74,7 +74,7 @@ export const handleStartInteraction = async (
 
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
-      `Expected consumer client kind for start_interaction, got ${key.clientKind}`,
+      `Expected consumer client kind for start_interaction, got ${key.clientKind}`
     );
   }
 
@@ -91,13 +91,13 @@ export const handleStartInteraction = async (
     await verifyClientAssertionSignature(
       clientAssertionJWS,
       key,
-      clientAssertionJWT.header.alg,
+      clientAssertionJWT.header.alg
     );
 
   if (clientAssertionSignatureErrors) {
     throw clientAssertionSignatureValidationFailed(
       clientId,
-      clientAssertionSignatureErrors.map((error) => error.detail).join(", "),
+      clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
     );
   }
 
@@ -105,7 +105,7 @@ export const handleStartInteraction = async (
   const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
-      platformStateErrors.map((error) => error.detail).join(", "),
+      platformStateErrors.map((error) => error.detail).join(", ")
     );
   }
 
@@ -122,20 +122,20 @@ export const handleStartInteraction = async (
 
   // 7. Retrieve catalog entry from platform-states for async exchange properties
   const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId,
+    key.GSIPK_eserviceId_descriptorId
   );
 
   const catalogEntry = await retrieveCatalogEntry(
     dynamoDBClient,
     eserviceId,
     descriptorId,
-    platformStatesTable,
+    platformStatesTable
   );
 
   const { asyncExchangeProperties } = catalogEntry;
   if (!asyncExchangeProperties) {
     throw genericInternalError(
-      `Catalog entry for eService ${eserviceId} descriptor ${descriptorId} has asyncExchange enabled but no asyncExchangeProperties`,
+      `Catalog entry for eService ${eserviceId} descriptor ${descriptorId} has asyncExchange enabled but no asyncExchangeProperties`
     );
   }
 

@@ -54,7 +54,7 @@ describe("interactions utils integration", () => {
     const retrieved = await readInteraction(
       dynamoDBClient,
       interactionId,
-      interactionsTable,
+      interactionsTable
     );
 
     expect(retrieved).toEqual(created);
@@ -110,7 +110,7 @@ describe("interactions utils integration", () => {
     const retrieved = await readInteraction(
       dynamoDBClient,
       interactionId,
-      interactionsTable,
+      interactionsTable
     );
 
     expect(retrieved).toBeDefined();

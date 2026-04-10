@@ -68,7 +68,7 @@ describe("interactions utils", () => {
     const retrieved = await readInteraction(
       dynamoDBClient as never,
       interactionId,
-      interactionsTable,
+      interactionsTable
     );
 
     expect(retrieved).toEqual(created);
@@ -97,7 +97,7 @@ describe("interactions utils", () => {
         descriptorId,
         issuedAt,
         ttlSeconds,
-      }),
+      })
     ).rejects.toThrow();
   });
 
@@ -136,7 +136,7 @@ describe("interactions utils", () => {
     const updateCall = mockSend.mock.calls[1][0] as UpdateItemCommand;
     expect(updateCall).toBeInstanceOf(UpdateItemCommand);
     expect(JSON.stringify(updateCall.input)).toContain(
-      "callbackInvocationTokenIssuedAt",
+      "callbackInvocationTokenIssuedAt"
     );
     expect(updateCall.input.ConditionExpression).toBe("attribute_exists(PK)");
   });
@@ -167,7 +167,7 @@ describe("interactions utils", () => {
         interactionId,
         state: "confirmation",
         updatedAt: new Date().toISOString(),
-      }),
+      })
     ).rejects.toThrow("Unable to update interaction state");
 
     expect(mockSend).toHaveBeenCalledTimes(1);
@@ -178,21 +178,21 @@ describe("interactions utils", () => {
       isInteractionStateAllowedForScope({
         currentState: "start_interaction",
         scope: "callback_invocation",
-      }),
+      })
     ).toBe(true);
 
     expect(
       isInteractionStateAllowedForScope({
         currentState: "callback_invocation",
         scope: "confirmation",
-      }),
+      })
     ).toBe(false);
 
     expect(
       isInteractionStateAllowedForScope({
         currentState: "confirmation",
         scope: "confirmation",
-      }),
+      })
     ).toBe(true);
   });
 });

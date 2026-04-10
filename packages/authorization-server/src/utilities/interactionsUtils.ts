@@ -104,7 +104,7 @@ export const createInteraction = async ({
 export const readInteraction = async (
   dynamoDBClient: DynamoDBClient,
   interactionId: InteractionId,
-  interactionsTable: string,
+  interactionsTable: string
 ): Promise<Interaction | undefined> => {
   const input: GetItemInput = {
     TableName: interactionsTable,
@@ -115,7 +115,7 @@ export const readInteraction = async (
   };
 
   const data: GetItemCommandOutput = await dynamoDBClient.send(
-    new GetItemCommand(input),
+    new GetItemCommand(input)
   );
 
   if (!data.Item) {
@@ -128,8 +128,8 @@ export const readInteraction = async (
   if (!interaction.success) {
     throw genericInternalError(
       `Unable to parse interaction entry: result ${JSON.stringify(
-        interaction,
-      )} - data ${JSON.stringify(data)} `,
+        interaction
+      )} - data ${JSON.stringify(data)} `
     );
   }
 
@@ -152,7 +152,7 @@ export const updateInteractionState = async ({
   const currentInteraction = await readInteraction(
     dynamoDBClient,
     interactionId,
-    interactionsTable,
+    interactionsTable
   );
 
   if (!currentInteraction) {
@@ -182,7 +182,7 @@ export const updateInteractionState = async ({
       S: updatedAt,
     };
     updateExpressions.push(
-      "startInteractionTokenIssuedAt = :startInteractionTokenIssuedAt",
+      "startInteractionTokenIssuedAt = :startInteractionTokenIssuedAt"
     );
   }
 
@@ -191,7 +191,7 @@ export const updateInteractionState = async ({
       S: updatedAt,
     };
     updateExpressions.push(
-      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt",
+      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt"
     );
   }
 
