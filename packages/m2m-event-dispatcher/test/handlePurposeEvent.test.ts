@@ -211,7 +211,7 @@ describe("handlePurposeEvent test", async () => {
                 P.union(
                   // Ignored events
                   "RiskAnalysisDocumentGenerated",
-                  "MaintenancePurposeRiskAnalysisSetTenandKind"
+                  "MaintenancePurposeRiskAnalysisSetTenantKind"
                 ),
                 () => [
                   {

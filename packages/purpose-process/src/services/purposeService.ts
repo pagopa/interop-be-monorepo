@@ -101,7 +101,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
-  toCreateEventMaintenancePurposeRiskAnalysisSetTenandKind,
+  toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -387,7 +387,7 @@ export function purposeServiceBuilder(
         },
       };
 
-      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenandKind({
+      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind({
         purpose: updatedPurpose,
         riskAnalysisId,
         version: purpose.metadata.version,

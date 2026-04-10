@@ -75,7 +75,7 @@ describe("handleEServiceEvent test", async () => {
 
             const testCasesData = await match(eventType)
               .with(
-                "MaintenanceEServiceRiskAnalysisSetTenandKind",
+                "MaintenanceEServiceRiskAnalysisSetTenantKind",
                 async () => [
                   {
                     descriptors: [getMockDescriptor(descriptorState.draft)],
@@ -309,7 +309,7 @@ describe("handleEServiceEvent test", async () => {
                 testReadModelService
               );
               if (
-                eventType === "MaintenanceEServiceRiskAnalysisSetTenandKind"
+                eventType === "MaintenanceEServiceRiskAnalysisSetTenantKind"
               ) {
                 expect(
                   testM2mEventWriterService.insertEServiceM2MEvent

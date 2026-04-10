@@ -142,7 +142,7 @@ async function handlePurposeEventV2(
            */
           type: P.union(
             "RiskAnalysisDocumentGenerated",
-            "MaintenancePurposeRiskAnalysisSetTenandKind"
+            "MaintenancePurposeRiskAnalysisSetTenantKind"
           ),
         },
         () => Promise.resolve(void 0)

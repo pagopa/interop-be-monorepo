@@ -39,7 +39,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "MaintenanceEServiceRiskAnalysisSetTenandKind" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceIsConsumerDelegableEnabled" },
