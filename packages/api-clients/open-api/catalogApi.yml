@@ -2755,13 +2755,6 @@ paths:
           schema:
             type: string
             format: uuid
-      requestBody:
-        description: Payload
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ArchivingKindSeed"
       responses:
         "200":
           description: E-service descriptor archiving process started.
@@ -3762,6 +3755,8 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        archivingSchedule:
+          $ref: "#/components/schemas/EServiceDescriptorArchivingSchedule"
     Attribute:
       type: object
       additionalProperties: false
@@ -3837,6 +3832,16 @@ components:
         - ARCHIVED
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
+    EServiceDescriptorArchivingSchedule:
+      type: object
+      additionalProperties: false
+      properties:
+        archivingStartDate:
+          type: string
+          format: date-time
+        archivingEndDate:
+          type: string
+          format: date-time
     RejectionReason:
       type: object
       additionalProperties: false
@@ -3912,20 +3917,6 @@ components:
           type: string
           minLength: 1
           maxLength: 12
-    ArchivingKindSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - archivingKind
-      properties:
-        archivingKind:
-          $ref: "#/components/schemas/ArchivingKind"
-    ArchivingKind:
-      type: string
-      description: EService Descriptor Archiving Kind
-      enum:
-        - AUTO_ARCHIVING
-        - REQUIRE_CONFIRMATION
     Problem:
       properties:
         type:

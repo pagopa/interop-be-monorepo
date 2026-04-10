@@ -412,6 +412,13 @@ export function toCompactProducerDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
   isRequesterProducerDelegate: boolean
 ): bffApi.CompactProducerDescriptor {
+  // FIXME: This can be useful
+  // const canBeArchived =
+  //   (descriptor.state === catalogApi.EServiceDescriptorState.Values.ARCHIVING ||
+  //     descriptor.state ===
+  //       catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED) &&
+  //   descriptor.archivingSchedule?.archivingEndDate !== undefined &&
+  //   new Date(descriptor.archivingSchedule?.archivingEndDate) <= new Date();
   return {
     id: descriptor.id,
     audience: descriptor.audience,
