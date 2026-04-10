@@ -149,17 +149,21 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  if (interaction.startInteractionTokenIssuedAt) {
-    const elapsedMs =
-      Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
-    const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
-    if (elapsedMs >= responseTimeLimitMs) {
-      throw asyncExchangeResponseTimeExceeded(
-        interactionId,
-        elapsedMs,
-        responseTimeLimitMs
-      );
-    }
+  if (!interaction.startInteractionTokenIssuedAt) {
+    throw genericInternalError(
+      `Interaction ${interactionId} missing startInteractionTokenIssuedAt`
+    );
+  }
+
+  const elapsedMs =
+    Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
+  const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
+  if (elapsedMs >= responseTimeLimitMs) {
+    throw asyncExchangeResponseTimeExceeded(
+      interactionId,
+      elapsedMs,
+      responseTimeLimitMs
+    );
   }
 
   if (entityNumber > asyncExchangeProperties.maxResultSet) {
