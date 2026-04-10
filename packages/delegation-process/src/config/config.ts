@@ -30,7 +30,7 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(
   .and(
     z
       .object({
-        DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string(),
+        DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string().uuid(),
       })
       .transform((c) => ({
         delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
