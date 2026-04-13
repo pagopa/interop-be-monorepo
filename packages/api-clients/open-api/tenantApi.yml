@@ -1806,6 +1806,10 @@ components:
           $ref: "#/components/schemas/TenantUnitType"
         selfcareInstitutionType:
           type: string
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeature"
       required:
         - selfcareId
         - externalId

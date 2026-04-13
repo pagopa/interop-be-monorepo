@@ -2,7 +2,9 @@
 import {
   MaintenanceTenantUpdatedV2,
   Tenant,
+  TenantFeature,
   protobufDecoder,
+  tenantFeatureType,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
@@ -83,5 +85,149 @@ describe("maintenanceTenantUpdate", async () => {
         getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+  });
+
+  it("should preserve existing features when 'features' is omitted from the update", async () => {
+    const existingFeatures: TenantFeature[] = [
+      {
+        type: tenantFeatureType.delegatedConsumer,
+        availabilityTimestamp: new Date(),
+      },
+    ];
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: existingFeatures,
+    };
+    await addOneTenant(mockTenant);
+
+    const tenantUpdate = getMockMaintenanceTenantUpdate();
+    await tenantService.maintenanceTenantUpdate(
+      {
+        tenantId: mockTenant.id,
+        tenantUpdate,
+        version: 0,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+    const writtenPayload = protobufDecoder(MaintenanceTenantUpdatedV2).parse(
+      writtenEvent.data
+    );
+
+    expect(writtenPayload.tenant?.features).toEqual(
+      toTenantV2({ ...mockTenant, features: existingFeatures }).features
+    );
+  });
+
+  it("should remove features when 'features' is set to empty array (GSP cleanup case)", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: tenantFeatureType.delegatedProducer,
+          availabilityTimestamp: new Date(),
+        },
+        {
+          type: tenantFeatureType.delegatedConsumer,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+    await addOneTenant(mockTenant);
+
+    const tenantUpdate = {
+      ...getMockMaintenanceTenantUpdate(),
+      features: [],
+    };
+    await tenantService.maintenanceTenantUpdate(
+      {
+        tenantId: mockTenant.id,
+        tenantUpdate,
+        version: 0,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+    const writtenPayload = protobufDecoder(MaintenanceTenantUpdatedV2).parse(
+      writtenEvent.data
+    );
+
+    expect(writtenPayload.tenant?.features).toEqual([]);
+  });
+
+  it("should replace features when a new list is provided (round-trip for all variants)", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: tenantFeatureType.delegatedProducer,
+          availabilityTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+      ],
+    };
+    await addOneTenant(mockTenant);
+
+    const newAvailabilityTimestamp = new Date("2026-04-13T10:00:00Z");
+    const tenantUpdate = {
+      ...getMockMaintenanceTenantUpdate(),
+      features: [
+        { certifier: { certifierId: "test-certifier-id" } },
+        {
+          delegatedProducer: {
+            availabilityTimestamp: newAvailabilityTimestamp.toISOString(),
+          },
+        },
+        {
+          delegatedConsumer: {
+            availabilityTimestamp: newAvailabilityTimestamp.toISOString(),
+          },
+        },
+      ],
+    };
+    await tenantService.maintenanceTenantUpdate(
+      {
+        tenantId: mockTenant.id,
+        tenantUpdate,
+        version: 0,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+    const writtenPayload = protobufDecoder(MaintenanceTenantUpdatedV2).parse(
+      writtenEvent.data
+    );
+
+    const expectedFeatures: TenantFeature[] = [
+      {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId: "test-certifier-id",
+      },
+      {
+        type: tenantFeatureType.delegatedProducer,
+        availabilityTimestamp: newAvailabilityTimestamp,
+      },
+      {
+        type: tenantFeatureType.delegatedConsumer,
+        availabilityTimestamp: newAvailabilityTimestamp,
+      },
+    ];
+    expect(writtenPayload.tenant?.features).toEqual(
+      toTenantV2({ ...mockTenant, features: expectedFeatures }).features
+    );
   });
 });
