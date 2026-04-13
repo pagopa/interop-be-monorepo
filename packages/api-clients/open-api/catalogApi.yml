@@ -2732,6 +2732,20 @@ paths:
   /eservices/{eServiceId}/descriptors/{descriptorId}/scheduleArchive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -2740,21 +2754,6 @@ paths:
       summary: Schedule e-service descriptor archiving process
       operationId: scheduleEServiceDescriptorArchiving
       description: Schedules the archiving process of the specified E-Service descriptor
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: E-service descriptor archiving process started.
@@ -2767,6 +2766,42 @@ paths:
                 $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel e-service descriptor archiving process
+      operationId: cancelEServiceDescriptorArchiving
+      description: Cancels the archiving process of the specified E-Service descriptor if it is in scheduled state
+      responses:
+        "200":
+          description: E-service descriptor archiving process canceled.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input or e-service descriptor is not in scheduled state
           content:
             application/problem+json:
               schema:

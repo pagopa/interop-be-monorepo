@@ -67,7 +67,7 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledDeleted",
           "EServiceDescriptorManualArchived"
-        )
+        ),
       },
       async (message) => {
         const eservice = message.data.eservice;

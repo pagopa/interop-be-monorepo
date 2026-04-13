@@ -258,15 +258,14 @@ function getBodyAndDescriptorId(
         type: P.union(
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorManualArchived",
+          "EServiceDescriptorManualArchived"
         ),
       },
-      () => {
-        return {  //FIXME: Create specific templates for these events instead of using a generic one with empty body and no descriptorId
-          body: "",
-          descriptorId: undefined,
-        };
-      }
+      () => ({
+        //FIXME: Create specific templates for these events instead of using a generic one with empty body and no descriptorId
+        body: "",
+        descriptorId: undefined,
+      })
     )
     .exhaustive();
 }

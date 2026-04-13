@@ -930,3 +930,22 @@ export const toCreateEventEServiceDescriptorArchivingScheduled = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorArchivingDeleted = (
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingScheduledDeleted",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      descriptorId,
+    },
+  },
+  correlationId,
+});

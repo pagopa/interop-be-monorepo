@@ -466,3 +466,14 @@ export function assertDescriptorIsNotLatestVersion(
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
+
+export function assertDescriptorInRequiredArchivingState(
+  descriptor: Descriptor
+): void {
+  if (
+    descriptor.state !== descriptorState.archiving &&
+    descriptor.state !== descriptorState.archivingSuspended
+  ) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
