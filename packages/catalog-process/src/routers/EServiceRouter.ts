@@ -77,6 +77,7 @@ import {
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
+  updateEserviceDescriptorArchivingStatusErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -1563,7 +1564,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/start-archiving",
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -1571,17 +1572,16 @@ const eservicesRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
           const updatedEService =
-            await catalogService.startEServiceDescriptorArchiving(
+            await catalogService.scheduleEServiceDescriptorArchiving(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              req.body,
               ctx
             );
 
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService.data))
             );
         } catch (error) {
           const errorRes = makeApiProblem(

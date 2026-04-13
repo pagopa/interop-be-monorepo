@@ -2729,7 +2729,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/start-archiving:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/scheduleArchive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -2737,9 +2737,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Start e-service descriptor archiving process
-      operationId: startEServiceDescriptorArchiving
-      description: Starts the archiving process of the specified E-Service descriptor
+      summary: Schedule e-service descriptor archiving process
+      operationId: scheduleEServiceDescriptorArchiving
+      description: Schedules the archiving process of the specified E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
