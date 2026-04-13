@@ -11,13 +11,10 @@ import {
   getMockPurposeVersion,
   getMockClientAssertion,
   getMockContext,
-  writePlatformAgreementEntry,
-  writePlatformPurposeEntry,
   writeTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementId,
   ClientId,
   CorrelationId,
   DescriptorId,
@@ -29,14 +26,10 @@ import {
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
-  makePlatformStatesAgreementPK,
   makePlatformStatesEServiceDescriptorPK,
-  makePlatformStatesPurposePK,
   makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
-  PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
-  PlatformStatesPurposeEntry,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
   Purpose,
@@ -108,12 +101,12 @@ const setupCallbackScenario = async (overrides?: {
   skipInteraction?: boolean;
   skipProducerKey?: boolean;
   skipCatalogEntry?: boolean;
-  skipAgreementEntry?: boolean;
-  skipPurposeEntry?: boolean;
+  skipTokenGenStatesEntry?: boolean;
   interactionStateOverride?: string;
   catalogEntryStateOverride?: ItemState;
-  agreementStateOverride?: ItemState;
-  purposeStateOverride?: ItemState;
+  tokenGenStatesAgreementStateOverride?: ItemState;
+  tokenGenStatesPurposeStateOverride?: ItemState;
+  tokenGenStatesDescriptorStateOverride?: ItemState;
 }): Promise<{
   producerJws: string;
   producerClientId: ClientId;
@@ -177,6 +170,20 @@ const setupCallbackScenario = async (overrides?: {
     dynamoDBClient
   );
 
+  // Override token-generation-states state fields BEFORE callback_invocation
+  // (start_interaction needs them ACTIVE; callback_invocation reads them via GSI Purpose)
+  const tokenGenStatesStateOverrides = {
+    ...(overrides?.tokenGenStatesAgreementStateOverride && {
+      agreementState: { S: overrides.tokenGenStatesAgreementStateOverride },
+    }),
+    ...(overrides?.tokenGenStatesPurposeStateOverride && {
+      purposeState: { S: overrides.tokenGenStatesPurposeStateOverride },
+    }),
+    ...(overrides?.tokenGenStatesDescriptorStateOverride && {
+      descriptorState: { S: overrides.tokenGenStatesDescriptorStateOverride },
+    }),
+  };
+
   // Create platform-states catalog entry BEFORE start_interaction
   // (start_interaction reads it for asyncExchangeProperties and TTL)
   const catalogPK = makePlatformStatesEServiceDescriptorPK({
@@ -202,38 +209,6 @@ const setupCallbackScenario = async (overrides?: {
   };
 
   await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
-
-  // Platform-states agreement entry (consumed by callback_invocation state check)
-  if (!overrides?.skipAgreementEntry) {
-    const agreementEntry: PlatformStatesAgreementEntry = {
-      PK: makePlatformStatesAgreementPK({
-        consumerId: purpose.consumerId,
-        eserviceId: eServiceId,
-      }),
-      state: overrides?.agreementStateOverride ?? itemState.active,
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      agreementId: generateId<AgreementId>(),
-      agreementTimestamp: new Date().toISOString(),
-      agreementDescriptorId: descriptorId,
-      producerId: generateId<TenantId>(),
-    };
-    await writePlatformAgreementEntry(agreementEntry, dynamoDBClient);
-  }
-
-  // Platform-states purpose entry (consumed by callback_invocation state check)
-  if (!overrides?.skipPurposeEntry) {
-    const purposeEntry: PlatformStatesPurposeEntry = {
-      PK: makePlatformStatesPurposePK(purpose.id),
-      state: overrides?.purposeStateOverride ?? itemState.active,
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      purposeVersionId: purpose.versions[0].id,
-      purposeEserviceId: eServiceId,
-      purposeConsumerId: purpose.consumerId,
-    };
-    await writePlatformPurposeEntry(purposeEntry, dynamoDBClient);
-  }
 
   mockProducer.send.mockImplementationOnce(async () => [
     { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
@@ -285,6 +260,33 @@ const setupCallbackScenario = async (overrides?: {
           version: { N: "2" },
           updatedAt: { S: new Date().toISOString() },
         },
+      })
+    );
+  }
+
+  // Apply token-generation-states state overrides AFTER start_interaction
+  // (start_interaction requires them ACTIVE; callback_invocation may need them inactive)
+  if (Object.keys(tokenGenStatesStateOverrides).length > 0) {
+    const setExpressions: string[] = [];
+    const attributeValues: Record<string, { S: string }> = {};
+    if (tokenGenStatesStateOverrides.agreementState) {
+      setExpressions.push("agreementState = :as");
+      attributeValues[":as"] = tokenGenStatesStateOverrides.agreementState;
+    }
+    if (tokenGenStatesStateOverrides.purposeState) {
+      setExpressions.push("purposeState = :ps");
+      attributeValues[":ps"] = tokenGenStatesStateOverrides.purposeState;
+    }
+    if (tokenGenStatesStateOverrides.descriptorState) {
+      setExpressions.push("descriptorState = :ds");
+      attributeValues[":ds"] = tokenGenStatesStateOverrides.descriptorState;
+    }
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: "token-generation-states",
+        Key: { PK: { S: tokenClientKidPurposePK } },
+        UpdateExpression: `SET ${setExpressions.join(", ")}`,
+        ExpressionAttributeValues: attributeValues,
       })
     );
   }
@@ -646,41 +648,13 @@ describe("async token service - callback_invocation", () => {
     ).rejects.toThrowError(/entityNumber 101 exceeds maxResultSet 100/);
   });
 
-  it("should throw agreementEntryNotFound when agreement platform-states entry does not exist", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { producerJws, producerClientId } = await setupCallbackScenario({
-      skipAgreementEntry: true,
-    });
-
-    await expect(
-      callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/Agreement entry not found/);
-  });
-
-  it("should throw purposeEntryNotFound when purpose platform-states entry does not exist", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { producerJws, producerClientId } = await setupCallbackScenario({
-      skipPurposeEntry: true,
-    });
-
-    await expect(
-      callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/Purpose entry not found/);
-  });
-
   it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
-      agreementStateOverride: itemState.inactive,
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
     });
 
     await expect(
@@ -694,12 +668,26 @@ describe("async token service - callback_invocation", () => {
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
-      purposeStateOverride: itemState.inactive,
+      tokenGenStatesPurposeStateOverride: itemState.inactive,
     });
 
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
     ).rejects.toThrowError(/Purpose state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      tokenGenStatesDescriptorStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/E-Service state is: INACTIVE/);
   });
 
   it("should aggregate multiple inactive state errors in platformStateValidationFailed", async () => {
@@ -708,8 +696,8 @@ describe("async token service - callback_invocation", () => {
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
-      agreementStateOverride: itemState.inactive,
-      purposeStateOverride: itemState.inactive,
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
+      tokenGenStatesPurposeStateOverride: itemState.inactive,
     });
 
     await expect(

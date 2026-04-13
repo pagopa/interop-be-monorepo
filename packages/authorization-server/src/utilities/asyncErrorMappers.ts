@@ -32,8 +32,6 @@ export const asyncAuthorizationServerErrorMapper = (
       "catalogEntryNotFound",
       "asyncExchangeResponseTimeExceeded",
       "entityNumberExceedsMaxResultSet",
-      "agreementEntryNotFound",
-      "purposeEntryNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

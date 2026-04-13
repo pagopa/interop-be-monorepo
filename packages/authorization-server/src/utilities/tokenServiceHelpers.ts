@@ -13,17 +13,14 @@ import {
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
-  PlatformStatesAgreementEntry,
-  PlatformStatesPurposeEntry,
-  makePlatformStatesAgreementPK,
-  makePlatformStatesPurposePK,
-  PurposeId,
   PlatformStatesCatalogEntry,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
+  PurposeId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  TokenGenStatesConsumerClientGSIPurpose,
   TenantId,
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
@@ -33,6 +30,9 @@ import {
   GetItemCommand,
   GetItemCommandOutput,
   GetItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
@@ -60,8 +60,7 @@ import {
   kafkaAuditingFailed,
   producerKeychainEntryNotFound,
   tokenGenerationStatesEntryNotFound,
-  agreementEntryNotFound,
-  purposeEntryNotFound,
+  tokenGenerationStatesEntriesByPurposeIdNotFound,
 } from "../model/domain/errors.js";
 
 const EXPECTED_HTM = "POST";
@@ -151,78 +150,39 @@ export const retrieveCatalogEntry = async (
   return catalogEntry.data;
 };
 
-export const retrieveAgreementEntry = async (
+export const retrieveTokenGenStatesEntryByPurposeId = async (
   dynamoDBClient: DynamoDBClient,
-  consumerId: TenantId,
-  eserviceId: EServiceId,
-  platformStatesTable: string
-): Promise<PlatformStatesAgreementEntry> => {
-  const pk = makePlatformStatesAgreementPK({
-    consumerId,
-    eserviceId,
-  });
-
-  const input: GetItemInput = {
-    Key: {
-      PK: { S: pk },
+  purposeId: PurposeId
+): Promise<TokenGenStatesConsumerClientGSIPurpose> => {
+  const input: QueryInput = {
+    TableName: config.tokenGenerationStatesTable,
+    IndexName: "Purpose",
+    KeyConditionExpression: "GSIPK_purposeId = :purposeId",
+    ExpressionAttributeValues: {
+      ":purposeId": { S: purposeId },
     },
-    TableName: platformStatesTable,
+    Limit: 1,
   };
 
-  const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
 
-  if (!data.Item) {
-    throw agreementEntryNotFound(consumerId, eserviceId);
+  if (!data.Items || data.Items.length === 0) {
+    throw tokenGenerationStatesEntriesByPurposeIdNotFound(purposeId);
   }
 
-  const unmarshalled = unmarshall(data.Item);
-  const agreementEntry = PlatformStatesAgreementEntry.safeParse(unmarshalled);
+  const unmarshalled = unmarshall(data.Items[0]);
+  const entry = TokenGenStatesConsumerClientGSIPurpose.safeParse(unmarshalled);
 
-  if (!agreementEntry.success) {
+  if (!entry.success) {
     throw genericInternalError(
-      `Unable to parse platform-states agreement entry: result ${JSON.stringify(
-        agreementEntry
+      `Unable to parse token-generation-states entry from Purpose GSI: result ${JSON.stringify(
+        entry
       )} - data ${JSON.stringify(data)} `
     );
   }
 
-  return agreementEntry.data;
-};
-
-export const retrievePurposeEntry = async (
-  dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId,
-  platformStatesTable: string
-): Promise<PlatformStatesPurposeEntry> => {
-  const pk = makePlatformStatesPurposePK(purposeId);
-
-  const input: GetItemInput = {
-    Key: {
-      PK: { S: pk },
-    },
-    TableName: platformStatesTable,
-  };
-
-  const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
-
-  if (!data.Item) {
-    throw purposeEntryNotFound(purposeId);
-  }
-
-  const unmarshalled = unmarshall(data.Item);
-  const purposeEntry = PlatformStatesPurposeEntry.safeParse(unmarshalled);
-
-  if (!purposeEntry.success) {
-    throw genericInternalError(
-      `Unable to parse platform-states purpose entry: result ${JSON.stringify(
-        purposeEntry
-      )} - data ${JSON.stringify(data)} `
-    );
-  }
-
-  return purposeEntry.data;
+  return entry.data;
 };
 
 const NIL_UUID = "00000000-0000-0000-0000-000000000000";

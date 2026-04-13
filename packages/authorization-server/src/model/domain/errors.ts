@@ -5,7 +5,6 @@ import {
   InteractionState,
   makeApiProblemBuilder,
   ProducerKeychainPlatformStatesPK,
-  EServiceId,
   PurposeId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -39,8 +38,7 @@ const errorCodes = {
   catalogEntryNotFound: "0026",
   asyncExchangeResponseTimeExceeded: "0027",
   entityNumberExceedsMaxResultSet: "0028",
-  agreementEntryNotFound: "0029",
-  purposeEntryNotFound: "0030",
+  tokenGenerationStatesEntriesByPurposeIdNotFound: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -324,23 +322,12 @@ export function entityNumberExceedsMaxResultSet(
   });
 }
 
-export function agreementEntryNotFound(
-  consumerId: string,
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement entry not found in platform-states for consumer ${consumerId} and eService ${eserviceId}`,
-    code: "agreementEntryNotFound",
-    title: "Agreement entry not found",
-  });
-}
-
-export function purposeEntryNotFound(
+export function tokenGenerationStatesEntriesByPurposeIdNotFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose entry not found in platform-states for purpose ${purposeId}`,
-    code: "purposeEntryNotFound",
-    title: "Purpose entry not found",
+    detail: `No token-generation-states entries found for purposeId ${purposeId}`,
+    code: "tokenGenerationStatesEntriesByPurposeIdNotFound",
+    title: "Token-generation-states entries not found for purposeId",
   });
 }

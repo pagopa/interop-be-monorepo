@@ -27,10 +27,9 @@ import {
 import {
   logTokenGenerationInfo,
   publishProducerAudit,
-  retrieveAgreementEntry,
   retrieveCatalogEntry,
   retrieveProducerKey,
-  retrievePurposeEntry,
+  retrieveTokenGenStatesEntryByPurposeId,
 } from "../../utilities/tokenServiceHelpers.js";
 import {
   readInteraction,
@@ -106,7 +105,7 @@ export const handleCallbackInvocation = async (
   // 4. Extract eServiceId and descriptorId from interaction
   const { eServiceId, descriptorId } = interaction;
 
-  // 5. Retrieve producer key, catalog, agreement and purpose entries in parallel
+  // 5. Retrieve producer key, catalog entry and token-generation-states entry (by purposeId) in parallel
   const kid = clientAssertionJWT.header.kid;
   const producerKeychainId = unsafeBrandId<ProducerKeychainId>(clientId);
   const producerKeyPK = makeProducerKeychainPlatformStatesPK({
@@ -114,31 +113,23 @@ export const handleCallbackInvocation = async (
     kid,
     eServiceId,
   });
-  const [producerKey, catalogEntry, agreementEntry, purposeEntry] =
-    await Promise.all([
-      retrieveProducerKey(
-        dynamoDBClient,
-        producerKeychainPlatformStatesTable,
-        producerKeyPK
-      ),
-      retrieveCatalogEntry(
-        dynamoDBClient,
-        eServiceId,
-        descriptorId,
-        platformStatesTable
-      ),
-      retrieveAgreementEntry(
-        dynamoDBClient,
-        interaction.consumerId,
-        eServiceId,
-        platformStatesTable
-      ),
-      retrievePurposeEntry(
-        dynamoDBClient,
-        interaction.purposeId,
-        platformStatesTable
-      ),
-    ]);
+  const [producerKey, catalogEntry, tokenGenStatesEntry] = await Promise.all([
+    retrieveProducerKey(
+      dynamoDBClient,
+      producerKeychainPlatformStatesTable,
+      producerKeyPK
+    ),
+    retrieveCatalogEntry(
+      dynamoDBClient,
+      eServiceId,
+      descriptorId,
+      platformStatesTable
+    ),
+    retrieveTokenGenStatesEntryByPurposeId(
+      dynamoDBClient,
+      interaction.purposeId
+    ),
+  ]);
 
   // 6. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
@@ -153,22 +144,24 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 7. Validate platform state (catalog, agreement and purpose must be ACTIVE)
-  const stateErrors = [
-    catalogEntry.state !== itemState.active
-      ? invalidEServiceState(catalogEntry.state)
+  // 7. Validate platform state (agreement, purpose and descriptor must be ACTIVE)
+  //    Same semantics as start_interaction: read pre-computed states from
+  //    token-generation-states and aggregate errors into platformStateValidationFailed.
+  const platformStateErrors = [
+    tokenGenStatesEntry.agreementState !== itemState.active
+      ? invalidAgreementState(tokenGenStatesEntry.agreementState)
       : undefined,
-    agreementEntry.state !== itemState.active
-      ? invalidAgreementState(agreementEntry.state)
+    tokenGenStatesEntry.descriptorState !== itemState.active
+      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
       : undefined,
-    purposeEntry.state !== itemState.active
-      ? invalidPurposeState(purposeEntry.state)
+    tokenGenStatesEntry.purposeState !== itemState.active
+      ? invalidPurposeState(tokenGenStatesEntry.purposeState)
       : undefined,
   ].filter((e): e is NonNullable<typeof e> => e !== undefined);
 
-  if (stateErrors.length > 0) {
+  if (platformStateErrors.length > 0) {
     throw platformStateValidationFailed(
-      stateErrors.map((e) => e.detail).join(", ")
+      platformStateErrors.map((e) => e.detail).join(", ")
     );
   }
 
