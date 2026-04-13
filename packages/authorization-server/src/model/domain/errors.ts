@@ -5,6 +5,8 @@ import {
   InteractionState,
   makeApiProblemBuilder,
   ProducerKeychainPlatformStatesPK,
+  EServiceId,
+  PurposeId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
@@ -37,6 +39,8 @@ const errorCodes = {
   catalogEntryNotFound: "0026",
   asyncExchangeResponseTimeExceeded: "0027",
   entityNumberExceedsMaxResultSet: "0028",
+  agreementEntryNotFound: "0029",
+  purposeEntryNotFound: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -317,5 +321,26 @@ export function entityNumberExceedsMaxResultSet(
     detail: `entityNumber ${entityNumber} exceeds maxResultSet ${maxResultSet} for client ${clientId}`,
     code: "entityNumberExceedsMaxResultSet",
     title: "entityNumber exceeds maxResultSet",
+  });
+}
+
+export function agreementEntryNotFound(
+  consumerId: string,
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement entry not found in platform-states for consumer ${consumerId} and eService ${eserviceId}`,
+    code: "agreementEntryNotFound",
+    title: "Agreement entry not found",
+  });
+}
+
+export function purposeEntryNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose entry not found in platform-states for purpose ${purposeId}`,
+    code: "purposeEntryNotFound",
+    title: "Purpose entry not found",
   });
 }

@@ -11,10 +11,13 @@ import {
   getMockPurposeVersion,
   getMockClientAssertion,
   getMockContext,
+  writePlatformAgreementEntry,
+  writePlatformPurposeEntry,
   writeTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import {
+  AgreementId,
   ClientId,
   CorrelationId,
   DescriptorId,
@@ -26,10 +29,14 @@ import {
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
+  makePlatformStatesAgreementPK,
   makePlatformStatesEServiceDescriptorPK,
+  makePlatformStatesPurposePK,
   makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
+  PlatformStatesPurposeEntry,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
   Purpose,
@@ -101,8 +108,12 @@ const setupCallbackScenario = async (overrides?: {
   skipInteraction?: boolean;
   skipProducerKey?: boolean;
   skipCatalogEntry?: boolean;
+  skipAgreementEntry?: boolean;
+  skipPurposeEntry?: boolean;
   interactionStateOverride?: string;
   catalogEntryStateOverride?: ItemState;
+  agreementStateOverride?: ItemState;
+  purposeStateOverride?: ItemState;
 }): Promise<{
   producerJws: string;
   producerClientId: ClientId;
@@ -191,6 +202,38 @@ const setupCallbackScenario = async (overrides?: {
   };
 
   await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
+
+  // Platform-states agreement entry (consumed by callback_invocation state check)
+  if (!overrides?.skipAgreementEntry) {
+    const agreementEntry: PlatformStatesAgreementEntry = {
+      PK: makePlatformStatesAgreementPK({
+        consumerId: purpose.consumerId,
+        eserviceId: eServiceId,
+      }),
+      state: overrides?.agreementStateOverride ?? itemState.active,
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      agreementId: generateId<AgreementId>(),
+      agreementTimestamp: new Date().toISOString(),
+      agreementDescriptorId: descriptorId,
+      producerId: generateId<TenantId>(),
+    };
+    await writePlatformAgreementEntry(agreementEntry, dynamoDBClient);
+  }
+
+  // Platform-states purpose entry (consumed by callback_invocation state check)
+  if (!overrides?.skipPurposeEntry) {
+    const purposeEntry: PlatformStatesPurposeEntry = {
+      PK: makePlatformStatesPurposePK(purpose.id),
+      state: overrides?.purposeStateOverride ?? itemState.active,
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      purposeVersionId: purpose.versions[0].id,
+      purposeEserviceId: eServiceId,
+      purposeConsumerId: purpose.consumerId,
+    };
+    await writePlatformPurposeEntry(purposeEntry, dynamoDBClient);
+  }
 
   mockProducer.send.mockImplementationOnce(async () => [
     { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
@@ -601,5 +644,78 @@ describe("async token service - callback_invocation", () => {
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
     ).rejects.toThrowError(/entityNumber 101 exceeds maxResultSet 100/);
+  });
+
+  it("should throw agreementEntryNotFound when agreement platform-states entry does not exist", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      skipAgreementEntry: true,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Agreement entry not found/);
+  });
+
+  it("should throw purposeEntryNotFound when purpose platform-states entry does not exist", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      skipPurposeEntry: true,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Purpose entry not found/);
+  });
+
+  it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      agreementStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Agreement state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      purposeStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Purpose state is: INACTIVE/);
+  });
+
+  it("should aggregate multiple inactive state errors in platformStateValidationFailed", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      agreementStateOverride: itemState.inactive,
+      purposeStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(
+      /Agreement state is: INACTIVE.*Purpose state is: INACTIVE/
+    );
   });
 });

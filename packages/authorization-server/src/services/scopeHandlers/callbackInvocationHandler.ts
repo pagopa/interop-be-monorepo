@@ -7,7 +7,12 @@ import {
   unsafeBrandId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
-import { verifyClientAssertionSignature } from "pagopa-interop-client-assertion-validation";
+import {
+  invalidAgreementState,
+  invalidEServiceState,
+  invalidPurposeState,
+  verifyClientAssertionSignature,
+} from "pagopa-interop-client-assertion-validation";
 import {
   clientAssertionSignatureValidationFailed,
   entityNumberNotProvided,
@@ -22,8 +27,10 @@ import {
 import {
   logTokenGenerationInfo,
   publishProducerAudit,
+  retrieveAgreementEntry,
   retrieveCatalogEntry,
   retrieveProducerKey,
+  retrievePurposeEntry,
 } from "../../utilities/tokenServiceHelpers.js";
 import {
   readInteraction,
@@ -99,7 +106,7 @@ export const handleCallbackInvocation = async (
   // 4. Extract eServiceId and descriptorId from interaction
   const { eServiceId, descriptorId } = interaction;
 
-  // 5. Retrieve producer key and catalog entry in parallel
+  // 5. Retrieve producer key, catalog, agreement and purpose entries in parallel
   const kid = clientAssertionJWT.header.kid;
   const producerKeychainId = unsafeBrandId<ProducerKeychainId>(clientId);
   const producerKeyPK = makeProducerKeychainPlatformStatesPK({
@@ -107,19 +114,31 @@ export const handleCallbackInvocation = async (
     kid,
     eServiceId,
   });
-  const [producerKey, catalogEntry] = await Promise.all([
-    retrieveProducerKey(
-      dynamoDBClient,
-      producerKeychainPlatformStatesTable,
-      producerKeyPK
-    ),
-    retrieveCatalogEntry(
-      dynamoDBClient,
-      eServiceId,
-      descriptorId,
-      platformStatesTable
-    ),
-  ]);
+  const [producerKey, catalogEntry, agreementEntry, purposeEntry] =
+    await Promise.all([
+      retrieveProducerKey(
+        dynamoDBClient,
+        producerKeychainPlatformStatesTable,
+        producerKeyPK
+      ),
+      retrieveCatalogEntry(
+        dynamoDBClient,
+        eServiceId,
+        descriptorId,
+        platformStatesTable
+      ),
+      retrieveAgreementEntry(
+        dynamoDBClient,
+        interaction.consumerId,
+        eServiceId,
+        platformStatesTable
+      ),
+      retrievePurposeEntry(
+        dynamoDBClient,
+        interaction.purposeId,
+        platformStatesTable
+      ),
+    ]);
 
   // 6. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
@@ -134,10 +153,22 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 7. Validate catalog entry state
-  if (catalogEntry.state !== itemState.active) {
+  // 7. Validate platform state (catalog, agreement and purpose must be ACTIVE)
+  const stateErrors = [
+    catalogEntry.state !== itemState.active
+      ? invalidEServiceState(catalogEntry.state)
+      : undefined,
+    agreementEntry.state !== itemState.active
+      ? invalidAgreementState(agreementEntry.state)
+      : undefined,
+    purposeEntry.state !== itemState.active
+      ? invalidPurposeState(purposeEntry.state)
+      : undefined,
+  ].filter((e): e is NonNullable<typeof e> => e !== undefined);
+
+  if (stateErrors.length > 0) {
     throw platformStateValidationFailed(
-      `E-Service descriptor state is: ${catalogEntry.state}`
+      stateErrors.map((e) => e.detail).join(", ")
     );
   }
 

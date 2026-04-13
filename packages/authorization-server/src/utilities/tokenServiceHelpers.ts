@@ -13,6 +13,11 @@ import {
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  PlatformStatesAgreementEntry,
+  PlatformStatesPurposeEntry,
+  makePlatformStatesAgreementPK,
+  makePlatformStatesPurposePK,
+  PurposeId,
   PlatformStatesCatalogEntry,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
@@ -55,6 +60,8 @@ import {
   kafkaAuditingFailed,
   producerKeychainEntryNotFound,
   tokenGenerationStatesEntryNotFound,
+  agreementEntryNotFound,
+  purposeEntryNotFound,
 } from "../model/domain/errors.js";
 
 const EXPECTED_HTM = "POST";
@@ -142,6 +149,80 @@ export const retrieveCatalogEntry = async (
   }
 
   return catalogEntry.data;
+};
+
+export const retrieveAgreementEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  platformStatesTable: string
+): Promise<PlatformStatesAgreementEntry> => {
+  const pk = makePlatformStatesAgreementPK({
+    consumerId,
+    eserviceId,
+  });
+
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: pk },
+    },
+    TableName: platformStatesTable,
+  };
+
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    throw agreementEntryNotFound(consumerId, eserviceId);
+  }
+
+  const unmarshalled = unmarshall(data.Item);
+  const agreementEntry = PlatformStatesAgreementEntry.safeParse(unmarshalled);
+
+  if (!agreementEntry.success) {
+    throw genericInternalError(
+      `Unable to parse platform-states agreement entry: result ${JSON.stringify(
+        agreementEntry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return agreementEntry.data;
+};
+
+export const retrievePurposeEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId,
+  platformStatesTable: string
+): Promise<PlatformStatesPurposeEntry> => {
+  const pk = makePlatformStatesPurposePK(purposeId);
+
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: pk },
+    },
+    TableName: platformStatesTable,
+  };
+
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    throw purposeEntryNotFound(purposeId);
+  }
+
+  const unmarshalled = unmarshall(data.Item);
+  const purposeEntry = PlatformStatesPurposeEntry.safeParse(unmarshalled);
+
+  if (!purposeEntry.success) {
+    throw genericInternalError(
+      `Unable to parse platform-states purpose entry: result ${JSON.stringify(
+        purposeEntry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return purposeEntry.data;
 };
 
 const NIL_UUID = "00000000-0000-0000-0000-000000000000";
