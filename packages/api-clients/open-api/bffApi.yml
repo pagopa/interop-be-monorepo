@@ -25941,6 +25941,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
@@ -28485,6 +28487,7 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - id
         - name
@@ -28529,6 +28532,7 @@ components:
           type: integer
           format: int32
           minimum: 1
+          maximum: 1000000000
       required:
         - id
         - explicitAttributeVerification
@@ -28894,6 +28898,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - externalId
