@@ -1,16 +1,19 @@
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockWithMetadata,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockedApiEserviceDoc,
-  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  invalidContentTypeDetected,
+  invalidServerUrl,
   pollingMaxRetriesExceeded,
+  technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
@@ -161,6 +164,85 @@ servers:
       params: { eServiceId: mockGetEServiceResponse.data.id },
     });
     expect(mockGetEService).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should throw invalidContentTypeDetected in case the file uploaded has an invalid content type", async () => {
+    const invalidFile = new File(
+      [mockFileUpload.file],
+      mockFileUpload.file.name,
+      {
+        type: "",
+        lastModified: mockFileUpload.file.lastModified,
+      }
+    );
+
+    const invalidFileUpload = {
+      file: invalidFile,
+      prettyName: mockFileUpload.prettyName,
+    };
+
+    await expect(
+      eserviceService.uploadEServiceDescriptorInterface(
+        unsafeBrandId(mockGetEServiceResponse.data.id),
+        unsafeBrandId(mockDescriptor.id),
+        invalidFileUpload,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidContentTypeDetected(
+        {
+          id: mockGetEServiceResponse.data.id,
+          isEserviceTemplate: false,
+        },
+        "invalid",
+        technology.rest
+      )
+    );
+  });
+
+  it("Should throw invalidServerUrl in case the server urls are invalid", async () => {
+    const invalidServerUrls = ["invalidserverurl", "invalidserverurl2"];
+    const mockFileBuffer = Buffer.from(
+      `
+openapi: "3.0.2"
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+  description: A sample API that uses a petstore as an example to demonstrate features in the OpenAPI 3.0 specification
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: Swagger API Team
+    email: apiteam@swagger.io
+    url: http://swagger.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: ${invalidServerUrls[0]}
+  - url: ${invalidServerUrls[1]}
+    `.trim()
+    );
+
+    const mockFileUpload: m2mGatewayApiV3.FileUploadMultipart = {
+      file: new File([mockFileBuffer], mockAddDocumentResponse.data.name, {
+        type: mockAddDocumentResponse.data.contentType,
+      }),
+      prettyName: mockAddDocumentResponse.data.prettyName,
+    };
+
+    await expect(
+      eserviceService.uploadEServiceDescriptorInterface(
+        unsafeBrandId(mockGetEServiceResponse.data.id),
+        unsafeBrandId(mockDescriptor.id),
+        mockFileUpload,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidServerUrl({
+        id: mockGetEServiceResponse.data.id,
+        isEserviceTemplate: false,
+      })
+    );
   });
 
   it("Should throw missingMetadata in case the data returned by the POST call has no metadata", async () => {
