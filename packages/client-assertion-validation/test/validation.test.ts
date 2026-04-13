@@ -1255,6 +1255,24 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("12345"));
     });
 
+    it("invalidUrlCallbackClaimFormat - invalid URL format", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: "not-a-url",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("not-a-url"));
+    });
+
     it("invalidEntityNumberClaimFormat - not a number", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {

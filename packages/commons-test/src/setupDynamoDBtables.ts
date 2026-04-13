@@ -48,6 +48,14 @@ export const buildDynamoDBTables = async (
     interactionsTableDefinition
   );
   await dynamoDBClient.send(interactionsCreationCommand);
+  const interactionsTtlCommand = new UpdateTimeToLiveCommand({
+    TableName: interactionsTableDefinition.TableName,
+    TimeToLiveSpecification: {
+      Enabled: true,
+      AttributeName: "ttl",
+    },
+  });
+  await dynamoDBClient.send(interactionsTtlCommand);
 
   const dpopCacheSchemaPath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),

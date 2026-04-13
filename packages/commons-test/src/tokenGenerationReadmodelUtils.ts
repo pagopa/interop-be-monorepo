@@ -177,6 +177,13 @@ export const writeTokenGenStatesConsumerClient = async (
             },
           }
         : {}),
+      ...(tokenGenStatesEntry.asyncExchange != null
+        ? {
+            asyncExchange: {
+              BOOL: tokenGenStatesEntry.asyncExchange,
+            },
+          }
+        : {}),
     },
     TableName: "token-generation-states",
   };
