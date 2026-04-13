@@ -27,6 +27,7 @@ import {
   CertifiedAttributeV2,
   DeclaredAttributeV2,
   VerifiedAttributeV2,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import {
   genericLogger,
@@ -290,3 +291,8 @@ const updateOneAgreementRelationalDB = async (
 
   await upsertAgreement(readModelDB, agreement, currentVersion + 1);
 };
+
+export const getIpaCode = (tenant: Tenant): string | undefined =>
+  tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+    ? tenant.externalId.value
+    : undefined;
