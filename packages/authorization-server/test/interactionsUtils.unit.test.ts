@@ -12,6 +12,7 @@ import {
   PurposeId,
   InteractionId,
 } from "pagopa-interop-models";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   createInteraction,
   isInteractionStateAllowedForScope,
@@ -20,6 +21,7 @@ import {
 } from "../src/utilities/interactionsUtils.js";
 
 const interactionsTable = "interactions";
+const ttlSeconds = 3600;
 
 describe("interactions utils", () => {
   const mockSend = vi.fn();
@@ -50,6 +52,7 @@ describe("interactions utils", () => {
       eServiceId,
       descriptorId,
       issuedAt,
+      ttlSeconds,
     });
 
     const putItemCall = mockSend.mock.calls[0][0] as PutItemCommand;
@@ -66,6 +69,7 @@ describe("interactions utils", () => {
     );
 
     expect(retrieved).toEqual(created);
+    expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
   it("should not create duplicated interaction", async () => {
@@ -87,6 +91,7 @@ describe("interactions utils", () => {
         eServiceId,
         descriptorId,
         issuedAt,
+        ttlSeconds,
       })
     ).rejects.toThrow();
   });
@@ -104,6 +109,7 @@ describe("interactions utils", () => {
       state: "start_interaction",
       startInteractionTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
@@ -142,6 +148,7 @@ describe("interactions utils", () => {
       state: "callback_invocation",
       callbackInvocationTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });

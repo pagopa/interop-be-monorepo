@@ -363,7 +363,7 @@ export function invalidUrlCallbackClaimFormat(
   urlCallback: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `urlCallback claim ${urlCallback} is not a valid string`,
+    detail: `urlCallback claim ${urlCallback} is not a valid URL`,
     code: "invalidUrlCallbackClaimFormat",
     title: "Invalid urlCallback claim format",
   });
