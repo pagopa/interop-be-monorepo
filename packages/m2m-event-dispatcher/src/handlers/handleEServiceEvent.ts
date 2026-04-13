@@ -127,7 +127,6 @@ async function handleEServiceEventV2(
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingScheduledDeleted",
-            "EServiceDescriptorArchivingScheduledExpired",  // FIXME: not to be in M2M events?
             "EServiceDescriptorManualArchived"
           ),
         },

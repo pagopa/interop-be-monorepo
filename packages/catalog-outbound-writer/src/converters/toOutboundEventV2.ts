@@ -157,7 +157,6 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingScheduledDeleted" },
-      { type: "EServiceDescriptorArchivingScheduledExpired" },
       { type: "EServiceDescriptorManualArchived" },
       (msg) => ({
         event_version: msg.event_version,

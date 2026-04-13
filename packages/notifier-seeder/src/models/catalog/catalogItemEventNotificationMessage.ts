@@ -52,7 +52,6 @@ const eventV2TypeMapper = (
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       "EServiceDescriptorArchivingScheduled",
       "EServiceDescriptorArchivingScheduledDeleted",
-      "EServiceDescriptorArchivingScheduledExpired",
       "EServiceDescriptorManualArchived",
       () => "catalog_item_descriptor_updated"
     )

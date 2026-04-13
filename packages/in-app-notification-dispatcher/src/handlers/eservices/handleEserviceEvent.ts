@@ -95,7 +95,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "EServiceDescriptorArchivingScheduledExpired",
         ),
       },
       () => {

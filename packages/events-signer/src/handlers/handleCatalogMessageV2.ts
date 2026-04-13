@@ -111,7 +111,6 @@ export const handleCatalogMessageV2 = async (
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
-            "EServiceDescriptorArchivingScheduledExpired"
           ),
         },
         (event) => {

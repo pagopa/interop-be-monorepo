@@ -66,7 +66,6 @@ export async function handleMessageV2(
           "EServiceInstanceLabelUpdated",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorArchivingScheduledExpired",
           "EServiceDescriptorManualArchived"
         )
       },

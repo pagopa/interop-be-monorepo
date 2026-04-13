@@ -156,7 +156,6 @@ export async function handleCatalogMessage(
           "EServiceInstanceLabelUpdated",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorArchivingScheduledExpired",
           "EServiceDescriptorManualArchived"
         ),
       },

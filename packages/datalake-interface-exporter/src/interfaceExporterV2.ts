@@ -83,7 +83,6 @@ export async function exportInterfaceV2(
     .with(
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingScheduledDeleted" },
-      { type: "EServiceDescriptorArchivingScheduledExpired" },
       { type: "EServiceDescriptorManualArchived" },
       () => undefined
     )

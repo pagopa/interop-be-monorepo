@@ -153,7 +153,6 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorArchivingScheduledExpired",
           "EServiceDescriptorManualArchived"
         ),
       },

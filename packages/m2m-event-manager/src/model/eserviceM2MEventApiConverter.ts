@@ -145,10 +145,6 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED_DELETED"
     )
     .with(
-      "EServiceDescriptorArchivingScheduledExpired",
-      () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED_EXPIRED"
-    )
-    .with(
       "EServiceDescriptorManualArchived",
       () => "ESERVICE_DESCRIPTOR_MANUAL_ARCHIVED"
     )
