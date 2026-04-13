@@ -79,9 +79,7 @@ async function processMessage(
       },
       logger
     );
-    logger.info(
-      `Processed voucher audit with key: ${key} and file: ${fileName}`
-    );
+    logger.info(`Processed voucher audit with key: ${key} and file: ${s3Key}`);
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;

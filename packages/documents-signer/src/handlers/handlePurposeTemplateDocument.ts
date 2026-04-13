@@ -52,8 +52,9 @@ export async function handlePurposeTemplateDocument(
         logger
       );
 
+      const fileBuffer = Buffer.from(file);
       const fileName = path.basename(s3Key);
-      const checksum = await calculateSha256Base64(Buffer.from(file));
+      const checksum = await calculateSha256Base64(fileBuffer);
       const contentType = "application/pdf";
 
       const safeStorageRequest: FileCreationRequest = {
@@ -69,12 +70,12 @@ export async function handlePurposeTemplateDocument(
       );
 
       logger.info(
-        `Created file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
+        `Created file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
       );
 
       await safeStorageService.uploadFileContent(
         uploadUrl,
-        Buffer.from(file),
+        fileBuffer,
         contentType,
         secret,
         checksum,
@@ -82,7 +83,7 @@ export async function handlePurposeTemplateDocument(
       );
 
       logger.info(
-        `Uploaded file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${Buffer.from(file).length} bytes`
+        `Uploaded file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
       );
 
       await signatureService.saveDocumentSignatureReference(

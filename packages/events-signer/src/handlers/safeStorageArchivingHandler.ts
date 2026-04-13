@@ -45,7 +45,7 @@ export const archiveFileToSafeStorage = async (
     );
 
     logger.info(
-      `Created file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
+      `Created file ${s3FullPath} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
     );
 
     await safeStorage.uploadFileContent(
@@ -58,7 +58,7 @@ export const archiveFileToSafeStorage = async (
     );
 
     logger.info(
-      `Uploaded file ${fileName} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
+      `Uploaded file ${s3FullPath} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
     );
 
     const signatureReference = {
