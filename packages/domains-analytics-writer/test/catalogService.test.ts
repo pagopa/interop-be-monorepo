@@ -1059,7 +1059,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
   it("EServiceDescriptorAdded: inserts asyncExchangeProperties row", async () => {
     const mock = getMockEService();
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       asyncExchangeProperties: {
         responseTime: 60,
@@ -1119,7 +1119,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
   it("EServiceDraftDescriptorUpdated: removes asyncExchangeProperties when absent in newer snapshot", async () => {
     const mock = getMockEService();
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       asyncExchangeProperties: {
         responseTime: 60,
@@ -1154,7 +1154,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     );
     expect(storedBefore.length).toBe(1);
 
-    const descriptorWithout = {
+    const descriptorWithoutAsyncExchangeProperties: Descriptor = {
       ...descriptor,
       asyncExchangeProperties: undefined,
     };
@@ -1169,7 +1169,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
           data: {
             eservice: toEServiceV2({
               ...mock,
-              descriptors: [descriptorWithout],
+              descriptors: [descriptorWithoutAsyncExchangeProperties],
             }),
             descriptorId: descriptor.id,
           },
@@ -1189,7 +1189,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
   it("EServiceDeleted: marks asyncExchangeProperties row as deleted", async () => {
     const mock = getMockEService();
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       asyncExchangeProperties: {
         responseTime: 60,
