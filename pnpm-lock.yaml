@@ -3354,6 +3354,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
