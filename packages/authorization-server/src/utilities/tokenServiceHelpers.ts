@@ -35,6 +35,7 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { z } from "zod";
 import { match } from "ts-pattern";
 import {
   FileManager,
@@ -67,7 +68,9 @@ const EXPECTED_HTM = "POST";
 
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
-  pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
+  pk:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK,
 ): Promise<
   FullTokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
 > => {
@@ -91,8 +94,8 @@ export const retrieveKey = async (
     if (!tokenGenStatesClient.success) {
       throw genericInternalError(
         `Unable to parse token-generation-states client: result ${JSON.stringify(
-          tokenGenStatesClient
-        )} - data ${JSON.stringify(data)} `
+          tokenGenStatesClient,
+        )} - data ${JSON.stringify(data)} `,
       );
     }
 
@@ -115,7 +118,7 @@ export const retrieveCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  platformStatesTable: string
+  platformStatesTable: string,
 ): Promise<PlatformStatesCatalogEntry> => {
   const pk = makePlatformStatesEServiceDescriptorPK({
     eserviceId,
@@ -142,8 +145,8 @@ export const retrieveCatalogEntry = async (
   if (!catalogEntry.success) {
     throw genericInternalError(
       `Unable to parse platform-states catalog entry: result ${JSON.stringify(
-        catalogEntry
-      )} - data ${JSON.stringify(data)} `
+        catalogEntry,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -152,10 +155,11 @@ export const retrieveCatalogEntry = async (
 
 export const retrieveTokenGenStatesEntryByPurposeId = async (
   dynamoDBClient: DynamoDBClient,
-  purposeId: PurposeId
+  purposeId: PurposeId,
+  tokenGenerationStatesTable: string,
 ): Promise<TokenGenStatesConsumerClientGSIPurpose> => {
   const input: QueryInput = {
-    TableName: config.tokenGenerationStatesTable,
+    TableName: tokenGenerationStatesTable,
     IndexName: "Purpose",
     KeyConditionExpression: "GSIPK_purposeId = :purposeId",
     ExpressionAttributeValues: {
@@ -177,8 +181,8 @@ export const retrieveTokenGenStatesEntryByPurposeId = async (
   if (!entry.success) {
     throw genericInternalError(
       `Unable to parse token-generation-states entry from Purpose GSI: result ${JSON.stringify(
-        entry
-      )} - data ${JSON.stringify(data)} `
+        entry,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
@@ -301,7 +305,7 @@ export const publishAudit = async ({
   logger: Logger;
 }): Promise<void> => {
   const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
+    key.GSIPK_eserviceId_descriptorId,
   );
   const messageBody = buildAuditMessageBody({
     generatedToken,
@@ -322,7 +326,7 @@ export const publishAudit = async ({
 export const fallbackAudit = async (
   messageBody: GeneratedTokenAuditDetails,
   fileManager: FileManager,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> => {
   const date = new Date();
   const ymdDate = formatDateyyyyMMdd(date);
@@ -339,7 +343,7 @@ export const fallbackAudit = async (
         name: fileName,
         content: Buffer.from(JSON.stringify(messageBody)),
       },
-      logger
+      logger,
     );
     logger.info("Auditing succeeded through fallback");
   } catch (err) {
@@ -390,7 +394,7 @@ export const publishProducerAudit = async ({
 };
 
 export const deconstructGSIPK_eserviceId_descriptorId = (
-  gsi: GSIPKEServiceIdDescriptorId
+  gsi: GSIPKEServiceIdDescriptorId,
 ): { eserviceId: EServiceId; descriptorId: DescriptorId } => {
   const substrings = gsi.split("#");
   const eserviceId = substrings[0];
@@ -399,7 +403,7 @@ export const deconstructGSIPK_eserviceId_descriptorId = (
 
   if (!parsedEserviceId.success) {
     throw genericInternalError(
-      `Unable to parse extract eserviceId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
+      `Unable to parse extract eserviceId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`,
     );
   }
 
@@ -407,7 +411,7 @@ export const deconstructGSIPK_eserviceId_descriptorId = (
 
   if (!parsedDescriptorId.success) {
     throw genericInternalError(
-      `Unable to parse extract descriptorId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`
+      `Unable to parse extract descriptorId from GSIPKEServiceIdDescriptorId: ${GSIPKEServiceIdDescriptorId}`,
     );
   }
 
@@ -438,21 +442,24 @@ export const logTokenGenerationInfo = ({
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
 
-type ProducerKeychainPlatformStateEntry = {
-  PK: ProducerKeychainPlatformStatesPK;
-  publicKey: string;
-  producerKeychainId: ProducerKeychainId;
-  producerId: TenantId;
-  kid: string;
-  eServiceId: EServiceId;
-  version: number;
-  updatedAt: string;
-};
+const ProducerKeychainPlatformStateEntry = z.object({
+  PK: ProducerKeychainPlatformStatesPK,
+  publicKey: z.string(),
+  producerKeychainId: ProducerKeychainId,
+  producerId: TenantId,
+  kid: z.string(),
+  eServiceId: EServiceId,
+  version: z.number(),
+  updatedAt: z.string(),
+});
+type ProducerKeychainPlatformStateEntry = z.infer<
+  typeof ProducerKeychainPlatformStateEntry
+>;
 
 export const retrieveProducerKey = async (
   dynamoDBClient: DynamoDBClient,
   tableName: string,
-  pk: ProducerKeychainPlatformStatesPK
+  pk: ProducerKeychainPlatformStatesPK,
 ): Promise<ProducerKeychainPlatformStateEntry> => {
   const input: GetItemInput = {
     Key: {
@@ -463,7 +470,7 @@ export const retrieveProducerKey = async (
   };
 
   const data: GetItemCommandOutput = await dynamoDBClient.send(
-    new GetItemCommand(input)
+    new GetItemCommand(input),
   );
 
   if (!data.Item) {
@@ -471,30 +478,23 @@ export const retrieveProducerKey = async (
   }
 
   const unmarshalled = unmarshall(data.Item);
+  const entry = ProducerKeychainPlatformStateEntry.safeParse(unmarshalled);
 
-  if (
-    typeof unmarshalled.PK !== "string" ||
-    typeof unmarshalled.publicKey !== "string" ||
-    typeof unmarshalled.producerKeychainId !== "string" ||
-    typeof unmarshalled.producerId !== "string" ||
-    typeof unmarshalled.kid !== "string" ||
-    typeof unmarshalled.eServiceId !== "string" ||
-    typeof unmarshalled.version !== "number"
-  ) {
+  if (!entry.success) {
     throw genericInternalError(
-      `Unable to parse producer-keychain-platform-states entry: ${JSON.stringify(
-        data.Item
-      )}`
+      `Unable to parse producer-keychain-platform-states entry: result ${JSON.stringify(
+        entry,
+      )} - data ${JSON.stringify(data)} `,
     );
   }
 
-  return unmarshalled as ProducerKeychainPlatformStateEntry;
+  return entry.data;
 };
 
 export const validateDPoPProof = async (
   dpopProofHeader: string | undefined,
   clientId: string | undefined,
-  logger: Logger
+  logger: Logger,
 ): Promise<{
   dpopProofJWS: string | undefined;
   dpopProofJWT: DPoPProof | undefined;
@@ -512,7 +512,7 @@ export const validateDPoPProof = async (
   if (dpopProofErrors) {
     throw dpopProofValidationFailed(
       clientId,
-      dpopProofErrors.map((error) => error.detail).join(", ")
+      dpopProofErrors.map((error) => error.detail).join(", "),
     );
   }
 
@@ -522,13 +522,13 @@ export const validateDPoPProof = async (
   if (dpopProofJWT && dpopProofJWS) {
     const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
       dpopProofJWS,
-      dpopProofJWT.header.jwk
+      dpopProofJWT.header.jwk,
     );
 
     if (dpopProofSignatureErrors) {
       throw dpopProofSignatureValidationFailed(
         clientId,
-        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
+        dpopProofSignatureErrors.map((error) => error.detail).join(", "),
       );
     }
 

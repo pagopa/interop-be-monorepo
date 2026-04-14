@@ -42,7 +42,7 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleCallbackInvocation = async (
-  ctx: ScopeHandlerContext
+  ctx: ScopeHandlerContext,
 ): Promise<AsyncGeneratedTokenData> => {
   const {
     clientAssertionJWT,
@@ -59,6 +59,7 @@ export const handleCallbackInvocation = async (
     tokenGenerator,
     interactionsTable,
     platformStatesTable,
+    tokenGenerationStatesTable,
     producerKeychainPlatformStatesTable,
   } = ctx;
 
@@ -82,7 +83,7 @@ export const handleCallbackInvocation = async (
   const interaction = await readInteraction(
     dynamoDBClient,
     interactionId,
-    interactionsTable
+    interactionsTable,
   );
   if (!interaction) {
     throw interactionNotFound(interactionId);
@@ -98,7 +99,7 @@ export const handleCallbackInvocation = async (
     throw interactionStateNotAllowed(
       interactionId,
       interaction.state,
-      interactionState.callbackInvocation
+      interactionState.callbackInvocation,
     );
   }
 
@@ -117,17 +118,18 @@ export const handleCallbackInvocation = async (
     retrieveProducerKey(
       dynamoDBClient,
       producerKeychainPlatformStatesTable,
-      producerKeyPK
+      producerKeyPK,
     ),
     retrieveCatalogEntry(
       dynamoDBClient,
       eServiceId,
       descriptorId,
-      platformStatesTable
+      platformStatesTable,
     ),
     retrieveTokenGenStatesEntryByPurposeId(
       dynamoDBClient,
-      interaction.purposeId
+      interaction.purposeId,
+      tokenGenerationStatesTable,
     ),
   ]);
 
@@ -135,12 +137,12 @@ export const handleCallbackInvocation = async (
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     { publicKey: producerKey.publicKey },
-    clientAssertionJWT.header.alg
+    clientAssertionJWT.header.alg,
   );
   if (signatureErrors) {
     throw clientAssertionSignatureValidationFailed(
       clientId,
-      signatureErrors.map((error) => error.detail).join(", ")
+      signatureErrors.map((error) => error.detail).join(", "),
     );
   }
 
@@ -161,7 +163,7 @@ export const handleCallbackInvocation = async (
 
   if (platformStateErrors.length > 0) {
     throw platformStateValidationFailed(
-      platformStateErrors.map((e) => e.detail).join(", ")
+      platformStateErrors.map((e) => e.detail).join(", "),
     );
   }
 
@@ -169,13 +171,13 @@ export const handleCallbackInvocation = async (
   const { asyncExchangeProperties } = catalogEntry;
   if (!asyncExchangeProperties) {
     throw genericInternalError(
-      `Catalog entry for eService ${eServiceId} descriptor ${descriptorId} has no asyncExchangeProperties`
+      `Catalog entry for eService ${eServiceId} descriptor ${descriptorId} has no asyncExchangeProperties`,
     );
   }
 
   if (!interaction.startInteractionTokenIssuedAt) {
     throw genericInternalError(
-      `Interaction ${interactionId} missing startInteractionTokenIssuedAt`
+      `Interaction ${interactionId} missing startInteractionTokenIssuedAt`,
     );
   }
 
@@ -186,7 +188,7 @@ export const handleCallbackInvocation = async (
     throw asyncExchangeResponseTimeExceeded(
       interactionId,
       elapsedMs,
-      responseTimeLimitMs
+      responseTimeLimitMs,
     );
   }
 
@@ -194,17 +196,19 @@ export const handleCallbackInvocation = async (
     throw entityNumberExceedsMaxResultSet(
       clientId,
       entityNumber,
-      asyncExchangeProperties.maxResultSet
+      asyncExchangeProperties.maxResultSet,
     );
   }
 
   // 9. Rate limiting
   setCtxOrganizationId(producerKey.producerId);
+  // clientKindTokenGenStates only has CONSUMER and API — no PRODUCER kind exists.
+  // CONSUMER is used here for rate-limit and observability context.
   setCtxClientKind(clientKindTokenGenStates.consumer);
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(
       producerKey.producerId,
-      logger
+      logger,
     );
   if (limitReached) {
     return {

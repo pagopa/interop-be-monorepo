@@ -60,6 +60,7 @@ export type ScopeHandlerContext = {
   setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void;
   tokenGenerator: InteropTokenGenerator;
   platformStatesTable: string;
+  tokenGenerationStatesTable: string;
   interactionsTable: string;
   interactionTtlEpsilonSeconds: number;
   producerKeychainPlatformStatesTable: string;
@@ -122,17 +123,17 @@ export function asyncTokenServiceBuilder({
       getCtx: () => WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void,
-      setCtxOrganizationId: (organizationId: TenantId) => void
+      setCtxOrganizationId: (organizationId: TenantId) => void,
     ): Promise<AsyncGeneratedTokenData> {
       getCtx().logger.info(
-        `[CLIENTID=${body.client_id}] Async token requested`
+        `[CLIENTID=${body.client_id}] Async token requested`,
       );
 
       // DPoP proof validation
       const { dpopProofJWT } = await validateDPoPProof(
         headers.DPoP,
         body.client_id,
-        getCtx().logger
+        getCtx().logger,
       );
 
       // Request body parameters validation
@@ -146,7 +147,7 @@ export function asyncTokenServiceBuilder({
       if (parametersErrors) {
         throw asyncRequestValidationFailed(
           body.client_id,
-          parametersErrors.map((error) => error.detail).join(", ")
+          parametersErrors.map((error) => error.detail).join(", "),
         );
       }
 
@@ -156,13 +157,13 @@ export function asyncTokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          getCtx().logger
+          getCtx().logger,
         );
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
           body.client_id,
-          clientAssertionErrors.map((error) => error.detail).join(", ")
+          clientAssertionErrors.map((error) => error.detail).join(", "),
         );
       }
 
@@ -211,6 +212,7 @@ export function asyncTokenServiceBuilder({
         setCtxClientKind,
         tokenGenerator,
         platformStatesTable: config.platformStatesTable,
+        tokenGenerationStatesTable: config.tokenGenerationStatesTable,
         interactionsTable: config.interactionsTable,
         interactionTtlEpsilonSeconds: config.interactionTtlEpsilonSeconds,
         producerKeychainPlatformStatesTable:
@@ -224,14 +226,14 @@ export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
 const generateAsyncTokenByScope = async (
   scope: InteractionState,
-  ctx: ScopeHandlerContext
+  ctx: ScopeHandlerContext,
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
     .with(interactionState.startInteraction, async () =>
-      handleStartInteraction(ctx)
+      handleStartInteraction(ctx),
     )
     .with(interactionState.callbackInvocation, async () =>
-      handleCallbackInvocation(ctx)
+      handleCallbackInvocation(ctx),
     )
     .with(interactionState.getResource, async () => {
       throw asyncScopeNotYetImplemented(interactionState.getResource);
