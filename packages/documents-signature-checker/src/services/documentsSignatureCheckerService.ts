@@ -1,0 +1,309 @@
+import type { FileManager, Logger } from "pagopa-interop-commons";
+import type { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+import type {
+  DocumentCheckIssue,
+  DocumentEntityType,
+  EntityTypeReport,
+  JobReport,
+} from "../models/report.js";
+import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
+import {
+  assertSignedContentMatchesUnsigned,
+  assertSignedFileExists,
+  assertSignedFileNotEmptyPayload,
+  assertSignedFileValidCms,
+  assertSignedMetadataPresent,
+  assertSignedPathPresent,
+  assertUnsignedFileExists,
+  assertUnsignedFileValid,
+  assertUnsignedPathPresent,
+  type DocumentToCheck,
+} from "./validators.js";
+
+type TimeRange = {
+  from: Date;
+  to: Date;
+};
+
+type PreparedDocument = {
+  document: DocumentToCheck;
+  logContext: string;
+};
+
+type DocumentInput = {
+  entityType: DocumentEntityType;
+  entityId: string;
+  unsignedPath: string | null | undefined;
+  signedRecord: { path?: string | null } | null;
+  extraLogFields?: Record<string, string | number | undefined>;
+};
+
+type DocumentAssertion = (
+  document: DocumentToCheck
+) => Promise<DocumentCheckIssue | undefined> | DocumentCheckIssue | undefined;
+
+const documentAssertions: readonly DocumentAssertion[] = [
+  assertUnsignedPathPresent,
+  assertUnsignedFileExists,
+  assertUnsignedFileValid,
+  assertSignedMetadataPresent,
+  assertSignedPathPresent,
+  assertSignedFileExists,
+  assertSignedFileValidCms,
+  assertSignedFileNotEmptyPayload,
+  assertSignedContentMatchesUnsigned,
+];
+
+function formatKeyValues(
+  fields: Record<string, string | number | boolean | null | undefined>
+): string {
+  return Object.entries(fields)
+    .filter(([, value]) => value != null)
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join(" ");
+}
+
+function getTimeRange(
+  documentsLookBackDays: number,
+  referenceDate: Date
+): TimeRange {
+  const to = new Date(referenceDate);
+  to.setHours(0, 0, 0, 0);
+
+  const from = new Date(to);
+  from.setDate(from.getDate() - documentsLookBackDays);
+
+  return { from, to };
+}
+
+function makeUnexpectedIssue(
+  document: DocumentToCheck,
+  error: unknown
+): DocumentCheckIssue {
+  return {
+    code: "UNEXPECTED_CHECK_ERROR",
+    entityType: document.entityType,
+    entityId: document.entityId,
+    message: "Unexpected error during document verification",
+    details: {
+      unsignedPath: document.unsignedDocument.path ?? undefined,
+      signedPath: document.signedDocument.path ?? undefined,
+      error: error instanceof Error ? error.message : String(error),
+    },
+  };
+}
+
+async function collectIssues(
+  document: DocumentToCheck
+): Promise<DocumentCheckIssue[]> {
+  const results = await Promise.all(
+    documentAssertions.map((assertion) => assertion(document))
+  );
+
+  return results.filter(
+    (result): result is DocumentCheckIssue => result !== undefined
+  );
+}
+
+async function downloadDocument(
+  fileManager: FileManager,
+  logger: Logger,
+  bucket: string,
+  path: string | null | undefined,
+  logContext: string,
+  fileRole: "unsigned" | "signed"
+): Promise<Uint8Array | undefined> {
+  if (!path || path.trim() === "") {
+    return undefined;
+  }
+
+  try {
+    return await fileManager.get(bucket, path, logger);
+  } catch (error) {
+    logger.error(
+      `Unable to download ${fileRole} document from S3: ${logContext} bucket=${bucket} path=${path} error=${String(error)}`
+    );
+    return undefined;
+  }
+}
+
+async function prepareDocument(
+  fileManager: FileManager,
+  logger: Logger,
+  unsignedBucket: string,
+  signedBucket: string,
+  input: DocumentInput
+): Promise<PreparedDocument> {
+  const logContext = formatKeyValues({
+    entityType: input.entityType,
+    entityId: input.entityId,
+    unsignedPath: input.unsignedPath,
+    signedPath: input.signedRecord?.path,
+    ...input.extraLogFields,
+  });
+
+  const [unsignedContent, signedContent] = await Promise.all([
+    downloadDocument(
+      fileManager,
+      logger,
+      unsignedBucket,
+      input.unsignedPath,
+      logContext,
+      "unsigned"
+    ),
+    downloadDocument(
+      fileManager,
+      logger,
+      signedBucket,
+      input.signedRecord?.path,
+      logContext,
+      "signed"
+    ),
+  ]);
+
+  return {
+    logContext,
+    document: {
+      entityType: input.entityType,
+      entityId: input.entityId,
+      unsignedDocument: {
+        path: input.unsignedPath,
+        content: unsignedContent,
+      },
+      signedDocument: {
+        metadata: input.signedRecord,
+        path: input.signedRecord?.path,
+        content: signedContent,
+      },
+    },
+  };
+}
+
+export function documentsSignatureCheckerServiceBuilder(
+  readModelDB: DrizzleReturnType,
+  fileManager: FileManager,
+  logger: Logger,
+  documentsLookBackDays: number,
+  unsignedBucket: string,
+  signedBucket: string
+) {
+  const readModelService = readModelServiceBuilderSQL(readModelDB);
+
+  function logIssue(issue: DocumentCheckIssue, logContext: string): void {
+    const details = issue.details ? ` ${formatKeyValues(issue.details)}` : "";
+    logger.error(
+      `Document verification issue: ${logContext} code=${issue.code} message=${issue.message}${details}`
+    );
+  }
+
+  return {
+    /**
+     * Fetches all documents (agreements, purposes, delegations) created in the
+     * configured look-back window ending at midnight of `referenceDate`, downloads
+     * their unsigned and signed files from S3, and runs the full assertion pipeline
+     * on each one.
+     *
+     * @param referenceDate - The upper bound of the time window (exclusive).
+     *   Defaults to today at midnight.
+     * @returns A {@link JobReport} with the total counts and the list of issues found.
+     */
+    async verify(referenceDate: Date = new Date()): Promise<JobReport> {
+      const { from, to } = getTimeRange(documentsLookBackDays, referenceDate);
+
+      logger.info(
+        `Documents signature checker started documentsLookBackDays=${documentsLookBackDays} from=${from.toISOString()} to=${to.toISOString()}`
+      );
+
+      const [agreements, purposes, delegations] = await Promise.all([
+        readModelService.getAgreementsContracts(from, to),
+        readModelService.getPurposeDocuments(from, to),
+        readModelService.getDelegationContracts(from, to),
+      ]);
+
+      logger.info(
+        `Documents signature checker fetched records agreements=${agreements.length} purposes=${purposes.length} delegations=${delegations.length}`
+      );
+
+      const preparedDocuments = await Promise.all([
+        ...agreements.map((record) =>
+          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+            entityType: "agreement",
+            entityId: record.unsigned.agreementId,
+            unsignedPath: record.unsigned.path,
+            signedRecord: record.signed,
+          })
+        ),
+        ...purposes.map((record) =>
+          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+            entityType: "purpose",
+            entityId: record.unsigned.purposeId,
+            unsignedPath: record.unsigned.path,
+            signedRecord: record.signed,
+            extraLogFields: {
+              purposeVersionId: record.unsigned.purposeVersionId,
+            },
+          })
+        ),
+        ...delegations.map((record) =>
+          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+            entityType: "delegation",
+            entityId: record.unsigned.delegationId,
+            unsignedPath: record.unsigned.path,
+            signedRecord: record.signed,
+            extraLogFields: { kind: record.unsigned.kind },
+          })
+        ),
+      ]);
+
+      const countsByEntityType: Record<DocumentEntityType, EntityTypeReport> = {
+        agreement: { conforming: 0, nonConforming: 0 },
+        purpose: { conforming: 0, nonConforming: 0 },
+        delegation: { conforming: 0, nonConforming: 0 },
+      };
+
+      const report: JobReport = {
+        processedCount: preparedDocuments.length,
+        successCount: 0,
+        issueCount: 0,
+        countsByEntityType,
+        issues: [],
+      };
+
+      for (const { document, logContext } of preparedDocuments) {
+        try {
+          const issues = await collectIssues(document);
+
+          if (issues.length === 0) {
+            report.successCount += 1;
+            countsByEntityType[document.entityType].conforming += 1;
+            continue;
+          }
+
+          report.issueCount += issues.length;
+          report.issues.push(...issues);
+          countsByEntityType[document.entityType].nonConforming += 1;
+          issues.forEach((issue) => logIssue(issue, logContext));
+        } catch (error) {
+          const issue = makeUnexpectedIssue(document, error);
+          report.issueCount += 1;
+          report.issues.push(issue);
+          countsByEntityType[document.entityType].nonConforming += 1;
+          logIssue(issue, logContext);
+        }
+      }
+
+      const perTypeSummary = (["agreement", "purpose", "delegation"] as const)
+        .map((entityType) => {
+          const counts = countsByEntityType[entityType];
+          return `${entityType}Conforming=${counts.conforming} ${entityType}NonConforming=${counts.nonConforming}`;
+        })
+        .join(" ");
+
+      logger.info(
+        `Documents signature checker summary processed=${report.processedCount} successful=${report.successCount} issues=${report.issueCount} ${perTypeSummary} documentsLookBackDays=${documentsLookBackDays} from=${from.toISOString()} to=${to.toISOString()}`
+      );
+
+      return report;
+    },
+  };
+}
