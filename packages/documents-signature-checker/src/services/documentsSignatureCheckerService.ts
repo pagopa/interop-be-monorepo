@@ -185,7 +185,8 @@ export function documentsSignatureCheckerServiceBuilder(
   logger: Logger,
   documentsLookBackDays: number,
   unsignedBucket: string,
-  signedBucket: string
+  signedBucket: string,
+  documentsBatchSize: number
 ) {
   const readModelService = readModelServiceBuilderSQL(readModelDB);
 
@@ -224,17 +225,17 @@ export function documentsSignatureCheckerServiceBuilder(
         `Documents signature checker fetched records agreements=${agreements.length} purposes=${purposes.length} delegations=${delegations.length}`
       );
 
-      const preparedDocuments = await Promise.all([
-        ...agreements.map((record) =>
-          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+      const documentInputs: DocumentInput[] = [
+        ...agreements.map(
+          (record): DocumentInput => ({
             entityType: "agreement",
             entityId: record.unsigned.agreementId,
             unsignedPath: record.unsigned.path,
             signedRecord: record.signed,
           })
         ),
-        ...purposes.map((record) =>
-          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+        ...purposes.map(
+          (record): DocumentInput => ({
             entityType: "purpose",
             entityId: record.unsigned.purposeId,
             unsignedPath: record.unsigned.path,
@@ -244,8 +245,8 @@ export function documentsSignatureCheckerServiceBuilder(
             },
           })
         ),
-        ...delegations.map((record) =>
-          prepareDocument(fileManager, logger, unsignedBucket, signedBucket, {
+        ...delegations.map(
+          (record): DocumentInput => ({
             entityType: "delegation",
             entityId: record.unsigned.delegationId,
             unsignedPath: record.unsigned.path,
@@ -253,7 +254,7 @@ export function documentsSignatureCheckerServiceBuilder(
             extraLogFields: { kind: record.unsigned.kind },
           })
         ),
-      ]);
+      ];
 
       const countsByEntityType: Record<DocumentEntityType, EntityTypeReport> = {
         agreement: { conforming: 0, nonConforming: 0 },
@@ -262,33 +263,56 @@ export function documentsSignatureCheckerServiceBuilder(
       };
 
       const report: JobReport = {
-        processedCount: preparedDocuments.length,
+        processedCount: documentInputs.length,
         successCount: 0,
         issueCount: 0,
         countsByEntityType,
         issues: [],
       };
 
-      for (const { document, logContext } of preparedDocuments) {
-        try {
-          const issues = await collectIssues(document);
+      for (
+        let batchStart = 0;
+        batchStart < documentInputs.length;
+        batchStart += documentsBatchSize
+      ) {
+        const batch = documentInputs.slice(
+          batchStart,
+          batchStart + documentsBatchSize
+        );
 
-          if (issues.length === 0) {
-            report.successCount += 1;
-            countsByEntityType[document.entityType].conforming += 1;
-            continue;
+        const preparedDocuments = await Promise.all(
+          batch.map((input) =>
+            prepareDocument(
+              fileManager,
+              logger,
+              unsignedBucket,
+              signedBucket,
+              input
+            )
+          )
+        );
+
+        for (const { document, logContext } of preparedDocuments) {
+          try {
+            const issues = await collectIssues(document);
+
+            if (issues.length === 0) {
+              report.successCount += 1;
+              countsByEntityType[document.entityType].conforming += 1;
+              continue;
+            }
+
+            report.issueCount += issues.length;
+            report.issues.push(...issues);
+            countsByEntityType[document.entityType].nonConforming += 1;
+            issues.forEach((issue) => logIssue(issue, logContext));
+          } catch (error) {
+            const issue = makeUnexpectedIssue(document, error);
+            report.issueCount += 1;
+            report.issues.push(issue);
+            countsByEntityType[document.entityType].nonConforming += 1;
+            logIssue(issue, logContext);
           }
-
-          report.issueCount += issues.length;
-          report.issues.push(...issues);
-          countsByEntityType[document.entityType].nonConforming += 1;
-          issues.forEach((issue) => logIssue(issue, logContext));
-        } catch (error) {
-          const issue = makeUnexpectedIssue(document, error);
-          report.issueCount += 1;
-          report.issues.push(issue);
-          countsByEntityType[document.entityType].nonConforming += 1;
-          logIssue(issue, logContext);
         }
       }
 

@@ -22,7 +22,8 @@ try {
       loggerInstance,
       config.documentsLookBackDays,
       config.s3Bucket,
-      config.s3BucketSigned
+      config.s3BucketSigned,
+      config.documentsBatchSize
     );
 
   await documentsSignatureCheckerService.verify();

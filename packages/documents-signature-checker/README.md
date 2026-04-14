@@ -16,10 +16,12 @@ Two classes of problems that could go undetected without an automated check:
 The job runs once per execution against a configurable time window (default: the previous calendar day):
 
 1. Queries the readmodel for all agreements, purposes, and delegations created in the look-back window.
-2. Attempts to download the unsigned PDF and the signed P7M from S3 in parallel. The unsigned file is fetched only if a path is present in the readmodel; the signed file is fetched only if a signed record exists and carries a path. Either file may be absent on S3.
-3. For each document, runs all assertions (see [Checks](#checks) below) concurrently and collects any failures.
-4. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm.
-5. Prints an `INFO` summary at the end with total counts broken down by entity type.
+2. Processes documents in batches to cap memory usage. For each batch:
+   - Attempts to download the unsigned PDF and the signed P7M from S3 in parallel. The unsigned file is fetched only if a path is present in the readmodel; the signed file is fetched only if a signed record exists and carries a path. Either file may be absent on S3.
+   - Runs all assertions (see [Checks](#checks) below) concurrently on each document and collects any failures.
+   - Releases the downloaded file contents before the next batch starts.
+3. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm.
+4. Prints an `INFO` summary at the end with total counts broken down by entity type.
 
 ### Entity types covered
 
@@ -55,6 +57,7 @@ For signature verification (`SIGNED_FILE_INVALID_CMS`), the algorithm is not con
 - `S3_BUCKET` *(required)*: S3 bucket containing unsigned PDF documents
 - `S3_BUCKET_SIGNED_DOCUMENTS` *(required)*: S3 bucket containing signed P7M documents
 - `DOCUMENTS_LOOK_BACK_DAYS` *(default: `1`)*: number of calendar days to look back from midnight of the current day
+- `DOCUMENTS_BATCH_SIZE` *(default: `50`)*: maximum number of documents to download and validate concurrently. Limits peak memory usage. Default is sized for the minimum ECS Fargate task (0.25 vCPU / 512 MB)
 - `READMODEL_SQL_DB_*` *(required)*: PostgreSQL connection parameters for the readmodel
 - `S3_CUSTOM_SERVER` *(default: `false`)*: set to `true` to use a custom S3-compatible endpoint (e.g. MinIO)
 - `LOG_LEVEL` *(default: `info`)*: logger verbosity
