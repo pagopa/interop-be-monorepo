@@ -105,12 +105,12 @@ describe("validators", () => {
     ).toBeUndefined();
   });
 
-  it("should return SIGNED_METADATA_MISSING when the signed document record is absent from the readmodel", () => {
+  it("should return SIGNED_RECORD_MISSING when the signed document record is absent from the readmodel", () => {
     expect(
       assertSignedMetadataPresent(
         makeDocument({ signedDocument: { existsInReadmodel: false } })
       )
-    ).toMatchObject({ code: "SIGNED_METADATA_MISSING" });
+    ).toMatchObject({ code: "SIGNED_RECORD_MISSING" });
   });
 
   it("should return SIGNED_PATH_MISSING when the signed record exists but its path is empty", () => {

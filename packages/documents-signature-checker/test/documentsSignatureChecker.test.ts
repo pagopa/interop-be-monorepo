@@ -472,7 +472,7 @@ describe("documents-signature-checker", () => {
     );
   });
 
-  it("should emit SIGNED_METADATA_MISSING and log ERROR when the agreement has no signed contract record in the readmodel", async () => {
+  it("should emit SIGNED_RECORD_MISSING and log ERROR when the agreement has no signed contract record in the readmodel", async () => {
     const logger = makeLogger();
     const scenario = await setupAgreementScenario({
       documentDate: dateAtDayOffset(1, 13),
@@ -487,14 +487,14 @@ describe("documents-signature-checker", () => {
       issueCount: 1,
       issues: [
         {
-          code: "SIGNED_METADATA_MISSING",
+          code: "SIGNED_RECORD_MISSING",
           entityType: "agreement",
           entityId: scenario.entityId,
         },
       ],
     });
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("code=SIGNED_METADATA_MISSING")
+      expect.stringContaining("code=SIGNED_RECORD_MISSING")
     );
   });
 

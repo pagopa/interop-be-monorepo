@@ -149,8 +149,8 @@ export function assertSignedMetadataPresent(
     ? undefined
     : makeIssue(
         document,
-        "SIGNED_METADATA_MISSING",
-        "Signed document metadata is missing in read model"
+        "SIGNED_RECORD_MISSING",
+        "Signed document record is missing in readmodel"
       );
 }
 
