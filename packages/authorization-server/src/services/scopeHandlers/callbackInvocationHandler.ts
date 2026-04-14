@@ -42,7 +42,7 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleCallbackInvocation = async (
-  ctx: ScopeHandlerContext,
+  ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
     clientAssertionJWT,
@@ -83,7 +83,7 @@ export const handleCallbackInvocation = async (
   const interaction = await readInteraction(
     dynamoDBClient,
     interactionId,
-    interactionsTable,
+    interactionsTable
   );
   if (!interaction) {
     throw interactionNotFound(interactionId);
@@ -99,7 +99,7 @@ export const handleCallbackInvocation = async (
     throw interactionStateNotAllowed(
       interactionId,
       interaction.state,
-      interactionState.callbackInvocation,
+      interactionState.callbackInvocation
     );
   }
 
@@ -118,18 +118,18 @@ export const handleCallbackInvocation = async (
     retrieveProducerKey(
       dynamoDBClient,
       producerKeychainPlatformStatesTable,
-      producerKeyPK,
+      producerKeyPK
     ),
     retrieveCatalogEntry(
       dynamoDBClient,
       eServiceId,
       descriptorId,
-      platformStatesTable,
+      platformStatesTable
     ),
     retrieveTokenGenStatesEntryByPurposeId(
       dynamoDBClient,
       interaction.purposeId,
-      tokenGenerationStatesTable,
+      tokenGenerationStatesTable
     ),
   ]);
 
@@ -137,25 +137,30 @@ export const handleCallbackInvocation = async (
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     { publicKey: producerKey.publicKey },
-    clientAssertionJWT.header.alg,
+    clientAssertionJWT.header.alg
   );
   if (signatureErrors) {
     throw clientAssertionSignatureValidationFailed(
       clientId,
-      signatureErrors.map((error) => error.detail).join(", "),
+      signatureErrors.map((error) => error.detail).join(", ")
     );
   }
 
   // 7. Validate platform state (agreement, purpose and descriptor must be ACTIVE)
   //    Same semantics as start_interaction: read pre-computed states from
   //    token-generation-states and aggregate errors into platformStateValidationFailed.
+  const descriptorStateError =
+    tokenGenStatesEntry.descriptorState !== itemState.active
+      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
+      : catalogEntry.state !== itemState.active
+        ? invalidEServiceState(catalogEntry.state)
+        : undefined;
+
   const platformStateErrors = [
     tokenGenStatesEntry.agreementState !== itemState.active
       ? invalidAgreementState(tokenGenStatesEntry.agreementState)
       : undefined,
-    tokenGenStatesEntry.descriptorState !== itemState.active
-      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
-      : undefined,
+    descriptorStateError,
     tokenGenStatesEntry.purposeState !== itemState.active
       ? invalidPurposeState(tokenGenStatesEntry.purposeState)
       : undefined,
@@ -163,7 +168,7 @@ export const handleCallbackInvocation = async (
 
   if (platformStateErrors.length > 0) {
     throw platformStateValidationFailed(
-      platformStateErrors.map((e) => e.detail).join(", "),
+      platformStateErrors.map((e) => e.detail).join(", ")
     );
   }
 
@@ -171,13 +176,13 @@ export const handleCallbackInvocation = async (
   const { asyncExchangeProperties } = catalogEntry;
   if (!asyncExchangeProperties) {
     throw genericInternalError(
-      `Catalog entry for eService ${eServiceId} descriptor ${descriptorId} has no asyncExchangeProperties`,
+      `Catalog entry for eService ${eServiceId} descriptor ${descriptorId} has no asyncExchangeProperties`
     );
   }
 
   if (!interaction.startInteractionTokenIssuedAt) {
     throw genericInternalError(
-      `Interaction ${interactionId} missing startInteractionTokenIssuedAt`,
+      `Interaction ${interactionId} missing startInteractionTokenIssuedAt`
     );
   }
 
@@ -188,7 +193,7 @@ export const handleCallbackInvocation = async (
     throw asyncExchangeResponseTimeExceeded(
       interactionId,
       elapsedMs,
-      responseTimeLimitMs,
+      responseTimeLimitMs
     );
   }
 
@@ -196,7 +201,7 @@ export const handleCallbackInvocation = async (
     throw entityNumberExceedsMaxResultSet(
       clientId,
       entityNumber,
-      asyncExchangeProperties.maxResultSet,
+      asyncExchangeProperties.maxResultSet
     );
   }
 
@@ -208,7 +213,7 @@ export const handleCallbackInvocation = async (
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(
       producerKey.producerId,
-      logger,
+      logger
     );
   if (limitReached) {
     return {
