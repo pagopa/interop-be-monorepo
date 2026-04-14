@@ -26,6 +26,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -448,11 +449,11 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
-  if (
-    descriptor.state !== descriptorState.deprecated &&
-    descriptor.state !== descriptorState.suspended
-  ) {
+export function assertDescriptorInRequiredStates(
+  descriptor: Descriptor,
+  states: DescriptorState[]
+): void {
+  if (!states.includes(descriptor.state)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
@@ -463,17 +464,6 @@ export function assertDescriptorIsNotLatestVersion(
 ): void {
   const latestDescriptorVersion = getLatestDescriptor(eservice);
   if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-  }
-}
-
-export function assertDescriptorInRequiredArchivingState(
-  descriptor: Descriptor
-): void {
-  if (
-    descriptor.state !== descriptorState.archiving &&
-    descriptor.state !== descriptorState.archivingSuspended
-  ) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
