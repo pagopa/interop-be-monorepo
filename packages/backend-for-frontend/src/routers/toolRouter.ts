@@ -6,7 +6,6 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { emptyErrorMapper } from "pagopa-interop-models";
 import { ToolsService } from "../services/toolService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { toolsErrorMapper } from "../utilities/errorMappers.js";
@@ -28,6 +27,7 @@ const toolRouter = (
         req.body.client_assertion,
         req.body.client_assertion_type,
         req.body.grant_type,
+        req.body.dpop_proof,
         ctx
       );
       return res
@@ -39,29 +39,6 @@ const toolRouter = (
         toolsErrorMapper,
         ctx,
         "Error validating token generation request"
-      );
-      return res.status(errorRes.status).send(errorRes);
-    }
-  });
-  toolRouter.post("/tools/validateDPoPProof", async (req, res) => {
-    const ctx = fromBffAppContext(req.ctx, req.headers);
-
-    try {
-      const result = await toolsService.validateDPoPProof(
-        req.body.dpop_proof,
-        req.body.htu,
-        req.body.htm,
-        ctx
-      );
-      return res
-        .status(200)
-        .send(bffApi.DPoPProofValidationResult.parse(result));
-    } catch (error) {
-      const errorRes = makeApiProblem(
-        error,
-        emptyErrorMapper,
-        ctx,
-        "Error validating DPoP proof"
       );
       return res.status(errorRes.status).send(errorRes);
     }

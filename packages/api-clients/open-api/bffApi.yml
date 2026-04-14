@@ -8528,7 +8528,7 @@ paths:
       tags:
         - tools
       summary: Validate token generation request
-      description: Provides additional details about token generation request failure
+      description: Provides additional details about token generation request failure, including optional DPoP proof validation
       operationId: validateTokenGeneration
       requestBody:
         required: true
@@ -8609,92 +8609,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "429":
-          description: Too Many Requests
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/tools/validateDPoPProof":
-    post:
-      tags:
-        - tools
-      summary: Validate DPoP proof
-      description: Provides additional details about DPoP proof validation failure
-      operationId: validateDPoPProof
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/AccessDPoPProofRequest"
-      responses:
-        "200":
-          description: Request successfully validated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DPoPProofValidationResult"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          description: Validation failed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
@@ -25771,21 +25685,9 @@ components:
           type: string
         grant_type:
           type: string
-    AccessDPoPProofRequest:
-      type: object
-      additionalProperties: false
-      required:
-        - dpop_proof
-        - htu
-        - htm
-      properties:
         dpop_proof:
           type: string
           format: jws
-        htu:
-          type: string
-        htm:
-          type: string
     PrivacyNotice:
       type: object
       additionalProperties: false
@@ -29216,14 +29118,6 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEService"
       required:
         - steps
-    DPoPProofValidationResult:
-      type: object
-      additionalProperties: false
-      properties:
-        steps:
-          $ref: "#/components/schemas/DPoPProofValidationSteps"
-      required:
-        - steps
     TokenGenerationValidationSteps:
       type: object
       additionalProperties: false
@@ -29236,15 +29130,6 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
         platformStatesVerification:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
-      required:
-        - clientAssertionValidation
-        - publicKeyRetrieve
-        - clientAssertionSignatureVerification
-        - platformStatesVerification
-    DPoPProofValidationSteps:
-      type: object
-      additionalProperties: false
-      properties:
         dpopProofValidation:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
         dpopMatchValidation:
@@ -29252,9 +29137,10 @@ components:
         dpopSignatureVerification:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
       required:
-        - dpopProofValidation
-        - dpopMatchValidation
-        - dpopSignatureVerification
+        - clientAssertionValidation
+        - publicKeyRetrieve
+        - clientAssertionSignatureVerification
+        - platformStatesVerification
 
     TokenGenerationValidationEntry:
       type: object

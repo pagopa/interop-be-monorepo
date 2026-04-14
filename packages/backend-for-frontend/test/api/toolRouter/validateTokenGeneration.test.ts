@@ -16,6 +16,10 @@ describe("API POST /tools/validateTokenGeneration", () => {
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     grant_type: "client_credentials",
   };
+  const mockRequestWithDPoP: bffApi.AccessTokenRequest = {
+    ...mockRequest,
+    dpop_proof: "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0In0...",
+  };
   const mockResult: bffApi.TokenGenerationValidationResult = {
     clientKind: "CONSUMER",
     steps: {
@@ -43,6 +47,24 @@ describe("API POST /tools/validateTokenGeneration", () => {
       name: "My eService",
     },
   };
+  const mockResultWithDPoP: bffApi.TokenGenerationValidationResult = {
+    ...mockResult,
+    steps: {
+      ...mockResult.steps,
+      dpopProofValidation: {
+        result: "PASSED",
+        failures: [],
+      },
+      dpopMatchValidation: {
+        result: "PASSED",
+        failures: [],
+      },
+      dpopSignatureVerification: {
+        result: "PASSED",
+        failures: [],
+      },
+    },
+  };
 
   beforeEach(() => {
     services.toolsService.validateTokenGeneration = vi
@@ -68,12 +90,23 @@ describe("API POST /tools/validateTokenGeneration", () => {
     expect(res.body).toEqual(mockResult);
   });
 
+  it("Should return 200 with DPoP validation steps when dpop_proof is provided", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.toolsService.validateTokenGeneration = vi
+      .fn()
+      .mockResolvedValue(mockResultWithDPoP);
+    const res = await makeRequest(token, mockRequestWithDPoP);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockResultWithDPoP);
+  });
+
   it.each([
     { body: {} },
     { body: { client_id: "invalid" } },
     { body: { ...mockRequest, client_assertion: 123 } },
     { body: { ...mockRequest, client_assertion_type: 123 } },
     { body: { ...mockRequest, grant_type: 123 } },
+    { body: { ...mockRequest, dpop_proof: 123 } },
   ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as bffApi.AccessTokenRequest);

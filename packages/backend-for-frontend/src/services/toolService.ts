@@ -36,10 +36,6 @@ import {
   catalogApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import {
-  verifyDPoPProof,
-  verifyDPoPProofSignature,
-} from "pagopa-interop-dpop-validation";
 import { BffAppContext } from "../utilities/context.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
@@ -55,6 +51,10 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
+import {
+  DPoPValidationSteps,
+  validateDPoPProofForTokenGeneration,
+} from "./dpopValidationService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -63,9 +63,15 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       clientAssertion: string,
       clientAssertionType: string,
       grantType: string,
+      dpopProofJWS: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
+
+      const dpopValidationSteps = await validateDPoPProofForTokenGeneration(
+        dpopProofJWS,
+        ctx
+      );
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
@@ -87,12 +93,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       if (parametersErrors || clientAssertionErrors) {
-        return handleValidationResults({
-          clientAssertionErrors: [
-            ...(parametersErrors ?? []),
-            ...(clientAssertionErrors ?? []),
-          ],
-        });
+        return handleValidationResults(
+          {
+            clientAssertionErrors: [
+              ...(parametersErrors ?? []),
+              ...(clientAssertionErrors ?? []),
+            ],
+          },
+          undefined,
+          undefined,
+          dpopValidationSteps
+        );
       }
 
       const { data, errors: keyRetrieveErrors } = await retrieveKeyAndEservice(
@@ -101,9 +112,14 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         ctx
       );
       if (keyRetrieveErrors) {
-        return handleValidationResults({
-          keyRetrieveErrors,
-        });
+        return handleValidationResults(
+          {
+            keyRetrieveErrors,
+          },
+          undefined,
+          undefined,
+          dpopValidationSteps
+        );
       }
 
       const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
@@ -124,7 +140,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
             clientAssertionSignatureErrors,
           },
           key.clientKind,
-          eservice
+          eservice,
+          dpopValidationSteps
         );
       }
 
@@ -136,70 +153,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
             platformStateErrors,
           },
           key.clientKind,
-          eservice
+          eservice,
+          dpopValidationSteps
         );
       }
 
-      return handleValidationResults({}, key.clientKind, eservice);
-    },
-    async validateDPoPProof(
-      dpopProofJWS: string,
-      htu: string,
-      htm: string,
-      ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.DPoPProofValidationResult> {
-      ctx.logger.info(
-        `Validating DPoP proof for debug tool - HTM: ${htm}, HTU: ${htu}`
+      return handleValidationResults(
+        {},
+        key.clientKind,
+        eservice,
+        dpopValidationSteps
       );
-
-      const validationResult = verifyDPoPProof({
-        dpopProofJWS,
-        expectedDPoPProofHtu: htu,
-        expectedDPoPProofHtm: htm,
-        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
-        dpopProofDurationSeconds: config.dpopDurationSeconds,
-      });
-
-      if (validationResult.errors) {
-        const isMatchError = validationResult.errors.some(
-          (e) =>
-            e.code === "dpopHtuNotFound" ||
-            e.code === "invalidDPoPHtu" ||
-            e.code === "dpopHtmNotFound" ||
-            e.code === "invalidDPoPHtm"
-        );
-
-        return handleDPoPValidationResults({
-          dpopProofErrors: isMatchError ? [] : validationResult.errors,
-          dpopMatchErrors: isMatchError ? validationResult.errors : [],
-        });
-      }
-
-      const { dpopProofJWT } = validationResult.data;
-
-      if (dpopProofJWT.header.jwk && "kid" in dpopProofJWT.header.jwk) {
-        return handleDPoPValidationResults({
-          dpopProofErrors: [
-            {
-              code: "DPOP_JWK_KID_NOT_ALLOWED",
-              detail: "PDND does not allow 'kid' inside the 'jwk' header",
-            } as ApiError<string>,
-          ],
-        });
-      }
-
-      const signatureResult = await verifyDPoPProofSignature(
-        dpopProofJWS,
-        dpopProofJWT.header.jwk
-      );
-
-      if (signatureResult.errors) {
-        return handleDPoPValidationResults({
-          dpopSignatureErrors: signatureResult.errors,
-        });
-      }
-
-      return handleDPoPValidationResults({});
     },
   };
 }
@@ -214,7 +178,8 @@ function handleValidationResults(
     platformStateErrors?: Array<ApiError<string>>;
   },
   clientKind?: authorizationApi.ClientKind,
-  eservice?: bffApi.TokenGenerationValidationEService
+  eservice?: bffApi.TokenGenerationValidationEService,
+  dpopValidationSteps?: DPoPValidationSteps
 ): bffApi.TokenGenerationValidationResult {
   const clientAssertionErrors = errs.clientAssertionErrors ?? [];
   const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
@@ -252,36 +217,7 @@ function handleValidationResults(
         ),
         failures: apiErrorsToValidationFailures(platformStateErrors),
       },
-    },
-  };
-}
-
-function handleDPoPValidationResults(errs: {
-  dpopProofErrors?: Array<ApiError<string>>;
-  dpopMatchErrors?: Array<ApiError<string>>;
-  dpopSignatureErrors?: Array<ApiError<string>>;
-}): bffApi.DPoPProofValidationResult {
-  const dpopProofErrors = errs.dpopProofErrors ?? [];
-  const dpopMatchErrors = errs.dpopMatchErrors ?? [];
-  const dpopSignatureErrors = errs.dpopSignatureErrors ?? [];
-
-  return {
-    steps: {
-      dpopProofValidation: {
-        result: getStepResult([], dpopProofErrors),
-        failures: apiErrorsToValidationFailures(dpopProofErrors),
-      },
-      dpopMatchValidation: {
-        result: getStepResult(dpopProofErrors, dpopMatchErrors),
-        failures: apiErrorsToValidationFailures(dpopMatchErrors),
-      },
-      dpopSignatureVerification: {
-        result: getStepResult(
-          [...dpopProofErrors, ...dpopMatchErrors],
-          dpopSignatureErrors
-        ),
-        failures: apiErrorsToValidationFailures(dpopSignatureErrors),
-      },
+      ...(dpopValidationSteps ?? {}),
     },
   };
 }
