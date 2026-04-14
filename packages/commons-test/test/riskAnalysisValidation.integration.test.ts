@@ -38,12 +38,14 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       expiredRiskAnalysis2_0_Pa,
       false,
+      undefined,
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       expiredRiskAnalysis2_0_Pa,
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -70,6 +72,7 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis3_0_Pa,
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -85,12 +88,14 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       false,
+      undefined,
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -113,6 +118,7 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -127,12 +133,14 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       false,
+      undefined,
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -158,6 +166,7 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       { ...validSchemaOnlyRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       true,
+      undefined,
       new Date(),
       undefined
     );
@@ -176,7 +185,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        invalidRiskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PA", invalidVersionForPA)],
@@ -189,7 +204,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(invalidRiskAnalysis2, false, new Date(), undefined)
+      validateRiskAnalysis(
+        invalidRiskAnalysis2,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PRIVATE", invalidVersionForPrivate)],
@@ -204,7 +225,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(expiredRiskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        expiredRiskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
@@ -217,7 +244,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(expiredRiskAnalysis2, false, new Date(), undefined)
+      validateRiskAnalysis(
+        expiredRiskAnalysis2,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
@@ -229,7 +262,13 @@ describe("Risk Analysis Validation", () => {
     const expiredRiskAnalysis = validRiskAnalysis3_0_Pa;
 
     expect(
-      validateRiskAnalysis(expiredRiskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        expiredRiskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
@@ -250,7 +289,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [
@@ -275,7 +320,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, undefined, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
@@ -304,7 +349,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [
@@ -341,7 +392,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, undefined, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
@@ -374,7 +425,13 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [
@@ -398,7 +455,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, undefined, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
@@ -428,11 +485,25 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
-    ).toEqual(validateRiskAnalysis(riskAnalysis, true, new Date(), undefined));
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
+    ).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, undefined, new Date(), undefined)
+    );
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [
@@ -456,11 +527,25 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
-    ).toEqual(validateRiskAnalysis(riskAnalysis, true, new Date(), undefined));
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
+    ).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, undefined, new Date(), undefined)
+    );
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+      validateRiskAnalysis(
+        riskAnalysis,
+        false,
+        undefined,
+        new Date(),
+        undefined
+      )
     ).toEqual({
       type: "invalid",
       issues: [
@@ -494,6 +579,7 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         { ...riskAnalysisForm, tenantKind: tenantKind.GSP },
         false,
+        undefined,
         new Date(),
         false
       )
@@ -508,6 +594,7 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
         false,
+        undefined,
         new Date(),
         undefined
       )
@@ -531,6 +618,7 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           validRiskAnalysis3_0_Pa,
           false,
+          undefined,
           new Date(),
           personalDataInEService
         )
@@ -556,6 +644,7 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           validRiskAnalysis3_0_Pa,
           false,
+          undefined,
           new Date(),
           undefined
         )
@@ -576,6 +665,7 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         validRiskAnalysis3_0_Pa,
         false,
+        undefined,
         new Date(),
         undefined
       )
@@ -601,7 +691,13 @@ describe("Risk Analysis Validation", () => {
       },
     };
     expect(
-      validateRiskAnalysis(riskAnalysisForm, false, new Date(), false)
+      validateRiskAnalysis(
+        riskAnalysisForm,
+        false,
+        undefined,
+        new Date(),
+        false
+      )
     ).toEqual({
       type: "invalid",
       issues: [incompatiblePersonalDataError()],
@@ -613,6 +709,7 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         validRiskAnalysis3_1_Pa,
         false,
+        undefined,
         new Date(),
         undefined
       )
@@ -636,6 +733,7 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           riskAnalysisForm,
           false,
+          undefined,
           new Date(),
           personalDataInEService
         )

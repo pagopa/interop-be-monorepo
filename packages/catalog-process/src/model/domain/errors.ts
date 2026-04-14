@@ -509,12 +509,12 @@ export function missingPersonalDataFlag(
 
 export function riskAnalysisTenantKindMismatch(
   actualKind: TenantKind,
-  expectedKind: TenantKind,
+  currentKind: TenantKind,
   eserviceId: EServiceId,
   riskAnalysisId: RiskAnalysisId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${expectedKind}, actual ${actualKind}`,
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${currentKind}, actual ${actualKind}`,
     code: "riskAnalysisTenantKindMismatch",
     title: "Risk Analysis tenant kind mismatch",
   });

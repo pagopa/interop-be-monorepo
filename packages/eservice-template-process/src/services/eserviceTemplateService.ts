@@ -257,6 +257,7 @@ function validateRiskAnalysisSchemaOrThrow(
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
+    undefined,
     dateForExpirationValidation,
     personalDataInEService
   );
