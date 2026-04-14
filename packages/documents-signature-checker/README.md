@@ -13,12 +13,13 @@ Two classes of problems that could go undetected without an automated check:
 
 ## What it does
 
-The job runs once per execution against a configurable time window (default: the previous calendar day). For each document found in that window it:
+The job runs once per execution against a configurable time window (default: the previous calendar day):
 
-1. Downloads the unsigned PDF and the signed P7M from their respective S3 buckets.
-2. Runs a sequential chain of assertions (see [Checks](#checks) below).
-3. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm.
-4. Prints a `INFO` summary at the end with total counts broken down by entity type.
+1. Queries the readmodel for all agreements, purposes, and delegations created in the look-back window.
+2. Attempts to download the unsigned PDF and the signed P7M from S3 in parallel. The unsigned file is fetched only if a path is present in the readmodel; the signed file is fetched only if a signed record exists and carries a path. Either file may be absent on S3.
+3. For each document, runs all assertions (see [Checks](#checks) below) concurrently and collects any failures.
+4. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm.
+5. Prints an `INFO` summary at the end with total counts broken down by entity type.
 
 ### Entity types covered
 
@@ -28,12 +29,12 @@ The job runs once per execution against a configurable time window (default: the
 
 ## Checks
 
-All assertions are independent: every failure for a given document is collected and reported.
+Assertions run concurrently for each document. Each assertion guards against reporting a downstream failure when an upstream one already explains it (e.g. `UNSIGNED_FILE_MISSING` is suppressed when `UNSIGNED_PATH_MISSING` already fired).
 
 - `UNSIGNED_PATH_MISSING`: the unsigned document has no path in the readmodel
 - `UNSIGNED_FILE_MISSING`: the unsigned PDF does not exist at the expected S3 path
 - `UNSIGNED_FILE_INVALID`: the downloaded file does not start with a valid PDF header (`%PDF-`)
-- `SIGNED_METADATA_MISSING`: the signed document record is absent from the readmodel
+- `SIGNED_RECORD_MISSING`: the signed document record is absent from the readmodel
 - `SIGNED_PATH_MISSING`: the signed record exists but its S3 path is empty
 - `SIGNED_FILE_MISSING`: the signed P7M does not exist at the expected S3 path
 - `SIGNED_FILE_INVALID_CMS`: the signed file cannot be parsed as a valid CMS/P7M structure, or its signatures fail verification
