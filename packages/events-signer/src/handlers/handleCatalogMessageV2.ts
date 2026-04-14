@@ -13,7 +13,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
 import { CatalogEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
@@ -29,7 +28,7 @@ export const handleCatalogMessageV2 = async (
   const correlationId = generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: config.serviceName,
+    serviceName: "events-signer",
     correlationId,
   });
   const allCatalogDataToStore: CatalogEventData[] = [];

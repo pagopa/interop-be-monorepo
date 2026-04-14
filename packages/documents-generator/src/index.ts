@@ -11,9 +11,9 @@ import {
   decodeKafkaMessage,
   genericLogger,
   initFileManager,
-  initPDFGenerator,
   logger,
 } from "pagopa-interop-commons";
+import { initPDFGenerator } from "./pdf-generator/pdfGenerator.js";
 
 import {
   genericInternalError,

@@ -11,8 +11,8 @@ import {
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
   Logger,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -522,10 +522,8 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eserviceTemplate.data.personalData === undefined
-      ) {
+
+      if (eserviceTemplate.data.personalData === undefined) {
         throw missingPersonalDataFlag(
           eserviceTemplateId,
           eserviceTemplateVersionId
@@ -1329,12 +1327,10 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-          ? { personalData: seed.personalData }
-          : {}),
         ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
           ? { asyncExchange: seed.asyncExchange }
           : {}),
+        personalData: seed.personalData,
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -2182,12 +2178,10 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
     ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
       ? { asyncExchange: updatedAsyncExchange }
       : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(

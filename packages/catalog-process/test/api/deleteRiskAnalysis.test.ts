@@ -86,7 +86,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,

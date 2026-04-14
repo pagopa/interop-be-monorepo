@@ -27,7 +27,6 @@
     "pagopa-interop-commons-test": "workspace:*",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
-    "puppeteer": "catalog:",
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
