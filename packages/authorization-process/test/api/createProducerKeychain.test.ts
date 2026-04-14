@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId, ProducerKeychain, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  TenantId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -20,7 +26,8 @@ describe("API /producerKeychains authorization test", () => {
     members: [organizationId],
   };
 
-  const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
+  const mockProducerKeychain: WithMetadata<ProducerKeychain> =
+    getMockWithMetadata(getMockProducerKeychain());
 
   authorizationService.createProducerKeychain = vi
     .fn()
@@ -36,7 +43,10 @@ describe("API /producerKeychains authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -44,7 +54,7 @@ describe("API /producerKeychains authorization test", () => {
       const res = await makeRequest(token, producerKeychainSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
-        testToFullProducerKeychain(mockProducerKeychain)
+        testToFullProducerKeychain(mockProducerKeychain.data)
       );
     }
   );

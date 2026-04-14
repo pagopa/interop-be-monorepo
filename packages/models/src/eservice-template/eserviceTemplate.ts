@@ -1,5 +1,6 @@
 import z from "zod";
 import {
+  AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   TenantId,
@@ -7,7 +8,6 @@ import {
 import {
   Document,
   AgreementApprovalPolicy,
-  EServiceAttributes,
   Technology,
   EServiceMode,
 } from "../eservice/eservice.js";
@@ -28,6 +28,23 @@ export type EServiceTemplateVersionState = z.infer<
   typeof EServiceTemplateVersionState
 >;
 
+export const EServiceTemplateAttribute = z.object({
+  id: AttributeId,
+  explicitAttributeVerification: z.boolean(),
+});
+export type EServiceTemplateAttribute = z.infer<
+  typeof EServiceTemplateAttribute
+>;
+
+export const EServiceTemplateAttributes = z.object({
+  certified: z.array(z.array(EServiceTemplateAttribute)),
+  declared: z.array(z.array(EServiceTemplateAttribute)),
+  verified: z.array(z.array(EServiceTemplateAttribute)),
+});
+export type EServiceTemplateAttributes = z.infer<
+  typeof EServiceTemplateAttributes
+>;
+
 export const EServiceTemplateVersion = z.object({
   id: EServiceTemplateVersionId,
   version: z.number(),
@@ -42,7 +59,7 @@ export const EServiceTemplateVersion = z.object({
   interface: Document.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),
-  attributes: EServiceAttributes,
+  attributes: EServiceTemplateAttributes,
   // Default values to be set in all e-service descriptor instances created from this template, unless the user provides a custom value
   dailyCallsPerConsumer: z.number().int().optional(),
   dailyCallsTotal: z.number().int().optional(),

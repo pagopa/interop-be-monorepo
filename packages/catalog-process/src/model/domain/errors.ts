@@ -68,6 +68,8 @@ const errorCodes = {
   asyncExchangeBulkNotAllowedForSoap: "0052",
   asyncExchangeNotAllowedForReceiveMode: "0053",
   missingAsyncExchangeCallbackInterface: "0054",
+  attributeDailyCallsNotAllowed: "0047",
+  certifiedAttributeGroupNotFoundInSeed: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -613,5 +615,26 @@ export function asyncExchangeCallbackInterfaceAlreadyExists(
     detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
     code: "asyncExchangeCallbackInterfaceAlreadyExists",
     title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
   });
 }
