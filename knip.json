@@ -17,7 +17,9 @@
   ],
   "ignore": [
     "packages/commons/src/pdf-generator/paged.polyfill.js",
-    "packages/documents-generator/src/model/purposeTemplateModels.ts"
+    "packages/documents-generator/src/model/purposeTemplateModels.ts",
+    "packages/in-app-notification-db-models/src/config/config.ts",
+    "packages/readmodel-models/src/config/config.ts"
   ],
   "ignoreIssues": {
     "packages/api-clients/src/axiosLogInterceptors.ts": [
