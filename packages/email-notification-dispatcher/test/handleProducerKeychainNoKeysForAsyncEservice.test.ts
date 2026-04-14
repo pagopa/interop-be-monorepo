@@ -62,7 +62,6 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
     descriptors: [
       {
         ...getMockDescriptor(),
-        eserviceId: eserviceId1,
       },
     ],
   };
@@ -74,7 +73,6 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
     descriptors: [
       {
         ...getMockDescriptor(),
-        eserviceId: eserviceId2,
       },
     ],
   };
@@ -249,7 +247,6 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
       descriptors: [
         {
           ...getMockDescriptor(),
-          eserviceId: eserviceId3,
         },
       ],
     };
