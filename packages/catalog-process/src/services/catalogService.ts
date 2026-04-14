@@ -184,6 +184,8 @@ import {
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertProducerAllowedForDelegation,
+  sanitizeDelegationFlagsForProducer,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -526,11 +528,20 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
-  const eserviceId = generateId<EServiceId>();
   assertValidDelegationFlags(
     seed.isConsumerDelegable,
     seed.isClientAccessDelegable
   );
+
+  const sanitizedFlags = await sanitizeDelegationFlagsForProducer(
+    {
+      isConsumerDelegable: seed.isConsumerDelegable,
+      isClientAccessDelegable: seed.isClientAccessDelegable,
+    },
+    () => retrieveTenant(authData.organizationId, readModelService)
+  );
+
+  const eserviceId = generateId<EServiceId>();
 
   const creationDate = new Date();
   const newEService: EService = {
@@ -545,11 +556,11 @@ async function innerCreateEService(
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
     isSignalHubEnabled: seed.isSignalHubEnabled,
-    isConsumerDelegable: seed.isConsumerDelegable,
-    isClientAccessDelegable: match(seed.isConsumerDelegable)
+    isConsumerDelegable: sanitizedFlags.isConsumerDelegable,
+    isClientAccessDelegable: match(sanitizedFlags.isConsumerDelegable)
       .with(P.nullish, () => undefined)
       .with(false, () => false)
-      .with(true, () => seed.isClientAccessDelegable)
+      .with(true, () => sanitizedFlags.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
     personalData: seed.personalData,
@@ -1007,16 +1018,24 @@ export function catalogServiceBuilder(
         eserviceSeed.isClientAccessDelegable
       );
 
+      const sanitizedFlags = await sanitizeDelegationFlagsForProducer(
+        {
+          isConsumerDelegable: eserviceSeed.isConsumerDelegable,
+          isClientAccessDelegable: eserviceSeed.isClientAccessDelegable,
+        },
+        () => retrieveTenant(eservice.data.producerId, readModelService)
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
         name: updatedInstanceName,
         instanceLabel: parsedInstanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
-        isConsumerDelegable: eserviceSeed.isConsumerDelegable,
-        isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
+        isConsumerDelegable: sanitizedFlags.isConsumerDelegable,
+        isClientAccessDelegable: match(sanitizedFlags.isConsumerDelegable)
           .with(P.nullish, () => undefined)
           .with(false, () => false)
-          .with(true, () => eserviceSeed.isClientAccessDelegable)
+          .with(true, () => sanitizedFlags.isClientAccessDelegable)
           .exhaustive(),
       };
 
@@ -2509,6 +2528,12 @@ export function catalogServiceBuilder(
       );
 
       assertEServiceUpdatableAfterPublish(eservice.data);
+
+      if (isConsumerDelegable || isClientAccessDelegable) {
+        await assertProducerAllowedForDelegation(() =>
+          retrieveTenant(eservice.data.producerId, readModelService)
+        );
+      }
 
       assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
@@ -4196,19 +4221,31 @@ async function updateDraftEService(
     .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
     .exhaustive();
 
+  assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
+
+  const {
+    isConsumerDelegable: sanitizedIsConsumerDelegable,
+    isClientAccessDelegable: sanitizedIsClientAccessDelegable,
+  } = await sanitizeDelegationFlagsForProducer(
+    { isConsumerDelegable, isClientAccessDelegable },
+    () => retrieveTenant(eservice.data.producerId, readModelService)
+  );
+
   const updatedIsConsumerDelegable = match(typeAndSeed.type)
-    .with("put", () => isConsumerDelegable)
+    .with("put", () => sanitizedIsConsumerDelegable)
     .with(
       "patch",
-      () => isConsumerDelegable ?? eservice.data.isConsumerDelegable
+      () => sanitizedIsConsumerDelegable ?? eservice.data.isConsumerDelegable
     )
     .exhaustive();
 
   const updatedIsClientAccessDelegable = match(typeAndSeed.type)
-    .with("put", () => isClientAccessDelegable)
+    .with("put", () => sanitizedIsClientAccessDelegable)
     .with(
       "patch",
-      () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
+      () =>
+        sanitizedIsClientAccessDelegable ??
+        eservice.data.isClientAccessDelegable
     )
     .exhaustive();
 

@@ -7,12 +7,16 @@ import {
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
   EService,
+  Tenant,
+  CertifiedTenantAttribute,
+  tenantAttributeType,
   toEServiceV2,
   operationForbidden,
   delegationState,
@@ -23,6 +27,7 @@ import {
   EServiceIsClientAccessDelegableDisabledV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+import { config } from "../../src/config/config.js";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
@@ -30,10 +35,12 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
+  addOneTenant,
   catalogService,
   postgresDB,
   readLastEserviceEvent,
   addOneDelegation,
+  withDelegationConstraintEnforced,
 } from "../integrationUtils.js";
 
 describe("update eService flags", () => {
@@ -660,5 +667,109 @@ describe("update eService flags", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
+  });
+
+  describe("delegation constraint (PA-only)", () => {
+    const buildProducerWithPAAttribute = (): Tenant => ({
+      ...getMockTenant(),
+      attributes: [
+        {
+          type: tenantAttributeType.CERTIFIED,
+          id: config.delegationsAllowedAttributeId,
+          assignmentTimestamp: new Date(),
+        } satisfies CertifiedTenantAttribute,
+      ],
+    });
+
+    it("should throw operationForbidden if producer lacks PA attribute and flags are enabled", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer = getMockTenant();
+        await addOneTenant(producer);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(descriptorState.published),
+          interface: getMockDocument(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+          isConsumerDelegable: false,
+        };
+        await addOneEService(eservice);
+
+        await expect(
+          catalogService.updateEServiceDelegationFlags(
+            eservice.id,
+            {
+              isConsumerDelegable: true,
+              isClientAccessDelegable: false,
+            },
+            getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+    });
+
+    it("should succeed when producer has PA attribute and flags are enabled", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer = buildProducerWithPAAttribute();
+        await addOneTenant(producer);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(descriptorState.published),
+          interface: getMockDocument(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+          isConsumerDelegable: false,
+        };
+        await addOneEService(eservice);
+
+        await expect(
+          catalogService.updateEServiceDelegationFlags(
+            eservice.id,
+            {
+              isConsumerDelegable: true,
+              isClientAccessDelegable: false,
+            },
+            getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          )
+        ).resolves.toBeDefined();
+      });
+    });
+
+    it("should allow disabling flags (false, false) for non-PA producer (grandfathered cleanup)", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer = getMockTenant();
+        await addOneTenant(producer);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(descriptorState.published),
+          interface: getMockDocument(),
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+          isConsumerDelegable: true,
+          isClientAccessDelegable: true,
+        };
+        await addOneEService(eservice);
+
+        await expect(
+          catalogService.updateEServiceDelegationFlags(
+            eservice.id,
+            {
+              isConsumerDelegable: false,
+              isClientAccessDelegable: false,
+            },
+            getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          )
+        ).resolves.toBeDefined();
+      });
+    });
   });
 });

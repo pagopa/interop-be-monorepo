@@ -7,12 +7,14 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  CertifiedTenantAttribute,
   Descriptor,
   EService,
   EServiceId,
@@ -24,9 +26,11 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  tenantAttributeType,
   EServiceTemplateId,
   type EserviceAttributes,
 } from "pagopa-interop-models";
+import { config } from "../config/config.js";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
@@ -189,6 +193,55 @@ export function assertValidDelegationFlags(
 ): void {
   if (isConsumerDelegable === false && isClientAccessDelegable === true) {
     throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
+  }
+}
+
+function hasDelegationAllowedAttribute(tenant: Tenant): boolean {
+  return tenant.attributes.some(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED &&
+      attr.id === config.delegationsAllowedAttributeId &&
+      !attr.revocationTimestamp
+  );
+}
+
+export type DelegationFlags = {
+  isConsumerDelegable?: boolean | undefined;
+  isClientAccessDelegable?: boolean | undefined;
+};
+
+export async function sanitizeDelegationFlagsForProducer(
+  flags: DelegationFlags,
+  getProducer: () => Promise<Tenant>
+): Promise<DelegationFlags> {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return flags;
+  }
+  if (
+    flags.isConsumerDelegable !== true &&
+    flags.isClientAccessDelegable !== true
+  ) {
+    return flags;
+  }
+  const producer = await getProducer();
+  if (hasDelegationAllowedAttribute(producer)) {
+    return flags;
+  }
+  return {
+    isConsumerDelegable: false,
+    isClientAccessDelegable: false,
+  };
+}
+
+export async function assertProducerAllowedForDelegation(
+  getProducer: () => Promise<Tenant>
+): Promise<void> {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return;
+  }
+  const producer = await getProducer();
+  if (!hasDelegationAllowedAttribute(producer)) {
+    throw operationForbidden;
   }
 }
 

@@ -6,6 +6,7 @@ import {
   getMockDelegation,
   getMockValidRiskAnalysis,
   getMockAuthData,
+  getMockTenant,
   randomArrayItem,
   getMockDocument,
   getMockDescriptor,
@@ -16,6 +17,9 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  Tenant,
+  CertifiedTenantAttribute,
+  tenantAttributeType,
   DraftEServiceUpdatedV2,
   toEServiceV2,
   eserviceMode,
@@ -40,10 +44,12 @@ import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
+  addOneTenant,
   catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
+  withDelegationConstraintEnforced,
 } from "../integrationUtils.js";
 
 describe("update eService", () => {
@@ -916,5 +922,89 @@ describe("update eService", () => {
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
+  });
+
+  describe("delegation constraint (PA-only)", () => {
+    it("should coerce delegation flags to false when producer is not PA (PUT)", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer: Tenant = getMockTenant(mockEService.producerId);
+        await addOneTenant(producer);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice);
+
+        const result = await catalogService.updateEService(
+          eservice.id,
+          {
+            name: "updated",
+            description: eservice.description,
+            technology: "REST",
+            mode: "DELIVER",
+            isSignalHubEnabled: false,
+            isConsumerDelegable: true,
+            isClientAccessDelegable: true,
+            personalData: false,
+          },
+          getMockContext({ authData: getMockAuthData(producer.id) })
+        );
+
+        expect(result.data.isConsumerDelegable).toBe(false);
+        expect(result.data.isClientAccessDelegable).toBe(false);
+      });
+    });
+
+    it("should treat a producer with a revoked PA attribute as non-PA", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer: Tenant = {
+          ...getMockTenant(mockEService.producerId),
+          attributes: [
+            {
+              type: tenantAttributeType.CERTIFIED,
+              id: config.delegationsAllowedAttributeId,
+              assignmentTimestamp: new Date("2024-01-01"),
+              revocationTimestamp: new Date("2024-06-01"),
+            } satisfies CertifiedTenantAttribute,
+          ],
+        };
+        await addOneTenant(producer);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice);
+
+        const result = await catalogService.updateEService(
+          eservice.id,
+          {
+            name: "updated",
+            description: eservice.description,
+            technology: "REST",
+            mode: "DELIVER",
+            isSignalHubEnabled: false,
+            isConsumerDelegable: true,
+            isClientAccessDelegable: true,
+            personalData: false,
+          },
+          getMockContext({ authData: getMockAuthData(producer.id) })
+        );
+
+        expect(result.data.isConsumerDelegable).toBe(false);
+        expect(result.data.isClientAccessDelegable).toBe(false);
+      });
+    });
   });
 });

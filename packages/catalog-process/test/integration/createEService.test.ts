@@ -4,6 +4,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDescriptor,
+  getMockTenant,
   randomArrayItem,
   readEventByStreamIdAndVersion,
   getMockEService,
@@ -12,11 +13,15 @@ import {
 import {
   EServiceAddedV2,
   EService,
+  Tenant,
+  CertifiedTenantAttribute,
+  tenantAttributeType,
   toEServiceV2,
   EServiceDescriptorAddedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
@@ -27,9 +32,11 @@ import {
 import {
   addOneEService,
   addOneEServiceTemplate,
+  addOneTenant,
   catalogService,
   postgresDB,
   readLastEserviceEvent,
+  withDelegationConstraintEnforced,
 } from "../integrationUtils.js";
 import { buildDescriptorSeedForEserviceCreation } from "../mockUtils.js";
 describe("create eservice", () => {
@@ -385,5 +392,66 @@ describe("create eservice", () => {
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  describe("delegation constraint (PA-only)", () => {
+    it("should coerce delegation flags to false for non-PA producer", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer: Tenant = getMockTenant(mockEService.producerId);
+        await addOneTenant(producer);
+
+        const eservice = await catalogService.createEService(
+          {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+            descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+            isSignalHubEnabled: false,
+            isConsumerDelegable: true,
+            isClientAccessDelegable: true,
+            personalData: false,
+          },
+          getMockContext({ authData: getMockAuthData(producer.id) })
+        );
+
+        expect(eservice.data.isConsumerDelegable).toBe(false);
+        expect(eservice.data.isClientAccessDelegable).toBe(false);
+      });
+    });
+
+    it("should preserve delegation flags for PA producer", async () => {
+      await withDelegationConstraintEnforced(async () => {
+        const producer: Tenant = {
+          ...getMockTenant(mockEService.producerId),
+          attributes: [
+            {
+              type: tenantAttributeType.CERTIFIED,
+              id: config.delegationsAllowedAttributeId,
+              assignmentTimestamp: new Date(),
+            } satisfies CertifiedTenantAttribute,
+          ],
+        };
+        await addOneTenant(producer);
+
+        const eservice = await catalogService.createEService(
+          {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+            descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+            isSignalHubEnabled: false,
+            isConsumerDelegable: true,
+            isClientAccessDelegable: true,
+            personalData: false,
+          },
+          getMockContext({ authData: getMockAuthData(producer.id) })
+        );
+
+        expect(eservice.data.isConsumerDelegable).toBe(true);
+        expect(eservice.data.isClientAccessDelegable).toBe(true);
+      });
+    });
   });
 });

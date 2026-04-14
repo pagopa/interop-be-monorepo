@@ -34,6 +34,7 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
   await setupTestContainersVitest(
@@ -131,4 +132,21 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
+};
+
+/**
+ * Runs `fn` with the delegation constraint feature flag turned off,
+ * restoring the previous value afterwards (even if `fn` throws).
+ * Used to exercise the PA-only delegation constraint in tests.
+ */
+export const withDelegationConstraintEnforced = async (
+  fn: () => Promise<void>
+): Promise<void> => {
+  const previous = config.featureFlagDelegationConstraintSkip;
+  config.featureFlagDelegationConstraintSkip = false;
+  try {
+    await fn();
+  } finally {
+    config.featureFlagDelegationConstraintSkip = previous;
+  }
 };
