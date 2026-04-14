@@ -19,7 +19,7 @@ type DocumentFile = {
 };
 
 type SignedDocumentFile = DocumentFile & {
-  metadata?: unknown | null;
+  existsInReadmodel: boolean;
 };
 
 export type DocumentToCheck = DocumentContext & {
@@ -145,7 +145,7 @@ export function assertUnsignedFileValid(
 export function assertSignedMetadataPresent(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
-  return document.signedDocument.metadata != null
+  return document.signedDocument.existsInReadmodel
     ? undefined
     : makeIssue(
         document,
@@ -158,7 +158,7 @@ export function assertSignedPathPresent(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
   if (
-    document.signedDocument.metadata == null ||
+    !document.signedDocument.existsInReadmodel ||
     !isMissingPath(document.signedDocument.path)
   ) {
     return undefined;
@@ -175,7 +175,7 @@ export function assertSignedFileExists(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
   if (
-    document.signedDocument.metadata == null ||
+    !document.signedDocument.existsInReadmodel ||
     isMissingPath(document.signedDocument.path) ||
     hasContent(document.signedDocument.content)
   ) {

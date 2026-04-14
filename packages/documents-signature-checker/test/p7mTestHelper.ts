@@ -1,12 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
 /**
- * Helper to create valid and invalid CMS/p7m envelopes using pkijs.
- * Used exclusively in tests to simulate the full signing pipeline.
+ * Test helper for creating CMS/P7M envelopes via pkijs.
  *
- * pkijs types reference DOM Crypto/CryptoKey, but Node.js has its own
- * webcrypto namespace. The two are runtime-compatible but type-incompatible,
- * hence the `as any` casts below. Proven correct via runtime E2E test.
+ * Provides three factory functions:
+ * - {@link createValidP7m} — valid signed envelope wrapping arbitrary content
+ * - {@link createP7mWithEmptyContent} — valid envelope with a zero-byte payload
+ * - {@link createCorruptedP7m} — random bytes, not valid ASN.1
+ *
+ * All crypto operations use `node:crypto` WebCrypto via `webcrypto.subtle`.
+ * pkijs is initialized once with a Node.js CryptoEngine; the key pair and
+ * self-signed certificate are generated once and cached for the whole test run.
  */
 import * as pkijs from "pkijs";
 import { Integer, OctetString, Utf8String } from "asn1js";
@@ -14,7 +17,7 @@ import { webcrypto } from "node:crypto";
 
 // Initialize pkijs crypto engine with Node.js WebCrypto
 const cryptoEngine = new pkijs.CryptoEngine({
-  crypto: webcrypto as any,
+  crypto: webcrypto,
 });
 pkijs.setEngine("NodeJS", cryptoEngine);
 
@@ -26,7 +29,7 @@ const SIGNING_ALGORITHM = {
 };
 
 interface KeyPairWithCert {
-  privateKey: any;
+  privateKey: webcrypto.CryptoKey;
   certificate: pkijs.Certificate;
 }
 
@@ -70,8 +73,8 @@ async function getOrCreateKeyPair(): Promise<KeyPairWithCert> {
   notAfter.setFullYear(notAfter.getFullYear() + 1);
   certificate.notAfter.value = notAfter;
 
-  await certificate.subjectPublicKeyInfo.importKey(keyPair.publicKey as any);
-  await certificate.sign(keyPair.privateKey as any, "SHA-256");
+  await certificate.subjectPublicKeyInfo.importKey(keyPair.publicKey);
+  await certificate.sign(keyPair.privateKey, "SHA-256");
 
   cachedKeyPair = {
     privateKey: keyPair.privateKey,

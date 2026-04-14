@@ -41,6 +41,14 @@ All assertions are independent: every failure for a given document is collected 
 - `SIGNED_CONTENT_MISMATCH`: the payload extracted from the P7M differs from the content of the unsigned PDF
 - `UNEXPECTED_CHECK_ERROR`: an unhandled exception was thrown during the assertion pipeline for a document
 
+### How content comparison works
+
+A CMS/P7M envelope defined by [RFC 5652](https://www.rfc-editor.org/rfc/rfc5652) contains the original document verbatim in its `EncapsulatedContentInfo.eContent` field. SafeStorage wraps the unsigned PDF as-is inside this field and signs the envelope.
+
+The comparison is therefore a direct byte-for-byte equality check between the `eContent` payload extracted from the P7M and the bytes of the unsigned PDF downloaded from S3. No hashing algorithm needs to be chosen or configured for this check: `pkijs` parses the CMS structure and exposes the raw payload, which is then compared with `Buffer.equals()`.
+
+For signature verification (`SIGNED_FILE_INVALID_CMS`), the algorithm is not configured externally either: the CMS standard requires SafeStorage to embed the `digestAlgorithm` and `signatureAlgorithm` OIDs inside the `SignerInfo` block of the envelope it produces. `pkijs` reads those OIDs from the file itself and uses them to verify the signature.
+
 ## Configuration
 
 - `S3_BUCKET` *(required)*: S3 bucket containing unsigned PDF documents
