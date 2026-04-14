@@ -14,6 +14,9 @@ import {
   UserId,
   EServiceId,
   AuthorizationEventEnvelopeV2,
+  EService,
+  Key,
+  ProducerKeychain,
   toProducerKeychainV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
@@ -28,13 +31,13 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   const userId1 = generateId<UserId>();
   const userId2 = generateId<UserId>();
 
-  const key1 = {
+  const key1: Key = {
     ...getMockKey(),
     userId: userId1,
     kid: "key1-kid",
   };
 
-  const key2 = {
+  const key2: Key = {
     ...getMockKey(),
     userId: userId2,
     kid: "key2-kid",
@@ -43,7 +46,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   const eserviceId1 = generateId<EServiceId>();
   const eserviceId2 = generateId<EServiceId>();
 
-  const asyncEservice = {
+  const asyncEservice: EService = {
     ...getMockEService(eserviceId1, producerId),
     asyncExchange: true,
     descriptors: [
@@ -54,7 +57,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     ],
   };
 
-  const syncEservice = {
+  const syncEservice: EService = {
     ...getMockEService(eserviceId2, producerId),
     asyncExchange: false,
     descriptors: [
@@ -107,7 +110,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
 
   describe("Early return cases", () => {
     it("should return empty array when keychain still has keys", async () => {
-      const producerKeychainWithKeys = {
+      const producerKeychainWithKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Producer Keychain",
@@ -142,7 +145,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     });
 
     it("should return empty array when keychain has no keys but no async e-services", async () => {
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Producer Keychain",
@@ -180,7 +183,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     });
 
     it("should return empty array when keychain has no async e-services (empty eservices list)", async () => {
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Producer Keychain",
@@ -216,7 +219,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
 
   describe("Notification generation", () => {
     it("should generate notifications when keychain has no keys and has async e-services", async () => {
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Keychain",
@@ -274,7 +277,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
 
     it("should include multiple async e-service names comma-separated", async () => {
       const eserviceId3 = generateId<EServiceId>();
-      const asyncEservice2 = {
+      const asyncEservice2: EService = {
         ...getMockEService(eserviceId3, producerId),
         asyncExchange: true,
         name: "Async EService 2",
@@ -286,7 +289,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
         ],
       };
 
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Keychain",
@@ -339,7 +342,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     });
 
     it("should return empty array when no users have notifications enabled", async () => {
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Keychain",
@@ -379,7 +382,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     it("should skip e-services that are not found in readmodel", async () => {
       const unknownEserviceId = generateId<EServiceId>();
 
-      const producerKeychainWithNoKeys = {
+      const producerKeychainWithNoKeys: ProducerKeychain = {
         ...getMockProducerKeychain({ producerId }),
         id: producerKeychainId,
         name: "Test Keychain",

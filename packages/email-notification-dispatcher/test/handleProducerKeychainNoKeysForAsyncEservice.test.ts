@@ -10,6 +10,7 @@ import {
 import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  EService,
   EServiceId,
   generateId,
   Key,
@@ -54,7 +55,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
   const eserviceId1 = generateId<EServiceId>();
   const eserviceId2 = generateId<EServiceId>();
 
-  const asyncEservice = {
+  const asyncEservice: EService = {
     ...getMockEService(eserviceId1, producerId),
     asyncExchange: true,
     name: "Async EService 1",
@@ -66,7 +67,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
     ],
   };
 
-  const syncEservice = {
+  const syncEservice: EService = {
     ...getMockEService(eserviceId2, producerId),
     asyncExchange: false,
     name: "Sync EService 1",
@@ -241,7 +242,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", async () => {
 
   it("should include multiple async e-service names in the email body", async () => {
     const eserviceId3 = generateId<EServiceId>();
-    const asyncEservice2 = {
+    const asyncEservice2: EService = {
       ...getMockEService(eserviceId3, producerId),
       asyncExchange: true,
       name: "Async EService 2",
