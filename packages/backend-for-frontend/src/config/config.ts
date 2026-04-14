@@ -5,7 +5,6 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagPurposeTemplateConfig,
-  FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -326,8 +325,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FrontendBaseURLConfig)
-  .and(FeatureFlagPurposeTemplateConfig)
-  .and(FeatureFlagUseSignedDocumentConfig);
+  .and(FeatureFlagPurposeTemplateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
