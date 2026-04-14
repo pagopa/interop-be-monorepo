@@ -4396,9 +4396,6 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
     ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
       ? { asyncExchange: updatedAsyncExchange }
       : {}),
