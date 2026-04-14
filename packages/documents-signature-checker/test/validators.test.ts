@@ -48,7 +48,7 @@ function makeDocument(overrides?: DocumentOverrides): DocumentToCheck {
       ...unsignedDocumentOverrides,
     },
     signedDocument: {
-      metadata: { path: "agreements/agreement-id/contract.p7m" },
+      existsInReadmodel: true,
       path: "agreements/agreement-id/contract.p7m",
       content: validP7m,
       ...signedDocumentOverrides,
@@ -108,7 +108,7 @@ describe("validators", () => {
   it("should return SIGNED_METADATA_MISSING when the signed document record is absent from the readmodel", () => {
     expect(
       assertSignedMetadataPresent(
-        makeDocument({ signedDocument: { metadata: null } })
+        makeDocument({ signedDocument: { existsInReadmodel: false } })
       )
     ).toMatchObject({ code: "SIGNED_METADATA_MISSING" });
   });
@@ -116,7 +116,7 @@ describe("validators", () => {
   it("should return SIGNED_PATH_MISSING when the signed record exists but its path is empty", () => {
     expect(
       assertSignedPathPresent(
-        makeDocument({ signedDocument: { path: "", metadata: {} } })
+        makeDocument({ signedDocument: { path: "", existsInReadmodel: true } })
       )
     ).toMatchObject({ code: "SIGNED_PATH_MISSING" });
   });
@@ -124,7 +124,9 @@ describe("validators", () => {
   it("should return SIGNED_FILE_MISSING when signed file content was not downloaded from S3", () => {
     expect(
       assertSignedFileExists(
-        makeDocument({ signedDocument: { content: undefined, metadata: {} } })
+        makeDocument({
+          signedDocument: { content: undefined, existsInReadmodel: true },
+        })
       )
     ).toMatchObject({ code: "SIGNED_FILE_MISSING" });
   });

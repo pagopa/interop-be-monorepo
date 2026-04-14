@@ -171,7 +171,7 @@ async function prepareDocument(
         content: unsignedContent,
       },
       signedDocument: {
-        metadata: input.signedRecord,
+        existsInReadmodel: input.signedRecord != null,
         path: input.signedRecord?.path,
         content: signedContent,
       },
