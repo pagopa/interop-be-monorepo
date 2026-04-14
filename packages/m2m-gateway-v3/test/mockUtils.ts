@@ -217,7 +217,6 @@ export const testToM2mGatewayApiPurpose = (
   description: purpose.description,
   createdAt: purpose.createdAt,
   updatedAt: purpose.updatedAt,
-  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   delegationId: purpose.delegationId,
@@ -227,9 +226,7 @@ export const testToM2mGatewayApiPurpose = (
   purposeTemplateId: purpose.purposeTemplateId,
 });
 
-export const testToM2MJWK = (
-  key: authorizationApi.JWKKey
-): m2mGatewayApiV3.JWK => ({
+const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({
   kid: key.kid,
   kty: key.kty,
   "x5t#S256": key["x5t#S256"],
