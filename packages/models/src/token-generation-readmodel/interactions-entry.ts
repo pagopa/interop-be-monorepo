@@ -30,5 +30,6 @@ export const Interaction = z.object({
   startInteractionTokenIssuedAt: z.string().datetime().optional(),
   callbackInvocationTokenIssuedAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime(),
+  ttl: z.number(),
 });
 export type Interaction = z.infer<typeof Interaction>;

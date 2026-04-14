@@ -1,4 +1,5 @@
 import {
+  AsyncClientAssertion,
   clientKindTokenGenStates,
   ClientAssertion,
   ClientKindTokenGenStates,
@@ -11,6 +12,8 @@ import {
   generateId,
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
+  makePlatformStatesEServiceDescriptorPK,
+  PlatformStatesCatalogEntry,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -29,6 +32,7 @@ import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimeHHmmss,
+  InteropAsyncConsumerToken,
   InteropConsumerToken,
   Logger,
   secondsToMilliseconds,
@@ -40,6 +44,7 @@ import {
 } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
+  catalogEntryNotFound,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
   fallbackAuditFailed,
@@ -96,6 +101,45 @@ export const retrieveKey = async (
   }
 };
 
+export const retrieveCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  platformStatesTable: string
+): Promise<PlatformStatesCatalogEntry> => {
+  const pk = makePlatformStatesEServiceDescriptorPK({
+    eserviceId,
+    descriptorId,
+  });
+
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: pk },
+    },
+    TableName: platformStatesTable,
+  };
+
+  const command = new GetItemCommand(input);
+  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Item) {
+    throw catalogEntryNotFound(eserviceId, descriptorId);
+  }
+
+  const unmarshalled = unmarshall(data.Item);
+  const catalogEntry = PlatformStatesCatalogEntry.safeParse(unmarshalled);
+
+  if (!catalogEntry.success) {
+    throw genericInternalError(
+      `Unable to parse platform-states catalog entry: result ${JSON.stringify(
+        catalogEntry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return catalogEntry.data;
+};
+
 export const publishAudit = async ({
   producer,
   generatedToken,
@@ -107,9 +151,9 @@ export const publishAudit = async ({
   logger,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropConsumerToken;
+  generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
-  clientAssertion: ClientAssertion;
+  clientAssertion: ClientAssertion | AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
@@ -243,7 +287,7 @@ export const logTokenGenerationInfo = ({
   message,
   logger,
 }: {
-  validatedJwt: ClientAssertion;
+  validatedJwt: ClientAssertion | AsyncClientAssertion;
   clientKind: ClientKindTokenGenStates | undefined;
   tokenJti: string | undefined;
   message: string;
