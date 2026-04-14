@@ -340,4 +340,9 @@ export const inAppTemplates = {
     producerKeychainName: string
   ): string =>
     `Una chiave associata al portachiavi erogatore ${producerKeychainName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
+  producerKeychainNoKeysForAsyncEserviceToProducerUsers: (
+    producerKeychainName: string,
+    eserviceNames: string
+  ): string =>
+    `Il portachiavi "${producerKeychainName}" non ha chiavi associate. Gli e-service asincroni collegati (${eserviceNames}) non potranno contattare PDND per scambiare dati con i fruitori. Aggiungi una nuova chiave al portachiavi.`,
 };
