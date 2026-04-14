@@ -103,7 +103,8 @@ function makeService(logger: Logger, documentsLookBackDays = 1) {
     logger,
     documentsLookBackDays,
     config.s3Bucket,
-    config.s3BucketSigned
+    config.s3BucketSigned,
+    50
   );
 }
 

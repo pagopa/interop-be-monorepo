@@ -111,7 +111,8 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       makeLogger(),
       365,
       "unsigned-bucket",
-      "signed-bucket"
+      "signed-bucket",
+      50
     );
 
     const report = await service.verify(referenceDate);
@@ -148,7 +149,8 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       logger,
       1,
       "unsigned-bucket",
-      "signed-bucket"
+      "signed-bucket",
+      50
     );
 
     const report = await service.verify(new Date(2026, 5, 10, 9, 0, 0, 0));
