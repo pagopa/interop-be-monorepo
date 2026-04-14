@@ -8,6 +8,7 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagDelegationConstraintSkipConfig,
 } from "pagopa-interop-commons";
+import { AttributeId } from "pagopa-interop-models";
 import { z } from "zod";
 
 const EServiceTemplateS3Config = z
@@ -39,7 +40,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-        delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
+        delegationsAllowedAttributeId:
+          c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID as AttributeId,
       }))
   )
   .and(EServiceTemplateS3Config)

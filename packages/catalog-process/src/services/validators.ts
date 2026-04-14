@@ -205,7 +205,7 @@ function hasDelegationAllowedAttribute(tenant: Tenant): boolean {
   );
 }
 
-export type DelegationFlags = {
+type DelegationFlags = {
   isConsumerDelegable?: boolean | undefined;
   isClientAccessDelegable?: boolean | undefined;
 };
