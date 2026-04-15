@@ -19,7 +19,7 @@ export type DocumentCheckIssue = {
   unsignedPath: string;
   signedPath: string;
   message: string;
-  context?: Record<string, string | number | undefined>;
+  extraFields?: Record<string, string | number | undefined>;
   details?: Record<string, string | number | boolean | undefined>;
 };
 

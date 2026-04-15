@@ -24,17 +24,22 @@ vi.mock("../src/services/readModelServiceSQL.js", () => ({
   })),
 }));
 
-vi.mock("../src/services/validators.js", () => ({
-  assertUnsignedPathPresent,
-  assertUnsignedFileExists,
-  assertUnsignedFileValid,
-  assertSignedMetadataPresent,
-  assertSignedPathPresent,
-  assertSignedFileExists,
-  assertSignedFileValidCms,
-  assertSignedFileNotEmptyPayload,
-  assertSignedContentMatchesUnsigned,
-}));
+vi.mock("../src/services/validators.js", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../src/services/validators.js")>();
+  return {
+    ...actual,
+    assertUnsignedPathPresent,
+    assertUnsignedFileExists,
+    assertUnsignedFileValid,
+    assertSignedMetadataPresent,
+    assertSignedPathPresent,
+    assertSignedFileExists,
+    assertSignedFileValidCms,
+    assertSignedFileNotEmptyPayload,
+    assertSignedContentMatchesUnsigned,
+  };
+});
 
 const { documentsSignatureCheckerServiceBuilder } =
   await import("../src/services/documentsSignatureCheckerService.js");
