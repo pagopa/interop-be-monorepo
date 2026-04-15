@@ -590,7 +590,7 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
 });
 
 export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Unexpected Authorization header of type Bearer. Expected: DPoP`,
+  detail: `Bad Authorization header: expected scheme "DPoP" with a valid token`,
   code: "badDPoPToken",
   title: "Bad DPoP Token format",
 });
