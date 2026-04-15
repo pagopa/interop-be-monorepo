@@ -8,7 +8,7 @@ import {
   type SignedCmsCheckResult,
 } from "../utils/signedCmsUtils.js";
 
-type DocumentContext = {
+type EntityIdentifier = {
   entityType: DocumentEntityType;
   entityId: string;
 };
@@ -22,19 +22,19 @@ type SignedDocumentFile = DocumentFile & {
   existsInReadmodel: boolean;
 };
 
-export type DocumentToCheck = DocumentContext & {
+export type DocumentToCheck = EntityIdentifier & {
   unsignedDocument: DocumentFile;
   signedDocument: SignedDocumentFile;
-  context?: Record<string, string | number | undefined>;
+  extraFields?: Record<string, string | number | undefined>;
 };
 
 const PDF_FILE_SIGNATURE = "%PDF-";
-const signedCmsChecksByDocument = new WeakMap<
+const cmsResultCache = new WeakMap<
   DocumentToCheck,
   Promise<SignedCmsCheckResult>
 >();
 
-function makeIssue(
+export function makeIssue(
   document: DocumentToCheck,
   code: DocumentCheckIssueCode,
   message: string,
@@ -47,7 +47,7 @@ function makeIssue(
     unsignedPath: document.unsignedDocument.path ?? "",
     signedPath: document.signedDocument.path ?? "",
     message,
-    context: document.context,
+    extraFields: document.extraFields,
     details,
   };
 }
@@ -76,18 +76,18 @@ function hasContent(
 async function getSignedCmsCheck(
   document: DocumentToCheck
 ): Promise<SignedCmsCheckResult> {
-  const cached = signedCmsChecksByDocument.get(document);
+  const cached = cmsResultCache.get(document);
   if (cached) {
     return cached;
   }
 
-  const signedDocumentContent = document.signedDocument.content;
-  if (!hasContent(signedDocumentContent)) {
+  const content = document.signedDocument.content;
+  if (!hasContent(content)) {
     throw new Error("Signed document content is missing");
   }
 
-  const check = inspectSignedCms(signedDocumentContent);
-  signedCmsChecksByDocument.set(document, check);
+  const check = inspectSignedCms(content);
+  cmsResultCache.set(document, check);
   return check;
 }
 

@@ -17,6 +17,7 @@ import {
   assertUnsignedFileExists,
   assertUnsignedFileValid,
   assertUnsignedPathPresent,
+  makeIssue,
   type DocumentToCheck,
 } from "./validators.js";
 
@@ -30,7 +31,7 @@ type DocumentInput = {
   entityId: string;
   unsignedPath: string | null | undefined;
   signedRecord: { path?: string | null } | null;
-  extraLogFields?: Record<string, string | number | undefined>;
+  extraFields?: Record<string, string | number | undefined>;
 };
 
 type DocumentAssertion = (
@@ -49,7 +50,7 @@ const documentAssertions: readonly DocumentAssertion[] = [
   assertSignedContentMatchesUnsigned,
 ];
 
-function buildDocumentLogData(
+function serializeLogFields(
   fields: Record<string, string | number | boolean | null | undefined>
 ): string {
   return Object.entries(fields)
@@ -75,18 +76,12 @@ function makeUnexpectedIssue(
   document: DocumentToCheck,
   error: unknown
 ): DocumentCheckIssue {
-  return {
-    code: "UNEXPECTED_CHECK_ERROR",
-    entityType: document.entityType,
-    entityId: document.entityId,
-    unsignedPath: document.unsignedDocument.path ?? "",
-    signedPath: document.signedDocument.path ?? "",
-    message: "Unexpected error during document verification",
-    context: document.context,
-    details: {
-      error: error instanceof Error ? error.message : String(error),
-    },
-  };
+  return makeIssue(
+    document,
+    "UNEXPECTED_CHECK_ERROR",
+    "Unexpected error during document verification",
+    { error: error instanceof Error ? error.message : String(error) }
+  );
 }
 
 async function collectIssues(
@@ -147,7 +142,7 @@ async function prepareDocument(
       path: input.signedRecord?.path,
       content: signedContent,
     },
-    context: input.extraLogFields,
+    extraFields: input.extraFields,
   };
 }
 
@@ -163,14 +158,14 @@ export function documentsSignatureCheckerServiceBuilder(
   const readModelService = readModelServiceBuilderSQL(readModelDB);
 
   function logIssue(issue: DocumentCheckIssue): void {
-    const contextStr = issue.context
-      ? ` ${buildDocumentLogData(issue.context)}`
+    const extraFieldsStr = issue.extraFields
+      ? ` ${serializeLogFields(issue.extraFields)}`
       : "";
     const detailsStr = issue.details
-      ? ` ${buildDocumentLogData(issue.details)}`
+      ? ` ${serializeLogFields(issue.details)}`
       : "";
     logger.error(
-      `Document check [${issue.code}]: entityType=${issue.entityType} entityId=${issue.entityId} unsignedPath=${issue.unsignedPath} signedPath=${issue.signedPath}${contextStr} message="${issue.message}"${detailsStr}`
+      `Document check [${issue.code}]: entityType=${issue.entityType} entityId=${issue.entityId} unsignedPath=${issue.unsignedPath} signedPath=${issue.signedPath}${extraFieldsStr} message="${issue.message}"${detailsStr}`
     );
   }
 
@@ -217,7 +212,7 @@ export function documentsSignatureCheckerServiceBuilder(
             entityId: record.unsigned.purposeId,
             unsignedPath: record.unsigned.path,
             signedRecord: record.signed,
-            extraLogFields: {
+            extraFields: {
               purposeVersionId: record.unsigned.purposeVersionId,
             },
           })
@@ -228,7 +223,7 @@ export function documentsSignatureCheckerServiceBuilder(
             entityId: record.unsigned.delegationId,
             unsignedPath: record.unsigned.path,
             signedRecord: record.signed,
-            extraLogFields: { kind: record.unsigned.kind },
+            extraFields: { kind: record.unsigned.kind },
           })
         ),
       ];
