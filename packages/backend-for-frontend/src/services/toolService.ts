@@ -28,7 +28,11 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import {
+  assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
@@ -68,10 +72,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<bffApi.TokenGenerationValidationResult> {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
 
-      const dpopValidationSteps = await validateDPoPProofForTokenGeneration(
-        dpopProofJWS,
-        ctx
+      if (dpopProofJWS) {
+        assertFeatureFlagEnabled(config, "featureFlagDpopClientAssertionDebugger");
+      }
+
+      const isDpopClientAssertionDebuggerEnabled = isFeatureFlagEnabled(
+        config,
+        "featureFlagDpopClientAssertionDebugger"
       );
+      const dpopValidationSteps = isDpopClientAssertionDebuggerEnabled
+        ? await validateDPoPProofForTokenGeneration(dpopProofJWS, ctx)
+        : undefined;
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,

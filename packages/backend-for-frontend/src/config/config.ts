@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagPurposeTemplateConfig,
   FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
@@ -339,6 +340,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagDpopClientAssertionDebuggerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagPurposeTemplateConfig)
   .and(FeatureFlagUseSignedDocumentConfig);

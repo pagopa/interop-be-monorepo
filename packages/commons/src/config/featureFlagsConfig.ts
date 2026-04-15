@@ -63,6 +63,22 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
+export const FeatureFlagDpopClientAssertionDebuggerConfig = z
+  .object({
+    FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDpopClientAssertionDebugger:
+      c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER ?? false,
+  }));
+export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
+  typeof FeatureFlagDpopClientAssertionDebuggerConfig
+>;
+
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
     FEATURE_FLAG_PURPOSE_TEMPLATE: z
@@ -145,6 +161,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagDpopClientAssertionDebuggerConfig &
   FeatureFlagPurposeTemplateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &

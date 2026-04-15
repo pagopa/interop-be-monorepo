@@ -33,10 +33,10 @@ export async function validateDPoPProofForTokenGeneration(
 
   if (validationResult.errors) {
     const dpopProofErrors = validationResult.errors.filter(
-      (error) => !isDPoPMatchError(error.code)
+      (error: ApiError<string>) => !isDPoPMatchError(error.code)
     );
-    const dpopMatchErrors = validationResult.errors.filter((error) =>
-      isDPoPMatchError(error.code)
+    const dpopMatchErrors = validationResult.errors.filter(
+      (error: ApiError<string>) => isDPoPMatchError(error.code)
     );
 
     return toDPoPValidationSteps({

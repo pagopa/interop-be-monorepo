@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
   ClientId,
+  featureFlagNotEnabled,
   generateId,
   PurposeId,
 } from "pagopa-interop-models";
@@ -67,6 +68,7 @@ describe("validateTokenGeneration", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     setupValidationMocks();
+    config.featureFlagDpopClientAssertionDebugger = false;
   });
 
   function setupValidationMocks(): void {
@@ -529,6 +531,35 @@ describe("validateTokenGeneration", () => {
   });
 
   describe("DPoP validation", () => {
+    beforeEach(() => {
+      config.featureFlagDpopClientAssertionDebugger = true;
+    });
+
+    it("should fail when DPoP proof is provided and the DPoP debugger feature flag is disabled", async () => {
+      config.featureFlagDpopClientAssertionDebugger = false;
+
+      const verifyDPoPProofSpy = vi.spyOn(dpopValidation, "verifyDPoPProof");
+      const verifyDPoPProofSignatureSpy = vi.spyOn(
+        dpopValidation,
+        "verifyDPoPProofSignature"
+      );
+
+      await expect(
+        toolService.validateTokenGeneration(
+          MOCK_CLIENT_ID,
+          MOCK_CLIENT_ASSERTION,
+          MOCK_CLIENT_ASSERTION_TYPE,
+          MOCK_GRANT_TYPE,
+          MOCK_DPOP_PROOF,
+          bffMockContext
+        )
+      ).rejects.toThrowError(
+        featureFlagNotEnabled("featureFlagDpopClientAssertionDebugger")
+      );
+      expect(verifyDPoPProofSpy).not.toHaveBeenCalled();
+      expect(verifyDPoPProofSignatureSpy).not.toHaveBeenCalled();
+    });
+
     it("should validate token generation and DPoP proof together", async () => {
       vi.spyOn(dpopValidation, "verifyDPoPProof").mockReturnValue({
         errors: undefined,

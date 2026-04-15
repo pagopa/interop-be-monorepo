@@ -1,7 +1,7 @@
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { describe, beforeEach, vi, it, expect } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { featureFlagNotEnabled, generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -121,5 +121,16 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .mockRejectedValue(tenantNotAllowed(mockRequest.client_id!));
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("should return 501 if DPoP proof is provided while the feature flag is disabled", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.toolsService.validateTokenGeneration = vi
+      .fn()
+      .mockRejectedValue(
+        featureFlagNotEnabled("featureFlagDpopClientAssertionDebugger")
+      );
+    const res = await makeRequest(token, mockRequestWithDPoP);
+    expect(res.status).toBe(501);
   });
 });
