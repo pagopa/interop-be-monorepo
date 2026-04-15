@@ -2,10 +2,10 @@ import {
   Descriptor,
   DescriptorState,
   EService,
-  descriptorState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { invalidDescriptorVersion } from "../model/domain/errors.js";
+import { isActiveDescriptor } from "../services/validators.js";
 
 function parseVersionNumber(version: string): number {
   const versionNumber = z.coerce.number().safeParse(version);
@@ -43,24 +43,17 @@ export const nextDescriptorVersion = (eservice: EService): string => {
   return (parsedVersion + 1).toString();
 };
 
-export function isLatestDescriptorVersion(
+export function isLatestActiveDescriptorVersion(
   target: Descriptor,
   allDescriptors: Descriptor[]
 ): boolean {
-  const relevantStates: DescriptorState[] = [
-    descriptorState.suspended,
-    descriptorState.published,
-    descriptorState.deprecated,
-    descriptorState.archiving,
-    descriptorState.archivingSuspended,
-  ];
 
   const versions = allDescriptors
-    .filter((d) => relevantStates.includes(d.state))
+    .filter(isActiveDescriptor)
     .map((d) => parseInt(d.version, 10));
 
   if (versions.length === 0) {
-    return true;
+    return false;
   }
 
   const maxVersion = Math.max(...versions);
