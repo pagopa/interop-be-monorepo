@@ -73,6 +73,8 @@ export const handlePurposeTemplateMessageV2 = async (
             "PurposeTemplateDraftDeleted",
             "PurposeTemplateDraftUpdated",
             "PurposeTemplateEServiceLinked",
+            "PurposeTemplateEServiceTemplateLinked",
+            "PurposeTemplateEServiceTemplateUnlinked",
             "PurposeTemplateEServiceUnlinked",
             "PurposeTemplateSuspended",
             "PurposeTemplateUnsuspended",
