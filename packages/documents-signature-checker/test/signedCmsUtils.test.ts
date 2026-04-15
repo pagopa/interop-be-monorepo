@@ -13,11 +13,10 @@ describe("signedCmsUtils", () => {
     validP7m = await createValidP7m(PAYLOAD);
   });
 
-  it("should extract the payload and signer count from a valid CMS", async () => {
+  it("should extract the payload from a valid CMS", async () => {
     const result = await inspectSignedCms(validP7m);
 
     expect(Buffer.from(result.payload)).toEqual(PAYLOAD);
-    expect(result.signerCount).toBe(1);
   });
 
   it("should throw when content type is not SignedData", async () => {

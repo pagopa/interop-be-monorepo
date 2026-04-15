@@ -202,6 +202,7 @@ describe("smoke: all log messages", () => {
       stdio: "inherit",
       env: {
         ...process.env,
+        NODE_ENV: "production",
         READMODEL_SQL_DB_PORT: String(readModelSQLConfig?.readModelSQLDbPort),
         S3_SERVER_PORT: String(
           fileManagerConfig?.s3CustomServer

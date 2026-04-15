@@ -72,18 +72,6 @@ function getTimeRange(
   return { from, to };
 }
 
-function makeUnexpectedIssue(
-  document: DocumentToCheck,
-  error: unknown
-): DocumentCheckIssue {
-  return makeIssue(
-    document,
-    "UNEXPECTED_CHECK_ERROR",
-    "Unexpected error during document verification",
-    { error: error instanceof Error ? error.message : String(error) }
-  );
-}
-
 async function collectIssues(
   document: DocumentToCheck
 ): Promise<DocumentCheckIssue[]> {
@@ -279,7 +267,12 @@ export function documentsSignatureCheckerServiceBuilder(
             countsByEntityType[document.entityType].nonConforming += 1;
             issues.forEach((issue) => logIssue(issue));
           } catch (error) {
-            const issue = makeUnexpectedIssue(document, error);
+            const issue = makeIssue(
+              document,
+              "UNEXPECTED_CHECK_ERROR",
+              "Unexpected error during document verification",
+              { error: error instanceof Error ? error.message : String(error) }
+            );
             report.issueCount += 1;
             report.issues.push(issue);
             countsByEntityType[document.entityType].nonConforming += 1;
