@@ -5,7 +5,6 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagEServicePersonalDataConfig,
   FeatureFlagAsyncExchangeConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -29,9 +28,8 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
         eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagEServicePersonalDataConfig)
-  .and(FeatureFlagAsyncExchangeConfig);
+  .and(FeatureFlagAsyncExchangeConfig)
+  .and(ApplicationAuditProducerConfig);
 
 type EServiceTemplateProcessConfig = z.infer<
   typeof EServiceTemplateProcessConfig

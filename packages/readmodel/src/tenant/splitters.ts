@@ -39,6 +39,7 @@ export const splitTenantIntoObjectsSQL = (
     name,
     onboardedAt,
     subUnitType,
+    selfcareInstitutionType,
     ...rest
   }: Tenant,
   metadataVersion: number
@@ -52,6 +53,7 @@ export const splitTenantIntoObjectsSQL = (
     selfcareId: selfcareId || null,
     externalIdOrigin: externalId.origin,
     externalIdValue: externalId.value,
+    selfcareInstitutionType: selfcareInstitutionType || null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
     name,
