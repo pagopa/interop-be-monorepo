@@ -66,7 +66,7 @@ For signature verification (`SIGNED_FILE_INVALID_CMS`), the algorithm is not con
 
 On each run the job logs different `INFO` lines:
 
-```
+```text
 Starting documents-signature-checker
 Documents signature checker started documentsLookBackDays=1 from=2026-04-13T22:00:00.000Z to=2026-04-14T22:00:00.000Z
 Documents signature checker fetched records agreements=10 purposes=0 delegations=0
@@ -78,8 +78,14 @@ Documents signature checker summary processed=10 successful=1 issues=12 agreemen
 
 Each non-conforming document produces an `ERROR` log line containing the issue code, entity type, entity ID, and relevant S3 paths, for example:
 
-```
+```text
 Document check [SIGNED_CONTENT_MISMATCH]: entityType=agreement entityId=7ea74d10-b177-452d-9280-00ae40fb0f67 unsignedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/fde64e92-2fc4-4986-a256-7413e176326c/contract.pdf signedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/48324bde-5f7b-4e20-91e1-76cfcaed4136/signed.p7m message="Signed document payload does not match unsigned content" unsignedByteLength=37 signedPayloadByteLength=37
+```
+
+To test the output you can run:
+
+```bash
+pnpm test:output
 ```
 
 ## Running locally

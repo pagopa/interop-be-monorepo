@@ -3,7 +3,6 @@ import { webcrypto } from "node:crypto";
 
 export type SignedCmsCheckResult = {
   payload: Uint8Array;
-  signerCount: number;
 };
 
 let cryptoEngineInitialized = false;
@@ -63,6 +62,5 @@ export async function inspectSignedCms(
 
   return {
     payload: extractPayload(signedData),
-    signerCount: signedData.signerInfos.length,
   };
 }
