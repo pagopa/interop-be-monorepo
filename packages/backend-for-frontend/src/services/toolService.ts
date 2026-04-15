@@ -73,7 +73,10 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
 
       if (dpopProofJWS) {
-        assertFeatureFlagEnabled(config, "featureFlagDpopClientAssertionDebugger");
+        assertFeatureFlagEnabled(
+          config,
+          "featureFlagDpopClientAssertionDebugger"
+        );
       }
 
       const isDpopClientAssertionDebuggerEnabled = isFeatureFlagEnabled(
