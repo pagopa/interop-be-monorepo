@@ -101,9 +101,9 @@ function makeService(logger: Logger, documentsLookBackDays = 1) {
     readModelDB,
     fileManager,
     logger,
-    documentsLookBackDays,
     config.s3Bucket,
     config.s3BucketSigned,
+    documentsLookBackDays,
     50
   );
 }

@@ -138,9 +138,9 @@ export function documentsSignatureCheckerServiceBuilder(
   readModelDB: DrizzleReturnType,
   fileManager: FileManager,
   logger: Logger,
-  documentsLookBackDays: number,
   unsignedBucket: string,
   signedBucket: string,
+  documentsLookBackDays: number,
   documentsBatchSize: number
 ) {
   const readModelService = readModelServiceBuilderSQL(readModelDB);

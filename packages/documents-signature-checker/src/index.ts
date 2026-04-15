@@ -20,9 +20,9 @@ try {
       readModelDB,
       fileManager,
       loggerInstance,
-      config.documentsLookBackDays,
       config.s3Bucket,
       config.s3BucketSigned,
+      config.documentsLookBackDays,
       config.documentsBatchSize
     );
 

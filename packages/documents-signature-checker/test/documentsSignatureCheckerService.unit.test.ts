@@ -114,9 +114,9 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       {} as DrizzleReturnType,
       makeFileManager(),
       makeLogger(),
-      365,
       "unsigned-bucket",
       "signed-bucket",
+      365,
       25
     );
 
@@ -152,9 +152,9 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       {} as DrizzleReturnType,
       makeFileManager(),
       logger,
-      1,
       "unsigned-bucket",
       "signed-bucket",
+      1,
       25
     );
 
