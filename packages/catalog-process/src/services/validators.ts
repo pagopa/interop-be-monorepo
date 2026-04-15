@@ -471,13 +471,18 @@ export function assertDescriptorIsNotLatestVersion(
   }
 }
 
-export function isEserviceInArchivingState(
-  eservice: EService
-): boolean {
-
-  const archivingDescriptors = eservice.descriptors.map((d) => d.state).filter((state) =>
-    ([descriptorState.archiving, descriptorState.archivingSuspended, descriptorState.archived] as DescriptorState[]).includes(state)
-  );
+export function isEserviceInArchivingState(eservice: EService): boolean {
+  const archivingDescriptors = eservice.descriptors
+    .map((d) => d.state)
+    .filter((state) =>
+      (
+        [
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          descriptorState.archived,
+        ] as DescriptorState[]
+      ).includes(state)
+    );
   return archivingDescriptors.length === eservice.descriptors.length;
 }
 
@@ -496,4 +501,3 @@ export function assertDescriptorIsNotArchivingWithEService(
   if (isEserviceInArchivingState(eservice) && isSameDay(currentEnd, latestEnd))
     throw decriptorArchivingWithEService(eservice.id, descriptor.id);
 }
-
