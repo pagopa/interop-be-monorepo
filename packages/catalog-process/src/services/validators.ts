@@ -49,9 +49,12 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
   attributeDailyCallsNotAllowed,
+  decriptorArchivingWithEService,
+  missingArchivingSchedule,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { isSameDay } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -467,3 +470,30 @@ export function assertDescriptorIsNotLatestVersion(
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
+
+export function isEserviceInArchivingState(
+  eservice: EService
+): boolean {
+
+  const archivingDescriptors = eservice.descriptors.map((d) => d.state).filter((state) =>
+    ([descriptorState.archiving, descriptorState.archivingSuspended, descriptorState.archived] as DescriptorState[]).includes(state)
+  );
+  return archivingDescriptors.length === eservice.descriptors.length;
+}
+
+export function assertDescriptorIsNotArchivingWithEService(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor,
+  eservice: EService
+): void {
+  const currentEnd = descriptor.archivingSchedule?.archivingEndDate;
+  const latestEnd = latestDescriptor.archivingSchedule?.archivingEndDate;
+
+  if (!currentEnd || !latestEnd) {
+    throw missingArchivingSchedule(descriptor.id);
+  }
+
+  if (isEserviceInArchivingState(eservice) && isSameDay(currentEnd, latestEnd))
+    throw decriptorArchivingWithEService(eservice.id, descriptor.id);
+}
+

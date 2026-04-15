@@ -189,6 +189,7 @@ import {
   assertAttributeDailyCallsConsistentWithTotal,
   assertDescriptorIsNotLatestVersion,
   assertDescriptorInRequiredStates,
+  assertDescriptorIsNotArchivingWithEService,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivingEndDate } from "../utilities/dateCalculator.js";
@@ -3531,10 +3532,6 @@ export function catalogServiceBuilder(
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
-      if (!latestDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
-
       const templateVersion = template.versions.find(
         (v) => v.id === latestDescriptor.templateVersionRef?.id
       );
@@ -3793,6 +3790,9 @@ export function catalogServiceBuilder(
         descriptorState.archivingSuspended,
       ]);
       assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+      assertDescriptorIsNotArchivingWithEService(descriptor, latestDescriptor, eservice.data);
 
       const newState =
         descriptor.state === descriptorState.archivingSuspended
