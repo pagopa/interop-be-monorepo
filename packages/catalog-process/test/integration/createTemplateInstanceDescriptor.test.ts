@@ -79,7 +79,7 @@ describe("create descriptor", async () => {
     const descriptorSeed: catalogApi.EServiceInstanceDescriptorSeed = {
       audience: [],
       dailyCallsPerConsumer: 60,
-      dailyCallsTotal: 60,
+      dailyCallsTotal: 600,
     };
 
     const returnedDescriptor =
@@ -178,7 +178,7 @@ describe("create descriptor", async () => {
     const descriptorSeed: catalogApi.EServiceInstanceDescriptorSeed = {
       audience: [],
       dailyCallsPerConsumer: 60,
-      dailyCallsTotal: 60,
+      dailyCallsTotal: 600,
     };
 
     const returnedDescriptor =

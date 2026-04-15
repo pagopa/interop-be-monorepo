@@ -3289,7 +3289,7 @@ export function catalogServiceBuilder(
         voucherLifespan: lastVersion.voucherLifespan,
         audience: [],
         dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
-        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 1,
+        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 10,
         agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
         attributes: lastVersion.attributes,
         docs,
@@ -3376,7 +3376,7 @@ export function catalogServiceBuilder(
               voucherLifespan: publishedVersion.voucherLifespan,
               dailyCallsPerConsumer:
                 publishedVersion.dailyCallsPerConsumer ?? 1,
-              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 1,
+              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 10,
               agreementApprovalPolicy:
                 agreementApprovalPolicyToApiAgreementApprovalPolicy(
                   publishedVersion.agreementApprovalPolicy

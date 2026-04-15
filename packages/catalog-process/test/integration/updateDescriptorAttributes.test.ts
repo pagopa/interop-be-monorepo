@@ -966,7 +966,7 @@ describe("update descriptor", () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
-      dailyCallsTotal: 3000,
+      dailyCallsTotal: 4000,
       attributes: {
         certified: [
           [
