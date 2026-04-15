@@ -23,6 +23,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -150,6 +151,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventMaintenanceEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -182,6 +184,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertIsNotDraftEservice,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -3762,6 +3765,37 @@ export function catalogServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEservice;
+    },
+    async maintenanceUpdateEService(
+      {
+        eserviceId,
+        eserviceUpdate,
+        version,
+      }: {
+        eserviceId: EServiceId;
+        eserviceUpdate: catalogApi.MaintenanceEServiceUpdate;
+        version: number;
+      },
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(`Maintenance update E-Service ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertIsNotDraftEservice(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData: eserviceUpdate.personalData,
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceEServiceUpdated(
+          version,
+          updatedEservice,
+          correlationId
+        )
+      );
     },
   };
 }

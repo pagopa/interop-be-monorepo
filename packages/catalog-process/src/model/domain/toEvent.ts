@@ -911,3 +911,20 @@ export const toCreateEventEServiceInstanceLabelUpdated = (
   },
   correlationId,
 });
+
+export const toCreateEventMaintenanceEServiceUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "MaintenanceEServiceUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

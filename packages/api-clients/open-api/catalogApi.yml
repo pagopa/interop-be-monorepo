@@ -2729,6 +2729,37 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/eservices/{eServiceId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - process
+      summary: Updates an eservice
+      operationId: maintenanceUpdateEService
+      description: Updates the specified eservice by its ID
+      responses:
+        "204":
+          description: EService Updated
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceEServiceUpdatePayload"
+        required: true
   /status:
     get:
       security: []
@@ -3896,6 +3927,28 @@ components:
       required:
         - code
         - detail
+    MaintenanceEServiceUpdatePayload:
+      description: Maintenance payload to update eservice fields
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        eservice:
+          $ref: "#/components/schemas/MaintenanceEServiceUpdate"
+      required:
+        - currentVersion
+        - eservice
+    MaintenanceEServiceUpdate:
+      description: EService maintenance update model
+      type: object
+      additionalProperties: false
+      properties:
+        personalData:
+          type: boolean
+      required:
+        - personalData
   securitySchemes:
     bearerAuth:
       type: http

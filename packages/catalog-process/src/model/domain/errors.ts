@@ -61,6 +61,7 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  eserviceInDraftState: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -212,6 +213,16 @@ export function eserviceNotInDraftState(
     detail: `EService ${eserviceId} is not in draft state`,
     code: "eserviceNotInDraftState",
     title: "EService is not in draft state",
+  });
+}
+
+export function eserviceInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in draft state`,
+    code: "eserviceInDraftState",
+    title: "EService is in draft state",
   });
 }
 

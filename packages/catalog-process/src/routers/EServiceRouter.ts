@@ -78,6 +78,7 @@ import {
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
+  maintenanceUpdateEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 import { config } from "../config/config.js";
@@ -98,6 +99,7 @@ const eservicesRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    MAINTENANCE_ROLE,
   } = authRole;
 
   eservicesRouter
@@ -1565,7 +1567,31 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/maintenance/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+        await catalogService.maintenanceUpdateEService(
+          {
+            eserviceId: unsafeBrandId(req.params.eServiceId),
+            version: req.body.currentVersion,
+            eserviceUpdate: req.body.eservice,
+          },
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          maintenanceUpdateEServiceErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return eservicesRouter;
 };
