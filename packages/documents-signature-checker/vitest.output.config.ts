@@ -1,13 +1,14 @@
-import { defineConfig, defaultExclude } from "vitest/config";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    env: { NODE_ENV: "smoke" },
     globalSetup: ["./test/vitestGlobalSetup.ts"],
-    testTimeout: 60000,
+    testTimeout: 120000,
     hookTimeout: 60000,
     fileParallelism: false,
     pool: "forks",
     reporters: ["verbose"],
-    exclude: [...defaultExclude, "**/output.test.ts"],
+    include: ["test/output.test.ts"],
   },
 });

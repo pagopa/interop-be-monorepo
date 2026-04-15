@@ -25,6 +25,7 @@ type SignedDocumentFile = DocumentFile & {
 export type DocumentToCheck = DocumentContext & {
   unsignedDocument: DocumentFile;
   signedDocument: SignedDocumentFile;
+  context?: Record<string, string | number | undefined>;
 };
 
 const PDF_FILE_SIGNATURE = "%PDF-";
@@ -34,16 +35,19 @@ const signedCmsChecksByDocument = new WeakMap<
 >();
 
 function makeIssue(
-  context: DocumentContext,
+  document: DocumentToCheck,
   code: DocumentCheckIssueCode,
   message: string,
   details?: Record<string, string | number | boolean | undefined>
 ): DocumentCheckIssue {
   return {
     code,
-    entityType: context.entityType,
-    entityId: context.entityId,
+    entityType: document.entityType,
+    entityId: document.entityId,
+    unsignedPath: document.unsignedDocument.path ?? "",
+    signedPath: document.signedDocument.path ?? "",
     message,
+    context: document.context,
     details,
   };
 }
@@ -112,10 +116,7 @@ export function assertUnsignedFileExists(
   return makeIssue(
     document,
     "UNSIGNED_FILE_MISSING",
-    "Unsigned document file is missing on S3",
-    {
-      path: document.unsignedDocument.path ?? undefined,
-    }
+    "Unsigned document file is missing on S3"
   );
 }
 
@@ -136,7 +137,6 @@ export function assertUnsignedFileValid(
     "UNSIGNED_FILE_INVALID",
     "Unsigned document file is not a valid PDF",
     {
-      path: document.unsignedDocument.path ?? undefined,
       byteLength: unsignedContent.byteLength,
     }
   );
@@ -185,10 +185,7 @@ export function assertSignedFileExists(
   return makeIssue(
     document,
     "SIGNED_FILE_MISSING",
-    "Signed document file is missing on S3",
-    {
-      path: document.signedDocument.path ?? undefined,
-    }
+    "Signed document file is missing on S3"
   );
 }
 
@@ -208,7 +205,6 @@ export async function assertSignedFileValidCms(
       "SIGNED_FILE_INVALID_CMS",
       "Signed document file is not a valid CMS/P7M",
       {
-        path: document.signedDocument.path ?? undefined,
         error: error instanceof Error ? error.message : String(error),
       }
     );
@@ -233,7 +229,6 @@ export async function assertSignedFileNotEmptyPayload(
       "SIGNED_FILE_EMPTY_PAYLOAD",
       "Signed document payload is empty",
       {
-        path: document.signedDocument.path ?? undefined,
         byteLength: signedCmsCheck.payload.byteLength,
       }
     );
@@ -268,8 +263,6 @@ export async function assertSignedContentMatchesUnsigned(
       "SIGNED_CONTENT_MISMATCH",
       "Signed document payload does not match unsigned content",
       {
-        unsignedPath: document.unsignedDocument.path ?? undefined,
-        signedPath: document.signedDocument.path ?? undefined,
         unsignedByteLength: unsignedContent.byteLength,
         signedPayloadByteLength: signedCmsCheck.payload.byteLength,
       }

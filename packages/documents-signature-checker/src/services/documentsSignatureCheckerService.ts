@@ -25,11 +25,6 @@ type TimeRange = {
   to: Date;
 };
 
-type PreparedDocument = {
-  document: DocumentToCheck;
-  logContext: string;
-};
-
 type DocumentInput = {
   entityType: DocumentEntityType;
   entityId: string;
@@ -54,7 +49,7 @@ const documentAssertions: readonly DocumentAssertion[] = [
   assertSignedContentMatchesUnsigned,
 ];
 
-function formatKeyValues(
+function buildDocumentLogData(
   fields: Record<string, string | number | boolean | null | undefined>
 ): string {
   return Object.entries(fields)
@@ -84,10 +79,11 @@ function makeUnexpectedIssue(
     code: "UNEXPECTED_CHECK_ERROR",
     entityType: document.entityType,
     entityId: document.entityId,
+    unsignedPath: document.unsignedDocument.path ?? "",
+    signedPath: document.signedDocument.path ?? "",
     message: "Unexpected error during document verification",
+    context: document.context,
     details: {
-      unsignedPath: document.unsignedDocument.path ?? undefined,
-      signedPath: document.signedDocument.path ?? undefined,
       error: error instanceof Error ? error.message : String(error),
     },
   };
@@ -109,9 +105,7 @@ async function downloadDocument(
   fileManager: FileManager,
   logger: Logger,
   bucket: string,
-  path: string | null | undefined,
-  logContext: string,
-  fileRole: "unsigned" | "signed"
+  path: string | null | undefined
 ): Promise<Uint8Array | undefined> {
   if (!path || path.trim() === "") {
     return undefined;
@@ -119,10 +113,7 @@ async function downloadDocument(
 
   try {
     return await fileManager.get(bucket, path, logger);
-  } catch (error) {
-    logger.error(
-      `Unable to download ${fileRole} document from S3: ${logContext} bucket=${bucket} path=${path} error=${String(error)}`
-    );
+  } catch {
     return undefined;
   }
 }
@@ -133,49 +124,30 @@ async function prepareDocument(
   unsignedBucket: string,
   signedBucket: string,
   input: DocumentInput
-): Promise<PreparedDocument> {
-  const logContext = formatKeyValues({
-    entityType: input.entityType,
-    entityId: input.entityId,
-    unsignedPath: input.unsignedPath,
-    signedPath: input.signedRecord?.path,
-    ...input.extraLogFields,
-  });
-
+): Promise<DocumentToCheck> {
   const [unsignedContent, signedContent] = await Promise.all([
-    downloadDocument(
-      fileManager,
-      logger,
-      unsignedBucket,
-      input.unsignedPath,
-      logContext,
-      "unsigned"
-    ),
+    downloadDocument(fileManager, logger, unsignedBucket, input.unsignedPath),
     downloadDocument(
       fileManager,
       logger,
       signedBucket,
-      input.signedRecord?.path,
-      logContext,
-      "signed"
+      input.signedRecord?.path
     ),
   ]);
 
   return {
-    logContext,
-    document: {
-      entityType: input.entityType,
-      entityId: input.entityId,
-      unsignedDocument: {
-        path: input.unsignedPath,
-        content: unsignedContent,
-      },
-      signedDocument: {
-        existsInReadmodel: input.signedRecord != null,
-        path: input.signedRecord?.path,
-        content: signedContent,
-      },
+    entityType: input.entityType,
+    entityId: input.entityId,
+    unsignedDocument: {
+      path: input.unsignedPath,
+      content: unsignedContent,
     },
+    signedDocument: {
+      existsInReadmodel: input.signedRecord != null,
+      path: input.signedRecord?.path,
+      content: signedContent,
+    },
+    context: input.extraLogFields,
   };
 }
 
@@ -190,10 +162,15 @@ export function documentsSignatureCheckerServiceBuilder(
 ) {
   const readModelService = readModelServiceBuilderSQL(readModelDB);
 
-  function logIssue(issue: DocumentCheckIssue, logContext: string): void {
-    const details = issue.details ? ` ${formatKeyValues(issue.details)}` : "";
+  function logIssue(issue: DocumentCheckIssue): void {
+    const contextStr = issue.context
+      ? ` ${buildDocumentLogData(issue.context)}`
+      : "";
+    const detailsStr = issue.details
+      ? ` ${buildDocumentLogData(issue.details)}`
+      : "";
     logger.error(
-      `Document verification issue: ${logContext} code=${issue.code} message=${issue.message}${details}`
+      `Document check [${issue.code}]: entityType=${issue.entityType} entityId=${issue.entityId} unsignedPath=${issue.unsignedPath} signedPath=${issue.signedPath}${contextStr} message="${issue.message}"${detailsStr}`
     );
   }
 
@@ -280,7 +257,7 @@ export function documentsSignatureCheckerServiceBuilder(
           batchStart + documentsBatchSize
         );
 
-        const preparedDocuments = await Promise.all(
+        const documents = await Promise.all(
           batch.map((input) =>
             prepareDocument(
               fileManager,
@@ -292,7 +269,7 @@ export function documentsSignatureCheckerServiceBuilder(
           )
         );
 
-        for (const { document, logContext } of preparedDocuments) {
+        for (const document of documents) {
           try {
             const issues = await collectIssues(document);
 
@@ -305,13 +282,13 @@ export function documentsSignatureCheckerServiceBuilder(
             report.issueCount += issues.length;
             report.issues.push(...issues);
             countsByEntityType[document.entityType].nonConforming += 1;
-            issues.forEach((issue) => logIssue(issue, logContext));
+            issues.forEach((issue) => logIssue(issue));
           } catch (error) {
             const issue = makeUnexpectedIssue(document, error);
             report.issueCount += 1;
             report.issues.push(issue);
             countsByEntityType[document.entityType].nonConforming += 1;
-            logIssue(issue, logContext);
+            logIssue(issue);
           }
         }
       }

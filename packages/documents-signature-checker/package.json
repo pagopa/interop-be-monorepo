@@ -12,7 +12,8 @@
     "check": "tsc --project tsconfig.check.json",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "test:output": "vitest run --config vitest.output.config.ts"
   },
   "keywords": [],
   "devDependencies": {
