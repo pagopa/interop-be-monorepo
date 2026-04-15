@@ -2,6 +2,7 @@
 import {
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
@@ -21,6 +22,8 @@ import {
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateEServiceUnlinkedV2,
   PurposeTemplateEventEnvelope,
   PurposeTemplatePublishedV2,
@@ -31,6 +34,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
   tenantKind,
   toEServiceV2,
+  toEServiceTemplateV2,
   toPurposeTemplateV2,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -639,6 +643,73 @@ describe("Integration tests", async () => {
         data: updatedPurposeTemplate,
         metadata: { version: metadataVersion },
       });
+    });
+
+    it("PurposeTemplateEServiceTemplateLinked (no-op)", async () => {
+      const metadataVersion = 1;
+      const eserviceTemplate = getMockEServiceTemplate();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+
+      const payload: PurposeTemplateEServiceTemplateLinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+        createdAt: BigInt(Date.now()),
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateById(
+          purposeTemplate.id
+        );
+
+      expect(retrievedPurposeTemplate?.data).toStrictEqual(purposeTemplate);
+    });
+
+    it("PurposeTemplateEServiceTemplateUnlinked (no-op)", async () => {
+      const metadataVersion = 1;
+      const eserviceTemplate = getMockEServiceTemplate();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+
+      const payload: PurposeTemplateEServiceTemplateUnlinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateEServiceTemplateUnlinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrievedPurposeTemplate =
+        await purposeTemplateReadModelService.getPurposeTemplateById(
+          purposeTemplate.id
+        );
+
+      expect(retrievedPurposeTemplate?.data).toStrictEqual(purposeTemplate);
     });
   });
 });

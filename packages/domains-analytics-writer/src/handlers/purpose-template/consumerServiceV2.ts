@@ -128,6 +128,11 @@ export async function handlePurposeTemplateMessageV2(
           >)
         );
       })
+      .with(
+        { type: "PurposeTemplateEServiceTemplateLinked" },
+        { type: "PurposeTemplateEServiceTemplateUnlinked" },
+        () => Promise.resolve()
+      )
       .exhaustive();
   }
 
