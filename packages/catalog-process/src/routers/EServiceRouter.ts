@@ -1568,7 +1568,7 @@ const eservicesRouter = (
         }
       }
     )
-    .post("/maintenance/eservices/:eServiceId", async (req, res) => {
+    .patch("/maintenance/eservices/:eServiceId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {

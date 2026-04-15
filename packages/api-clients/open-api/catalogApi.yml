@@ -2739,7 +2739,7 @@ paths:
         schema:
           type: string
           format: uuid
-    post:
+    patch:
       tags:
         - process
       summary: Updates an eservice
@@ -3928,27 +3928,13 @@ components:
         - code
         - detail
     MaintenanceEServiceUpdatePayload:
-      description: Maintenance payload to update eservice fields
-      type: object
-      additionalProperties: false
-      properties:
-        currentVersion:
-          type: integer
-          format: int32
-        eservice:
-          $ref: "#/components/schemas/MaintenanceEServiceUpdate"
-      required:
-        - currentVersion
-        - eservice
-    MaintenanceEServiceUpdate:
       description: EService maintenance update model
       type: object
       additionalProperties: false
       properties:
         personalData:
           type: boolean
-      required:
-        - personalData
+          nullable: true
   securitySchemes:
     bearerAuth:
       type: http

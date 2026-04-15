@@ -3786,7 +3786,11 @@ export function catalogServiceBuilder(
 
       const updatedEservice: EService = {
         ...eservice.data,
-        personalData: eserviceUpdate.personalData,
+        personalData:
+          eserviceUpdate.personalData ??
+          (eserviceUpdate.personalData === null
+            ? undefined
+            : eservice.data.personalData),
       };
 
       await repository.createEvent(
