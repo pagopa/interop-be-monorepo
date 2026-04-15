@@ -22,6 +22,7 @@ import {
   TenantM2MEventId,
   EServiceTemplateM2MEventId,
   unsafeBrandId,
+  PurposeTemplateM2MEventId,
 } from "pagopa-interop-models";
 import { m2mEventApi } from "pagopa-interop-api-clients";
 import { M2MEventService } from "../services/m2mEventService.js";
@@ -43,6 +44,7 @@ import {
 } from "../model/authorizationM2MEventApiConverter.js";
 import { toApiTenantM2MEvents } from "../model/tenantM2MEventApiConverter.js";
 import { toApiEServiceTemplateM2MEvents } from "../model/eserviceTemplateM2MEventApiConverter.js";
+import { toApiPurposeTemplateM2MEvents } from "../model/purposeTemplateM2MEventApiConverter.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,
@@ -399,6 +401,36 @@ export const m2mEventRouter = (
           emptyErrorMapper,
           ctx,
           "Error getting eservice template events"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/events/purposeTemplates", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
+
+        const { lastEventId, limit } = req.query;
+        const events = await service.getPurposeTemplateM2MEvents(
+          lastEventId
+            ? unsafeBrandId<PurposeTemplateM2MEventId>(lastEventId)
+            : undefined,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            m2mEventApi.PurposeTemplateM2MEvents.parse(
+              toApiPurposeTemplateM2MEvents(events)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error getting purpose template events"
         );
         return res.status(errorRes.status).send(errorRes);
       }
