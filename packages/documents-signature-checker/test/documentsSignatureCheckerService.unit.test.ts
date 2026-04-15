@@ -112,7 +112,7 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       365,
       "unsigned-bucket",
       "signed-bucket",
-      50
+      25
     );
 
     const report = await service.verify(referenceDate);
@@ -150,7 +150,7 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
       1,
       "unsigned-bucket",
       "signed-bucket",
-      50
+      25
     );
 
     const report = await service.verify(new Date(2026, 5, 10, 9, 0, 0, 0));
@@ -169,16 +169,16 @@ describe("documentsSignatureCheckerServiceBuilder", () => {
           code: "UNEXPECTED_CHECK_ERROR",
           entityType: "agreement",
           entityId: "agreement-id",
+          unsignedPath: "agreements/agreement-id/contract.pdf",
+          signedPath: "agreements/agreement-id/contract.p7m",
           details: {
             error: "boom",
-            unsignedPath: "agreements/agreement-id/contract.pdf",
-            signedPath: "agreements/agreement-id/contract.p7m",
           },
         },
       ],
     });
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("code=UNEXPECTED_CHECK_ERROR")
+      expect.stringContaining("[UNEXPECTED_CHECK_ERROR]")
     );
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("entityId=agreement-id")

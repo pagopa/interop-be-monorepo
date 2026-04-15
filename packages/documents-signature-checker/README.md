@@ -57,24 +57,29 @@ For signature verification (`SIGNED_FILE_INVALID_CMS`), the algorithm is not con
 - `S3_BUCKET` *(required)*: S3 bucket containing unsigned PDF documents
 - `S3_BUCKET_SIGNED_DOCUMENTS` *(required)*: S3 bucket containing signed P7M documents
 - `DOCUMENTS_LOOK_BACK_DAYS` *(default: `1`)*: number of calendar days to look back from midnight of the current day
-- `DOCUMENTS_BATCH_SIZE` *(default: `50`)*: maximum number of documents to download and validate concurrently. Limits peak memory usage. Default is sized for the minimum ECS Fargate task (0.25 vCPU / 512 MB)
+- `DOCUMENTS_BATCH_SIZE` *(default: `25`)*: maximum number of documents to download and validate concurrently.
 - `READMODEL_SQL_DB_*` *(required)*: PostgreSQL connection parameters for the readmodel
 - `S3_CUSTOM_SERVER` *(default: `false`)*: set to `true` to use a custom S3-compatible endpoint (e.g. MinIO)
 - `LOG_LEVEL` *(default: `info`)*: logger verbosity
 
 ## Output
 
-On each run the job logs two `INFO` lines:
+On each run the job logs different `INFO` lines:
 
 ```
-Documents signature checker fetched records agreements=N purposes=N delegations=N
-Documents signature checker summary processed=N successful=N issues=N agreementConforming=N agreementNonConforming=N purposeConforming=N purposeNonConforming=N delegationConforming=N delegationNonConforming=N documentsLookBackDays=N from=... to=...
+Starting documents-signature-checker
+Documents signature checker started documentsLookBackDays=1 from=2026-04-13T22:00:00.000Z to=2026-04-14T22:00:00.000Z
+Documents signature checker fetched records agreements=10 purposes=0 delegations=0
+
+...
+
+Documents signature checker summary processed=10 successful=1 issues=12 agreementConforming=1 agreementNonConforming=9 purposeConforming=0 purposeNonConforming=0 delegationConforming=0 delegationNonConforming=0 documentsLookBackDays=1 from=2026-04-13T22:00:00.000Z to=2026-04-14T22:00:00.000Z
 ```
 
 Each non-conforming document produces an `ERROR` log line containing the issue code, entity type, entity ID, and relevant S3 paths, for example:
 
 ```
-Document verification issue: entityType=agreement entityId=abc-123 code=SIGNED_CONTENT_MISMATCH message=Signed document payload does not match unsigned content unsignedPath=... signedPath=...
+Document check [SIGNED_CONTENT_MISMATCH]: entityType=agreement entityId=7ea74d10-b177-452d-9280-00ae40fb0f67 unsignedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/fde64e92-2fc4-4986-a256-7413e176326c/contract.pdf signedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/48324bde-5f7b-4e20-91e1-76cfcaed4136/signed.p7m message="Signed document payload does not match unsigned content" unsignedByteLength=37 signedPayloadByteLength=37
 ```
 
 ## Running locally

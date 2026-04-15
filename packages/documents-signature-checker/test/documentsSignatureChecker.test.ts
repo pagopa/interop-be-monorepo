@@ -373,10 +373,7 @@ describe("documents-signature-checker", () => {
       ],
     });
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("Unable to download signed document from S3")
-    );
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("code=SIGNED_FILE_MISSING")
+      expect.stringContaining("[SIGNED_FILE_MISSING]")
     );
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining(`entityId=${scenario.entityId}`)
@@ -405,7 +402,7 @@ describe("documents-signature-checker", () => {
       ],
     });
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("code=SIGNED_CONTENT_MISMATCH")
+      expect.stringContaining("[SIGNED_CONTENT_MISMATCH]")
     );
   });
 
@@ -495,7 +492,7 @@ describe("documents-signature-checker", () => {
       ],
     });
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("code=SIGNED_RECORD_MISSING")
+      expect.stringContaining("[SIGNED_RECORD_MISSING]")
     );
   });
 

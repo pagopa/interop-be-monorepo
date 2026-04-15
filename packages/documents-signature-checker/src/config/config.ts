@@ -14,7 +14,7 @@ const PDFSignatureCheckerConfig = LoggerConfig.and(ReadModelSQLDbConfig)
       .object({
         S3_BUCKET_SIGNED_DOCUMENTS: z.string(),
         DOCUMENTS_LOOK_BACK_DAYS: z.coerce.number().int().positive().default(1),
-        DOCUMENTS_BATCH_SIZE: z.coerce.number().int().positive().default(50),
+        DOCUMENTS_BATCH_SIZE: z.coerce.number().int().positive().default(25),
       })
       .transform((c) => ({
         s3BucketSigned: c.S3_BUCKET_SIGNED_DOCUMENTS,
