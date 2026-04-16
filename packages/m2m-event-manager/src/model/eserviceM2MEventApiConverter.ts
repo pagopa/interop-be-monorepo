@@ -136,6 +136,7 @@ function toApiEServiceM2MEventType(
       "EServiceInstanceLabelUpdated",
       () => "ESERVICE_INSTANCE_LABEL_UPDATED"
     )
+    .with("MaintenanceEServiceUpdated", () => "MAINTENANCE_ESERVICE_UPDATED")
     .exhaustive();
 }
 
