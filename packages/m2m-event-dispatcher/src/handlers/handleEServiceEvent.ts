@@ -147,6 +147,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "MaintenanceEServiceUpdated" }, async (event) => {
+        logger.info(
+          `Skipping unrelevant E-Service M2M Event - type ${event.type}, eserviceId ${eservice.id}`
+        );
+      })
       .exhaustive()
   );
 }
