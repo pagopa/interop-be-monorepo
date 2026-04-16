@@ -1,0 +1,22 @@
+meta {
+  name: Archive Delegated Purpose Version
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{host-purpose}}/internal/delegations/:delegationId/purposes/:purposeId/versions/:versionId/archive
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

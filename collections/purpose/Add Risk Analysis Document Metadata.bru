@@ -1,0 +1,30 @@
+meta {
+  name: Add Risk Analysis Document Metadata
+  type: http
+  seq: 92
+}
+
+post {
+  url: {{host-purpose}}/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "{{documentId}}",
+    "contentType": "application/pdf",
+    "path": "/documents/risk-analysis.pdf",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
+}

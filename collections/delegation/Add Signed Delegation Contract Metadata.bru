@@ -1,0 +1,32 @@
+meta {
+  name: Add Signed Delegation Contract Metadata
+  type: http
+  seq: 92
+}
+
+post {
+  url: {{host-delegation}}/internal/delegations/:delegationId/signedContract
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "{{documentId}}",
+    "name": "delegation-contract-signed.pdf",
+    "prettyName": "Signed Delegation Contract",
+    "contentType": "application/pdf",
+    "path": "/documents/delegation-contract-signed.pdf",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "signedAt": "2026-01-01T00:00:00.000Z"
+  }
+}

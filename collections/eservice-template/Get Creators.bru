@@ -1,0 +1,21 @@
+meta {
+  name: Get Creators
+  type: http
+  seq: 95
+}
+
+get {
+  url: {{host-template}}/creators?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

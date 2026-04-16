@@ -1,0 +1,21 @@
+meta {
+  name: Get Consumer Delegators With Agreements
+  type: http
+  seq: 90
+}
+
+get {
+  url: {{host-delegation}}/consumer/delegatorsWithAgreements?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

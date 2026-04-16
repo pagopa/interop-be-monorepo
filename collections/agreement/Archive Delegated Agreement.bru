@@ -1,0 +1,21 @@
+meta {
+  name: Archive Delegated Agreement
+  type: http
+  seq: 93
+}
+
+post {
+  url: {{host-agreement}}/internal/delegations/:delegationId/agreements/:agreementId/archive
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

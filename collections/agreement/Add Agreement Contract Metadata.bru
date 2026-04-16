@@ -1,0 +1,31 @@
+meta {
+  name: Add Agreement Contract Metadata
+  type: http
+  seq: 90
+}
+
+post {
+  url: {{host-agreement}}/internal/agreement/:agreementId/contract
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "{{documentId}}",
+    "name": "agreement-contract.pdf",
+    "prettyName": "Agreement Contract",
+    "contentType": "application/pdf",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "path": "/documents/agreement-contract.pdf"
+  }
+}

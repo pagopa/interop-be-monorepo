@@ -1,0 +1,31 @@
+meta {
+  name: Add Delegation Contract Metadata
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{host-delegation}}/internal/delegations/:delegationId/contract
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "{{documentId}}",
+    "name": "delegation-contract.pdf",
+    "prettyName": "Delegation Contract",
+    "contentType": "application/pdf",
+    "path": "/documents/delegation-contract.pdf",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
+}

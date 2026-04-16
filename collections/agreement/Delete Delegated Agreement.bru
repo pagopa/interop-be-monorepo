@@ -1,0 +1,21 @@
+meta {
+  name: Delete Delegated Agreement
+  type: http
+  seq: 92
+}
+
+delete {
+  url: {{host-agreement}}/internal/delegations/:delegationId/agreements/:agreementId
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Delete Delegated Purpose
+  type: http
+  seq: 90
+}
+
+delete {
+  url: {{host-purpose}}/internal/delegations/:delegationId/purposes/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+  id: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

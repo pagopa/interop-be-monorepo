@@ -1,0 +1,26 @@
+meta {
+  name: Update Eservice SignalHub
+  type: http
+  seq: 92
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/signalhub/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "isSignalHubEnabled": true
+  }
+}

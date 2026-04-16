@@ -1,0 +1,29 @@
+meta {
+  name: Create Template Instance Descriptor
+  type: http
+  seq: 90
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eServiceId/descriptors
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "audience": ["string"],
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 100,
+    "agreementApprovalPolicy": "AUTOMATIC"
+  }
+}

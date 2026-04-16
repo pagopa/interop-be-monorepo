@@ -1,0 +1,27 @@
+meta {
+  name: Reject Descriptor (new)
+  type: http
+  seq: 94
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "rejectionReason": "Rejected from Bruno collection"
+  }
+}

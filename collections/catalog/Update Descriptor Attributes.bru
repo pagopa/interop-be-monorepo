@@ -1,0 +1,29 @@
+meta {
+  name: Update Descriptor Attributes
+  type: http
+  seq: 95
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/attributes/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "certified": [],
+    "declared": [],
+    "verified": []
+  }
+}

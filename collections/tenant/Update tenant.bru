@@ -1,0 +1,37 @@
+meta {
+  name: Update tenant
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{host-tenant}}/maintenance/tenants/:tenantId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "currentVersion": 1,
+    "tenant": {
+      "selfcareId": "selfcare-id",
+      "externalId": {
+        "origin": "IPA",
+        "value": "tenant-external-id"
+      },
+      "mails": [],
+      "name": "Updated tenant name",
+      "kind": "PA",
+      "onboardedAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+}

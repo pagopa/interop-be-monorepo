@@ -1,0 +1,34 @@
+meta {
+  name: Internal Add Template Instance Descriptor Document
+  type: http
+  seq: 101
+}
+
+post {
+  url: {{host-catalog}}/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "documentId": "{{documentId}}",
+    "kind": "DOCUMENT",
+    "prettyName": "Template Instance Document",
+    "filePath": "/documents/template-instance-document.pdf",
+    "fileName": "template-instance-document.pdf",
+    "contentType": "application/pdf",
+    "checksum": "11111111111111111111111111111111",
+    "serverUrls": ["https://api.example.com"]
+  }
+}

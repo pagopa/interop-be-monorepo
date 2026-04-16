@@ -1,0 +1,26 @@
+meta {
+  name: Update Eservice name
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/name/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "Updated EService name"
+  }
+}
