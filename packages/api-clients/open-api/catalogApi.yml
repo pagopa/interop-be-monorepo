@@ -3936,18 +3936,16 @@ components:
           type: integer
           format: int32
         eservice:
-          $ref: "#/components/schemas/MaintenanceEServiceUpdate"
+          type: object
+          description: EService maintenance update model
+          additionalProperties: false
+          properties:
+            personalData:
+              type: boolean
+              nullable: true
       required:
         - currentVersion
         - eservice
-    MaintenanceEServiceUpdate:
-      description: EService maintenance update model
-      type: object
-      additionalProperties: false
-      properties:
-        personalData:
-          type: boolean
-          nullable: true
   securitySchemes:
     bearerAuth:
       type: http
