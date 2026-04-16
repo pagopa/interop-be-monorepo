@@ -96,14 +96,6 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
-export const EServiceDescriptorArchivingSchedule = z.object({
-  archivingStartDate: z.coerce.date(),
-  archivingEndDate: z.coerce.date(),
-});
-export type EServiceDescriptorArchivingSchedule = z.infer<
-  typeof EServiceDescriptorArchivingSchedule
->;
-
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -125,7 +117,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
-  archivingSchedule: EServiceDescriptorArchivingSchedule.optional(),
+  archivableOn: z.coerce.date().optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -156,6 +148,8 @@ export const EService = z.object({
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
+  archivingReason: z.string().optional(),
+  alternativeEservice: EServiceId.optional(),
 });
 
 export type EService = z.infer<typeof EService>;

@@ -216,11 +216,11 @@ export const splitDescriptorIntoObjectsSQL = (
   ];
   const interfaceSQL = descriptor.interface
     ? documentToDocumentSQL(
-        descriptor.interface,
-        descriptor.id,
-        eserviceId,
-        version
-      )
+      descriptor.interface,
+      descriptor.id,
+      eserviceId,
+      version
+    )
     : undefined;
 
   const documentsSQL = descriptor.docs.map((doc) =>
@@ -230,19 +230,19 @@ export const splitDescriptorIntoObjectsSQL = (
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] =
     descriptor.rejectionReasons
       ? descriptor.rejectionReasons.map((rejectionReason) =>
-          rejectionReasonToRejectionReasonSQL(
-            rejectionReason,
-            descriptor.id,
-            eserviceId,
-            version
-          )
+        rejectionReasonToRejectionReasonSQL(
+          rejectionReason,
+          descriptor.id,
+          eserviceId,
+          version
         )
+      )
       : [];
 
   const templateVersionRefSQL:
     | EServiceDescriptorTemplateVersionRefSQL
     | undefined = descriptor.templateVersionRef
-    ? {
+      ? {
         eserviceTemplateVersionId: descriptor.templateVersionRef.id,
         eserviceId,
         metadataVersion: version,
@@ -257,7 +257,7 @@ export const splitDescriptorIntoObjectsSQL = (
           descriptor.templateVersionRef.interfaceMetadata
             ?.termsAndConditionsUrl ?? null,
       }
-    : undefined;
+      : undefined;
 
   return {
     descriptorSQL,
@@ -363,12 +363,7 @@ export const descriptorToDescriptorSQL = (
   suspendedAt: dateToString(descriptor.suspendedAt),
   deprecatedAt: dateToString(descriptor.deprecatedAt),
   archivedAt: dateToString(descriptor.archivedAt),
-  archivingStartDate: dateToString(
-    descriptor.archivingSchedule?.archivingStartDate
-  ),
-  archivingEndDate: dateToString(
-    descriptor.archivingSchedule?.archivingEndDate
-  ),
+  archivableOn: dateToString(descriptor.archivableOn),
 });
 
 export const eserviceToEserviceSQL = (
@@ -389,6 +384,8 @@ export const eserviceToEserviceSQL = (
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
+  archivingReason: eservice.archivingReason ?? null,
+  alternativeEservice: eservice.alternativeEservice ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

@@ -1,4 +1,4 @@
-import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { EServiceId, EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -123,15 +123,15 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
-          declared: input.attributes.declared.map(fromEServiceAttributeV2),
-          verified: input.attributes.verified.map(fromEServiceAttributeV2),
-        }
+        certified: input.attributes.certified.map(fromEServiceAttributeV2),
+        declared: input.attributes.declared.map(fromEServiceAttributeV2),
+        verified: input.attributes.verified.map(fromEServiceAttributeV2),
+      }
       : {
-          certified: [],
-          declared: [],
-          verified: [],
-        },
+        certified: [],
+        declared: [],
+        verified: [],
+      },
   docs: input.docs.map(fromDocumentV2),
   state: fromEServiceDescriptorStateV2(input.state),
   interface:
@@ -153,17 +153,7 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
-  archivingSchedule:
-    input.archivingSchedule != null
-      ? {
-          archivingStartDate: bigIntToDate(
-            input.archivingSchedule.archivingStartDate
-          ),
-          archivingEndDate: bigIntToDate(
-            input.archivingSchedule.archivingEndDate
-          ),
-        }
-      : undefined,
+  archivableOn: bigIntToDate(input.archivableOn),
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -213,4 +203,7 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
+  alternativeEservice: input.alternativeEservice != null
+    ? unsafeBrandId<EServiceId>(input.alternativeEservice)
+    : undefined,
 });

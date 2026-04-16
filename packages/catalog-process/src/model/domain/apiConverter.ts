@@ -184,16 +184,7 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
-  ...(descriptor.archivingSchedule
-    ? {
-        archivingSchedule: {
-          archivingStartDate:
-            descriptor.archivingSchedule.archivingStartDate.toJSON(),
-          archivingEndDate:
-            descriptor.archivingSchedule.archivingEndDate.toJSON(),
-        },
-      }
-    : {}),
+  archivableOn: descriptor.archivableOn?.toJSON(),
 });
 
 export const eServiceToApiEService = (
@@ -223,4 +214,6 @@ export const eServiceToApiEService = (
   templateId: eservice.templateId,
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
+  archivingReason: eservice.archivingReason,
+  alternativeEservice: eservice.alternativeEservice,
 });

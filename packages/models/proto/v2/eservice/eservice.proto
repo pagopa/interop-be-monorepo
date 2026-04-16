@@ -18,6 +18,8 @@ message EServiceV2 {
   optional string templateId = 13;
   optional bool personalData = 14;
   optional string instanceLabel = 15;
+  optional string archivingReason = 16;
+  optional string alternativeEservice = 17;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -88,7 +90,7 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
-  optional EServiceDescriptorArchivingScheduleV2 archivingSchedule = 21;
+  optional int64 archivableOn = 21;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -137,10 +139,5 @@ enum AgreementApprovalPolicyV2 {
 enum EServiceModeV2 {
   RECEIVE = 0;
   DELIVER = 1;
-}
-
-message EServiceDescriptorArchivingScheduleV2 {
-  int64 archivingStartDate = 1;
-  int64 archivingEndDate = 2;
 }
 
