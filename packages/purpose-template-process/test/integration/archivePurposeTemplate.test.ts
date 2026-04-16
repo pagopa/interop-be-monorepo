@@ -4,7 +4,9 @@ import {
   getMockAuthData,
   getMockCompleteRiskAnalysisFormTemplate,
   getMockContext,
+  getMockContextInternal,
   getMockPurposeTemplate,
+  getMockRiskAnalysisTemplateSignedDocument,
   sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
@@ -101,6 +103,37 @@ describe("archivePurposeTemplate", () => {
       });
     }
   );
+
+  it("should archive a purpose template even if the event-store version is ahead of the readmodel version", async () => {
+    const metadataVersion = 2;
+    await addOnePurposeTemplate(
+      { ...purposeTemplate, state: purposeTemplateState.suspended },
+      metadataVersion
+    );
+
+    await purposeTemplateService.internalAddRiskAnalysisTemplateSignedDocumentMetadata(
+      purposeTemplate.id,
+      getMockRiskAnalysisTemplateSignedDocument(undefined, purposeTemplate.id),
+      getMockContextInternal({})
+    );
+
+    const archiveResponse = await purposeTemplateService.archivePurposeTemplate(
+      purposeTemplate.id,
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    const writtenEvent = await readLastPurposeTemplateEvent(purposeTemplate.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purposeTemplate.id,
+      version: String(metadataVersion + 2),
+      type: "PurposeTemplateArchived",
+      event_version: 2,
+    });
+    expect(archiveResponse.metadata).toEqual({
+      version: metadataVersion + 2,
+    });
+  });
 
   it("should throw purposeTemplateNotFound if the caller is not the creator of the purpose template", async () => {
     await addOnePurposeTemplate(purposeTemplate);

@@ -20,6 +20,7 @@ import {
   EServiceDescriptorPurposeTemplate,
   EServiceId,
   generateId,
+  genericInternalError,
   ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
@@ -1808,10 +1809,22 @@ export function purposeTemplateServiceBuilder(
         updatedAt: new Date(),
       };
 
+      const latestStreamVersion = await repository.getLatestVersion(id);
+
+      if (latestStreamVersion === undefined) {
+        throw genericInternalError(
+          `Cannot archive purpose template ${id}: no event stream found`
+        );
+      }
+
+      logger.info(
+        `Archiving purpose template ${id} from state ${purposeTemplate.data.state} using event stream version ${latestStreamVersion} and readmodel version ${purposeTemplate.metadata.version}`
+      );
+
       const createdEvent = await repository.createEvent(
         toCreateEventPurposeTemplateArchived({
           purposeTemplate: updatedPurposeTemplate,
-          version: purposeTemplate.metadata.version,
+          version: latestStreamVersion,
           correlationId,
         })
       );
