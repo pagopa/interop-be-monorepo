@@ -325,7 +325,7 @@ describe("E-service template splitter", () => {
   });
 
   it("should convert an e-service template with asyncExchangeProperties into SQL objects", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
