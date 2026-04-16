@@ -1510,14 +1510,16 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServicePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)

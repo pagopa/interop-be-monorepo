@@ -102,6 +102,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -2905,6 +2906,7 @@ export function catalogServiceBuilder(
       );
 
       const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        eserviceId,
         descriptor,
         seed
       );
@@ -3677,8 +3679,12 @@ export function catalogServiceBuilder(
     async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
       personalData: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
       );
@@ -3712,9 +3718,14 @@ export function catalogServiceBuilder(
           correlationId
         );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async updateEServiceInstanceLabelAfterPublication(
       eserviceId: EServiceId,
@@ -4028,31 +4039,34 @@ function updateEServiceDescriptorAttributeInAdd(
 }
 
 function hasCertifiedAttributeDailyCallsChanged(
+  eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  return descriptor.attributes.certified.some(
-    (descriptorAttributesGroup, attributesGroupIndex) => {
-      const seedAttrGroup = seed.certified[attributesGroupIndex];
+  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
+    const seedAttrGroup = seed.certified.find((seedGroup) =>
+      descriptorAttributesGroup.every((descriptorAttribute) =>
+        seedGroup.some(
+          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
+        )
+      )
+    );
 
-      return descriptorAttributesGroup.some((descriptorAttribute) => {
-        const seedAttribute = seedAttrGroup.find(
-          (attribute) => attribute.id === descriptorAttribute.id
-        );
-
-        if (seedAttribute === undefined) {
-          throw genericInternalError(
-            `Attribute ${descriptorAttribute.id} not found in seed group ${attributesGroupIndex}`
-          );
-        }
-
-        return (
-          seedAttribute.dailyCallsPerConsumer !==
-          descriptorAttribute.dailyCallsPerConsumer
-        );
-      });
+    if (seedAttrGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
     }
-  );
+
+    return descriptorAttributesGroup.some((descriptorAttribute) => {
+      const seedAttribute = seedAttrGroup.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+
+      return (
+        seedAttribute?.dailyCallsPerConsumer !==
+        descriptorAttribute.dailyCallsPerConsumer
+      );
+    });
+  });
 }
 
 function evaluateTemplateVersionRef(
