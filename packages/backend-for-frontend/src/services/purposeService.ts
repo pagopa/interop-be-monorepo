@@ -4,7 +4,6 @@ import {
   removeDuplicates,
   UIAuthData,
   assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
   getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
@@ -210,12 +209,7 @@ export function purposeServiceBuilder(
 
     const hasNotifications = notifications.includes(purpose.id);
 
-    const isDocumentReady = isFeatureFlagEnabled(
-      config,
-      "featureFlagUseSignedDocument"
-    )
-      ? currentVersion?.signedContract !== undefined
-      : currentVersion?.riskAnalysis !== undefined;
+    const isDocumentReady = currentVersion?.signedContract !== undefined;
 
     // retrieve risk analysis ruleset only if the requester is:
     // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
