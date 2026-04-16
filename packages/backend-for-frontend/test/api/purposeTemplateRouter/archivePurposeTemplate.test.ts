@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  generateId,
-  Problem,
-  PurposeTemplateId,
-} from "pagopa-interop-models";
+import { generateId, Problem, PurposeTemplateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import { authRole } from "pagopa-interop-commons";
