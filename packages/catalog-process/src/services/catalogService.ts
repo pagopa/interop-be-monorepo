@@ -3769,12 +3769,10 @@ export function catalogServiceBuilder(
     async maintenanceUpdateEService(
       {
         eserviceId,
-        eserviceUpdate,
-        version,
+        maintenanceSeed,
       }: {
         eserviceId: EServiceId;
-        eserviceUpdate: catalogApi.MaintenanceEServiceUpdate;
-        version: number;
+        maintenanceSeed: catalogApi.MaintenanceEServiceUpdatePayload;
       },
       { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
@@ -3787,15 +3785,15 @@ export function catalogServiceBuilder(
       const updatedEservice: EService = {
         ...eservice.data,
         personalData:
-          eserviceUpdate.personalData ??
-          (eserviceUpdate.personalData === null
+          maintenanceSeed.eservice.personalData ??
+          (maintenanceSeed.eservice.personalData === null
             ? undefined
             : eservice.data.personalData),
       };
 
       await repository.createEvent(
         toCreateEventMaintenanceEServiceUpdated(
-          version,
+          maintenanceSeed.currentVersion,
           updatedEservice,
           correlationId
         )

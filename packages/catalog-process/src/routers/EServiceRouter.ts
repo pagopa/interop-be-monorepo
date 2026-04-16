@@ -1577,8 +1577,7 @@ const eservicesRouter = (
         await catalogService.maintenanceUpdateEService(
           {
             eserviceId: unsafeBrandId(req.params.eServiceId),
-            version: req.body.currentVersion,
-            eserviceUpdate: req.body.eservice,
+            maintenanceSeed: req.body,
           },
           ctx
         );
