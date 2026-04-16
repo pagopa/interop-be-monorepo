@@ -100,7 +100,7 @@ export function toOutboundEventV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-
+      { type: "MaintenanceEServiceUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -216,7 +216,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "MaintenanceEServiceUpdated" }, // TODO
       () => undefined
     )
     .exhaustive();
