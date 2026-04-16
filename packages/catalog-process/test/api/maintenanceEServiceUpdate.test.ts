@@ -12,7 +12,7 @@ import {
 
 describe("PATCH /maintenance/eservices/:eServiceId", () => {
   const defaultEServiceId = generateId<EServiceId>();
-  const defaultBody: catalogApi.MaintenanceEServiceUpdatePayload = {
+  const defaultBody: catalogApi.MaintenanceUpdateEServicePayload = {
     currentVersion: 0,
     eservice: { personalData: false },
   };
@@ -26,7 +26,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = defaultEServiceId,
-    body: catalogApi.MaintenanceEServiceUpdatePayload = defaultBody
+    body: catalogApi.MaintenanceUpdateEServicePayload = defaultBody
   ) =>
     request(api)
       .patch(`/maintenance/eservices/${eServiceId}`)
@@ -92,7 +92,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
       const res = await makeRequest(
         token,
         eServiceId,
-        body as catalogApi.MaintenanceEServiceUpdatePayload
+        body as catalogApi.MaintenanceUpdateEServicePayload
       );
       expect(res.status).toBe(400);
     }

@@ -24,7 +24,7 @@ import {
 import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("maintenanceEServiceUpdate", async () => {
-  const mockUpdateSeed: catalogApi.MaintenanceEServiceUpdatePayload = {
+  const mockUpdateSeed: catalogApi.MaintenanceUpdateEServicePayload = {
     currentVersion: 0,
     eservice: { personalData: false },
   };
@@ -109,7 +109,7 @@ describe("maintenanceEServiceUpdate", async () => {
       personalData: true,
     };
     await addOneEService(mockEService);
-    const updateSeed: catalogApi.MaintenanceEServiceUpdatePayload = {
+    const updateSeed: catalogApi.MaintenanceUpdateEServicePayload = {
       currentVersion: 0,
       eservice: { personalData: null },
     };

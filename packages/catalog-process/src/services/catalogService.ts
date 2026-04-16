@@ -3772,7 +3772,7 @@ export function catalogServiceBuilder(
         maintenanceSeed,
       }: {
         eserviceId: EServiceId;
-        maintenanceSeed: catalogApi.MaintenanceEServiceUpdatePayload;
+        maintenanceSeed: catalogApi.MaintenanceUpdateEServicePayload;
       },
       { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
