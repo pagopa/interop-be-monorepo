@@ -60,6 +60,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
