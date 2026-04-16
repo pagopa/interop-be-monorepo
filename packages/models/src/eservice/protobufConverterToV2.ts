@@ -125,17 +125,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
-  archivingSchedule:
-    input.archivingSchedule != null
-      ? {
-          archivingStartDate: dateToBigInt(
-            input.archivingSchedule.archivingStartDate
-          ),
-          archivingEndDate: dateToBigInt(
-            input.archivingSchedule.archivingEndDate
-          ),
-        }
-      : undefined,
+  archivableOn: dateToBigInt(input.archivableOn),
 });
 
 export const toRiskAnalysisV2 = (
