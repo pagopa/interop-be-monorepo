@@ -13,7 +13,7 @@ import {
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   assertFeatureFlagEnabled,
-  Logger
+  Logger,
 } from "pagopa-interop-commons";
 import {
   AttributeId,

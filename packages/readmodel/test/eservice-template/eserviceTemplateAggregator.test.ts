@@ -4,6 +4,7 @@ import {
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
+  getMockEServiceAttribute,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
