@@ -4,7 +4,6 @@ import {
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
-  getMockEServiceAttribute,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -82,7 +81,7 @@ describe("E-service template aggregator", () => {
   });
 
   it("should convert e-service template SQL items with asyncExchangeCallbackInterface into an eservice template", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const callbackInterfaceDoc = getMockDocument();
