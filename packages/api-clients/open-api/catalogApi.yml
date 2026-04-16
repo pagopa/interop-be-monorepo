@@ -2740,6 +2740,8 @@ paths:
           type: string
           format: uuid
     patch:
+      security:
+        - bearerAuth: []
       tags:
         - process
       summary: Updates an eservice
