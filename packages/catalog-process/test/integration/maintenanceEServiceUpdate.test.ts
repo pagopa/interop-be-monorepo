@@ -101,4 +101,34 @@ describe("maintenanceEServiceUpdate", async () => {
       )
     ).rejects.toThrowError(eserviceInDraftState(mockEService.id));
   });
+
+  it("should remove personalData when set to null", async () => {
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+      personalData: true,
+    };
+    await addOneEService(mockEService);
+    const updateSeed: catalogApi.MaintenanceEServiceUpdatePayload = {
+      currentVersion: 0,
+      eservice: { personalData: null },
+    };
+    await catalogService.maintenanceUpdateEService(
+      {
+        eserviceId: mockEService.id,
+        maintenanceSeed: updateSeed,
+      },
+      getMockContextMaintenance({})
+    );
+    const writtenEvent = await readLastEventByStreamId(
+      mockEService.id,
+      "catalog",
+      postgresDB
+    );
+
+    const writtenPayload: MaintenanceEServiceUpdatedV2 | undefined =
+      protobufDecoder(MaintenanceEServiceUpdatedV2).parse(writtenEvent.data);
+
+    expect(writtenPayload.eservice?.personalData).toBeUndefined();
+  });
 });
