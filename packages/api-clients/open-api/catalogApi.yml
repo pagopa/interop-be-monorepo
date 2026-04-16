@@ -3928,6 +3928,19 @@ components:
         - code
         - detail
     MaintenanceEServiceUpdatePayload:
+      description: Maintenance payload to update eservice fields
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        eservice:
+          $ref: "#/components/schemas/MaintenanceEServiceUpdate"
+      required:
+        - currentVersion
+        - eservice
+    MaintenanceEServiceUpdate:
       description: EService maintenance update model
       type: object
       additionalProperties: false
