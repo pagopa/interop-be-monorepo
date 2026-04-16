@@ -147,6 +147,7 @@ async function handleEServiceEventV2(
           );
         }
       )
+      // TODO double-check
       .with({ type: "MaintenanceEServiceUpdated" }, async (event) => {
         logger.info(
           `Skipping unrelevant E-Service M2M Event - type ${event.type}, eserviceId ${eservice.id}`
