@@ -24,6 +24,7 @@ import {
   getPurposeAgreementErrorMapper,
   createPurposeErrorMapper,
   updateDraftPurposeErrorMapper,
+  getRemainingDailyCallsErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -367,6 +368,29 @@ const purposeRouter = (
           getPurposeAgreementErrorMapper,
           ctx,
           `Error retrieving agreement for purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const result = await purposeService.getRemainingDailyCalls(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApiV3.RemainingDailyCallsResponse.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getRemainingDailyCallsErrorMapper,
+          ctx,
+          `Error retrieving remaining daily calls for purpose with id ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

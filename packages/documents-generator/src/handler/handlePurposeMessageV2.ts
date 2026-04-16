@@ -12,10 +12,10 @@ import {
 import { match, P } from "ts-pattern";
 import {
   getInteropHeaders,
-  getIpaCode,
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "../pdf-generator/pdfGenerator.js";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   retrieveEService,

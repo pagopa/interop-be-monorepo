@@ -13,6 +13,7 @@ import {
   TenantKind,
   unsafeBrandId,
   WithMetadata,
+  type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -28,7 +29,6 @@ import {
 import { match } from "ts-pattern";
 import {
   aggregateRiskAnalysisForm,
-  attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -96,9 +96,15 @@ export const aggregateEServiceTemplateVersion = ({
       verified: new Array<EServiceTemplateVersionAttributeSQL>(),
     }
   );
-  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
-  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
-  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
+  const certifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    certifiedAttributesSQL
+  );
+  const declaredAttributes = templateAttributesSQLtoTemplateAttributes(
+    declaredAttributesSQL
+  );
+  const verifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    verifiedAttributesSQL
+  );
 
   return {
     id: unsafeBrandId(versionSQL.id),
@@ -494,4 +500,24 @@ export const toEServiceTemplateAggregatorArray = (
     riskAnalysisAnswersSQL,
     asyncExchangePropertiesSQL,
   };
+};
+
+export const templateAttributesSQLtoTemplateAttributes = (
+  attributesSQL: EServiceTemplateVersionAttributeSQL[]
+): EServiceTemplateAttribute[][] => {
+  const attributesMap = new Map<number, EServiceTemplateAttribute[]>();
+  attributesSQL.forEach((current) => {
+    const currentAttribute: EServiceTemplateAttribute = {
+      id: unsafeBrandId(current.attributeId),
+      explicitAttributeVerification: current.explicitAttributeVerification,
+    };
+    const group = attributesMap.get(current.groupId);
+    if (group) {
+      attributesMap.set(current.groupId, [...group, currentAttribute]);
+    } else {
+      attributesMap.set(current.groupId, [currentAttribute]);
+    }
+  });
+
+  return Array.from(attributesMap.values());
 };

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -35,8 +35,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplateVersion(),
         attributes: {
           certified: [
-            [getMockEServiceAttribute()],
-            [getMockEServiceAttribute()],
+            [getMockEServiceTemplateAttribute()],
+            [getMockEServiceTemplateAttribute()],
           ],
           declared: [],
           verified: [],
@@ -174,8 +174,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplateVersion(),
         attributes: {
           certified: [
-            [getMockEServiceAttribute()],
-            [getMockEServiceAttribute()],
+            [getMockEServiceTemplateAttribute()],
+            [getMockEServiceTemplateAttribute()],
           ],
           declared: [],
           verified: [],
@@ -250,7 +250,7 @@ describe("E-service template queries", () => {
           {
             ...getMockEServiceTemplateVersion(),
             attributes: {
-              certified: [[getMockEServiceAttribute()]],
+              certified: [[getMockEServiceTemplateAttribute()]],
               declared: [],
               verified: [],
             },
@@ -272,7 +272,7 @@ describe("E-service template queries", () => {
           {
             ...getMockEServiceTemplateVersion(),
             attributes: {
-              certified: [[getMockEServiceAttribute()]],
+              certified: [[getMockEServiceTemplateAttribute()]],
               declared: [],
               verified: [],
             },

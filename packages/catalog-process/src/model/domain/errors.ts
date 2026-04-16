@@ -61,7 +61,8 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
+  attributeDailyCallsNotAllowed: "0047",
+  certifiedAttributeGroupNotFoundInSeed: "0048",
   eServiceAsyncExchangeNotEnabled: "0049",
   descriptorAsyncExchangeNotConfigured: "0050",
   missingAsyncExchangeProperties: "0051",
@@ -69,6 +70,7 @@ const errorCodes = {
   asyncExchangeNotAllowedForReceiveMode: "0053",
   missingAsyncExchangeCallbackInterface: "0054",
   templateVersionMissingAsyncExchangeProperties: "0055",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0056",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -625,5 +627,26 @@ export function templateVersionMissingAsyncExchangeProperties(
     detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
     code: "templateVersionMissingAsyncExchangeProperties",
     title: "Template version missing async exchange properties",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
   });
 }

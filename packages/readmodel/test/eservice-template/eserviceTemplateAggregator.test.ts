@@ -1,6 +1,6 @@
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -17,7 +17,7 @@ import { aggregateEServiceTemplate } from "../../src/eservice-template/aggregato
 
 describe("E-service template aggregator", () => {
   it("should convert e-service template SQL items into an eservice template", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
 
@@ -83,7 +83,7 @@ describe("E-service template aggregator", () => {
   });
 
   it("should convert e-service template SQL items with asyncExchangeCallbackInterface into an eservice template", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const callbackInterfaceDoc = getMockDocument();
@@ -244,7 +244,7 @@ describe("E-service template aggregator", () => {
   });
 
   it("should convert e-service template SQL items with asyncExchangeProperties into an eservice template", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
 
