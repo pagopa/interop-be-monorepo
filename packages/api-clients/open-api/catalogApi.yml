@@ -2748,6 +2748,12 @@ paths:
       responses:
         "204":
           description: EService Updated
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
