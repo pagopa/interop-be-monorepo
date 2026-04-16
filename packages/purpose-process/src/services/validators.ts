@@ -29,6 +29,7 @@ import {
   tenantKind,
   TenantKind,
   tenantAttributeType,
+  RiskAnalysisFormId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -43,6 +44,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -59,6 +61,29 @@ import {
   retrievePurposeDelegation,
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  currentKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  currentKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  // TODO after the fix
+  // if (actualKind === undefined) {
+  //   throw missingTenantKindError();
+  // }
+
+  if (actualKind && actualKind !== currentKind) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentKind,
+      riskAnalysisFormId
+    );
+  }
+};
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
@@ -109,17 +134,20 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
+  fallbackTenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
+  fallbackTenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -134,6 +162,7 @@ export function validateRiskAnalysisOrThrow({
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -143,6 +172,7 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -768,6 +798,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
+    tenantKind,
     createdAt,
     eservicePersonalData
   );
