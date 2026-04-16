@@ -115,13 +115,16 @@ describe("POST /agreements/:agreementId/archive router test", () => {
       }),
       status: 403,
     },
-  ])("Should return $status for mapped process errors", async ({ error, status }) => {
-    mockAgreementService.archiveAgreement = vi.fn().mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+  ])(
+    "Should return $status for mapped process errors",
+    async ({ error, status }) => {
+      mockAgreementService.archiveAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    expect(res.status).toBe(status);
-  });
+      expect(res.status).toBe(status);
+    }
+  );
 
   it.each([
     { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
