@@ -2938,6 +2938,56 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/personalDataFlag:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eservices
+      summary: Set personalData flag for an E-Service after its publication
+      description: Set personalData flag for an E-Service in Published, Suspended, or Deprecated state. The flag can only be set once.
+      operationId: updateEServicePersonalDataFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: E-Service personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors:
     parameters:
       - name: eserviceId
@@ -9527,6 +9577,33 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplateEvents:
+    get:
+      tags:
+        - events
+      summary: Get Purpose Template events
+      description: |
+        Retrieve list of Purpose Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Purpose Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateEvents"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /users:
     get:
       tags:
@@ -10542,6 +10619,51 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProducerDelegationEvent"
+    PurposeTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PURPOSE_TEMPLATE_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_DELETED
+            - PURPOSE_TEMPLATE_PUBLISHED
+            - PURPOSE_TEMPLATE_SUSPENDED
+            - PURPOSE_TEMPLATE_UNSUSPENDED
+            - PURPOSE_TEMPLATE_ARCHIVED
+            - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+            - PURPOSE_TEMPLATE_ESERVICE_LINKED
+            - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeTemplateId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeTemplateId
+
+    PurposeTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false
@@ -12029,6 +12151,14 @@ components:
         - isSignalHubEnabled
       properties:
         isSignalHubEnabled:
+          type: boolean
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - personalData
+      properties:
+        personalData:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
