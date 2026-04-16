@@ -26,6 +26,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -48,9 +49,12 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
   attributeDailyCallsNotAllowed,
+  decriptorArchivingWithEService,
+  missingArchivingSchedule,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-// import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { isSameDay } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -448,21 +452,52 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-// export function assertDescriptorInRequiredState(descriptor: Descriptor): void {
-//   if (
-//     descriptor.state !== descriptorState.deprecated &&
-//     descriptor.state !== descriptorState.suspended
-//   ) {
-//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-//   }
-// }
+export function assertDescriptorInRequiredStates(
+  descriptor: Descriptor,
+  states: DescriptorState[]
+): void {
+  if (!states.includes(descriptor.state)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
 
-// export function assertDescriptorIsNotLatestVersion(
-//   descriptor: Descriptor,
-//   eservice: EService
-// ): void {
-//   const latestDescriptorVersion = getLatestDescriptor(eservice);
-//   if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
-//     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-//   }
-// }
+export function assertDescriptorIsNotLatestVersion(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  const latestDescriptorVersion = getLatestDescriptor(eservice);
+  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function isEserviceInArchivingState(eservice: EService): boolean {
+  const archivingDescriptors = eservice.descriptors
+    .map((d) => d.state)
+    .filter((state) =>
+      (
+        [
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          descriptorState.archived,
+        ] as DescriptorState[]
+      ).includes(state)
+    );
+  return archivingDescriptors.length === eservice.descriptors.length;
+}
+
+export function assertDescriptorIsNotArchivingWithEService(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor,
+  eservice: EService
+): void {
+  const currentEnd = descriptor.archivingSchedule?.archivingEndDate;
+  const latestEnd = latestDescriptor.archivingSchedule?.archivingEndDate;
+
+  if (!currentEnd || !latestEnd) {
+    throw missingArchivingSchedule(descriptor.id);
+  }
+
+  if (isEserviceInArchivingState(eservice) && isSameDay(currentEnd, latestEnd))
+    throw decriptorArchivingWithEService(eservice.id, descriptor.id);
+}

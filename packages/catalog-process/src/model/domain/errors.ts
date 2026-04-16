@@ -63,6 +63,8 @@ const errorCodes = {
   eServiceUpdateSameNameConflict: "0046",
   attributeDailyCallsNotAllowed: "0047",
   certifiedAttributeGroupNotFoundInSeed: "0048",
+  missingArchivingSchedule: "0049",
+  decriptorArchivingWithEService: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -556,5 +558,26 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function missingArchivingSchedule(
+  descritorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Archiving Schedule missing for DescriptorId: ${descritorId}`,
+    code: "missingArchivingSchedule",
+    title: "Missing Archiving Schedule",
+  });
+}
+
+export function decriptorArchivingWithEService(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} was set in archiving state by EService so archiving cannot be canceled, it should be canceled by canceling EService archiving state`,
+    code: "decriptorArchivingWithEService",
+    title: "Descriptor archiving with EService",
   });
 }
