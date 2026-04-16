@@ -82,8 +82,11 @@ export async function exportInterfaceV2(
     // Created another with due to maximum 44 patterns allowed (like cats) by ts-pattern in a single with statement
     .with(
       { type: "EServiceDescriptorArchivingScheduled" },
-      { type: "EServiceDescriptorArchivingScheduledDeleted" },
+      { type: "EServiceDescriptorArchivingScheduledCanceled" },
       { type: "EServiceDescriptorManualArchived" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingScheduledCanceled" },
+      { type: "EServiceManualArchived" },
       () => undefined
     )
     .exhaustive();

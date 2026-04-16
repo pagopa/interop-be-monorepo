@@ -46,7 +46,7 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorApprovedByDelegator",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorArchivingScheduled",
-            "EServiceDescriptorArchivingScheduledDeleted",
+            "EServiceDescriptorArchivingScheduledCanceled",
             "EServiceDescriptorManualArchived"
           ),
         },
@@ -111,6 +111,9 @@ export const handleCatalogMessageV2 = async (
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingScheduledCanceled",
+            "EServiceManualArchived"
           ),
         },
         (event) => {

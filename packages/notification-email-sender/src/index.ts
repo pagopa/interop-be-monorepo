@@ -154,9 +154,13 @@ export async function handleCatalogMessage(
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
+          // FIXME: move this logic
           "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorManualArchived"
+          "EServiceDescriptorArchivingScheduledCanceled",
+          "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived"
         ),
       },
       () => {

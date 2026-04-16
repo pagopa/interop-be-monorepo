@@ -307,7 +307,7 @@ export async function handleMessageV2(
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
       { type: "EServiceDescriptorArchivingScheduled" },
-      { type: "EServiceDescriptorArchivingScheduledDeleted" },
+      { type: "EServiceDescriptorArchivingScheduledCanceled" },
       () => Promise.resolve()
     )
     .exhaustive();

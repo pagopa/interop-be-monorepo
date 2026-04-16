@@ -34,9 +34,13 @@ export async function handleEServiceEvent(
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          // FIXME: move this logic
           "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingScheduledDeleted",
+          "EServiceDescriptorArchivingScheduledCanceled",
           "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived",
         ),
       },
       (msg) =>

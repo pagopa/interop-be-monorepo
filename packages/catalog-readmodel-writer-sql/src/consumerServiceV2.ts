@@ -65,8 +65,11 @@ export async function handleMessageV2(
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
           "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingScheduledDeleted",
-          "EServiceDescriptorManualArchived"
+          "EServiceDescriptorArchivingScheduledCanceled",
+          "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived",
         )
       },
       async (message) => {

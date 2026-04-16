@@ -131,9 +131,13 @@ function getEServiceM2MEventVisibility(
         "EServicePersonalDataFlagUpdatedAfterPublication",
         "EServicePersonalDataFlagUpdatedByTemplateUpdate",
         "EServiceInstanceLabelUpdated",
+        // FIXME: move this logic
         "EServiceDescriptorArchivingScheduled",
-        "EServiceDescriptorArchivingScheduledDeleted",
-        "EServiceDescriptorManualArchived"
+        "EServiceDescriptorArchivingScheduledCanceled",
+        "EServiceDescriptorManualArchived",
+        "EServiceArchivingScheduled",
+        "EServiceArchivingScheduledCanceled",
+        "EServiceManualArchived"
       ),
       () => m2mEventVisibility.public
     )

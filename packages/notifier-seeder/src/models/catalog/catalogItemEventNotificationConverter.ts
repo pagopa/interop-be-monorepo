@@ -103,6 +103,10 @@ export const toCatalogItemEventNotification = (
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
+      // FIXME: move this logic
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingScheduledCanceled" },
+      { type: "EServiceManualArchived" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -129,7 +133,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorArchivingScheduled" },
-      { type: "EServiceDescriptorArchivingScheduledDeleted" },
+      { type: "EServiceDescriptorArchivingScheduledCanceled" },
       { type: "EServiceDescriptorManualArchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);

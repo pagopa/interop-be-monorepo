@@ -125,9 +125,13 @@ async function handleEServiceEventV2(
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorInterfaceDeleted",
+            // FIXME: move this logic
             "EServiceDescriptorArchivingScheduled",
-            "EServiceDescriptorArchivingScheduledDeleted",
-            "EServiceDescriptorManualArchived"
+            "EServiceDescriptorArchivingScheduledCanceled",
+            "EServiceDescriptorManualArchived",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingScheduledCanceled",
+            "EServiceManualArchived"
           ),
         },
         async (event) => {

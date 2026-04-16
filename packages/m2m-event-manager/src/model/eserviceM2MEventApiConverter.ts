@@ -141,12 +141,22 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED"
     )
     .with(
-      "EServiceDescriptorArchivingScheduledDeleted",
-      () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED_DELETED"
+      "EServiceDescriptorArchivingScheduledCanceled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED_CANCELED"
     )
     .with(
       "EServiceDescriptorManualArchived",
       () => "ESERVICE_DESCRIPTOR_MANUAL_ARCHIVED"
+    )
+    .with("EServiceArchivingScheduled",
+      () => "ESERVICE_ARCHIVING_SCHEDULED"
+    )
+    .with(
+      "EServiceArchivingScheduledCanceled",
+      () => "ESERVICE_ARCHIVING_SCHEDULED_CANCELED"
+    )
+    .with("EServiceManualArchived",
+      () => "ESERVICE_MANUAL_ARCHIVED"
     )
     .exhaustive();
 }

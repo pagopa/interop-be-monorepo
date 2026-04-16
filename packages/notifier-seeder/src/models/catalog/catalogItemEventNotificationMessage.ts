@@ -24,6 +24,10 @@ const eventV2TypeMapper = (
       "EServicePersonalDataFlagUpdatedAfterPublication",
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       "EServiceInstanceLabelUpdated",
+      // FIXME: move this logic
+      "EServiceArchivingScheduled",
+      "EServiceArchivingScheduledCanceled",
+      "EServiceManualArchived",
       () => "catalog_item_updated"
     )
     .with(
@@ -51,7 +55,7 @@ const eventV2TypeMapper = (
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       "EServiceDescriptorArchivingScheduled",
-      "EServiceDescriptorArchivingScheduledDeleted",
+      "EServiceDescriptorArchivingScheduledCanceled",
       "EServiceDescriptorManualArchived",
       () => "catalog_item_descriptor_updated"
     )

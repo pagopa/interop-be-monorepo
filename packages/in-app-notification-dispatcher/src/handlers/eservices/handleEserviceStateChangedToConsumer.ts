@@ -34,9 +34,13 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
   | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+  // FIXME: move this logic
   | "EServiceDescriptorArchivingScheduled"
-  | "EServiceDescriptorArchivingScheduledDeleted"
-  | "EServiceDescriptorManualArchived";
+  | "EServiceDescriptorArchivingScheduledCanceled"
+  | "EServiceDescriptorManualArchived"
+  | "EServiceArchivingScheduled"
+  | "EServiceArchivingScheduledCanceled"
+  | "EServiceManualArchived";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -257,7 +261,7 @@ function getBodyAndDescriptorId(
       {
         type: P.union(
           "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingScheduledDeleted",
+          "EServiceDescriptorArchivingScheduledCanceled",
           "EServiceDescriptorManualArchived",
         ),
       },
