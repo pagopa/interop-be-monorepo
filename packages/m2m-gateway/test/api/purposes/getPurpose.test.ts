@@ -7,8 +7,8 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import { testToM2mGatewayApiPurpose as toM2MGatewayApiPurpose } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purpose/:purposeId router test", () => {
   const authorizedRoles: AuthRole[] = [
