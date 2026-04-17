@@ -1,4 +1,4 @@
-import { EServiceId, EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -203,7 +203,4 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
-  alternativeEservice: input.alternativeEservice != null
-    ? unsafeBrandId<EServiceId>(input.alternativeEservice)
-    : undefined,
 });

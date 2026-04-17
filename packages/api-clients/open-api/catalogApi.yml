@@ -3388,9 +3388,6 @@ components:
           type: boolean
         archivingReason:
           type: string
-        alternativeEservice:
-          type: string
-          format: uuid 
 
     CreatedEServiceRiskAnalysis:
       type: object
@@ -3838,16 +3835,6 @@ components:
         - ARCHIVED
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
-    EServiceDescriptorArchivingSchedule:
-      type: object
-      additionalProperties: false
-      properties:
-        archivingStartDate:
-          type: string
-          format: date-time
-        archivingEndDate:
-          type: string
-          format: date-time
     RejectionReason:
       type: object
       additionalProperties: false

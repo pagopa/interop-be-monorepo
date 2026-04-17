@@ -385,7 +385,6 @@ export const eserviceToEserviceSQL = (
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
   archivingReason: eservice.archivingReason ?? null,
-  alternativeEservice: eservice.alternativeEservice ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

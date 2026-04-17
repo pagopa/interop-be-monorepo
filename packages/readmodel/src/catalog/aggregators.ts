@@ -297,9 +297,6 @@ export const aggregateEservice = ({
     ...(eserviceSQL.archivingReason !== null
       ? { archivingReason: eserviceSQL.archivingReason }
       : {}),
-    ...(eserviceSQL.alternativeEservice !== null
-      ? { alternativeEservice: unsafeBrandId<EServiceId>(eserviceSQL.alternativeEservice) }
-      : {}),
   };
   return {
     data: eservice,

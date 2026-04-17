@@ -215,5 +215,4 @@ export const eServiceToApiEService = (
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
-  alternativeEservice: eservice.alternativeEservice,
 });

@@ -19,7 +19,6 @@ message EServiceV2 {
   optional bool personalData = 14;
   optional string instanceLabel = 15;
   optional string archivingReason = 16;
-  optional string alternativeEservice = 17;
 }
 
 message EServiceRiskAnalysisV2 {

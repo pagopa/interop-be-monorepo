@@ -150,7 +150,6 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
-  // toCreateEventEServiceDescriptorArchivingScheduled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -387,33 +386,6 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-// const updateDescriptorInArchivingState = (
-//   descriptor: Descriptor,
-//   newState: DescriptorState,
-//   archivingKind: ArchivingKind
-// ): Descriptor => {
-//   const descriptorStateChange = [descriptor.state, newState];
-
-//   return match(descriptorStateChange)
-//     .with(
-//       [descriptorState.deprecated, descriptorState.archiving],
-//       [descriptorState.suspended, descriptorState.archivingSuspended],
-//       () => ({
-//         ...descriptor,
-//         state: newState,
-//         archivingSchedule: {
-//           archivingStartDate: new Date(),
-//           archivingEndDate: calculateArchivingEndDate(new Date(), 90),
-//           archivingKind,
-//         },
-//       })
-//     )
-//     .otherwise(() => ({
-//       ...descriptor,
-//       state: newState,
-//     }));
-// };
-
 const archiveDescriptor = (
   streamId: string,
   descriptor: Descriptor,
@@ -423,16 +395,6 @@ const archiveDescriptor = (
 
   return updateDescriptorState(descriptor, descriptorState.archived);
 };
-
-// const archivingDescriptor = (
-//   streamId: string,
-//   descriptor: Descriptor,
-//   logger: Logger
-// ): Descriptor => {
-//   logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
-
-//   return updateDescriptorState(descriptor, descriptorState.archiving);
-// };
 
 const replaceDescriptor = (
   eservice: EService,
@@ -4400,50 +4362,6 @@ async function updateDraftDescriptor(
     metadata: { version: event.newVersion },
   };
 }
-
-// async function startEServiceDescriptorArchiving(
-//   eserviceId: EServiceId,
-//   descriptorId: DescriptorId,
-//   archivingKindSeed: ArchivingKindSeed,
-//   readModelService: ReadModelServiceSQL,
-//   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
-//   {
-//     authData,
-//     correlationId,
-//   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-// ): Promise<WithMetadata<EService>> {
-//   const eservice = await retrieveEService(eserviceId, readModelService);
-//   const descriptor = await retrieveDescriptor(descriptorId, eservice);
-
-//   await assertDescriptorInRequiredState(descriptor);
-//   await assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
-//   await assertRequesterIsDelegateProducerOrProducer(
-//     eservice.data.producerId,
-//     eservice.data.id,
-//     authData,
-//     readModelService
-//   );
-
-//   const updatedDescriptor: Descriptor = updateDescriptorInArchivingState(
-//     descriptor,
-//     descriptorState.archiving,
-//     apiDescriptorKindToDescriptorKind(archivingKindSeed.archivingKind)
-//   );
-
-//   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
-
-//   const event = toCreateEventEServiceDescriptorArchivingScheduled(
-//     eservice.metadata.version,
-//     updatedEService,
-//     correlationId
-//   );
-
-//   await repository.createEvent(event);
-//   return {
-//     data: updatedEService,
-//     metadata: { version: event.newVersion },
-//   };
-// }
 
 /**
  * Builds the instance name from the template name and optional instance label.
