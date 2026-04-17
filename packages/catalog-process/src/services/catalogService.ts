@@ -3561,6 +3561,43 @@ export function catalogServiceBuilder(
         lastEService = eService;
       }
 
+      if (
+        publishedVersion.asyncExchangeCallbackInterface &&
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ) {
+        const callbackDoc = publishedVersion.asyncExchangeCallbackInterface;
+        const clonedCallbackDocId = generateId<EServiceDocumentId>();
+        const clonedCallbackDocPath = await fileManager.copy(
+          config.s3Bucket,
+          callbackDoc.path,
+          config.eserviceDocumentsPath,
+          clonedCallbackDocId,
+          callbackDoc.name,
+          ctx.logger
+        );
+        const { eService, event } = await innerAddDocumentToEserviceEvent(
+          {
+            data: lastEService,
+            metadata: { version: docEvents.length + 1 },
+          },
+          createdEService.descriptors[0].id,
+          {
+            documentId: clonedCallbackDocId,
+            kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+            prettyName: callbackDoc.prettyName,
+            filePath: clonedCallbackDocPath,
+            fileName: callbackDoc.name,
+            contentType: callbackDoc.contentType,
+            checksum: callbackDoc.checksum,
+            serverUrls: [],
+          },
+          ctx
+        );
+        // eslint-disable-next-line functional/immutable-data
+        docEvents.push(event);
+        lastEService = eService;
+      }
+
       await repository.createEvents([...events, ...docEvents]);
 
       return lastEService;

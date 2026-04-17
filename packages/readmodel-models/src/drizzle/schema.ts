@@ -250,6 +250,7 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
       eserviceTemplateId: uuid("eservice_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
+      kind: varchar().notNull(),
       name: varchar().notNull(),
       contentType: varchar("content_type").notNull(),
       prettyName: varchar("pretty_name").notNull(),
@@ -279,8 +280,9 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_version_int_eservice_template_id_metadat_fkey",
       }),
-      unique("eservice_template_version_interface_version_id_key").on(
-        table.versionId
+      unique("eservice_template_version_interface_version_id_kind_key").on(
+        table.versionId,
+        table.kind
       ),
     ]
   );
