@@ -9,7 +9,7 @@ import {
   sortPurposeVersionsByDate,
 } from "../services/purposeService.js";
 import { validateRiskAnalysis } from "pagopa-interop-commons";
-import { eserviceMode, genericInternalError } from "pagopa-interop-models";
+import { genericInternalError } from "pagopa-interop-models";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { match } from "ts-pattern";
