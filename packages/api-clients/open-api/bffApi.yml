@@ -29131,11 +29131,7 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
         platformStatesVerification:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
-        dpopProofValidation:
-          $ref: "#/components/schemas/TokenGenerationValidationEntry"
-        dpopMatchValidation:
-          $ref: "#/components/schemas/TokenGenerationValidationEntry"
-        dpopSignatureVerification:
+        dpopValidation:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
       required:
         - clientAssertionValidation

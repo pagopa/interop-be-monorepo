@@ -51,15 +51,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
     ...mockResult,
     steps: {
       ...mockResult.steps,
-      dpopProofValidation: {
-        result: "PASSED",
-        failures: [],
-      },
-      dpopMatchValidation: {
-        result: "PASSED",
-        failures: [],
-      },
-      dpopSignatureVerification: {
+      dpopValidation: {
         result: "PASSED",
         failures: [],
       },

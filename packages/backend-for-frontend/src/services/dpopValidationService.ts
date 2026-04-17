@@ -10,7 +10,7 @@ import { BffAppContext } from "../utilities/context.js";
 
 export type DPoPValidationSteps = Pick<
   bffApi.TokenGenerationValidationSteps,
-  "dpopProofValidation" | "dpopMatchValidation" | "dpopSignatureVerification"
+  "dpopValidation"
 >;
 
 export async function validateDPoPProofForTokenGeneration(
@@ -69,37 +69,21 @@ function toDPoPValidationSteps(errs: {
   const dpopProofErrors = errs.dpopProofErrors ?? [];
   const dpopMatchErrors = errs.dpopMatchErrors ?? [];
   const dpopSignatureErrors = errs.dpopSignatureErrors ?? [];
+  const dpopValidationErrors = [
+    ...dpopProofErrors,
+    ...dpopMatchErrors,
+    ...dpopSignatureErrors,
+  ];
 
   return {
-    dpopProofValidation: {
-      result: getStepResult([], dpopProofErrors),
-      failures: apiErrorsToValidationFailures(dpopProofErrors),
-    },
-    dpopMatchValidation: {
-      result: getStepResult(dpopProofErrors, dpopMatchErrors),
-      failures: apiErrorsToValidationFailures(dpopMatchErrors),
-    },
-    dpopSignatureVerification: {
-      result: getStepResult(
-        [...dpopProofErrors, ...dpopMatchErrors],
-        dpopSignatureErrors
-      ),
-      failures: apiErrorsToValidationFailures(dpopSignatureErrors),
+    dpopValidation: {
+      result:
+        dpopValidationErrors.length > 0
+          ? bffApi.TokenGenerationValidationStepResult.Enum.FAILED
+          : bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
+      failures: apiErrorsToValidationFailures(dpopValidationErrors),
     },
   };
-}
-
-function getStepResult(
-  prevStepErrors: Array<ApiError<string>>,
-  currentStepErrors: Array<ApiError<string>>
-): bffApi.TokenGenerationValidationStepResult {
-  if (currentStepErrors.length > 0) {
-    return bffApi.TokenGenerationValidationStepResult.Enum.FAILED;
-  } else if (prevStepErrors.length > 0) {
-    return bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED;
-  } else {
-    return bffApi.TokenGenerationValidationStepResult.Enum.PASSED;
-  }
 }
 
 function apiErrorsToValidationFailures<T extends string>(

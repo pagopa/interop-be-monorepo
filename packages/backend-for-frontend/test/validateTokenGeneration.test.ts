@@ -612,15 +612,7 @@ describe("validateTokenGeneration", () => {
           result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
           failures: [],
         },
-        dpopProofValidation: {
-          result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
-          failures: [],
-        },
-        dpopMatchValidation: {
-          result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
-          failures: [],
-        },
-        dpopSignatureVerification: {
+        dpopValidation: {
           result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
           failures: [],
         },
@@ -684,7 +676,7 @@ describe("validateTokenGeneration", () => {
           },
         ],
       });
-      expect(validationResult.steps.dpopProofValidation).toEqual({
+      expect(validationResult.steps.dpopValidation).toEqual({
         result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
         failures: [
           {
@@ -693,12 +685,6 @@ describe("validateTokenGeneration", () => {
           },
         ],
       });
-      expect(validationResult.steps.dpopMatchValidation?.result).toBe(
-        bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED
-      );
-      expect(validationResult.steps.dpopSignatureVerification?.result).toBe(
-        bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED
-      );
     });
 
     it("should classify HTU mismatch as DPoP match validation failure", async () => {
@@ -725,14 +711,10 @@ describe("validateTokenGeneration", () => {
         bffMockContext
       );
 
-      expect(validationResult.steps.dpopProofValidation?.result).toBe("PASSED");
-      expect(validationResult.steps.dpopMatchValidation).toEqual({
+      expect(validationResult.steps.dpopValidation).toEqual({
         result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
         failures: [{ code: htuError.code, reason: htuError.message }],
       });
-      expect(validationResult.steps.dpopSignatureVerification?.result).toBe(
-        "SKIPPED"
-      );
     });
 
     it("should handle DPoP signature verification errors", async () => {
@@ -779,7 +761,7 @@ describe("validateTokenGeneration", () => {
         bffMockContext
       );
 
-      expect(validationResult.steps.dpopSignatureVerification).toEqual({
+      expect(validationResult.steps.dpopValidation).toEqual({
         result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
         failures: [
           { code: signatureError.code, reason: signatureError.message },
