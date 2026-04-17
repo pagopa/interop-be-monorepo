@@ -421,6 +421,16 @@ export function assertDailyCallsForCertifiedAttributesOnly(
   }
 }
 
+export function assertTemplateInstanceCannotAddAttributes(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined,
+  newAttributeIds: string[]
+): void {
+  if (templateId !== undefined && newAttributeIds.length > 0) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+}
+
 export function assertAttributeDailyCallsConsistentWithTotal(
   attributes: EserviceAttributes,
   dailyCallsTotal: number

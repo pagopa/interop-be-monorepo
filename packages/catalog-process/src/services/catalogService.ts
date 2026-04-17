@@ -184,6 +184,7 @@ import {
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertTemplateInstanceCannotAddAttributes,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -2844,11 +2845,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eserviceId,
@@ -2863,6 +2859,12 @@ export function catalogServiceBuilder(
         eserviceId,
         descriptor,
         seed
+      );
+
+      assertTemplateInstanceCannotAddAttributes(
+        eserviceId,
+        eservice.data.templateId,
+        newAttributes
       );
 
       const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
