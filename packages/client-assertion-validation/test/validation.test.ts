@@ -32,6 +32,7 @@ import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
+  asyncExchangeNotAllowed,
   invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
@@ -1118,6 +1119,33 @@ describe("validation test", async () => {
         invalidAgreementState(agreementState),
         purposeIdNotProvided(),
       ]);
+    });
+
+    it("asyncExchangeNotAllowed for consumer client", async () => {
+      const mockConsumerKey: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(),
+        asyncExchange: true,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        (
+          await getMockClientAssertion({
+            customClaims: { purposeId: mockConsumerKey.GSIPK_purposeId },
+          })
+        ).jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors).toEqual([asyncExchangeNotAllowed()]);
     });
   });
 
