@@ -149,7 +149,6 @@ export const EService = z.object({
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
-  alternativeEservice: EServiceId.optional(),
 });
 
 export type EService = z.infer<typeof EService>;

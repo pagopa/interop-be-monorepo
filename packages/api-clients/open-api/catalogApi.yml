@@ -3388,9 +3388,6 @@ components:
           type: boolean
         archivingReason:
           type: string
-        alternativeEservice:
-          type: string
-          format: uuid
 
     CreatedEServiceRiskAnalysis:
       type: object

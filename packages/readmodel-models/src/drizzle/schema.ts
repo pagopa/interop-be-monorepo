@@ -409,7 +409,6 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
     archivingReason: varchar("archiving_reason"),
-    alternativeEservice: uuid("alternative_eservice"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
