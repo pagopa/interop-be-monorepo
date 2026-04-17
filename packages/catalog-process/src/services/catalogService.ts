@@ -22,6 +22,7 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
+  logger,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -326,7 +327,8 @@ const getTemplateDataFromEservice = (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  newState: DescriptorState
+  newState: DescriptorState,
+  scope?: "descriptor" | "eservice"
 ): Descriptor => {
   const descriptorStateChange = [descriptor.state, newState];
 
@@ -340,26 +342,26 @@ const updateDescriptorState = (
         publishedAt: new Date(),
       })
     )
-    .with([descriptorState.published, descriptorState.suspended], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.suspended],
+      [descriptorState.deprecated, descriptorState.suspended],
+      [descriptorState.archiving, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: new Date(),
+      })
+    )
     .with(
       [descriptorState.suspended, descriptorState.published],
       [descriptorState.archivingSuspended, descriptorState.archiving],
+      [descriptorState.suspended, descriptorState.deprecated],
       () => ({
         ...descriptor,
         state: newState,
         suspendedAt: undefined,
       })
     )
-    .with([descriptorState.suspended, descriptorState.deprecated], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-      deprecatedAt: new Date(),
-    }))
     .with([descriptorState.suspended, descriptorState.archived], () => ({
       ...descriptor,
       state: newState,
@@ -388,8 +390,8 @@ const updateDescriptorState = (
         ...descriptor,
         state: newState,
         archivingSchedule: {
-          archivingStartDate: new Date(),
-          archivingEndDate: calculateArchivingEndDate(new Date(), 90),
+          archivableON: calculateArchivingEndDate(new Date(), 90),
+          scope: scope ?? "descriptor",
         },
       })
     )
@@ -796,7 +798,6 @@ function createNextDescriptor(
       : undefined,
   };
 }
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1502,32 +1503,16 @@ export function catalogServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService> | undefined> {
-      logger.info(
-        `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
-
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
-
-      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
-
-      const eserviceAfterDescriptorDeletion: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d: Descriptor) => d.id !== descriptorId
-        ),
-      };
+      const eserviceAfterDescriptorDeletion: EService =
+        await deleteDraftDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          { authData, logger }
+        );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -3783,6 +3768,79 @@ export function catalogServiceBuilder(
         metadata: { version: createdEvent.newVersion },
       };
     },
+
+    async scheduleEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const deletableDescriptor = getLatestDescriptorByStates(
+        eservice.data,
+        [descriptorState.draft] // waitingForApproval also
+      );
+
+      if (deletableDescriptor) {
+        await deleteDraftDescriptorLogic(
+          eservice.data,
+          deletableDescriptor,
+          readModelService,
+          fileManager,
+          { authData, logger }
+        );
+      }
+
+      const lastDescriptor = getLatestDescriptor(eservice.data);
+
+      assertDescriptorInRequiredStates(lastDescriptor, [
+        descriptorState.published,
+        descriptorState.suspended,
+      ]);
+
+      const updatedDescriptors = eservice.data.descriptors.map((d) => {
+        if (
+          (
+            [
+              descriptorState.archiving,
+              descriptorState.archivingSuspended,
+              descriptorState.archived,
+            ] as DescriptorState[]
+          ).includes(d.state)
+        ) {
+          return d;
+        }
+        const newState =
+          d.state === descriptorState.suspended
+            ? descriptorState.archivingSuspended
+            : descriptorState.archiving;
+
+        return updateDescriptorState(d, newState, "eservice");
+      });
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: updatedDescriptors,
+      };
+
+      const event = toCreateEventEServiceDescriptorArchivingScheduled(
+        // change event
+        eservice.metadata.version,
+        updatedEService,
+        lastDescriptor.id,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+
     async cancelEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3853,12 +3911,84 @@ async function transitionEServiceDescriptorArchivingStateLogic(
 
   const updatedDescriptor: Descriptor = updateDescriptorState(
     descriptor,
-    newState
+    newState,
+    "descriptor"
   );
 
   const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
 
   return updatedEService;
+}
+
+async function transitionEServiceArchivingStateLogic(
+  eservice: EService,
+  newState: DescriptorState,
+  oldState: DescriptorState[],
+  authData: UIAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL
+): Promise<EService> {
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.producerId,
+    eservice.id,
+    authData,
+    readModelService
+  );
+
+  const updatedDescriptors = eservice.descriptors.map((d) => {
+    if (
+      (
+        [
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          descriptorState.archived,
+        ] as DescriptorState[]
+      ).includes(d.state)
+    ) {
+      return d;
+    }
+    const newState =
+      d.state === descriptorState.suspended
+        ? descriptorState.archivingSuspended
+        : descriptorState.archiving;
+
+    return updateDescriptorState(d, newState, "eservice");
+  });
+  return {
+    ...eservice,
+    descriptors: updatedDescriptors,
+  };
+}
+
+async function deleteDraftDescriptorLogic(
+  eservice: EService,
+  descriptor: Descriptor,
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager,
+  { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+): Promise<EService> {
+  logger.info(
+    `Deleting draft Descriptor ${descriptor.id} for EService ${eservice.id}`
+  );
+
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.producerId,
+    eservice.id,
+    authData,
+    readModelService
+  );
+
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+
+  await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptor.id
+    ),
+  };
 }
 
 async function createOpenApiInterfaceByTemplate(
