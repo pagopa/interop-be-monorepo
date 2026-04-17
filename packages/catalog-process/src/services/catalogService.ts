@@ -3801,30 +3801,46 @@ export function catalogServiceBuilder(
         descriptorState.suspended,
       ]);
 
-      const updatedDescriptors = eservice.data.descriptors.map((d) => {
-        if (
-          (
-            [
-              descriptorState.archiving,
-              descriptorState.archivingSuspended,
-              descriptorState.archived,
-            ] as DescriptorState[]
-          ).includes(d.state)
-        ) {
-          return d;
+      // const updatedDescriptors = eservice.data.descriptors.map((d) => {
+      //   if (
+      //     (
+      //       [
+      //         descriptorState.archiving,
+      //         descriptorState.archivingSuspended,
+      //         descriptorState.archived,
+      //       ] as DescriptorState[]
+      //     ).includes(d.state)
+      //   ) {
+      //     return d;
+      //   }
+      //   const newState =
+      //     d.state === descriptorState.suspended
+      //       ? descriptorState.archivingSuspended
+      //       : descriptorState.archiving;
+
+      //   return updateDescriptorState(d, newState, "eservice");
+      // });
+
+      // const updatedEService: EService = {
+      //   ...eservice.data,
+      //   descriptors: updatedDescriptors,
+      // };
+
+      //Proposta per archiving
+      const updatedEService = await transitionEServiceStateLogic(
+        eservice.data,
+        authData,
+        readModelService,
+        {
+          ignoreStates: [
+            descriptorState.archiving,
+            descriptorState.archivingSuspended,
+            descriptorState.archived,
+          ],
+          suspendedMapping: descriptorState.archivingSuspended,
+          defaultMapping: descriptorState.archiving,
         }
-        const newState =
-          d.state === descriptorState.suspended
-            ? descriptorState.archivingSuspended
-            : descriptorState.archiving;
-
-        return updateDescriptorState(d, newState, "eservice");
-      });
-
-      const updatedEService: EService = {
-        ...eservice.data,
-        descriptors: updatedDescriptors,
-      };
+      );
 
       const event = toCreateEventEServiceDescriptorArchivingScheduled(
         // change event
@@ -3922,8 +3938,6 @@ async function transitionEServiceDescriptorArchivingStateLogic(
 
 async function transitionEServiceArchivingStateLogic(
   eservice: EService,
-  newState: DescriptorState,
-  oldState: DescriptorState[],
   authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL
 ): Promise<EService> {
@@ -3957,6 +3971,39 @@ async function transitionEServiceArchivingStateLogic(
     ...eservice,
     descriptors: updatedDescriptors,
   };
+}
+
+async function transitionEServiceStateLogic(
+  eservice: EService,
+  authData: UIAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL,
+  {
+    ignoreStates,
+    suspendedMapping,
+    defaultMapping,
+  }: {
+    ignoreStates: DescriptorState[];
+    suspendedMapping: DescriptorState;
+    defaultMapping: DescriptorState;
+  }
+): Promise<EService> {
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.producerId,
+    eservice.id,
+    authData,
+    readModelService
+  );
+
+  const updatedDescriptors = eservice.descriptors.map((d) => {
+    if (ignoreStates.includes(d.state)) return d;
+
+    const newState =
+      d.state === descriptorState.suspended ? suspendedMapping : defaultMapping;
+
+    return updateDescriptorState(d, newState, "eservice");
+  });
+
+  return { ...eservice, descriptors: updatedDescriptors };
 }
 
 async function deleteDraftDescriptorLogic(
