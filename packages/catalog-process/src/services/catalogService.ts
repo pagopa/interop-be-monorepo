@@ -186,6 +186,10 @@ import {
   assertAttributeDailyCallsConsistentWithTotal,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -3288,8 +3292,10 @@ export function catalogServiceBuilder(
         description: lastVersion.description,
         voucherLifespan: lastVersion.voucherLifespan,
         audience: [],
-        dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
-        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 10,
+        dailyCallsPerConsumer:
+          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
+        dailyCallsTotal:
+          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
         agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
         attributes: lastVersion.attributes,
         docs,
@@ -3375,8 +3381,10 @@ export function catalogServiceBuilder(
               audience: [],
               voucherLifespan: publishedVersion.voucherLifespan,
               dailyCallsPerConsumer:
-                publishedVersion.dailyCallsPerConsumer ?? 1,
-              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 10,
+                publishedVersion.dailyCallsPerConsumer ??
+                DEFAULT_DAILY_CALLS_PER_CONSUMER,
+              dailyCallsTotal:
+                publishedVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
               agreementApprovalPolicy:
                 agreementApprovalPolicyToApiAgreementApprovalPolicy(
                   publishedVersion.agreementApprovalPolicy
