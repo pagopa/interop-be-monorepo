@@ -126,6 +126,22 @@ export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig
 >;
 
+export const FeatureFlagDelegationConstraintSkipConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationConstraintSkip:
+      c.FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP ?? false,
+  }));
+export type FeatureFlagDelegationConstraintSkipConfig = z.infer<
+  typeof FeatureFlagDelegationConstraintSkipConfig
+>;
+
 export const FeatureFlagUseSignedDocumentConfig = z
   .object({
     FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
@@ -149,7 +165,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
-  FeatureFlagUseSignedDocumentConfig;
+  FeatureFlagUseSignedDocumentConfig &
+  FeatureFlagDelegationConstraintSkipConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
