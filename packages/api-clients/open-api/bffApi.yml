@@ -28438,6 +28438,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceTechnology:
       type: string
       description: EService Descriptor State

@@ -2729,6 +2729,60 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/start-archiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Start e-service descriptor archiving process
+      operationId: startEServiceDescriptorArchiving
+      description: Starts the archiving process of the specified E-Service descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: E-service descriptor archiving process started.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -3332,6 +3386,8 @@ components:
           format: uuid
         personalData:
           type: boolean
+        archivingReason:
+          type: string
 
     CreatedEServiceRiskAnalysis:
       type: object
@@ -3701,6 +3757,9 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        archivableOn:
+          type: string
+          format: date-time
     Attribute:
       type: object
       additionalProperties: false
@@ -3757,6 +3816,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDocumentKind:
       type: string
       description: EService Document Kind

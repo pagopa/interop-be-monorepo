@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   Descriptor,
   descriptorState,
@@ -167,6 +167,13 @@ export async function handleMessageV1(
 
           return Promise.resolve();
         })
+        .with(
+          P.union(
+            descriptorState.archiving,
+            descriptorState.archivingSuspended
+          ),
+          Promise.resolve
+        ) // FIXME: New state
         .exhaustive();
     })
     .with(

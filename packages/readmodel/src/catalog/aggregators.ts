@@ -117,32 +117,32 @@ export const aggregateDescriptor = ({
   const templateVersionRef: EServiceTemplateVersionRef | undefined =
     templateVersionRefSQL
       ? {
-          id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
-          ...(templateVersionRefSQL.contactName ||
+        id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
+        ...(templateVersionRefSQL.contactName ||
           templateVersionRefSQL.contactEmail ||
           templateVersionRefSQL.contactUrl ||
           templateVersionRefSQL.termsAndConditionsUrl
-            ? {
-                interfaceMetadata: {
-                  ...(templateVersionRefSQL.contactName
-                    ? { contactName: templateVersionRefSQL.contactName }
-                    : {}),
-                  ...(templateVersionRefSQL.contactEmail
-                    ? { contactEmail: templateVersionRefSQL.contactEmail }
-                    : {}),
-                  ...(templateVersionRefSQL.contactUrl
-                    ? { contactUrl: templateVersionRefSQL.contactUrl }
-                    : {}),
-                  ...(templateVersionRefSQL.termsAndConditionsUrl
-                    ? {
-                        termsAndConditionsUrl:
-                          templateVersionRefSQL.termsAndConditionsUrl,
-                      }
-                    : {}),
-                },
-              }
-            : {}),
-        }
+          ? {
+            interfaceMetadata: {
+              ...(templateVersionRefSQL.contactName
+                ? { contactName: templateVersionRefSQL.contactName }
+                : {}),
+              ...(templateVersionRefSQL.contactEmail
+                ? { contactEmail: templateVersionRefSQL.contactEmail }
+                : {}),
+              ...(templateVersionRefSQL.contactUrl
+                ? { contactUrl: templateVersionRefSQL.contactUrl }
+                : {}),
+              ...(templateVersionRefSQL.termsAndConditionsUrl
+                ? {
+                  termsAndConditionsUrl:
+                    templateVersionRefSQL.termsAndConditionsUrl,
+                }
+                : {}),
+            },
+          }
+          : {}),
+      }
       : undefined;
 
   return {
@@ -169,10 +169,10 @@ export const aggregateDescriptor = ({
       : {}),
     ...(descriptorSQL.agreementApprovalPolicy
       ? {
-          agreementApprovalPolicy: AgreementApprovalPolicy.parse(
-            descriptorSQL.agreementApprovalPolicy
-          ),
-        }
+        agreementApprovalPolicy: AgreementApprovalPolicy.parse(
+          descriptorSQL.agreementApprovalPolicy
+        ),
+      }
       : {}),
     ...(descriptorSQL.publishedAt
       ? { publishedAt: stringToDate(descriptorSQL.publishedAt) }
@@ -188,6 +188,9 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(descriptorSQL.archivableOn
+      ? { archivableOn: stringToDate(descriptorSQL.archivableOn) }
+      : {}),
   };
 };
 
@@ -280,16 +283,19 @@ export const aggregateEservice = ({
       : {}),
     ...(eserviceSQL.templateId
       ? {
-          templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
-        }
+        templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
+      }
       : {}),
     ...(eserviceSQL.personalData !== null
       ? {
-          personalData: eserviceSQL.personalData,
-        }
+        personalData: eserviceSQL.personalData,
+      }
       : {}),
     ...(eserviceSQL.instanceLabel !== null
       ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
+    ...(eserviceSQL.archivingReason !== null
+      ? { archivingReason: eserviceSQL.archivingReason }
       : {}),
   };
   return {
@@ -356,14 +362,14 @@ export const aggregateEserviceArray = ({
 
 const createEServiceSQLPropertyMap = <
   T extends
-    | EServiceRiskAnalysisSQL
-    | EServiceRiskAnalysisAnswerSQL
-    | EServiceDescriptorSQL
-    | EServiceDescriptorInterfaceSQL
-    | EServiceDescriptorDocumentSQL
-    | EServiceDescriptorAttributeSQL
-    | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL,
+  | EServiceRiskAnalysisSQL
+  | EServiceRiskAnalysisAnswerSQL
+  | EServiceDescriptorSQL
+  | EServiceDescriptorInterfaceSQL
+  | EServiceDescriptorDocumentSQL
+  | EServiceDescriptorAttributeSQL
+  | EServiceDescriptorRejectionReasonSQL
+  | EServiceDescriptorTemplateVersionRefSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
@@ -584,10 +590,10 @@ export const toEServiceAggregatorArray = (
       const attributeSQL = row.attribute;
       const attributePK = attributeSQL
         ? makeUniqueKey([
-            attributeSQL.attributeId,
-            attributeSQL.descriptorId,
-            attributeSQL.groupId.toString(),
-          ])
+          attributeSQL.attributeId,
+          attributeSQL.descriptorId,
+          attributeSQL.groupId.toString(),
+        ])
         : undefined;
       if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
         attributeIdSet.add(attributePK);
@@ -598,9 +604,9 @@ export const toEServiceAggregatorArray = (
       const rejectionReasonSQL = row.rejection;
       const rejectionReasonPK = rejectionReasonSQL
         ? makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
+          rejectionReasonSQL.descriptorId,
+          rejectionReasonSQL.rejectedAt,
+        ])
         : undefined;
       if (
         rejectionReasonSQL &&
@@ -615,9 +621,9 @@ export const toEServiceAggregatorArray = (
       const templateVersionRefSQL = row.templateVersionRef;
       const templateVersionRefPK = templateVersionRefSQL
         ? makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
+          templateVersionRefSQL.eserviceTemplateVersionId,
+          templateVersionRefSQL.descriptorId,
+        ])
         : undefined;
       if (
         templateVersionRefSQL &&
@@ -644,9 +650,9 @@ export const toEServiceAggregatorArray = (
       const riskAnalysisAnswerSQL = row.riskAnalysisAnswer;
       const riskAnalysisAnswerPK = riskAnalysisAnswerSQL
         ? makeUniqueKey([
-            riskAnalysisAnswerSQL.id,
-            riskAnalysisAnswerSQL.eserviceId,
-          ])
+          riskAnalysisAnswerSQL.id,
+          riskAnalysisAnswerSQL.eserviceId,
+        ])
         : undefined;
       if (
         riskAnalysisAnswerSQL &&

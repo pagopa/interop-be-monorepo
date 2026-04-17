@@ -1564,6 +1564,37 @@ const eservicesRouter = (
         }
       }
     );
+  // .post(
+  //   "/eservices/:eServiceId/descriptors/:descriptorId/start-archiving",
+  //   async (req, res) => {
+  //     const ctx = fromAppContext(req.ctx);
+
+  //     try {
+  //       validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+  //       const updatedEService =
+  //         await catalogService.startEServiceDescriptorArchiving(
+  //           unsafeBrandId(req.params.eServiceId),
+  //           unsafeBrandId(req.params.descriptorId),
+  //           req.body,
+  //           ctx
+  //         );
+
+  //       return res
+  //         .status(200)
+  //         .send(
+  //           catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+  //         );
+  //     } catch (error) {
+  //       const errorRes = makeApiProblem(
+  //         error,
+  //         updateEserviceDescriptorArchivingStatusErrorMapper,
+  //         ctx
+  //       );
+  //       return res.status(errorRes.status).send(errorRes);
+  //     }
+  //   }
+  // );
 
   return eservicesRouter;
 };

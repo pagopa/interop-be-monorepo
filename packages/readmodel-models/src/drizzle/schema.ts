@@ -408,6 +408,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    archivingReason: varchar("archiving_reason"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -449,6 +450,10 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       mode: "string",
     }),
     archivedAt: timestamp("archived_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    archivableOn: timestamp("archivable_on", {
       withTimezone: true,
       mode: "string",
     }),

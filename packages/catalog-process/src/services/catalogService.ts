@@ -66,6 +66,7 @@ import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  // apiDescriptorKindToDescriptorKind,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
   eServiceModeToApiEServiceMode,
@@ -184,8 +185,12 @@ import {
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  // assertDescriptorInRequiredState,
+  // assertDescriptorIsNotLatestVersion,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+// import { calculateArchivingEndDate } from "../utilities/dateCalculator.js";
+// import { ArchivingKindSeed } from "../../../api-clients/dist/catalogApi.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,

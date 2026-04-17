@@ -60,6 +60,11 @@ export const toEServiceDescriptorStateV2 = (
       descriptorState.waitingForApproval,
       () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
     )
+    .with(descriptorState.archiving, () => EServiceDescriptorStateV2.ARCHIVING)
+    .with(
+      descriptorState.archivingSuspended,
+      () => EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
+    )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
@@ -120,6 +125,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  archivableOn: dateToBigInt(input.archivableOn),
 });
 
 export const toRiskAnalysisV2 = (

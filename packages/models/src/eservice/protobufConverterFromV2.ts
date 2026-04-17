@@ -62,6 +62,10 @@ export const fromEServiceDescriptorStateV2 = (
       return descriptorState.deprecated;
     case EServiceDescriptorStateV2.WAITING_FOR_APPROVAL:
       return descriptorState.waitingForApproval;
+    case EServiceDescriptorStateV2.ARCHIVING:
+      return descriptorState.archiving;
+    case EServiceDescriptorStateV2.ARCHIVING_SUSPENDED:
+      return descriptorState.archivingSuspended;
   }
 };
 
@@ -119,15 +123,15 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
-          declared: input.attributes.declared.map(fromEServiceAttributeV2),
-          verified: input.attributes.verified.map(fromEServiceAttributeV2),
-        }
+        certified: input.attributes.certified.map(fromEServiceAttributeV2),
+        declared: input.attributes.declared.map(fromEServiceAttributeV2),
+        verified: input.attributes.verified.map(fromEServiceAttributeV2),
+      }
       : {
-          certified: [],
-          declared: [],
-          verified: [],
-        },
+        certified: [],
+        declared: [],
+        verified: [],
+      },
   docs: input.docs.map(fromDocumentV2),
   state: fromEServiceDescriptorStateV2(input.state),
   interface:
@@ -149,6 +153,7 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
+  archivableOn: bigIntToDate(input.archivableOn),
 });
 
 export const fromRiskAnalysisFormV2 = (

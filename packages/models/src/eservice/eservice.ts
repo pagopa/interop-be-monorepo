@@ -24,6 +24,8 @@ export const descriptorState = {
   suspended: "Suspended",
   archived: "Archived",
   waitingForApproval: "WaitingForApproval",
+  archiving: "Archiving",
+  archivingSuspended: "ArchivingSuspended",
 } as const;
 export const DescriptorState = z.enum([
   Object.values(descriptorState)[0],
@@ -115,6 +117,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  archivableOn: z.coerce.date().optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -145,6 +148,7 @@ export const EService = z.object({
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
+  archivingReason: z.string().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

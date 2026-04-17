@@ -95,6 +95,8 @@ export function assertIsValidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
       catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => descriptor
     )
     .exhaustive();

@@ -44,6 +44,8 @@ export function descriptorStateToApiEServiceDescriptorState(
     .with(descriptorState.deprecated, () => "DEPRECATED")
     .with(descriptorState.archived, () => "ARCHIVED")
     .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
+    .with(descriptorState.archiving, () => "ARCHIVING")
+    .with(descriptorState.archivingSuspended, () => "ARCHIVING_SUSPENDED")
     .exhaustive();
 }
 
@@ -57,6 +59,8 @@ export function apiDescriptorStateToDescriptorState(
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .with("ARCHIVING", () => descriptorState.archiving)
+    .with("ARCHIVING_SUSPENDED", () => descriptorState.archivingSuspended)
     .exhaustive();
 }
 
@@ -180,6 +184,7 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
+  archivableOn: descriptor.archivableOn?.toJSON(),
 });
 
 export const eServiceToApiEService = (
@@ -209,4 +214,5 @@ export const eServiceToApiEService = (
   templateId: eservice.templateId,
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
+  archivingReason: eservice.archivingReason,
 });
