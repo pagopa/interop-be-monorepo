@@ -263,6 +263,9 @@ function getBodyAndDescriptorId(
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingScheduledCanceled",
           "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived"
         ),
       },
       () => {

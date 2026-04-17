@@ -308,6 +308,9 @@ export async function handleMessageV2(
       { type: "EServiceInstanceLabelUpdated" },
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingScheduledCanceled" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingScheduledCanceled" },
+      { type: "EServiceManualArchived" }, //FIXME
       () => Promise.resolve()
     )
     .exhaustive();
