@@ -1,5 +1,6 @@
 import {
   agreementApi,
+  catalogApi,
   m2mGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
@@ -8,7 +9,7 @@ import {
   sortPurposeVersionsByDate,
 } from "../services/purposeService.js";
 import { validateRiskAnalysis } from "pagopa-interop-commons";
-import { genericInternalError } from "pagopa-interop-models";
+import { eserviceMode, genericInternalError } from "pagopa-interop-models";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { match } from "ts-pattern";
@@ -97,12 +98,14 @@ export async function toM2MGatewayApiPurpose(
       });
 
       const isRiskAnalysisValid =
-        validateRiskAnalysis(
-          { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind }, // TODO double-check
-          false,
-          new Date(),
-          eservice.data.personalData
-        ).type === "valid";
+        eservice.data.mode === catalogApi.EServiceMode.Enum.DELIVER
+          ? validateRiskAnalysis(
+              { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind },
+              false,
+              new Date(),
+              eservice.data.personalData
+            ).type === "valid"
+          : true; // the risk analysis form was validated before publishing the eservice (receive mode)
 
       return isRiskAnalysisValid;
     })
