@@ -107,10 +107,9 @@ export async function handleMessageV2(
           previousDescriptor.state !== descriptorState.archived
         ) {
           logger.info(
-            `Skipping processing of previous descriptor${
-              previousDescriptor
-                ? ` ${previousDescriptor.id}. Reason: state ${previousDescriptor.state} is not archived`
-                : ". Reason: there is only one"
+            `Skipping processing of previous descriptor${previousDescriptor
+              ? ` ${previousDescriptor.id}. Reason: state ${previousDescriptor.state} is not archived`
+              : ". Reason: there is only one"
             }`
           );
           return Promise.resolve();
@@ -154,10 +153,9 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${primaryKey}. Reason: ${
-              !catalogEntry
-                ? "entry not found in platform-states"
-                : "a more recent entry already exists"
+            `Skipping processing of entry ${primaryKey}. Reason: ${!catalogEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
             }`
           );
 
@@ -185,32 +183,35 @@ export async function handleMessageV2(
         }
       }
     )
-    .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
-      const { eservice, descriptor } = parseEServiceAndDescriptor(
-        msg.data.eservice,
-        unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-        msg.type
-      );
+    .with(
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorManualArchived" },
+      async (msg) => {
+        const { eservice, descriptor } = parseEServiceAndDescriptor(
+          msg.data.eservice,
+          unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          msg.type
+        );
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-      });
-      await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        });
+        await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
-      // token-generation-states
-      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
-      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: eservice.id,
-        descriptorId,
-      });
-      await updateDescriptorStateInTokenGenerationStatesTable(
-        eserviceId_descriptorId,
-        descriptorStateToItemState(descriptor.state),
-        dynamoDBClient,
-        logger
-      );
-    })
+        // token-generation-states
+        const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorStateToItemState(descriptor.state),
+          dynamoDBClient,
+          logger
+        );
+      })
     .with(
       { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
@@ -228,10 +229,9 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${primaryKey}. Reason: ${
-              !catalogEntry
-                ? "entry not found in platform-states"
-                : "a more recent entry already exists"
+            `Skipping processing of entry ${primaryKey}. Reason: ${!catalogEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
             }`
           );
 
@@ -306,6 +306,11 @@ export async function handleMessageV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingScheduledCanceled" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingScheduledCanceled" },
+      { type: "EServiceManualArchived" }, //FIXME
       () => Promise.resolve()
     )
     .exhaustive();

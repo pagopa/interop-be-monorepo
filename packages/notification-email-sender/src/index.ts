@@ -153,7 +153,14 @@ export async function handleCatalogMessage(
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          // FIXME: move this logic
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingScheduledCanceled",
+          "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived"
         ),
       },
       () => {

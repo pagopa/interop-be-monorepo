@@ -100,7 +100,9 @@ export function toOutboundEventV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingScheduledCanceled" },
+      { type: "EServiceManualArchived" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -155,6 +157,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorApprovedByDelegator" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingScheduledCanceled" },
+      { type: "EServiceDescriptorManualArchived" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

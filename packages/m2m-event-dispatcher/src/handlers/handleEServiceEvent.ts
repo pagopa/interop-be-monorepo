@@ -73,7 +73,11 @@ async function handleEServiceEventV2(
             "EServiceRiskAnalysisDeleted",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            // FIXME: should be reviewed
+            "EServiceArchivingScheduled",
+            "EServiceArchivingScheduledCanceled",
+            "EServiceManualArchived"
           ),
         },
         async (event) => {
@@ -124,7 +128,11 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            // FIXME: should be reviewed
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingScheduledCanceled",
+            "EServiceDescriptorManualArchived",
           ),
         },
         async (event) => {

@@ -150,7 +150,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          // FIXME: remove these when the event is implemented
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingScheduledCanceled",
+          "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived"
         ),
       },
       () => {

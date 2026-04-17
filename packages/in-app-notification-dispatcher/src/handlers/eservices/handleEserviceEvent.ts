@@ -33,7 +33,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          // FIXME: move this logic
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingScheduledCanceled",
+          "EServiceDescriptorManualArchived",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingScheduledCanceled",
+          "EServiceManualArchived",
         ),
       },
       (msg) =>
@@ -91,7 +98,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
         ),
       },
       () => {
