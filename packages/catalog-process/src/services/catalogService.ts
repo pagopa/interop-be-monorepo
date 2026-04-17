@@ -184,6 +184,7 @@ import {
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertTemplateInstanceAttributeStructureUnchanged,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -2869,11 +2870,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateId
-      );
-
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eserviceId,
@@ -2887,6 +2883,13 @@ export function catalogServiceBuilder(
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
         descriptor,
+        seed
+      );
+
+      assertTemplateInstanceAttributeStructureUnchanged(
+        eserviceId,
+        eservice.data.templateId,
+        descriptor.attributes,
         seed
       );
 
