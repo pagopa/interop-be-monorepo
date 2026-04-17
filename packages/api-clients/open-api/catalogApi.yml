@@ -3091,6 +3091,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false

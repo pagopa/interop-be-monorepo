@@ -1595,12 +1595,33 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(
+            {
+              certified:
+                seed.attributes.certified ?? descriptor.attributes.certified,
+              declared:
+                seed.attributes.declared ?? descriptor.attributes.declared,
+              verified:
+                seed.attributes.verified ?? descriptor.attributes.verified,
+            },
+            readModelService
+          )
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedAttributes,
+        seed.dailyCallsTotal
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         audience: seed.audience,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         state: descriptorState.draft,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
         agreementApprovalPolicy:
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
