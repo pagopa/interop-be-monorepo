@@ -321,7 +321,7 @@ describe("update descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than or equal to dailyCallsTotal", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.published,
@@ -471,7 +471,7 @@ describe("update descriptor", () => {
     });
   });
 
-  it("should throw inconsistentDailyCalls when a new certified attribute has dailyCallsPerConsumer greater than the descriptor dailyCallsTotal", async () => {
+  it("should throw inconsistentDailyCalls when a new certified attribute has dailyCallsPerConsumer greater than or equal to the descriptor dailyCallsTotal", async () => {
     const certifiedAttribute = getMockAttribute(attributeKind.certified);
     await addOneAttribute(certifiedAttribute);
 
