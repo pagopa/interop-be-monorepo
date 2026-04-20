@@ -1,6 +1,7 @@
 import { eq, SQL } from "drizzle-orm";
 import {
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   genericInternalError,
   PurposeTemplate,
   PurposeTemplateId,
@@ -10,6 +11,7 @@ import {
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -218,6 +220,30 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeTemplateId: unsafeBrandId(row.purposeTemplateId),
           eserviceId: unsafeBrandId(row.eserviceId),
           descriptorId: unsafeBrandId(row.descriptorId),
+          createdAt: stringToDate(row.createdAt),
+        },
+        metadata: { version: row.metadataVersion },
+      }));
+    },
+    async getEServiceTemplateVersionPurposeTemplatesByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select()
+        .from(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+        .where(filter);
+
+      return queryResult.map((row) => ({
+        data: {
+          purposeTemplateId: unsafeBrandId(row.purposeTemplateId),
+          eserviceTemplateId: unsafeBrandId(row.eserviceTemplateId),
+          eserviceTemplateVersionId: unsafeBrandId(
+            row.eserviceTemplateVersionId
+          ),
           createdAt: stringToDate(row.createdAt),
         },
         metadata: { version: row.metadataVersion },
