@@ -58,7 +58,9 @@ describe("delete eserviceTemplate", () => {
       messageType: EServiceTemplateDeletedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate?.id).toBe(eserviceTemplate.id);
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+    });
   });
 
   it("should write on event-store for the deletion of an eserviceTemplate (eserviceTemplate with a draft version only) and delete the interface and documents of the draft version", async () => {
@@ -158,9 +160,11 @@ describe("delete eserviceTemplate", () => {
       ...eserviceTemplate,
       versions: [],
     };
-    expect(eserviceTemplateDeletionPayload.eserviceTemplate?.id).toBe(
-      mockEServiceTemplate.id
-    );
+    expect(eserviceTemplateDeletionPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(
+        expectedEserviceTemplateWithoutVersions
+      ),
+    });
     expect(versionDeletionPayload).toEqual({
       eserviceTemplate: toEServiceTemplateV2(
         expectedEserviceTemplateWithoutVersions
