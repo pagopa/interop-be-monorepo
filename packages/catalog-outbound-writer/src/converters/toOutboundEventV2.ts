@@ -65,6 +65,7 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    archivable: undefined, // FIXME: To be removed after it is added to outbound repo
   };
 }
 
@@ -216,6 +217,7 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      { type: "EServiceDescriptorArchivable" }, // FIXME: This must be added to outbound repo
       () => undefined
     )
     .exhaustive();

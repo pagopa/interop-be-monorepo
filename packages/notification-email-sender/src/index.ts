@@ -153,7 +153,8 @@ export async function handleCatalogMessage(
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          "EServiceDescriptorArchivable" // FIXME: We ought to send a message for this (maybe?)
         ),
       },
       () => {

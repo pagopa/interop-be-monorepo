@@ -222,3 +222,10 @@ message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
 message EServiceInstanceLabelUpdatedV2 {
   EServiceV2 eservice = 1;
 }
+
+message EServiceDescriptorArchivableV2 {
+  EServiceV2 eservice = 1;
+  string descriptorId = 2;
+  int64 start = 3;
+  int64 end = 4;
+}

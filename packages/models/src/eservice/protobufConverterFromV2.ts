@@ -12,6 +12,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
+  EServiceDescriptorKindV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -33,6 +34,7 @@ import {
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
+  EServiceDescriptorKind,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -112,6 +114,17 @@ export const fromEServiceTemplateVersionRefV2 = (
   interfaceMetadata: input.interfaceMetadata,
 });
 
+export const fromEServiceDescriptorKindV2 = (
+  input: EServiceDescriptorKindV2
+): EServiceDescriptorKind => {
+  switch (input) {
+    case EServiceDescriptorKindV2.MANUAL_ARCHIVE:
+      return EServiceDescriptorKind.Enum.Manual;
+    case EServiceDescriptorKindV2.AUTOMATIC_ARCHIVE:
+      return EServiceDescriptorKind.Enum.Automatic;
+  }
+};
+
 export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -149,6 +162,16 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
+  archivable:
+    input.archivable != null
+      ? {
+          archivingStart: bigIntToDate(input.archivable.archivingStart),
+          archivingEnd: bigIntToDate(input.archivable.archivingEnd),
+          archivingType: fromEServiceDescriptorKindV2(
+            input.archivable.archivingType
+          ),
+        }
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (

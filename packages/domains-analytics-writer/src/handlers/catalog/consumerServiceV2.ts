@@ -109,6 +109,11 @@ export async function handleCatalogMessageV2(
           );
         }
       )
+      .with({ type: "EServiceDescriptorArchivable" }, (_msg) => {
+        // FIXME: Fix me
+        // eslint-disable-next-line no-console
+        console.log("Skipping archivable event for EService M2M Gateway");
+      })
       .exhaustive();
   }
 

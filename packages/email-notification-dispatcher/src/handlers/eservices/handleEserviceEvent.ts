@@ -150,7 +150,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          "EServiceDescriptorArchivable" // FIXME: We should send a notification for this event (maybe?)
         ),
       },
       () => {

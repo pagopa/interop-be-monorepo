@@ -859,6 +859,41 @@ const eservicesRouter = (
         }
       }
     )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/archivable",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+          const { data: archivableEService, metadata } =
+            await catalogService.descriptorArchivable(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(
+                eServiceToApiEService(archivableEService)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDescriptorErrorMapper, //change this error mapper if you want to handle this case differently
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

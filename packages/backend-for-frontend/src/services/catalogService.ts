@@ -1368,6 +1368,23 @@ export function catalogServiceBuilder(
         },
       });
     },
+    descriptorArchivable: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      kind: catalogApi.EServiceDescriptorKind,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating descriptor ${descriptorId} of EService ${eServiceId} to be archived`
+      );
+      return await catalogProcessClient.descriptorArchivable(kind, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
