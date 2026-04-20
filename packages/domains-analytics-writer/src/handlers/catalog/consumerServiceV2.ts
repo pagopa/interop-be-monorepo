@@ -82,11 +82,11 @@ export async function handleCatalogMessageV2(
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
             "EServiceDescriptorArchiveScheduled",
-            "EServiceDescriptorArchiveScheduleCancelled",
-            "EServiceDescriptorArchiveScheduledCompleted",
+            "EServiceDescriptorArchiveScheduleCanceled",
+            "EServiceDescriptorArchiveScheduleCompleted",
             "EServiceArchiveScheduled",
-            "EServiceArchiveScheduleCancelled",
-            "EServiceArchiveScheduledCompleted"
+            "EServiceArchiveScheduleCanceled",
+            "EServiceArchiveScheduleCompleted"
           ),
         },
         (msg) => {
