@@ -595,4 +595,52 @@ describe("update descriptor", () => {
       );
     }
   );
+
+  it("should throw inconsistentDailyCalls when lowering dailyCallsTotal below existing attribute dailyCallsPerConsumer without providing attributes", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 500,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const seed: catalogApi.UpdateEServiceDescriptorQuotasSeed = {
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 200,
+      dailyCallsTotal: 300,
+      // No attributes field — existing attributes must still be validated
+    };
+
+    await expect(
+      catalogService.updateDescriptor(
+        eservice.id,
+        descriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
 });

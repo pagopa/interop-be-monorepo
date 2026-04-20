@@ -2126,16 +2126,17 @@ export function catalogServiceBuilder(
         );
 
         assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
-        assertAttributeDailyCallsConsistentWithTotal(
-          parsedAttributes,
-          seed.dailyCallsTotal
-        );
 
         updatedDescriptor = {
           ...updatedDescriptor,
           attributes: parsedAttributes,
         };
       }
+
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2203,16 +2204,17 @@ export function catalogServiceBuilder(
         );
 
         assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
-        assertAttributeDailyCallsConsistentWithTotal(
-          parsedAttributes,
-          seed.dailyCallsTotal
-        );
 
         updatedDescriptor = {
           ...updatedDescriptor,
           attributes: parsedAttributes,
         };
       }
+
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
