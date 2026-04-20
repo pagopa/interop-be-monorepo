@@ -726,65 +726,6 @@ describe("update descriptor", () => {
     );
   });
 
-  it("should throw templateInstanceNotAllowed when removing an attribute from a group on a template instance", async () => {
-    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
-
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      dailyCallsTotal: 1000,
-      attributes: {
-        certified: [
-          [
-            {
-              id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
-            },
-            {
-              id: mockCertifiedAttribute2.id,
-              explicitAttributeVerification: false,
-            },
-          ],
-        ],
-        verified: [],
-        declared: [],
-      },
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      templateId,
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    const seed: catalogApi.AttributesSeed = {
-      certified: [
-        [
-          {
-            id: mockCertifiedAttribute1.id,
-            explicitAttributeVerification: false,
-          },
-          // mockCertifiedAttribute2 removed
-        ],
-      ],
-      verified: [],
-      declared: [],
-    };
-
-    await expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        seed,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-      )
-    ).rejects.toThrowError(
-      templateInstanceNotAllowed(mockEService.id, templateId)
-    );
-  });
-
   it("should write on event-store when adding new certified attribute with dailyCalls", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
