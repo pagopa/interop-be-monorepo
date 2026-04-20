@@ -1,6 +1,5 @@
 import {
   EmailNotificationMessagePayload,
-  EServiceIdDescriptorId,
   generateId,
   NotificationType,
   ProducerKeychainId,
@@ -10,7 +9,6 @@ import {
   eventMailTemplateType,
   retrieveEService,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -57,6 +55,9 @@ export async function handleAsyncEserviceWithoutKeychain(
       eservice.producerId,
       unsafeBrandId<ProducerKeychainId>(producerKeychainV2Msg.id)
     );
+  const producerKeychainId = unsafeBrandId<ProducerKeychainId>(
+    producerKeychainV2Msg.id
+  );
 
   if (eserviceInOtherKeychain) {
     logger.info(
@@ -65,11 +66,10 @@ export async function handleAsyncEserviceWithoutKeychain(
     return [];
   }
 
-  const [htmlTemplate, descriptor, producer] = await Promise.all([
+  const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.asyncEserviceWithoutKeychainMailTemplate
     ),
-    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -95,12 +95,10 @@ export async function handleAsyncEserviceWithoutKeychain(
       body: templateService.compileHtml(htmlTemplate, {
         title: `Attenzione: e-service asincrono senza portachiavi`,
         notificationType,
-        entityId: EServiceIdDescriptorId.parse(
-          `${eservice.id}/${descriptor.id}`
-        ),
+        entityId: producerKeychainId,
         eserviceName: eservice.name,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Visualizza portachiavi`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

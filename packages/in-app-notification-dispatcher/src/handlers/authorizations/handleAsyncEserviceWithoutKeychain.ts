@@ -1,7 +1,6 @@
 import {
   AuthorizationEventEnvelopeV2,
   EServiceId,
-  EServiceIdDescriptorId,
   fromProducerKeychainV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -13,7 +12,6 @@ import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
-  retrieveLatestDescriptor,
 } from "../handlerCommons.js";
 
 type AsyncEserviceWithoutKeychainEvent = Extract<
@@ -58,8 +56,6 @@ export async function handleAsyncEserviceWithoutKeychain(
     return [];
   }
 
-  const descriptor = retrieveLatestDescriptor(eservice);
-
   const usersWithNotifications = await getNotificationRecipients(
     [producerKeychain.producerId],
     "producerKeychainKeyAddedDeletedToClientUsers",
@@ -76,6 +72,6 @@ export async function handleAsyncEserviceWithoutKeychain(
     tenantId,
     body: inAppTemplates.asyncEserviceWithoutKeychainToProducer(eservice.name),
     notificationType: "producerKeychainKeyAddedDeletedToClientUsers" as const,
-    entityId: EServiceIdDescriptorId.parse(`${eservice.id}/${descriptor.id}`),
+    entityId: producerKeychain.id,
   }));
 }
