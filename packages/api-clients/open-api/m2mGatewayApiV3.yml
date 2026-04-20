@@ -10329,6 +10329,12 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_INSTANCE_LABEL_UPDATED
+            - ESERVICE_ARCHIVE_SCHEDULED
+            - ESERVICE_ARCHIVE_SCHEDULE_CANCELED
+            - ESERVICE_ARCHIVE_SCHEDULE_COMPLETED
+            - ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULED
+            - ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULE_CANCELED
+            - ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULE_COMPLETED
         eventTimestamp:
           type: string
           format: date-time
@@ -11524,6 +11530,8 @@ components:
           $ref: "#/components/schemas/TemplateId"
         personalData:
           type: boolean
+        archivingReason:
+          type: string
       required:
         - id
         - producerId
@@ -11610,6 +11618,8 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
       required:
         - id
         - version
@@ -11622,6 +11632,21 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - serverUrls
+    ArchivingSchedule:
+      type: object
+      additionalProperties: false
+      properties:
+        archivableOn:
+          type: string
+          format: date-time
+        scope:
+          $ref: "#/components/schemas/ArchivingScope"      
+    ArchivingScope:
+      type: string
+      description: Archiving Scope
+      enum:
+        - ESERVICE
+        - DESCRIPTOR
     EServiceDescriptors:
       type: object
       additionalProperties: false
@@ -11645,6 +11670,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDescriptorSeed:
       type: object
       additionalProperties: false

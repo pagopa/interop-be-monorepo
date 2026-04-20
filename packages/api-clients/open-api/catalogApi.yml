@@ -3332,6 +3332,8 @@ components:
           format: uuid
         personalData:
           type: boolean
+        archivingReason:
+          type: string
 
     CreatedEServiceRiskAnalysis:
       type: object
@@ -3701,6 +3703,23 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
+    ArchivingSchedule:
+      type: object
+      additionalProperties: false
+      properties:
+        archivableOn:
+          type: string
+          format: date-time
+        scope:
+          $ref: "#/components/schemas/ArchivingScope"      
+    ArchivingScope:
+      type: string
+      description: Archiving Scope
+      enum:
+        - ESERVICE
+        - DESCRIPTOR
     Attribute:
       type: object
       additionalProperties: false
@@ -3757,6 +3776,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDocumentKind:
       type: string
       description: EService Document Kind
