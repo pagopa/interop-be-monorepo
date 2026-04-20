@@ -71,8 +71,8 @@ describe("createProducerKeychain", () => {
       description: producerKeychain.data.description,
     };
 
-    expect(writtenPayload.producerKeychain).toEqual(
-      toProducerKeychainV2(expectedProducerKeychain)
-    );
+    expect(writtenPayload).toEqual({
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
+    });
   });
 });
