@@ -175,6 +175,7 @@ export const Tenant = z.object({
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
+  selfcareInstitutionType: z.string().optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;
