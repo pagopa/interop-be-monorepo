@@ -561,6 +561,70 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/eserviceTemplates:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: creatorIds
+        description: comma separated sequence of e-service template creator IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: eserviceTemplateName
+        description: filter linked e-service templates by name
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - purposeTemplate
+      summary: Get Purpose Template E-Service Templates
+      operationId: getPurposeTemplateEServiceTemplates
+      description: Retrieve e-service templates linked to a purpose template
+      responses:
+        "200":
+          description: Purpose Template E-Service Templates retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionsPurposeTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/eservices/{eserviceId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1696,6 +1760,41 @@ components:
         - purposeTemplateId
         - eserviceId
         - descriptorId
+        - createdAt
+    EServiceTemplateVersionsPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionPurposeTemplate"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    EServiceTemplateVersionPurposeTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - purposeTemplateId
+        - eserviceTemplateId
+        - eserviceTemplateVersionId
         - createdAt
     RiskAnalysisFormTemplate:
       type: object
