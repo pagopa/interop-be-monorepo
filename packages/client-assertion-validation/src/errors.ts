@@ -39,6 +39,7 @@ export const errorCodes = {
   invalidInteractionIdClaimFormat: "0036",
   invalidUrlCallbackClaimFormat: "0037",
   invalidEntityNumberClaimFormat: "0038",
+  asyncExchangeNotAllowed: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -264,6 +265,15 @@ export function invalidDigestClaim(message: string): ApiError<ErrorCodes> {
   });
 }
 
+export function asyncExchangeNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Async exchange clients cannot use the standard authorization server",
+    code: "asyncExchangeNotAllowed",
+    title: "Async exchange not allowed",
+  });
+}
+
 export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid hash length for algorithm ${alg}`,
@@ -363,7 +373,7 @@ export function invalidUrlCallbackClaimFormat(
   urlCallback: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `urlCallback claim ${urlCallback} is not a valid string`,
+    detail: `urlCallback claim ${urlCallback} is not a valid URL`,
     code: "invalidUrlCallbackClaimFormat",
     title: "Invalid urlCallback claim format",
   });

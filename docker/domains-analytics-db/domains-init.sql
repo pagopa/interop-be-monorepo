@@ -135,6 +135,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
+  daily_calls_per_consumer INTEGER,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -401,6 +402,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   selfcare_id VARCHAR(2048),
   external_id_origin VARCHAR(2048) NOT NULL,
   external_id_value VARCHAR(2048) NOT NULL,
+  selfcare_institution_type VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   name VARCHAR(2048) NOT NULL,
@@ -616,7 +618,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
   id VARCHAR(36),
   eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  version_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.eservice_template_version (id),
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
+  kind VARCHAR(2048) NOT NULL,
   name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
   pretty_name VARCHAR(2048) NOT NULL,
@@ -624,7 +627,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
   checksum VARCHAR(2048) NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  UNIQUE (version_id, kind)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_document (

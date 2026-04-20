@@ -17,7 +17,7 @@ export async function handleClientAddedRemovedToProducer(
   type: "ClientPurposeAdded" | "ClientPurposeRemoved"
 ): Promise<NewNotification[]> {
   logger.info(
-    `Sending in-app notification for handleClientAddedRemovedToProducer ${purposeId}`
+    `Sending in-app notification for handleClientAddedRemovedToProducer - entityId: ${purposeId}, eventType: ${type}`
   );
 
   const purpose = await retrievePurpose(
@@ -36,7 +36,7 @@ export async function handleClientAddedRemovedToProducer(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handleClientAddedRemovedToProducer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }

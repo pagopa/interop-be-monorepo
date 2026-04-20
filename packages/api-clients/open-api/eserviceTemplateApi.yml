@@ -2159,6 +2159,8 @@ components:
           maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         docs:
           type: array
           items:

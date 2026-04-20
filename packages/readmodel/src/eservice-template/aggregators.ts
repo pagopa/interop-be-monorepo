@@ -13,6 +13,7 @@ import {
   TenantKind,
   unsafeBrandId,
   WithMetadata,
+  type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -27,7 +28,6 @@ import {
 import { match } from "ts-pattern";
 import {
   aggregateRiskAnalysisForm,
-  attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -45,17 +45,24 @@ export const aggregateEServiceTemplateRiskAnalysis = (
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
-  interfaceSQL,
+  interfacesSQL,
   documentsSQL,
   attributesSQL,
 }: {
   versionSQL: EServiceTemplateVersionSQL;
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
 }): EServiceTemplateVersion => {
-  const parsedInterface = interfaceSQL
-    ? documentSQLtoDocument(interfaceSQL)
+  const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
+  const callbackInterfaceSQL = interfacesSQL.find(
+    (i) => i.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+  );
+  const parsedInterface = mainInterfaceSQL
+    ? documentSQLtoDocument(mainInterfaceSQL)
+    : undefined;
+  const asyncExchangeCallbackInterfaceDoc = callbackInterfaceSQL
+    ? documentSQLtoDocument(callbackInterfaceSQL)
     : undefined;
 
   const {
@@ -84,9 +91,15 @@ export const aggregateEServiceTemplateVersion = ({
       verified: new Array<EServiceTemplateVersionAttributeSQL>(),
     }
   );
-  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
-  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
-  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
+  const certifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    certifiedAttributesSQL
+  );
+  const declaredAttributes = templateAttributesSQLtoTemplateAttributes(
+    declaredAttributesSQL
+  );
+  const verifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    verifiedAttributesSQL
+  );
 
   return {
     id: unsafeBrandId(versionSQL.id),
@@ -107,6 +120,9 @@ export const aggregateEServiceTemplateVersion = ({
       verified: verifiedAttributes,
     },
     ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(asyncExchangeCallbackInterfaceDoc
+      ? { asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc }
+      : {}),
     ...(versionSQL.description ? { description: versionSQL.description } : {}),
     ...(versionSQL.agreementApprovalPolicy
       ? {
@@ -138,9 +154,9 @@ export const aggregateEServiceTemplate = ({
 }: EServiceTemplateItemsSQL): WithMetadata<EServiceTemplate> => {
   const interfacesSQLByVersionId = interfacesSQL.reduce((acc, i) => {
     const versionId = i.versionId;
-    acc.set(versionId, i);
+    acc.set(versionId, [...(acc.get(versionId) || []), i]);
     return acc;
-  }, new Map<string, EServiceTemplateVersionInterfaceSQL>());
+  }, new Map<string, EServiceTemplateVersionInterfaceSQL[]>());
   const documentsSQLByVersionId = documentsSQL.reduce((acc, doc) => {
     const versionId = doc.versionId;
     acc.set(versionId, [...(acc.get(versionId) || []), doc]);
@@ -154,7 +170,7 @@ export const aggregateEServiceTemplate = ({
   const versions = versionsSQL.map((versionSQL) =>
     aggregateEServiceTemplateVersion({
       versionSQL,
-      interfaceSQL: interfacesSQLByVersionId.get(versionSQL.id),
+      interfacesSQL: interfacesSQLByVersionId.get(versionSQL.id) || [],
       documentsSQL: documentsSQLByVersionId.get(versionSQL.id) || [],
       attributesSQL: attributesSQLByVersionId.get(versionSQL.id) || [],
     })
@@ -339,7 +355,7 @@ export const toEServiceTemplateAggregatorArray = (
   const versionsSQL: EServiceTemplateVersionSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceTemplateVersionDocumentSQL[] = [];
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceTemplateVersionDocumentSQL[] = [];
@@ -429,4 +445,24 @@ export const toEServiceTemplateAggregatorArray = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
   };
+};
+
+export const templateAttributesSQLtoTemplateAttributes = (
+  attributesSQL: EServiceTemplateVersionAttributeSQL[]
+): EServiceTemplateAttribute[][] => {
+  const attributesMap = new Map<number, EServiceTemplateAttribute[]>();
+  attributesSQL.forEach((current) => {
+    const currentAttribute: EServiceTemplateAttribute = {
+      id: unsafeBrandId(current.attributeId),
+      explicitAttributeVerification: current.explicitAttributeVerification,
+    };
+    const group = attributesMap.get(current.groupId);
+    if (group) {
+      attributesMap.set(current.groupId, [...group, currentAttribute]);
+    } else {
+      attributesMap.set(current.groupId, [currentAttribute]);
+    }
+  });
+
+  return Array.from(attributesMap.values());
 };

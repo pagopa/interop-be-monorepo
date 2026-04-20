@@ -105,6 +105,8 @@ export const eventMailTemplateType = {
   clientUserDeletedMailTemplate: "client-user-deleted-mail",
   producerKeychainUserDeletedMailTemplate:
     "producer-keychain-user-deleted-mail",
+  producerKeychainNoKeysForAsyncEserviceMailTemplate:
+    "producer-keychain-no-keys-for-async-eservice-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:

@@ -36,9 +36,9 @@ import {
   RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
-  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   cleanup,
   readModelService,

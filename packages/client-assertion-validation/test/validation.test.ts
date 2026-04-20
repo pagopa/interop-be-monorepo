@@ -32,6 +32,7 @@ import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
+  asyncExchangeNotAllowed,
   invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
@@ -1119,6 +1120,33 @@ describe("validation test", async () => {
         purposeIdNotProvided(),
       ]);
     });
+
+    it("asyncExchangeNotAllowed for consumer client", async () => {
+      const mockConsumerKey: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(),
+        asyncExchange: true,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        (
+          await getMockClientAssertion({
+            customClaims: { purposeId: mockConsumerKey.GSIPK_purposeId },
+          })
+        ).jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors).toEqual([asyncExchangeNotAllowed()]);
+    });
   });
 
   describe("verifyAsyncClientAssertion", async () => {
@@ -1253,6 +1281,24 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("12345"));
+    });
+
+    it("invalidUrlCallbackClaimFormat - invalid URL format", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: "not-a-url",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("not-a-url"));
     });
 
     it("invalidEntityNumberClaimFormat - not a number", async () => {

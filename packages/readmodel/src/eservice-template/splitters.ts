@@ -3,13 +3,13 @@ import {
   attributeKind,
   dateToString,
   Document,
-  EServiceAttribute,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   riskAnalysisAnswerKind,
+  type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -73,7 +73,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         const {
           eserviceTemplateVersionSQL,
           attributesSQL,
-          interfaceSQL,
+          interfacesSQL,
           documentsSQL,
         } = splitEServiceTemplateVersionIntoObjectsSQL(
           eserviceTemplate.id,
@@ -84,9 +84,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         return {
           versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
           attributesSQL: acc.attributesSQL.concat(attributesSQL),
-          interfacesSQL: interfaceSQL
-            ? acc.interfacesSQL.concat([interfaceSQL])
-            : acc.interfacesSQL,
+          interfacesSQL: acc.interfacesSQL.concat(interfacesSQL),
           documentsSQL: acc.documentsSQL.concat(documentsSQL),
         };
       },
@@ -109,7 +107,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
   };
 };
 
-const attributeToAttributeSQL = ({
+const templateAttributeToTemplateAttributeSQL = ({
   attribute,
   eserviceTemplateVersionId,
   groupId,
@@ -117,7 +115,7 @@ const attributeToAttributeSQL = ({
   eserviceTemplateId,
   metadataVersion,
 }: {
-  attribute: EServiceAttribute;
+  attribute: EServiceTemplateAttribute;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
   kind: AttributeKind;
@@ -133,16 +131,16 @@ const attributeToAttributeSQL = ({
   groupId,
 });
 
-const attributesNestedArrayToAttributeSQLarray = (
+const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: EServiceAttribute[][],
+  attributes: EServiceTemplateAttribute[][],
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): EServiceTemplateVersionAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
-      attributeToAttributeSQL({
+      templateAttributeToTemplateAttributeSQL({
         attribute,
         eserviceTemplateVersionId,
         groupId: index,
@@ -160,7 +158,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 ): {
   eserviceTemplateVersionSQL: EServiceTemplateVersionSQL;
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
 } => {
   const versionSQL = eserviceTemplateVersionToEServiceTemplateVersionSQL(
@@ -170,21 +168,21 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   );
 
   const attributesSQL: EServiceTemplateVersionAttributeSQL[] = [
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.certified,
       attributeKind.certified,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.declared,
       attributeKind.declared,
       eserviceTemplateId,
       metadataVersion
     ),
-    ...attributesNestedArrayToAttributeSQLarray(
+    ...templateAttributesNestedArrayToTemplateAttributeSQLarray(
       eserviceTemplateVersion.id,
       eserviceTemplateVersion.attributes.verified,
       attributeKind.verified,
@@ -192,14 +190,31 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
       metadataVersion
     ),
   ];
-  const interfaceSQL = eserviceTemplateVersion.interface
-    ? documentToDocumentSQL(
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
+
+  if (eserviceTemplateVersion.interface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
         eserviceTemplateVersion.interface,
         eserviceTemplateVersion.id,
         eserviceTemplateId,
         metadataVersion
-      )
-    : undefined;
+      ),
+      kind: "INTERFACE",
+    });
+  }
+
+  if (eserviceTemplateVersion.asyncExchangeCallbackInterface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
+        eserviceTemplateVersion.asyncExchangeCallbackInterface,
+        eserviceTemplateVersion.id,
+        eserviceTemplateId,
+        metadataVersion
+      ),
+      kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    });
+  }
 
   const documentsSQL = eserviceTemplateVersion.docs.map((doc) =>
     documentToDocumentSQL(
@@ -213,7 +228,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   return {
     eserviceTemplateVersionSQL: versionSQL,
     attributesSQL,
-    interfaceSQL,
+    interfacesSQL,
     documentsSQL,
   };
 };

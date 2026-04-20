@@ -41,6 +41,7 @@ const tokenService = tokenServiceBuilder({
 });
 
 const asyncTokenService = asyncTokenServiceBuilder({
+  tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
   producer,

@@ -1,3 +1,4 @@
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -18,6 +19,7 @@ import {
 import { dynamoDBClient } from "../integrationUtils.js";
 
 const interactionsTable = "interactions";
+const ttlSeconds = 3600;
 
 describe("interactions utils integration", () => {
   beforeEach(async () => {
@@ -44,6 +46,7 @@ describe("interactions utils integration", () => {
       eServiceId,
       descriptorId,
       issuedAt,
+      ttlSeconds,
     });
 
     const retrieved = await readInteraction(
@@ -53,6 +56,7 @@ describe("interactions utils integration", () => {
     );
 
     expect(retrieved).toEqual(created);
+    expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
   it("should update interaction state and token timestamps", async () => {
@@ -60,7 +64,8 @@ describe("interactions utils integration", () => {
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
-    const startIssuedAt = new Date("2026-01-01T10:00:00.000Z").toISOString();
+    const baseTime = Date.now();
+    const startIssuedAt = new Date(baseTime).toISOString();
 
     await createInteraction({
       dynamoDBClient,
@@ -70,9 +75,10 @@ describe("interactions utils integration", () => {
       eServiceId,
       descriptorId,
       issuedAt: startIssuedAt,
+      ttlSeconds,
     });
 
-    const callbackIssuedAt = new Date("2026-01-01T10:01:00.000Z").toISOString();
+    const callbackIssuedAt = new Date(baseTime + 60_000).toISOString();
     await updateInteractionState({
       dynamoDBClient,
       interactionsTable,
@@ -81,7 +87,7 @@ describe("interactions utils integration", () => {
       updatedAt: callbackIssuedAt,
     });
 
-    const getResourceAt = new Date("2026-01-01T10:01:30.000Z").toISOString();
+    const getResourceAt = new Date(baseTime + 90_000).toISOString();
     await updateInteractionState({
       dynamoDBClient,
       interactionsTable,
@@ -90,7 +96,7 @@ describe("interactions utils integration", () => {
       updatedAt: getResourceAt,
     });
 
-    const confirmedAt = new Date("2026-01-01T10:02:00.000Z").toISOString();
+    const confirmedAt = new Date(baseTime + 120_000).toISOString();
     await updateInteractionState({
       dynamoDBClient,
       interactionsTable,

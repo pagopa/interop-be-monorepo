@@ -1,6 +1,4 @@
 /* eslint-disable functional/no-let */
-import { fileURLToPath } from "url";
-import path from "path";
 import {
   decodeProtobufPayload,
   getMockDelegation,
@@ -12,37 +10,25 @@ import {
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ConsumerDelegationApprovedV2,
-  DelegationContractId,
   DelegationId,
   EService,
   generateId,
   Tenant,
   toDelegationV2,
-  unsafeBrandId,
   delegationKind,
   Delegation,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
 import {
-  dateAtRomeZone,
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
-import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
-import { DelegationActivationPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneTenant,
   addOneEservice,
-  fileManager,
   readLastDelegationEvent,
-  pdfGenerator,
   delegationService,
 } from "../integrationUtils.js";
 
@@ -76,7 +62,6 @@ describe.each([
   });
 
   it("should approve delegation if validations succeed", async () => {
-    vi.spyOn(pdfGenerator, "generate");
     const delegationId = generateId<DelegationId>();
     const authData = getMockAuthData(delegate.id);
 
@@ -105,25 +90,6 @@ describe.each([
       payload: event.data,
     });
 
-    const expectedContractId = unsafeBrandId<DelegationContractId>(
-      actualDelegation!.activationContract!.id
-    );
-    const expectedContractName = `${formatDateyyyyMMddHHmmss(
-      currentExecutionTime
-    )}_delegation_activation_contract.pdf`;
-    const expectedContract = {
-      id: expectedContractId,
-      contentType: "application/pdf",
-      createdAt: currentExecutionTime,
-      name: expectedContractName,
-      path: `${config.delegationDocumentsPath}/${delegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: `Delega_${eservice.name}`,
-    };
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(expectedContract.path);
-
     const expectedDelegation: Delegation = {
       ...delegation,
       state: delegationState.active,
@@ -136,7 +102,6 @@ describe.each([
           when: currentExecutionTime,
         },
       },
-      activationContract: expectedContract,
     };
 
     expect(actualDelegation).toEqual(toDelegationV2(expectedDelegation));
@@ -146,42 +111,7 @@ describe.each([
         version: 1,
       },
     });
-
-    const expectedPdfPayload: DelegationActivationPDFPayload = {
-      delegationKindText:
-        kind === delegationKind.delegatedConsumer
-          ? "alla fruizione"
-          : "all’erogazione",
-      delegationActionText:
-        kind === delegationKind.delegatedConsumer
-          ? "a gestire la fruizione dell’"
-          : "ad erogare l’",
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
-      delegationId: expectedDelegation.id,
-      delegatorName: delegator.name,
-      delegateIpaCode: delegate.externalId.value,
-      delegateName: delegate.name,
-      delegatorIpaCode: delegator.externalId.value,
-      eserviceId: eservice.id,
-      eserviceName: eservice.name,
-      submitterId: expectedDelegation.stamps.submission.who,
-      submissionDate: dateAtRomeZone(currentExecutionTime),
-      submissionTime: timeAtRomeZone(currentExecutionTime),
-      activatorId: expectedDelegation.stamps.activation!.who,
-      activationDate: dateAtRomeZone(currentExecutionTime),
-      activationTime: timeAtRomeZone(currentExecutionTime),
-    };
-
-    expect(pdfGenerator.generate).toHaveBeenCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates",
-        "delegationApprovedTemplate.html"
-      ),
-      expectedPdfPayload
-    );
+    expect(actualDelegation!.activationContract).toBeUndefined();
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
@@ -266,7 +196,7 @@ describe.each([
     }
   );
 
-  it("should generate a pdf document for a delegation", async () => {
+  it("should not generate activation contract synchronously", async () => {
     const delegation = getMockDelegation({
       kind,
       state: "WaitingForApproval",
@@ -283,16 +213,12 @@ describe.each([
       getMockContext({ authData: getMockAuthData(delegate.id) })
     );
 
-    const contracts = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
+    const event = await readLastDelegationEvent(delegation.id);
+    const { delegation: actualDelegation } = decodeProtobufPayload({
+      messageType: ConsumerDelegationApprovedV2,
+      payload: event.data,
+    });
 
-    const hasActivationContract = contracts.some(
-      (contract) =>
-        contract.includes("activation") && contract.includes(delegation.id)
-    );
-
-    expect(hasActivationContract).toBeTruthy();
+    expect(actualDelegation!.activationContract).toBeUndefined();
   });
 });

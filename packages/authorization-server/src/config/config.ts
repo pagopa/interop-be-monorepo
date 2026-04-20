@@ -35,10 +35,16 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
     z
       .object({
         TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
+        TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
+        TOKEN_GENERATION_READMODEL_TABLE_NAME_INTERACTIONS: z.string(),
+        INTERACTION_TTL_EPSILON_SECONDS: z.coerce.number(),
       })
       .transform((c) => ({
         tokenGenerationStatesTable:
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+        platformStatesTable: c.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
+        interactionsTable: c.TOKEN_GENERATION_READMODEL_TABLE_NAME_INTERACTIONS,
+        interactionTtlEpsilonSeconds: c.INTERACTION_TTL_EPSILON_SECONDS,
       }))
   )
   .and(ApplicationAuditProducerConfig)

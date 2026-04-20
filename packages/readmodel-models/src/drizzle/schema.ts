@@ -250,6 +250,7 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
       eserviceTemplateId: uuid("eservice_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
+      kind: varchar().notNull(),
       name: varchar().notNull(),
       contentType: varchar("content_type").notNull(),
       prettyName: varchar("pretty_name").notNull(),
@@ -279,8 +280,9 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_version_int_eservice_template_id_metadat_fkey",
       }),
-      unique("eservice_template_version_interface_version_id_key").on(
-        table.versionId
+      unique("eservice_template_version_interface_version_id_kind_key").on(
+        table.versionId,
+        table.kind
       ),
     ]
   );
@@ -1125,6 +1127,7 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
     selfcareId: varchar("selfcare_id"),
     externalIdOrigin: varchar("external_id_origin").notNull(),
     externalIdValue: varchar("external_id_value").notNull(),
+    selfcareInstitutionType: varchar("selfcare_institution_type"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -1535,6 +1538,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({
