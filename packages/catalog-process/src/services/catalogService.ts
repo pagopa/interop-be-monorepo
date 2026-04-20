@@ -2111,10 +2111,6 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
-      assertAttributeDailyCallsConsistentWithTotal(
-        descriptor.attributes,
-        seed.dailyCallsTotal
-      );
 
       let updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2186,10 +2182,6 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
-      assertAttributeDailyCallsConsistentWithTotal(
-        descriptor.attributes,
-        seed.dailyCallsTotal
-      );
 
       let updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -4014,41 +4006,49 @@ const processDescriptorPublication = async (
   );
 };
 
+function buildCertifiedDailyCallsLookup(
+  certifiedGroups: EServiceAttribute[][]
+): Map<string, number> {
+  const lookup = new Map<string, number>();
+  for (const group of certifiedGroups) {
+    for (const attr of group) {
+      if (attr.dailyCallsPerConsumer !== undefined) {
+        lookup.set(attr.id, attr.dailyCallsPerConsumer);
+      }
+    }
+  }
+  return lookup;
+}
+
+function restoreCertifiedDailyCalls(
+  parsedGroups: EServiceAttribute[][],
+  dailyCallsLookup: Map<string, number>
+): EServiceAttribute[][] {
+  return parsedGroups.map((group) =>
+    group.map((attr) => {
+      const existingDailyCalls = dailyCallsLookup.get(attr.id);
+      return existingDailyCalls !== undefined
+        ? { ...attr, dailyCallsPerConsumer: existingDailyCalls }
+        : attr;
+    })
+  );
+}
+
 function preserveInstanceAttributeDailyCalls(
   parsedAttributes: EserviceAttributes,
   existingAttributes: EserviceAttributes
 ): EserviceAttributes {
-  const mergeGroups = (
-    parsedGroups: EServiceAttribute[][],
-    existingGroups: EServiceAttribute[][]
-  ): EServiceAttribute[][] =>
-    parsedGroups.map((parsedGroup) =>
-      parsedGroup.map((parsedAttr) => {
-        const existingAttr = existingGroups
-          .flat()
-          .find((attr) => attr.id === parsedAttr.id);
-        return existingAttr?.dailyCallsPerConsumer !== undefined
-          ? {
-              ...parsedAttr,
-              dailyCallsPerConsumer: existingAttr.dailyCallsPerConsumer,
-            }
-          : parsedAttr;
-      })
-    );
+  const certifiedLookup = buildCertifiedDailyCallsLookup(
+    existingAttributes.certified
+  );
 
   return {
-    certified: mergeGroups(
+    certified: restoreCertifiedDailyCalls(
       parsedAttributes.certified,
-      existingAttributes.certified
+      certifiedLookup
     ),
-    declared: mergeGroups(
-      parsedAttributes.declared,
-      existingAttributes.declared
-    ),
-    verified: mergeGroups(
-      parsedAttributes.verified,
-      existingAttributes.verified
-    ),
+    declared: parsedAttributes.declared,
+    verified: parsedAttributes.verified,
   };
 }
 
