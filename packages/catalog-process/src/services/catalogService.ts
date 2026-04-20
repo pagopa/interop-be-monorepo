@@ -1596,6 +1596,15 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+      }
+
       const updatedAttributes = seed.attributes
         ? await parseAndCheckAttributes(
             {
@@ -2177,12 +2186,46 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        descriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
-      const updatedEService = replaceDescriptor(eservice.data, {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
-      });
+      };
+
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+        assertAttributeDailyCallsConsistentWithTotal(
+          parsedAttributes,
+          seed.dailyCallsTotal
+        );
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
 
       const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,
@@ -3085,9 +3128,20 @@ export function catalogServiceBuilder(
         return;
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      const attributesWithPreservedDailyCalls =
+        preserveInstanceAttributeDailyCalls(
+          parsedAttributes,
+          descriptor.attributes
+        );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: attributesWithPreservedDailyCalls,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3959,6 +4013,44 @@ const processDescriptorPublication = async (
       : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+function preserveInstanceAttributeDailyCalls(
+  parsedAttributes: EserviceAttributes,
+  existingAttributes: EserviceAttributes
+): EserviceAttributes {
+  const mergeGroups = (
+    parsedGroups: EServiceAttribute[][],
+    existingGroups: EServiceAttribute[][]
+  ): EServiceAttribute[][] =>
+    parsedGroups.map((parsedGroup) =>
+      parsedGroup.map((parsedAttr) => {
+        const existingAttr = existingGroups
+          .flat()
+          .find((attr) => attr.id === parsedAttr.id);
+        return existingAttr?.dailyCallsPerConsumer !== undefined
+          ? {
+              ...parsedAttr,
+              dailyCallsPerConsumer: existingAttr.dailyCallsPerConsumer,
+            }
+          : parsedAttr;
+      })
+    );
+
+  return {
+    certified: mergeGroups(
+      parsedAttributes.certified,
+      existingAttributes.certified
+    ),
+    declared: mergeGroups(
+      parsedAttributes.declared,
+      existingAttributes.declared
+    ),
+    verified: mergeGroups(
+      parsedAttributes.verified,
+      existingAttributes.verified
+    ),
+  };
+}
 
 function updateEServiceDescriptorAttributeInAdd(
   eserviceId: EServiceId,
