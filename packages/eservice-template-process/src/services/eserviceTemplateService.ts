@@ -936,17 +936,7 @@ export function eserviceTemplateServiceBuilder(
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
 
-      if (version.interface) {
-        await fileManager.delete(
-          config.s3Bucket,
-          version.interface.path,
-          logger
-        );
-      }
-
-      for (const document of version.docs) {
-        await fileManager.delete(config.s3Bucket, document.path, logger);
-      }
+      await deleteVersionInterfaceAndDocs(version, fileManager, logger);
 
       if (isLastVersion) {
         await repository.createEvent(
