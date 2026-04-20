@@ -179,7 +179,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload2.tenant).toEqual(toTenantV2(expectedTenant2));
+    expect(writtenPayload2).toEqual({
+      attributeId: attribute2.id,
+      tenant: toTenantV2(expectedTenant2),
+    });
     expect(returnedTenant).toEqual(expectedTenant2);
   });
 
