@@ -148,7 +148,10 @@ describe("createKey", () => {
         },
       ],
     };
-    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(writtenPayload).toEqual({
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
+      client: toClientV2(expectedClient),
+    });
   });
   it("should throw clientNotFound if the client doesn't exist ", async () => {
     await addOneClient(getMockClient());

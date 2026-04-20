@@ -379,6 +379,50 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /agreements/{agreementId}/archive:
+    parameters:
+      - schema:
+          $ref: "#/components/schemas/AgreementId"
+        name: agreementId
+        description: The ID of the Agreement to archive
+        in: path
+        required: true
+    post:
+      tags:
+        - agreements
+      summary: Archive an Agreement in Active or Suspended state
+      description: |
+        Archive an Agreement that is in Active or Suspended state, transitioning it to Archived state.
+        The Archived state is not reversible.
+      operationId: archiveAgreement
+      responses:
+        "200":
+          description: Agreement archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/submit:
     parameters:
       - schema:

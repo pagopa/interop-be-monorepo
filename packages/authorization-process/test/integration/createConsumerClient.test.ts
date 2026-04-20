@@ -73,7 +73,9 @@ describe("createConsumerClient", () => {
       description: clientSeed.description,
     };
 
-    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(writtenPayload).toEqual({
+      client: toClientV2(expectedClient),
+    });
     expect(client.data).toEqual(expectedClient);
   });
 });
