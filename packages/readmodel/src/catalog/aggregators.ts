@@ -23,6 +23,7 @@ import {
   RiskAnalysisForm,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -308,6 +309,7 @@ export const aggregateEserviceArray = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
 }: {
   eservicesSQL: EServiceSQL[];
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -318,6 +320,7 @@ export const aggregateEserviceArray = ({
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
 }): Array<WithMetadata<EService>> => {
   const riskAnalysesSQLByEServiceId =
     createEServiceSQLPropertyMap(riskAnalysesSQL);
@@ -333,6 +336,9 @@ export const aggregateEserviceArray = ({
     createEServiceSQLPropertyMap(rejectionReasonsSQL);
   const templateVersionRefsSQLByEServiceId = createEServiceSQLPropertyMap(
     templateVersionRefsSQL
+  );
+  const archivingSchedulesSQLByEServiceId = createEServiceSQLPropertyMap(
+    archivingSchedulesSQL
   );
 
   return eservicesSQL.map((eserviceSQL) => {
@@ -350,6 +356,8 @@ export const aggregateEserviceArray = ({
         rejectionReasonsSQLByEServiceId.get(eserviceId) || [],
       templateVersionRefsSQL:
         templateVersionRefsSQLByEServiceId.get(eserviceId) || [],
+      archivingSchedulesSQL:
+        archivingSchedulesSQLByEServiceId.get(eserviceId) || [],
     });
   });
 };
@@ -363,7 +371,8 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL,
+    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorArchivingScheduleSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
@@ -456,6 +465,7 @@ export const attributesSQLtoAttributes = (
   return Array.from(attributesMap.values());
 };
 
+// TODO: Check tomorrow (potato)
 export const toEServiceAggregator = (
   queryRes: Array<{
     eservice: EServiceSQL;
@@ -467,6 +477,7 @@ export const toEServiceAggregator = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
   }>
 ): EServiceItemsSQL => {
   const {
@@ -479,6 +490,7 @@ export const toEServiceAggregator = (
     attributesSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   } = toEServiceAggregatorArray(queryRes);
 
   throwIfMultiple(eservicesSQL, "e-service");
@@ -507,6 +519,7 @@ export const toEServiceAggregatorArray = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
   }>
 ): {
   eservicesSQL: EServiceSQL[];
@@ -518,6 +531,7 @@ export const toEServiceAggregatorArray = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
   const eservicesSQL: EServiceSQL[] = [];
