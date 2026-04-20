@@ -1,4 +1,3 @@
-import { randomInt } from "crypto";
 import {
   AgreementId,
   AgreementM2MEvent,
@@ -69,7 +68,7 @@ export function getMockedAttributeM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     attributeId: generateId<AttributeId>(),
   };
 }
@@ -91,7 +90,7 @@ export function getMockedEServiceM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     eserviceId: generateId<EServiceId>(),
     descriptorId: generateId<DescriptorId>(),
     visibility,
@@ -124,7 +123,7 @@ export function getMockedAgreementM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     agreementId: generateId<AgreementId>(),
     visibility,
     consumerId: consumerId ?? generateId<TenantId>(),
@@ -161,7 +160,7 @@ export function getMockedPurposeM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     purposeId: generateId<PurposeId>(),
     purposeVersionId: purposeVersionId ?? generateId<PurposeVersionId>(),
     visibility,
@@ -195,7 +194,7 @@ function getMockedDelegationM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     delegationId: generateId<DelegationId>(),
   };
 }
@@ -207,7 +206,7 @@ export function getMockedKeyM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     kid: generateId(),
     clientId: generateId(),
   };
@@ -220,7 +219,7 @@ export function getMockedProducerKeyM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     kid: generateId(),
     producerKeychainId: generateId(),
   };
@@ -239,7 +238,7 @@ export function getMockedClientM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     consumerId: consumerId ?? generateId(),
     clientId: generateId(),
     visibility,
@@ -259,7 +258,7 @@ export function getMockedProducerKeychainM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     producerId: producerId ?? generateId(),
     producerKeychainId: generateId(),
     visibility,
@@ -273,7 +272,7 @@ export function getMockedTenantM2MEvent(
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     tenantId: generateId<TenantId>(),
   };
 }
@@ -291,7 +290,7 @@ export function getMockedEServiceTemplateM2MEvent({
     id: generateM2MEventId(),
     eventType,
     eventTimestamp: new Date(),
-    resourceVersion: randomInt(1, 1000),
+    resourceVersion: 1,
     eserviceTemplateId: generateId<EServiceTemplateId>(),
     eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
     visibility,
