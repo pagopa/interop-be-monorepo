@@ -6,6 +6,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
+  FeatureFlagTenantKindInRiskAnalysisConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -25,6 +26,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(S3Config)
   .and(EventStoreConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
     z
       .object({
