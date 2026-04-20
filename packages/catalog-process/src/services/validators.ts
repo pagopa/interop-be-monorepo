@@ -475,20 +475,18 @@ function assertAttributeGroupsUnchanged(
       throw templateInstanceNotAllowed(eserviceId, templateId);
     }
 
-    const hasChangedExplicitVerification = descriptorGroup.some(
-      (descriptorAttr) => {
-        const seedAttr = matchingSeedGroup.find(
-          (attr) => attr.id === descriptorAttr.id
-        );
-        return (
-          seedAttr?.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
-        );
-      }
-    );
+    for (const descriptorAttr of descriptorGroup) {
+      const seedAttr = matchingSeedGroup.find(
+        (attr) => attr.id === descriptorAttr.id
+      );
 
-    if (hasChangedExplicitVerification) {
-      throw templateInstanceNotAllowed(eserviceId, templateId);
+      if (
+        !seedAttr ||
+        seedAttr.explicitAttributeVerification !==
+          descriptorAttr.explicitAttributeVerification
+      ) {
+        throw templateInstanceNotAllowed(eserviceId, templateId);
+      }
     }
   }
 }

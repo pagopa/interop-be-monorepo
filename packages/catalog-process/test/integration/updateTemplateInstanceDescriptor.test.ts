@@ -478,6 +478,97 @@ describe("update descriptor", () => {
     );
   });
 
+  it("should clear existing certified attribute dailyCallsPerConsumer when seed.attributes omits them", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedAttribute.id,
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+    const returnedEService =
+      await catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorQuotasUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(returnedEService).toEqual(expectedEService);
+  });
+
   it("should throw templateInstanceNotAllowed when seed.attributes changes attribute structure", async () => {
     const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
     const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);

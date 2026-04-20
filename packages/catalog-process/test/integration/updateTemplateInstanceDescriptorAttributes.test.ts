@@ -543,4 +543,153 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
       expect(newAttribute?.dailyCallsPerConsumer).toBeUndefined();
     }
   );
+
+  it.each([descriptorState.published, descriptorState.suspended])(
+    "should preserve distinct dailyCallsPerConsumer values when the same certified attribute id appears in multiple groups",
+    async (descriptorState) => {
+      const firstGroupAttr1DailyCalls = 100;
+      const firstGroupAttr2DailyCalls = 200;
+      const secondGroupAttr1DailyCalls = 900;
+      const secondGroupAttr2DailyCalls = 300;
+
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: mockCertifiedAttribute1.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: firstGroupAttr1DailyCalls,
+              },
+              {
+                id: mockCertifiedAttribute2.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: firstGroupAttr2DailyCalls,
+              },
+            ],
+            [
+              {
+                id: mockCertifiedAttribute1.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: secondGroupAttr1DailyCalls,
+              },
+              {
+                id: mockCertifiedAttribute2.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: secondGroupAttr2DailyCalls,
+              },
+            ],
+          ],
+          verified: [],
+          declared: [],
+        },
+      };
+
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+
+      await addOneEService(mockEService);
+
+      const seedWithNewAttribute: catalogApi.AttributesSeed = {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+            {
+              id: mockCertifiedAttribute2.id,
+              explicitAttributeVerification: false,
+            },
+            {
+              id: mockCertifiedAttribute3.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+            {
+              id: mockCertifiedAttribute2.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      };
+
+      await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seedWithNewAttribute,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedEService: EService = {
+        ...mockEService,
+        descriptors: [
+          {
+            ...mockDescriptor,
+            attributes: {
+              certified: [
+                [
+                  {
+                    id: mockCertifiedAttribute1.id,
+                    explicitAttributeVerification: false,
+                    dailyCallsPerConsumer: firstGroupAttr1DailyCalls,
+                  },
+                  {
+                    id: mockCertifiedAttribute2.id,
+                    explicitAttributeVerification: false,
+                    dailyCallsPerConsumer: firstGroupAttr2DailyCalls,
+                  },
+                  {
+                    id: mockCertifiedAttribute3.id,
+                    explicitAttributeVerification: false,
+                  },
+                ],
+                [
+                  {
+                    id: mockCertifiedAttribute1.id,
+                    explicitAttributeVerification: false,
+                    dailyCallsPerConsumer: secondGroupAttr1DailyCalls,
+                  },
+                  {
+                    id: mockCertifiedAttribute2.id,
+                    explicitAttributeVerification: false,
+                    dailyCallsPerConsumer: secondGroupAttr2DailyCalls,
+                  },
+                ],
+              ],
+              verified: [],
+              declared: [],
+            },
+          },
+        ],
+      };
+
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    }
+  );
 });
