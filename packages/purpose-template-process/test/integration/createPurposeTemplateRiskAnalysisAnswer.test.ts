@@ -12,6 +12,7 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
+  toPurposeTemplateV2,
   targetTenantKind,
   generateId,
   TenantId,
@@ -99,9 +100,13 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
     });
 
     expect(writtenPayload).toEqual({
-      purposeTemplate: expect.objectContaining({
+      purposeTemplate: {
+        ...toPurposeTemplateV2({
+          ...mockPurposeTemplate,
+          updatedAt: new Date(),
+        }),
         purposeRiskAnalysisForm: expect.anything(),
-      }),
+      },
     });
 
     vi.useRealTimers();

@@ -12,6 +12,7 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
+  toPurposeTemplateV2,
   targetTenantKind,
   generateId,
   TenantId,
@@ -93,9 +94,13 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     });
 
     expect(writtenPayload).toEqual({
-      purposeTemplate: expect.objectContaining({
+      purposeTemplate: {
+        ...toPurposeTemplateV2({
+          ...mockPurposeTemplate,
+          updatedAt: new Date(),
+        }),
         purposeRiskAnalysisForm: expect.anything(),
-      }),
+      },
     });
 
     // Verify that the annotation was added to the correct answer
