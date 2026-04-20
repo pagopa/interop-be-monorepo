@@ -98,10 +98,11 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
       annotation: validRiskAnalysisAnswerRequest.answerData.annotation,
     });
 
-    expect(writtenPayload.purposeTemplate).toBeDefined();
-    expect(
-      writtenPayload.purposeTemplate!.purposeRiskAnalysisForm
-    ).toBeDefined();
+    expect(writtenPayload).toEqual({
+      purposeTemplate: expect.objectContaining({
+        purposeRiskAnalysisForm: expect.anything(),
+      }),
+    });
 
     vi.useRealTimers();
   });

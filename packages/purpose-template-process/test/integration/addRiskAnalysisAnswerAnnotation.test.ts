@@ -92,10 +92,11 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       docs: [],
     });
 
-    expect(writtenPayload.purposeTemplate).toBeDefined();
-    expect(
-      writtenPayload.purposeTemplate!.purposeRiskAnalysisForm
-    ).toBeDefined();
+    expect(writtenPayload).toEqual({
+      purposeTemplate: expect.objectContaining({
+        purposeRiskAnalysisForm: expect.anything(),
+      }),
+    });
 
     // Verify that the annotation was added to the correct answer
     const riskAnalysisForm =
