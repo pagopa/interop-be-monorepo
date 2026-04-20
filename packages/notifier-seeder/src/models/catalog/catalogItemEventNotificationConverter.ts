@@ -105,8 +105,8 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceInstanceLabelUpdated" },
       // FIXME these events will be managed with "WORK ITEM 10"
       { type: "EServiceArchiveScheduled" },
-      { type: "EServiceArchiveScheduleCancelled" },
-      { type: "EServiceArchiveScheduledCompleted" },
+      { type: "EServiceArchiveScheduleCanceled" },
+      { type: "EServiceArchiveScheduleCompleted" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -134,8 +134,8 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
       // FIXME these events will be managed with "WORK ITEM 10"
       { type: "EServiceDescriptorArchiveScheduled" },
-      { type: "EServiceDescriptorArchiveScheduleCancelled" },
-      { type: "EServiceDescriptorArchiveScheduledCompleted" },
+      { type: "EServiceDescriptorArchiveScheduleCanceled" },
+      { type: "EServiceDescriptorArchiveScheduleCompleted" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
