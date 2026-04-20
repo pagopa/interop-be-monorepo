@@ -80,7 +80,13 @@ export async function handleCatalogMessageV2(
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "EServiceDescriptorArchiveScheduled",
+            "EServiceDescriptorArchiveScheduleCancelled",
+            "EServiceDescriptorArchiveScheduledCompleted",
+            "EServiceArchiveScheduled",
+            "EServiceArchiveScheduleCancelled",
+            "EServiceArchiveScheduledCompleted"
           ),
         },
         (msg) => {

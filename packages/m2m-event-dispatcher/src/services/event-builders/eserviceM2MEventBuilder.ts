@@ -130,7 +130,13 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorAttributesUpdated",
         "EServicePersonalDataFlagUpdatedAfterPublication",
         "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-        "EServiceInstanceLabelUpdated"
+        "EServiceInstanceLabelUpdated",
+        "EServiceDescriptorArchiveScheduled",
+        "EServiceDescriptorArchiveScheduleCancelled",
+        "EServiceDescriptorArchiveScheduledCompleted",
+        "EServiceArchiveScheduled",
+        "EServiceArchiveScheduleCancelled",
+        "EServiceArchiveScheduledCompleted"
       ),
       () => m2mEventVisibility.public
     )

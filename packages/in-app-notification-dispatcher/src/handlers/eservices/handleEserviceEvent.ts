@@ -91,7 +91,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          // FIXME these events will be managed with "WORK ITEM 10"
+          "EServiceDescriptorArchiveScheduled",
+          "EServiceDescriptorArchiveScheduleCancelled",
+          "EServiceDescriptorArchiveScheduledCompleted",
+          "EServiceArchiveScheduled",
+          "EServiceArchiveScheduleCancelled",
+          "EServiceArchiveScheduledCompleted"
         ),
       },
       () => {

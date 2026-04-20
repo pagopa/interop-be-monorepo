@@ -136,6 +136,27 @@ function toApiEServiceM2MEventType(
       "EServiceInstanceLabelUpdated",
       () => "ESERVICE_INSTANCE_LABEL_UPDATED"
     )
+    .with(
+      "EServiceDescriptorArchiveScheduled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULED"
+    )
+    .with(
+      "EServiceDescriptorArchiveScheduleCancelled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULE_CANCELLED"
+    )
+    .with(
+      "EServiceDescriptorArchiveScheduledCompleted",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVE_SCHEDULED_COMPLETED"
+    )
+    .with("EServiceArchiveScheduled", () => "ESERVICE_ARCHIVE_SCHEDULED")
+    .with(
+      "EServiceArchiveScheduleCancelled",
+      () => "ESERVICE_ARCHIVE_SCHEDULE_CANCELLED"
+    )
+    .with(
+      "EServiceArchiveScheduledCompleted",
+      () => "ESERVICE_ARCHIVE_SCHEDULED_COMPLETED"
+    )
     .exhaustive();
 }
 
