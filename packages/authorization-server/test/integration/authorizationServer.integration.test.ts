@@ -51,6 +51,7 @@ import {
   systemRole,
 } from "pagopa-interop-commons";
 import {
+  asyncExchangeNotAllowed,
   invalidEServiceState,
   invalidAssertionType,
   invalidSignature,
@@ -412,6 +413,59 @@ describe("authorization server tests", () => {
       platformStateValidationFailed(
         invalidEServiceState(descriptorState).detail
       )
+    );
+  });
+
+  it("should throw platformStateValidationFailed when async exchange is enabled", async () => {
+    const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+        customClaims: { purposeId },
+      });
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+      publicKey: publicKeyEncodedPem,
+      asyncExchange: true,
+    };
+
+    await writeTokenGenStatesConsumerClient(
+      tokenGenStatesConsumerClient,
+      dynamoDBClient
+    );
+
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        () => getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(
+      platformStateValidationFailed(asyncExchangeNotAllowed().detail)
     );
   });
 
