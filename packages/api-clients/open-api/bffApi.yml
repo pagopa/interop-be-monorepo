@@ -26030,6 +26030,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     UpdateEServiceDescriptorAgreementApprovalPolicySeed:
       type: object
       additionalProperties: false
@@ -26101,6 +26103,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     Mail:
       type: object
       additionalProperties: false

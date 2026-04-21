@@ -34,8 +34,8 @@ import {
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   notValidDescriptorState,
   unchangedAttributes,
-  templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
+  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -572,7 +572,7 @@ describe("update descriptor", () => {
       )
     );
   });
-  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed when adding new attributes on a template instance", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -592,11 +592,121 @@ describe("update descriptor", () => {
 
     await addOneEService(mockEService);
 
-    expect(
+    await expect(
       catalogService.updateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
+    );
+  });
+
+  it("should throw templateInstanceNotAllowed when updating dailyCallsPerConsumer on a certified attribute of a published template instance", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const dailyCallsPerConsumer = 500;
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: true,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      templateId,
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: true,
+            dailyCallsPerConsumer,
+          },
+        ],
+      ],
+      verified: [],
+      declared: [],
+    };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
+    );
+  });
+
+  it("should throw templateInstanceNotAllowed when changing explicitAttributeVerification on a template instance", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      templateId,
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: true, // changed from false
+          },
+        ],
+      ],
+      verified: [],
+      declared: [],
+    };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seed,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
