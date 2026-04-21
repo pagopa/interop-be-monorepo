@@ -223,6 +223,7 @@ message EServiceInstanceLabelUpdatedV2 {
   EServiceV2 eservice = 1;
 }
 
-message MaintenanceEServiceUpdatedV2 {
+message MaintenanceEServicePersonalDataFlagResetV2 {
   EServiceV2 eservice = 1;
+  string reason = 2;
 }

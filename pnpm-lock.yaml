@@ -1373,8 +1373,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.13
-        version: 1.8.13
+        specifier: 1.8.14
+        version: 1.8.14
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7205,8 +7205,8 @@ packages:
   '@pagopa/interop-outbound-models@1.8.10':
     resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
 
-  '@pagopa/interop-outbound-models@1.8.13':
-    resolution: {integrity: sha512-WCBhgdYiAvZd6zNyEKAhtT6TcyLNdHzEMHT4Pnb30+qeG3dk2KrrA54WyN0J/ORCVP5W+fyzx0n2GmphmXA9tA==}
+  '@pagopa/interop-outbound-models@1.8.14':
+    resolution: {integrity: sha512-ZbWHhkv/6efGd2jOYtDB5c30jaUgpXZVn815+96fVgM0brhArnkCx+2kxhJJ5GEsr/vNNaFogRPq3y9eliT5tw==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13754,7 +13754,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.13':
+  '@pagopa/interop-outbound-models@1.8.14':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

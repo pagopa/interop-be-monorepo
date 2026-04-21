@@ -143,7 +143,7 @@ describe("handleEServiceEvent test", async () => {
                   "EServicePersonalDataFlagUpdatedAfterPublication",
                   "EServicePersonalDataFlagUpdatedByTemplateUpdate",
                   "EServiceInstanceLabelUpdated",
-                  "MaintenanceEServiceUpdated"
+                  "MaintenanceEServicePersonalDataFlagReset"
                 ),
                 async () => [
                   {

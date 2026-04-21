@@ -81,7 +81,7 @@ export async function handleCatalogMessageV2(
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
-            "MaintenanceEServiceUpdated"
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         (msg) => {

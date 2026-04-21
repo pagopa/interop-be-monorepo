@@ -62,7 +62,7 @@ export async function handleMessageV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-      { type: "MaintenanceEServiceUpdated" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {

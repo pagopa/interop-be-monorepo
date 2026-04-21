@@ -3,22 +3,20 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { EServiceId, generateId } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import {
   eserviceInDraftState,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("PATCH /maintenance/eservices/:eServiceId", () => {
+describe("DELETE /maintenance/eservices/:eServiceId/personalDataFlag", () => {
   const defaultEServiceId = generateId<EServiceId>();
-  const defaultBody: catalogApi.MaintenanceUpdateEServicePayload = {
-    currentVersion: 0,
-    eservice: { personalData: false },
+  const defaultBody = {
+    maintenanceMessage: "Reset personalData flag for maintenance",
   };
 
   beforeEach(() => {
-    catalogService.maintenanceUpdateEService = vi
+    catalogService.maintenanceResetEServicePersonalDataFlag = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -26,10 +24,10 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = defaultEServiceId,
-    body: catalogApi.MaintenanceUpdateEServicePayload = defaultBody
+    body: Record<string, unknown> = defaultBody
   ) =>
     request(api)
-      .patch(`/maintenance/eservices/${eServiceId}`)
+      .delete(`/maintenance/eservices/${eServiceId}/personalDataFlag`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -38,7 +36,6 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
 
     const res = await makeRequest(token);
-    console.log(res);
     expect(res.status).toBe(204);
   });
 
@@ -51,7 +48,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
   });
 
   it("should return 400 if eservice is in draft state", async () => {
-    catalogService.maintenanceUpdateEService = vi
+    catalogService.maintenanceResetEServicePersonalDataFlag = vi
       .fn()
       .mockRejectedValue(eserviceInDraftState(defaultEServiceId));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -60,7 +57,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
   });
 
   it("should return 404 for eserviceNotFound", async () => {
-    catalogService.maintenanceUpdateEService = vi
+    catalogService.maintenanceResetEServicePersonalDataFlag = vi
       .fn()
       .mockRejectedValue(eServiceNotFound(defaultEServiceId));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -71,20 +68,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
   it.each([
     { eServiceId: "invalid" as EServiceId },
     { body: {} },
-    { body: { ...defaultBody, currentVersion: "invalid" } },
-    {
-      body: {
-        ...defaultBody,
-        eservice: { ...defaultBody.eservice, kind: "invalid" },
-      },
-    },
     { body: { ...defaultBody, extraField: 1 } },
-    {
-      body: {
-        ...defaultBody,
-        eservice: { ...defaultBody.eservice, extraField: "1" },
-      },
-    },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceId, body }) => {
@@ -92,7 +76,7 @@ describe("PATCH /maintenance/eservices/:eServiceId", () => {
       const res = await makeRequest(
         token,
         eServiceId,
-        body as catalogApi.MaintenanceUpdateEServicePayload
+        body as Record<string, unknown>
       );
       expect(res.status).toBe(400);
     }

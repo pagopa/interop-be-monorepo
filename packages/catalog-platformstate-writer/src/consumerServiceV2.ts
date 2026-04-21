@@ -306,7 +306,7 @@ export async function handleMessageV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-      { type: "MaintenanceEServiceUpdated" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       () => Promise.resolve()
     )
     .exhaustive();

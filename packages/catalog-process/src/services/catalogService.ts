@@ -151,7 +151,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
-  toCreateEventMaintenanceEServiceUpdated,
+  toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -3766,17 +3766,14 @@ export function catalogServiceBuilder(
 
       return updatedEservice;
     },
-    async maintenanceUpdateEService(
-      {
-        eserviceId,
-        maintenanceSeed,
-      }: {
-        eserviceId: EServiceId;
-        maintenanceSeed: catalogApi.MaintenanceUpdateEServicePayload;
-      },
+    async maintenanceResetEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      reason: string,
       { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
-      logger.info(`Maintenance update E-Service ${eserviceId}`);
+      logger.info(
+        `Maintenance reset personalData flag for E-Service ${eserviceId}`
+      );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -3784,17 +3781,14 @@ export function catalogServiceBuilder(
 
       const updatedEservice: EService = {
         ...eservice.data,
-        personalData:
-          maintenanceSeed.eservice.personalData ??
-          (maintenanceSeed.eservice.personalData === null
-            ? undefined
-            : eservice.data.personalData),
+        personalData: undefined,
       };
 
       await repository.createEvent(
-        toCreateEventMaintenanceEServiceUpdated(
-          maintenanceSeed.currentVersion,
+        toCreateEventMaintenanceEServicePersonalDataFlagReset(
+          eservice.metadata.version,
           updatedEservice,
+          reason,
           correlationId
         )
       );

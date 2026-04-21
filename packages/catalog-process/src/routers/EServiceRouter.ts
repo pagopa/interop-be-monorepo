@@ -78,7 +78,7 @@ import {
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
-  maintenanceUpdateEServiceErrorMapper,
+  maintenanceResetEServicePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 import { config } from "../config/config.js";
@@ -1568,29 +1568,30 @@ const eservicesRouter = (
         }
       }
     )
-    .patch("/maintenance/eservices/:eServiceId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    .delete(
+      "/maintenance/eservices/:eServiceId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-      try {
-        validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
 
-        await catalogService.maintenanceUpdateEService(
-          {
-            eserviceId: unsafeBrandId(req.params.eServiceId),
-            maintenanceSeed: req.body,
-          },
-          ctx
-        );
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          maintenanceUpdateEServiceErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          await catalogService.maintenanceResetEServicePersonalDataFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.reason,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceResetEServicePersonalDataFlagErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    });
+    );
 
   return eservicesRouter;
 };

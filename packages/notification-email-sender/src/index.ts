@@ -154,7 +154,7 @@ export async function handleCatalogMessage(
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServiceUpdated"
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

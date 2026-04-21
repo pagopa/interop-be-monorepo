@@ -92,7 +92,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServiceUpdated"
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

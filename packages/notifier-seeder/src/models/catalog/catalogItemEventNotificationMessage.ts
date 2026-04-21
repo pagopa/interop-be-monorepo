@@ -24,7 +24,7 @@ const eventV2TypeMapper = (
       "EServicePersonalDataFlagUpdatedAfterPublication",
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       "EServiceInstanceLabelUpdated",
-      "MaintenanceEServiceUpdated",
+      "MaintenanceEServicePersonalDataFlagReset",
       () => "catalog_item_updated"
     )
     .with(

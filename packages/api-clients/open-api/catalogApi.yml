@@ -2729,7 +2729,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /maintenance/eservices/{eServiceId}:
+  /maintenance/eservices/{eServiceId}/personalDataFlag:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: eServiceId
@@ -2739,17 +2739,29 @@ paths:
         schema:
           type: string
           format: uuid
-    patch:
+    delete:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates an eservice
-      operationId: maintenanceUpdateEService
-      description: Updates the specified eservice by its ID
+      summary: Reset personalData flag for an eservice
+      operationId: maintenanceResetEServicePersonalDataFlag
+      description: Resets the personalData flag to undefined for the specified eservice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                reason:
+                  type: string
+              required:
+                - reason
+        required: true
       responses:
         "204":
-          description: EService Updated
+          description: EService personalData flag reset
         "400":
           description: Bad Request
           content:
@@ -2762,12 +2774,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MaintenanceUpdateEServicePayload"
-        required: true
   /status:
     get:
       security: []
@@ -3935,25 +3941,6 @@ components:
       required:
         - code
         - detail
-    MaintenanceUpdateEServicePayload:
-      description: Maintenance payload to update eservice fields
-      type: object
-      additionalProperties: false
-      properties:
-        currentVersion:
-          type: integer
-          format: int32
-        eservice:
-          type: object
-          description: EService maintenance update model
-          additionalProperties: false
-          properties:
-            personalData:
-              type: boolean
-              nullable: true
-      required:
-        - currentVersion
-        - eservice
   securitySchemes:
     bearerAuth:
       type: http
