@@ -36,52 +36,64 @@ describe("suspend descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
-  it("should write on event-store for the suspension of a descriptor", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.published,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    const suspendDescriptorResponse = await catalogService.suspendDescriptor(
-      eservice.id,
-      descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+  it.each([
+    {
+      startingStatus: descriptorState.published,
+      expectedStatus: descriptorState.suspended,
+    },
+    {
+      startingStatus: descriptorState.archiving,
+      expectedStatus: descriptorState.archivingSuspended,
+    },
+  ])(
+    "should write on event-store for the suspension of a descriptor",
+    async ({ startingStatus, expectedStatus }) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: startingStatus,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      const suspendDescriptorResponse = await catalogService.suspendDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorSuspended");
-    expect(writtenEvent.event_version).toBe(2);
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorSuspendedV2,
-      payload: writtenEvent.data,
-    });
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorSuspended");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorSuspendedV2,
+        payload: writtenEvent.data,
+      });
 
-    const expectedEservice = {
-      ...eservice,
-      descriptors: [
-        {
-          ...descriptor,
-          state: descriptorState.suspended,
-          suspendedAt: new Date(
-            Number(writtenPayload.eservice!.descriptors[0]!.suspendedAt)
-          ),
-        },
-      ],
-    };
-    expect(suspendDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-  });
+      const expectedEservice = {
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            state: expectedStatus,
+            suspendedAt: new Date(
+              Number(writtenPayload.eservice!.descriptors[0]!.suspendedAt)
+            ),
+          },
+        ],
+      };
+      expect(suspendDescriptorResponse).toEqual({
+        data: expectedEservice,
+        metadata: { version: parseInt(writtenEvent.version, 10) },
+      });
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    }
+  );
   it("should write on event-store for the suspension of a descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -219,6 +231,7 @@ describe("suspend descriptor", () => {
     descriptorState.waitingForApproval,
     descriptorState.suspended,
     descriptorState.archived,
+    descriptorState.archivingSuspended,
   ])(
     "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
