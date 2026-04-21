@@ -85,12 +85,9 @@ describe("getKeyM2MEvents", () => {
       );
 
       const filteredEvents = mockKeyM2MEvents.filter(
-        (event) =>
-          event.consumerId === mockConsumerId && event.id > lastEventId
+        (event) => event.consumerId === mockConsumerId && event.id > lastEventId
       );
-      expect(events).toEqual(
-        filteredEvents.slice(0, limit)
-      );
+      expect(events).toEqual(filteredEvents.slice(0, limit));
     }
   );
 });

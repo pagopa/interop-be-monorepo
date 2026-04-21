@@ -90,9 +90,7 @@ describe("getProducerKeyM2MEvents", () => {
       const filteredEvents = mockProducerKeyM2MEvents.filter(
         (event) => event.producerId === mockProducerId && event.id > lastEventId
       );
-      expect(events).toEqual(
-        filteredEvents.slice(0, limit)
-      );
+      expect(events).toEqual(filteredEvents.slice(0, limit));
     }
   );
 });
