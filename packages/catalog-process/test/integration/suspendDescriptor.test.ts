@@ -37,17 +37,12 @@ describe("suspend descriptor", () => {
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   it.each([
-    {
-      startingStatus: descriptorState.published,
-      expectedStatus: descriptorState.suspended,
-    },
-    {
-      startingStatus: descriptorState.archiving,
-      expectedStatus: descriptorState.archivingSuspended,
-    },
+    [descriptorState.published, descriptorState.suspended],
+    [descriptorState.deprecated, descriptorState.suspended],
+    [descriptorState.archiving, descriptorState.archivingSuspended],
   ])(
-    "should write on event-store for the suspension of a descriptor",
-    async ({ startingStatus, expectedStatus }) => {
+    "should write on event-store for the suspension of a descriptor from %s to %s",
+    async (startingStatus, expectedStatus) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
         interface: mockDocument,
