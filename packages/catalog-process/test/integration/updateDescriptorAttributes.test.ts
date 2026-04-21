@@ -604,7 +604,7 @@ describe("update descriptor", () => {
     );
   });
 
-  it("should persist dailyCallsPerConsumer on a certified attribute of a published template instance", async () => {
+  it("should throw templateInstanceNotAllowed when updating dailyCallsPerConsumer on a certified attribute of a published template instance", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const dailyCallsPerConsumer = 500;
 
@@ -648,28 +648,16 @@ describe("update descriptor", () => {
       declared: [],
     };
 
-    const result = await catalogService.updateDescriptorAttributes(
-      mockEService.id,
-      mockDescriptor.id,
-      seed,
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
     );
-
-    expect(result).toBeDefined();
-
-    const updatedDescriptor = result.data.descriptors.find(
-      (d) => d.id === mockDescriptor.id
-    );
-
-    expect(updatedDescriptor).toBeDefined();
-    expect(updatedDescriptor!.attributes.certified).toHaveLength(1);
-    expect(updatedDescriptor!.attributes.certified[0]).toHaveLength(1);
-    expect(updatedDescriptor!.attributes.certified[0][0].id).toBe(
-      mockCertifiedAttribute1.id
-    );
-    expect(
-      updatedDescriptor!.attributes.certified[0][0].dailyCallsPerConsumer
-    ).toBe(dailyCallsPerConsumer);
   });
 
   it("should throw templateInstanceNotAllowed when changing explicitAttributeVerification on a template instance", async () => {
