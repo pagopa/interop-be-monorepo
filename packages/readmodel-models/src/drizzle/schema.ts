@@ -472,13 +472,13 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
 );
 
 export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
-  readmodelEserviceTemplate.table(
+  readmodelCatalog.table(
     "eservice_descriptor_archiving_schedule",
     {
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
-      scope: varchar("scope").notNull(),
+      scope: varchar().notNull(),
       archivableOn: timestamp("archivable_on", {
         withTimezone: true,
         mode: "string",
@@ -501,7 +501,7 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
           eserviceInReadmodelCatalog.id,
           eserviceInReadmodelCatalog.metadataVersion,
         ],
-        name: "eservice_descriptor_archiving_schedule_eservice_id_metadata_version_fkey",
+        name: "eservice_descriptor_archiving_eservice_id_metadata_version_fkey",
       }),
       primaryKey({
         columns: [table.eserviceId, table.descriptorId],
