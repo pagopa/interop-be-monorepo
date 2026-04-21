@@ -154,6 +154,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
+  toCreateEventEServiceDescriptorArchivingDeleted,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
@@ -388,6 +389,15 @@ const updateDescriptorState = (
           ),
           scope: scope ?? archivingScope.descriptor,
         },
+      })
+    )
+    .with(
+      [descriptorState.archiving, descriptorState.deprecated],
+      [descriptorState.archivingSuspended, descriptorState.suspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivingSchedule: undefined,
       })
     )
     .otherwise(() => ({
@@ -3813,6 +3823,50 @@ export function catalogServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEservice;
+    },
+    async cancelEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ]);
+      assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+
+      const newState =
+        descriptor.state === descriptorState.archivingSuspended
+          ? descriptorState.suspended
+          : descriptorState.deprecated;
+
+      const updatedEService =
+        await transitionEServiceDescriptorArchivingStateLogic(
+          eservice.data,
+          descriptor,
+          newState,
+          authData,
+          readModelService
+        );
+
+      const event = toCreateEventEServiceDescriptorArchivingDeleted(
+        eservice.metadata.version,
+        updatedEService,
+        descriptorId,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async maintenanceResetEServicePersonalDataFlag(
       eserviceId: EServiceId,
