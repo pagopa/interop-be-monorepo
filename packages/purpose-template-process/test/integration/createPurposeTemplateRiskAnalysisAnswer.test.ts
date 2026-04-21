@@ -105,7 +105,24 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
           ...mockPurposeTemplate,
           updatedAt: new Date(),
         }),
-        purposeRiskAnalysisForm: expect.anything(),
+        purposeRiskAnalysisForm: expect.objectContaining({
+          version: mockPurposeTemplate.purposeRiskAnalysisForm!.version,
+          singleAnswers: expect.arrayContaining([
+            expect.objectContaining({
+              key: validRiskAnalysisAnswerRequest.answerKey,
+              value: validRiskAnalysisAnswerRequest.answerData.values[0],
+              editable: validRiskAnalysisAnswerRequest.answerData.editable,
+              suggestedValues:
+                validRiskAnalysisAnswerRequest.answerData.suggestedValues,
+              annotation: expect.objectContaining({
+                text: validRiskAnalysisAnswerRequest.answerData.annotation!
+                  .text,
+              }),
+            }),
+          ]),
+          multiAnswers:
+            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+        }),
       },
     });
 

@@ -99,20 +99,22 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           ...mockPurposeTemplate,
           updatedAt: new Date(),
         }),
-        purposeRiskAnalysisForm: expect.anything(),
+        purposeRiskAnalysisForm: expect.objectContaining({
+          version: mockPurposeTemplate.purposeRiskAnalysisForm!.version,
+          singleAnswers: expect.arrayContaining([
+            expect.objectContaining({
+              id: answerId,
+              annotation: expect.objectContaining({
+                text: validRiskAnalysisAnswerAnnotationRequest.text,
+                docs: [],
+              }),
+            }),
+          ]),
+          multiAnswers:
+            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+        }),
       },
     });
-
-    // Verify that the annotation was added to the correct answer
-    const riskAnalysisForm =
-      writtenPayload.purposeTemplate!.purposeRiskAnalysisForm!;
-    const annotatedAnswer = riskAnalysisForm.singleAnswers.find(
-      (answer) => answer.id === answerId
-    );
-    expect(annotatedAnswer?.annotation).toBeDefined();
-    expect(annotatedAnswer?.annotation?.text).toBe(
-      validRiskAnalysisAnswerAnnotationRequest.text
-    );
 
     vi.useRealTimers();
   });
