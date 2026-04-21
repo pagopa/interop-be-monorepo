@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
-  DescriptorState,
   EService,
   EServiceId,
   Tenant,
@@ -26,12 +25,14 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -46,8 +47,9 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -75,13 +77,6 @@ export function descriptorStatesNotAllowingInterfaceOperations(
     .with(descriptorState.draft, () => false)
     .otherwise(() => true);
 }
-
-export const activeDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archived,
-];
 
 function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
@@ -185,6 +180,15 @@ export function assertIsDraftDescriptor(descriptor: Descriptor): void {
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
     throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
   }
 }
 
@@ -404,4 +408,31 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertAttributeDailyCallsConsistentWithTotal(
+  attributes: EserviceAttributes,
+  dailyCallsTotal: number
+): void {
+  for (const attributeGroup of attributes.certified) {
+    for (const attribute of attributeGroup) {
+      if (
+        attribute.dailyCallsPerConsumer !== undefined &&
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+    }
+  }
 }

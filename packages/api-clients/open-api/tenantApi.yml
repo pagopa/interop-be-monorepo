@@ -1687,6 +1687,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - externalId
         - selfcareId
@@ -1802,6 +1804,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - selfcareId
         - externalId

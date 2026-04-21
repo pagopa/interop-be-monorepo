@@ -8,31 +8,27 @@
   "description": "PagoPA Interoperability one trust notices job",
   "keywords": [],
   "scripts": {
-    "test": "echo \"Error: no test specified\"",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "test": "vitest",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "build": "tsc"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "catalog:",
-    "@types/html2json": "catalog:",
-    "@types/lodash.isempty": "catalog:",
     "@types/node": "catalog:",
-    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
-    "html2json": "catalog:",
-    "lodash.isempty": "catalog:",
+    "domhandler": "catalog:",
+    "htmlparser2": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "zod": "catalog:"

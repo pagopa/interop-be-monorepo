@@ -9,7 +9,6 @@ import {
   Attribute,
   Tenant,
   TenantDeclaredAttributeRevokedV2,
-  attributeKind,
   generateId,
   protobufDecoder,
   tenantAttributeType,
@@ -49,9 +48,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
 
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
@@ -101,7 +98,10 @@ describe("m2mRevokeCertifiedAttribute", () => {
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: mockAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const certifierId = generateId();
@@ -111,9 +111,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
@@ -149,9 +147,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: requesterTenant.id,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
@@ -189,9 +185,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
@@ -233,9 +227,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
@@ -274,9 +266,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: generateId(),
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),

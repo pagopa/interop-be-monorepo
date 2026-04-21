@@ -111,7 +111,9 @@ export const deleteCatalogEntry = async (
   logger.info(`Platform-states. Deleted catalog entry ${primaryKey}`);
 };
 
-export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
+export const descriptorStateToItemState = (
+  state: DescriptorState
+): ItemState =>
   state === descriptorState.published || state === descriptorState.deprecated
     ? itemState.active
     : itemState.inactive;

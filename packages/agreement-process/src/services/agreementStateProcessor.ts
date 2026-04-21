@@ -219,7 +219,7 @@ function updateAgreementState(
   eservices: EService[],
   correlationId: CorrelationId,
   logger: Logger
-): CreateEvent<AgreementEvent> | void {
+): CreateEvent<AgreementEvent> | undefined {
   const descriptor = eservices
     .find((eservice) => eservice.id === agreement.data.eserviceId)
     ?.descriptors.find(
@@ -290,13 +290,15 @@ function updateAgreementState(
           correlationId
         )
       )
-      .otherwise(
-        () =>
-          void logger.error(
-            `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
-          )
-      );
+      .otherwise(() => {
+        logger.error(
+          `Agreement state transition not allowed from ${agreement.data.state} to ${finalState} - Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId} - Consumer ${consumer.id}`
+        );
+        return undefined;
+      });
   }
+
+  return undefined;
 }
 
 function eserviceContainsAttribute(

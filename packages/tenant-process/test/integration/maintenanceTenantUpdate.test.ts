@@ -64,9 +64,12 @@ describe("maintenanceTenantUpdate", async () => {
         createdAt: new Date(mail.createdAt),
       })),
       onboardedAt: new Date(tenantUpdate.onboardedAt),
+      selfcareInstitutionType: tenantUpdate.selfcareInstitutionType,
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedMockTenant));
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedMockTenant),
+    });
   });
   it("Should throw tenantNotFound when the tenant doesn't exists", async () => {
     const mockTenant = getMockTenant();

@@ -380,7 +380,8 @@ export function tenantServiceBuilder(
         const tenantKind = await getTenantKindLoadingCertifiedAttributes(
           readModelService,
           existingTenant.data.attributes,
-          existingTenant.data.externalId
+          existingTenant.data.externalId,
+          existingTenant.data.selfcareInstitutionType
         );
 
         const updatedTenant: Tenant = {
@@ -388,6 +389,7 @@ export function tenantServiceBuilder(
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
+          selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
           updatedAt: new Date(),
         };
 
@@ -418,8 +420,15 @@ export function tenantServiceBuilder(
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
+          selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
           createdAt: new Date(),
-          kind: match(getTenantKind([], tenantSeed.externalId))
+          kind: match(
+            getTenantKind(
+              [],
+              tenantSeed.externalId,
+              tenantSeed.selfcareInstitutionType
+            )
+          )
             /**
              * If the tenant kind is SCP or PRIVATE, set the kind straight away.
              * If not, the kind will be evaluated when certified attributes are added.
@@ -547,7 +556,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId
+        tenantWithNewAttribute.externalId,
+        tenantWithNewAttribute.selfcareInstitutionType
       );
 
       const updatedTenant = {
@@ -610,9 +620,8 @@ export function tenantServiceBuilder(
         })
         .otherwise(async (seedDelegationId) => {
           const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation = await readModelService.getActiveConsumerDelegation(
-            delegationId
-          );
+          const delegation =
+            await readModelService.getActiveConsumerDelegation(delegationId);
 
           if (!delegation) {
             throw delegationNotFound(delegationId);
@@ -751,7 +760,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId
+        tenantWithRevokedAttribute.externalId,
+        tenantWithRevokedAttribute.selfcareInstitutionType
       );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
@@ -1025,7 +1035,7 @@ export function tenantServiceBuilder(
         attributeExternalId: string;
       },
       { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<void> {
+    ): Promise<{ version: number }> {
       logger.info(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
@@ -1058,7 +1068,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId
+        tenantWithNewAttribute.externalId,
+        tenantWithNewAttribute.selfcareInstitutionType
       );
 
       if (tenantWithNewAttribute.kind !== tenantKind) {
@@ -1074,12 +1085,18 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
       } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+        const event = await repository.createEvent(
+          tenantCertifiedAttributeAssignedEvent
+        );
+        return { version: event.newVersion };
       }
     },
 
@@ -1096,7 +1113,7 @@ export function tenantServiceBuilder(
         attributeExternalId: string;
       },
       { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<void> {
+    ): Promise<{ version: number }> {
       logger.info(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
@@ -1142,7 +1159,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId
+        tenantWithRevokedAttribute.externalId,
+        tenantWithRevokedAttribute.selfcareInstitutionType
       );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
@@ -1157,12 +1175,18 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
       } else {
-        await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+        const event = await repository.createEvent(
+          tenantCertifiedAttributeRevokedEvent
+        );
+        return { version: event.newVersion };
       }
     },
 
@@ -1245,6 +1269,7 @@ export function tenantServiceBuilder(
         ...tenant.data,
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
+        selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
         updatedAt: new Date(),
       };
 
@@ -1443,7 +1468,7 @@ export function tenantServiceBuilder(
     async internalUpsertTenant(
       internalTenantSeed: tenantApi.InternalTenantSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<Tenant> {
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Updating tenant with external id ${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value} via internal request`
       );
@@ -1451,6 +1476,7 @@ export function tenantServiceBuilder(
       const existingTenant = await retrieveTenantByExternalId({
         tenantOrigin: internalTenantSeed.externalId.origin,
         tenantExternalId: internalTenantSeed.externalId.value,
+
         readModelService,
       });
 
@@ -1459,7 +1485,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: externalId.origin,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =
@@ -1517,7 +1543,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithNewAttributes.attributes,
-        internalTenantSeed.externalId
+        internalTenantSeed.externalId,
+        tenantWithNewAttributes.selfcareInstitutionType
       );
 
       const tenantWithUpdatedKind: Tenant = {
@@ -1537,7 +1564,10 @@ export function tenantServiceBuilder(
       }
       await repository.createEvents(events);
 
-      return tenantWithUpdatedKind;
+      return {
+        data: tenantWithUpdatedKind,
+        metadata: { version: existingTenant.metadata.version + events.length },
+      };
     },
     async m2mUpsertTenant(
       m2mTenantSeed: tenantApi.M2MTenantSeed,
@@ -1565,7 +1595,7 @@ export function tenantServiceBuilder(
           ({
             value: externalId.code,
             origin: certifierId,
-          } satisfies ExternalId)
+          }) satisfies ExternalId
       );
 
       const existingAttributes =
@@ -1622,7 +1652,8 @@ export function tenantServiceBuilder(
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithNewAttributes.attributes,
-        m2mTenantSeed.externalId
+        m2mTenantSeed.externalId,
+        tenantWithNewAttributes.selfcareInstitutionType
       );
 
       const tenantWithUpdatedKind: Tenant = {
@@ -1771,7 +1802,8 @@ export function tenantServiceBuilder(
       const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithAttributeRevoked.attributes,
-        tenantWithAttributeRevoked.externalId
+        tenantWithAttributeRevoked.externalId,
+        tenantWithAttributeRevoked.selfcareInstitutionType
       );
 
       if (updatedTenantKind !== tenantWithAttributeRevoked.kind) {

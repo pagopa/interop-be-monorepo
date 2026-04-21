@@ -10,7 +10,6 @@ export * from "./interop-token/jwtEncoder.js";
 export * from "./kafka/kafka.js";
 export * from "./logging/index.js";
 export * from "./model/apiEndpoint.js";
-export * from "./pdf-generator/pdfGenerator.js";
 export * from "./repositories/EventRepository.js";
 export * from "./repositories/db.js";
 export * from "./risk-analysis/index.js";

@@ -65,6 +65,7 @@ const errorCodes = {
   unexpectedDPoPProofForAPIToken: "0043",
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
+  purposeVersionDocumentNotReady: "0046",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -243,6 +244,17 @@ export function purposeVersionDocumentNotFound(
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function purposeVersionDocumentNotReady(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
+    code: "purposeVersionDocumentNotReady",
+    title: "Purpose version document not ready",
   });
 }
 
@@ -498,20 +510,10 @@ export function dpopProofSignatureValidationFailed(
   });
 }
 
-export function unexpectedDPoPProofForAPIToken(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
-    code: "unexpectedDPoPProofForAPIToken",
-    title: "Unexpected DPoP proof for API token",
-  });
-}
-
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof JTI ${jti} already in cache`,
+    detail: `DPoP proof JTI ${jti} already used`,
     code: "dpopProofJtiAlreadyUsed",
-    title: "DPoP proof JTI already in cache",
+    title: "DPoP proof JTI already used",
   });
 }

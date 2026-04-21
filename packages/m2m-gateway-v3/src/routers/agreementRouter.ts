@@ -1,3 +1,4 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
@@ -14,6 +15,7 @@ import { AgreementService } from "../services/agreementService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   approveAgreementErrorMapper,
+  archiveAgreementErrorMapper,
   downloadAgreementConsumerContractErrorMapper,
   unsuspendAgreementErrorMapper,
 } from "../utils/errorMappers.js";
@@ -21,7 +23,8 @@ import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  agreementService: AgreementService
+  agreementService: AgreementService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const agreementRouter = ctx.router(m2mGatewayApiV3.agreementsApi.api, {
@@ -79,7 +82,7 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -233,6 +236,26 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/agreements/:agreementId/archive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const agreement = await agreementService.archiveAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Agreement.parse(agreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          archiveAgreementErrorMapper,
+          ctx,
+          `Error archiving agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/agreements/:agreementId/upgrade", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -309,7 +332,12 @@ const agreementRouter = (
             ctx
           );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -330,7 +358,12 @@ const agreementRouter = (
           ctx
         );
 
-        return sendDownloadedDocumentAsFormData(file, res);
+        return sendDownloadedDocumentAsFormData(
+          file,
+          res,
+          ctx.authData.clientId,
+          kmsClient
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -354,7 +387,7 @@ const agreementRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

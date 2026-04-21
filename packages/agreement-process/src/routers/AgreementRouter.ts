@@ -317,10 +317,13 @@ const agreementRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const agreement = await agreementService.archiveAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.archiveAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -392,6 +395,7 @@ const agreementRouter = (
               apiAgreementStateToAgreementState
             ),
             showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
+            exactConsumerIdMatch: req.query.exactConsumerIdMatch,
           },
           req.query.limit,
           req.query.offset,

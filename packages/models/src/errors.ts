@@ -122,9 +122,7 @@ type ProblemBuilderOptions = {
 };
 
 export function makeApiProblemBuilder<T extends string>(
-  errors: {
-    [K in T]: string;
-  },
+  errors: Record<T, string>,
   options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
@@ -592,7 +590,7 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
 });
 
 export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Bad DPoP Token format in Authorization header`,
+  detail: `Bad Authorization header: expected scheme "DPoP" with a valid token`,
   code: "badDPoPToken",
   title: "Bad DPoP Token format",
 });

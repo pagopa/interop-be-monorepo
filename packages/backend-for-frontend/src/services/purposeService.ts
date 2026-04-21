@@ -4,7 +4,6 @@ import {
   removeDuplicates,
   UIAuthData,
   assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
   getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
@@ -157,6 +156,7 @@ export function purposeServiceBuilder(
     const latestAgreement = await getLatestAgreement(
       agreementProcessClient,
       purpose.consumerId,
+      true,
       eservice,
       headers
     );
@@ -209,12 +209,7 @@ export function purposeServiceBuilder(
 
     const hasNotifications = notifications.includes(purpose.id);
 
-    const isDocumentReady = isFeatureFlagEnabled(
-      config,
-      "featureFlagUseSignedDocument"
-    )
-      ? currentVersion?.signedContract !== undefined
-      : currentVersion?.riskAnalysis !== undefined;
+    const isDocumentReady = currentVersion?.signedContract !== undefined;
 
     // retrieve risk analysis ruleset only if the requester is:
     // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
@@ -822,27 +817,16 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const agreement = await getLatestAgreement(
-        agreementProcessClient,
-        purpose.consumerId,
-        eservice,
-        headers
-      );
-
-      if (!agreement) {
-        throw agreementNotFound(unsafeBrandId(purpose.consumerId));
-      }
-
       const [consumer, producer] = await Promise.all([
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.consumerId,
+            id: purpose.consumerId,
           },
           headers,
         }),
         tenantProcessClient.tenant.getTenant({
           params: {
-            id: agreement.producerId,
+            id: eservice.producerId,
           },
           headers,
         }),
@@ -933,6 +917,19 @@ export function purposeServiceBuilder(
         signedDocument.path,
         logger
       );
+    },
+    async getRemainingDailyCalls(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      return await purposeProcessClient.getRemainingDailyCalls({
+        params: {
+          purposeId,
+        },
+        headers,
+      });
     },
   };
 }

@@ -60,9 +60,8 @@ async function getCachedDescriptorIds(
     .map((id) => [id, descriptorIdCache.get(id) as DescriptorId]);
 
   if (uncachedIds.length > 0) {
-    const fetched = await readModelService.getLatestPublishedDescriptorIds(
-      uncachedIds
-    );
+    const fetched =
+      await readModelService.getLatestPublishedDescriptorIds(uncachedIds);
     fetched.forEach((value, key) => {
       descriptorIdCache.set(key, value);
     });
@@ -72,11 +71,9 @@ async function getCachedDescriptorIds(
   return new Map(cachedEntries);
 }
 
-export type VerifiedAttribute =
-  | VerifiedAssignedAttribute
-  | VerifiedRevokedAttribute;
+type VerifiedAttribute = VerifiedAssignedAttribute | VerifiedRevokedAttribute;
 
-export type CertifiedAttribute =
+type CertifiedAttribute =
   | CertifiedAssignedAttribute
   | CertifiedRevokedAttribute;
 
@@ -102,9 +99,8 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
   }
 
   const uniqueProducerIds = [...new Set(items.map((i) => i.entityProducerId))];
-  const tenantDataMap = await readModelService.getTenantsByIds(
-    uniqueProducerIds
-  );
+  const tenantDataMap =
+    await readModelService.getTenantsByIds(uniqueProducerIds);
   return items.map((item) => ({
     ...item,
     entityProducerName:
@@ -124,9 +120,8 @@ async function enrichWithEServiceNames<T extends EntityWithEService>(
   }
 
   const uniqueEServiceIds = [...new Set(items.map((i) => i.eserviceId))];
-  const eserviceNamesMap = await readModelService.getEServicesByIds(
-    uniqueEServiceIds
-  );
+  const eserviceNamesMap =
+    await readModelService.getEServicesByIds(uniqueEServiceIds);
   return items.map((item) => ({
     ...item,
     eserviceName: eserviceNamesMap.get(item.eserviceId) ?? UNKNOWN_NAME,
@@ -148,7 +143,7 @@ async function templateDataToBaseDigest<
   T extends TemplateDigestData & {
     eserviceTemplateId: string;
     eserviceTemplateVersionId: string;
-  }
+  },
 >(
   data: T[],
   readModelService: ReadModelService,
@@ -446,6 +441,7 @@ export async function verifiedAttributeToDigest(
       producerName: attr.entityProducerName,
       link: "",
       attributeKind: "verified" as const,
+      attributeKindLabel: "(verificato)",
     })),
     totalCount: data[0].totalCount,
   };
@@ -453,7 +449,7 @@ export async function verifiedAttributeToDigest(
 
 /**
  * Transforms certified attribute data into an AttributeDigest object.
- * Certified attributes don't have a producer/verifier, so producerName is empty.
+ * Uses the certifier name resolved from the attribute's origin via the tenant_feature table.
  */
 export function certifiedAttributeToDigest(
   data: CertifiedAttribute[]
@@ -465,9 +461,10 @@ export function certifiedAttributeToDigest(
   return {
     items: data.map((attr) => ({
       name: attr.attributeName,
-      producerName: "", // Certified attributes don't have a verifier/assigner
+      producerName: attr.certifierName,
       link: "#",
       attributeKind: "certified" as const,
+      attributeKindLabel: "(certificato)",
     })),
     totalCount: data[0].totalCount,
   };
