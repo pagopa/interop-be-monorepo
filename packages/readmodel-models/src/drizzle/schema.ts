@@ -408,6 +408,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    archivingReason: varchar("archiving_reason"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -478,7 +479,7 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
       scope: varchar("scope").notNull(),
-      archivableOne: timestamp("deprecated_at", {
+      archivableOn: timestamp("archivable_on", {
         withTimezone: true,
         mode: "string",
       }).notNull(),

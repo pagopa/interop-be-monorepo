@@ -356,7 +356,7 @@ export const archivingScheduleToArchivingScheduleSQL = (
   metadataVersion: version,
   descriptorId,
   scope: archivingSchedule.scope,
-  archivableOne: dateToString(archivingSchedule.archivableOn),
+  archivableOn: dateToString(archivingSchedule.archivableOn),
 });
 
 export const documentToDocumentSQL = (
@@ -419,6 +419,7 @@ export const eserviceToEserviceSQL = (
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
+  archivingReason: eservice.archivingReason ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

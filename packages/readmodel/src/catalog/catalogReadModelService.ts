@@ -47,6 +47,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
       templateVersionRef:
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+      archivingSchedule: eserviceDescriptorArchivingScheduleInReadmodelCatalog,
     })
     .from(eserviceInReadmodelCatalog)
     .where(filter)

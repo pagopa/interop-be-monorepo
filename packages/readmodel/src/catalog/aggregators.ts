@@ -21,6 +21,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingScheduleSQL,
@@ -63,6 +64,7 @@ export const aggregateDescriptor = ({
   attributesSQL,
   rejectionReasonsSQL,
   templateVersionRefSQL,
+  archivingScheduleSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
   interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
@@ -70,6 +72,7 @@ export const aggregateDescriptor = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
   const interfaceDoc = interfaceSQL
@@ -189,6 +192,14 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(archivingScheduleSQL
+      ? {
+          archivingSchedule: {
+            scope: ArchivingScope.parse(archivingScheduleSQL.scope),
+            archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
+          },
+        }
+      : {}),
   };
 };
 
@@ -202,6 +213,7 @@ export const aggregateEservice = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
   const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
     acc.set(i.descriptorId, i);
@@ -229,6 +241,13 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
   );
+  const archivingSchedulesSQLByDescriptorId = archivingSchedulesSQL.reduce(
+    (acc, a) => {
+      acc.set(a.descriptorId, a);
+      return acc;
+    },
+    new Map<string, EServiceDescriptorArchivingScheduleSQL>()
+  );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
     .map((descriptorSQL) =>
@@ -240,6 +259,9 @@ export const aggregateEservice = ({
         rejectionReasonsSQL:
           rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
         templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
+          descriptorSQL.id
+        ),
+        archivingScheduleSQL: archivingSchedulesSQLByDescriptorId.get(
           descriptorSQL.id
         ),
       })
@@ -291,6 +313,9 @@ export const aggregateEservice = ({
       : {}),
     ...(eserviceSQL.instanceLabel !== null
       ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
+    ...(eserviceSQL.archivingReason !== null
+      ? { archivingReason: eserviceSQL.archivingReason }
       : {}),
   };
   return {
@@ -465,7 +490,6 @@ export const attributesSQLtoAttributes = (
   return Array.from(attributesMap.values());
 };
 
-// TODO: Check tomorrow (potato)
 export const toEServiceAggregator = (
   queryRes: Array<{
     eservice: EServiceSQL;
@@ -505,6 +529,7 @@ export const toEServiceAggregator = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   };
 };
 
@@ -559,6 +584,9 @@ export const toEServiceAggregatorArray = (
 
   const templateVersionRefIdSet = new Set<string>();
   const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
+
+  const archivingScheduleIdSet = new Set<string>();
+  const archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[] = [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
@@ -671,6 +699,23 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
+
+      const archivingScheduleSQL = row.archivingSchedule;
+      const archivingSchedulePK = archivingScheduleSQL
+        ? makeUniqueKey([
+            archivingScheduleSQL.eserviceId,
+            archivingScheduleSQL.descriptorId,
+          ])
+        : undefined;
+      if (
+        archivingScheduleSQL &&
+        archivingSchedulePK &&
+        !archivingScheduleIdSet.has(archivingSchedulePK)
+      ) {
+        archivingScheduleIdSet.add(archivingSchedulePK);
+        // eslint-disable-next-line functional/immutable-data
+        archivingSchedulesSQL.push(archivingScheduleSQL);
+      }
     }
   });
 
@@ -684,5 +729,6 @@ export const toEServiceAggregatorArray = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   };
 };
