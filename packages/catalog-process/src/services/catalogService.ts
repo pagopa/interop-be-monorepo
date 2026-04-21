@@ -1605,16 +1605,9 @@ export function catalogServiceBuilder(
         );
       }
 
-      let updatedAttributes = descriptor.attributes;
-
-      if (seed.attributes) {
-        const parsedAttributes = await parseAndCheckAttributes(
-          seed.attributes,
-          readModelService
-        );
-
-        updatedAttributes = parsedAttributes;
-      }
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
@@ -2109,28 +2102,19 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      let updatedDescriptor: Descriptor = {
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
+      const updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
       };
-
-      if (seed.attributes) {
-        const parsedAttributes = await parseAndCheckAttributes(
-          seed.attributes,
-          readModelService
-        );
-
-        const updatedAttributes = parsedAttributes;
-
-        assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
-
-        updatedDescriptor = {
-          ...updatedDescriptor,
-          attributes: updatedAttributes,
-        };
-      }
 
       assertAttributeDailyCallsConsistentWithTotal(
         updatedDescriptor.attributes,
@@ -2183,12 +2167,6 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      let updatedDescriptor: Descriptor = {
-        ...descriptor,
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.dailyCallsTotal,
-      };
-
       if (seed.attributes) {
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
@@ -2196,21 +2174,20 @@ export function catalogServiceBuilder(
           descriptor.attributes,
           seed.attributes
         );
-
-        const parsedAttributes = await parseAndCheckAttributes(
-          seed.attributes,
-          readModelService
-        );
-
-        const updatedAttributes = parsedAttributes;
-
-        assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
-
-        updatedDescriptor = {
-          ...updatedDescriptor,
-          attributes: updatedAttributes,
-        };
       }
+
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
+      };
 
       assertAttributeDailyCallsConsistentWithTotal(
         updatedDescriptor.attributes,
@@ -4006,83 +3983,89 @@ const processDescriptorPublication = async (
   );
 };
 
-function isMatchingCertifiedGroup(
-  incomingGroup: EServiceAttribute[],
-  currentGroup: EServiceAttribute[]
-): boolean {
-  return currentGroup.every((currentAttribute) =>
-    incomingGroup.some(
-      (incomingAttribute) => incomingAttribute.id === currentAttribute.id
-    )
-  );
-}
-
-function findMatchingCertifiedGroup(
-  incomingGroup: EServiceAttribute[],
-  currentGroups: EServiceAttribute[][],
-  usedCurrentGroupIndexes: Set<number>
-): EServiceAttribute[] | undefined {
-  for (const [groupIndex, currentGroup] of currentGroups.entries()) {
-    if (usedCurrentGroupIndexes.has(groupIndex)) {
-      continue;
-    }
-
-    if (!isMatchingCertifiedGroup(incomingGroup, currentGroup)) {
-      continue;
-    }
-
-    usedCurrentGroupIndexes.add(groupIndex);
-    return currentGroup;
-  }
-
-  return undefined;
-}
-
-function findCurrentCertifiedAttribute(
-  incomingAttribute: EServiceAttribute,
-  currentGroup: EServiceAttribute[] | undefined
-): EServiceAttribute | undefined {
-  return currentGroup?.find(
-    (currentAttribute) => currentAttribute.id === incomingAttribute.id
-  );
-}
-
-function retainCurrentDailyCallsPerConsumer(
-  incomingAttribute: EServiceAttribute,
-  currentAttribute: EServiceAttribute | undefined
-): EServiceAttribute {
-  const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
-  if (currentDailyCalls === undefined) {
-    return incomingAttribute;
-  }
-
-  return {
-    ...incomingAttribute,
-    dailyCallsPerConsumer: currentDailyCalls,
-  };
-}
-
-function retainCurrentDailyCallsInCertifiedGroup(
-  incomingGroup: EServiceAttribute[],
-  currentGroup: EServiceAttribute[] | undefined
-): EServiceAttribute[] {
-  return incomingGroup.map((incomingAttribute) => {
-    const currentAttribute = findCurrentCertifiedAttribute(
-      incomingAttribute,
-      currentGroup
-    );
-
-    return retainCurrentDailyCallsPerConsumer(
-      incomingAttribute,
-      currentAttribute
-    );
-  });
-}
-
+/**
+ * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Used with template instances. This ensures that when a template updates and
+ * propagates its attributes to its instances, any custom threshold configured
+ * on the instance is preserved instead of being cleared.
+ */
 function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
+  function isMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[]
+  ): boolean {
+    return currentGroup.every((currentAttribute) =>
+      incomingGroup.some(
+        (incomingAttribute) => incomingAttribute.id === currentAttribute.id
+      )
+    );
+  }
+
+  function findMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroups: EServiceAttribute[][],
+    usedCurrentGroupIndexes: Set<number>
+  ): EServiceAttribute[] | undefined {
+    for (const [groupIndex, currentGroup] of currentGroups.entries()) {
+      if (usedCurrentGroupIndexes.has(groupIndex)) {
+        continue;
+      }
+
+      if (!isMatchingCertifiedGroup(incomingGroup, currentGroup)) {
+        continue;
+      }
+
+      usedCurrentGroupIndexes.add(groupIndex);
+      return currentGroup;
+    }
+
+    return undefined;
+  }
+
+  function findCurrentCertifiedAttribute(
+    incomingAttribute: EServiceAttribute,
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute | undefined {
+    return currentGroup?.find(
+      (currentAttribute) => currentAttribute.id === incomingAttribute.id
+    );
+  }
+
+  function retainCurrentDailyCallsPerConsumer(
+    incomingAttribute: EServiceAttribute,
+    currentAttribute: EServiceAttribute | undefined
+  ): EServiceAttribute {
+    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    if (currentDailyCalls === undefined) {
+      return incomingAttribute;
+    }
+
+    return {
+      ...incomingAttribute,
+      dailyCallsPerConsumer: currentDailyCalls,
+    };
+  }
+
+  function retainCurrentDailyCallsInCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute[] {
+    return incomingGroup.map((incomingAttribute) => {
+      const currentAttribute = findCurrentCertifiedAttribute(
+        incomingAttribute,
+        currentGroup
+      );
+
+      return retainCurrentDailyCallsPerConsumer(
+        incomingAttribute,
+        currentAttribute
+      );
+    });
+  }
+
   const usedCurrentGroupIndexes = new Set<number>();
   const updatedCertifiedAttributes = incomingAttributes.certified.map(
     (incomingGroup) => {
