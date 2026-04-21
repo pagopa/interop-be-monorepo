@@ -1,5 +1,5 @@
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -20,10 +20,6 @@ import {
 const normalizeDelegationId = (
   delegationId: string | null | undefined
 ): string | undefined => (delegationId === null ? "null" : delegationId);
-
-const isFullVisibilityResource = (
-  resource: authorizationApi.Client | authorizationApi.ProducerKeychain
-): boolean => resource.visibility === authorizationApi.Visibility.Enum.FULL;
 
 export type EventService = ReturnType<typeof eventServiceBuilder>;
 
@@ -137,34 +133,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const visibleClientIds = await Promise.all(
-        [...new Set(events.map((event) => event.clientId))].map(
-          async (clientId) => {
-            const client = await clients.authorizationClient.client
-              .getClient({
-                params: { clientId },
-                headers,
-              })
-              .catch(() => undefined);
-
-            return client?.data && isFullVisibilityResource(client.data)
-              ? clientId
-              : undefined;
-          }
-        )
-      );
-
-      const visibleClientIdSet = new Set(
-        visibleClientIds.filter(
-          (clientId): clientId is string => clientId !== undefined
-        )
-      );
-
-      return {
-        events: events
-          .filter((event) => visibleClientIdSet.has(event.clientId))
-          .map(toM2MGatewayApiKeyEvent),
-      };
+      return { events: events.map(toM2MGatewayApiKeyEvent) };
     },
     async getClientEvents(
       { lastEventId, limit }: m2mGatewayApi.GetEventManagerClientQueryParams,
@@ -202,39 +171,7 @@ export function eventServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const visibleProducerKeychainIds = await Promise.all(
-        [...new Set(events.map((event) => event.producerKeychainId))].map(
-          async (producerKeychainId) => {
-            const producerKeychain =
-              await clients.authorizationClient.producerKeychain
-                .getProducerKeychain({
-                  params: { producerKeychainId },
-                  headers,
-                })
-                .catch(() => undefined);
-
-            return producerKeychain?.data &&
-              isFullVisibilityResource(producerKeychain.data)
-              ? producerKeychainId
-              : undefined;
-          }
-        )
-      );
-
-      const visibleProducerKeychainIdSet = new Set(
-        visibleProducerKeychainIds.filter(
-          (producerKeychainId): producerKeychainId is string =>
-            producerKeychainId !== undefined
-        )
-      );
-
-      return {
-        events: events
-          .filter((event) =>
-            visibleProducerKeychainIdSet.has(event.producerKeychainId)
-          )
-          .map(toM2MGatewayApiProducerKeysEvent),
-      };
+      return { events: events.map(toM2MGatewayApiProducerKeysEvent) };
     },
     async getProducerKeychainEvents(
       {

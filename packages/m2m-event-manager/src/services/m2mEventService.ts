@@ -179,22 +179,36 @@ export function m2mEventServiceBuilder(
     async getKeyM2MEvents(
       lastEventId: KeyM2MEventId | undefined,
       limit: number,
-      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<KeyM2MEvent[]> {
       logger.info(
         `Getting key M2M events with lastEventId=${lastEventId}, limit=${limit}`
       );
-      return m2mEventReaderService.getKeyM2MEvents(lastEventId, limit);
+      return m2mEventReaderService.getKeyM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getProducerKeyM2MEvents(
       lastEventId: ProducerKeyM2MEventId | undefined,
       limit: number,
-      { logger }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
     ): Promise<ProducerKeyM2MEvent[]> {
       logger.info(
         `Getting producerKey M2M events with lastEventId=${lastEventId}, limit=${limit}`
       );
-      return m2mEventReaderService.getProducerKeyM2MEvents(lastEventId, limit);
+      return m2mEventReaderService.getProducerKeyM2MEvents(
+        lastEventId,
+        limit,
+        authData.organizationId
+      );
     },
     async getEServiceTemplateM2MEvents(
       lastEventId: EServiceTemplateM2MEventId | undefined,

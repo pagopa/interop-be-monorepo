@@ -34,6 +34,7 @@ import {
   TenantM2MEvent,
   TenantM2MEventId,
   generateId,
+  m2mEventVisibility,
   unsafeBrandId,
   PurposeTemplateM2MEvent,
   PurposeTemplateM2MEventId,
@@ -201,7 +202,14 @@ function getMockedDelegationM2MEvent(
 }
 
 export function getMockedKeyM2MEvent(
-  eventType: KeyM2MEvent["eventType"]
+  eventType: KeyM2MEvent["eventType"],
+  {
+    consumerId,
+    visibility,
+  }: {
+    consumerId?: TenantId;
+    visibility?: KeyM2MEvent["visibility"];
+  } = {}
 ): KeyM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -210,11 +218,20 @@ export function getMockedKeyM2MEvent(
     resourceVersion: randomInt(1, 1000),
     kid: generateId(),
     clientId: generateId(),
+    consumerId: consumerId ?? generateId(),
+    visibility: visibility ?? m2mEventVisibility.owner,
   };
 }
 
 export function getMockedProducerKeyM2MEvent(
-  eventType: ProducerKeyM2MEvent["eventType"]
+  eventType: ProducerKeyM2MEvent["eventType"],
+  {
+    producerId,
+    visibility,
+  }: {
+    producerId?: TenantId;
+    visibility?: ProducerKeyM2MEvent["visibility"];
+  } = {}
 ): ProducerKeyM2MEvent {
   return {
     id: generateM2MEventId(),
@@ -223,6 +240,8 @@ export function getMockedProducerKeyM2MEvent(
     resourceVersion: randomInt(1, 1000),
     kid: generateId(),
     producerKeychainId: generateId(),
+    producerId: producerId ?? generateId(),
+    visibility: visibility ?? m2mEventVisibility.owner,
   };
 }
 
