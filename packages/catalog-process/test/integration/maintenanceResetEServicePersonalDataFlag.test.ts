@@ -43,6 +43,7 @@ describe("maintenanceResetEServicePersonalDataFlag", async () => {
     await addOneEService(mockEService);
     await catalogService.maintenanceResetEServicePersonalDataFlag(
       mockEService.id,
+      0,
       mockMaintenanceMessage,
       getMockContextMaintenance({})
     );
@@ -78,6 +79,7 @@ describe("maintenanceResetEServicePersonalDataFlag", async () => {
     await expect(
       catalogService.maintenanceResetEServicePersonalDataFlag(
         mockEService.id,
+        0,
         mockMaintenanceMessage,
         getMockContextMaintenance({})
       )
@@ -91,6 +93,7 @@ describe("maintenanceResetEServicePersonalDataFlag", async () => {
     await expect(
       catalogService.maintenanceResetEServicePersonalDataFlag(
         mockEService.id,
+        0,
         mockMaintenanceMessage,
         getMockContextMaintenance({})
       )
