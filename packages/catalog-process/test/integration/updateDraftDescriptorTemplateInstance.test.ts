@@ -100,7 +100,10 @@ describe("update draft descriptor instance", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(updatedEService),
+    });
   });
   it("should write on event-store for the update of a draft descriptor instance (delegate)", async () => {
     const template = getMockEServiceTemplate();
@@ -167,7 +170,10 @@ describe("update draft descriptor instance", () => {
       messageType: EServiceDraftDescriptorUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(updatedEService),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

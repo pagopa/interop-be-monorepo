@@ -96,8 +96,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 
@@ -162,8 +168,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 

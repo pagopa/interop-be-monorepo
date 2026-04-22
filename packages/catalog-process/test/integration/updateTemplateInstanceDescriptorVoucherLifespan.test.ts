@@ -66,7 +66,10 @@ describe("update descriptor", () => {
       messageType: EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(updatedEService),
+    });
   });
 
   it("should not write on event-store for the internal update if the e-service descriptor already has the new voucher lifespan value", async () => {
