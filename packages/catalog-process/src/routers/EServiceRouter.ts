@@ -1578,6 +1578,7 @@ const eservicesRouter = (
 
           await catalogService.maintenanceResetEServicePersonalDataFlag(
             unsafeBrandId(req.params.eServiceId),
+            req.body.currentVersion,
             req.body.reason,
             ctx
           );

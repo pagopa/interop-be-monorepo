@@ -2751,15 +2751,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                reason:
-                  type: string
-                  minLength: 10
-                  maxLength: 250
-              required:
-                - reason
+              $ref: "#/components/schemas/MaintenanceResetEServicePersonalDataFlagPayload"
         required: true
       responses:
         "204":
@@ -3943,6 +3935,21 @@ components:
       required:
         - code
         - detail
+    MaintenanceResetEServicePersonalDataFlagPayload:
+      description: Maintenance payload to reset personalData flag
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - currentVersion
+        - reason
   securitySchemes:
     bearerAuth:
       type: http

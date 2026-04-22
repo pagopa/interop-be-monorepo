@@ -3768,6 +3768,7 @@ export function catalogServiceBuilder(
     },
     async maintenanceResetEServicePersonalDataFlag(
       eserviceId: EServiceId,
+      currentVersion: number,
       reason: string,
       { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
@@ -3786,7 +3787,7 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventMaintenanceEServicePersonalDataFlagReset(
-          eservice.metadata.version,
+          currentVersion,
           updatedEservice,
           reason,
           correlationId
