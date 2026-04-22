@@ -68,7 +68,7 @@ export const ATTRIBUTE_ANAC_ENABLED_ID = "dc77c852-7635-4522-bc1c-e431c5d68b55";
 export const ATTRIBUTE_ANAC_IN_VALIDATION_ID =
   "97dec753-8a6e-4a25-aa02-95ac8602b364";
 
-export const ANAC_CERTIFIER_ID = "ANAC";
+const ANAC_CERTIFIER_ID = "ANAC";
 export const ANAC_TENANT_ID = "69e2865e-65ab-4e48-a638-2037a9ee2ee7";
 
 export const downloadCSVMockGenerator =
@@ -101,7 +101,7 @@ export const persistentTenant: Tenant = {
   mails: [],
 };
 
-export const persistentAttribute: Attribute = {
+const persistentAttribute: Attribute = {
   id: unsafeBrandId("7a04c906-1525-4c68-8a5b-d740d77d9c80"),
   origin: "attributeOrigin",
   code: "attributeCode",

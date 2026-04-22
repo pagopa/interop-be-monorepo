@@ -42,9 +42,11 @@ import {
   sftpConfigTest,
 } from "./helpers.js";
 
-const waitForReadModelMetadataVersionMock = vi.fn(
-  (): Promise<void> => Promise.resolve()
-);
+const { waitForReadModelMetadataVersionMock } = vi.hoisted(() => ({
+  waitForReadModelMetadataVersionMock: vi.fn(
+    (): Promise<void> => Promise.resolve()
+  ),
+}));
 
 vi.mock("pagopa-interop-commons", async () => {
   const actual = await vi.importActual("pagopa-interop-commons");
