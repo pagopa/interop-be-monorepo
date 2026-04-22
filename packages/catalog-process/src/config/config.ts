@@ -30,7 +30,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
-        GRACE_PERIOD_ARCHIVING_ESERVICE: z.number().int().positive(),
+        GRACE_PERIOD_ARCHIVING_ESERVICE: z.coerce.number().int().positive(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
