@@ -1,4 +1,4 @@
-import { Descriptor, EService } from "pagopa-interop-models";
+import { Descriptor, DescriptorState, EService } from "pagopa-interop-models";
 import { z } from "zod";
 import { invalidDescriptorVersion } from "../model/domain/errors.js";
 
@@ -26,3 +26,14 @@ export const nextDescriptorVersion = (eservice: EService): string => {
   const parsedVersion = parseVersionNumber(currentVersion);
   return (parsedVersion + 1).toString();
 };
+
+export const getLatestDescriptorByStates = (
+  eservice: EService,
+  states: DescriptorState[]
+): Descriptor | undefined =>
+  [...eservice.descriptors]
+    .filter((d) => states.includes(d.state))
+    .sort(
+      (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
+    )
+    .at(-1);

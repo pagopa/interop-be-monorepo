@@ -153,6 +153,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
+  getLatestDescriptorByStates,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -354,11 +355,15 @@ const updateDescriptorState = (
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
-    .with([descriptorState.published, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      archivedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.deprecated, descriptorState.archived],
+      [descriptorState.published, descriptorState.archived],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
@@ -3893,9 +3898,10 @@ const processDescriptorPublication = async (
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
-  const currentActiveDescriptor = eservice.descriptors.find(
-    (d: Descriptor) => d.state === descriptorState.published
-  );
+  const currentActiveDescriptor = getLatestDescriptorByStates(eservice, [
+    descriptorState.published,
+    descriptorState.suspended, // The last active descriptor could be suspended
+  ]);
 
   const publishedDescriptor = updateDescriptorState(
     descriptor,
@@ -3908,23 +3914,40 @@ const processDescriptorPublication = async (
   );
 
   if (!currentActiveDescriptor) {
+    // No previous active descriptor, so we can just return the published descriptor
     return eserviceWithPublishedDescriptor;
   }
 
-  const currentEServiceAgreements = await readModelService.listAgreements({
-    eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
-    states: [agreementState.active, agreementState.suspended],
-    limit: 1,
-    descriptorId: currentActiveDescriptor.id,
-  });
+  const hasAgreements =
+    (
+      await readModelService.listAgreements({
+        eservicesIds: [eservice.id],
+        consumersIds: [],
+        producersIds: [],
+        states: [agreementState.active, agreementState.suspended],
+        limit: 1,
+        descriptorId: currentActiveDescriptor.id,
+      })
+    ).length > 0;
+
+  const replaceLastDescriptor = (d: Descriptor): Descriptor => {
+    if (d.state === descriptorState.suspended && hasAgreements) {
+      // The previous active descriptor state was suspended, no state change is needed
+      // but we need to set the deprecatedAt timestamp
+      return {
+        ...d,
+        deprecatedAt: new Date(),
+      };
+    }
+    // The previous descriptor was published, we either deprecate or archive it
+    return hasAgreements
+      ? deprecateDescriptor(eservice.id, d, logger)
+      : archiveDescriptor(eservice.id, d, logger);
+  };
 
   return replaceDescriptor(
     eserviceWithPublishedDescriptor,
-    currentEServiceAgreements.length === 0
-      ? archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
-      : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+    replaceLastDescriptor(currentActiveDescriptor)
   );
 };
 
