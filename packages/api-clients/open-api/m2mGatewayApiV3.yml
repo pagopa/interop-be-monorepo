@@ -3615,8 +3615,8 @@ paths:
     post:
       tags:
         - eservices
-      summary: Unsuspend an E-Service Descriptor in Suspended state
-      description: Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
+      summary: Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended state
+      description: Unsuspend an E-Service Descriptor that is in Suspended or ArchivingSuspended state, transitioning it to Active, Deprecated or Archiving state
       operationId: unsuspendDescriptor
       parameters:
         - name: eserviceId

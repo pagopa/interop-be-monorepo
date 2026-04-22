@@ -3641,8 +3641,8 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Activate the selected descriptor.
-      description: Activate the selected descriptor
+      summary: Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended state
+      description: Unsuspend an E-Service Descriptor that is in Suspended or ArchivingSuspended state, transitioning it to Active, Deprecated or Archiving state
       operationId: activateDescriptor
       parameters:
         - name: eServiceId
