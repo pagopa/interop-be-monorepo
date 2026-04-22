@@ -68,9 +68,6 @@ export const toApiSelfcareUser = (
   match(input)
     .with(
       {
-        id: P.nonNullable,
-        name: P.nonNullable,
-        surname: P.nonNullable,
         roles: P.nonNullable,
       },
       (user) => ({
@@ -81,18 +78,7 @@ export const toApiSelfcareUser = (
         tenantId,
       })
     )
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "id");
-    })
-    .with({ name: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "name");
-    })
-    .with({ surname: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "surname");
-    })
     .with({ roles: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserResource", "roles");
     })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("UserResource", "unknown");
-    });
+    .exhaustive();
