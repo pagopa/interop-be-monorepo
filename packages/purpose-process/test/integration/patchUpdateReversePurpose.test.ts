@@ -91,12 +91,14 @@ describe("patchUpdateReversePurpose", () => {
     expectedIsRiskAnalysisValid: boolean = true
   ): Promise<void> {
     const sortedExpectedPurpose = sortPurpose(expectedPurpose);
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     const sortedUpdatePurposeReturn =
       sortUpdatePurposeReturn(updatePurposeReturn);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(sortedExpectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(sortedExpectedPurpose)),
+    });
     expect(sortedUpdatePurposeReturn).toEqual({
       data: {
         purpose: sortedExpectedPurpose,

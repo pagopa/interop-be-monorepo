@@ -3,7 +3,11 @@ import {
   WithLogger,
   isDefined,
 } from "pagopa-interop-commons";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  tenantApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   AgreementId,
   AttributeId,
@@ -26,7 +30,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   tenantCertifiedAttributeNotFound,
   tenantDeclaredAttributeNotFound,
