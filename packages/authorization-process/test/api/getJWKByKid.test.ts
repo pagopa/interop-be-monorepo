@@ -73,7 +73,7 @@ describe("API /keys/{keyId} authorization test", () => {
     authorizationService.getJWKByKid = vi
       .fn()
       .mockRejectedValue(
-        tenantNotAllowedOnClient(generateId(), expectedKey.clientId)
+        tenantNotAllowedOnClient(generateId(), mockKey.clientId)
       );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);

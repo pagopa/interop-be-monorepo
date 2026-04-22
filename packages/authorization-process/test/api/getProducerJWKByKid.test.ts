@@ -77,7 +77,7 @@ describe("API /producerKeys/{keyId} authorization test", () => {
       .mockRejectedValue(
         tenantNotAllowedOnProducerKeychain(
           generateId(),
-          expectedKey.producerKeychainId
+          mockKey.producerKeychainId
         )
       );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
