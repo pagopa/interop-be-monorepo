@@ -63,6 +63,9 @@ export const handleCallbackInvocation = async (
     producerKeychainPlatformStatesTable,
   } = ctx;
 
+  // In callback_invocation the JWT is signed with the producer keychain, so
+  // `sub` is the producerKeychainId. We keep the `clientId` name for error
+  // messages that reference the caller's identity as presented in the JWT.
   const clientId = clientAssertionJWT.payload.sub;
 
   // 1. Validate callback_invocation-specific claims
@@ -149,18 +152,13 @@ export const handleCallbackInvocation = async (
   // 7. Validate platform state (agreement, purpose and descriptor must be ACTIVE)
   //    Same semantics as start_interaction: read pre-computed states from
   //    token-generation-states and aggregate errors into platformStateValidationFailed.
-  const descriptorStateError =
-    tokenGenStatesEntry.descriptorState !== itemState.active
-      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
-      : catalogEntry.state !== itemState.active
-        ? invalidEServiceState(catalogEntry.state)
-        : undefined;
-
   const platformStateErrors = [
     tokenGenStatesEntry.agreementState !== itemState.active
       ? invalidAgreementState(tokenGenStatesEntry.agreementState)
       : undefined,
-    descriptorStateError,
+    tokenGenStatesEntry.descriptorState !== itemState.active
+      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
+      : undefined,
     tokenGenStatesEntry.purposeState !== itemState.active
       ? invalidPurposeState(tokenGenStatesEntry.purposeState)
       : undefined,

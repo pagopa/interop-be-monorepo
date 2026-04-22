@@ -103,7 +103,6 @@ const setupCallbackScenario = async (overrides?: {
   skipCatalogEntry?: boolean;
   skipTokenGenStatesEntry?: boolean;
   interactionStateOverride?: string;
-  catalogEntryStateOverride?: ItemState;
   tokenGenStatesAgreementStateOverride?: ItemState;
   tokenGenStatesPurposeStateOverride?: ItemState;
   tokenGenStatesDescriptorStateOverride?: ItemState;
@@ -243,23 +242,6 @@ const setupCallbackScenario = async (overrides?: {
       new DeleteItemCommand({
         TableName: "platform-states",
         Key: { PK: { S: catalogPK } },
-      })
-    );
-  } else if (overrides?.catalogEntryStateOverride) {
-    // Overwrite catalog entry with new state (writePlatformCatalogEntry has ConditionExpression)
-    await dynamoDBClient.send(
-      new PutItemCommand({
-        TableName: "platform-states",
-        Item: {
-          PK: { S: catalogPK },
-          state: { S: overrides.catalogEntryStateOverride },
-          descriptorAudience: {
-            L: [{ S: "https://eservice.example.com" }],
-          },
-          descriptorVoucherLifespan: { N: "3600" },
-          version: { N: "2" },
-          updatedAt: { S: new Date().toISOString() },
-        },
       })
     );
   }
@@ -594,20 +576,6 @@ describe("async token service - callback_invocation", () => {
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
     ).rejects.toThrowError(/catalog entry not found/);
-  });
-
-  it("should throw platformStateValidationFailed when catalog entry state is INACTIVE", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { producerJws, producerClientId } = await setupCallbackScenario({
-      catalogEntryStateOverride: itemState.inactive,
-    });
-
-    await expect(
-      callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/Platform state validation failed/);
   });
 
   it("should throw asyncExchangeResponseTimeExceeded when response time is exceeded", async () => {
