@@ -30,12 +30,14 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
+        GRACE_PERIOD_ARCHIVING_ESERVICE: z.number().int().positive(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
+        gracePeriodArchivingEService: c.GRACE_PERIOD_ARCHIVING_ESERVICE,
       }))
   )
   .and(EServiceTemplateS3Config)

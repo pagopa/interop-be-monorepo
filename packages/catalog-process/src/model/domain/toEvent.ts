@@ -911,3 +911,22 @@ export const toCreateEventEServiceInstanceLabelUpdated = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorArchivingScheduled = (
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchiveScheduled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      descriptorId,
+    },
+  },
+  correlationId,
+});
