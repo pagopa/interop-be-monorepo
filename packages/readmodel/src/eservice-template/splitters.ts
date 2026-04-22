@@ -73,7 +73,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         const {
           eserviceTemplateVersionSQL,
           attributesSQL,
-          interfaceSQL,
+          interfacesSQL,
           documentsSQL,
         } = splitEServiceTemplateVersionIntoObjectsSQL(
           eserviceTemplate.id,
@@ -84,9 +84,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         return {
           versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
           attributesSQL: acc.attributesSQL.concat(attributesSQL),
-          interfacesSQL: interfaceSQL
-            ? acc.interfacesSQL.concat([interfaceSQL])
-            : acc.interfacesSQL,
+          interfacesSQL: acc.interfacesSQL.concat(interfacesSQL),
           documentsSQL: acc.documentsSQL.concat(documentsSQL),
         };
       },
@@ -160,7 +158,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 ): {
   eserviceTemplateVersionSQL: EServiceTemplateVersionSQL;
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
 } => {
   const versionSQL = eserviceTemplateVersionToEServiceTemplateVersionSQL(
@@ -192,14 +190,31 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
       metadataVersion
     ),
   ];
-  const interfaceSQL = eserviceTemplateVersion.interface
-    ? documentToDocumentSQL(
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
+
+  if (eserviceTemplateVersion.interface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
         eserviceTemplateVersion.interface,
         eserviceTemplateVersion.id,
         eserviceTemplateId,
         metadataVersion
-      )
-    : undefined;
+      ),
+      kind: "INTERFACE",
+    });
+  }
+
+  if (eserviceTemplateVersion.asyncExchangeCallbackInterface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
+        eserviceTemplateVersion.asyncExchangeCallbackInterface,
+        eserviceTemplateVersion.id,
+        eserviceTemplateId,
+        metadataVersion
+      ),
+      kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    });
+  }
 
   const documentsSQL = eserviceTemplateVersion.docs.map((doc) =>
     documentToDocumentSQL(
@@ -213,7 +228,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   return {
     eserviceTemplateVersionSQL: versionSQL,
     attributesSQL,
-    interfaceSQL,
+    interfacesSQL,
     documentsSQL,
   };
 };
@@ -326,4 +341,5 @@ const eserviceTemplateToEServiceTemplateSQL = (
   mode: eserviceTemplate.mode,
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled ?? null,
   personalData: eserviceTemplate.personalData ?? null,
+  asyncExchange: eserviceTemplate.asyncExchange ?? null,
 });

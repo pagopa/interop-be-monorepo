@@ -3,6 +3,8 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  InteractionId,
+  InteractionsPK,
   GSIPKClientIdKid,
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
@@ -11,6 +13,8 @@ import {
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposePK,
+  ProducerKeychainId,
+  ProducerKeychainPlatformStatesPK,
   PurposeId,
   TenantId,
   TokenGenerationStatesClientKidPK,
@@ -50,6 +54,19 @@ export const makePlatformStatesClientPK = (
 ): PlatformStatesClientPK =>
   unsafeBrandId<PlatformStatesClientPK>(`CLIENT#${clientId}`);
 
+export const makeProducerKeychainPlatformStatesPK = ({
+  producerKeychainId,
+  kid,
+  eServiceId,
+}: {
+  producerKeychainId: ProducerKeychainId;
+  kid: string;
+  eServiceId: EServiceId;
+}): ProducerKeychainPlatformStatesPK =>
+  unsafeBrandId<ProducerKeychainPlatformStatesPK>(
+    `PRODUCERKEYCHAINKIDESERVICE#${producerKeychainId}#${kid}#${eServiceId}`
+  );
+
 export const makeGSIPKConsumerIdEServiceId = ({
   consumerId,
   eserviceId,
@@ -82,6 +99,11 @@ export const makeTokenGenerationStatesClientKidPK = ({
   unsafeBrandId<TokenGenerationStatesClientKidPK>(
     `CLIENTKID#${clientId}#${kid}`
   );
+
+export const makeInteractionPK = (
+  interactionId: InteractionId
+): InteractionsPK =>
+  unsafeBrandId<InteractionsPK>(`INTERACTION#${interactionId}`);
 
 export const makeGSIPKEServiceIdDescriptorId = ({
   eserviceId,

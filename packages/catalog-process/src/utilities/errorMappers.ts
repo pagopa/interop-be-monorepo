@@ -26,6 +26,7 @@ export const createEServiceErrorMapper = (
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "invalidDelegationFlags",
+      "asyncExchangeNotAllowedForReceiveMode",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -79,6 +80,7 @@ export const updateEServiceErrorMapper = (
       "eserviceNotInDraftState",
       "invalidDelegationFlags",
       "templateInstanceNotAllowed",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -120,8 +122,14 @@ export const documentCreateErrorMapper = (
       "notValidDescriptor",
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
       "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
+    )
+    .with(
+      "eServiceAsyncExchangeNotEnabled",
+      "descriptorAsyncExchangeNotConfigured",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -295,6 +303,9 @@ export const publishDescriptorErrorMapper = (
       "notValidDescriptor",
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -492,7 +503,13 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("missingPersonalDataFlag", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

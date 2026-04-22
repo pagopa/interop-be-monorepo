@@ -45,17 +45,24 @@ export const aggregateEServiceTemplateRiskAnalysis = (
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
-  interfaceSQL,
+  interfacesSQL,
   documentsSQL,
   attributesSQL,
 }: {
   versionSQL: EServiceTemplateVersionSQL;
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
 }): EServiceTemplateVersion => {
-  const parsedInterface = interfaceSQL
-    ? documentSQLtoDocument(interfaceSQL)
+  const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
+  const callbackInterfaceSQL = interfacesSQL.find(
+    (i) => i.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+  );
+  const parsedInterface = mainInterfaceSQL
+    ? documentSQLtoDocument(mainInterfaceSQL)
+    : undefined;
+  const asyncExchangeCallbackInterfaceDoc = callbackInterfaceSQL
+    ? documentSQLtoDocument(callbackInterfaceSQL)
     : undefined;
 
   const {
@@ -113,6 +120,9 @@ export const aggregateEServiceTemplateVersion = ({
       verified: verifiedAttributes,
     },
     ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(asyncExchangeCallbackInterfaceDoc
+      ? { asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc }
+      : {}),
     ...(versionSQL.description ? { description: versionSQL.description } : {}),
     ...(versionSQL.agreementApprovalPolicy
       ? {
@@ -144,9 +154,9 @@ export const aggregateEServiceTemplate = ({
 }: EServiceTemplateItemsSQL): WithMetadata<EServiceTemplate> => {
   const interfacesSQLByVersionId = interfacesSQL.reduce((acc, i) => {
     const versionId = i.versionId;
-    acc.set(versionId, i);
+    acc.set(versionId, [...(acc.get(versionId) || []), i]);
     return acc;
-  }, new Map<string, EServiceTemplateVersionInterfaceSQL>());
+  }, new Map<string, EServiceTemplateVersionInterfaceSQL[]>());
   const documentsSQLByVersionId = documentsSQL.reduce((acc, doc) => {
     const versionId = doc.versionId;
     acc.set(versionId, [...(acc.get(versionId) || []), doc]);
@@ -160,7 +170,7 @@ export const aggregateEServiceTemplate = ({
   const versions = versionsSQL.map((versionSQL) =>
     aggregateEServiceTemplateVersion({
       versionSQL,
-      interfaceSQL: interfacesSQLByVersionId.get(versionSQL.id),
+      interfacesSQL: interfacesSQLByVersionId.get(versionSQL.id) || [],
       documentsSQL: documentsSQLByVersionId.get(versionSQL.id) || [],
       attributesSQL: attributesSQLByVersionId.get(versionSQL.id) || [],
     })
@@ -198,6 +208,9 @@ export const aggregateEServiceTemplate = ({
       ? {
           personalData: eserviceTemplateSQL.personalData,
         }
+      : {}),
+    ...(eserviceTemplateSQL.asyncExchange !== null
+      ? { asyncExchange: eserviceTemplateSQL.asyncExchange }
       : {}),
   };
   return {
@@ -342,7 +355,7 @@ export const toEServiceTemplateAggregatorArray = (
   const versionsSQL: EServiceTemplateVersionSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceTemplateVersionDocumentSQL[] = [];
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceTemplateVersionDocumentSQL[] = [];

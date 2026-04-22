@@ -19,6 +19,7 @@ import {
   Document,
   EServiceTemplateVersionState,
   EServiceTemplateVersionInterfaceUpdatedV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -378,4 +379,109 @@ describe("update Document", () => {
       )
     );
   });
+
+  it("should write on event-store for the update of an asyncExchangeCallbackInterface in draft state", async () => {
+    const callbackInterface = getMockDocument();
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        generateId<EServiceTemplateVersionId>()
+      ),
+      asyncExchangeCallbackInterface: callbackInterface,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    const returnedDocument = await eserviceTemplateService.updateDocument(
+      eserviceTemplate.id,
+      version.id,
+      callbackInterface.id,
+      { prettyName: "updated prettyName" },
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+    const expectedEserviceTemplate = toEServiceTemplateV2({
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...version,
+          asyncExchangeCallbackInterface: {
+            ...callbackInterface,
+            prettyName: "updated prettyName",
+          },
+        },
+      ],
+    });
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType:
+        EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
+    expect(writtenPayload.documentId).toEqual(callbackInterface.id);
+    expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
+    expect(writtenPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2({
+        ...eserviceTemplate,
+        versions: [
+          {
+            ...version,
+            asyncExchangeCallbackInterface: returnedDocument,
+          },
+        ],
+      })
+    );
+  });
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.draft
+    )
+  )(
+    "should throw notValidEServiceTemplateVersionState when updating asyncExchangeCallbackInterface in %s state",
+    async (state) => {
+      const callbackInterface = getMockDocument();
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        asyncExchangeCallbackInterface: callbackInterface,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        asyncExchange: true,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      expect(
+        eserviceTemplateService.updateDocument(
+          eserviceTemplate.id,
+          version.id,
+          callbackInterface.id,
+          { prettyName: "updated prettyName" },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        notValidEServiceTemplateVersionState(version.id, state)
+      );
+    }
+  );
 });

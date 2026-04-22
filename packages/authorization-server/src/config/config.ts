@@ -9,6 +9,7 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagImprovedProducerVerificationClaimsConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagAsyncExchangeConfig,
   DPoPConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -34,15 +35,22 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
     z
       .object({
         TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
+        TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
+        TOKEN_GENERATION_READMODEL_TABLE_NAME_INTERACTIONS: z.string(),
+        INTERACTION_TTL_EPSILON_SECONDS: z.coerce.number(),
       })
       .transform((c) => ({
         tokenGenerationStatesTable:
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+        platformStatesTable: c.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
+        interactionsTable: c.TOKEN_GENERATION_READMODEL_TABLE_NAME_INTERACTIONS,
+        interactionTtlEpsilonSeconds: c.INTERACTION_TTL_EPSILON_SECONDS,
       }))
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagAsyncExchangeConfig)
   .and(DPoPConfig);
 
 type AuthorizationServerConfig = z.infer<typeof AuthorizationServerConfig>;

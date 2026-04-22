@@ -11,6 +11,8 @@ import {
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
+  isFeatureFlagEnabled,
+  assertFeatureFlagEnabled,
   Logger,
 } from "pagopa-interop-commons";
 import {
@@ -68,6 +70,8 @@ import {
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
   riskAnalysisNotFound,
+  eserviceTemplateAsyncExchangeNotEnabled,
+  asyncExchangeCallbackInterfaceAlreadyExists,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -94,6 +98,9 @@ import {
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
   toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
+  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded,
+  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
+  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -347,6 +354,7 @@ const retrieveDocument = (
   const document = [
     ...eserviceTemplateVersion.docs,
     eserviceTemplateVersion.interface,
+    eserviceTemplateVersion.asyncExchangeCallbackInterface,
   ].find((doc) => doc != null && doc.id === documentId);
   if (document === undefined) {
     throw eserviceTemplateDocumentNotFound(
@@ -1326,6 +1334,9 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
+        ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+          ? { asyncExchange: seed.asyncExchange }
+          : {}),
         personalData: seed.personalData,
       };
 
@@ -1597,6 +1608,8 @@ export function eserviceTemplateServiceBuilder(
 
       const isInterface = document.kind === "INTERFACE";
       const isDocument = document.kind === "DOCUMENT";
+      const isAsyncExchangeCallbackInterface =
+        document.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE";
 
       if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
         throw notValidEServiceTemplateVersionState(version.id, version.state);
@@ -1627,6 +1640,24 @@ export function eserviceTemplateServiceBuilder(
         throw checksumDuplicate(eserviceTemplate.data.id, version.id);
       }
 
+      if (isAsyncExchangeCallbackInterface) {
+        assertFeatureFlagEnabled(config, "featureFlagAsyncExchange");
+
+        if (versionStatesNotAllowingInterfaceOperations(version)) {
+          throw notValidEServiceTemplateVersionState(version.id, version.state);
+        }
+
+        if (eserviceTemplate.data.asyncExchange !== true) {
+          throw eserviceTemplateAsyncExchangeNotEnabled(
+            eserviceTemplate.data.id
+          );
+        }
+
+        if (version.asyncExchangeCallbackInterface !== undefined) {
+          throw asyncExchangeCallbackInterfaceAlreadyExists(version.id);
+        }
+      }
+
       const newDocument: Document = {
         id: unsafeBrandId(document.documentId),
         name: document.fileName,
@@ -1645,7 +1676,11 @@ export function eserviceTemplateServiceBuilder(
               ? {
                   ...v,
                   interface: isInterface ? newDocument : v.interface,
-                  docs: isInterface ? v.docs : [...v.docs, newDocument],
+                  docs: isDocument ? [...v.docs, newDocument] : v.docs,
+                  asyncExchangeCallbackInterface:
+                    isAsyncExchangeCallbackInterface
+                      ? newDocument
+                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
@@ -1660,14 +1695,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
-        : toCreateEventEServiceTemplateVersionDocumentAdded(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            unsafeBrandId(document.documentId),
-            updatedEServiceTemplate,
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1763,8 +1807,13 @@ export function eserviceTemplateServiceBuilder(
       );
 
       const isInterface = document.id === version?.interface?.id;
+      const isAsyncExchangeCallbackInterface =
+        document.id === version?.asyncExchangeCallbackInterface?.id;
 
-      if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
+      if (
+        (isInterface || isAsyncExchangeCallbackInterface) &&
+        versionStatesNotAllowingInterfaceOperations(version)
+      ) {
         throw notValidEServiceTemplateVersionState(version.id, version.state);
       }
 
@@ -1798,6 +1847,10 @@ export function eserviceTemplateServiceBuilder(
                   docs: v.docs.map((doc) =>
                     doc.id === documentId ? updatedDocument : doc
                   ),
+                  asyncExchangeCallbackInterface:
+                    isAsyncExchangeCallbackInterface
+                      ? updatedDocument
+                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
@@ -1812,14 +1865,23 @@ export function eserviceTemplateServiceBuilder(
             newEserviceTemplate,
             correlationId
           )
-        : toCreateEventEServiceTemplateVersionDocumentUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              newEserviceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentUpdated(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              newEserviceTemplate,
+              correlationId
+            );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -1863,8 +1925,10 @@ export function eserviceTemplateServiceBuilder(
       );
 
       const isInterface = document.id === version?.interface?.id;
+      const isAsyncExchangeCallbackInterface =
+        document.id === version?.asyncExchangeCallbackInterface?.id;
 
-      if (isInterface) {
+      if (isInterface || isAsyncExchangeCallbackInterface) {
         if (version.state !== eserviceTemplateVersionState.draft) {
           throw notValidEServiceTemplateVersionState(version.id, version.state);
         }
@@ -1882,6 +1946,9 @@ export function eserviceTemplateServiceBuilder(
           ...version,
           interface: isInterface ? undefined : version.interface,
           docs: version.docs.filter((doc) => doc.id !== documentId),
+          asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+            ? undefined
+            : version.asyncExchangeCallbackInterface,
         }
       );
 
@@ -1894,14 +1961,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
-        : toCreateEventEServiceTemplateVersionDocumentDeleted(
-            eserviceTemplate.data.id,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            updatedEServiceTemplate,
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted(
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentDeleted(
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -2146,6 +2222,19 @@ async function updateDraftEServiceTemplate(
           : eserviceTemplate.data.personalData)
     )
     .exhaustive();
+
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null
+          ? undefined
+          : eserviceTemplate.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEServiceTemplate: EServiceTemplate = {
     ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
@@ -2161,6 +2250,9 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
+      : {}),
     personalData: updatedPersonalData,
   };
 
@@ -2345,6 +2437,15 @@ const deleteVersionInterfaceAndDocs = async (
   const versionInterface = version.interface;
   if (versionInterface !== undefined) {
     await fileManager.delete(config.s3Bucket, versionInterface.path, logger);
+  }
+
+  const asyncExchangeCallbackInterface = version.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface !== undefined) {
+    await fileManager.delete(
+      config.s3Bucket,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
   }
 
   const deleteVersionDocs = version.docs.map((doc: Document) =>

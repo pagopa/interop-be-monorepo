@@ -22,7 +22,10 @@ import {
 } from "pagopa-interop-models";
 import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
-import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
+import {
+  fallbackAudit,
+  retrieveKey,
+} from "../src/utilities/tokenServiceHelpers.js";
 import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
@@ -157,6 +160,60 @@ describe("unit tests", () => {
       const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
         ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
         clientKind: clientKindTokenGenStates.consumer,
+      };
+
+      await writeTokenGenStatesConsumerClient(
+        tokenClientPurposeEntry,
+        dynamoDBClient
+      );
+      const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
+
+      expect(key).toEqual(tokenClientPurposeEntry);
+    });
+
+    it("should succeed - clientKidPurpose entry without asyncExchange", async () => {
+      const clientId = generateId<ClientId>();
+      const kid = "kid";
+      const purposeId = generateId<PurposeId>();
+
+      const tokenClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        });
+
+      const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+        clientKind: clientKindTokenGenStates.consumer,
+        asyncExchange: undefined,
+      };
+
+      await writeTokenGenStatesConsumerClient(
+        tokenClientPurposeEntry,
+        dynamoDBClient
+      );
+      const key = await retrieveKey(dynamoDBClient, tokenClientKidPurposePK);
+
+      expect(key).toEqual(tokenClientPurposeEntry);
+    });
+
+    it("should succeed - clientKidPurpose entry with asyncExchange", async () => {
+      const clientId = generateId<ClientId>();
+      const kid = "kid";
+      const purposeId = generateId<PurposeId>();
+
+      const tokenClientKidPurposePK =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        });
+
+      const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+        clientKind: clientKindTokenGenStates.consumer,
+        asyncExchange: true,
       };
 
       await writeTokenGenStatesConsumerClient(

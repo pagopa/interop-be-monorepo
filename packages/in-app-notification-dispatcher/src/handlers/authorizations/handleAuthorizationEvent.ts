@@ -9,6 +9,7 @@ import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedTo
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
+import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
 
 export async function handleAuthorizationEvent(
   decodedMessage: AuthorizationEventEnvelope,
@@ -56,7 +57,6 @@ export async function handleAuthorizationEvent(
       {
         type: P.union(
           "ProducerKeychainKeyAdded",
-          "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserDeleted"
         ),
       },
@@ -67,6 +67,21 @@ export async function handleAuthorizationEvent(
           readModelService
         )
     )
+    .with({ type: "ProducerKeychainKeyDeleted" }, async (msg) => {
+      const [existingNotifications, newNotifications] = await Promise.all([
+        handleProducerKeychainKeyAddedDeletedToClientUsers(
+          msg,
+          logger,
+          readModelService
+        ),
+        handleProducerKeychainNoKeysForAsyncEservice(
+          msg,
+          logger,
+          readModelService
+        ),
+      ]);
+      return [...existingNotifications, ...newNotifications];
+    })
     .with(
       {
         type: P.union(

@@ -76,6 +76,7 @@ export * from "./purpose-template/protobufConverterToV2.js";
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
+export * from "./token-generation-readmodel/interactions-entry.js";
 export * from "./token-generation-readmodel/commons.js";
 export * from "./token-generation-audit/audit.js";
 export * from "./client-assertion/clientAssertionValidation.js";

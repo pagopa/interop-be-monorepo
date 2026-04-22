@@ -124,3 +124,21 @@ message EServiceTemplateVersionActivatedV2 {
 message EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
+
+message EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}

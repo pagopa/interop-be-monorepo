@@ -55,7 +55,9 @@ import {
 } from "pagopa-interop-commons";
 import { createApp } from "../src/app.js";
 import { TokenService } from "../src/services/tokenService.js";
+import { AsyncTokenService } from "../src/services/asyncTokenService.js";
 
 export const tokenService = {} as TokenService;
+export const asyncTokenService = {} as AsyncTokenService;
 
-export const api = await createApp(tokenService);
+export const api = await createApp(tokenService, asyncTokenService);

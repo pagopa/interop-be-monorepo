@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template (
   mode VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   personal_data BOOLEAN,
+  async_exchange BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT eservice_template_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -39,7 +40,8 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  version_id UUID UNIQUE NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version (id) ON DELETE CASCADE,
+  version_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version (id) ON DELETE CASCADE,
+  kind VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -47,6 +49,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
+  UNIQUE (version_id, kind),
   FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 

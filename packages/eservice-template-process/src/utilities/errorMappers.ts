@@ -276,7 +276,12 @@ export const createEServiceTemplateDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("interfaceAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "eserviceTemplateAsyncExchangeNotEnabled",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "documentPrettyNameDuplicate",
       "checksumDuplicate",

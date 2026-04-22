@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagAsyncExchangeConfig,
   FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
@@ -325,6 +326,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FrontendBaseURLConfig)
+  .and(FeatureFlagAsyncExchangeConfig)
   .and(FeatureFlagPurposeTemplateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;

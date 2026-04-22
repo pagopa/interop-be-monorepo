@@ -14,8 +14,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
+  DescriptorId,
   EService,
   EServiceId,
+  Technology,
   Tenant,
   TenantId,
   TenantKind,
@@ -24,6 +26,7 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  technology,
   EServiceTemplateId,
   type EserviceAttributes,
 } from "pagopa-interop-models";
@@ -47,6 +50,9 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
+  asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -408,6 +414,28 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertAsyncExchangeReadyForPublication(
+  eserviceTechnology: Technology,
+  descriptor: Descriptor,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
+  if (descriptor.asyncExchangeProperties === undefined) {
+    throw missingAsyncExchangeProperties(eserviceId, descriptorId);
+  }
+
+  if (descriptor.asyncExchangeCallbackInterface === undefined) {
+    throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
+  }
+
+  if (
+    eserviceTechnology === technology.soap &&
+    descriptor.asyncExchangeProperties.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+  }
 }
 
 export function assertDailyCallsForCertifiedAttributesOnly(

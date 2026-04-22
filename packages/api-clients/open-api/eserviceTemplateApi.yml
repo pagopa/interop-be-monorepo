@@ -1534,6 +1534,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1564,6 +1566,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1587,6 +1591,9 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     VersionSeedForEServiceTemplateCreation:
@@ -1936,6 +1943,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -2150,6 +2159,8 @@ components:
           maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         docs:
           type: array
           items:
@@ -2226,6 +2237,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     CompactOrganization:
       type: object
       additionalProperties: false

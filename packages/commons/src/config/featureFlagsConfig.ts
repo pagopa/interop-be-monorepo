@@ -78,10 +78,26 @@ export type FeatureFlagPurposeTemplateConfig = z.infer<
   typeof FeatureFlagPurposeTemplateConfig
 >;
 
+export const FeatureFlagAsyncExchangeConfig = z
+  .object({
+    FEATURE_FLAG_ASYNC_EXCHANGE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAsyncExchange: c.FEATURE_FLAG_ASYNC_EXCHANGE ?? false,
+  }));
+export type FeatureFlagAsyncExchangeConfig = z.infer<
+  typeof FeatureFlagAsyncExchangeConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagAsyncExchangeConfig &
   FeatureFlagPurposeTemplateConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
