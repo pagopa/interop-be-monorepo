@@ -52,9 +52,7 @@ export const toApiSelfcareInstitution = (
     .with({ products: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "products");
     })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "unknown");
-    });
+    .exhaustive();
 
 export const toApiSelfcareProduct = (
   input: selfcareV2ClientApi.ProductResource
@@ -92,7 +90,7 @@ export const toApiSelfcareUser = (
     .with({ surname: P.nullish }, () => {
       throw selfcareEntityNotFilled("UserResource", "surname");
     })
-    .with({ roles: P.nullish }, () => {
+    .with({ roles: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserResource", "roles");
     })
     .otherwise(() => {

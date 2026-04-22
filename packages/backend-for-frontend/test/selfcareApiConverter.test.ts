@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { toApiSelfcareInstitution } from "../src/api/selfcareApiConverter.js";
+import {
+  toApiSelfcareInstitution,
+  toApiSelfcareUser,
+} from "../src/api/selfcareApiConverter.js";
 import { selfcareEntityNotFilled } from "../src/model/errors.js";
 
 describe("toApiSelfcareInstitution", () => {
@@ -42,4 +45,21 @@ describe("toApiSelfcareInstitution", () => {
       );
     }
   );
+});
+
+describe("toApiSelfcareUser", () => {
+  it("should throw an explicit error when roles is omitted", () => {
+    const user: selfcareV2ClientApi.UserResource = {
+      id: generateId(),
+      name: "Mario",
+      surname: "Rossi",
+      roles: ["ADMIN"],
+    };
+
+    delete user.roles;
+
+    expect(() => toApiSelfcareUser(user, generateId())).toThrowError(
+      selfcareEntityNotFilled("UserResource", "roles")
+    );
+  });
 });
