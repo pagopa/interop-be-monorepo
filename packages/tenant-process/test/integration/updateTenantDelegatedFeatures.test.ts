@@ -90,7 +90,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 
@@ -145,7 +147,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 
@@ -200,7 +204,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 
@@ -255,7 +261,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 
@@ -329,7 +337,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(lastUpdatedPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 
@@ -403,7 +413,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         updatedAt: new Date(),
       };
 
-      expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      expect(lastUpdatedPayload).toEqual({
+        tenant: toTenantV2(updatedTenant),
+      });
     }
   );
 

@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   AttributeId,
@@ -32,7 +33,6 @@ import {
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
@@ -806,6 +806,28 @@ export function eserviceServiceBuilder(
           params: { eServiceId: eserviceId },
           headers,
         });
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updateEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServicePersonalDataFlagUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Setting personalData flag for E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServicePersonalDataFlagAfterPublication(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
 
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);

@@ -107,11 +107,6 @@ describe("delete Document", () => {
         ],
       };
 
-      expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-        eserviceTemplateVersion.id
-      );
-      expect(writtenPayload.documentId).toEqual(document.id);
-
       expect(writtenPayload).toEqual({
         eserviceTemplateVersionId: eserviceTemplateVersion.id,
         documentId: document.id,
@@ -199,10 +194,6 @@ describe("delete Document", () => {
       ],
     };
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion.id
-    );
-    expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
     expect(writtenPayload).toEqual({
       eserviceTemplateVersionId: eserviceTemplateVersion.id,
       documentId: interfaceDocument.id,
