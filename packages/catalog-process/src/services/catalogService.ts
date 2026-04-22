@@ -2077,67 +2077,6 @@ export function catalogServiceBuilder(
       return clonedEservice;
     },
 
-    // async archiveDescriptor(
-    //   eserviceId: EServiceId,
-    //   descriptorId: DescriptorId,
-    //   { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
-    // ): Promise<void> {
-    //   logger.info(
-    //     `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
-    //   );
-
-    //   const eservice = await retrieveEService(eserviceId, readModelService);
-
-    //   const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-    //   if (
-    //     descriptor.archivingSchedule &&
-    //     descriptor.archivingSchedule?.scope === archivingScope.eservice
-    //   ) {
-    //     await deleteDraftDescriptorLogic(
-    //       eservice.data,
-    //       descriptor,
-    //       fileManager,
-    //       logger
-    //     );
-    //     const invalidStates: DescriptorState[] = [descriptorState.archived];
-    //     eservice.data.descriptors
-    //       .filter((d) => !invalidStates.includes(d.state))
-    //       .forEach((d) => archiveDescriptorLogic(eservice.data.id, d, logger));
-
-    //     const event = toCreateEventEServiceArchiveScheduleCompleted(
-    //       eservice.data,
-    //       correlationId
-    //     );
-    //     await repository.createEvent(event);
-    //   }
-
-    //   const updatedDescriptor = updateDescriptorState(
-    //     descriptor,
-    //     descriptorState.archived
-    //   );
-
-    //   const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
-
-    //   const event = descriptor.archivingSchedule
-    //     ? toCreateEventEServiceDescriptorArchiveScheduleCompleted(
-    //         eserviceId,
-    //         eservice.metadata.version,
-    //         descriptorId,
-    //         newEservice,
-    //         correlationId
-    //       )
-    //     : toCreateEventEServiceDescriptorArchived(
-    //         eserviceId,
-    //         eservice.metadata.version,
-    //         descriptorId,
-    //         newEservice,
-    //         correlationId
-    //       );
-
-    //   await repository.createEvent(event);
-    // },
-
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -2149,13 +2088,12 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const isLatestDescriptor =
+        getLatestDescriptor(eservice.data).id === descriptor.id;
+      const isEServiceArchiving =
+        descriptor.archivingSchedule?.scope === archivingScope.eservice;
 
-      // controllare se descripto è il last
-
-      if (
-        // getLatestDescriptor(eservice.data).id === descriptor.id &&
-        descriptor.archivingSchedule?.scope === archivingScope.eservice
-      ) {
+      if (isLatestDescriptor && isEServiceArchiving) {
         await processFullEServiceArchiving(
           eservice.data,
           descriptor,
