@@ -157,7 +157,9 @@ describe.each([
           getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         )
       ).rejects.toThrow(
-        incorrectState(delegation.id, state, delegationState.waitingForApproval)
+        incorrectState(delegation.id, state, [
+          delegationState.waitingForApproval,
+        ])
       );
     }
   );

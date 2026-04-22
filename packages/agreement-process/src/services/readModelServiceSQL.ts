@@ -118,15 +118,19 @@ async function filterAgreementsUpgradeable(
         (descr) => descr.id === agreementDescriptorId
       );
       const upgradableDescriptor = descriptors.filter((upgradable) => {
-        // Since the dates are optional, if they are undefined they are set to a very old date
-        const currentPublishedAt =
-          currentDescriptor?.publishedAt ?? new Date(0);
-        const upgradablePublishedAt = upgradable.publishedAt ?? new Date(0);
-        return (
-          upgradablePublishedAt > currentPublishedAt &&
-          (upgradable.state === descriptorState.published ||
-            upgradable.state === descriptorState.suspended)
-        );
+        if (
+          upgradable.state !== descriptorState.published &&
+          upgradable.state !== descriptorState.suspended
+        ) {
+          return false;
+        }
+
+        // If either date is missing, the upgradable descriptor is considered newer
+        if (!currentDescriptor?.publishedAt || !upgradable.publishedAt) {
+          return !currentDescriptor?.publishedAt && !!upgradable.publishedAt;
+        }
+
+        return upgradable.publishedAt > currentDescriptor.publishedAt;
       });
       return upgradableDescriptor.length > 0;
     })
