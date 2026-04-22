@@ -17,6 +17,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposeTemplates/{id}/suspend", () => {
@@ -76,6 +77,10 @@ describe("API POST /purposeTemplates/{id}/suspend", () => {
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: 403,
     },
     {
       error: purposeTemplateStateConflict(
