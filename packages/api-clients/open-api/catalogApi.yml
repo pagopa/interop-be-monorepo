@@ -2756,6 +2756,8 @@ paths:
               properties:
                 reason:
                   type: string
+                  minLength: 10
+                  maxLength: 250
               required:
                 - reason
         required: true
