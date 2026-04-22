@@ -28,6 +28,7 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
+  purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
@@ -117,6 +118,22 @@ describe("unsuspendPurposeTemplate", () => {
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
     }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
+  });
+
+  it("should throw purposeTemplateNotFound if the caller is not the creator of a draft purpose template", async () => {
+    await addOnePurposeTemplate({
+      ...purposeTemplate,
+      state: purposeTemplateState.draft,
+    });
+
+    const otherTenantId = generateId<TenantId>();
+
+    await expect(async () => {
+      await purposeTemplateService.unsuspendPurposeTemplate(
+        purposeTemplate.id,
+        getMockContext({ authData: getMockAuthData(otherTenantId) })
+      );
+    }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw missingRiskAnalysisFormTemplate if the purpose template has no risk analysis template", async () => {
