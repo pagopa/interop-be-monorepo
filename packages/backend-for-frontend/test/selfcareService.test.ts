@@ -10,6 +10,7 @@ import {
 import type { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { selfcareServiceBuilder } from "../src/services/selfcareService.js";
+import { getBffMockContext } from "./utils.js";
 
 describe("selfcareService", () => {
   it("should skip incomplete institutions instead of failing the whole response", async () => {
@@ -29,14 +30,12 @@ describe("selfcareService", () => {
     const service = selfcareServiceBuilder(clients);
     const authData = getMockAuthData();
     const ctx = {
-      ...getMockContext({ authData }),
+      ...getBffMockContext(getMockContext({ authData })),
       logger: {
         ...genericLogger,
         warn,
       },
-    } as Parameters<
-      ReturnType<typeof selfcareServiceBuilder>["getSelfcareInstitutions"]
-    >[0];
+    };
 
     const validInstitution: selfcareV2ClientApi.UserInstitutionResource = {
       userId: authData.userId,
