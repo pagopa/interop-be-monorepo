@@ -1,77 +1,66 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { randomUUID } from "crypto";
-import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
   RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
-import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import {
-  tenantReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+  Tenant,
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { importAttributes } from "../src/service/processor.js";
-import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
-import { config } from "../src/config/config.js";
+import { IVASS_ORIGIN_NAME } from "../src/config/constants.js";
 import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
+  CSV_HEADER,
+  IVASS_TENANT_ID,
+  addOneAttribute,
+  addOneTenant,
+  buildIvassCertifierTenant,
+  buildIvassInsurancesAttribute,
+  cleanup,
   downloadCSVMock,
   downloadCSVMockGenerator,
-  getAttributeByExternalIdMock,
-  getIVASSTenantsMock,
-  getTenantByIdMock,
-  getTenantByIdWithMetadataMock,
-  getTenantByIdMockGenerator,
-  getTenantsMockGenerator,
-  getTenantsWithAttributesMock,
   internalAssignCertifiedAttributeMock,
   internalRevokeCertifiedAttributeMock,
   persistentTenant,
   persistentTenantAttribute,
+  readModelQueries,
 } from "./helpers.js";
+
+const waitForReadModelMetadataVersionMock = vi.fn(
+  (): Promise<void> => Promise.resolve()
+);
+
+vi.mock("pagopa-interop-commons", async () => {
+  const actual = await vi.importActual("pagopa-interop-commons");
+  return {
+    ...actual,
+    waitForReadModelMetadataVersion: waitForReadModelMetadataVersionMock,
+  };
+});
 
 describe("IVASS Certified Attributes Importer", () => {
   const tokenGeneratorMock = {} as InteropTokenGenerator;
   const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   const tenantProcessMock = new TenantProcessService("url");
-  const csvDownloaderMock = downloadCSVMock;
-
-  const db = makeDrizzleConnection(config);
-  const tenantReadModelService = tenantReadModelServiceBuilder(db);
-  const attributeReadModelService = attributeReadModelServiceBuilder(db);
-  const readModelQueriesMock = readModelQueriesBuilderSQL(
-    db,
-    tenantReadModelService,
-    attributeReadModelService
-  );
-
-  const run = () =>
-    importAttributes(
-      csvDownloaderMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
 
   const interopInternalToken: InteropInternalToken = {
-    header: {
-      alg: "algorithm",
-      use: "use",
-      typ: "type",
-      kid: "key-id",
-    },
+    header: { alg: "algorithm", use: "use", typ: "type", kid: "key-id" },
     payload: {
       jti: "token-id",
       iss: "issuer",
@@ -84,12 +73,10 @@ describe("IVASS Certified Attributes Importer", () => {
     },
     serialized: "the-token",
   };
-  const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
-    Promise.resolve(interopInternalToken);
 
   const refreshableInternalTokenSpy = vi
     .spyOn(refreshableTokenMock, "get")
-    .mockImplementation(generateInternalTokenMock);
+    .mockImplementation(() => Promise.resolve(interopInternalToken));
 
   const internalAssignCertifiedAttributeSpy = vi
     .spyOn(tenantProcessMock, "internalAssignCertifiedAttribute")
@@ -98,738 +85,409 @@ describe("IVASS Certified Attributes Importer", () => {
     .spyOn(tenantProcessMock, "internalRevokeCertifiedAttribute")
     .mockImplementation(internalRevokeCertifiedAttributeMock);
 
-  const getIVASSTenantsSpy = vi
-    .spyOn(readModelQueriesMock, "getIVASSTenants")
-    .mockImplementation(getIVASSTenantsMock);
-  const getTenantsWithAttributesSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-    .mockImplementation(getTenantsWithAttributesMock);
-  const getTenantByIdSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantById")
-    .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
-  const getTenantByIdWithMetadataSpy = vi
-    .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
-    .mockImplementation((id) =>
-      getTenantByIdWithMetadataMock(unsafeBrandId(id))
-    );
-  const getAttributeByExternalIdSpy = vi
-    .spyOn(readModelQueriesMock, "getAttributeByExternalId")
-    .mockImplementation(getAttributeByExternalIdMock);
+  const pollingConfig = {
+    defaultPollingMaxRetries: 1,
+    defaultPollingRetryDelay: 1,
+  };
 
-  beforeAll(() => {
-    vitest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vitest.clearAllMocks();
-  });
-
-  it("should succeed", async () => {
-    await run();
-
-    expect(downloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getTenantByIdWithMetadataSpy).toBeCalled();
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalled();
-    expect(internalAssignCertifiedAttributeSpy).toBeCalled();
-    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
-  });
-
-  it("should fail if polling max retries are reached after assign", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
-
-    const readModelTenants: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678901" },
-        attributes: [],
-      },
-    ];
-
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    getIVASSTenantsSpy.mockImplementationOnce(
-      getTenantsMockGenerator((_) => readModelTenants)
-    );
-
-    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
-
-    await expect(
-      importAttributes(
-        localDownloadCSVMock,
-        readModelQueriesMock,
-        tenantProcessMock,
-        refreshableTokenMock,
-        10,
-        {
-          defaultPollingMaxRetries: 1,
-          defaultPollingRetryDelay: 1,
-        },
-        "ivass-tenant-id",
-        genericLogger,
-        generateId()
-      )
-    ).rejects.toThrowError();
-
-    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
-    expect(getTenantByIdWithMetadataSpy).toBeCalled();
-  });
-
-  it("should fail if polling max retries are reached after revoke", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
-
-    const readModelTenants: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678901" },
-        attributes: [],
-      },
-    ];
-
-    const tenantsWithAttribute: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "not_in_csv" },
-        attributes: [
-          {
-            ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
-          },
-        ],
-      },
-    ];
-
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    getIVASSTenantsSpy.mockImplementationOnce(
-      getTenantsMockGenerator((_) => readModelTenants)
-    );
-
-    getTenantsWithAttributesSpy.mockImplementationOnce(
-      getTenantsMockGenerator((_) => tenantsWithAttribute)
-    );
-
-    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
-
-    await expect(
-      importAttributes(
-        localDownloadCSVMock,
-        readModelQueriesMock,
-        tenantProcessMock,
-        refreshableTokenMock,
-        10,
-        {
-          defaultPollingMaxRetries: 1,
-          defaultPollingRetryDelay: 1,
-        },
-        "ivass-tenant-id",
-        genericLogger,
-        generateId()
-      )
-    ).rejects.toThrowError();
-
-    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
-    expect(getTenantByIdWithMetadataSpy).toBeCalled();
-  });
-
-  it("should succeed with fields starting with quotes", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;9999-12-31;"DE ROTTERDAM" BUILDING, 29TH FLOOR, EAST TOWER, WILHELMINAKADE 149A (3072 AP)  ROTTERDAM PAESI BASSI;0000012345678901
-    `;
-
-    const readModelTenants: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678901" },
-        attributes: [],
-      },
-    ];
-
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
-    );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
+  const run = (csvDownloader: () => Promise<string>, batchSize: number = 10) =>
+    importAttributes(
+      csvDownloader,
+      readModelQueries,
       tenantProcessMock,
       refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
+      batchSize,
+      pollingConfig,
+      IVASS_TENANT_ID,
       genericLogger,
       generateId()
     );
 
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
+  const seedCertifierAndAttribute = async (): Promise<void> => {
+    await addOneTenant(buildIvassCertifierTenant());
+    await addOneAttribute(buildIvassInsurancesAttribute());
+  };
 
-    expect(getIVASSTenantsSpy).toHaveBeenCalledWith(
-      readModelTenants.map((t) => t.externalId.value)
+  beforeAll(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    vi.clearAllMocks();
+    await cleanup();
+  });
+
+  it("should succeed", async () => {
+    await seedCertifierAndAttribute();
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [],
+    });
+
+    await run(downloadCSVMock);
+
+    expect(refreshableInternalTokenSpy).toBeCalled();
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
+  });
+
+  it("should fail if polling max retries are reached after assign", async () => {
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
+
+    await seedCertifierAndAttribute();
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [],
+    });
+
+    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
+    waitForReadModelMetadataVersionMock.mockRejectedValueOnce(
+      pollingMaxRetriesExceeded(1, 1)
     );
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
 
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
+    await expect(run(downloadCSVMockGenerator(csv))).rejects.toThrowError();
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toBeCalled();
+  });
+
+  it("should fail if polling max retries are reached after revoke", async () => {
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
+
+    await seedCertifierAndAttribute();
+    // Tenant in CSV — already has attribute → assign skipped
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [
+        {
+          ...persistentTenantAttribute,
+          id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+        },
+      ],
+    });
+    // Tenant NOT in CSV with attribute → revoke will be attempted
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "not_in_csv" },
+      attributes: [
+        {
+          ...persistentTenantAttribute,
+          id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+        },
+      ],
+    });
+
+    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
+    waitForReadModelMetadataVersionMock.mockRejectedValueOnce(
+      pollingMaxRetriesExceeded(1, 1)
+    );
+
+    await expect(run(downloadCSVMockGenerator(csv))).rejects.toThrowError();
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(waitForReadModelMetadataVersionMock).toBeCalled();
+  });
+
+  it("should succeed with fields starting with quotes", async () => {
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;"DE ROTTERDAM" BUILDING, 29TH FLOOR, EAST TOWER, WILHELMINAKADE 149A (3072 AP)  ROTTERDAM PAESI BASSI;0000012345678901
+`;
+
+    await seedCertifierAndAttribute();
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [],
+    });
+
+    await run(downloadCSVMockGenerator(csv));
+
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
   it("should succeed, assigning only missing attributes", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;9999-12-31;Org1;0000012345678901
-    D0002;2020-06-10;9999-12-31;Org2;0000012345678902
-    D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901
+D0002;2020-06-10;9999-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const readModelTenants: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678901" },
-        attributes: [
-          {
-            ...persistentTenantAttribute,
-            id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
-          },
-        ],
-      },
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678902" },
-        attributes: [{ ...persistentTenantAttribute }],
-      },
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678903" },
-        attributes: [],
-      },
-    ];
+    await seedCertifierAndAttribute();
+    // Tenant 1 — has IVASS attribute (skip assign)
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [
+        {
+          ...persistentTenantAttribute,
+          id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+        },
+      ],
+    });
+    // Tenant 2 — has a different attribute (will be assigned IVASS)
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678902" },
+      attributes: [{ ...persistentTenantAttribute }],
+    });
+    // Tenant 3 — no attributes (will be assigned)
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
+      attributes: [],
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv));
 
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
-    );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toHaveBeenCalledWith(
-      readModelTenants.map((t) => t.externalId.value)
-    );
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(2);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
-  it("should succeed, unassigning expired organizations ", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;2021-12-31;Org1;0000012345678901
-    D0002;2100-06-10;9999-12-31;Org2;0000012345678902
-    D0003;2000-06-10;9999-12-31;Org3;0000012345678903`;
+  it("should succeed, unassigning expired organizations", async () => {
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;2021-12-31;Org1;0000012345678901
+D0002;2100-06-10;9999-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const tenant1: Tenant = {
+    await seedCertifierAndAttribute();
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678901" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
-    const tenant2: Tenant = {
+    });
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678902" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678902" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
-    const tenant3: Tenant = {
+    });
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678903" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv));
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-      tenant2,
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toHaveBeenCalledWith([tenant3.externalId.value]);
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(2);
   });
 
   it("should succeed, unassigning only existing attributes", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;2021-12-31;Org1;0000012345678901
-    D0002;2020-06-10;2021-12-31;Org2;0000012345678902
-    D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;2021-12-31;Org1;0000012345678901
+D0002;2020-06-10;2021-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const tenant3: Tenant = {
+    await seedCertifierAndAttribute();
+    // Only one tenant, with the attribute, NOT matching row3's id → will be revoked
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678901" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv));
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => []);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toHaveBeenCalledWith(["12345678903"]);
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
   });
 
-  it("should succeed, only for tenants that exist on read model ", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-    D0001;2020-12-02;9999-12-31;Org1;0000012345678901
-    D0002;2020-06-10;2021-12-31;Org2;0000012345678902
-    D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+  it("should succeed, only for tenants that exist on read model", async () => {
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901
+D0002;2020-06-10;2021-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const tenant3: Tenant = {
+    await seedCertifierAndAttribute();
+    // Only tenant for 12345678903 seeded — row1 (12345678901) has no tenant in DB
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678903" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
       attributes: [{ ...persistentTenantAttribute }],
-    };
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv));
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toHaveBeenCalledWith([
-      "12345678901",
-      tenant3.externalId.value,
-    ]);
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
   it("should succeed with more than one batch", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-      D0001;2020-12-02;9999-12-31;Org1;0000012345678901
-      D0002;2020-06-10;2021-12-31;Org2;0000012345678902
-      D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901
+D0002;2020-06-10;2021-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const readModelTenantsBatch1: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678901" },
-        attributes: [{ ...persistentTenantAttribute }],
-      },
-    ];
+    await seedCertifierAndAttribute();
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
+      attributes: [{ ...persistentTenantAttribute }],
+    });
+    await addOneTenant({
+      ...persistentTenant,
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
+      attributes: [{ ...persistentTenantAttribute }],
+    });
 
-    const readModelTenantsBatch2: Tenant[] = [
-      {
-        ...persistentTenant,
-        externalId: { origin: "IVASS", value: "12345678903" },
-        attributes: [{ ...persistentTenantAttribute }],
-      },
-    ];
+    await run(downloadCSVMockGenerator(csv), 1);
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementationOnce(
-        getTenantsMockGenerator((_) => readModelTenantsBatch1)
-      )
-      .mockImplementation(
-        getTenantsMockGenerator((_) => readModelTenantsBatch2)
-      );
-
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      1,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(2);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(2);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
   it("should fail on CSV retrieve error", async () => {
-    const localDownloadCSVMock = vi
-      .fn()
-      .mockImplementation(
-        (): Promise<string> => Promise.reject(new Error("CSV Retrieve error"))
-      );
+    await seedCertifierAndAttribute();
 
-    await expect(() =>
-      importAttributes(
-        localDownloadCSVMock,
-        readModelQueriesMock,
-        tenantProcessMock,
-        refreshableTokenMock,
-        1,
-        {
-          defaultPollingMaxRetries: 1,
-          defaultPollingRetryDelay: 1,
-        },
-        "ivass-tenant-id",
-        genericLogger,
-        generateId()
-      )
-    ).rejects.toThrowError("CSV Retrieve error");
+    const rejectingDownload = (): Promise<string> =>
+      Promise.reject(new Error("CSV Retrieve error"));
 
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(0);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(0);
+    await expect(() => run(rejectingDownload)).rejects.toThrowError(
+      "CSV Retrieve error"
+    );
 
-    expect(getIVASSTenantsSpy).toBeCalledTimes(0);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(0);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
   it("should fail if the tenant is not configured as certifier", async () => {
-    const getTenantByIdMock = getTenantByIdMockGenerator((tenantId) => ({
+    const nonCertifierTenant: Tenant = {
       ...persistentTenant,
-      id: tenantId,
+      id: unsafeBrandId(IVASS_TENANT_ID),
       features: [],
-    }));
-    getTenantByIdSpy.mockImplementationOnce((id) =>
-      getTenantByIdMock(unsafeBrandId(id))
+    };
+    await addOneTenant(nonCertifierTenant);
+
+    await expect(() => run(downloadCSVMock)).rejects.toThrowError(
+      `Tenant with id ${IVASS_TENANT_ID} is not a certifier`
     );
 
-    await expect(() => run()).rejects.toThrowError(
-      "Tenant with id ivass-tenant-id is not a certifier"
-    );
-
-    expect(downloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(0);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(0);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(0);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
 
   it("should skip CSV file rows with unexpected schema", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-      ;Unexpected value;;Org1;0000012345678901
-      D0002;2020-06-10;2021-12-31;Org2;0000012345678902
-      D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+    const csv = `${CSV_HEADER}
+;Unexpected value;;Org1;0000012345678901
+D0002;2020-06-10;2021-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const tenant2: Tenant = {
+    await seedCertifierAndAttribute();
+    // tenant2 has attribute (not in allOrgsInFile → will be revoked)
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678902" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678902" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
-    const tenant3: Tenant = {
+    });
+    // tenant3 active, no IVASS attribute (assign)
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678903" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
       attributes: [{ ...persistentTenantAttribute }],
-    };
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv));
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant2,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
   });
 
   it("should succeed with missing Tax Code", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-      D0001;2020-12-02;9999-12-31;Org1;
-      D0002;2020-06-10;9999-12-31;Org2;0000012345678902
-      D0003;2019-07-19;9999-12-31;Org3;`;
+    const csv = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;
+D0002;2020-06-10;9999-12-31;Org2;0000012345678902
+D0003;2019-07-19;9999-12-31;Org3;`;
 
-    const tenant1: Tenant = {
+    await seedCertifierAndAttribute();
+    // Tenant 1 — matched by CODICE_IVASS "D0001", has the attribute
+    await addOneTenant({
       ...persistentTenant,
       id: unsafeBrandId(randomUUID()),
-      externalId: { origin: "IVASS", value: "D0001" },
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "D0001" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
-    const tenant2: Tenant = {
+    });
+    // Tenant 2 — matched by CODICE_IVASS "D0003" (no tax code), no attribute
+    await addOneTenant({
       ...persistentTenant,
       id: unsafeBrandId(randomUUID()),
-      externalId: { origin: "IVASS", value: "D0003" },
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "D0003" },
       attributes: [],
-    };
-
-    const tenant3: Tenant = {
+    });
+    // Tenant 3 — NOT in CSV, has the attribute (will be revoked)
+    await addOneTenant({
       ...persistentTenant,
       id: unsafeBrandId(randomUUID()),
-      externalId: { origin: "IVASS", value: "D0005" },
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "D0005" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
+    });
 
-    const readModelTenants: Tenant[] = [tenant1, tenant2, tenant3];
+    await run(downloadCSVMockGenerator(csv));
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    const getIVASSTenantsMock = getTenantsMockGenerator(
-      (_) => readModelTenants
-    );
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-      tenant3,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      10,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(2);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
     expect(internalAssignCertifiedAttributeSpy.mock.calls[0][0]).toEqual(
-      "IVASS"
+      IVASS_ORIGIN_NAME
     );
     expect(internalAssignCertifiedAttributeSpy.mock.calls[0][1]).toEqual(
       "D0003"
     );
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
     expect(internalRevokeCertifiedAttributeSpy.mock.calls[0][0]).toEqual(
-      "IVASS"
+      IVASS_ORIGIN_NAME
     );
     expect(internalRevokeCertifiedAttributeSpy.mock.calls[0][1]).toEqual(
       "D0005"
@@ -837,110 +495,50 @@ describe("IVASS Certified Attributes Importer", () => {
   });
 
   it("should unassign attribute for tenants not in the file", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-      D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+    const csv = `${CSV_HEADER}
+D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
 
-    const tenant1: Tenant = {
+    await seedCertifierAndAttribute();
+    // Tenant in CSV — already has IVASS attribute (skip assign)
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678901" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678903" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
-
-    const tenant3: Tenant = {
+    });
+    // Tenant NOT in CSV — has the attribute, will be revoked
+    await addOneTenant({
       ...persistentTenant,
-      externalId: { origin: "IVASS", value: "12345678903" },
+      id: generateId(),
+      externalId: { origin: IVASS_ORIGIN_NAME, value: "12345678901" },
       attributes: [
         {
           ...persistentTenantAttribute,
           id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
         },
       ],
-    };
+    });
 
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    await run(downloadCSVMockGenerator(csv), 1);
 
-    const getIVASSTenantsMock = getTenantsMockGenerator((_) => [tenant3]);
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-
-    const getTenantsWithAttributesMock = getTenantsMockGenerator((_) => [
-      tenant1,
-    ]);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
-
-    await importAttributes(
-      localDownloadCSVMock,
-      readModelQueriesMock,
-      tenantProcessMock,
-      refreshableTokenMock,
-      1,
-      {
-        defaultPollingMaxRetries: 1,
-        defaultPollingRetryDelay: 1,
-      },
-      "ivass-tenant-id",
-      genericLogger,
-      generateId()
-    );
-
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(1);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(1);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
   });
 
   it("should fail if the file does not contain records", async () => {
-    const csvFileContent = `CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-      `;
-
-    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
-
-    const getIVASSTenantsSpy = vi
-      .spyOn(readModelQueriesMock, "getIVASSTenants")
-      .mockImplementation(getIVASSTenantsMock);
-    const getTenantsWithAttributesSpy = vi
-      .spyOn(readModelQueriesMock, "getTenantsWithAttributes")
-      .mockImplementation(getTenantsWithAttributesMock);
+    const csv = `${CSV_HEADER}
+`;
+    await seedCertifierAndAttribute();
 
     await expect(() =>
-      importAttributes(
-        localDownloadCSVMock,
-        readModelQueriesMock,
-        tenantProcessMock,
-        refreshableTokenMock,
-        10,
-        {
-          defaultPollingMaxRetries: 1,
-          defaultPollingRetryDelay: 1,
-        },
-        "ivass-tenant-id",
-        genericLogger,
-        generateId()
-      )
+      run(downloadCSVMockGenerator(csv))
     ).rejects.toThrowError("File does not contain valid assignments");
 
-    expect(localDownloadCSVMock).toBeCalledTimes(1);
-    expect(getTenantByIdSpy).toBeCalledTimes(1);
-    expect(getAttributeByExternalIdSpy).toBeCalledTimes(1);
-
-    expect(getIVASSTenantsSpy).toBeCalledTimes(0);
-    expect(getTenantsWithAttributesSpy).toBeCalledTimes(0);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(0);
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
   });
