@@ -34,7 +34,9 @@ describe("selfcareService", () => {
         ...genericLogger,
         warn,
       },
-    } as Parameters<ReturnType<typeof selfcareServiceBuilder>["getSelfcareInstitutions"]>[0];
+    } as Parameters<
+      ReturnType<typeof selfcareServiceBuilder>["getSelfcareInstitutions"]
+    >[0];
 
     const validInstitution: selfcareV2ClientApi.UserInstitutionResource = {
       userId: authData.userId,
