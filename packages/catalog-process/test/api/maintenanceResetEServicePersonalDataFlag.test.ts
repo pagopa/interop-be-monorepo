@@ -12,6 +12,7 @@ import {
 describe("DELETE /maintenance/eservices/:eServiceId/personalDataFlag", () => {
   const defaultEServiceId = generateId<EServiceId>();
   const defaultBody = {
+    currentVersion: 1,
     reason: "Reset personalData flag for maintenance",
   };
 
