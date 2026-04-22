@@ -8,6 +8,7 @@ import {
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import type { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
 import { selfcareServiceBuilder } from "../src/services/selfcareService.js";
 
 describe("selfcareService", () => {
@@ -21,30 +22,19 @@ describe("selfcareService", () => {
         v2getUserInstitution,
       } as unknown as SelfcareV2UsersClient,
       selfcareV2InstitutionClient: {} as unknown as SelfcareV2InstitutionClient,
-      tenantProcessClient: {
-        tenant: {},
-        tenantAttribute: {},
-        selfcare: {},
-      },
+      tenantProcessClient:
+        {} as unknown as PagoPAInteropBeClients["tenantProcessClient"],
     } as unknown as PagoPAInteropBeClients;
 
     const service = selfcareServiceBuilder(clients);
     const authData = getMockAuthData();
-    const baseContext = getMockContext({ authData });
     const ctx = {
-      ...baseContext,
-      headers: {
-        "X-Correlation-Id": baseContext.correlationId,
-        Authorization: "authorization",
-        "X-Forwarded-For": "x-forwarded-for",
-      },
+      ...getMockContext({ authData }),
       logger: {
         ...genericLogger,
         warn,
-        info: vi.fn(),
-        error: vi.fn(),
       },
-    };
+    } as Parameters<ReturnType<typeof selfcareServiceBuilder>["getSelfcareInstitutions"]>[0];
 
     const validInstitution: selfcareV2ClientApi.UserInstitutionResource = {
       userId: authData.userId,
@@ -72,6 +62,16 @@ describe("selfcareService", () => {
     const result = await service.getSelfcareInstitutions(ctx);
 
     expect(result).toEqual([expectedInstitution]);
+    expect(v2getUserInstitution).toHaveBeenCalledWith({
+      queries: {
+        userId: authData.userId,
+        states: "ACTIVE",
+        products: config.selfcareProductName,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
     expect(warn).toHaveBeenCalledOnce();
     const [[warningMessage]] = warn.mock.calls;
     expect(warningMessage).toContain(
