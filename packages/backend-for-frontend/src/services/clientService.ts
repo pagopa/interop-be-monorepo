@@ -96,13 +96,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         params: { clientId },
         headers: ctx.headers,
       });
-      return match(client.visibility)
-        .with(authorizationApi.Visibility.Values.FULL, () =>
-          enhanceClient(apiClients, client, ctx)
+      return match(client)
+        .with(
+          { visibility: authorizationApi.Visibility.Values.FULL },
+          (fullClient) => enhanceClient(apiClients, fullClient, ctx)
         )
-        .otherwise(() => {
-          throw clientNotFound(clientId);
-        });
+        .with(
+          { visibility: authorizationApi.Visibility.Values.PARTIAL },
+          () => {
+            throw clientNotFound(clientId);
+          }
+        )
+        .exhaustive();
     },
 
     async deleteClient(
@@ -186,6 +191,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         }
       );
+      assertClientVisibilityIsFull(client);
 
       return enhanceClient(apiClients, client, ctx);
     },
@@ -383,10 +389,9 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
-  client: authorizationApi.Client,
+  client: authorizationApi.FullClient,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  assertClientVisibilityIsFull(client);
   const [consumer, admin, ...purposes] = await Promise.all([
     apiClients.tenantProcessClient.tenant.getTenant({
       params: { id: client.consumerId },
