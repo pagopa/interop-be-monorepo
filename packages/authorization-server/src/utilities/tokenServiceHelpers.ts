@@ -13,6 +13,7 @@ import {
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  makeProducerKeychainPlatformStatesPK,
   PlatformStatesCatalogEntry,
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
@@ -278,7 +279,11 @@ const sendAuditMessage = async ({
       throw kafkaAuditingFailed();
     }
   } catch (e) {
-    logger.error("Main auditing flow failed, going through fallback");
+    logger.error(
+      `Main auditing flow failed, going through fallback. Error: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     await fallbackAudit(messageBody, fileManager, logger);
   }
 };
@@ -457,8 +462,21 @@ type ProducerKeychainPlatformStateEntry = z.infer<
 export const retrieveProducerKey = async (
   dynamoDBClient: DynamoDBClient,
   tableName: string,
-  pk: ProducerKeychainPlatformStatesPK
+  {
+    producerKeychainId,
+    kid,
+    eServiceId,
+  }: {
+    producerKeychainId: ProducerKeychainId;
+    kid: string;
+    eServiceId: EServiceId;
+  }
 ): Promise<ProducerKeychainPlatformStateEntry> => {
+  const pk = makeProducerKeychainPlatformStatesPK({
+    producerKeychainId,
+    kid,
+    eServiceId,
+  });
   const input: GetItemInput = {
     Key: {
       PK: { S: pk },
@@ -472,7 +490,7 @@ export const retrieveProducerKey = async (
   );
 
   if (!data.Item) {
-    throw producerKeychainEntryNotFound(pk);
+    throw producerKeychainEntryNotFound(producerKeychainId, kid, eServiceId);
   }
 
   const unmarshalled = unmarshall(data.Item);

@@ -3,7 +3,6 @@ import {
   genericInternalError,
   interactionState,
   itemState,
-  makeProducerKeychainPlatformStatesPK,
   unsafeBrandId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
@@ -112,17 +111,12 @@ export const handleCallbackInvocation = async (
   // 5. Retrieve producer key, catalog entry and token-generation-states entry (by purposeId) in parallel
   const kid = clientAssertionJWT.header.kid;
   const producerKeychainId = unsafeBrandId<ProducerKeychainId>(clientId);
-  const producerKeyPK = makeProducerKeychainPlatformStatesPK({
-    producerKeychainId,
-    kid,
-    eServiceId,
-  });
   const [producerKey, catalogEntry, tokenGenStatesEntry] = await Promise.all([
-    retrieveProducerKey(
-      dynamoDBClient,
-      producerKeychainPlatformStatesTable,
-      producerKeyPK
-    ),
+    retrieveProducerKey(dynamoDBClient, producerKeychainPlatformStatesTable, {
+      producerKeychainId,
+      kid,
+      eServiceId,
+    }),
     retrieveCatalogEntry(
       dynamoDBClient,
       eServiceId,

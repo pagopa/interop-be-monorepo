@@ -1,10 +1,11 @@
 import {
   ApiError,
   ClientId,
+  EServiceId,
   InteractionId,
   InteractionState,
   makeApiProblemBuilder,
-  ProducerKeychainPlatformStatesPK,
+  ProducerKeychainId,
   PurposeId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -278,10 +279,12 @@ export function interactionStateNotAllowed(
 }
 
 export function producerKeychainEntryNotFound(
-  pk: ProducerKeychainPlatformStatesPK
+  producerKeychainId: ProducerKeychainId,
+  kid: string,
+  eServiceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Entry with PK ${pk} not found in producer-keychain-platform-states table`,
+    detail: `Producer keychain entry not found for producerKeychainId ${producerKeychainId}, kid ${kid}, eServiceId ${eServiceId}`,
     code: "producerKeychainEntryNotFound",
     title: "Producer keychain entry not found",
   });

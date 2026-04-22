@@ -373,7 +373,7 @@ export function invalidEntityNumberClaimFormat(
   entityNumber: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `entityNumber claim ${entityNumber} is not a valid positive number`,
+    detail: `entityNumber claim ${entityNumber} is not a valid non-negative integer`,
     code: "invalidEntityNumberClaimFormat",
     title: "Invalid entityNumber claim format",
   });

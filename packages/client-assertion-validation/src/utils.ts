@@ -169,7 +169,11 @@ export const validateEntityNumber = (
   if (entityNumber === undefined || entityNumber === null) {
     return successfulValidation(undefined);
   }
-  if (typeof entityNumber !== "number" || entityNumber < 0) {
+  if (
+    typeof entityNumber !== "number" ||
+    !Number.isInteger(entityNumber) ||
+    entityNumber < 0
+  ) {
     return failedValidation([
       invalidEntityNumberClaimFormat(String(entityNumber)),
     ]);

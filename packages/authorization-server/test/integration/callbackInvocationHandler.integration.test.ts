@@ -561,7 +561,7 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/not found in producer-keychain-platform-states/);
+    ).rejects.toThrowError(/Producer keychain entry not found/);
   });
 
   it("should throw catalogEntryNotFound when catalog entry does not exist", async () => {
