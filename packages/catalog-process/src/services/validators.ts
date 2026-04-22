@@ -51,6 +51,7 @@ import {
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { getLatestDescriptor } from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -454,6 +455,16 @@ export function assertDescriptorInRequiredStates(
   states: DescriptorState[]
 ): void {
   if (!states.includes(descriptor.state)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertDescriptorIsNotLatestVersion(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  const latestDescriptorVersion = getLatestDescriptor(eservice);
+  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
