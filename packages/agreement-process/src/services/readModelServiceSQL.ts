@@ -125,12 +125,15 @@ async function filterAgreementsUpgradeable(
           return false;
         }
 
-        // If either date is missing, the upgradable descriptor is considered newer
-        if (!currentDescriptor?.publishedAt || !upgradable.publishedAt) {
-          return !currentDescriptor?.publishedAt && !!upgradable.publishedAt;
-        }
-
-        return upgradable.publishedAt > currentDescriptor.publishedAt;
+        return match([currentDescriptor?.publishedAt, upgradable.publishedAt])
+          .with([P.nullish, P.nullish], () => false)
+          .with([P.nullish, P.not(P.nullish)], () => true)
+          .with([P.not(P.nullish), P.nullish], () => false)
+          .with(
+            [P.not(P.nullish), P.not(P.nullish)],
+            ([current, upgradable]) => upgradable > current
+          )
+          .exhaustive();
       });
       return upgradableDescriptor.length > 0;
     })
