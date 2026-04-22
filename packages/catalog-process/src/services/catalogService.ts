@@ -23,6 +23,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -150,6 +151,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -182,6 +184,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertIsNotDraftEservice,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -3762,6 +3765,34 @@ export function catalogServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEservice;
+    },
+    async maintenanceResetEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      currentVersion: number,
+      reason: string,
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Maintenance reset personalData flag for E-Service ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertIsNotDraftEservice(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceEServicePersonalDataFlagReset(
+          currentVersion,
+          updatedEservice,
+          reason,
+          correlationId
+        )
+      );
     },
   };
 }
