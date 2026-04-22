@@ -9,7 +9,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { jwkNotFound } from "../../src/model/domain/errors.js";
+import {
+  jwkNotFound,
+  tenantNotAllowedOnClient,
+} from "../../src/model/domain/errors.js";
 
 describe("API /keys/{keyId} authorization test", () => {
   const mockKey = getMockClientJWKKey();
@@ -64,6 +67,17 @@ describe("API /keys/{keyId} authorization test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for tenantNotAllowedOnClient", async () => {
+    authorizationService.getJWKByKid = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotAllowedOnClient(generateId(), expectedKey.clientId)
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockKey.kid);
+    expect(res.status).toBe(403);
   });
 
   it.each([
