@@ -35,49 +35,66 @@ describe("activate descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
-  it("should write on event-store for the activation of a descriptor", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.suspended,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    const activateDescriptorResponse = await catalogService.activateDescriptor(
-      eservice.id,
-      descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+  it.each([
+    [descriptorState.suspended, descriptorState.published, 0],
+    [descriptorState.suspended, descriptorState.deprecated, 1],
+    [descriptorState.archivingSuspended, descriptorState.archiving, 0],
+  ])(
+    "should write on event-store for the activation of a descriptor from state %s to state %s",
+    async (startingState, expectedState, numberOfMoreRecentDescriptors) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: startingState,
+      };
+      const moreRecentDescriptors: Descriptor[] = Array.from(
+        { length: numberOfMoreRecentDescriptors },
+        (_, idx) => ({
+          ...getMockDescriptor(),
+          interface: getMockDocument(),
+          version: (idx + parseInt(descriptor.version, 10) + 1).toString(),
+          state: startingState,
+        })
+      );
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor, ...moreRecentDescriptors],
+      };
+      await addOneEService(eservice);
+      const activateDescriptorResponse =
+        await catalogService.activateDescriptor(
+          eservice.id,
+          descriptor.id,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
 
-    const expectedDescriptor = {
-      ...descriptor,
-      state: descriptorState.published,
-    };
+      const expectedDescriptor = {
+        ...descriptor,
+        state: expectedState,
+      };
 
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
-    expect(writtenEvent.event_version).toBe(2);
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorActivatedV2,
-      payload: writtenEvent.data,
-    });
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorActivatedV2,
+        payload: writtenEvent.data,
+      });
 
-    const expectedEservice = {
-      ...eservice,
-      descriptors: [expectedDescriptor],
-    };
-    expect(activateDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-  });
+      const expectedEservice = {
+        ...eservice,
+        descriptors: [expectedDescriptor, ...moreRecentDescriptors],
+      };
+      expect(activateDescriptorResponse).toEqual({
+        data: expectedEservice,
+        metadata: { version: parseInt(writtenEvent.version, 10) },
+      });
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    }
+  );
 
   it("should write on event-store for the activation of a descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -218,6 +235,7 @@ describe("activate descriptor", () => {
     descriptorState.deprecated,
     descriptorState.archived,
     descriptorState.waitingForApproval,
+    descriptorState.archiving,
   ])(
     "should throw notValidDescriptorState if the descriptor is in state %s",
     async (state) => {
