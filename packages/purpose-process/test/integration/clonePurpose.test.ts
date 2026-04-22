@@ -121,8 +121,11 @@ describe("clonePurpose", async () => {
       createdAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      sourcePurposeId: mockPurpose.id,
+      sourceVersionId: mockPurpose.versions[0].id,
+    });
     expect(isRiskAnalysisValid).toBe(false);
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
@@ -190,9 +193,12 @@ describe("clonePurpose", async () => {
       createdAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      sourcePurposeId: mockPurpose.id,
+      sourceVersionId: mockPurpose.versions[0].id,
+    });
     expect(expectedPurpose.title.length).toBe(60);
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
     expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a clonable state", async () => {
@@ -281,8 +287,11 @@ describe("clonePurpose", async () => {
       createdAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      sourcePurposeId: purposeCreatedByDelegate.id,
+      sourceVersionId: purposeCreatedByDelegate.versions[0].id,
+    });
     expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a clonable state", async () => {
@@ -400,8 +409,11 @@ describe("clonePurpose", async () => {
       createdAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      sourcePurposeId: delegatePurpose.id,
+      sourceVersionId: mockPurposeVersion.id,
+    });
     expect(isRiskAnalysisValid).toBe(false);
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {

@@ -5,7 +5,6 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagPurposesProcessContractBuilderConfig,
   FeatureFlagPurposeTemplateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -14,7 +13,6 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(S3Config)
-  .and(FeatureFlagPurposesProcessContractBuilderConfig)
   .and(
     z
       .object({
@@ -27,7 +25,7 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagPurposeTemplateConfig);
 
-export type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
+type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
 export const config: PurposeProcessConfig = PurposeProcessConfig.parse(
   process.env

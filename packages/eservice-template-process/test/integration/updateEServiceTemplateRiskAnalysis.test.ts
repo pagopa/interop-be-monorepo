@@ -153,9 +153,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ],
     };
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysisToUpdate.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

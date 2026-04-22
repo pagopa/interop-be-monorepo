@@ -92,7 +92,10 @@ describe("deleteTenantMailById", async () => {
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      mailId,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
     await addOneTenant(getMockTenant());

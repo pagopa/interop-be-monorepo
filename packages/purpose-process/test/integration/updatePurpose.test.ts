@@ -184,10 +184,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -232,10 +234,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -272,10 +276,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -338,10 +344,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -393,10 +401,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       createUpdatedReversePurpose(delegatePurpose, reversePurposeUpdateContent)
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -503,10 +513,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
@@ -601,10 +613,12 @@ describe("updatePurpose and updateReversePurpose", () => {
       createUpdatedReversePurpose(delegatePurpose, reversePurposeUpdateContent)
     );
 
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
       data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
       metadata: { version: 1 },
