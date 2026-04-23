@@ -437,6 +437,72 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposeTemplates/{id}/linkEserviceTemplates:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplate
+      summary: Link E-Service Templates to Purpose Template
+      operationId: linkEServiceTemplatesToPurposeTemplate
+      description: Link E-Service Templates to a purpose template (in Draft or Active state)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eserviceTemplateIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+              required:
+                - eserviceTemplateIds
+        required: true
+      responses:
+        "200":
+          description: E-Service Templates linked to purpose template
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EServiceTemplateVersionPurposeTemplate"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposeTemplates/{id}/unlinkEservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

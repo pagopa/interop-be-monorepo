@@ -26,6 +26,8 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  EServiceTemplate,
+  EServiceTemplateId,
   EServiceTemplateVersionPurposeTemplate,
   genericInternalError,
   ListResult,
@@ -48,6 +50,7 @@ import {
   aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
+  EServiceTemplateReadModelService,
   PurposeTemplateReadModelService,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
@@ -202,15 +205,43 @@ const getPurposeTemplatesFilters = (
 export function readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   catalogReadModelServiceSQL: CatalogReadModelService;
+  eserviceTemplateReadModelServiceSQL: EServiceTemplateReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
+    },
+    async getEServiceTemplateById(
+      id: EServiceTemplateId
+    ): Promise<EServiceTemplate | undefined> {
+      return (
+        await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(id)
+      )?.data;
+    },
+    async getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateId: EServiceTemplateId
+    ): Promise<EServiceTemplateVersionPurposeTemplate | undefined> {
+      const rows =
+        await purposeTemplateReadModelServiceSQL.getEServiceTemplateVersionPurposeTemplatesByFilter(
+          and(
+            eq(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+              eserviceTemplateId
+            )
+          )
+        );
+      return rows.at(0)?.data;
     },
     async getPurposeTemplatesByTitle(
       title: string
