@@ -930,3 +930,22 @@ export const toCreateEventEServiceDescriptorArchivingScheduled = (
   },
   correlationId,
 });
+
+export const toCreateEventMaintenanceEServicePersonalDataFlagReset = (
+  version: number,
+  eservice: EService,
+  reason: string,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "MaintenanceEServicePersonalDataFlagReset",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      reason,
+    },
+  },
+  correlationId,
+});
