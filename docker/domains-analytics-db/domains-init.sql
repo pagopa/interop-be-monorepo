@@ -750,6 +750,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id) ON DELETE CASCADE,
   scope VARCHAR(2048) NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_id, descriptor_id)
 );
