@@ -108,6 +108,7 @@ export type ArchivingScope = z.infer<typeof ArchivingScope>;
 
 export const ArchivingSchedule = z.object({
   archivableOn: z.coerce.date(),
+  startedAt: z.coerce.date(),
   scope: ArchivingScope,
 });
 

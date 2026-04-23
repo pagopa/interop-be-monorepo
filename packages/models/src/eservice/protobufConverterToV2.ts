@@ -139,6 +139,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivingSchedule: input.archivingSchedule
     ? {
         archivableOn: dateToBigInt(input.archivingSchedule.archivableOn),
+        startedAt: dateToBigInt(input.archivingSchedule.startedAt),
         scope: toEServiceDescriptorScopeV2(input.archivingSchedule.scope),
       }
     : undefined,
