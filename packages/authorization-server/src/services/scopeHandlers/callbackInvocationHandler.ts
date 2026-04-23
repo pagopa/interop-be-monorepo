@@ -244,13 +244,21 @@ export const handleCallbackInvocation = async (
   });
 
   // 11. Publish audit
+  const { agreementId, purposeVersionId } = tokenGenStatesEntry;
+  if (!agreementId || !purposeVersionId) {
+    throw genericInternalError(
+      `Token-generation-states entry for purpose ${interaction.purposeId} is missing agreementId or purposeVersionId`
+    );
+  }
   await publishProducerAudit({
     producer,
     generatedToken: token,
     organizationId: producerKey.producerId,
+    agreementId,
     eserviceId: eServiceId,
     descriptorId,
     purposeId: interaction.purposeId,
+    purposeVersionId,
     clientAssertion: clientAssertionJWT,
     dpop: dpopProofJWT,
     correlationId,

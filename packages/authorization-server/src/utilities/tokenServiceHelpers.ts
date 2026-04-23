@@ -1,4 +1,5 @@
 import {
+  AgreementId,
   AsyncClientAssertion,
   clientKindTokenGenStates,
   ClientAssertion,
@@ -18,6 +19,7 @@ import {
   ProducerKeychainId,
   ProducerKeychainPlatformStatesPK,
   PurposeId,
+  PurposeVersionId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
@@ -188,8 +190,6 @@ export const retrieveTokenGenStatesEntryByPurposeId = async (
   return entry.data;
 };
 
-const NIL_UUID = "00000000-0000-0000-0000-000000000000";
-
 const buildAuditMessageBody = ({
   generatedToken,
   clientAssertion,
@@ -359,9 +359,11 @@ export const publishProducerAudit = async ({
   producer,
   generatedToken,
   organizationId,
+  agreementId,
   eserviceId,
   descriptorId,
   purposeId,
+  purposeVersionId,
   clientAssertion,
   dpop,
   correlationId,
@@ -371,9 +373,11 @@ export const publishProducerAudit = async ({
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropAsyncConsumerToken;
   organizationId: TenantId;
+  agreementId: AgreementId;
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   purposeId: string;
+  purposeVersionId: PurposeVersionId;
   clientAssertion: AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
@@ -386,11 +390,11 @@ export const publishProducerAudit = async ({
     dpop,
     correlationId,
     organizationId,
-    agreementId: NIL_UUID,
+    agreementId,
     eserviceId,
     descriptorId,
     purposeId,
-    purposeVersionId: NIL_UUID,
+    purposeVersionId,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });
