@@ -6,6 +6,7 @@ import {
   itemState,
   PurposeId,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIPurpose,
   unsafeBrandId,
   ClientAssertionDigest,
   algorithm,
@@ -169,7 +170,11 @@ export const validateEntityNumber = (
   if (entityNumber === undefined || entityNumber === null) {
     return successfulValidation(undefined);
   }
-  if (typeof entityNumber !== "number" || entityNumber < 0) {
+  if (
+    typeof entityNumber !== "number" ||
+    !Number.isInteger(entityNumber) ||
+    entityNumber < 0
+  ) {
     return failedValidation([
       invalidEntityNumberClaimFormat(String(entityNumber)),
     ]);
@@ -246,9 +251,13 @@ export const validateDigest = (
   return failedValidation([digestLengthError, digestAlgError]);
 };
 
-export const validatePlatformState = (
-  key: TokenGenerationStatesConsumerClient
-): ValidationResult<TokenGenerationStatesConsumerClient> => {
+export const validatePlatformState = <
+  T extends
+    | TokenGenerationStatesConsumerClient
+    | TokenGenStatesConsumerClientGSIPurpose
+>(
+  key: T
+): ValidationResult<T> => {
   const agreementError =
     key.agreementState !== itemState.active
       ? invalidAgreementState(key.agreementState)

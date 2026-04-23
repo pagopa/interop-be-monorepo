@@ -8,6 +8,8 @@ import {
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
   ClientAssertionHeaderStrict,
+  InteractionState,
+  interactionState,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -56,6 +58,10 @@ import {
   jsonWebTokenError,
   notBeforeError,
   purposeIdNotProvided,
+  urlCallbackNotProvided,
+  interactionIdNotProvided,
+  entityNumberNotProvided,
+  invalidEntityNumber,
   tokenExpiredError,
   unexpectedClientAssertionPayload,
   invalidSignature,
@@ -314,9 +320,46 @@ export const verifyAsyncClientAssertion = (
   ]);
 };
 
+// Validates that the claims required for a specific async scope are present
+// and valid. Each scope requires a distinct subset of async claims; this
+// validator aggregates the missing/invalid ones so callers can surface them
+// together (useful for the BFF tools debug endpoint).
+export const validateAsyncClaimsForScope = (
+  payload: AsyncClientAssertionPayload,
+  scope: InteractionState
+): ValidationResult<AsyncClientAssertionPayload> => {
+  const errors = match(scope)
+    .with(interactionState.startInteraction, () => [
+      payload.purposeId ? undefined : purposeIdNotProvided(payload.sub),
+      payload.urlCallback ? undefined : urlCallbackNotProvided(payload.sub),
+    ])
+    .with(interactionState.callbackInvocation, () => {
+      const interactionIdError = payload.interactionId
+        ? undefined
+        : interactionIdNotProvided(payload.sub);
+      const entityNumberError =
+        payload.entityNumber === undefined || payload.entityNumber === null
+          ? entityNumberNotProvided(payload.sub)
+          : payload.entityNumber <= 0
+            ? invalidEntityNumber(payload.sub, payload.entityNumber)
+            : undefined;
+      return [interactionIdError, entityNumberError];
+    })
+    .with(
+      interactionState.getResource,
+      interactionState.confirmation,
+      () => []
+    )
+    .exhaustive();
+
+  return errors.some((e) => e !== undefined)
+    ? failedValidation([errors])
+    : successfulValidation(payload);
+};
+
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key: TokenGenerationStatesGenericClient,
+  key: { publicKey: string },
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {

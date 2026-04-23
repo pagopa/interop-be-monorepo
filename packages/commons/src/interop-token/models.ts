@@ -96,7 +96,7 @@ export const InteropJwtAsyncConsumerPayload = InteropJwtCommonPayload.merge(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
     interactionId: InteractionId,
-    urlCallback: z.string(),
+    urlCallback: z.string().optional(),
     scope: InteractionState,
     cnf: CNF.optional(),
   })

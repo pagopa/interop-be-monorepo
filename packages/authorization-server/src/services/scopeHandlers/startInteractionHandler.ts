@@ -1,4 +1,5 @@
 import {
+  validateAsyncClaimsForScope,
   validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
@@ -11,17 +12,16 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
+  asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
   clientAssertionSignatureValidationFailed,
   platformStateValidationFailed,
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
 } from "../../model/domain/errors.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
   publishAudit,
-  retrieveCatalogEntry,
+  retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
 import { createInteraction } from "../../utilities/interactionsUtils.js";
@@ -51,16 +51,26 @@ export const handleStartInteraction = async (
     interactionTtlEpsilonSeconds,
   } = ctx;
 
-  // 1. Validate start_interaction-specific claims
-  const urlCallback = clientAssertionJWT.payload.urlCallback;
-  if (!urlCallback) {
-    throw urlCallbackNotProvided(clientAssertionJWT.payload.sub);
-  }
-
+  // 1. Validate start_interaction-specific claims (aggregates all missing/invalid
+  //    claims into a single asyncClientAssertionClaimsValidationFailed error).
   const clientId = clientAssertionJWT.payload.sub;
-  const purposeId = clientAssertionJWT.payload.purposeId;
-  if (!purposeId) {
-    throw purposeIdNotProvided(clientId);
+  const { errors: claimErrors } = validateAsyncClaimsForScope(
+    clientAssertionJWT.payload,
+    interactionState.startInteraction
+  );
+  if (claimErrors) {
+    throw asyncClientAssertionClaimsValidationFailed(
+      clientId,
+      claimErrors.map((error) => error.detail).join(", ")
+    );
+  }
+  // validateAsyncClaimsForScope guarantees these are defined for this scope,
+  // but the Zod schema keeps them optional; re-check as a type guard.
+  const { urlCallback, purposeId } = clientAssertionJWT.payload;
+  if (!urlCallback || !purposeId) {
+    throw genericInternalError(
+      "urlCallback or purposeId missing after async claim validation"
+    );
   }
 
   // 2. Retrieve key from token-generation-states (consumer key with purposeId)
@@ -72,7 +82,6 @@ export const handleStartInteraction = async (
   });
   const key = await retrieveKey(dynamoDBClient, pk);
 
-  // start_interaction always uses a consumer key (purposeId PK guarantees this)
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
       `Expected consumer client kind for start_interaction, got ${key.clientKind}`
@@ -102,7 +111,7 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 5. Validate platform state (client kind already verified above)
+  // 5. Validate platform state
   const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
@@ -126,7 +135,7 @@ export const handleStartInteraction = async (
     key.GSIPK_eserviceId_descriptorId
   );
 
-  const catalogEntry = await retrieveCatalogEntry(
+  const catalogEntry = await retrieveAsyncCatalogEntry(
     dynamoDBClient,
     eserviceId,
     descriptorId,
@@ -134,11 +143,6 @@ export const handleStartInteraction = async (
   );
 
   const { asyncExchangeProperties } = catalogEntry;
-  if (!asyncExchangeProperties) {
-    throw genericInternalError(
-      `Catalog entry for eService ${eserviceId} descriptor ${descriptorId} has asyncExchange enabled but no asyncExchangeProperties`
-    );
-  }
 
   // 8. Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
@@ -164,7 +168,7 @@ export const handleStartInteraction = async (
     dpopJWK: dpopProofJWT?.header.jwk,
   });
 
-  // Use the token's iat to ensure interaction and token share the same timestamp
+  // Use the token's iat so interaction and token share the same timestamp
   const issuedAt = new Date(token.payload.iat * 1000).toISOString();
 
   // 9. Persist interaction only after successful token generation
@@ -173,6 +177,7 @@ export const handleStartInteraction = async (
     interactionsTable,
     interactionId,
     purposeId,
+    consumerId: key.consumerId,
     eServiceId: eserviceId,
     descriptorId,
     issuedAt,
