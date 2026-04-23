@@ -112,6 +112,10 @@ const setupCallbackScenario = async (overrides?: {
   descriptorId: DescriptorId;
   purposeId: PurposeId;
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
+  consumerId: TenantId;
+  descriptorAudience: string[];
+  descriptorVoucherLifespan: number;
 }> => {
   // Step 1: Create consumer client and start_interaction to create an interaction
   const purpose: Purpose = {
@@ -273,6 +277,7 @@ const setupCallbackScenario = async (overrides?: {
 
   // Step 2: Create a producer keychain entry
   const producerKeychainId = generateId<ProducerKeychainId>();
+  const producerId = generateId<TenantId>();
 
   const {
     jws: producerJws,
@@ -301,7 +306,7 @@ const setupCallbackScenario = async (overrides?: {
         publicKey: producerPublicKey,
         producerKeychainId:
           unsafeBrandId<ProducerKeychainId>(producerKeychainId),
-        producerId: generateId<TenantId>(),
+        producerId,
         kid: producerAssertion.header.kid!,
         eServiceId,
         version: 1,
@@ -319,6 +324,10 @@ const setupCallbackScenario = async (overrides?: {
     descriptorId,
     purposeId: purpose.id,
     producerKeychainId: unsafeBrandId<ProducerKeychainId>(producerKeychainId),
+    producerId,
+    consumerId: purpose.consumerId,
+    descriptorAudience: catalogEntry.descriptorAudience,
+    descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
   };
 };
 
@@ -397,6 +406,68 @@ describe("async token service - callback_invocation", () => {
       fail();
     }
     expect(result.token.serialized).toBeDefined();
+  });
+
+  it("should generate a token with all expected header and payload claims", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const {
+      producerJws,
+      producerClientId,
+      interactionId,
+      eServiceId,
+      descriptorId,
+      purposeId,
+      producerId,
+      consumerId,
+      descriptorAudience,
+      descriptorVoucherLifespan,
+    } = await setupCallbackScenario();
+
+    const beforeMs = Date.now();
+    const result = await callAsyncTokenService(producerJws, producerClientId);
+    const afterMs = Date.now();
+
+    if (result.limitReached || !result.tokenGenerated) {
+      fail();
+    }
+
+    expect(result.token.serialized).toBeDefined();
+    expect(result.isDPoP).toBe(false);
+
+    expect(result.token.header).toEqual({
+      alg: "RS256",
+      use: "sig",
+      typ: "at+jwt",
+      kid: config.generatedInteropTokenKid,
+    });
+
+    expect(result.token.payload).toEqual({
+      jti: expect.any(String),
+      iss: config.generatedInteropTokenIssuer,
+      aud: descriptorAudience,
+      client_id: producerClientId,
+      sub: producerClientId,
+      iat: expect.any(Number),
+      nbf: expect.any(Number),
+      exp: expect.any(Number),
+      purposeId,
+      producerId,
+      consumerId,
+      eserviceId: eServiceId,
+      descriptorId,
+      interactionId,
+      scope: interactionState.callbackInvocation,
+    });
+
+    const { iat, nbf, exp } = result.token.payload;
+    // iat is in seconds (truncated), so compare using the second-precision window.
+    expect(iat).toBeGreaterThanOrEqual(Math.floor(beforeMs / 1000));
+    expect(iat).toBeLessThanOrEqual(Math.ceil(afterMs / 1000));
+    expect(nbf).toBe(iat);
+    expect(exp).toBe(iat + descriptorVoucherLifespan);
   });
 
   it("should verify token claims contain scope=callback_invocation", async () => {
