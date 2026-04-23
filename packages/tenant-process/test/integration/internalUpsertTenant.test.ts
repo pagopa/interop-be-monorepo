@@ -109,7 +109,10 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute1.id,
+      tenant: toTenantV2(expectedTenant),
+    });
     expect(returnedTenant.data).toEqual(expectedTenant);
     expect(returnedTenant.metadata.version).toBe(1);
   });
@@ -205,9 +208,12 @@ describe("internalUpsertTenant", async () => {
     };
 
     const tenantV2 = toTenantV2(expectedTenant);
-    expect(writtenPayload.tenant).toEqual({
-      ...tenantV2,
-      attributes: expect.arrayContaining(tenantV2.attributes),
+    expect(writtenPayload).toEqual({
+      attributeId: attribute2.id,
+      tenant: {
+        ...tenantV2,
+        attributes: expect.arrayContaining(tenantV2.attributes),
+      },
     });
     expect(sortTenant(returnedTenant.data)).toEqual(sortTenant(expectedTenant));
     expect(returnedTenant.metadata.version).toBe(2);

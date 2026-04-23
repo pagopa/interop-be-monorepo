@@ -47,6 +47,7 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  eserviceInDraftState,
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -178,6 +179,13 @@ export function assertIsDraftEservice(eservice: EService): void {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
+
+export function assertIsNotDraftEservice(eservice: EService): void {
+  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+    throw eserviceInDraftState(eservice.id);
+  }
+}
+
 export function assertIsDraftDescriptor(descriptor: Descriptor): void {
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
