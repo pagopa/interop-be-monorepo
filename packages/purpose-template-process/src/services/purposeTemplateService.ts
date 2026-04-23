@@ -850,7 +850,7 @@ export function purposeTemplateServiceBuilder(
     );
   }
 
-  function linkValidationResultsToEServiceTemplateVersionPurposeTemplates(
+  function linkOrUnlinkValidationResultsToEServiceTemplateVersionPurposeTemplates(
     validationResults: Array<{
       eserviceTemplate: EServiceTemplate;
       eserviceTemplateVersionId: EServiceTemplateVersionId;
@@ -1264,7 +1264,7 @@ export function purposeTemplateServiceBuilder(
 
       const createdEvents = await repository.createEvents(createEvents);
 
-      return linkValidationResultsToEServiceTemplateVersionPurposeTemplates(
+      return linkOrUnlinkValidationResultsToEServiceTemplateVersionPurposeTemplates(
         validationResult.value,
         purposeTemplateId,
         creationTimestamp,
