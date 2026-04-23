@@ -17,7 +17,7 @@ import {
   makeProducerKeychainPlatformStatesPK,
   PlatformStatesCatalogEntry,
   ProducerKeychainId,
-  ProducerKeychainPlatformStatesPK,
+  ProducerKeychainPlatformStateEntry,
   PurposeId,
   PurposeVersionId,
   TokenGenerationStatesApiClient,
@@ -38,7 +38,6 @@ import {
   QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { z } from "zod";
 import { match } from "ts-pattern";
 import {
   FileManager,
@@ -448,20 +447,6 @@ export const logTokenGenerationInfo = ({
   const jti = `[JTI=${tokenJti}]`;
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
-
-const ProducerKeychainPlatformStateEntry = z.object({
-  PK: ProducerKeychainPlatformStatesPK,
-  publicKey: z.string(),
-  producerKeychainId: ProducerKeychainId,
-  producerId: TenantId,
-  kid: z.string(),
-  eServiceId: EServiceId,
-  version: z.number(),
-  updatedAt: z.string(),
-});
-type ProducerKeychainPlatformStateEntry = z.infer<
-  typeof ProducerKeychainPlatformStateEntry
->;
 
 export const retrieveProducerKey = async (
   dynamoDBClient: DynamoDBClient,

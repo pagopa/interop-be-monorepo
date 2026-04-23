@@ -7,6 +7,8 @@ import {
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposePK,
+  ProducerKeychainId,
+  ProducerKeychainPlatformStatesPK,
   PurposeId,
   PurposeVersionId,
   TenantId,
@@ -82,4 +84,18 @@ export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
   .or(PlatformStatesClientEntry);
 export type PlatformStatesGenericEntry = z.infer<
   typeof PlatformStatesGenericEntry
+>;
+
+export const ProducerKeychainPlatformStateEntry = z.object({
+  PK: ProducerKeychainPlatformStatesPK,
+  publicKey: z.string(),
+  producerKeychainId: ProducerKeychainId,
+  producerId: TenantId,
+  kid: z.string(),
+  eServiceId: EServiceId,
+  version: z.number(),
+  updatedAt: z.string(),
+});
+export type ProducerKeychainPlatformStateEntry = z.infer<
+  typeof ProducerKeychainPlatformStateEntry
 >;
