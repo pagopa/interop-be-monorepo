@@ -1358,7 +1358,7 @@ export function agreementServiceBuilder(
     async archiveAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -1391,7 +1391,7 @@ export function agreementServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementArchivedByConsumer(
           updatedAgreement,
           agreement.metadata.version,
@@ -1399,7 +1399,12 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
