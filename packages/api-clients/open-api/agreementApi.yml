@@ -432,6 +432,9 @@ paths:
       responses:
         "200":
           description: Agreement archived.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:

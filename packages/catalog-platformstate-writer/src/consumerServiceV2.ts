@@ -187,7 +187,7 @@ export async function handleMessageV2(
     )
     .with(
       { type: "EServiceDescriptorArchived" },
-      { type: "EServiceDescriptorArchiveScheduleCompleted" },
+      { type: "EServiceDescriptorArchivingCompleted" },
       async (msg) => {
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
@@ -215,7 +215,7 @@ export async function handleMessageV2(
         );
       }
     )
-    .with({ type: "EServiceArchiveScheduleCompleted" }, async (msg) => {
+    .with({ type: "EServiceArchivingCompleted" }, async (msg) => {
       const eservice = parseEServiceWithoutDescriptor(
         msg.data.eservice,
         msg.type
@@ -337,10 +337,11 @@ export async function handleMessageV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-      { type: "EServiceArchiveScheduled" },
-      { type: "EServiceArchiveScheduleCanceled" },
-      { type: "EServiceDescriptorArchiveScheduled" },
-      { type: "EServiceDescriptorArchiveScheduleCanceled" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       () => Promise.resolve()
     )
     .exhaustive();

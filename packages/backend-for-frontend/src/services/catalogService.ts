@@ -1368,6 +1368,26 @@ export function catalogServiceBuilder(
         },
       });
     },
+
+    scheduleArchiveEserviceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Scheduling descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.scheduleEServiceDescriptorArchiving(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,

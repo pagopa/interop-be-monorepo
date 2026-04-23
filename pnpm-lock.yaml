@@ -121,8 +121,8 @@ catalogs:
       specifier: 4.0.1
       version: 4.0.1
     axios:
-      specifier: 1.13.5
-      version: 1.13.5
+      specifier: 1.15.0
+      version: 1.15.0
     camelcase-keys:
       specifier: 9.1.3
       version: 9.1.3
@@ -157,8 +157,8 @@ catalogs:
       specifier: 0.30.4
       version: 0.30.4
     drizzle-orm:
-      specifier: 0.39.3
-      version: 0.39.3
+      specifier: 0.45.2
+      version: 0.45.2
     drizzle-zod:
       specifier: 0.7.1
       version: 0.7.1
@@ -214,8 +214,8 @@ catalogs:
       specifier: 2.1.1
       version: 2.1.1
     nodemailer:
-      specifier: 7.0.11
-      version: 7.0.11
+      specifier: 8.0.5
+      version: 8.0.5
     octokit:
       specifier: 4.1.4
       version: 4.1.4
@@ -442,19 +442,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -536,7 +536,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -600,7 +600,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -652,10 +652,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -713,19 +713,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -863,19 +863,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -942,7 +942,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -1003,7 +1003,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1104,19 +1104,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -1189,13 +1189,13 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1274,16 +1274,16 @@ importers:
         version: 0.9.9
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1370,8 +1370,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.10
-        version: 1.8.10
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1466,19 +1466,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -1545,7 +1545,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -1609,7 +1609,7 @@ importers:
         version: 2.2.4
       nodemailer:
         specifier: 'catalog:'
-        version: 7.0.11
+        version: 8.0.5
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1661,7 +1661,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       p-limit:
         specifier: 'catalog:'
         version: 6.2.0
@@ -1799,7 +1799,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -1881,16 +1881,16 @@ importers:
         version: 1.4.13
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       connection-string:
         specifier: 'catalog:'
         version: 4.4.0
@@ -1902,7 +1902,7 @@ importers:
         version: 3.2.0(date-fns@4.1.0)
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -1929,7 +1929,7 @@ importers:
         version: 2.1.1
       nodemailer:
         specifier: 'catalog:'
-        version: 7.0.11
+        version: 8.0.5
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -2023,13 +2023,13 @@ importers:
         version: 4.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -2132,7 +2132,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2224,7 +2224,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2322,16 +2322,16 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -2401,7 +2401,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2456,7 +2456,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       handlebars:
         specifier: 'catalog:'
         version: 4.7.9
@@ -2578,10 +2578,10 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       drizzle-zod:
         specifier: 'catalog:'
-        version: 0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
+        version: 0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2688,7 +2688,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       octokit:
         specifier: 'catalog:'
         version: 4.1.4
@@ -2740,7 +2740,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2798,7 +2798,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2914,16 +2914,16 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2981,7 +2981,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3035,8 +3035,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.8
-        version: 1.8.8
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3079,19 +3079,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -3158,7 +3158,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3225,7 +3225,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3289,7 +3289,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3338,7 +3338,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3369,7 +3369,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3430,13 +3430,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3482,7 +3482,7 @@ importers:
         version: 6.0.3
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -3509,13 +3509,13 @@ importers:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3567,7 +3567,7 @@ importers:
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       csv:
         specifier: 'catalog:'
         version: 6.3.11
@@ -3576,7 +3576,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3659,7 +3659,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3720,10 +3720,10 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       drizzle-zod:
         specifier: 'catalog:'
-        version: 0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
+        version: 0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
@@ -3787,7 +3787,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3833,7 +3833,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3867,7 +3867,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3931,13 +3931,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3983,7 +3983,7 @@ importers:
         version: 6.0.3
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -4013,13 +4013,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4092,13 +4092,13 @@ importers:
         version: 3.840.0
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4186,7 +4186,7 @@ importers:
         version: 2.9.4
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -4220,13 +4220,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4293,7 +4293,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4348,7 +4348,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4357,7 +4357,7 @@ importers:
         version: 2.2.4
       nodemailer:
         specifier: 'catalog:'
-        version: 7.0.11
+        version: 8.0.5
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -4388,7 +4388,7 @@ importers:
         version: 6.4.17
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
@@ -4415,7 +4415,7 @@ importers:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4467,13 +4467,13 @@ importers:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4595,7 +4595,7 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       domhandler:
         specifier: 'catalog:'
         version: 5.0.3
@@ -4641,7 +4641,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -4687,7 +4687,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -4782,7 +4782,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4837,7 +4837,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -4888,8 +4888,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.1
-        version: 1.8.1
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4984,19 +4984,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -5066,7 +5066,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5117,8 +5117,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.10
-        version: 1.8.10
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5161,19 +5161,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -5243,7 +5243,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5295,7 +5295,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -5347,7 +5347,7 @@ importers:
         version: 16.4.7
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -5381,7 +5381,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5536,8 +5536,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.12
-        version: 1.8.12
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5580,19 +5580,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.13.5)(zod@3.23.8)
+        version: 10.9.6(axios@1.15.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.13.5
+        version: 1.15.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 'catalog:'
         version: 4.20.0
@@ -5659,7 +5659,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5769,7 +5769,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
@@ -7202,17 +7202,8 @@ packages:
   '@pagopa/interop-outbound-models@1.7.0':
     resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
 
-  '@pagopa/interop-outbound-models@1.8.1':
-    resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
-
-  '@pagopa/interop-outbound-models@1.8.12':
-    resolution: {integrity: sha512-+m2RRwz0sxTYFPwG+9mjFKtC49f0r3O0at/OCNjVcHJELvJyO58bYF2jGQszmRB/TPyV5ZM6FlTGX2TvVgPGbw==}
-
-  '@pagopa/interop-outbound-models@1.8.8':
-    resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
+  '@pagopa/interop-outbound-models@1.8.16':
+    resolution: {integrity: sha512-8CGChz2HuYK6U3fd2/wIC2M8xECGjbRH9EdeuBxBmaNE8bVcj9rLQQRCtPBW8r5hbvKtjjIjQ4qDQdMVn+whdg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -8243,6 +8234,7 @@ packages:
   '@xmldom/xmldom@0.9.9':
     resolution: {integrity: sha512-qycIHAucxy/LXAYIjmLmtQ8q9GPnMbnjG1KXhWm9o5sCr6pOYDATkMPiTNa6/v8eELyqOQ2FsEqeoFYmgv/gJg==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@zodios/core@10.9.6':
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
@@ -8421,8 +8413,8 @@ packages:
   aws-sdk-client-mock@4.0.1:
     resolution: {integrity: sha512-yD2mmgy73Xce097G5hIpr1k7j50qzvJ49/+6osGZiCyk4m6cwhb+2x7kKFY1gEMwTzaS8+m8fXv9SB29SkRYyQ==}
 
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
+  axios@1.15.0:
+    resolution: {integrity: sha512-wWyJDlAatxk30ZJer+GeCWS209sA42X+N5jU2jy6oHTp7ufw8uzUTVFBX9+wTfAlhiJXGS0Bq7X6efruWjuK9Q==}
 
   b4a@1.6.6:
     resolution: {integrity: sha512-5Tk1HLk6b6ctmjIkAcU/Ujv/1WqiDl0F0JdRCR80VsOcUlHcu7pWeWRlOqQLHfDEsVx9YH/aif5AG4ehoCtTmg==}
@@ -8455,7 +8447,7 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
-    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
+    deprecated: Security vulnerability fixed in 5.2.1, please upgrade
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -8959,8 +8951,8 @@ packages:
     resolution: {integrity: sha512-B2oJN5UkvwwNHscPWXDG5KqAixu7AUzZ3qbe++KU9SsQ+cZWR4DXEPYcvWplyFAno0dhRJECNEhNxiDmFaPGyQ==}
     hasBin: true
 
-  drizzle-orm@0.39.3:
-    resolution: {integrity: sha512-EZ8ZpYvDIvKU9C56JYLOmUskazhad+uXZCTCRN4OnRMsL+xAJ05dv1eCpAG5xzhsm1hqiuC5kAZUCS924u2DTw==}
+  drizzle-orm@0.45.2:
+    resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -8970,17 +8962,19 @@ packages:
       '@neondatabase/serverless': '>=0.10.0'
       '@op-engineering/op-sqlite': '>=2'
       '@opentelemetry/api': ^1.4.1
-      '@planetscale/database': '>=1'
+      '@planetscale/database': '>=1.13'
       '@prisma/client': '*'
       '@tidbcloud/serverless': '*'
       '@types/better-sqlite3': '*'
       '@types/pg': '*'
       '@types/sql.js': '*'
+      '@upstash/redis': '>=1.34.7'
       '@vercel/postgres': '>=0.8.0'
       '@xata.io/client': '*'
       better-sqlite3: '>=7'
       bun-types: '*'
       expo-sqlite: '>=14.0.0'
+      gel: '>=2'
       knex: '*'
       kysely: '*'
       mysql2: '>=2'
@@ -9018,6 +9012,8 @@ packages:
         optional: true
       '@types/sql.js':
         optional: true
+      '@upstash/redis':
+        optional: true
       '@vercel/postgres':
         optional: true
       '@xata.io/client':
@@ -9027,6 +9023,8 @@ packages:
       bun-types:
         optional: true
       expo-sqlite:
+        optional: true
+      gel:
         optional: true
       knex:
         optional: true
@@ -10254,8 +10252,8 @@ packages:
     resolution: {integrity: sha512-3VW/8JpPqPvnJvseXowjZcirPisssnBuDikk6JIZ8jQzF7KJQX52iPFX4RYYxLycYH7IbMRSPUOga/esVjy5Yg==}
     engines: {node: '>=18'}
 
-  nodemailer@7.0.11:
-    resolution: {integrity: sha512-gnXhNRE0FNhD7wPSCGhdNh46Hs6nm+uTyg+Kq0cZukNQiYdnCsoQjodNP9BQVG9XrcK/v6/MgpAPBUFyzh9pvw==}
+  nodemailer@8.0.5:
+    resolution: {integrity: sha512-0PF8Yb1yZuQfQbq+5/pZJrtF6WQcjTd5/S4JOHs9PGFxuTqoB/icwuB44pOdURHJbRKX1PPoJZtY7R4VUoCC8w==}
     engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
@@ -10618,6 +10616,10 @@ packages:
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
+  proxy-from-env@2.1.0:
+    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
+    engines: {node: '>=10'}
+
   pump@3.0.0:
     resolution: {integrity: sha512-LwZy+p3SFs1Pytd/jYct4wpv49HiYCqd9Rlc5ZVdk0V+8Yzv6jR5Blk3TRmPL1ft69TxP0IMZGJ+WPFU2BFhww==}
 
@@ -10632,6 +10634,7 @@ packages:
   puppeteer@22.11.2:
     resolution: {integrity: sha512-8fjdQSgW0sq7471ftca24J7sXK+jXZ7OW7Gx+NEBFNyXrcTiBfukEI46gNq6hiMhbLEDT30NeylK/1ZoPdlKSA==}
     engines: {node: '>=18'}
+    deprecated: < 24.15.0 is no longer supported
     hasBin: true
 
   qs@6.11.0:
@@ -13692,25 +13695,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.1':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.12':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.8':
+  '@pagopa/interop-outbound-models@1.8.16':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -15195,14 +15180,14 @@ snapshots:
 
   '@xmldom/xmldom@0.9.9': {}
 
-  '@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8)':
+  '@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8)':
     dependencies:
-      axios: 1.13.5
+      axios: 1.15.0
       zod: 3.23.8
 
-  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.13.5)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
+  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.15.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.13.5)(zod@3.23.8)
+      '@zodios/core': 10.9.6(axios@1.15.0)(zod@3.23.8)
       express: 4.20.0
       zod: 3.23.8
 
@@ -15404,11 +15389,11 @@ snapshots:
       sinon: 16.1.3
       tslib: 2.8.1
 
-  axios@1.13.5:
+  axios@1.15.0:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.5
-      proxy-from-env: 1.1.0
+      proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
 
@@ -15978,14 +15963,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1):
+  drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1):
     optionalDependencies:
       '@types/pg': 8.11.11
       pg: 8.13.1
 
-  drizzle-zod@0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8):
+  drizzle-zod@0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8):
     dependencies:
-      drizzle-orm: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      drizzle-orm: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       zod: 3.23.8
 
   dunder-proto@1.0.1:
@@ -17350,7 +17335,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.0
 
-  nodemailer@7.0.11: {}
+  nodemailer@8.0.5: {}
 
   normalize-path@3.0.0: {}
 
@@ -17409,8 +17394,8 @@ snapshots:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.13.5)(zod@3.23.8)
-      axios: 1.13.5
+      '@zodios/core': 10.9.6(axios@1.15.0)(zod@3.23.8)
+      axios: 1.15.0
       cac: 6.7.14
       handlebars: 4.7.9
       openapi-types: 12.1.3
@@ -17769,6 +17754,8 @@ snapshots:
       - supports-color
 
   proxy-from-env@1.1.0: {}
+
+  proxy-from-env@2.1.0: {}
 
   pump@3.0.0:
     dependencies:

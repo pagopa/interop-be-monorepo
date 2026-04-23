@@ -483,6 +483,10 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
         withTimezone: true,
         mode: "string",
       }).notNull(),
+      startedAt: timestamp("started_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
     },
     (table) => [
       foreignKey({
