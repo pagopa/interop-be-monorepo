@@ -10,10 +10,11 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
+  EServiceTemplateId,
   EServiceTemplateVersion,
-  EServiceTemplateVersionPurposeTemplate,
+  EServiceTemplateVersionId,
   PurposeTemplate,
-  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateId,
   Tenant,
   eserviceTemplateVersionState,
@@ -25,20 +26,19 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
-  eserviceTemplateAlreadyAssociatedError,
+  eserviceTemplateNotAssociatedError,
   eserviceTemplateNotFound,
   invalidEServiceTemplateVersionStateError,
   missingEServiceTemplateVersionError,
-  purposeTemplateEServiceTemplatePersonalDataFlagMismatch,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
-  associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists,
-  associationEServiceTemplatesForPurposeTemplateFailed,
+  associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist,
+  disassociationEServiceTemplatesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   tooManyEServiceTemplatesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
-import { ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_ASSOCIATION } from "../../src/services/validators.js";
+import { ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION } from "../../src/services/validators.js";
 import {
   addOneEServiceTemplate,
   addOneEServiceTemplateVersionPurposeTemplate,
@@ -48,12 +48,11 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 
-describe("linkEServiceTemplatesToPurposeTemplate", () => {
+describe("unlinkEServiceTemplatesFromPurposeTemplate", () => {
   const tenant: Tenant = getMockTenant();
 
   const makeTemplate = (
-    versionState: EServiceTemplateVersion["state"] = eserviceTemplateVersionState.published,
-    personalData: boolean | undefined = false
+    versionState: EServiceTemplateVersion["state"] = eserviceTemplateVersionState.published
   ): EServiceTemplate => {
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -62,7 +61,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     return {
       ...getMockEServiceTemplate(),
       creatorId: tenant.id,
-      personalData,
+      personalData: false,
       versions: [version],
     };
   };
@@ -74,7 +73,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     handlesPersonalData: false,
   };
 
-  it("should write on event-store for linking e-service templates to purpose template", async () => {
+  it("should write on event-store for unlinking e-service templates from purpose template", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -85,16 +84,28 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
     await addOneEServiceTemplate(template1);
     await addOneEServiceTemplate(template2);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceTemplateId: template1.id,
+      eserviceTemplateVersionId: template1.versions[0].id,
+      createdAt: new Date(),
+    });
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: purposeTemplate.id,
+      eserviceTemplateId: template2.id,
+      eserviceTemplateVersionId: template2.versions[0].id,
+      createdAt: new Date(),
+    });
 
-    const linkResponse =
-      await purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+    const unlinkResponse =
+      await purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         purposeTemplate.id,
         [template1.id, template2.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       );
 
-    expect(linkResponse).toHaveLength(2);
-    expect(linkResponse[0]).toMatchObject({
+    expect(unlinkResponse).toHaveLength(2);
+    expect(unlinkResponse[0]).toMatchObject({
       data: {
         purposeTemplateId: purposeTemplate.id,
         eserviceTemplateId: template1.id,
@@ -103,7 +114,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       },
       metadata: { version: 2 },
     });
-    expect(linkResponse[1]).toMatchObject({
+    expect(unlinkResponse[1]).toMatchObject({
       data: {
         purposeTemplateId: purposeTemplate.id,
         eserviceTemplateId: template2.id,
@@ -114,7 +125,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     });
 
     const lastEvent = await readLastPurposeTemplateEvent(purposeTemplate.id);
-    expect(lastEvent.type).toBe("PurposeTemplateEServiceTemplateLinked");
+    expect(lastEvent.type).toBe("PurposeTemplateEServiceTemplateUnlinked");
     expect(lastEvent).toMatchObject({
       stream_id: purposeTemplate.id,
       version: "2",
@@ -122,7 +133,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     });
 
     const eventPayload = decodeProtobufPayload({
-      messageType: PurposeTemplateEServiceTemplateLinkedV2,
+      messageType: PurposeTemplateEServiceTemplateUnlinkedV2,
       payload: lastEvent.data,
     });
     expect(eventPayload.purposeTemplate).toEqual(
@@ -144,7 +155,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     await addOneEServiceTemplate(template);
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         notExistingId,
         [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -163,7 +174,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     await addOneEServiceTemplate(template);
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         suspended.id,
         [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -189,7 +200,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     const nonCreator = generateId<Tenant["id"]>();
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         otherPurposeTemplate.id,
         [template.id],
         getMockContext({ authData: getMockAuthData(nonCreator) })
@@ -197,23 +208,23 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(otherPurposeTemplate.id));
   });
 
-  it("should throw associationEServiceTemplatesForPurposeTemplateFailed when template does not exist", async () => {
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when template does not exist", async () => {
     const pt: PurposeTemplate = {
       ...purposeTemplate,
       id: generateId<PurposeTemplateId>(),
     };
     await addOnePurposeTemplate(pt);
 
-    const missingId = generateId<EServiceTemplate["id"]>();
+    const missingId = generateId<EServiceTemplateId>();
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         pt.id,
         [missingId],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      associationEServiceTemplatesForPurposeTemplateFailed(
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
         [eserviceTemplateNotFound(missingId)],
         [missingId],
         pt.id
@@ -221,35 +232,54 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw associationEServiceTemplatesForPurposeTemplateFailed on personalData mismatch", async () => {
+  it("should throw associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist when template is not linked", async () => {
     const pt: PurposeTemplate = {
       ...purposeTemplate,
       id: generateId<PurposeTemplateId>(),
-      handlesPersonalData: true,
     };
-    const template = makeTemplate(
-      eserviceTemplateVersionState.published,
-      false
-    );
+    const template = makeTemplate();
     await addOnePurposeTemplate(pt);
     await addOneEServiceTemplate(template);
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         pt.id,
         [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      associationEServiceTemplatesForPurposeTemplateFailed(
-        [purposeTemplateEServiceTemplatePersonalDataFlagMismatch(template, pt)],
+      associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist(
+        [eserviceTemplateNotAssociatedError(template.id, pt.id)],
         [template.id],
         pt.id
       )
     );
   });
 
-  it("should return invalid result when template has no versions", async () => {
+  it("should throw tooManyEServiceTemplatesForPurposeTemplate if too many templates are provided", async () => {
+    const manyIds: EServiceTemplateId[] = Array.from(
+      { length: config.maxEServiceTemplatesPerLinkRequest + 1 },
+      () => generateId<EServiceTemplateId>()
+    );
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
+        purposeTemplate.id,
+        manyIds,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(
+      tooManyEServiceTemplatesForPurposeTemplate(
+        manyIds.length,
+        config.maxEServiceTemplatesPerLinkRequest
+      )
+    );
+  });
+
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when the template has no versions (defensive)", async () => {
     const pt: PurposeTemplate = {
       ...purposeTemplate,
       id: generateId<PurposeTemplateId>(),
@@ -260,15 +290,21 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     };
     await addOnePurposeTemplate(pt);
     await addOneEServiceTemplate(template);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: pt.id,
+      eserviceTemplateId: template.id,
+      eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+      createdAt: new Date(),
+    });
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         pt.id,
         [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      associationEServiceTemplatesForPurposeTemplateFailed(
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
         [missingEServiceTemplateVersionError(template.id)],
         [template.id],
         pt.id
@@ -276,36 +312,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     );
   });
 
-  it("should return invalid result when template has only Draft versions", async () => {
-    const pt: PurposeTemplate = {
-      ...purposeTemplate,
-      id: generateId<PurposeTemplateId>(),
-    };
-    const template = makeTemplate(eserviceTemplateVersionState.draft);
-    await addOnePurposeTemplate(pt);
-    await addOneEServiceTemplate(template);
-
-    await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
-        pt.id,
-        [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(
-      associationEServiceTemplatesForPurposeTemplateFailed(
-        [
-          invalidEServiceTemplateVersionStateError(
-            template.id,
-            ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_ASSOCIATION
-          ),
-        ],
-        [template.id],
-        pt.id
-      )
-    );
-  });
-
-  it("should throw associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists when already linked", async () => {
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when the crystallised version id is not present in the template versions (defensive)", async () => {
     const pt: PurposeTemplate = {
       ...purposeTemplate,
       id: generateId<PurposeTemplateId>(),
@@ -313,52 +320,59 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     const template = makeTemplate();
     await addOnePurposeTemplate(pt);
     await addOneEServiceTemplate(template);
-
-    const existingLink: EServiceTemplateVersionPurposeTemplate = {
+    await addOneEServiceTemplateVersionPurposeTemplate({
       purposeTemplateId: pt.id,
       eserviceTemplateId: template.id,
-      eserviceTemplateVersionId: template.versions[0].id,
+      eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
       createdAt: new Date(),
-    };
-    await addOneEServiceTemplateVersionPurposeTemplate(existingLink);
+    });
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         pt.id,
         [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists(
-        [eserviceTemplateAlreadyAssociatedError(template.id, pt.id)],
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
+        [eserviceTemplateNotAssociatedError(template.id, pt.id)],
         [template.id],
         pt.id
       )
     );
   });
 
-  it("should throw tooManyEServiceTemplatesForPurposeTemplate when exceeding limit", async () => {
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when the crystallised version is in Draft state", async () => {
     const pt: PurposeTemplate = {
       ...purposeTemplate,
       id: generateId<PurposeTemplateId>(),
     };
+    const template = makeTemplate(eserviceTemplateVersionState.draft);
     await addOnePurposeTemplate(pt);
-
-    const tooMany = Array.from(
-      { length: config.maxEServiceTemplatesPerLinkRequest + 1 },
-      () => generateId<EServiceTemplate["id"]>()
-    );
+    await addOneEServiceTemplate(template);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: pt.id,
+      eserviceTemplateId: template.id,
+      eserviceTemplateVersionId: template.versions[0].id,
+      createdAt: new Date(),
+    });
 
     await expect(
-      purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
         pt.id,
-        tooMany,
+        [template.id],
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      tooManyEServiceTemplatesForPurposeTemplate(
-        tooMany.length,
-        config.maxEServiceTemplatesPerLinkRequest
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
+        [
+          invalidEServiceTemplateVersionStateError(
+            template.id,
+            ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION
+          ),
+        ],
+        [template.id],
+        pt.id
       )
     );
   });
