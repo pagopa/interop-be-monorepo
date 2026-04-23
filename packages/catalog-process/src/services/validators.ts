@@ -48,9 +48,11 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  eserviceInDraftState,
   attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { getLatestDescriptor } from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -179,6 +181,13 @@ export function assertIsDraftEservice(eservice: EService): void {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
+
+export function assertIsNotDraftEservice(eservice: EService): void {
+  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+    throw eserviceInDraftState(eservice.id);
+  }
+}
+
 export function assertIsDraftDescriptor(descriptor: Descriptor): void {
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
@@ -454,6 +463,16 @@ export function assertDescriptorInRequiredStates(
   states: DescriptorState[]
 ): void {
   if (!states.includes(descriptor.state)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertDescriptorIsNotLatestVersion(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  const latestDescriptorVersion = getLatestDescriptor(eservice);
+  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }

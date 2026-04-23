@@ -146,10 +146,10 @@ describe("createProducerKeychainKey", () => {
       ],
     };
 
-    expect(writtenPayload.producerKeychain).toEqual(
-      toProducerKeychainV2(expectedProducerKeychain)
-    );
-    expect(writtenPayload.kid).toEqual(writtenPayload.kid);
+    expect(writtenPayload).toEqual({
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
+    });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist ", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());

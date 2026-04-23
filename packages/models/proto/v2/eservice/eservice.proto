@@ -143,6 +143,7 @@ enum EServiceModeV2 {
 message ArchivingScheduleV2 {
   int64 archivableOn = 1;
   ArchivingScopeV2 scope = 2;
+  int64 startedAt = 3;
 }
 
 enum ArchivingScopeV2 {

@@ -157,9 +157,9 @@ describe("patch update purpose template", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.purposeTemplate).toEqual(
-        toPurposeTemplateV2(expectedPurposeTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      });
       expect(updatePurposeTemplateReturn).toEqual({
         data: expectedPurposeTemplate,
         metadata: { version: 1 },

@@ -968,6 +968,32 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
+    async scheduleArchiveEserviceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Scheduling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

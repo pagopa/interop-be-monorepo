@@ -1,7 +1,10 @@
-import { Descriptor, EService } from "pagopa-interop-models";
+import { Descriptor, DescriptorState, EService } from "pagopa-interop-models";
 import { z } from "zod";
-import { invalidDescriptorVersion } from "../model/domain/errors.js";
 import { isActiveDescriptor } from "../services/validators.js";
+import {
+  eserviceWithoutValidDescriptors,
+  invalidDescriptorVersion,
+} from "../model/domain/errors.js";
 
 function parseVersionNumber(version: string): number {
   const versionNumber = z.coerce.number().safeParse(version);
@@ -13,10 +16,25 @@ function parseVersionNumber(version: string): number {
   return versionNumber.data;
 }
 
-export const getLatestDescriptor = (
-  eservice: EService
+export const getLatestDescriptor = (eservice: EService): Descriptor => {
+  const latestDescriptor = [...eservice.descriptors]
+    .sort(
+      (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
+    )
+    .at(-1);
+  if (!latestDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+
+  return latestDescriptor;
+};
+
+export const getLatestDescriptorByStates = (
+  eservice: EService,
+  states: DescriptorState[]
 ): Descriptor | undefined =>
   [...eservice.descriptors]
+    .filter((d) => states.includes(d.state))
     .sort(
       (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
     )

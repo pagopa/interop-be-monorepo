@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { getMockedApiEservice } from "pagopa-interop-commons-test";
 import {
@@ -12,7 +16,6 @@ import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiEService,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getEservices", () => {
   const mockParams: m2mGatewayApi.GetEServicesQueryParams = {

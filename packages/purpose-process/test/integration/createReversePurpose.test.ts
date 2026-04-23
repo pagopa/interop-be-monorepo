@@ -145,9 +145,12 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -259,9 +262,12 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -409,9 +415,12 @@ describe("createReversePurpose", () => {
       },
       metadata: { version: 0 },
     });
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
 
     vi.useRealTimers();
   });

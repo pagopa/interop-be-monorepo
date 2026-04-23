@@ -96,11 +96,15 @@ describe("update Document", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-      expect(writtenPayload.documentId).toEqual(mockDocument.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2({
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: mockDocument.id,
+        eserviceTemplate: expectedEserviceTemplate,
+      });
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: mockDocument.id,
+        eserviceTemplate: toEServiceTemplateV2({
           ...eserviceTemplate,
           versions: [
             {
@@ -108,8 +112,8 @@ describe("update Document", () => {
               docs: [returnedDocument],
             },
           ],
-        })
-      );
+        }),
+      });
     }
   );
 
@@ -162,11 +166,15 @@ describe("update Document", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-    expect(writtenPayload.documentId).toEqual(mockDocument.id);
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2({
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      documentId: mockDocument.id,
+      eserviceTemplate: expectedEserviceTemplate,
+    });
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      documentId: mockDocument.id,
+      eserviceTemplate: toEServiceTemplateV2({
         ...eserviceTemplate,
         versions: [
           {
@@ -174,8 +182,8 @@ describe("update Document", () => {
             interface: returnedDocument,
           },
         ],
-      })
-    );
+      }),
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {

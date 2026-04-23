@@ -372,15 +372,13 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
-  const activeDescriptorStates: DescriptorState[] = [
-    descriptorState.archived,
-    descriptorState.deprecated,
-    descriptorState.published,
-    descriptorState.suspended,
+  const inactiveDescriptorStates: DescriptorState[] = [
+    descriptorState.draft,
+    descriptorState.waitingForApproval,
   ];
 
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => activeDescriptorStates.includes(d.state))
+    .filter((d) => !inactiveDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (
