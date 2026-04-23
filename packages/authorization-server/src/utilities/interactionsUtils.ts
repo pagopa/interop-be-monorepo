@@ -195,6 +195,15 @@ export const updateInteractionState = async ({
     );
   }
 
+  if (state === interactionState.confirmation) {
+    expressionAttributeValues[":confirmationTokenIssuedAt"] = {
+      S: updatedAt,
+    };
+    updateExpressions.push(
+      "confirmationTokenIssuedAt = :confirmationTokenIssuedAt"
+    );
+  }
+
   const input: UpdateItemInput = {
     TableName: interactionsTable,
     Key: {

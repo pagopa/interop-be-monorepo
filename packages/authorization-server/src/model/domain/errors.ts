@@ -36,6 +36,9 @@ const errorCodes = {
   entityNumberExceedsMaxResultSet: "0023",
   tokenGenerationStatesEntriesByPurposeIdNotFound: "0024",
   asyncExchangePropertiesNotFound: "0025",
+  callbackInvocationTokenIssuedAtMissing: "0026",
+  resourceAvailableTimeExpired: "0027",
+  asyncExchangeConfirmationNotEnabled: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -288,5 +291,37 @@ export function tokenGenerationStatesEntriesByPurposeIdNotFound(
     detail: `No token-generation-states entries found for purposeId ${purposeId}`,
     code: "tokenGenerationStatesEntriesByPurposeIdNotFound",
     title: "Token-generation-states entries not found for purposeId",
+  });
+}
+
+export function callbackInvocationTokenIssuedAtMissing(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt`,
+    code: "callbackInvocationTokenIssuedAtMissing",
+    title: "callbackInvocationTokenIssuedAt missing",
+  });
+}
+
+export function resourceAvailableTimeExpired(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  resourceAvailableTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Resource available time expired for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${resourceAvailableTime}ms`,
+    code: "resourceAvailableTimeExpired",
+    title: "Resource available time expired",
+  });
+}
+
+export function asyncExchangeConfirmationNotEnabled(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange confirmation is not enabled for the eService associated with interaction ${interactionId}`,
+    code: "asyncExchangeConfirmationNotEnabled",
+    title: "Async exchange confirmation not enabled",
   });
 }
