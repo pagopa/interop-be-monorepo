@@ -2286,3 +2286,37 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
       }),
     ]
   );
+
+export const eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate =
+  readmodelPurposeTemplate.table(
+    "eservice_template_version_purpose_template",
+    {
+      metadataVersion: integer("metadata_version").notNull(),
+      purposeTemplateId: uuid("purpose_template_id").notNull(),
+      eserviceTemplateId: uuid("eservice_template_id").notNull(),
+      eserviceTemplateVersionId: uuid("eservice_template_version_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.purposeTemplateId],
+        foreignColumns: [purposeTemplateInReadmodelPurposeTemplate.id],
+        name: "eservice_tpl_ver_pt_purpose_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.purposeTemplateId, table.metadataVersion],
+        foreignColumns: [
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+        ],
+        name: "eservice_tpl_ver_pt_purpose_template_id_metadata_fkey",
+      }),
+      primaryKey({
+        columns: [table.purposeTemplateId, table.eserviceTemplateId],
+        name: "eservice_template_version_purpose_template_pkey",
+      }),
+    ]
+  );
