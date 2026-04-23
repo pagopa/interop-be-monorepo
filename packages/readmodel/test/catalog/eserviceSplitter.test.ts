@@ -18,6 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
@@ -100,6 +101,7 @@ describe("E-service splitter", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -117,6 +119,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      archivingReason: eservice.archivingReason ?? null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -216,6 +219,18 @@ describe("E-service splitter", () => {
         descriptorId: descriptor.id,
       };
 
+    const expectedDescriptorArchivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | null =
+      descriptor.archivingSchedule === undefined
+        ? null
+        : {
+            eserviceId: eservice.id,
+            metadataVersion: 1,
+            descriptorId: descriptor.id,
+            scope: descriptor.archivingSchedule.scope,
+            archivableOn:
+              descriptor.archivingSchedule.archivableOn.toISOString(),
+          };
+
     expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
     expect(riskAnalysesSQL).toStrictEqual(
       expect.arrayContaining([
@@ -234,6 +249,13 @@ describe("E-service splitter", () => {
     );
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
     expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
+    expect(archivingSchedulesSQL).toStrictEqual(
+      expect.arrayContaining(
+        expectedDescriptorArchivingScheduleSQL
+          ? [expectedDescriptorArchivingScheduleSQL]
+          : []
+      )
+    );
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -296,6 +318,7 @@ describe("E-service splitter", () => {
       templateId: null,
       personalData: null,
       instanceLabel: null,
+      archivingReason: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {

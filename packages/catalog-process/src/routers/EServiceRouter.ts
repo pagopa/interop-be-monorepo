@@ -77,6 +77,8 @@ import {
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
+  updateEserviceDescriptorArchivingStatusErrorMapper,
+  maintenanceResetEServicePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -96,6 +98,7 @@ const eservicesRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    MAINTENANCE_ROLE,
   } = authRole;
 
   eservicesRouter
@@ -859,6 +862,37 @@ const eservicesRouter = (
         }
       }
     )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+          const updatedEService =
+            await catalogService.scheduleEServiceDescriptorArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(
+                eServiceToApiEService(updatedEService.data)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEserviceDescriptorArchivingStatusErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -1558,6 +1592,31 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceInstanceLabelErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/maintenance/eservices/:eServiceId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await catalogService.maintenanceResetEServicePersonalDataFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.currentVersion,
+            req.body.reason,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceResetEServicePersonalDataFlagErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

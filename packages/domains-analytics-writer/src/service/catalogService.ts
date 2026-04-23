@@ -12,6 +12,7 @@ import { eserviceDescriptorRejectionRepository } from "../repository/catalog/ese
 import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/catalog/eserviceDescriptorTemplateVersionRef.repository.js";
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
+import { eserviceDescriptorArchivingRepository } from "../repository/catalog/eserviceDescriptorArchiving.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {
@@ -49,6 +50,7 @@ export function catalogServiceBuilder(db: DBContext) {
   const attributeRepo = eserviceDescriptorAttributeRepository(db.conn);
   const riskAnalysisRepo = eserviceRiskAnalysisRepository(db.conn);
   const riskAnalysisAnswerRepo = eserviceRiskAnalysisAnswerRepository(db.conn);
+  const archivingRepo = eserviceDescriptorArchivingRepository(db.conn);
 
   return {
     async upsertBatchEService(
@@ -75,6 +77,9 @@ export function catalogServiceBuilder(db: DBContext) {
             ),
             templateVersionRefsSQL: batch.flatMap(
               (item) => item.templateVersionRefsSQL
+            ),
+            archivingSchedulesSQL: batch.flatMap(
+              (item) => item.archivingSchedulesSQL
             ),
           };
           if (batchItems.eserviceSQL.length) {
@@ -136,6 +141,13 @@ export function catalogServiceBuilder(db: DBContext) {
               batchItems.templateVersionRefsSQL
             );
           }
+          if (batchItems.archivingSchedulesSQL.length) {
+            await archivingRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.archivingSchedulesSQL
+            );
+          }
 
           genericLogger.info(
             `Staging data inserted for Eservice batch: ${batch
@@ -153,6 +165,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisAnswerRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await archivingRepo.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -160,6 +173,7 @@ export function catalogServiceBuilder(db: DBContext) {
           t,
           "eserviceId",
           [
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
             CatalogDbTable.eservice_descriptor_template_version_ref,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_interface,
@@ -186,6 +200,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await riskAnalysisAnswerRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await archivingRepo.clean();
 
       genericLogger.info(`Staging data cleaned`);
     },
@@ -211,6 +226,9 @@ export function catalogServiceBuilder(db: DBContext) {
             ),
             templateVersionRefSQL: batch.flatMap((item) =>
               item.templateVersionRefSQL ? [item.templateVersionRefSQL] : []
+            ),
+            archivingSchedulesSQL: batch.flatMap((item) =>
+              item.archivingScheduleSQL ? [item.archivingScheduleSQL] : []
             ),
           };
 
@@ -262,6 +280,14 @@ export function catalogServiceBuilder(db: DBContext) {
             );
           }
 
+          if (batchItems.archivingSchedulesSQL.length > 0) {
+            await archivingRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.archivingSchedulesSQL
+            );
+          }
+
           genericLogger.info(
             `Staging data inserted for EserviceDescriptor batch: ${batch
               .map((item) => item.descriptorSQL.id)
@@ -275,12 +301,14 @@ export function catalogServiceBuilder(db: DBContext) {
         await documentRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await archivingRepo.merge(t);
 
         await dbContext.conn.tx(async (t) => {
           await cleaningTargetTables(
             t,
             "descriptorId",
             [
+              CatalogDbTable.eservice_descriptor_archiving_schedule,
               CatalogDbTable.eservice_descriptor_template_version_ref,
               CatalogDbTable.eservice_descriptor_rejection_reason,
               CatalogDbTable.eservice_descriptor_interface,
@@ -302,6 +330,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await documentRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await archivingRepo.clean();
     },
 
     async upsertBatchEServiceDocument(
@@ -424,6 +453,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
           ],
@@ -464,6 +494,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
           ],
           DeletingDbTable.catalog_deleting_table,
           true

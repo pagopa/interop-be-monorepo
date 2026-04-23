@@ -62,6 +62,7 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      CatalogDbTable.eservice_descriptor_archiving_schedule,
       AgreementDbTable.agreement,
       AgreementDbTable.agreement_stamp,
       AgreementDbTable.agreement_attribute,

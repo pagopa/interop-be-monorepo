@@ -22,6 +22,7 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
+  MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -60,6 +61,8 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -150,6 +153,8 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventEServiceDescriptorArchivingScheduled,
+  toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -183,10 +188,14 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertDescriptorInRequiredStates,
+  assertDescriptorIsNotLatestVersion,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -319,7 +328,8 @@ const getTemplateDataFromEservice = (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  newState: DescriptorState
+  newState: DescriptorState,
+  scope?: ArchivingScope
 ): Descriptor => {
   const descriptorStateChange = [descriptor.state, newState];
 
@@ -369,6 +379,21 @@ const updateDescriptorState = (
       state: newState,
       deprecatedAt: new Date(),
     }))
+    .with(
+      [descriptorState.deprecated, descriptorState.archiving],
+      [descriptorState.published, descriptorState.archiving],
+      [descriptorState.suspended, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivingSchedule: {
+          archivableOn: calculateArchivableOn(
+            config.gracePeriodArchivingEService
+          ),
+          scope: scope ?? archivingScope.descriptor,
+        },
+      })
+    )
     .otherwise(() => ({
       ...descriptor,
       state: newState,
@@ -2131,6 +2156,50 @@ export function catalogServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
+    async scheduleEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.deprecated,
+        descriptorState.suspended,
+      ]);
+      assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const updatedEService =
+        await transitionEServiceDescriptorArchivingStateLogic(
+          eservice.data,
+          descriptor,
+          newState,
+          authData,
+          readModelService
+        );
+
+      const event = toCreateEventEServiceDescriptorArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        descriptorId,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3749,7 +3818,60 @@ export function catalogServiceBuilder(
 
       return updatedEservice;
     },
+    async maintenanceResetEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      currentVersion: number,
+      reason: string,
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Maintenance reset personalData flag for E-Service ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertIsNotDraftEservice(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceEServicePersonalDataFlagReset(
+          currentVersion,
+          updatedEservice,
+          reason,
+          correlationId
+        )
+      );
+    },
   };
+}
+
+async function transitionEServiceDescriptorArchivingStateLogic(
+  eservice: EService,
+  descriptor: Descriptor,
+  newState: DescriptorState,
+  authData: UIAuthData | M2MAdminAuthData,
+  readModelService: ReadModelServiceSQL
+): Promise<EService> {
+  await assertRequesterIsDelegateProducerOrProducer(
+    eservice.producerId,
+    eservice.id,
+    authData,
+    readModelService
+  );
+
+  const updatedDescriptor: Descriptor = updateDescriptorState(
+    descriptor,
+    newState,
+    archivingScope.descriptor
+  );
+
+  const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
+
+  return updatedEService;
 }
 
 async function createOpenApiInterfaceByTemplate(

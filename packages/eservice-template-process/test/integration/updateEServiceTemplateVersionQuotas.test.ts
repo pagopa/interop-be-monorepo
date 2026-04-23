@@ -79,12 +79,10 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       ],
     };
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion.id
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      eserviceTemplate: toEServiceTemplateV2(expectedEServiceTemplate),
+    });
 
     expect(updatedEserviceTemplateVersionReturn).toEqual({
       data: expectedEServiceTemplate,

@@ -74,9 +74,10 @@ async function handleEServiceEventV2(
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
-            "EServiceArchiveScheduled",
-            "EServiceArchiveScheduleCanceled",
-            "EServiceArchiveScheduleCompleted"
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         async (event) => {
@@ -128,9 +129,9 @@ async function handleEServiceEventV2(
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorInterfaceDeleted",
-            "EServiceDescriptorArchiveScheduled",
-            "EServiceDescriptorArchiveScheduleCanceled",
-            "EServiceDescriptorArchiveScheduleCompleted"
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted"
           ),
         },
         async (event) => {

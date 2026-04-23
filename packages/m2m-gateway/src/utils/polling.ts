@@ -3,8 +3,8 @@ import {
   createPollingByCondition,
   createPollingUntilDeletion,
 } from "pagopa-interop-commons";
+import { WithMaybeMetadata } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   assertMetadataExists,
   assertTargetMetadataExists,

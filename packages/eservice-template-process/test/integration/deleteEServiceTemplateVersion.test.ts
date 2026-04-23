@@ -132,10 +132,10 @@ describe("deleteEServiceTemplateVersion", () => {
       versions: [eserviceTemplateVersion1],
     });
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion2.id
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion2.id,
+      eserviceTemplate: expectedEServiceTemplate,
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -249,7 +249,9 @@ describe("deleteEServiceTemplateVersion", () => {
       versions: [eserviceTemplateVersion],
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: expectedEServiceTemplate,
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
