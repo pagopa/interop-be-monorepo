@@ -25,9 +25,9 @@ const eventV2TypeMapper = (
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       "EServiceInstanceLabelUpdated",
       // FIXME these events will be managed with "WORK ITEM 10"
-      "EServiceArchiveScheduled",
-      "EServiceArchiveScheduleCanceled",
-      "EServiceArchiveScheduleCompleted",
+      "EServiceArchivingScheduled",
+      "EServiceArchivingCanceled",
+      "EServiceArchivingCompleted",
       () => "catalog_item_updated"
     )
     .with(
@@ -55,9 +55,9 @@ const eventV2TypeMapper = (
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       // FIXME these events will be managed with "WORK ITEM 10"
-      "EServiceDescriptorArchiveScheduled",
-      "EServiceDescriptorArchiveScheduleCanceled",
-      "EServiceDescriptorArchiveScheduleCompleted",
+      "EServiceDescriptorArchivingScheduled",
+      "EServiceDescriptorArchivingCanceled",
+      "EServiceDescriptorArchivingCompleted",
       () => "catalog_item_descriptor_updated"
     )
     .with(

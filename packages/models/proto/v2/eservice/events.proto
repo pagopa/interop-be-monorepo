@@ -23,15 +23,15 @@ message EServiceClonedV2 {
   EServiceV2 eservice = 3;
 }
 
-message EServiceArchiveScheduledV2 {
+message EServiceArchivingScheduledV2 {
   EServiceV2 eservice = 1;
 }
 
-message EServiceArchiveScheduleCanceledV2 {
+message EServiceArchivingCanceledV2 {
   EServiceV2 eservice = 1;
 }
 
-message EServiceArchiveScheduleCompletedV2 {
+message EServiceArchivingCompletedV2 {
   EServiceV2 eservice = 1;
 }
 
@@ -116,17 +116,17 @@ message EServiceDescriptorDocumentDeletedV2 {
   EServiceV2 eservice = 3;
 }
 
-message EServiceDescriptorArchiveScheduledV2 {
+message EServiceDescriptorArchivingScheduledV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorArchiveScheduleCanceledV2 {
+message EServiceDescriptorArchivingCanceledV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorArchiveScheduleCompletedV2 {
+message EServiceDescriptorArchivingCompletedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }

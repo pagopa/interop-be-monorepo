@@ -64,12 +64,12 @@ export async function handleMessageV2(
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
-          "EServiceDescriptorArchiveScheduled",
-          "EServiceDescriptorArchiveScheduleCanceled",
-          "EServiceDescriptorArchiveScheduleCompleted",
-          "EServiceArchiveScheduled",
-          "EServiceArchiveScheduleCanceled",
-          "EServiceArchiveScheduleCompleted"
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted"
         ),
       },
       async (message) => {
