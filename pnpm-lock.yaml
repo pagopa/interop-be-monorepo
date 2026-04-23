@@ -1370,8 +1370,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.15
-        version: 1.8.15
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3035,8 +3035,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.15
-        version: 1.8.15
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4888,8 +4888,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.15
-        version: 1.8.15
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5117,8 +5117,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.15
-        version: 1.8.15
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5536,8 +5536,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.15
-        version: 1.8.15
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7202,8 +7202,8 @@ packages:
   '@pagopa/interop-outbound-models@1.7.0':
     resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
 
-  '@pagopa/interop-outbound-models@1.8.15':
-    resolution: {integrity: sha512-4Izj200PCXNeCjlO7ijBGmSr7vNIPKyx9kVHJijScdUw7IU++3StzJDIm3wJRj5/uhkCb6roYZog1ydWdXyFCg==}
+  '@pagopa/interop-outbound-models@1.8.16':
+    resolution: {integrity: sha512-8CGChz2HuYK6U3fd2/wIC2M8xECGjbRH9EdeuBxBmaNE8bVcj9rLQQRCtPBW8r5hbvKtjjIjQ4qDQdMVn+whdg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13695,7 +13695,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.15':
+  '@pagopa/interop-outbound-models@1.8.16':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
