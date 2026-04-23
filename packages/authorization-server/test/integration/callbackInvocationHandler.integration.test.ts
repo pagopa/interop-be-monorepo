@@ -26,6 +26,7 @@ import {
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
+  makeInteractionPK,
   makePlatformStatesEServiceDescriptorPK,
   makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -75,7 +76,7 @@ const writeProducerKeychainEntry = async (
   client: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
-    TableName: "producer-keychain-platform-states",
+    TableName: config.producerKeychainPlatformStatesTable,
     Item: {
       PK: { S: entry.PK },
       publicKey: { S: entry.publicKey },
@@ -98,11 +99,8 @@ const writeProducerKeychainEntry = async (
  */
 const setupCallbackScenario = async (overrides?: {
   producerCustomClaims?: Record<string, unknown>;
-  skipInteraction?: boolean;
   skipProducerKey?: boolean;
   skipCatalogEntry?: boolean;
-  skipTokenGenStatesEntry?: boolean;
-  interactionStateOverride?: string;
   tokenGenStatesAgreementStateOverride?: ItemState;
   tokenGenStatesPurposeStateOverride?: ItemState;
   tokenGenStatesDescriptorStateOverride?: ItemState;
@@ -240,7 +238,7 @@ const setupCallbackScenario = async (overrides?: {
   if (overrides?.skipCatalogEntry) {
     await dynamoDBClient.send(
       new DeleteItemCommand({
-        TableName: "platform-states",
+        TableName: config.platformStatesTable,
         Key: { PK: { S: catalogPK } },
       })
     );
@@ -265,7 +263,7 @@ const setupCallbackScenario = async (overrides?: {
     }
     await dynamoDBClient.send(
       new UpdateItemCommand({
-        TableName: "token-generation-states",
+        TableName: config.tokenGenerationStatesTable,
         Key: { PK: { S: tokenClientKidPurposePK } },
         UpdateExpression: `SET ${setExpressions.join(", ")}`,
         ExpressionAttributeValues: attributeValues,
@@ -591,7 +589,7 @@ describe("async token service - callback_invocation", () => {
     await dynamoDBClient.send(
       new UpdateItemCommand({
         TableName: config.interactionsTable,
-        Key: { PK: { S: `INTERACTION#${interactionId}` } },
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
         UpdateExpression: "SET startInteractionTokenIssuedAt = :t",
         ExpressionAttributeValues: { ":t": { S: pastTime } },
       })
