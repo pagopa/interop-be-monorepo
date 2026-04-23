@@ -19,6 +19,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  EServiceTemplateVersionPurposeTemplate,
   generateId,
   ListResult,
   PurposeTemplate,
@@ -84,6 +85,7 @@ import {
 import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
+  GetPurposeTemplateEServiceTemplatesFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -1028,6 +1030,35 @@ export function purposeTemplateServiceBuilder(
       );
 
       return await readModelService.getPurposeTemplateEServiceDescriptors(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
+    },
+    async getPurposeTemplateEServiceTemplates(
+      filters: GetPurposeTemplateEServiceTemplatesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceTemplateVersionPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
+      logger.info(
+        `Retrieving e-service templates linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return await readModelService.getPurposeTemplateEServiceTemplates(
         filters,
         {
           offset,
