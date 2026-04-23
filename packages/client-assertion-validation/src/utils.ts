@@ -6,6 +6,7 @@ import {
   itemState,
   PurposeId,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIPurpose,
   unsafeBrandId,
   ClientAssertionDigest,
   algorithm,
@@ -250,9 +251,13 @@ export const validateDigest = (
   return failedValidation([digestLengthError, digestAlgError]);
 };
 
-export const validatePlatformState = (
-  key: TokenGenerationStatesConsumerClient
-): ValidationResult<TokenGenerationStatesConsumerClient> => {
+export const validatePlatformState = <
+  T extends
+    | TokenGenerationStatesConsumerClient
+    | TokenGenStatesConsumerClientGSIPurpose
+>(
+  key: T
+): ValidationResult<T> => {
   const agreementError =
     key.agreementState !== itemState.active
       ? invalidAgreementState(key.agreementState)

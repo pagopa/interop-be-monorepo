@@ -2,14 +2,11 @@ import {
   clientKindTokenGenStates,
   genericInternalError,
   interactionState,
-  itemState,
   unsafeBrandId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
-  invalidAgreementState,
-  invalidEServiceState,
-  invalidPurposeState,
+  validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
@@ -146,21 +143,11 @@ export const handleCallbackInvocation = async (
   // 7. Validate platform state (agreement, purpose and descriptor must be ACTIVE)
   //    Same semantics as start_interaction: read pre-computed states from
   //    token-generation-states and aggregate errors into platformStateValidationFailed.
-  const platformStateErrors = [
-    tokenGenStatesEntry.agreementState !== itemState.active
-      ? invalidAgreementState(tokenGenStatesEntry.agreementState)
-      : undefined,
-    tokenGenStatesEntry.descriptorState !== itemState.active
-      ? invalidEServiceState(tokenGenStatesEntry.descriptorState)
-      : undefined,
-    tokenGenStatesEntry.purposeState !== itemState.active
-      ? invalidPurposeState(tokenGenStatesEntry.purposeState)
-      : undefined,
-  ].filter((e): e is NonNullable<typeof e> => e !== undefined);
-
-  if (platformStateErrors.length > 0) {
+  const { errors: platformStateErrors } =
+    validatePlatformState(tokenGenStatesEntry);
+  if (platformStateErrors) {
     throw platformStateValidationFailed(
-      platformStateErrors.map((e) => e.detail).join(", ")
+      platformStateErrors.map((error) => error.detail).join(", ")
     );
   }
 
