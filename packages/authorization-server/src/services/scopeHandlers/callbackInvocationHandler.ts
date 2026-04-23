@@ -151,7 +151,9 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 8. Validate asyncExchangeProperties, responseTime and maxResultSet
+  // 8. Validate asyncExchangeProperties and maxResultSet (the responseTime check
+  //    is deferred to step 10 so the elapsed window is measured as close as
+  //    possible to the token's iat).
   const { asyncExchangeProperties } = catalogEntry;
   if (!asyncExchangeProperties) {
     throw genericInternalError(
@@ -162,17 +164,6 @@ export const handleCallbackInvocation = async (
   if (!interaction.startInteractionTokenIssuedAt) {
     throw genericInternalError(
       `Interaction ${interactionId} missing startInteractionTokenIssuedAt`
-    );
-  }
-
-  const elapsedMs =
-    Date.now() - Date.parse(interaction.startInteractionTokenIssuedAt);
-  const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
-  if (elapsedMs >= responseTimeLimitMs) {
-    throw asyncExchangeResponseTimeExceeded(
-      interactionId,
-      elapsedMs,
-      responseTimeLimitMs
     );
   }
 
@@ -205,7 +196,21 @@ export const handleCallbackInvocation = async (
   // 10. Generate token first, then update interaction state.
   //     These must be sequential: if token generation fails we must not
   //     persist a state transition for a token that was never delivered.
-  const issuedAt = new Date().toISOString();
+  //     Check the response-time window here (not earlier) so the elapsed
+  //     measurement and the token's iat share the same reference instant.
+  const now = new Date();
+  const elapsedMs =
+    now.getTime() - Date.parse(interaction.startInteractionTokenIssuedAt);
+  const responseTimeLimitMs = asyncExchangeProperties.responseTime * 1000;
+  if (elapsedMs >= responseTimeLimitMs) {
+    throw asyncExchangeResponseTimeExceeded(
+      interactionId,
+      elapsedMs,
+      responseTimeLimitMs
+    );
+  }
+
+  const issuedAt = now.toISOString();
 
   const token = await tokenGenerator.generateInteropAsyncConsumerToken({
     sub: clientId,
