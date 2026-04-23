@@ -149,13 +149,11 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED"
     )
     .with("EServiceArchivingScheduled", () => "ESERVICE_ARCHIVING_SCHEDULED")
+    .with("EServiceArchivingCanceled", () => "ESERVICE_ARCHIVING_CANCELED")
+    .with("EServiceArchivingCompleted", () => "ESERVICE_ARCHIVING_COMPLETED")
     .with(
-      "EServiceArchivingCanceled",
-      () => "ESERVICE_ARCHIVING_CANCELED"
-    )
-    .with(
-      "EServiceArchivingCompleted",
-      () => "ESERVICE_ARCHIVING_COMPLETED"
+      "MaintenanceEServicePersonalDataFlagReset",
+      () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
     )
     .exhaustive();
 }

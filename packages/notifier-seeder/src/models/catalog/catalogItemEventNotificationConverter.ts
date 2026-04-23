@@ -107,6 +107,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceArchivingScheduled" },
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceArchivingCompleted" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })

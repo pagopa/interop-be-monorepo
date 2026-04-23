@@ -69,7 +69,8 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingCompleted",
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
-          "EServiceArchivingCompleted"
+          "EServiceArchivingCompleted",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       async (message) => {

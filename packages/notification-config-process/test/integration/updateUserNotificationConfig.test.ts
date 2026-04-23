@@ -150,9 +150,11 @@ describe("updateUserNotificationConfig", () => {
       updatedAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedUserNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedUserNotificationConfig
+      ),
+    });
   });
 
   it.each<[string, UserId, TenantId]>([

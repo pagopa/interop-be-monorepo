@@ -76,7 +76,8 @@ async function handleEServiceEventV2(
             "EServiceInstanceLabelUpdated",
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
-            "EServiceArchivingCompleted"
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         async (event) => {

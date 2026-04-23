@@ -28,6 +28,7 @@ const eventV2TypeMapper = (
       "EServiceArchivingScheduled",
       "EServiceArchivingCanceled",
       "EServiceArchivingCompleted",
+      "MaintenanceEServicePersonalDataFlagReset",
       () => "catalog_item_updated"
     )
     .with(

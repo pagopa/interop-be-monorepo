@@ -113,7 +113,8 @@ export const handleCatalogMessageV2 = async (
             "EServiceInstanceLabelUpdated",
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
-            "EServiceArchivingCompleted"
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         (event) => {

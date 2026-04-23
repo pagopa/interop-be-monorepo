@@ -103,7 +103,7 @@ export function toOutboundEventV2(
       { type: "EServiceArchivingScheduled" },
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceArchivingCompleted" },
-
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

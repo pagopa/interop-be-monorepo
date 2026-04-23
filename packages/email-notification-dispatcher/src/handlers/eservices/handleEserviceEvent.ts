@@ -157,7 +157,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorArchivingCompleted",
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
-          "EServiceArchivingCompleted"
+          "EServiceArchivingCompleted",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

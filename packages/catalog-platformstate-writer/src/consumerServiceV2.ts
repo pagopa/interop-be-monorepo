@@ -341,6 +341,7 @@ export async function handleMessageV2(
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       () => Promise.resolve()
     )
     .exhaustive();
