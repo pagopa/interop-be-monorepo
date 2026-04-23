@@ -21,7 +21,7 @@ import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
   publishAudit,
-  retrieveCatalogEntry,
+  retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
 import { createInteraction } from "../../utilities/interactionsUtils.js";
@@ -135,7 +135,7 @@ export const handleStartInteraction = async (
     key.GSIPK_eserviceId_descriptorId
   );
 
-  const catalogEntry = await retrieveCatalogEntry(
+  const catalogEntry = await retrieveAsyncCatalogEntry(
     dynamoDBClient,
     eserviceId,
     descriptorId,
@@ -143,11 +143,6 @@ export const handleStartInteraction = async (
   );
 
   const { asyncExchangeProperties } = catalogEntry;
-  if (!asyncExchangeProperties) {
-    throw genericInternalError(
-      `Catalog entry for eService ${eserviceId} descriptor ${descriptorId} has asyncExchange enabled but no asyncExchangeProperties`
-    );
-  }
 
   // 8. Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
