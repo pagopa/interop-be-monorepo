@@ -39,6 +39,10 @@ export const errorCodes = {
   invalidInteractionIdClaimFormat: "0036",
   invalidUrlCallbackClaimFormat: "0037",
   invalidEntityNumberClaimFormat: "0038",
+  urlCallbackNotProvided: "0039",
+  interactionIdNotProvided: "0040",
+  entityNumberNotProvided: "0041",
+  invalidEntityNumber: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -296,11 +300,57 @@ export function algorithmNotAllowed(algorithm: string): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeIdNotProvided(): ApiError<ErrorCodes> {
+export function purposeIdNotProvided(
+  clientId?: string | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Claim purposeId does not exist in this assertion",
+    detail:
+      clientId === undefined
+        ? "Claim purposeId does not exist in this assertion"
+        : `purposeId not provided in client assertion for client ${clientId}`,
     code: "purposeIdNotProvided",
     title: "Purpose Id not provided",
+  });
+}
+
+export function urlCallbackNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `urlCallback not provided in client assertion for client ${clientId}`,
+    code: "urlCallbackNotProvided",
+    title: "urlCallback not provided",
+  });
+}
+
+export function interactionIdNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `interactionId not provided in client assertion for client ${clientId}`,
+    code: "interactionIdNotProvided",
+    title: "interactionId not provided",
+  });
+}
+
+export function entityNumberNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber not provided in client assertion for client ${clientId}`,
+    code: "entityNumberNotProvided",
+    title: "entityNumber not provided",
+  });
+}
+
+export function invalidEntityNumber(
+  clientId: string | undefined,
+  entityNumber: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
+    code: "invalidEntityNumber",
+    title: "Invalid entityNumber",
   });
 }
 

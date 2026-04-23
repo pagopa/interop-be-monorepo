@@ -6,16 +6,15 @@ import {
   ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
+  validateAsyncClaimsForScope,
   validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
+  asyncClientAssertionClaimsValidationFailed,
   clientAssertionSignatureValidationFailed,
-  entityNumberNotProvided,
-  interactionIdNotProvided,
   interactionNotFound,
   interactionStateNotAllowed,
-  invalidEntityNumber,
   platformStateValidationFailed,
   asyncExchangeResponseTimeExceeded,
   entityNumberExceedsMaxResultSet,
@@ -64,18 +63,25 @@ export const handleCallbackInvocation = async (
   // messages that reference the caller's identity as presented in the JWT.
   const clientId = clientAssertionJWT.payload.sub;
 
-  // 1. Validate callback_invocation-specific claims
-  const interactionId = clientAssertionJWT.payload.interactionId;
-  if (!interactionId) {
-    throw interactionIdNotProvided(clientId);
+  // 1. Validate callback_invocation-specific claims (aggregates all missing/invalid
+  //    claims into a single asyncClientAssertionClaimsValidationFailed error).
+  const { errors: claimErrors } = validateAsyncClaimsForScope(
+    clientAssertionJWT.payload,
+    interactionState.callbackInvocation
+  );
+  if (claimErrors) {
+    throw asyncClientAssertionClaimsValidationFailed(
+      clientId,
+      claimErrors.map((error) => error.detail).join(", ")
+    );
   }
-
-  const entityNumber = clientAssertionJWT.payload.entityNumber;
-  if (entityNumber === undefined || entityNumber === null) {
-    throw entityNumberNotProvided(clientId);
-  }
-  if (entityNumber <= 0) {
-    throw invalidEntityNumber(clientId, entityNumber);
+  // validateAsyncClaimsForScope guarantees these are defined for this scope,
+  // but the Zod schema keeps them optional; re-check as a type guard.
+  const { interactionId, entityNumber } = clientAssertionJWT.payload;
+  if (!interactionId || entityNumber === undefined || entityNumber === null) {
+    throw genericInternalError(
+      "interactionId or entityNumber missing after async claim validation"
+    );
   }
 
   // 2. Read interaction by interactionId

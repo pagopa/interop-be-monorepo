@@ -1,4 +1,5 @@
 import {
+  validateAsyncClaimsForScope,
   validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
@@ -11,11 +12,10 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
+  asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
   clientAssertionSignatureValidationFailed,
   platformStateValidationFailed,
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
 } from "../../model/domain/errors.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
@@ -51,16 +51,26 @@ export const handleStartInteraction = async (
     interactionTtlEpsilonSeconds,
   } = ctx;
 
-  // 1. Validate start_interaction-specific claims
-  const urlCallback = clientAssertionJWT.payload.urlCallback;
-  if (!urlCallback) {
-    throw urlCallbackNotProvided(clientAssertionJWT.payload.sub);
-  }
-
+  // 1. Validate start_interaction-specific claims (aggregates all missing/invalid
+  //    claims into a single asyncClientAssertionClaimsValidationFailed error).
   const clientId = clientAssertionJWT.payload.sub;
-  const purposeId = clientAssertionJWT.payload.purposeId;
-  if (!purposeId) {
-    throw purposeIdNotProvided(clientId);
+  const { errors: claimErrors } = validateAsyncClaimsForScope(
+    clientAssertionJWT.payload,
+    interactionState.startInteraction
+  );
+  if (claimErrors) {
+    throw asyncClientAssertionClaimsValidationFailed(
+      clientId,
+      claimErrors.map((error) => error.detail).join(", ")
+    );
+  }
+  // validateAsyncClaimsForScope guarantees these are defined for this scope,
+  // but the Zod schema keeps them optional; re-check as a type guard.
+  const { urlCallback, purposeId } = clientAssertionJWT.payload;
+  if (!urlCallback || !purposeId) {
+    throw genericInternalError(
+      "urlCallback or purposeId missing after async claim validation"
+    );
   }
 
   // 2. Retrieve key from token-generation-states (consumer key with purposeId)

@@ -27,12 +27,7 @@ const errorCodes = {
   asyncScopeNotYetImplemented: "0014",
   asyncRequestValidationFailed: "0015",
   asyncClientAssertionClaimsValidationFailed: "0016",
-  urlCallbackNotProvided: "0017",
-  purposeIdNotProvided: "0018",
   asyncExchangeNotEnabled: "0019",
-  interactionIdNotProvided: "0020",
-  entityNumberNotProvided: "0021",
-  invalidEntityNumber: "0022",
   interactionNotFound: "0023",
   interactionStateNotAllowed: "0024",
   producerKeychainEntryNotFound: "0025",
@@ -196,26 +191,6 @@ export function asyncClientAssertionClaimsValidationFailed(
   });
 }
 
-export function urlCallbackNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `urlCallback not provided in client assertion for client ${clientId}`,
-    code: "urlCallbackNotProvided",
-    title: "urlCallback not provided",
-  });
-}
-
-export function purposeIdNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `purposeId not provided in client assertion for client ${clientId}`,
-    code: "purposeIdNotProvided",
-    title: "purposeId not provided",
-  });
-}
-
 export function asyncExchangeNotEnabled(
   clientId: string
 ): ApiError<ErrorCodes> {
@@ -223,37 +198,6 @@ export function asyncExchangeNotEnabled(
     detail: `Async exchange is not enabled for the eService associated with client ${clientId}`,
     code: "asyncExchangeNotEnabled",
     title: "Async exchange not enabled",
-  });
-}
-
-export function interactionIdNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `interactionId not provided in client assertion for client ${clientId}`,
-    code: "interactionIdNotProvided",
-    title: "interactionId not provided",
-  });
-}
-
-export function entityNumberNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `entityNumber not provided in client assertion for client ${clientId}`,
-    code: "entityNumberNotProvided",
-    title: "entityNumber not provided",
-  });
-}
-
-export function invalidEntityNumber(
-  clientId: string | undefined,
-  entityNumber: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
-    code: "invalidEntityNumber",
-    title: "Invalid entityNumber",
   });
 }
 

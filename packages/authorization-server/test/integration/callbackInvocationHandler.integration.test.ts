@@ -51,9 +51,9 @@ import { config } from "../../src/config/config.js";
 import {
   entityNumberNotProvided,
   interactionIdNotProvided,
-  interactionNotFound,
   invalidEntityNumber,
-} from "../../src/model/domain/errors.js";
+} from "pagopa-interop-client-assertion-validation";
+import { interactionNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
   asyncTokenService,
@@ -487,7 +487,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(interactionIdNotProvided(producerKeychainId));
+    ).rejects.toThrowError(
+      new RegExp(interactionIdNotProvided(producerKeychainId).detail)
+    );
   });
 
   it("should throw entityNumberNotProvided when entityNumber is missing", async () => {
@@ -507,7 +509,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(entityNumberNotProvided(producerKeychainId));
+    ).rejects.toThrowError(
+      new RegExp(entityNumberNotProvided(producerKeychainId).detail)
+    );
   });
 
   it("should throw invalidEntityNumber when entityNumber is 0", async () => {
@@ -528,7 +532,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(invalidEntityNumber(producerKeychainId, 0));
+    ).rejects.toThrowError(
+      new RegExp(invalidEntityNumber(producerKeychainId, 0).detail)
+    );
   });
 
   it("should throw interactionNotFound when interaction does not exist", async () => {

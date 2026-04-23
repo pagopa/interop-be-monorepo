@@ -31,10 +31,10 @@ import {
 } from "pagopa-interop-models";
 import { config } from "../../src/config/config.js";
 import {
-  catalogEntryNotFound,
   purposeIdNotProvided,
   urlCallbackNotProvided,
-} from "../../src/model/domain/errors.js";
+} from "pagopa-interop-client-assertion-validation";
+import { catalogEntryNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import { deconstructGSIPK_eserviceId_descriptorId } from "../../src/utilities/tokenServiceHelpers.js";
 import {
@@ -273,7 +273,7 @@ describe("async token service - start_interaction", () => {
     });
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
-      urlCallbackNotProvided(clientId)
+      new RegExp(urlCallbackNotProvided(clientId).detail)
     );
   });
 
@@ -289,7 +289,7 @@ describe("async token service - start_interaction", () => {
     });
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
-      purposeIdNotProvided(clientId)
+      new RegExp(purposeIdNotProvided(clientId).detail)
     );
   });
 
