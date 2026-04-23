@@ -250,7 +250,11 @@ describe("E-service splitter", () => {
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
     expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
     expect(archivingSchedulesSQL).toStrictEqual(
-      expect.arrayContaining([expectedDescriptorArchivingScheduleSQL])
+      expect.arrayContaining(
+        expectedDescriptorArchivingScheduleSQL
+          ? [expectedDescriptorArchivingScheduleSQL]
+          : []
+      )
     );
   });
 
