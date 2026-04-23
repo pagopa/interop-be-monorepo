@@ -83,10 +83,44 @@ export async function handleMessageV2(
         }
       );
     })
-    .with(
-      { type: "PurposeTemplateEServiceTemplateLinked" },
-      { type: "PurposeTemplateEServiceTemplateUnlinked" },
-      () => Promise.resolve()
-    )
+    .with({ type: "PurposeTemplateEServiceTemplateLinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eserviceTemplate) {
+        throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+      }
+
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+          eserviceTemplateVersionId: unsafeBrandId(
+            msg.data.eserviceTemplateVersionId
+          ),
+          createdAt: bigIntToDate(msg.data.createdAt),
+        },
+        msg.version
+      );
+    })
+    .with({ type: "PurposeTemplateEServiceTemplateUnlinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eserviceTemplate) {
+        throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+      }
+
+      await purposeTemplateWriterService.deletePurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+          eserviceTemplateVersionId: unsafeBrandId(
+            msg.data.eserviceTemplateVersionId
+          ),
+          metadataVersion: msg.version,
+        }
+      );
+    })
     .exhaustive();
 }
