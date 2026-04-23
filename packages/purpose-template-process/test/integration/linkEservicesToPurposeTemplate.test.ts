@@ -28,6 +28,7 @@ import { describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
@@ -507,6 +508,40 @@ describe("linkEservicesToPurposeTemplate", () => {
       associationBetweenEServiceAndPurposeTemplateAlreadyExists(
         [eserviceAlreadyAssociatedError(eService1.id, purposeTemplate.id)],
         [eService1.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed when the eservice is an instance of an e-service template", async () => {
+    const templateOrigin = generateId<EService["templateId"] & string>();
+    const eserviceInstance: EService = {
+      ...eService1,
+      id: generateId<EServiceId>(),
+      templateId: templateOrigin,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eserviceInstance);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eserviceInstance.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [
+          eserviceIsInstanceOfEServiceTemplateError(
+            eserviceInstance.id,
+            templateOrigin
+          ),
+        ],
+        [eserviceInstance.id],
         purposeTemplate.id
       )
     );
