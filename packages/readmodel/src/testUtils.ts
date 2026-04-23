@@ -7,6 +7,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -76,6 +77,7 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeVersionStampInReadmodelPurpose,
   purposeTemplateChildTables,
   DrizzleTransactionType,
@@ -946,4 +948,24 @@ export const upsertPurposeTemplateEServiceDescriptor = async (
       .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
       .values(purposeTemplateEServiceDescriptorSQL);
   });
+};
+
+export const upsertEServiceTemplateVersionPurposeTemplate = async (
+  readModelDB: DrizzleReturnType,
+  eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+    .values({
+      metadataVersion,
+      purposeTemplateId:
+        eserviceTemplateVersionPurposeTemplate.purposeTemplateId,
+      eserviceTemplateId:
+        eserviceTemplateVersionPurposeTemplate.eserviceTemplateId,
+      eserviceTemplateVersionId:
+        eserviceTemplateVersionPurposeTemplate.eserviceTemplateVersionId,
+      createdAt: eserviceTemplateVersionPurposeTemplate.createdAt.toISOString(),
+    })
+    .onConflictDoNothing();
 };

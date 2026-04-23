@@ -46,6 +46,10 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => commonPurposeTemplatesErrorMapper(error);
 
+export const getPurposeTemplateEServiceTemplatesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number => commonPurposeTemplatesErrorMapper(error);
+
 export const getPurposeTemplateEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

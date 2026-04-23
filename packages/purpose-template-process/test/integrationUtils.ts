@@ -11,6 +11,8 @@ import {
 import {
   EService,
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
@@ -25,6 +27,8 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertEService,
+  upsertEServiceTemplate,
+  upsertEServiceTemplateVersionPurposeTemplate,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
@@ -125,6 +129,22 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
+};
+
+export const addOneEServiceTemplateVersionPurposeTemplate = async (
+  eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate
+): Promise<void> => {
+  await upsertEServiceTemplateVersionPurposeTemplate(
+    readModelDB,
+    eserviceTemplateVersionPurposeTemplate,
+    0
+  );
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {

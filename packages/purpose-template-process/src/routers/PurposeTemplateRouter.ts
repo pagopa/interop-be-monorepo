@@ -33,6 +33,7 @@ import {
   deleteRiskAnalysisTemplateAnswerAnnotationErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
+  getPurposeTemplateEServiceTemplatesErrorMapper,
   getPurposeTemplatesErrorMapper,
   getRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   linkEservicesToPurposeTemplateErrorMapper,
@@ -54,6 +55,7 @@ import {
   annotationDocumentToApiAnnotationDocumentWithAnswerId,
   apiPurposeTemplateStateToPurposeTemplateState,
   eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate,
   purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
   purposeTemplateToApiPurposeTemplate,
   riskAnalysisAnswerToApiRiskAnalysisAnswer,
@@ -342,6 +344,47 @@ const purposeTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposeTemplateEServiceDescriptorsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposeTemplates/:id/eserviceTemplates", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          M2M_ADMIN_ROLE,
+          M2M_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
+
+        const { creatorIds, eserviceTemplateName, offset, limit } = req.query;
+        const { results, totalCount } =
+          await purposeTemplateService.getPurposeTemplateEServiceTemplates(
+            {
+              purposeTemplateId: unsafeBrandId(req.params.id),
+              creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),
+              eserviceTemplateName,
+            },
+            { offset, limit },
+            ctx
+          );
+
+        return res.status(200).send(
+          purposeTemplateApi.EServiceTemplateVersionsPurposeTemplate.parse({
+            results: results.map(
+              eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate
+            ),
+            totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeTemplateEServiceTemplatesErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
