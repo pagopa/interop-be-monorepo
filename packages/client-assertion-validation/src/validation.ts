@@ -325,9 +325,9 @@ export const verifyAsyncClientAssertion = (
 // validator aggregates the missing/invalid ones so callers can surface them
 // together (useful for the BFF tools debug endpoint).
 export const validateAsyncClaimsForScope = (
-  payload: AsyncClientAssertion["payload"],
+  payload: AsyncClientAssertionPayload,
   scope: InteractionState
-): ValidationResult<AsyncClientAssertion["payload"]> => {
+): ValidationResult<AsyncClientAssertionPayload> => {
   const errors = match(scope)
     .with(interactionState.startInteraction, () => [
       payload.purposeId ? undefined : purposeIdNotProvided(payload.sub),
