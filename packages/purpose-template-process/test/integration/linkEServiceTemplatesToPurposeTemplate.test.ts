@@ -345,7 +345,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     await addOnePurposeTemplate(pt);
 
     const tooMany = Array.from(
-      { length: config.maxEServicesPerLinkRequest + 1 },
+      { length: config.maxEServiceTemplatesPerLinkRequest + 1 },
       () => generateId<EServiceTemplate["id"]>()
     );
 
@@ -358,7 +358,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     ).rejects.toThrowError(
       tooManyEServiceTemplatesForPurposeTemplate(
         tooMany.length,
-        config.maxEServicesPerLinkRequest
+        config.maxEServiceTemplatesPerLinkRequest
       )
     );
   });

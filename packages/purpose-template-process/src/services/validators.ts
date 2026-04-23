@@ -181,10 +181,10 @@ export const assertEServiceIdsCountIsBelowThreshold = (
 export const assertEServiceTemplateIdsCountIsBelowThreshold = (
   eserviceTemplateIdsSize: number
 ): void => {
-  if (eserviceTemplateIdsSize > config.maxEServicesPerLinkRequest) {
+  if (eserviceTemplateIdsSize > config.maxEServiceTemplatesPerLinkRequest) {
     throw tooManyEServiceTemplatesForPurposeTemplate(
       eserviceTemplateIdsSize,
-      config.maxEServicesPerLinkRequest
+      config.maxEServiceTemplatesPerLinkRequest
     );
   }
 };

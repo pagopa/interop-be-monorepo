@@ -258,7 +258,7 @@ describe("unlinkEServiceTemplatesFromPurposeTemplate", () => {
 
   it("should throw tooManyEServiceTemplatesForPurposeTemplate if too many templates are provided", async () => {
     const manyIds: EServiceTemplateId[] = Array.from(
-      { length: config.maxEServicesPerLinkRequest + 1 },
+      { length: config.maxEServiceTemplatesPerLinkRequest + 1 },
       () => generateId<EServiceTemplateId>()
     );
 
@@ -274,7 +274,7 @@ describe("unlinkEServiceTemplatesFromPurposeTemplate", () => {
     ).rejects.toThrowError(
       tooManyEServiceTemplatesForPurposeTemplate(
         manyIds.length,
-        config.maxEServicesPerLinkRequest
+        config.maxEServiceTemplatesPerLinkRequest
       )
     );
   });

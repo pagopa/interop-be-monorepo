@@ -21,10 +21,14 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
       .object({
         PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
         MAX_ESERVICES_PER_LINK_REQUEST: z.coerce.number(),
+        MAX_ESERVICE_TEMPLATES_PER_LINK_REQUEST: z.coerce.number().optional(),
       })
       .transform((c) => ({
         purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
         maxEServicesPerLinkRequest: c.MAX_ESERVICES_PER_LINK_REQUEST,
+        maxEServiceTemplatesPerLinkRequest:
+          c.MAX_ESERVICE_TEMPLATES_PER_LINK_REQUEST ??
+          c.MAX_ESERVICES_PER_LINK_REQUEST,
       }))
   )
   .and(FeatureFlagPurposeTemplateConfig);
