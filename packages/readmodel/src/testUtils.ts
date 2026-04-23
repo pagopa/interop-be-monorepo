@@ -106,6 +106,7 @@ import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   splitPurposeTemplateIntoObjectsSQL,
+  toEServiceTemplateVersionPurposeTemplateSQL,
   toPurposeTemplateEServiceDescriptorSQL,
 } from "./purpose-template/splitters.js";
 
@@ -821,7 +822,9 @@ export const upsertPurposeTemplate = async (
 
     for (const table of purposeTemplateChildTables) {
       if (
-        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate &&
+        table !==
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
       ) {
         await tx
           .delete(table)
@@ -897,7 +900,10 @@ export const upsertPurposeTemplate = async (
       tx,
       purposeTemplate.id,
       metadataVersion,
-      [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+      [
+        purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+        eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+      ]
     );
   });
 };
@@ -955,17 +961,41 @@ export const upsertEServiceTemplateVersionPurposeTemplate = async (
   eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate,
   metadataVersion: number
 ): Promise<void> => {
-  await readModelDB
-    .insert(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
-    .values({
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
       metadataVersion,
-      purposeTemplateId:
-        eserviceTemplateVersionPurposeTemplate.purposeTemplateId,
-      eserviceTemplateId:
-        eserviceTemplateVersionPurposeTemplate.eserviceTemplateId,
-      eserviceTemplateVersionId:
-        eserviceTemplateVersionPurposeTemplate.eserviceTemplateVersionId,
-      createdAt: eserviceTemplateVersionPurposeTemplate.createdAt.toISOString(),
-    })
-    .onConflictDoNothing();
+      eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .where(
+        and(
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+            eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+          ),
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+            eserviceTemplateVersionPurposeTemplate.eserviceTemplateId
+          )
+        )
+      );
+
+    const eserviceTemplateVersionPurposeTemplateSQL =
+      toEServiceTemplateVersionPurposeTemplateSQL(
+        eserviceTemplateVersionPurposeTemplate,
+        metadataVersion
+      );
+
+    await tx
+      .insert(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .values(eserviceTemplateVersionPurposeTemplateSQL);
+  });
 };
