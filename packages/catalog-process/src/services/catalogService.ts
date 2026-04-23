@@ -62,7 +62,6 @@ import {
   AttributeKind,
   attributeKind,
   AsyncExchangeProperties,
-  technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -110,7 +109,6 @@ import {
   eServiceAsyncExchangeNotEnabled,
   descriptorAsyncExchangeNotConfigured,
   templateVersionMissingAsyncExchangeProperties,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -193,6 +191,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -710,13 +709,6 @@ async function innerAddDocumentToEserviceEvent(
 
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
       throw asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id);
-    }
-
-    if (
-      eService.data.technology === technology.soap &&
-      descriptor.asyncExchangeProperties.bulk === true
-    ) {
-      throw asyncExchangeBulkNotAllowedForSoap(eService.data.id, descriptor.id);
     }
   }
 
@@ -1482,6 +1474,13 @@ export function catalogServiceBuilder(
             : undefined,
       });
 
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        eservice.data.technology,
+        newDescriptor.asyncExchangeProperties,
+        eservice.data.id,
+        newDescriptor.id
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
@@ -1800,7 +1799,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -2932,7 +2930,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -4593,6 +4590,13 @@ async function updateDraftDescriptor(
         : descriptor.asyncExchangeProperties
       : descriptor.asyncExchangeProperties,
   };
+
+  assertAsyncExchangeBulkAllowedForDescriptor(
+    eservice.data.technology,
+    updatedDescriptor.asyncExchangeProperties,
+    eservice.data.id,
+    descriptor.id
+  );
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 

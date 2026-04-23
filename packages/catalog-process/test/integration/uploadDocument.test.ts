@@ -17,7 +17,6 @@ import {
   EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   DescriptorState,
   featureFlagNotEnabled,
-  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import {
@@ -38,7 +37,6 @@ import {
   templateInstanceNotAllowed,
   checksumDuplicate,
   asyncExchangeCallbackInterfaceAlreadyExists,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -782,37 +780,6 @@ describe("upload Document", () => {
         )
       ).rejects.toThrowError(
         asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id)
-      );
-    });
-
-    it("should throw asyncExchangeBulkNotAllowedForSoap when uploading async exchange callback interface with SOAP technology and bulk enabled", async () => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
-        serverUrls: [],
-        asyncExchangeProperties: {
-          responseTime: 3600,
-          resourceAvailableTime: 3600,
-          confirmation: false,
-          bulk: true,
-          maxResultSet: 100,
-        },
-      };
-      const eservice: EService = {
-        ...mockEService,
-        asyncExchange: true,
-        technology: technology.soap,
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
-      expect(
-        catalogService.uploadDocument(
-          eservice.id,
-          descriptor.id,
-          buildAsyncExchangeCallbackInterfaceSeed(),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(
-        asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
       );
     });
 

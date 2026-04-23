@@ -13,6 +13,7 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  AsyncExchangeProperties,
   Descriptor,
   DescriptorId,
   EService,
@@ -415,7 +416,6 @@ export function hasRoleToAccessInactiveDescriptors(
 }
 
 export function assertAsyncExchangeReadyForPublication(
-  eserviceTechnology: Technology,
   descriptor: Descriptor,
   eserviceId: EServiceId,
   descriptorId: DescriptorId
@@ -427,10 +427,18 @@ export function assertAsyncExchangeReadyForPublication(
   if (descriptor.asyncExchangeCallbackInterface === undefined) {
     throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
   }
+}
 
+export function assertAsyncExchangeBulkAllowedForDescriptor(
+  eserviceTechnology: Technology,
+  asyncExchangeProperties: AsyncExchangeProperties | undefined,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
   if (
+    asyncExchangeProperties !== undefined &&
     eserviceTechnology === technology.soap &&
-    descriptor.asyncExchangeProperties.bulk === true
+    asyncExchangeProperties.bulk === true
   ) {
     throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
   }
