@@ -143,7 +143,10 @@ describe("handleEServiceEvent test", async () => {
                   "EServicePersonalDataFlagUpdatedAfterPublication",
                   "EServicePersonalDataFlagUpdatedByTemplateUpdate",
                   "EServiceInstanceLabelUpdated",
-                  "MaintenanceEServicePersonalDataFlagReset"
+                  "MaintenanceEServicePersonalDataFlagReset",
+                  "EServiceArchivingScheduled",
+                  "EServiceArchivingCompleted",
+                  "EServiceArchivingCanceled"
                 ),
                 async () => [
                   {
@@ -171,7 +174,10 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchived",
                   "EServiceDescriptorQuotasUpdated",
                   "EServiceDescriptorAgreementApprovalPolicyUpdated",
-                  "EServiceDescriptorAttributesUpdated"
+                  "EServiceDescriptorAttributesUpdated",
+                  "EServiceDescriptorArchivingScheduled",
+                  "EServiceDescriptorArchivingCompleted",
+                  "EServiceDescriptorArchivingCanceled"
                 ),
                 async () => [
                   {

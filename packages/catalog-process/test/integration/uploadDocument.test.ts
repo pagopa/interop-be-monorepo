@@ -423,6 +423,8 @@ describe("upload Document", () => {
     descriptorState.published,
     descriptorState.suspended,
     descriptorState.deprecated,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
   ];
 
   it.each(

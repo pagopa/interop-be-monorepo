@@ -357,6 +357,7 @@ export const archivingScheduleToArchivingScheduleSQL = (
   descriptorId,
   scope: archivingSchedule.scope,
   archivableOn: dateToString(archivingSchedule.archivableOn),
+  startedAt: dateToString(archivingSchedule.startedAt),
 });
 
 export const documentToDocumentSQL = (
