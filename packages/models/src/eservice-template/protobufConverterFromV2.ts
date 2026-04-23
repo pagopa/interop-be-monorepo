@@ -42,6 +42,7 @@ export const fromEServiceTemplateVersionV2 = (
   input: EServiceTemplateVersionV2
 ): EServiceTemplateVersion => ({
   ...input,
+  description: input.description ?? "",
   id: unsafeBrandId(input.id),
   version: Number(input.version),
   attributes:
