@@ -116,7 +116,7 @@ export const retrieveKey = async (
   }
 };
 
-export const retrieveCatalogEntry = async (
+const retrieveCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
