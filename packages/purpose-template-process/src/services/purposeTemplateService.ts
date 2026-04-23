@@ -53,6 +53,7 @@ import {
   associationEServicesForPurposeTemplateFailed,
   associationEServiceTemplatesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
+  disassociationEServiceTemplatesFromPurposeTemplateFailed,
   eServiceDescriptorPurposeTemplateNotFound,
   invalidAssociatedEServiceForPublication,
   missingRiskAnalysisFormTemplate,
@@ -75,6 +76,7 @@ import {
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
   toCreateEventPurposeTemplateEServiceTemplateLinked,
+  toCreateEventPurposeTemplateEServiceTemplateUnlinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
@@ -118,6 +120,7 @@ import {
   validateEservicesAssociations,
   validateEservicesDisassociations,
   validateEServiceTemplatesAssociations,
+  validateEServiceTemplatesDisassociations,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   validateRiskAnalysisAnswerOrThrow,
   validateRiskAnalysisTemplateOrThrow,
@@ -1254,6 +1257,81 @@ export function purposeTemplateServiceBuilder(
         };
         const version = purposeTemplate.metadata.version + index;
         return toCreateEventPurposeTemplateEServiceTemplateLinked(
+          link,
+          purposeTemplate.data,
+          pair.eserviceTemplate,
+          correlationId,
+          version
+        );
+      });
+
+      const createdEvents = await repository.createEvents(createEvents);
+
+      return linkOrUnlinkValidationResultsToEServiceTemplateVersionPurposeTemplates(
+        validationResult.value,
+        purposeTemplateId,
+        creationTimestamp,
+        createdEvents
+      );
+    },
+    async unlinkEServiceTemplatesFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateIds: EServiceTemplateId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+      logger.info(
+        `Unlinking e-service templates ${eserviceTemplateIds} from purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceTemplateIdsCountIsBelowThreshold(
+        eserviceTemplateIds.length
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+        purposeTemplateState.published,
+      ]);
+
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      const validationResult = await validateEServiceTemplatesDisassociations(
+        eserviceTemplateIds,
+        purposeTemplate.data,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw disassociationEServiceTemplatesFromPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceTemplateIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map((pair, index) => {
+        const link: EServiceTemplateVersionPurposeTemplate = {
+          purposeTemplateId,
+          eserviceTemplateId: pair.eserviceTemplate.id,
+          eserviceTemplateVersionId: pair.eserviceTemplateVersionId,
+          createdAt: creationTimestamp,
+        };
+        const version = purposeTemplate.metadata.version + index;
+        return toCreateEventPurposeTemplateEServiceTemplateUnlinked(
           link,
           purposeTemplate.data,
           pair.eserviceTemplate,

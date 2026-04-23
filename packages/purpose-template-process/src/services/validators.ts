@@ -23,6 +23,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  EServiceTemplateVersionPurposeTemplate,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
   PurposeTemplate,
@@ -46,6 +47,7 @@ import {
   eserviceNotAssociatedError,
   eserviceNotFound,
   eserviceTemplateAlreadyAssociatedError,
+  eserviceTemplateNotAssociatedError,
   eserviceTemplateNotFound,
   invalidDescriptorStateError,
   invalidDescriptorStateForPublicationError,
@@ -62,6 +64,7 @@ import {
   unexpectedEServiceError,
   unexpectedEServiceTemplateError,
   unexpectedUnassociationEServiceError,
+  unexpectedUnassociationEServiceTemplateError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
 import {
@@ -73,11 +76,13 @@ import {
   associationBetweenEServiceAndPurposeTemplateAlreadyExists,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
   associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists,
+  associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist,
   associationEServicesForPurposeTemplateFailed,
   associationEServiceTemplatesForPurposeTemplateFailed,
   conflictDocumentPrettyNameDuplicate,
   conflictDuplicatedDocument,
   disassociationEServicesFromPurposeTemplateFailed,
+  disassociationEServiceTemplatesFromPurposeTemplateFailed,
   hyperlinkDetectionError,
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
@@ -115,6 +120,13 @@ export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIAT
 
 export const ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_ASSOCIATION: EServiceTemplateVersionState[] =
   [eserviceTemplateVersionState.published];
+
+export const ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION: EServiceTemplateVersionState[] =
+  [
+    eserviceTemplateVersionState.published,
+    eserviceTemplateVersionState.suspended,
+    eserviceTemplateVersionState.deprecated,
+  ];
 
 export const isRequesterCreator = (
   creatorId: TenantId,
@@ -1154,6 +1166,271 @@ export async function validateEServiceTemplatesAssociations(
     validationIssues: versionValidationIssues,
     validEServiceTemplateVersionPairs,
   } = validateEServiceTemplateVersionsToAssociate(validEServiceTemplates);
+
+  if (versionValidationIssues.length > 0) {
+    return invalidPurposeTemplateResult(versionValidationIssues);
+  }
+
+  return validPurposeTemplateResult(validEServiceTemplateVersionPairs);
+}
+
+/**
+ * Validate the existence of e-service templates in the disassociation flow.
+ * Variant of `validateEServiceTemplateExistence` without the `personalData` check:
+ * the purpose template's `handlesPersonalData` flag may drift after the link is
+ * created (while the purpose template is still in Draft state), and blocking
+ * the unlink on such drift would leave the creator unable to tear down the link.
+ */
+async function validateEServiceTemplateExistenceForDisassociation(
+  eserviceTemplateIds: EServiceTemplateId[],
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceTemplates: EServiceTemplate[];
+}> {
+  const results = await Promise.allSettled(
+    eserviceTemplateIds.map(
+      async (id) => await readModelService.getEServiceTemplateById(id)
+    )
+  );
+
+  return results.reduce(
+    (acc, result, index) =>
+      match(result)
+        .with({ status: "fulfilled" }, (res) => {
+          if (!res.value) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                eserviceTemplateNotFound(eserviceTemplateIds[index]),
+              ],
+            };
+          }
+
+          return {
+            ...acc,
+            validEServiceTemplates: [...acc.validEServiceTemplates, res.value],
+          };
+        })
+        .with({ status: "rejected" }, (res) => ({
+          ...acc,
+          validationIssues: [
+            ...acc.validationIssues,
+            unexpectedEServiceTemplateError(
+              res.reason.message,
+              eserviceTemplateIds[index]
+            ),
+          ],
+        }))
+        .exhaustive(),
+    {
+      validationIssues: new Array<PurposeTemplateValidationIssue>(),
+      validEServiceTemplates: new Array<EServiceTemplate>(),
+    }
+  );
+}
+
+/**
+ * For each valid e-service template, verify that a link with the given purpose
+ * template exists in the readmodel. Return the existing links (to later resolve
+ * the crystallised version id) and a validation issue for each missing link.
+ */
+async function validateEServiceTemplateDisassociations(
+  validEServiceTemplates: EServiceTemplate[],
+  purposeTemplateId: PurposeTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceTemplateVersionPurposeTemplates: EServiceTemplateVersionPurposeTemplate[];
+}> {
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
+  const validEServiceTemplateVersionPurposeTemplates: EServiceTemplateVersionPurposeTemplate[] =
+    [];
+
+  const associationResults = await Promise.allSettled(
+    validEServiceTemplates.map(
+      async (eserviceTemplate) =>
+        await readModelService.getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId(
+          purposeTemplateId,
+          eserviceTemplate.id
+        )
+    )
+  );
+
+  associationResults.forEach((result, index) => {
+    if (result.status === "rejected") {
+      throw unexpectedUnassociationEServiceTemplateError(
+        result.reason.message,
+        validEServiceTemplates[index].id
+      );
+    }
+
+    if (result.value === undefined) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceTemplateNotAssociatedError(
+          validEServiceTemplates[index].id,
+          purposeTemplateId
+        )
+      );
+      return;
+    }
+
+    // eslint-disable-next-line functional/immutable-data
+    validEServiceTemplateVersionPurposeTemplates.push(result.value);
+  });
+
+  return {
+    validationIssues,
+    validEServiceTemplateVersionPurposeTemplates,
+  };
+}
+
+/**
+ * Validate the crystallised version for each link.
+ * For each `(eserviceTemplate, link)` pair:
+ * - If the template has no versions, push `missingEServiceTemplateVersion`.
+ * - If the crystallised `eserviceTemplateVersionId` is not found in the template
+ *   versions, push `eserviceTemplateNotAssociated` (defensive).
+ * - If the version state is not in
+ *   `ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION`,
+ *   push `invalidEServiceTemplateVersionState`.
+ *
+ * The state check mirrors AS-IS `validateEServiceDescriptorsToDisassociate`:
+ * symmetric with the unlink flow for concrete e-services. Draft is excluded
+ * defensively (not reachable from a normal flow, but kept for pattern parity).
+ */
+function validateEServiceTemplateVersionsToDisassociate(
+  validEServiceTemplates: EServiceTemplate[],
+  validEServiceTemplateVersionPurposeTemplates: EServiceTemplateVersionPurposeTemplate[]
+): {
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEServiceTemplateVersionPairs: Array<{
+    eserviceTemplate: EServiceTemplate;
+    eserviceTemplateVersionId: EServiceTemplateVersionId;
+  }>;
+} {
+  const validationIssues: PurposeTemplateValidationIssue[] = [];
+  const validEServiceTemplateVersionPairs: Array<{
+    eserviceTemplate: EServiceTemplate;
+    eserviceTemplateVersionId: EServiceTemplateVersionId;
+  }> = [];
+
+  validEServiceTemplateVersionPurposeTemplates.forEach((link) => {
+    const eserviceTemplate = validEServiceTemplates.find(
+      (t) => t.id === link.eserviceTemplateId
+    );
+
+    if (!eserviceTemplate) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceTemplateNotAssociatedError(
+          link.eserviceTemplateId,
+          link.purposeTemplateId
+        )
+      );
+      return;
+    }
+
+    if (!eserviceTemplate.versions || eserviceTemplate.versions.length === 0) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        missingEServiceTemplateVersionError(eserviceTemplate.id)
+      );
+      return;
+    }
+
+    const version = eserviceTemplate.versions.find(
+      (v) => v.id === link.eserviceTemplateVersionId
+    );
+
+    if (!version) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        eserviceTemplateNotAssociatedError(
+          eserviceTemplate.id,
+          link.purposeTemplateId
+        )
+      );
+      return;
+    }
+
+    if (
+      !ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION.includes(
+        version.state
+      )
+    ) {
+      // eslint-disable-next-line functional/immutable-data
+      validationIssues.push(
+        invalidEServiceTemplateVersionStateError(
+          eserviceTemplate.id,
+          ALLOWED_ESERVICE_TEMPLATE_VERSION_STATES_FOR_PURPOSE_TEMPLATE_DISASSOCIATION
+        )
+      );
+      return;
+    }
+
+    // eslint-disable-next-line functional/immutable-data
+    validEServiceTemplateVersionPairs.push({
+      eserviceTemplate,
+      eserviceTemplateVersionId: link.eserviceTemplateVersionId,
+    });
+  });
+
+  return { validationIssues, validEServiceTemplateVersionPairs };
+}
+
+export async function validateEServiceTemplatesDisassociations(
+  eserviceTemplateIds: EServiceTemplateId[],
+  purposeTemplate: PurposeTemplate,
+  readModelService: ReadModelServiceSQL
+): Promise<
+  PurposeTemplateValidationResult<
+    Array<{
+      eserviceTemplate: EServiceTemplate;
+      eserviceTemplateVersionId: EServiceTemplateVersionId;
+    }>
+  >
+> {
+  const { validationIssues, validEServiceTemplates } =
+    await validateEServiceTemplateExistenceForDisassociation(
+      eserviceTemplateIds,
+      readModelService
+    );
+
+  if (validationIssues.length > 0) {
+    throw disassociationEServiceTemplatesFromPurposeTemplateFailed(
+      validationIssues,
+      eserviceTemplateIds,
+      purposeTemplate.id
+    );
+  }
+
+  const {
+    validationIssues: disassociationValidationIssues,
+    validEServiceTemplateVersionPurposeTemplates,
+  } = await validateEServiceTemplateDisassociations(
+    validEServiceTemplates,
+    purposeTemplate.id,
+    readModelService
+  );
+
+  if (disassociationValidationIssues.length > 0) {
+    throw associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist(
+      disassociationValidationIssues,
+      eserviceTemplateIds,
+      purposeTemplate.id
+    );
+  }
+
+  const {
+    validationIssues: versionValidationIssues,
+    validEServiceTemplateVersionPairs,
+  } = validateEServiceTemplateVersionsToDisassociate(
+    validEServiceTemplates,
+    validEServiceTemplateVersionPurposeTemplates
+  );
 
   if (versionValidationIssues.length > 0) {
     return invalidPurposeTemplateResult(versionValidationIssues);

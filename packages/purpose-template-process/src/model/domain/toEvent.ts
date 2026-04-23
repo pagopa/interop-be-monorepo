@@ -80,6 +80,29 @@ export function toCreateEventPurposeTemplateEServiceTemplateLinked(
   };
 }
 
+export function toCreateEventPurposeTemplateEServiceTemplateUnlinked(
+  link: EServiceTemplateVersionPurposeTemplate,
+  purposeTemplate: PurposeTemplate,
+  eserviceTemplate: EServiceTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: link.purposeTemplateId,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateEServiceTemplateUnlinked",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: link.eserviceTemplateVersionId,
+      },
+    },
+  };
+}
+
 export function toCreateEventPurposeTemplateEServiceUnlinked(
   eServiceDescriptorPurposeTemplate: EServiceDescriptorPurposeTemplate,
   purposeTemplate: PurposeTemplate,
