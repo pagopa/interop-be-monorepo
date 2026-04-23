@@ -60,6 +60,10 @@ export const fromEServiceTemplateVersionV2 = (
   state: fromEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? fromDocumentV2(input.interface) : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? fromDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
   agreementApprovalPolicy:
     input.agreementApprovalPolicy != null
       ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)

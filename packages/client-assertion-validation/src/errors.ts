@@ -39,10 +39,11 @@ export const errorCodes = {
   invalidInteractionIdClaimFormat: "0036",
   invalidUrlCallbackClaimFormat: "0037",
   invalidEntityNumberClaimFormat: "0038",
-  urlCallbackNotProvided: "0039",
-  interactionIdNotProvided: "0040",
-  entityNumberNotProvided: "0041",
-  invalidEntityNumber: "0042",
+  asyncExchangeNotAllowed: "0039",
+  urlCallbackNotProvided: "0040",
+  interactionIdNotProvided: "0041",
+  entityNumberNotProvided: "0042",
+  invalidEntityNumber: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -265,6 +266,15 @@ export function invalidDigestClaim(message: string): ApiError<ErrorCodes> {
     detail: `Invalid digest claim. Reason: ${message}`,
     code: "invalidDigestClaim",
     title: "Invalid digest claim",
+  });
+}
+
+export function asyncExchangeNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Async exchange clients cannot use the standard authorization server",
+    code: "asyncExchangeNotAllowed",
+    title: "Async exchange not allowed",
   });
 }
 

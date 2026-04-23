@@ -57,6 +57,7 @@ export const EServiceTemplateVersion = z.object({
   // Values to be set in all e-service descriptor instances created from this template, not editable by the user
   description: z.string().optional(),
   interface: Document.optional(),
+  asyncExchangeCallbackInterface: Document.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),
   attributes: EServiceTemplateAttributes,

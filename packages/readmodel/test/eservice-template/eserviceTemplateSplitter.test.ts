@@ -20,6 +20,7 @@ import {
   EServiceTemplateSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
@@ -160,12 +161,13 @@ describe("E-service template splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceTemplateVersionDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceTemplateVersionInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceTemplateId: eserviceTemplate.id,
       versionId: version.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     expect(eserviceTemplateSQL).toStrictEqual(expectedEServiceTemplateSQL);
