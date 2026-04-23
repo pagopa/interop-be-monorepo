@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   InteractionId,
@@ -24,6 +25,7 @@ export type InteractionState = z.infer<typeof InteractionState>;
 export const Interaction = z.object({
   PK: InteractionsPK,
   interactionId: InteractionId,
+  clientId: ClientId,
   purposeId: PurposeId,
   consumerId: TenantId,
   eServiceId: EServiceId,

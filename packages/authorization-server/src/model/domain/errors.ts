@@ -39,6 +39,7 @@ const errorCodes = {
   callbackInvocationTokenIssuedAtMissing: "0026",
   resourceAvailableTimeExpired: "0027",
   asyncExchangeConfirmationNotEnabled: "0028",
+  interactionClientMismatch: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -323,5 +324,15 @@ export function asyncExchangeConfirmationNotEnabled(
     detail: `Async exchange confirmation is not enabled for the eService associated with interaction ${interactionId}`,
     code: "asyncExchangeConfirmationNotEnabled",
     title: "Async exchange confirmation not enabled",
+  });
+}
+
+export function interactionClientMismatch(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} was not started by the requesting client`,
+    code: "interactionClientMismatch",
+    title: "Interaction client mismatch",
   });
 }

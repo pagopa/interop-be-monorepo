@@ -15,13 +15,13 @@ import {
   asyncExchangeNotEnabled,
   callbackInvocationTokenIssuedAtMissing,
   clientAssertionSignatureValidationFailed,
+  interactionClientMismatch,
   interactionNotFound,
   interactionStateNotAllowed,
   platformStateValidationFailed,
   resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
 import {
-  deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
   publishAudit,
   retrieveAsyncCatalogEntry,
@@ -99,22 +99,42 @@ export const handleConfirmation = async (
     );
   }
 
-  // 3. The resource-available window is measured from the callback_invocation
+  // 3. The caller must be the same client that started the interaction:
+  //    a different client on the same tenant that knows the interactionId
+  //    must not be able to pick up tokens for an exchange it did not start.
+  if (interaction.clientId !== clientId) {
+    throw interactionClientMismatch(interactionId);
+  }
+
+  // 4. The resource-available window is measured from the callback_invocation
   //    timestamp; the transition guard above ensures the interaction has passed
   //    through callback_invocation, so this field must be present.
   if (!interaction.callbackInvocationTokenIssuedAt) {
     throw callbackInvocationTokenIssuedAtMissing(interactionId);
   }
 
-  // 4. Retrieve consumer key from token-generation-states using the
-  //    interaction's purposeId (same pattern as start_interaction).
+  // 5. eserviceId/descriptorId come from the interaction (pinned at
+  //    start_interaction) — not from the current token-generation-states row,
+  //    which the platform-state writers may rewrite with a different
+  //    descriptor if agreement/descriptor data becomes outdated.
+  const { eServiceId: eserviceId, descriptorId } = interaction;
+
+  // 6. Retrieve consumer key and async catalog entry in parallel.
   const kid = clientAssertionJWT.header.kid;
   const pk = makeTokenGenerationStatesClientKidPurposePK({
     clientId,
     kid,
     purposeId: interaction.purposeId,
   });
-  const key = await retrieveKey(dynamoDBClient, pk);
+  const [key, catalogEntry] = await Promise.all([
+    retrieveKey(dynamoDBClient, pk),
+    retrieveAsyncCatalogEntry(
+      dynamoDBClient,
+      eserviceId,
+      descriptorId,
+      platformStatesTable
+    ),
+  ]);
 
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
@@ -129,19 +149,9 @@ export const handleConfirmation = async (
     throw asyncExchangeNotEnabled(clientId);
   }
 
-  // 5. Retrieve catalog entry (strict async variant: asyncExchangeProperties guaranteed)
-  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
-  );
-  const catalogEntry = await retrieveAsyncCatalogEntry(
-    dynamoDBClient,
-    eserviceId,
-    descriptorId,
-    platformStatesTable
-  );
   const { asyncExchangeProperties } = catalogEntry;
 
-  // 6. Confirmation must be explicitly enabled on the eService's async properties
+  // 7. Confirmation must be explicitly enabled on the eService's async properties
   if (asyncExchangeProperties.confirmation !== true) {
     throw asyncExchangeConfirmationNotEnabled(interactionId);
   }
@@ -194,8 +204,6 @@ export const handleConfirmation = async (
     );
   }
 
-  const issuedAt = now.toISOString();
-
   const token = await tokenGenerator.generateInteropAsyncConsumerToken({
     sub: clientId,
     audience: key.descriptorAudience,
@@ -209,6 +217,7 @@ export const handleConfirmation = async (
     interactionId,
     scope: interactionState.confirmation,
     dpopJWK: dpopProofJWT?.header.jwk,
+    now,
   });
 
   await updateInteractionState({
@@ -216,7 +225,7 @@ export const handleConfirmation = async (
     interactionsTable,
     interactionId,
     state: interactionState.confirmation,
-    updatedAt: issuedAt,
+    updatedAt: new Date(token.payload.iat * 1000).toISOString(),
   });
 
   // 11. Publish audit (consumer-side)
@@ -224,6 +233,8 @@ export const handleConfirmation = async (
     producer,
     generatedToken: token,
     key,
+    eserviceId,
+    descriptorId,
     clientAssertion: clientAssertionJWT,
     dpop: dpopProofJWT,
     correlationId,

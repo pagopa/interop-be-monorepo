@@ -11,6 +11,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   genericInternalError,
@@ -46,6 +47,7 @@ export const createInteraction = async ({
   dynamoDBClient,
   interactionsTable,
   interactionId,
+  clientId,
   purposeId,
   consumerId,
   eServiceId,
@@ -56,6 +58,7 @@ export const createInteraction = async ({
   dynamoDBClient: DynamoDBClient;
   interactionsTable: string;
   interactionId: InteractionId;
+  clientId: ClientId;
   purposeId: PurposeId;
   consumerId: TenantId;
   eServiceId: EServiceId;
@@ -68,6 +71,7 @@ export const createInteraction = async ({
   const interaction: Interaction = {
     PK,
     interactionId,
+    clientId,
     purposeId,
     consumerId,
     eServiceId,
@@ -84,6 +88,7 @@ export const createInteraction = async ({
     Item: {
       PK: { S: interaction.PK },
       interactionId: { S: interaction.interactionId },
+      clientId: { S: interaction.clientId },
       purposeId: { S: interaction.purposeId },
       consumerId: { S: interaction.consumerId },
       eServiceId: { S: interaction.eServiceId },
