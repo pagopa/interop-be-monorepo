@@ -1176,6 +1176,59 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/scheduleArchive:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Schedule e-service descriptor archiving process
+      operationId: scheduleEServiceDescriptorArchiving
+      description: Schedules the archiving process of the specified E-Service descriptor
+      responses:
+        "200":
+          description: E-service descriptor archiving process started.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2729,6 +2782,45 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reset personalData flag for an eservice
+      operationId: maintenanceResetEServicePersonalDataFlag
+      description: Resets the personalData flag to undefined for the specified eservice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceResetEServicePersonalDataFlagPayload"
+        required: true
+      responses:
+        "204":
+          description: EService personalData flag reset
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -3928,6 +4020,21 @@ components:
       required:
         - code
         - detail
+    MaintenanceResetEServicePersonalDataFlagPayload:
+      description: Maintenance payload to reset personalData flag
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - currentVersion
+        - reason
   securitySchemes:
     bearerAuth:
       type: http

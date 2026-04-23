@@ -81,12 +81,13 @@ export async function handleCatalogMessageV2(
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
-            "EServiceDescriptorArchiveScheduled",
-            "EServiceDescriptorArchiveScheduleCanceled",
-            "EServiceDescriptorArchiveScheduleCompleted",
-            "EServiceArchiveScheduled",
-            "EServiceArchiveScheduleCanceled",
-            "EServiceArchiveScheduleCompleted"
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         (msg) => {
@@ -111,6 +112,7 @@ export async function handleCatalogMessageV2(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

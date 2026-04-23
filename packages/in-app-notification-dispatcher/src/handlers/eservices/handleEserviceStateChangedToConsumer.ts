@@ -34,12 +34,12 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
   | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
-  | "EServiceDescriptorArchiveScheduled"
-  | "EServiceDescriptorArchiveScheduleCanceled"
-  | "EServiceDescriptorArchiveScheduleCompleted"
-  | "EServiceArchiveScheduled"
-  | "EServiceArchiveScheduleCanceled"
-  | "EServiceArchiveScheduleCompleted";
+  | "EServiceDescriptorArchivingScheduled"
+  | "EServiceDescriptorArchivingCanceled"
+  | "EServiceDescriptorArchivingCompleted"
+  | "EServiceArchivingScheduled"
+  | "EServiceArchivingCanceled"
+  | "EServiceArchivingCompleted";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -259,12 +259,12 @@ function getBodyAndDescriptorId(
     .with(
       {
         type: P.union(
-          "EServiceDescriptorArchiveScheduled",
-          "EServiceDescriptorArchiveScheduleCanceled",
-          "EServiceDescriptorArchiveScheduleCompleted",
-          "EServiceArchiveScheduled",
-          "EServiceArchiveScheduleCanceled",
-          "EServiceArchiveScheduleCompleted"
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted"
         ),
       },
       () => ({

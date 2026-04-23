@@ -93,12 +93,13 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
           // FIXME these events will be managed with "WORK ITEM 10"
-          "EServiceDescriptorArchiveScheduled",
-          "EServiceDescriptorArchiveScheduleCanceled",
-          "EServiceDescriptorArchiveScheduleCompleted",
-          "EServiceArchiveScheduled",
-          "EServiceArchiveScheduleCanceled",
-          "EServiceArchiveScheduleCompleted"
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

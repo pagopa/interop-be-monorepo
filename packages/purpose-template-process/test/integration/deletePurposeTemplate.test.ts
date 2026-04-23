@@ -129,9 +129,9 @@ describe("deletePurposeTemplate", () => {
       payload: purposeTemplateDeletionEvent.data,
     });
 
-    expect(purposeDeletionPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
+    expect(purposeDeletionPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,

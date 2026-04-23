@@ -134,7 +134,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute.id,
+      tenant: toTenantV2(expectedTenant),
+    });
 
     const writtenEvent2 = await readEventByStreamIdAndVersion(
       mockTenant.id,
@@ -176,7 +179,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload2.tenant).toEqual(toTenantV2(expectedTenant2));
+    expect(writtenPayload2).toEqual({
+      attributeId: attribute2.id,
+      tenant: toTenantV2(expectedTenant2),
+    });
     expect(returnedTenant).toEqual(expectedTenant2);
   });
 
@@ -278,7 +284,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute2.id,
+      tenant: toTenantV2(expectedTenant),
+    });
     expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {

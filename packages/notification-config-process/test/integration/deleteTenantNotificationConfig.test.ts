@@ -49,9 +49,11 @@ describe("deleteTenantNotificationConfig", () => {
       messageType: TenantNotificationConfigDeletedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(tenantNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        tenantNotificationConfig
+      ),
+    });
   });
 
   it("should throw tenantNotificationConfigNotFound if no notification config exists for the tenant", async () => {
