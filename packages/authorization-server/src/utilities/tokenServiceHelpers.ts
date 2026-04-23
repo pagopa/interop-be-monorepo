@@ -1,5 +1,7 @@
 import {
+  AgreementId,
   AsyncClientAssertion,
+  AsyncPlatformStatesCatalogEntry,
   clientKindTokenGenStates,
   ClientAssertion,
   ClientKindTokenGenStates,
@@ -13,10 +15,17 @@ import {
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
+  makeProducerKeychainPlatformStatesPK,
   PlatformStatesCatalogEntry,
+  ProducerKeychainId,
+  ProducerKeychainPlatformStateEntry,
+  PurposeId,
+  PurposeVersionId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  TokenGenStatesConsumerClientGSIPurpose,
+  TenantId,
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -25,6 +34,9 @@ import {
   GetItemCommand,
   GetItemCommandOutput,
   GetItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
@@ -44,13 +56,16 @@ import {
 } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
+  asyncExchangePropertiesNotFound,
   catalogEntryNotFound,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   kafkaAuditingFailed,
+  producerKeychainEntryNotFound,
   tokenGenerationStatesEntryNotFound,
+  tokenGenerationStatesEntriesByPurposeIdNotFound,
 } from "../model/domain/errors.js";
 
 const EXPECTED_HTM = "POST";
@@ -140,6 +155,160 @@ export const retrieveCatalogEntry = async (
   return catalogEntry.data;
 };
 
+export const retrieveAsyncCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  platformStatesTable: string
+): Promise<AsyncPlatformStatesCatalogEntry> => {
+  const catalogEntry = await retrieveCatalogEntry(
+    dynamoDBClient,
+    eserviceId,
+    descriptorId,
+    platformStatesTable
+  );
+  const asyncCatalogEntry =
+    AsyncPlatformStatesCatalogEntry.safeParse(catalogEntry);
+  if (!asyncCatalogEntry.success) {
+    throw asyncExchangePropertiesNotFound(eserviceId, descriptorId);
+  }
+  return asyncCatalogEntry.data;
+};
+
+export const retrieveTokenGenStatesEntryByPurposeId = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId,
+  tokenGenerationStatesTable: string
+): Promise<TokenGenStatesConsumerClientGSIPurpose> => {
+  const input: QueryInput = {
+    TableName: tokenGenerationStatesTable,
+    IndexName: "Purpose",
+    KeyConditionExpression: "GSIPK_purposeId = :purposeId",
+    ExpressionAttributeValues: {
+      ":purposeId": { S: purposeId },
+    },
+    Limit: 1,
+  };
+
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Items || data.Items.length === 0) {
+    throw tokenGenerationStatesEntriesByPurposeIdNotFound(purposeId);
+  }
+
+  const unmarshalled = unmarshall(data.Items[0]);
+  const entry = TokenGenStatesConsumerClientGSIPurpose.safeParse(unmarshalled);
+
+  if (!entry.success) {
+    throw genericInternalError(
+      `Unable to parse token-generation-states entry from Purpose GSI: result ${JSON.stringify(
+        entry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return entry.data;
+};
+
+const buildAuditMessageBody = ({
+  generatedToken,
+  clientAssertion,
+  dpop,
+  correlationId,
+  organizationId,
+  agreementId,
+  eserviceId,
+  descriptorId,
+  purposeId,
+  purposeVersionId,
+}: {
+  generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
+  clientAssertion: ClientAssertion | AsyncClientAssertion;
+  dpop: DPoPProof | undefined;
+  correlationId: CorrelationId;
+  organizationId: string;
+  agreementId: string;
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  purposeId: string;
+  purposeVersionId: string;
+}): GeneratedTokenAuditDetails => ({
+  jwtId: generatedToken.payload.jti,
+  correlationId,
+  issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
+  clientId: clientAssertion.payload.sub,
+  organizationId: unsafeBrandId(organizationId),
+  agreementId: unsafeBrandId(agreementId),
+  eserviceId,
+  descriptorId,
+  purposeId: unsafeBrandId(purposeId),
+  purposeVersionId: unsafeBrandId(purposeVersionId),
+  algorithm: generatedToken.header.alg,
+  keyId: generatedToken.header.kid,
+  audience: [generatedToken.payload.aud].flat().join(","),
+  subject: generatedToken.payload.sub,
+  notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
+  expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
+  issuer: generatedToken.payload.iss,
+  clientAssertion: {
+    algorithm: clientAssertion.header.alg,
+    audience: [clientAssertion.payload.aud].flat().join(","),
+    expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
+    issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
+    issuer: clientAssertion.payload.iss,
+    jwtId: clientAssertion.payload.jti,
+    keyId: clientAssertion.header.kid,
+    subject: clientAssertion.payload.sub,
+  },
+  ...(dpop
+    ? {
+        dpop: {
+          typ: dpop.header.typ,
+          alg: dpop.header.alg,
+          jwk: dpop.header.jwk,
+          htm: dpop.payload.htm,
+          htu: dpop.payload.htu,
+          iat: secondsToMilliseconds(dpop.payload.iat),
+          jti: dpop.payload.jti,
+        },
+      }
+    : {}),
+});
+
+const sendAuditMessage = async ({
+  messageBody,
+  producer,
+  fileManager,
+  logger,
+}: {
+  messageBody: GeneratedTokenAuditDetails;
+  producer: Awaited<ReturnType<typeof initProducer>>;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<void> => {
+  try {
+    const res = await producer.send({
+      messages: [
+        {
+          key: messageBody.jwtId,
+          value: JSON.stringify(messageBody),
+        },
+      ],
+    });
+    if (res.length === 0 || res[0].errorCode !== 0) {
+      throw kafkaAuditingFailed();
+    }
+  } catch (e) {
+    logger.error(
+      `Main auditing flow failed, going through fallback. Error: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
+    await fallbackAudit(messageBody, fileManager, logger);
+  }
+};
+
 export const publishAudit = async ({
   producer,
   generatedToken,
@@ -162,65 +331,20 @@ export const publishAudit = async ({
   const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
     key.GSIPK_eserviceId_descriptorId
   );
-  const messageBody: GeneratedTokenAuditDetails = {
-    jwtId: generatedToken.payload.jti,
+  const messageBody = buildAuditMessageBody({
+    generatedToken,
+    clientAssertion,
+    dpop,
     correlationId,
-    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
-    clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
     eserviceId,
     descriptorId,
     purposeId: key.GSIPK_purposeId,
-    purposeVersionId: unsafeBrandId(key.purposeVersionId),
-    algorithm: generatedToken.header.alg,
-    keyId: generatedToken.header.kid,
-    audience: [generatedToken.payload.aud].flat().join(","),
-    subject: generatedToken.payload.sub,
-    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
-    issuer: generatedToken.payload.iss,
-    clientAssertion: {
-      algorithm: clientAssertion.header.alg,
-      audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
-      issuer: clientAssertion.payload.iss,
-      jwtId: clientAssertion.payload.jti,
-      keyId: clientAssertion.header.kid,
-      subject: clientAssertion.payload.sub,
-    },
-    ...(dpop
-      ? {
-          dpop: {
-            typ: dpop.header.typ,
-            alg: dpop.header.alg,
-            jwk: dpop.header.jwk,
-            htm: dpop.payload.htm,
-            htu: dpop.payload.htu,
-            iat: secondsToMilliseconds(dpop.payload.iat),
-            jti: dpop.payload.jti,
-          },
-        }
-      : {}),
-  };
+    purposeVersionId: key.purposeVersionId,
+  });
 
-  try {
-    const res = await producer.send({
-      messages: [
-        {
-          key: generatedToken.payload.jti,
-          value: JSON.stringify(messageBody),
-        },
-      ],
-    });
-    if (res.length === 0 || res[0].errorCode !== 0) {
-      throw kafkaAuditingFailed();
-    }
-  } catch (e) {
-    logger.error("Main auditing flow failed, going through fallback");
-    await fallbackAudit(messageBody, fileManager, logger);
-  }
+  await sendAuditMessage({ messageBody, producer, fileManager, logger });
 };
 
 export const fallbackAudit = async (
@@ -250,6 +374,51 @@ export const fallbackAudit = async (
     logger.error(`Auditing fallback failed: ${err}`);
     throw fallbackAuditFailed(messageBody.clientId);
   }
+};
+
+export const publishProducerAudit = async ({
+  producer,
+  generatedToken,
+  organizationId,
+  agreementId,
+  eserviceId,
+  descriptorId,
+  purposeId,
+  purposeVersionId,
+  clientAssertion,
+  dpop,
+  correlationId,
+  fileManager,
+  logger,
+}: {
+  producer: Awaited<ReturnType<typeof initProducer>>;
+  generatedToken: InteropAsyncConsumerToken;
+  organizationId: TenantId;
+  agreementId: AgreementId;
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  purposeId: string;
+  purposeVersionId: PurposeVersionId;
+  clientAssertion: AsyncClientAssertion;
+  dpop: DPoPProof | undefined;
+  correlationId: CorrelationId;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<void> => {
+  const messageBody = buildAuditMessageBody({
+    generatedToken,
+    clientAssertion,
+    dpop,
+    correlationId,
+    organizationId,
+    agreementId,
+    eserviceId,
+    descriptorId,
+    purposeId,
+    purposeVersionId,
+  });
+
+  await sendAuditMessage({ messageBody, producer, fileManager, logger });
 };
 
 export const deconstructGSIPK_eserviceId_descriptorId = (
@@ -299,6 +468,54 @@ export const logTokenGenerationInfo = ({
   const tokenType = `[TYPE=${clientKind}]`;
   const jti = `[JTI=${tokenJti}]`;
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
+};
+
+export const retrieveProducerKey = async (
+  dynamoDBClient: DynamoDBClient,
+  tableName: string,
+  {
+    producerKeychainId,
+    kid,
+    eServiceId,
+  }: {
+    producerKeychainId: ProducerKeychainId;
+    kid: string;
+    eServiceId: EServiceId;
+  }
+): Promise<ProducerKeychainPlatformStateEntry> => {
+  const pk = makeProducerKeychainPlatformStatesPK({
+    producerKeychainId,
+    kid,
+    eServiceId,
+  });
+  const input: GetItemInput = {
+    Key: {
+      PK: { S: pk },
+    },
+    TableName: tableName,
+    ConsistentRead: true,
+  };
+
+  const data: GetItemCommandOutput = await dynamoDBClient.send(
+    new GetItemCommand(input)
+  );
+
+  if (!data.Item) {
+    throw producerKeychainEntryNotFound(producerKeychainId, kid, eServiceId);
+  }
+
+  const unmarshalled = unmarshall(data.Item);
+  const entry = ProducerKeychainPlatformStateEntry.safeParse(unmarshalled);
+
+  if (!entry.success) {
+    throw genericInternalError(
+      `Unable to parse producer-keychain-platform-states entry: result ${JSON.stringify(
+        entry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return entry.data;
 };
 
 export const validateDPoPProof = async (

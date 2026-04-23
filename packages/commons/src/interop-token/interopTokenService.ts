@@ -349,7 +349,7 @@ export class InteropTokenGenerator {
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
     interactionId: InteractionId;
-    urlCallback: string;
+    urlCallback?: string;
     scope: InteractionState;
     dpopJWK?: JWKKeyRS256 | JWKKeyES256;
   }): Promise<InteropAsyncConsumerToken> {
@@ -387,7 +387,7 @@ export class InteropTokenGenerator {
       eserviceId,
       descriptorId,
       interactionId,
-      urlCallback,
+      ...(urlCallback ? { urlCallback } : {}),
       scope,
       ...(dpopJWK
         ? {

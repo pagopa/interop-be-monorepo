@@ -10,6 +10,7 @@ import {
   generateId,
   PurposeId,
   InteractionId,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   createInteraction,
@@ -43,6 +44,7 @@ describe("interactions utils integration", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId,
       issuedAt,
@@ -72,6 +74,7 @@ describe("interactions utils integration", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId,
       issuedAt: startIssuedAt,

@@ -11,6 +11,7 @@ import {
   generateId,
   PurposeId,
   InteractionId,
+  TenantId,
 } from "pagopa-interop-models";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
@@ -38,6 +39,7 @@ describe("interactions utils", () => {
   it("should create and read an interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -49,6 +51,7 @@ describe("interactions utils", () => {
       interactionsTable,
       interactionId,
       purposeId,
+      consumerId,
       eServiceId,
       descriptorId,
       issuedAt,
@@ -75,6 +78,7 @@ describe("interactions utils", () => {
   it("should not create duplicated interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -88,6 +92,7 @@ describe("interactions utils", () => {
         interactionsTable,
         interactionId,
         purposeId,
+        consumerId,
         eServiceId,
         descriptorId,
         issuedAt,
@@ -104,6 +109,7 @@ describe("interactions utils", () => {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "start_interaction",
@@ -143,6 +149,7 @@ describe("interactions utils", () => {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "callback_invocation",

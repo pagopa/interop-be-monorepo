@@ -1,7 +1,12 @@
 import {
   ApiError,
   ClientId,
+  EServiceId,
+  InteractionId,
+  InteractionState,
   makeApiProblemBuilder,
+  ProducerKeychainId,
+  PurposeId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
@@ -22,10 +27,15 @@ const errorCodes = {
   asyncScopeNotYetImplemented: "0014",
   asyncRequestValidationFailed: "0015",
   asyncClientAssertionClaimsValidationFailed: "0016",
-  urlCallbackNotProvided: "0017",
-  purposeIdNotProvided: "0018",
-  asyncExchangeNotEnabled: "0019",
-  catalogEntryNotFound: "0020",
+  asyncExchangeNotEnabled: "0017",
+  interactionNotFound: "0018",
+  interactionStateNotAllowed: "0019",
+  producerKeychainEntryNotFound: "0020",
+  catalogEntryNotFound: "0021",
+  asyncExchangeResponseTimeExceeded: "0022",
+  entityNumberExceedsMaxResultSet: "0023",
+  tokenGenerationStatesEntriesByPurposeIdNotFound: "0024",
+  asyncExchangePropertiesNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -181,26 +191,6 @@ export function asyncClientAssertionClaimsValidationFailed(
   });
 }
 
-export function urlCallbackNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `urlCallback not provided in client assertion for client ${clientId}`,
-    code: "urlCallbackNotProvided",
-    title: "urlCallback not provided",
-  });
-}
-
-export function purposeIdNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `purposeId not provided in client assertion for client ${clientId}`,
-    code: "purposeIdNotProvided",
-    title: "purposeId not provided",
-  });
-}
-
 export function asyncExchangeNotEnabled(
   clientId: string
 ): ApiError<ErrorCodes> {
@@ -208,6 +198,40 @@ export function asyncExchangeNotEnabled(
     detail: `Async exchange is not enabled for the eService associated with client ${clientId}`,
     code: "asyncExchangeNotEnabled",
     title: "Async exchange not enabled",
+  });
+}
+
+export function interactionNotFound(
+  interactionId: InteractionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} not found`,
+    code: "interactionNotFound",
+    title: "Interaction not found",
+  });
+}
+
+export function interactionStateNotAllowed(
+  interactionId: InteractionId,
+  currentState: InteractionState,
+  requestedScope: InteractionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interaction ${interactionId} in state ${currentState} does not allow scope ${requestedScope}`,
+    code: "interactionStateNotAllowed",
+    title: "Interaction state not allowed",
+  });
+}
+
+export function producerKeychainEntryNotFound(
+  producerKeychainId: ProducerKeychainId,
+  kid: string,
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer keychain entry not found for producerKeychainId ${producerKeychainId}, kid ${kid}, eServiceId ${eServiceId}`,
+    code: "producerKeychainEntryNotFound",
+    title: "Producer keychain entry not found",
   });
 }
 
@@ -219,5 +243,50 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function asyncExchangePropertiesNotFound(
+  eserviceId: EServiceId,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Platform-states catalog entry for eService ${eserviceId}, descriptor ${descriptorId} is missing asyncExchangeProperties`,
+    code: "asyncExchangePropertiesNotFound",
+    title: "Async exchange properties not found",
+  });
+}
+
+export function asyncExchangeResponseTimeExceeded(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  responseTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange response time exceeded for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${responseTime}ms`,
+    code: "asyncExchangeResponseTimeExceeded",
+    title: "Async exchange response time exceeded",
+  });
+}
+
+export function entityNumberExceedsMaxResultSet(
+  clientId: string | undefined,
+  entityNumber: number,
+  maxResultSet: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} exceeds maxResultSet ${maxResultSet} for client ${clientId}`,
+    code: "entityNumberExceedsMaxResultSet",
+    title: "entityNumber exceeds maxResultSet",
+  });
+}
+
+export function tokenGenerationStatesEntriesByPurposeIdNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No token-generation-states entries found for purposeId ${purposeId}`,
+    code: "tokenGenerationStatesEntriesByPurposeIdNotFound",
+    title: "Token-generation-states entries not found for purposeId",
   });
 }
