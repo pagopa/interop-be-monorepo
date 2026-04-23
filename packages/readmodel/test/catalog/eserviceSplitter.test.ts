@@ -229,6 +229,7 @@ describe("E-service splitter", () => {
             scope: descriptor.archivingSchedule.scope,
             archivableOn:
               descriptor.archivingSchedule.archivableOn.toISOString(),
+            startedAt: descriptor.archivingSchedule.startedAt.toISOString(),
           };
 
     expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
