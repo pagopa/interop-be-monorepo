@@ -338,6 +338,7 @@ export class InteropTokenGenerator {
     urlCallback,
     scope,
     dpopJWK,
+    now,
   }: {
     sub: ClientId;
     audience: string[];
@@ -352,6 +353,11 @@ export class InteropTokenGenerator {
     urlCallback?: string;
     scope: InteractionState;
     dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+    // Optional reference instant for iat/nbf/exp. When the caller has already
+    // captured `now` (e.g. to validate a time window that must match the
+    // token's iat), it can pass it here to avoid the sub-second drift that
+    // would otherwise occur by calling `new Date()` again inside this method.
+    now?: Date;
   }): Promise<InteropAsyncConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -362,7 +368,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = dateToSeconds(new Date());
+    const currentTimestamp = dateToSeconds(now ?? new Date());
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,

@@ -294,7 +294,6 @@ const setupConfirmationScenario = async (overrides?: {
     await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: purpose.id,
         scope: interactionState.confirmation,
         interactionId,
         ...overrides?.consumerCustomClaims,
@@ -492,7 +491,6 @@ describe("async token service - confirmation", () => {
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: generateId<PurposeId>(),
         scope: interactionState.confirmation,
       },
     });
@@ -510,7 +508,6 @@ describe("async token service - confirmation", () => {
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: generateId<PurposeId>(),
         scope: interactionState.confirmation,
         interactionId,
       },
@@ -519,6 +516,30 @@ describe("async token service - confirmation", () => {
     await expect(
       callAsyncTokenService(jws, consumerClientId)
     ).rejects.toThrowError(interactionNotFound(interactionId));
+  });
+
+  it("should throw interactionClientMismatch when clientId on the interaction differs", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId, interactionId } =
+      await setupConfirmationScenario();
+
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET clientId = :c",
+        ExpressionAttributeValues: {
+          ":c": { S: generateId<ClientId>() },
+        },
+      })
+    );
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/was not started by the requesting client/);
   });
 
   it("should throw interactionStateNotAllowed when interaction is still in callback_invocation", async () => {
@@ -565,6 +586,20 @@ describe("async token service - confirmation", () => {
     ).rejects.toThrowError(/Resource available time expired/);
   });
 
+  it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/Agreement state is: INACTIVE/);
+  });
+
   it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
@@ -579,6 +614,20 @@ describe("async token service - confirmation", () => {
     ).rejects.toThrowError(/Purpose state is: INACTIVE/);
   });
 
+  it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      tokenGenStatesDescriptorStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/E-Service state is: INACTIVE/);
+  });
+
   it("should throw catalogEntryNotFound when catalog entry is absent", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
@@ -591,5 +640,19 @@ describe("async token service - confirmation", () => {
     await expect(
       callAsyncTokenService(consumerJws, consumerClientId)
     ).rejects.toThrowError(/catalog entry not found/i);
+  });
+
+  it("should throw tokenGenerationStatesEntryNotFound when consumer entry is absent", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      skipTokenGenStatesEntry: true,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/not found in token-generation-states/);
   });
 });

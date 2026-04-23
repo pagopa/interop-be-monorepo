@@ -313,11 +313,12 @@ const setupGetResourceScenario = async (overrides?: {
   await overrideTokenGenStatesFields(tokenClientKidPurposePK, stateOverrides);
 
   // Step 5: fresh assertion for get_resource (new keypair); align token-gen-states publicKey.
+  //         get_resource does not require purposeId in the claims; the handler
+  //         derives the purpose from the interaction.
   const { jws: getResourceJws, publicKeyEncodedPem: getResourcePublicKey } =
     await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: purpose.id,
         scope: interactionState.getResource,
         interactionId,
         ...overrides?.consumerCustomClaims,
@@ -508,7 +509,6 @@ describe("async token service - get_resource", () => {
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: generateId<PurposeId>(),
         scope: interactionState.getResource,
       },
     });
@@ -526,7 +526,6 @@ describe("async token service - get_resource", () => {
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
       customClaims: {
-        purposeId: generateId<PurposeId>(),
         scope: interactionState.getResource,
         interactionId,
       },
@@ -535,6 +534,32 @@ describe("async token service - get_resource", () => {
     await expect(
       callAsyncTokenService(jws, consumerClientId)
     ).rejects.toThrowError(interactionNotFound(interactionId));
+  });
+
+  it("should throw interactionClientMismatch when clientId on the interaction differs", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId, interactionId } =
+      await setupGetResourceScenario();
+
+    // Rewrite the interaction's clientId to simulate a sibling client on the
+    // same tenant trying to pick up a token for an exchange it did not start.
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET clientId = :c",
+        ExpressionAttributeValues: {
+          ":c": { S: generateId<ClientId>() },
+        },
+      })
+    );
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/was not started by the requesting client/);
   });
 
   it("should throw interactionStateNotAllowed when interaction is still in start_interaction", async () => {
