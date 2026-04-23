@@ -29,6 +29,7 @@ import {
   operationForbidden,
   technology,
   EServiceTemplateId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -53,6 +54,7 @@ import {
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
+  attributeDailyCallsNotAllowed,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -441,5 +443,32 @@ export function assertAsyncExchangeBulkAllowedForDescriptor(
     asyncExchangeProperties.bulk === true
   ) {
     throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+  }
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertAttributeDailyCallsConsistentWithTotal(
+  attributes: EserviceAttributes,
+  dailyCallsTotal: number
+): void {
+  for (const attributeGroup of attributes.certified) {
+    for (const attribute of attributeGroup) {
+      if (
+        attribute.dailyCallsPerConsumer !== undefined &&
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+    }
   }
 }

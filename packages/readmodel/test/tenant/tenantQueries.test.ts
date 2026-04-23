@@ -55,6 +55,7 @@ describe("Tenant Queries", () => {
           updatedAt: new Date(),
           onboardedAt: new Date(),
           subUnitType: tenantUnitType.AOO,
+          selfcareInstitutionType: "SCP",
           mails: [getMockTenantMail(), getMockTenantMail()],
           features: [
             {

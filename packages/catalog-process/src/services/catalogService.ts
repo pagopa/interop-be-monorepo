@@ -109,6 +109,7 @@ import {
   eServiceAsyncExchangeNotEnabled,
   descriptorAsyncExchangeNotConfigured,
   templateVersionMissingAsyncExchangeProperties,
+  certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -193,6 +194,8 @@ import {
   assertValidDelegationFlags,
   assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
+  assertDailyCallsForCertifiedAttributesOnly,
+  assertAttributeDailyCallsConsistentWithTotal,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -564,9 +567,7 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: seed.personalData }
-      : {}),
+    personalData: seed.personalData,
     instanceLabel: instanceLabel,
     ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
       ? { asyncExchange: seed.asyncExchange }
@@ -1436,7 +1437,12 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        eserviceDescriptorSeed.dailyCallsTotal
+      );
 
       const eserviceVersion = eservice.metadata.version;
 
@@ -1787,10 +1793,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -2211,13 +2214,35 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        descriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
-      const updatedDescriptor: Descriptor = {
+      let updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       };
+
+      if (seed.attributes) {
+        const parsedAttributes = await parseAndCheckAttributes(
+          seed.attributes,
+          readModelService
+        );
+
+        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+        assertAttributeDailyCallsConsistentWithTotal(
+          parsedAttributes,
+          seed.dailyCallsTotal
+        );
+
+        updatedDescriptor = {
+          ...updatedDescriptor,
+          attributes: parsedAttributes,
+        };
+      }
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2625,132 +2650,69 @@ export function catalogServiceBuilder(
 
       assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
 
+      const oldIsConsumerDelegable = eservice.data.isConsumerDelegable || false;
+      const oldIsClientAccessDelegable =
+        eservice.data.isClientAccessDelegable || false;
+
+      if (
+        oldIsConsumerDelegable === isConsumerDelegable &&
+        oldIsClientAccessDelegable === isClientAccessDelegable
+      ) {
+        return eservice;
+      }
+
       const updatedEservice: EService = {
         ...eservice.data,
         isConsumerDelegable,
         isClientAccessDelegable,
       };
 
-      const events = match({
-        isConsumerDelegable,
-        oldIsConsumerDelegable: eservice.data.isConsumerDelegable || false,
-        isClientAccessDelegable,
-        oldIsClientAccessDelegable:
-          eservice.data.isClientAccessDelegable || false,
-      })
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true, // should never happen
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version + 1,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: false,
-          },
-          {
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: true,
-          },
-          {
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          () => undefined
-        )
-        .exhaustive();
+      const consumerDelegableEvent =
+        oldIsConsumerDelegable === isConsumerDelegable
+          ? undefined
+          : isConsumerDelegable
+            ? toCreateEventEServiceIsConsumerDelegableEnabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsConsumerDelegableDisabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              );
 
-      if (events) {
-        const createdEvents = await repository.createEvents(events);
+      const clientAccessEventVersion =
+        eservice.metadata.version + (consumerDelegableEvent ? 1 : 0);
 
-        return {
-          data: updatedEservice,
-          metadata: {
-            version:
-              createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
-          },
-        };
-      }
-      return eservice;
+      const clientAccessDelegableEvent =
+        oldIsClientAccessDelegable === isClientAccessDelegable
+          ? undefined
+          : isClientAccessDelegable
+            ? toCreateEventEServiceIsClientAccessDelegableEnabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsClientAccessDelegableDisabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              );
+
+      const events = [
+        consumerDelegableEvent,
+        clientAccessDelegableEvent,
+      ].filter(
+        (event): event is CreateEvent<EServiceEvent> => event !== undefined
+      );
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
+        },
+      };
     },
     async updateEServiceName(
       eserviceId: EServiceId,
@@ -2918,10 +2880,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -3055,13 +3014,30 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        descriptor.dailyCallsTotal
+      );
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3534,10 +3510,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        template.personalData === undefined
-      ) {
+      if (template.personalData === undefined) {
         throw eServiceTemplateWithoutPersonalDataFlag(
           template.id,
           publishedVersion.id
@@ -3889,8 +3862,12 @@ export function catalogServiceBuilder(
     async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
       personalData: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
       );
@@ -3924,9 +3901,14 @@ export function catalogServiceBuilder(
           correlationId
         );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async updateEServiceInstanceLabelAfterPublication(
       eserviceId: EServiceId,
@@ -4249,6 +4231,37 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
+function hasCertifiedAttributeDailyCallsChanged(
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
+    const seedAttrGroup = seed.certified.find((seedGroup) =>
+      descriptorAttributesGroup.every((descriptorAttribute) =>
+        seedGroup.some(
+          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
+        )
+      )
+    );
+
+    if (seedAttrGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
+    }
+
+    return descriptorAttributesGroup.some((descriptorAttribute) => {
+      const seedAttribute = seedAttrGroup.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+
+      return (
+        seedAttribute?.dailyCallsPerConsumer !==
+        descriptorAttribute.dailyCallsPerConsumer
+      );
+    });
+  });
+}
+
 function evaluateTemplateVersionRef(
   descriptor: Descriptor,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
@@ -4478,12 +4491,10 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
     ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
       ? { asyncExchange: updatedAsyncExchange }
       : {}),
+    personalData: updatedPersonalData,
   };
 
   if (
@@ -4564,6 +4575,12 @@ async function updateDraftDescriptor(
         readModelService
       )
     : descriptor.attributes;
+
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertAttributeDailyCallsConsistentWithTotal(
+    updatedAttributes,
+    updatedDailyCallsTotal
+  );
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(

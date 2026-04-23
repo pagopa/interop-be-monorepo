@@ -1127,6 +1127,7 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
     selfcareId: varchar("selfcare_id"),
     externalIdOrigin: varchar("external_id_origin").notNull(),
     externalIdValue: varchar("external_id_value").notNull(),
+    selfcareInstitutionType: varchar("selfcare_institution_type"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -1537,6 +1538,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({

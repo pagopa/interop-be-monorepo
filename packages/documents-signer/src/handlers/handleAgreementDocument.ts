@@ -37,8 +37,9 @@ export async function handleAgreementDocument(
           logger
         );
 
+        const fileBuffer = Buffer.from(file);
         const fileName = path.basename(s3Key);
-        const checksum = await calculateSha256Base64(Buffer.from(file));
+        const checksum = await calculateSha256Base64(fileBuffer);
         const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
@@ -53,15 +54,21 @@ export async function handleAgreementDocument(
           logger
         );
 
-        logger.info(`Created file on safe storage with key: ${key}`);
+        logger.info(
+          `Created file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
+        );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
-          Buffer.from(file),
+          fileBuffer,
           contentType,
           secret,
           checksum,
           logger
+        );
+
+        logger.info(
+          `Uploaded file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
         );
 
         await signatureService.saveDocumentSignatureReference(
@@ -79,6 +86,10 @@ export async function handleAgreementDocument(
             createdAt: msg.data.agreement.createdAt,
           },
           logger
+        );
+
+        logger.info(
+          `Processed agreement document with key: ${key} and file: ${s3Key}`
         );
       }
     })

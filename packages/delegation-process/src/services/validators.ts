@@ -2,7 +2,6 @@ import {
   Delegation,
   delegationKind,
   DelegationKind,
-  DelegationStamp,
   DelegationState,
   delegationState,
   EService,
@@ -21,7 +20,6 @@ import {
 import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
-  delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotConsumerDelegable,
@@ -168,15 +166,6 @@ export const assertRequesterIsDelegateOrDelegator = (
     throw operationForbidden;
   }
 };
-
-export function assertStampExists<S extends keyof Delegation["stamps"]>(
-  stamps: Delegation["stamps"],
-  stamp: S
-): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
-  if (!stamps[stamp]) {
-    throw delegationStampNotFound(stamp);
-  }
-}
 
 export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
   if (!eservice.isConsumerDelegable) {

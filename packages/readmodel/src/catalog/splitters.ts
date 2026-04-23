@@ -157,6 +157,7 @@ const attributeToAttributeSQL = ({
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
+  dailyCallsPerConsumer: attribute.dailyCallsPerConsumer || null,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (

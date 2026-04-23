@@ -3132,6 +3132,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -3258,6 +3260,11 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - id
         - explicitAttributeVerification
@@ -3731,6 +3738,10 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
       required:
         - id
         - explicitAttributeVerification
