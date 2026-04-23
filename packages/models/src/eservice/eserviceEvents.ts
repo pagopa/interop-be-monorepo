@@ -294,7 +294,6 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptorArchivingCompleted" }, ({ data }) =>
       EServiceDescriptorArchivingCompletedV2.toBinary(data)
     )
-
     .with({ type: "MaintenanceEServicePersonalDataFlagReset" }, ({ data }) =>
       MaintenanceEServicePersonalDataFlagResetV2.toBinary(data)
     )
@@ -629,6 +628,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     data: protobufDecoder(EServiceDescriptorArchivingCompletedV2),
   }),
   z.object({
+    event_version: z.literal(2),
     type: z.literal("MaintenanceEServicePersonalDataFlagReset"),
     data: protobufDecoder(MaintenanceEServicePersonalDataFlagResetV2),
   }),
