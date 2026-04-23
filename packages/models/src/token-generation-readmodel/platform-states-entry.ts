@@ -45,6 +45,15 @@ export type PlatformStatesCatalogEntry = z.infer<
   typeof PlatformStatesCatalogEntry
 >;
 
+export const AsyncPlatformStatesCatalogEntry =
+  PlatformStatesCatalogEntry.extend({
+    asyncExchange: z.literal(true),
+    asyncExchangeProperties: AsyncExchangeProperties,
+  });
+export type AsyncPlatformStatesCatalogEntry = z.infer<
+  typeof AsyncPlatformStatesCatalogEntry
+>;
+
 export const PlatformStatesPurposeEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesPurposePK,
   purposeVersionId: PurposeVersionId,

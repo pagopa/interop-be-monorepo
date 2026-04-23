@@ -40,6 +40,7 @@ const errorCodes = {
   asyncExchangeResponseTimeExceeded: "0027",
   entityNumberExceedsMaxResultSet: "0028",
   tokenGenerationStatesEntriesByPurposeIdNotFound: "0029",
+  asyncExchangePropertiesNotFound: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -298,6 +299,17 @@ export function catalogEntryNotFound(
     detail: `Platform-states catalog entry not found for eService ${eserviceId}, descriptor ${descriptorId}`,
     code: "catalogEntryNotFound",
     title: "Catalog entry not found",
+  });
+}
+
+export function asyncExchangePropertiesNotFound(
+  eserviceId: EServiceId,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Platform-states catalog entry for eService ${eserviceId}, descriptor ${descriptorId} is missing asyncExchangeProperties`,
+    code: "asyncExchangePropertiesNotFound",
+    title: "Async exchange properties not found",
   });
 }
 

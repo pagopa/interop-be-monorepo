@@ -1,6 +1,7 @@
 import {
   AgreementId,
   AsyncClientAssertion,
+  AsyncPlatformStatesCatalogEntry,
   clientKindTokenGenStates,
   ClientAssertion,
   ClientKindTokenGenStates,
@@ -55,6 +56,7 @@ import {
 } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
+  asyncExchangePropertiesNotFound,
   catalogEntryNotFound,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
@@ -151,6 +153,26 @@ export const retrieveCatalogEntry = async (
   }
 
   return catalogEntry.data;
+};
+
+export const retrieveAsyncCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  platformStatesTable: string
+): Promise<AsyncPlatformStatesCatalogEntry> => {
+  const catalogEntry = await retrieveCatalogEntry(
+    dynamoDBClient,
+    eserviceId,
+    descriptorId,
+    platformStatesTable
+  );
+  const asyncCatalogEntry =
+    AsyncPlatformStatesCatalogEntry.safeParse(catalogEntry);
+  if (!asyncCatalogEntry.success) {
+    throw asyncExchangePropertiesNotFound(eserviceId, descriptorId);
+  }
+  return asyncCatalogEntry.data;
 };
 
 export const retrieveTokenGenStatesEntryByPurposeId = async (

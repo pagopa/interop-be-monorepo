@@ -23,7 +23,7 @@ import {
 import {
   logTokenGenerationInfo,
   publishProducerAudit,
-  retrieveCatalogEntry,
+  retrieveAsyncCatalogEntry,
   retrieveProducerKey,
   retrieveTokenGenStatesEntryByPurposeId,
 } from "../../utilities/tokenServiceHelpers.js";
@@ -114,7 +114,7 @@ export const handleCallbackInvocation = async (
       kid,
       eServiceId,
     }),
-    retrieveCatalogEntry(
+    retrieveAsyncCatalogEntry(
       dynamoDBClient,
       eServiceId,
       descriptorId,
@@ -151,22 +151,16 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  // 8. Validate asyncExchangeProperties and maxResultSet (the responseTime check
-  //    is deferred to step 10 so the elapsed window is measured as close as
-  //    possible to the token's iat).
-  const { asyncExchangeProperties } = catalogEntry;
-  if (!asyncExchangeProperties) {
-    throw genericInternalError(
-      `Catalog entry for eService ${eServiceId} descriptor ${descriptorId} has no asyncExchangeProperties`
-    );
-  }
-
+  // 8. Validate maxResultSet against asyncExchangeProperties (the responseTime
+  //    check is deferred to step 10 so the elapsed window is measured as close
+  //    as possible to the token's iat).
   if (!interaction.startInteractionTokenIssuedAt) {
     throw genericInternalError(
       `Interaction ${interactionId} missing startInteractionTokenIssuedAt`
     );
   }
 
+  const { asyncExchangeProperties } = catalogEntry;
   if (entityNumber > asyncExchangeProperties.maxResultSet) {
     throw entityNumberExceedsMaxResultSet(
       clientId,
