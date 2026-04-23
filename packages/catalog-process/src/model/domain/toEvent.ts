@@ -921,7 +921,7 @@ export const toCreateEventEServiceDescriptorArchivingScheduled = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDescriptorArchiveScheduled",
+    type: "EServiceDescriptorArchivingScheduled",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
