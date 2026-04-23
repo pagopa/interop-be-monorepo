@@ -12,6 +12,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersion,
+  EServiceTemplateVersionId,
   PurposeTemplate,
   PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateId,
@@ -28,6 +29,7 @@ import {
   eserviceTemplateNotAssociatedError,
   eserviceTemplateNotFound,
   invalidEServiceTemplateVersionStateError,
+  missingEServiceTemplateVersionError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist,
@@ -273,6 +275,69 @@ describe("unlinkEServiceTemplatesFromPurposeTemplate", () => {
       tooManyEServiceTemplatesForPurposeTemplate(
         manyIds.length,
         config.maxEServicesPerLinkRequest
+      )
+    );
+  });
+
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when the template has no versions (defensive)", async () => {
+    const pt: PurposeTemplate = {
+      ...purposeTemplate,
+      id: generateId<PurposeTemplateId>(),
+    };
+    const template: EServiceTemplate = {
+      ...makeTemplate(),
+      versions: [],
+    };
+    await addOnePurposeTemplate(pt);
+    await addOneEServiceTemplate(template);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: pt.id,
+      eserviceTemplateId: template.id,
+      eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+      createdAt: new Date(),
+    });
+
+    await expect(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
+        pt.id,
+        [template.id],
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
+        [missingEServiceTemplateVersionError(template.id)],
+        [template.id],
+        pt.id
+      )
+    );
+  });
+
+  it("should throw disassociationEServiceTemplatesFromPurposeTemplateFailed when the crystallised version id is not present in the template versions (defensive)", async () => {
+    const pt: PurposeTemplate = {
+      ...purposeTemplate,
+      id: generateId<PurposeTemplateId>(),
+    };
+    const template = makeTemplate();
+    await addOnePurposeTemplate(pt);
+    await addOneEServiceTemplate(template);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: pt.id,
+      eserviceTemplateId: template.id,
+      eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+      createdAt: new Date(),
+    });
+
+    await expect(
+      purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
+        pt.id,
+        [template.id],
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(
+      disassociationEServiceTemplatesFromPurposeTemplateFailed(
+        [eserviceTemplateNotAssociatedError(template.id, pt.id)],
+        [template.id],
+        pt.id
       )
     );
   });
