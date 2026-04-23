@@ -44,7 +44,6 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -824,42 +823,6 @@ describe("publish descriptor", () => {
     );
   });
 
-  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is Soap and asyncExchange bulk is true", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      interface: mockDocument,
-      asyncExchangeProperties: {
-        responseTime: 30,
-        resourceAvailableTime: 30,
-        confirmation: false,
-        bulk: true,
-        maxResultSet: 100,
-      },
-      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
-    };
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      personalData: false,
-      asyncExchange: true,
-      technology: technology.soap,
-    };
-
-    await addOneEService(eservice);
-
-    await expect(
-      catalogService.publishDescriptor(
-        eservice.id,
-        descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
-    );
-  });
-
   it("should not throw when asyncExchange is true, technology is REST, and all required fields are set", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -953,7 +916,7 @@ describe("publish descriptor", () => {
     config.featureFlagAsyncExchange = true;
   });
 
-  it("should not throw asyncExchangeBulkNotAllowedForSoap when technology is REST and asyncExchange bulk is true", async () => {
+  it("should publish when technology is REST and asyncExchange bulk is true", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
