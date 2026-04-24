@@ -4053,24 +4053,19 @@ const processDescriptorPublication = async (
       })
     ).length > 0;
 
-  const replaceLastDescriptor = (d: Descriptor): Descriptor => {
-    if (d.state === descriptorState.suspended && hasAgreements) {
-      // The previous active descriptor state was suspended, no state change is needed
-      // but we need to set the deprecatedAt timestamp
-      return {
-        ...d,
-        deprecatedAt: new Date(),
-      };
-    }
-    // The previous descriptor was published, we either deprecate or archive it
-    return hasAgreements
-      ? deprecateDescriptor(eservice.id, d, logger)
-      : archiveDescriptor(eservice.id, d, logger);
-  };
+  if (
+    currentActiveDescriptor.state === descriptorState.suspended &&
+    hasAgreements
+  ) {
+    // The previous active descriptor state was suspended, no state change is needed
+    return eserviceWithPublishedDescriptor;
+  }
 
   return replaceDescriptor(
     eserviceWithPublishedDescriptor,
-    replaceLastDescriptor(currentActiveDescriptor)
+    hasAgreements
+      ? deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
   );
 };
 

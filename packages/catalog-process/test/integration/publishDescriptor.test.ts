@@ -376,7 +376,8 @@ describe("publish descriptor", () => {
 
       const expectedDescriptor1: Descriptor = {
         ...descriptor1,
-        deprecatedAt: new Date(),
+        deprecatedAt:
+          startingState === descriptorState.suspended ? undefined : new Date(),
         state: expectedState,
       };
       const expectedDescriptor2: Descriptor = {
