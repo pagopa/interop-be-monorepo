@@ -5819,9 +5819,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
