@@ -98,11 +98,6 @@ export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIAT
     descriptorState.archived,
   ];
 
-export const isRequesterCreator = (
-  creatorId: TenantId,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): boolean => authData.organizationId === creatorId;
-
 export const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
 ): boolean => currentPurposeTemplateState === purposeTemplateState.draft;
@@ -281,18 +276,18 @@ export const assertPurposeTemplateIsDraft = (
 export const assertRequesterIsCreator = (
   purposeTemplateId: PurposeTemplateId,
   creatorId: TenantId,
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+  requesterId: TenantId
 ): void => {
-  if (!isRequesterCreator(creatorId, authData)) {
+  if (creatorId !== requesterId) {
     throw purposeTemplateNotFound(purposeTemplateId);
   }
 };
 
 export const assertRequesterCanManagePurposeTemplate = (
   purposeTemplate: PurposeTemplate,
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+  requesterId: TenantId
 ): void => {
-  if (isRequesterCreator(purposeTemplate.creatorId, authData)) {
+  if (purposeTemplate.creatorId === requesterId) {
     return;
   }
 
@@ -300,7 +295,7 @@ export const assertRequesterCanManagePurposeTemplate = (
     throw purposeTemplateNotFound(purposeTemplate.id);
   }
 
-  throw tenantNotAllowed(authData.organizationId);
+  throw tenantNotAllowed(requesterId);
 };
 
 export const assertPurposeTemplateStateIsValid = (
