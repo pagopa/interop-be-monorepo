@@ -22,7 +22,6 @@ import {
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
   MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {

@@ -7254,10 +7254,11 @@ packages:
   '@pagopa/interop-outbound-models@1.8.12':
     resolution: {integrity: sha512-+m2RRwz0sxTYFPwG+9mjFKtC49f0r3O0at/OCNjVcHJELvJyO58bYF2jGQszmRB/TPyV5ZM6FlTGX2TvVgPGbw==}
 
-  '@pagopa/interop-outbound-models@1.8.8':
-    resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
   '@pagopa/interop-outbound-models@1.8.14':
     resolution: {integrity: sha512-ZbWHhkv/6efGd2jOYtDB5c30jaUgpXZVn815+96fVgM0brhArnkCx+2kxhJJ5GEsr/vNNaFogRPq3y9eliT5tw==}
+
+  '@pagopa/interop-outbound-models@1.8.8':
+    resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13817,8 +13818,13 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.8':
   '@pagopa/interop-outbound-models@1.8.14':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.8':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
