@@ -26426,6 +26426,9 @@ components:
         archivableOn:
           type: string
           format: date-time
+        startedAt:
+          type: string
+          format: date-time
         scope:
           $ref: "#/components/schemas/ArchivingScope"
     ArchivingScope:
