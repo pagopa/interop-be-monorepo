@@ -155,6 +155,7 @@ import {
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
+  toCreateEventEServiceDescriptorArchivingCompleted,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -364,11 +365,15 @@ const updateDescriptorState = (
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
-    .with([descriptorState.published, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      archivedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.archived],
+      [descriptorState.archiving, descriptorState.archived],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
@@ -387,6 +392,7 @@ const updateDescriptorState = (
             config.gracePeriodArchivingEService
           ),
           scope: scope ?? archivingScope.descriptor,
+          startedAt: new Date(),
         },
       })
     )
@@ -445,6 +451,11 @@ const replaceRiskAnalysis = (
     riskAnalysis: updatedRiskAnalysis,
   };
 };
+
+const archivingCondition = (descriptor: Descriptor): boolean =>
+  descriptor.state === descriptorState.archiving &&
+  descriptor.archivingSchedule !== undefined &&
+  descriptor.archivingSchedule.archivableOn < new Date();
 
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
@@ -2051,7 +2062,6 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const updatedDescriptor = updateDescriptorState(
         descriptor,
@@ -2060,13 +2070,21 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorArchived(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
-      );
+      const event = archivingCondition(descriptor)
+        ? toCreateEventEServiceDescriptorArchivingCompleted(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            newEservice,
+            correlationId
+          )
+        : toCreateEventEServiceDescriptorArchived(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            newEservice,
+            correlationId
+          );
 
       await repository.createEvent(event);
     },
