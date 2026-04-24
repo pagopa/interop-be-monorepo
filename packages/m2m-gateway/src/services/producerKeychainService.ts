@@ -4,10 +4,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
