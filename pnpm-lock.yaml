@@ -3739,6 +3739,9 @@ importers:
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       pg:
         specifier: 'catalog:'
         version: 8.13.1

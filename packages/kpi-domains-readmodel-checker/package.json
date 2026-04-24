@@ -37,6 +37,7 @@
     "pagopa-interop-kpi-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "catalog:",
     "pg-promise": "catalog:",
     "zod": "catalog:"
