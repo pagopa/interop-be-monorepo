@@ -8,6 +8,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
+  ArchivingSchedule,
+  archivingScope,
   Descriptor,
   EService,
   EServiceAddedV2,
@@ -53,6 +55,11 @@ describe("E-service aggregator", () => {
       },
     };
     const personalData = true;
+    const archivingSchedule: ArchivingSchedule = {
+      scope: archivingScope.descriptor,
+      archivableOn: new Date(),
+      startedAt: new Date(),
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -71,6 +78,7 @@ describe("E-service aggregator", () => {
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
+      archivingSchedule,
     };
 
     const eservice: EService = {
@@ -82,6 +90,7 @@ describe("E-service aggregator", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      archivingReason: "archiving reason",
     };
 
     const {
