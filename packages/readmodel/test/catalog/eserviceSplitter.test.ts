@@ -8,6 +8,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
+  ArchivingSchedule,
+  archivingScope,
   attributeKind,
   Descriptor,
   EService,
@@ -49,6 +51,11 @@ describe("E-service splitter", () => {
     const templateId: EServiceTemplateId = generateId();
     const personalData = true;
     const instanceLabel = "instance 001";
+    const archivingSchedule: ArchivingSchedule = {
+      scope: archivingScope.descriptor,
+      archivableOn: new Date(),
+      startedAt: new Date(),
+    };
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -77,6 +84,7 @@ describe("E-service splitter", () => {
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
+      archivingSchedule,
     };
 
     const eservice: EService = {
@@ -89,6 +97,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      archivingReason: "archiving reason",
     };
 
     const {
