@@ -388,6 +388,7 @@ const updateDescriptorState = (
             config.gracePeriodArchivingEService
           ),
           scope: scope ?? archivingScope.descriptor,
+          startedAt: new Date(),
         },
       })
     )
