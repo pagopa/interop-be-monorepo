@@ -345,11 +345,7 @@ export const validateAsyncClaimsForScope = (
             : undefined;
       return [interactionIdError, entityNumberError];
     })
-    .with(
-      interactionState.getResource,
-      interactionState.confirmation,
-      () => []
-    )
+    .with(interactionState.getResource, interactionState.confirmation, () => [])
     .exhaustive();
 
   return errors.some((e) => e !== undefined)
