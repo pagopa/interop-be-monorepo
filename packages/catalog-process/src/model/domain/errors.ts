@@ -74,7 +74,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
-    title: "EService not found",  
+    title: "EService not found",
   });
 }
 
