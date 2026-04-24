@@ -221,26 +221,28 @@ export async function handleMessageV2(
         msg.type
       );
 
-      eservice.descriptors.forEach(async (descriptor) => {
-        const primaryKey = makePlatformStatesEServiceDescriptorPK({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        });
-        await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+      await Promise.all(
+        eservice.descriptors.map(async (descriptor) => {
+          const primaryKey = makePlatformStatesEServiceDescriptorPK({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
-        // token-generation-states
-        const descriptorId = descriptor.id;
-        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-          eserviceId: eservice.id,
-          descriptorId,
-        });
-        await updateDescriptorStateInTokenGenerationStatesTable(
-          eserviceId_descriptorId,
-          descriptorStateToItemState(descriptor.state),
-          dynamoDBClient,
-          logger
-        );
-      });
+          // token-generation-states
+          const descriptorId = descriptor.id;
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptorStateToItemState(descriptor.state),
+            dynamoDBClient,
+            logger
+          );
+        })
+      );
     })
     .with(
       { type: "EServiceDescriptorQuotasUpdated" },

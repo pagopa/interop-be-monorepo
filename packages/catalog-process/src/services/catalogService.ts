@@ -387,7 +387,8 @@ const updateDescriptorState = (
         ...descriptor,
         state: newState,
         archivingSchedule: {
-          archivableOn: calculateArchivableOn(
+          ...calculateArchivableOn(
+            new Date(),
             config.gracePeriodArchivingEService
           ),
           scope: scope ?? archivingScope.descriptor,
