@@ -7,10 +7,10 @@ import {
   RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
-  getIpaCode,
   getFormRulesByVersion,
   dataType,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   getMockTenant,
   getMockValidRiskAnalysisFormTemplate,
