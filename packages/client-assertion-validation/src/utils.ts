@@ -254,7 +254,7 @@ export const validateDigest = (
 export const validatePlatformState = <
   T extends
     | TokenGenerationStatesConsumerClient
-    | TokenGenStatesConsumerClientGSIPurpose
+    | TokenGenStatesConsumerClientGSIPurpose,
 >(
   key: T
 ): ValidationResult<T> => {
