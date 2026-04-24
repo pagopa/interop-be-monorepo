@@ -24,10 +24,10 @@ import {
   splitPurposeIntoObjectsSQL,
   splitTenantIntoObjectsSQL,
   splitPurposeTemplateIntoObjectsSQL,
-  overallReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
@@ -78,7 +78,7 @@ const dbContext: DBContext = {
 };
 
 export const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
-export const readModelServiceSQL = overallReadModelServiceBuilder(readModelDB);
+export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>

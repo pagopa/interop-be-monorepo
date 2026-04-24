@@ -30,6 +30,8 @@
   },
   "dependencies": {
     "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "drizzle-zod": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",
     "p-retry": "catalog:",
