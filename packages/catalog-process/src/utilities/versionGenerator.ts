@@ -1,4 +1,4 @@
-import { Descriptor, DescriptorState, EService } from "pagopa-interop-models";
+import { Descriptor, EService } from "pagopa-interop-models";
 import { z } from "zod";
 import { isActiveDescriptor } from "../services/validators.js";
 import {
@@ -29,19 +29,11 @@ export const getLatestDescriptor = (eservice: EService): Descriptor => {
   return latestDescriptor;
 };
 
-export const getLatestDescriptorByStates = (
-  eservice: EService,
-  states: DescriptorState[]
-): Descriptor | undefined =>
-  [...eservice.descriptors]
-    .filter((d) => states.includes(d.state))
-    .sort(
-      (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
-    )
-    .at(-1);
-
 export const nextDescriptorVersion = (eservice: EService): string => {
-  const currentVersion = getLatestDescriptor(eservice)?.version ?? "0";
+  const currentVersion =
+    eservice.descriptors.length === 0
+      ? "0"
+      : getLatestDescriptor(eservice).version;
   const parsedVersion = parseVersionNumber(currentVersion);
   return (parsedVersion + 1).toString();
 };
