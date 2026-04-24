@@ -44,6 +44,20 @@ export const toCreateEventClonedEServiceAdded = (
   correlationId,
 });
 
+export const toCreateEventEServiceArchiveScheduleCompleted = (
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version: undefined,
+  event: {
+    type: "EServiceArchiveScheduleCompleted",
+    event_version: 2,
+    data: { eservice: toEServiceV2(eservice) },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceInterfaceAdded = (
   streamId: string,
   version: number,
@@ -283,6 +297,26 @@ export const toCreateEventEServiceDescriptorArchived = (
   version,
   event: {
     type: "EServiceDescriptorArchived",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchiveScheduleCompleted = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorArchiveScheduleCompleted",
     event_version: 2,
     data: {
       descriptorId,

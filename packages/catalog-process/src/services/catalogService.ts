@@ -153,6 +153,8 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventEServiceDescriptorArchiveScheduleCompleted,
+  toCreateEventEServiceArchiveScheduleCompleted,
   toCreateEventEServiceDescriptorArchivingScheduled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
@@ -386,6 +388,7 @@ const updateDescriptorState = (
             config.gracePeriodArchivingEService
           ),
           scope: scope ?? archivingScope.descriptor,
+          startedAt: new Date(),
         },
       })
     )
@@ -407,7 +410,7 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-const archiveDescriptor = (
+const archiveDescriptorLogic = (
   streamId: string,
   descriptor: Descriptor,
   logger: Logger
@@ -415,6 +418,50 @@ const archiveDescriptor = (
   logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
 
   return updateDescriptorState(descriptor, descriptorState.archived);
+};
+
+const processFullEServiceArchiving = async (
+  eservice: EService,
+  triggerDescriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  await deleteDraftDescriptorLogic(
+    eservice,
+    triggerDescriptor,
+    fileManager,
+    logger
+  );
+
+  const descriptorsToArchive = eservice.descriptors.filter(
+    (d) => d.state !== descriptorState.archived && d.id !== triggerDescriptor.id
+  );
+
+  await Promise.all(
+    descriptorsToArchive.map((d) =>
+      archiveDescriptorLogic(eservice.id, d, logger)
+    )
+  );
+};
+
+const deleteDraftDescriptorLogic = async (
+  eservice: EService,
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> => {
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+
+  await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptor.id
+    ),
+  };
 };
 
 const replaceDescriptor = (
@@ -1493,6 +1540,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
@@ -1500,20 +1548,13 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
-
-      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
-
-      const eserviceAfterDescriptorDeletion: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d: Descriptor) => d.id !== descriptorId
-        ),
-      };
+      const eserviceAfterDescriptorDeletion: EService =
+        await deleteDraftDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -2044,14 +2085,37 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
-    ): Promise<void> {
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const isLatestDescriptor =
+        getLatestDescriptor(eservice.data).id === descriptor.id;
+      const isEServiceArchiving =
+        descriptor.archivingSchedule?.scope === archivingScope.eservice;
+
+      if (isLatestDescriptor && isEServiceArchiving) {
+        await processFullEServiceArchiving(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
+        const event = await repository.createEvent(
+          toCreateEventEServiceArchiveScheduleCompleted(
+            eservice.data,
+            correlationId
+          )
+        );
+        return {
+          data: eservice.data,
+          metadata: { version: event.newVersion },
+        };
+      }
+
       const updatedDescriptor = updateDescriptorState(
         descriptor,
         descriptorState.archived
@@ -2059,16 +2123,31 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorArchived(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
+      const event = await repository.createEvent(
+        descriptor.archivingSchedule &&
+          descriptor.archivingSchedule.archivableOn >= new Date()
+          ? toCreateEventEServiceDescriptorArchiveScheduleCompleted(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
+          : toCreateEventEServiceDescriptorArchived(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
       );
 
-      await repository.createEvent(event);
+      return {
+        data: newEservice,
+        metadata: { version: event.newVersion },
+      };
     },
+
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -4045,7 +4124,7 @@ const processDescriptorPublication = async (
   return replaceDescriptor(
     eserviceWithPublishedDescriptor,
     currentEServiceAgreements.length === 0
-      ? archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
+      ? archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
       : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
   );
 };
