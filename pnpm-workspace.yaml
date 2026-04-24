@@ -41,7 +41,7 @@ catalog:
   "@types/ssh2-sftp-client": 9.0.5
   "@types/supertest": 6.0.3
   "@types/swagger-ui-express": 4.1.8
-  "@xmldom/xmldom": 0.9.9
+  "@xmldom/xmldom": 0.9.10
   "@zodios/core": 10.9.6
   "@zodios/express": 10.6.1
   adm-zip: 0.5.16
