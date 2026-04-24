@@ -671,6 +671,23 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         templateVersionRefsSQL.push(templateVersionRefSQL);
       }
+
+      const archivingScheduleSQL = row.archivingSchedule;
+      const archivingSchedulePK = archivingScheduleSQL
+        ? makeUniqueKey([
+            archivingScheduleSQL.eserviceId,
+            archivingScheduleSQL.descriptorId,
+          ])
+        : undefined;
+      if (
+        archivingScheduleSQL &&
+        archivingSchedulePK &&
+        !archivingScheduleIdSet.has(archivingSchedulePK)
+      ) {
+        archivingScheduleIdSet.add(archivingSchedulePK);
+        // eslint-disable-next-line functional/immutable-data
+        archivingSchedulesSQL.push(archivingScheduleSQL);
+      }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -699,23 +716,6 @@ export const toEServiceAggregatorArray = (
         riskAnalysisAnswerIdSet.add(riskAnalysisAnswerPK);
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
-      }
-
-      const archivingScheduleSQL = row.archivingSchedule;
-      const archivingSchedulePK = archivingScheduleSQL
-        ? makeUniqueKey([
-            archivingScheduleSQL.eserviceId,
-            archivingScheduleSQL.descriptorId,
-          ])
-        : undefined;
-      if (
-        archivingScheduleSQL &&
-        archivingSchedulePK &&
-        !archivingScheduleIdSet.has(archivingSchedulePK)
-      ) {
-        archivingScheduleIdSet.add(archivingSchedulePK);
-        // eslint-disable-next-line functional/immutable-data
-        archivingSchedulesSQL.push(archivingScheduleSQL);
       }
     }
   });
