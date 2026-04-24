@@ -35,6 +35,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -235,6 +236,8 @@ export function readModelServiceBuilderSQL({
           riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          asyncExchangeProperties:
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
           totalCount: subquery.totalCount,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
@@ -271,6 +274,13 @@ export function readModelServiceBuilderSQL({
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.versionId
           )
         )
         .leftJoin(

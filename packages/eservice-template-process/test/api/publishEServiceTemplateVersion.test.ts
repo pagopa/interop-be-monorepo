@@ -27,6 +27,8 @@ import {
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
   missingRiskAnalysis,
+  missingAsyncExchangeProperties,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
@@ -133,6 +135,20 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: missingAsyncExchangeProperties(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

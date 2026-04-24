@@ -61,15 +61,16 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0048",
+  attributeDailyCallsNotAllowed: "0047",
+  certifiedAttributeGroupNotFoundInSeed: "0048",
   eServiceAsyncExchangeNotEnabled: "0049",
   descriptorAsyncExchangeNotConfigured: "0050",
   missingAsyncExchangeProperties: "0051",
   asyncExchangeBulkNotAllowedForSoap: "0052",
   asyncExchangeNotAllowedForReceiveMode: "0053",
   missingAsyncExchangeCallbackInterface: "0054",
-  attributeDailyCallsNotAllowed: "0047",
-  certifiedAttributeGroupNotFoundInSeed: "0048",
+  templateVersionMissingAsyncExchangeProperties: "0055",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0056",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -615,6 +616,17 @@ export function asyncExchangeCallbackInterfaceAlreadyExists(
     detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
     code: "asyncExchangeCallbackInterfaceAlreadyExists",
     title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
   });
 }
 

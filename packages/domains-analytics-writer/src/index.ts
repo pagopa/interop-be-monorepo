@@ -103,6 +103,7 @@ await retryConnection(
       EserviceTemplateDbTable.eservice_template_version_interface,
       EserviceTemplateDbTable.eservice_template_risk_analysis,
       EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+      EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
       PurposeTemplateDbTable.purpose_template,
       PurposeTemplateDbTable.purpose_template_eservice_descriptor,
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
