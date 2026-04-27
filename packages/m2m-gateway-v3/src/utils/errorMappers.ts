@@ -4,7 +4,16 @@ import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
-type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
+type AgreementProcessErrorCodes =
+  | "agreementNotFound"
+  | "agreementNotInExpectedState"
+  | "tenantIsNotTheConsumer"
+  | "tenantIsNotTheDelegateConsumer";
+
+type ErrorCodes =
+  | M2MGatewayErrorCodes
+  | CommonErrorCodes
+  | AgreementProcessErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -26,6 +35,19 @@ export const unsuspendAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotInSuspendedState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const archiveAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
