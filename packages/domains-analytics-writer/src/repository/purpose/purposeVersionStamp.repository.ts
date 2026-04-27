@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { PurposeVersionStampSchema } from "../../model/purpose/purposeVersionStamp.js";
+import { PurposeVersionStampSchema } from "pagopa-interop-kpi-models";
 
 export function purposeVersionStampRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -1,20 +1,12 @@
 import {
-  purposeInReadmodelPurpose,
-  purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeVersionDocumentInReadmodelPurpose,
-  purposeVersionInReadmodelPurpose,
-  purposeVersionSignedDocumentInReadmodelPurpose,
-  purposeVersionStampInReadmodelPurpose,
-} from "pagopa-interop-readmodel-models";
-
-import { PurposeSchema } from "../purpose/purpose.js";
-import { PurposeRiskAnalysisFormSchema } from "../purpose/purposeRiskAnalysis.js";
-import { PurposeRiskAnalysisAnswerSchema } from "../purpose/purposeRiskAnalysisAnswer.js";
-import { PurposeVersionSchema } from "../purpose/purposeVersion.js";
-import { PurposeVersionDocumentSchema } from "../purpose/purposeVersionDocument.js";
-import { PurposeVersionStampSchema } from "../purpose/purposeVersionStamp.js";
-import { PurposeVersionSignedDocumentSchema } from "../purpose/purposeVersionSignedDocument.js";
+  PurposeSchema,
+  PurposeRiskAnalysisFormSchema,
+  PurposeRiskAnalysisAnswerSchema,
+  PurposeVersionSchema,
+  PurposeVersionDocumentSchema,
+  PurposeVersionStampSchema,
+  PurposeVersionSignedDocumentSchema,
+} from "pagopa-interop-kpi-models";
 
 export const PurposeDbTableConfig = {
   purpose: PurposeSchema,
@@ -27,19 +19,6 @@ export const PurposeDbTableConfig = {
 } as const;
 
 export type PurposeDbTableConfig = typeof PurposeDbTableConfig;
-
-export const PurposeDbTableReadModel = {
-  purpose: purposeInReadmodelPurpose,
-  purpose_risk_analysis_form: purposeRiskAnalysisFormInReadmodelPurpose,
-  purpose_risk_analysis_answer: purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purpose_version: purposeVersionInReadmodelPurpose,
-  purpose_version_document: purposeVersionDocumentInReadmodelPurpose,
-  purpose_version_stamp: purposeVersionStampInReadmodelPurpose,
-  purpose_version_signed_document:
-    purposeVersionSignedDocumentInReadmodelPurpose,
-} as const;
-
-export type PurposeDbTableReadModel = typeof PurposeDbTableReadModel;
 
 export type PurposeDbTable = keyof PurposeDbTableConfig;
 

@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { PurposeTemplateDbTable } from "../../model/db/index.js";
-import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "../../model/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
+import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "pagopa-interop-kpi-models";
 
 export function purposeTemplateRiskAnalysisAnswerAnnotationRepository(
   conn: DBConnection

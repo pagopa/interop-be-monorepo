@@ -10,10 +10,8 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
-import {
-  ClientDeletingSchema,
-  ClientSchema,
-} from "../../model/authorization/client.js";
+import { ClientSchema } from "pagopa-interop-kpi-models";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
 
 export function clientRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

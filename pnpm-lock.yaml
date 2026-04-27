@@ -2576,12 +2576,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
-      drizzle-zod:
-        specifier: 'catalog:'
-        version: 0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2594,6 +2588,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-kpi-models:
+        specifier: workspace:*
+        version: link:../kpi-models
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -3721,15 +3718,15 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
-      drizzle-zod:
-        specifier: 'catalog:'
-        version: 0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-kpi-models:
+        specifier: workspace:*
+        version: link:../kpi-models
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -3779,6 +3776,34 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/kpi-models:
+    dependencies:
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      drizzle-zod:
+        specifier: 'catalog:'
+        version: 0.7.1(drizzle-orm@0.45.2(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
 
   packages/m2m-event-cleaner:
     dependencies:

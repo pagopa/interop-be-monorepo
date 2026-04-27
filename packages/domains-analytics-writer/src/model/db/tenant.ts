@@ -1,21 +1,15 @@
+import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import {
-  tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
-  tenantCertifiedAttributeInReadmodelTenant,
-  tenantDeclaredAttributeInReadmodelTenant,
-  tenantVerifiedAttributeInReadmodelTenant,
-  tenantVerifiedAttributeVerifierInReadmodelTenant,
-  tenantVerifiedAttributeRevokerInReadmodelTenant,
-  tenantFeatureInReadmodelTenant,
-} from "pagopa-interop-readmodel-models";
-import { TenantSchema, TenantSelfcareIdSchema } from "../tenant/tenant.js";
-import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribute.js";
-import { TenantDeclaredAttributeSchema } from "../tenant/tenantDeclaredAttribute.js";
-import { TenantFeatureSchema } from "../tenant/tenantFeature.js";
-import { TenantMailSchema } from "../tenant/tenantMail.js";
-import { TenantVerifiedAttributeSchema } from "../tenant/tenantVerifiedAttribute.js";
-import { TenantVerifiedAttributeRevokerSchema } from "../tenant/tenantVerifiedAttributeRevoker.js";
-import { TenantVerifiedAttributeVerifierSchema } from "../tenant/tenantVerifiedAttributeVerifier.js";
+  TenantSchema,
+  TenantCertifiedAttributeSchema,
+  TenantDeclaredAttributeSchema,
+  TenantFeatureSchema,
+  TenantMailSchema,
+  TenantVerifiedAttributeSchema,
+  TenantVerifiedAttributeRevokerSchema,
+  TenantVerifiedAttributeVerifierSchema,
+} from "pagopa-interop-kpi-models";
+import { TenantSelfcareIdSchema } from "../tenant/tenant.js";
 
 export const TenantDbPartialTableConfig = {
   tenant_self_care_id: TenantSelfcareIdSchema,
@@ -44,20 +38,6 @@ export const TenantDbTableConfig = {
   tenant_feature: TenantFeatureSchema,
 } as const;
 export type TenantDbTableConfig = typeof TenantDbTableConfig;
-
-export const TenantDbTableReadModel = {
-  tenant: tenantInReadmodelTenant,
-  tenant_mail: tenantMailInReadmodelTenant,
-  tenant_certified_attribute: tenantCertifiedAttributeInReadmodelTenant,
-  tenant_declared_attribute: tenantDeclaredAttributeInReadmodelTenant,
-  tenant_verified_attribute: tenantVerifiedAttributeInReadmodelTenant,
-  tenant_verified_attribute_verifier:
-    tenantVerifiedAttributeVerifierInReadmodelTenant,
-  tenant_verified_attribute_revoker:
-    tenantVerifiedAttributeRevokerInReadmodelTenant,
-  tenant_feature: tenantFeatureInReadmodelTenant,
-} as const;
-export type TenantDbTableReadModel = typeof TenantDbTableReadModel;
 
 export type TenantDbTable = keyof typeof TenantDbTableConfig;
 export const TenantDbTable: { [K in TenantDbTable]: K } = Object.fromEntries(

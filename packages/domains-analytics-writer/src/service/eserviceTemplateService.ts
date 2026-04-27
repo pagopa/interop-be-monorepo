@@ -10,10 +10,8 @@ import {
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
-import {
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDeletingSchema,
-} from "../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceTemplateDeletingSchema } from "../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateRepository } from "../repository/eserviceTemplate/eserviceTemplate.repository.js";
 import { eserviceTemplateVersionRepository } from "../repository/eserviceTemplate/eserviceTemplateVersion.repository.js";
 import { eserviceTemplateVersionDocumentRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionDocument.repository.js";

@@ -17,8 +17,8 @@ import { tenantVerifiedAttributeRepository } from "../repository/tenant/tenantVe
 import { tenantVerifiedAttributeRevokerRepository } from "../repository/tenant/tenantVerifiedAttributeRevoker.repository.js";
 import { tenantVerifiedAttributeVerifierRepository } from "../repository/tenant/tenantVerifiedAttributeVerifier.repository.js";
 import { tenantFeatureRepository } from "../repository/tenant/tenantFeature.repository.js";
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import {
-  TenantItemsSchema,
   TenantSelfcareIdSchema,
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";

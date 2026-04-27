@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 
-import { TenantVerifiedAttributeVerifierSchema } from "../../model/tenant/tenantVerifiedAttributeVerifier.js";
+import { TenantVerifiedAttributeVerifierSchema } from "pagopa-interop-kpi-models";
 import { TenantDbTable } from "../../model/db/index.js";
 
 export function tenantVerifiedAttributeVerifierRepository(conn: DBConnection) {
