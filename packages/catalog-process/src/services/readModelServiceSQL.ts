@@ -73,6 +73,7 @@ import {
   DrizzleTransactionType,
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
@@ -451,6 +452,8 @@ export function readModelServiceBuilderSQL(
               riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
               templateVersionRef:
                 eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+              archivingSchedule:
+                eserviceDescriptorArchivingScheduleInReadmodelCatalog,
             })
             .from(eserviceInReadmodelCatalog)
             .where(inArray(eserviceInReadmodelCatalog.id, ids))
@@ -514,6 +517,13 @@ export function readModelServiceBuilderSQL(
                   eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
                   eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
                 )
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),

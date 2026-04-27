@@ -25,6 +25,8 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   EServiceDescriptorTemplateVersionRefSQL,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  EServiceDescriptorArchivingScheduleSQL,
 } from "pagopa-interop-readmodel-models";
 import { catalogWriterServiceBuilder } from "../src/catalogWriterService.js";
 
@@ -76,6 +78,10 @@ export const checkCompleteEService = async (
     await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
   const templateVersionRefsSQL =
     await retrieveEServiceTemplateVersionRefsSQLById(eservice.id, readModelDB);
+  const archivingSchedulesSQL = await retrieveEServiceArchivingSchedulesSQLById(
+    eservice.id,
+    readModelDB
+  );
 
   expect(eserviceSQL).toBeDefined();
   expect(descriptorsSQL).toHaveLength(eservice.descriptors.length);
@@ -109,6 +115,7 @@ export const checkCompleteEService = async (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   };
 };
 
@@ -210,6 +217,20 @@ export const retrieveEServiceTemplateVersionRefsSQLById = async (
     .where(
       eq(
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
+    );
+
+export const retrieveEServiceArchivingSchedulesSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorArchivingScheduleSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
         eserviceId
       )
     );

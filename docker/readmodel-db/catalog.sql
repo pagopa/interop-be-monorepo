@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   template_id UUID,
   personal_data BOOLEAN,
   instance_label VARCHAR,
+  archiving_reason VARCHAR,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -130,4 +131,15 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
   PRIMARY KEY (id, eservice_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES readmodel_catalog.eservice_risk_analysis (risk_analysis_form_id, eservice_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_schedule (
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  scope VARCHAR NOT NULL,
+  archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (eservice_id, descriptor_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

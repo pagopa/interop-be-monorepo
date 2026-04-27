@@ -107,6 +107,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
 
+      const archivingSchedulesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_archiving_schedule
+      );
+
       return aggregateEserviceArray({
         eservicesSQL,
         descriptorsSQL: descriptorsSQL.map((d) => ({
@@ -124,6 +129,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           value: JSON.parse(ra.value),
         })),
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
       });
     },
 

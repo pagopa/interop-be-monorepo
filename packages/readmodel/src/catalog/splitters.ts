@@ -11,8 +11,10 @@ import {
   Descriptor,
   DescriptorRejectionReason,
   dateToString,
+  ArchivingSchedule,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -66,6 +68,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -75,6 +78,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+        archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
@@ -85,6 +89,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
+        archivingScheduleSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -103,6 +108,9 @@ export const splitEserviceIntoObjectsSQL = (
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
+        archivingSchedulesSQL: archivingScheduleSQL
+          ? acc.archivingSchedulesSQL.concat(archivingScheduleSQL)
+          : acc.archivingSchedulesSQL,
       };
     },
     {
@@ -112,6 +120,7 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
+      archivingSchedulesSQL: [],
     }
   );
 
@@ -125,6 +134,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
   };
 };
 
@@ -184,6 +194,7 @@ export const splitDescriptorIntoObjectsSQL = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -259,6 +270,17 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
+  const archivingScheduleSQL:
+    | EServiceDescriptorArchivingScheduleSQL
+    | undefined = descriptor.archivingSchedule
+    ? archivingScheduleToArchivingScheduleSQL(
+        descriptor.archivingSchedule,
+        descriptor.id,
+        eserviceId,
+        version
+      )
+    : undefined;
+
   return {
     descriptorSQL,
     attributesSQL,
@@ -266,6 +288,7 @@ export const splitDescriptorIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
+    archivingScheduleSQL,
   };
 };
 
@@ -322,6 +345,20 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     ],
   };
 };
+
+export const archivingScheduleToArchivingScheduleSQL = (
+  archivingSchedule: ArchivingSchedule,
+  descriptorId: DescriptorId,
+  eserviceId: EServiceId,
+  version: number
+): EServiceDescriptorArchivingScheduleSQL => ({
+  eserviceId,
+  metadataVersion: version,
+  descriptorId,
+  scope: archivingSchedule.scope,
+  archivableOn: dateToString(archivingSchedule.archivableOn),
+  startedAt: dateToString(archivingSchedule.startedAt),
+});
 
 export const documentToDocumentSQL = (
   document: Document,
@@ -383,6 +420,7 @@ export const eserviceToEserviceSQL = (
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
+  archivingReason: eservice.archivingReason ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (
