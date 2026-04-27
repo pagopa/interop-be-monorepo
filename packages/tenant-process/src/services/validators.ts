@@ -33,6 +33,7 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  tenantNotAllowedForDelegation,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -155,7 +156,10 @@ export function assertRequesterDelegationsAllowedOrigin(
   authData: UIAuthData
 ): void {
   if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
-    throw operationForbidden;
+    throw tenantNotAllowedForDelegation(
+      authData.organizationId,
+      authData.externalId.origin
+    );
   }
 }
 
