@@ -206,9 +206,9 @@ export const handleConfirmation = async (
 
   const token = await tokenGenerator.generateInteropAsyncConsumerToken({
     sub: clientId,
-    audience: key.descriptorAudience,
+    audience: catalogEntry.descriptorAudience,
     purposeId: interaction.purposeId,
-    tokenDurationInSeconds: key.descriptorVoucherLifespan,
+    tokenDurationInSeconds: catalogEntry.descriptorVoucherLifespan,
     digest: clientAssertionJWT.payload.digest || undefined,
     producerId: key.producerId,
     consumerId: key.consumerId,
