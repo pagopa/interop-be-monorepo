@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceId,
+  EServiceTemplateId,
   generateId,
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
@@ -27,6 +28,7 @@ import {
   toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
 import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MGatewayEServiceTemplate } from "../api/eserviceTemplateApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
 import {
@@ -90,6 +92,36 @@ export function purposeTemplateServiceBuilder(
       retrieveEServiceDescriptorPurposeTemplate(
         purposeTemplateId,
         eserviceId,
+        headers
+      )
+    )({});
+
+  const retrieveEServiceTemplateVersionPurposeTemplate = async (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceTemplateId: EServiceTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<
+    WithMaybeMetadata<purposeTemplateApi.EServiceTemplateVersionPurposeTemplate>
+  > =>
+    await clients.purposeTemplateProcessClient.getPurposeTemplateEServiceTemplate(
+      {
+        params: {
+          id: purposeTemplateId,
+          eserviceTemplateId,
+        },
+        headers,
+      }
+    );
+
+  const pollServiceTemplateVersionPurposeTemplateUntilDeletion = (
+    purposeTemplateId: PurposeTemplateId,
+    eserviceTemplateId: EServiceTemplateId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveEServiceTemplateVersionPurposeTemplate(
+        purposeTemplateId,
+        eserviceTemplateId,
         headers
       )
     )({});
@@ -601,6 +633,109 @@ export function purposeTemplateServiceBuilder(
       await pollServiceDescriptorPurposeTemplateUntilDeletion(
         purposeTemplateId,
         eserviceId,
+        headers
+      );
+    },
+    async getPurposeTemplateEServiceTemplates(
+      purposeTemplateId: PurposeTemplateId,
+      queryParams: m2mGatewayApiV3.GetPurposeTemplateEServiceTemplatesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceTemplates> {
+      const { creatorIds, eserviceTemplateName, limit, offset } = queryParams;
+
+      logger.info(
+        `Retrieving e-service templates linked to purpose template ${purposeTemplateId} with filters: creatorIds ${creatorIds.toString()}, eserviceTemplateName ${eserviceTemplateName}, limit ${limit}, offset ${offset}`
+      );
+
+      const {
+        data: { results: processResults, totalCount },
+      } =
+        await clients.purposeTemplateProcessClient.getPurposeTemplateEServiceTemplates(
+          {
+            params: { id: purposeTemplateId },
+            queries: {
+              creatorIds,
+              eserviceTemplateName,
+              limit,
+              offset,
+            },
+            headers,
+          }
+        );
+
+      const eserviceTemplateIds = processResults.map(
+        ({ eserviceTemplateId }) => eserviceTemplateId
+      );
+      const eserviceTemplates = await clients.eserviceTemplateProcessClient
+        .getEServiceTemplates({
+          queries: {
+            eserviceTemplatesIds: eserviceTemplateIds,
+            offset: 0,
+            limit,
+          },
+          headers,
+        })
+        .then(({ data }) => data.results);
+
+      return {
+        results: eserviceTemplates.map(toM2MGatewayEServiceTemplate),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async addPurposeTemplateEServiceTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      {
+        eserviceTemplateId,
+      }: m2mGatewayApiV3.PurposeTemplateLinkEServiceTemplate,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+      );
+
+      const { metadata } =
+        await clients.purposeTemplateProcessClient.linkEServiceTemplatesToPurposeTemplate(
+          {
+            eserviceTemplateIds: [eserviceTemplateId],
+          },
+          {
+            headers,
+            params: {
+              id: purposeTemplateId,
+            },
+          }
+        );
+
+      await pollPurposeTemplateById(purposeTemplateId, metadata, headers);
+    },
+    async removePurposeTemplateEServiceTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Unlinking e-service template ${eserviceTemplateId} from purpose template ${purposeTemplateId}`
+      );
+
+      await clients.purposeTemplateProcessClient.unlinkEServiceTemplatesFromPurposeTemplate(
+        {
+          eserviceTemplateIds: [eserviceTemplateId],
+        },
+        {
+          headers,
+          params: {
+            id: purposeTemplateId,
+          },
+        }
+      );
+
+      await pollServiceTemplateVersionPurposeTemplateUntilDeletion(
+        purposeTemplateId,
+        eserviceTemplateId,
         headers
       );
     },
