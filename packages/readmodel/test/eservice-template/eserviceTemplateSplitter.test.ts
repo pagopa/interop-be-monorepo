@@ -201,7 +201,6 @@ describe("E-service template splitter", () => {
       },
       docs: [doc],
       interface: undefined,
-      description: undefined,
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
