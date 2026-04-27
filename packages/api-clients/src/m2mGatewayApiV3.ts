@@ -202,6 +202,12 @@ export type GetPurposeTemplateEServicesQueryParams = QueryParametersByAlias<
   "getPurposeTemplateEServices"
 >;
 
+export type GetPurposeTemplateEServiceTemplatesQueryParams =
+  QueryParametersByAlias<
+    PurposeTemplateApi,
+    "getPurposeTemplateEServiceTemplates"
+  >;
+
 export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
   QueryParametersByAlias<
     PurposeTemplateApi,

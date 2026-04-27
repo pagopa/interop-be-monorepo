@@ -309,6 +309,89 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const purposeTemplateEServiceTemplates =
+            await purposeTemplateService.getPurposeTemplateEServiceTemplates(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.query,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApiV3.EServiceTemplates.parse(
+                purposeTemplateEServiceTemplates
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving purpose template e-service templates for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.addPurposeTemplateEServiceTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error linking e-service template to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates/:eserviceTemplateId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.removePurposeTemplateEServiceTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.eserviceTemplateId),
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unlinking e-service template ${req.params.eserviceTemplateId} from purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/purposeTemplates/:purposeTemplateId/publish", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

@@ -55,6 +55,7 @@ import {
   disassociationEServicesFromPurposeTemplateFailed,
   disassociationEServiceTemplatesFromPurposeTemplateFailed,
   eServiceDescriptorPurposeTemplateNotFound,
+  eServiceTemplateVersionPurposeTemplateNotFound,
   invalidAssociatedEServiceForPublication,
   missingRiskAnalysisFormTemplate,
   purposeTemplateNotFound,
@@ -154,6 +155,25 @@ async function retrievePurposeTemplateEserviceDescriptor(
     );
   }
   return eServiceDescriptorPurposeTemplate;
+}
+
+async function retrieveEServiceTemplateVersionPurposeTemplate(
+  purposeTemplateId: PurposeTemplateId,
+  eserviceTemplateId: EServiceTemplateId,
+  readModelService: ReadModelServiceSQL
+): Promise<EServiceTemplateVersionPurposeTemplate> {
+  const link =
+    await readModelService.getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId(
+      purposeTemplateId,
+      eserviceTemplateId
+    );
+  if (!link) {
+    throw eServiceTemplateVersionPurposeTemplateNotFound(
+      purposeTemplateId,
+      eserviceTemplateId
+    );
+  }
+  return link;
 }
 
 function retrieveRiskAnalysisFormTemplate(
@@ -1118,6 +1138,29 @@ export function purposeTemplateServiceBuilder(
       return await retrievePurposeTemplateEserviceDescriptor(
         purposeTemplateId,
         eserviceId,
+        readModelService
+      );
+    },
+    async getPurposeTemplateEServiceTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateId: EServiceTemplateId,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<EServiceTemplateVersionPurposeTemplate> {
+      logger.info(
+        `Retrieving e-service template link with id ${eserviceTemplateId} for purpose template ${purposeTemplateId}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return await retrieveEServiceTemplateVersionPurposeTemplate(
+        purposeTemplateId,
+        eserviceTemplateId,
         readModelService
       );
     },
