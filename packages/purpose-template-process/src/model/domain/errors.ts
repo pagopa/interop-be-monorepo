@@ -48,6 +48,7 @@ const errorCodes = {
   tooManyEServiceTemplatesForPurposeTemplate: "0031",
   disassociationEServiceTemplatesFromPurposeTemplateFailed: "0032",
   associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist: "0033",
+  eServiceTemplateVersionPurposeTemplateNotFound: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -372,6 +373,17 @@ export function eServiceDescriptorPurposeTemplateNotFound(
     detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
     code: "eServiceDescriptorPurposeTemplateNotFound",
     title: "E-Service Descriptor Purpose Template not found",
+  });
+}
+
+export function eServiceTemplateVersionPurposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No e-service template link found for purpose template ${purposeTemplateId} and e-service template id ${eserviceTemplateId}`,
+    code: "eServiceTemplateVersionPurposeTemplateNotFound",
+    title: "E-Service Template Version Purpose Template link not found",
   });
 }
 
