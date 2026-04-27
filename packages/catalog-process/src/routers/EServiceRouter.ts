@@ -869,19 +869,19 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService =
+          const { data: updatedEService, metadata } =
             await catalogService.scheduleEServiceDescriptorArchiving(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
 
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(
-                eServiceToApiEService(updatedEService.data)
-              )
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
             );
         } catch (error) {
           const errorRes = makeApiProblem(
