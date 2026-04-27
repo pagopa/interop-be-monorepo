@@ -1,46 +1,69 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { inject } from "vitest";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import {
+  attributeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
+  upsertAttribute,
+  upsertTenant,
+} from "pagopa-interop-readmodel/testUtils";
 import {
   Attribute,
-  AttributeId,
   Tenant,
-  TenantId,
   TenantAttribute,
-  WithMetadata,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { vi } from "vitest";
-import { match } from "ts-pattern";
-import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../src/config/constants.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
+import {
+  IVASS_INSURANCES_ATTRIBUTE_CODE,
+  IVASS_ORIGIN_NAME,
+} from "../src/config/constants.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 
-const csvFileContent = `OTHER_FIELD;CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE
-F1;D0001;2020-12-02;9999-12-31;Org1;0000012345678901
-F2;D0002;2020-06-10;9999-12-31;Org2;0000012345678902
-F3;D0003;2019-07-19;9999-12-31;Org3;0000012345678903`;
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
+
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+
+export const readModelQueries = readModelQueriesBuilderSQL(
+  readModelDB,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL
+);
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await upsertAttribute(readModelDB, attribute, 0);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await upsertTenant(readModelDB, tenant, 0);
+};
+
+export const CSV_HEADER =
+  "CODICE_IVASS;DATA_ISCRIZIONE_ALBO_ELENCO;DATA_CANCELLAZIONE_ALBO_ELENCO;DENOMINAZIONE_IMPRESA;CODICE_FISCALE";
+
+const csvFileContent = `${CSV_HEADER}
+D0001;2020-12-02;9999-12-31;Org1;0000012345678901`;
 
 export const ATTRIBUTE_IVASS_INSURANCES_ID =
   "b1d64ee0-fda9-48e2-84f8-1b62f1292b47";
 
-export const downloadCSVMockGenerator = (csvContent: string) =>
-  vi
-    .fn()
-    .mockImplementation((): Promise<string> => Promise.resolve(csvContent));
-export const getTenantsMockGenerator =
-  (f: (codes: string[]) => Tenant[]) =>
-  (codes: string[]): Promise<Tenant[]> =>
-    Promise.resolve(f(codes));
-export const getTenantByIdMockGenerator =
-  (f: (tenantId: TenantId) => Tenant) =>
-  (tenantId: TenantId): Promise<Tenant> =>
-    Promise.resolve(f(tenantId));
-const getTenantByIdWithMetadataMockGenerator =
-  (f: (tenantId: TenantId) => Tenant) =>
-  (tenantId: TenantId): Promise<WithMetadata<Tenant>> =>
-    Promise.resolve({
-      data: f(tenantId),
-      metadata: { version: 1 },
-    } as WithMetadata<Tenant>);
+export const IVASS_TENANT_ID = "69e2865e-65ab-4e48-a638-2037a9ee2ee8";
 
+export const downloadCSVMockGenerator =
+  (csvContent: string) => (): Promise<string> =>
+    Promise.resolve(csvContent);
 export const downloadCSVMock = downloadCSVMockGenerator(csvFileContent);
 
 export const internalAssignCertifiedAttributeMock = (
@@ -57,38 +80,6 @@ export const internalRevokeCertifiedAttributeMock = (
   _attributeExternalId: string,
   _context: InteropContext
 ): Promise<{ version: number } | undefined> => Promise.resolve({ version: 1 });
-
-export const getIVASSTenantsMock = getTenantsMockGenerator((taxCodes) =>
-  taxCodes.map((c) => ({
-    ...persistentTenant,
-    externalId: { origin: "tenantOrigin", value: c },
-  }))
-);
-export const getTenantsWithAttributesMock = (_: string[]) =>
-  Promise.resolve([]);
-const buildIvassTenantById = (tenantId: TenantId): Tenant => ({
-  ...persistentTenant,
-  id: tenantId,
-  features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
-});
-export const getTenantByIdMock =
-  getTenantByIdMockGenerator(buildIvassTenantById);
-export const getTenantByIdWithMetadataMock =
-  getTenantByIdWithMetadataMockGenerator(buildIvassTenantById);
-export const getAttributeByExternalIdMock = (
-  origin: string,
-  code: string
-): Promise<Attribute> =>
-  match(code)
-    .with(IVASS_INSURANCES_ATTRIBUTE_CODE, () =>
-      Promise.resolve({
-        ...persistentAttribute,
-        id: unsafeBrandId<AttributeId>(ATTRIBUTE_IVASS_INSURANCES_ID),
-        origin,
-        code,
-      })
-    )
-    .otherwise(() => Promise.reject(new Error("Unexpected attribute code")));
 
 export const persistentTenant: Tenant = {
   id: unsafeBrandId("091fbea1-0c8e-411b-988f-5098b6a33ba7"),
@@ -115,3 +106,20 @@ export const persistentTenantAttribute: TenantAttribute = {
   type: "PersistentCertifiedAttribute",
   assignmentTimestamp: new Date(),
 };
+
+export const buildIvassCertifierTenant = (): Tenant => ({
+  ...persistentTenant,
+  id: unsafeBrandId(IVASS_TENANT_ID),
+  name: "IVASS certifier tenant",
+  features: [
+    { type: "PersistentCertifier", certifierId: IVASS_ORIGIN_NAME },
+  ],
+});
+
+export const buildIvassInsurancesAttribute = (): Attribute => ({
+  ...persistentAttribute,
+  id: unsafeBrandId(ATTRIBUTE_IVASS_INSURANCES_ID),
+  origin: IVASS_ORIGIN_NAME,
+  code: IVASS_INSURANCES_ATTRIBUTE_CODE,
+  name: IVASS_INSURANCES_ATTRIBUTE_CODE,
+});
