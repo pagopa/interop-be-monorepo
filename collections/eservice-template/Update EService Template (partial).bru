@@ -1,0 +1,28 @@
+meta {
+  name: Update EService Template (partial)
+  type: http
+  seq: 92
+}
+
+patch {
+  url: {{host-template}}/templates/:templateId
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "Updated EService Template",
+    "description": "Updated e-service template description",
+    "intendedTarget": "Updated intended target"
+  }
+}

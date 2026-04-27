@@ -1,0 +1,22 @@
+meta {
+  name: Delete Version Document
+  type: http
+  seq: 93
+}
+
+delete {
+  url: {{host-template}}/templates/:templateId/versions/:templateVersionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+  templateVersionId: {{eserviceTemplateVersionId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

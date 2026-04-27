@@ -1,0 +1,20 @@
+meta {
+  name: Get Signed Risk Analysis Document
+  type: http
+  seq: 93
+}
+
+get {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

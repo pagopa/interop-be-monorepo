@@ -1,0 +1,28 @@
+meta {
+  name: Update Template Instance Descriptor
+  type: http
+  seq: 104
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eServiceId/descriptors/:descriptorId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 100
+  }
+}

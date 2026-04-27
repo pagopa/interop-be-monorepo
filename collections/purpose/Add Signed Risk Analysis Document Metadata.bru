@@ -1,0 +1,31 @@
+meta {
+  name: Add Signed Risk Analysis Document Metadata
+  type: http
+  seq: 93
+}
+
+post {
+  url: {{host-purpose}}/internal/purposes/:purposeId/versions/:versionId/riskAnalysisDocument/signed
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "id": "{{documentId}}",
+    "contentType": "application/pdf",
+    "path": "/documents/risk-analysis-signed.pdf",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "signedAt": "2026-01-01T00:00:00.000Z"
+  }
+}

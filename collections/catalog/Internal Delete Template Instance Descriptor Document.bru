@@ -1,0 +1,22 @@
+meta {
+  name: Internal Delete Template Instance Descriptor Document
+  type: http
+  seq: 103
+}
+
+delete {
+  url: {{host-catalog}}/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

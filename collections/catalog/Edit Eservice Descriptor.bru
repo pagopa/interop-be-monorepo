@@ -21,25 +21,25 @@ headers {
 }
 
 body:json {
-    {
-  //     "description": "testone testone",
-      "audience": [
-          "string"
+  {
+    // "description": "testone testone",
+    "audience": [
+      "string"
+    ],
+    "voucherLifespan": 86400,
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 100,
+    "agreementApprovalPolicy": "AUTOMATIC",
+    "attributes": {
+      "certified": [
+        // [{ "id": "{{certifiedAttributeId}}", "explicitAttributeVerification": false }]
       ],
-      "voucherLifespan": 86400,
-      "dailyCallsPerConsumer": 100,
-      "dailyCallsTotal": 100,
-      "agreementApprovalPolicy": "AUTOMATIC",
-      "attributes": {
-          "certified": [
-  //           [{ "id": "{{certifiedAttributeId}}", "explicitAttributeVerification": false }]
-          ],
-          "declared": [
-  //           [{ "id": "{{declaredAttributeId}}", "explicitAttributeVerification": false }]
-          ],
-          "verified": [
-  //           [{ "id": "{{verifiedAttributeId}}", "explicitAttributeVerification": false }]
-          ]
-      }
+      "declared": [
+        // [{ "id": "{{declaredAttributeId}}", "explicitAttributeVerification": false }]
+      ],
+      "verified": [
+        // [{ "id": "{{verifiedAttributeId}}", "explicitAttributeVerification": false }]
+      ]
+    }
   }
 }

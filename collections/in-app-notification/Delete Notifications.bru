@@ -1,0 +1,22 @@
+meta {
+  name: Delete Notifications
+  type: http
+  seq: 90
+}
+
+delete {
+  url: {{host-in-app-notification}}/notifications
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "ids": ["{{notificationId}}"]
+  }
+}

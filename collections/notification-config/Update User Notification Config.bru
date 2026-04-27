@@ -17,6 +17,9 @@ headers {
 
 body:json {
   {
+    "inAppNotificationPreference": true,
+    "emailNotificationPreference": true,
+    "emailDigestPreference": true,
     "inAppConfig": {
       "agreementSuspendedUnsuspendedToProducer": true,
       "agreementManagementToProducer": true,
@@ -36,7 +39,11 @@ body:json {
       "eserviceNewVersionApprovedRejectedToDelegate": true,
       "delegationSubmittedRevokedToDelegate": true,
       "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
-      "clientKeyAddedDeletedToClientUsers": true
+      "clientKeyAddedDeletedToClientUsers": true,
+      "clientKeyConsumerAddedDeletedToClientUsers": true,
+      "producerKeychainKeyAddedDeletedToClientUsers": true,
+      "purposeQuotaAdjustmentRequestToProducer": true,
+      "purposeOverQuotaStateToConsumer": true
     },
     "emailConfig": {
       "agreementSuspendedUnsuspendedToProducer": true,
@@ -57,7 +64,11 @@ body:json {
       "eserviceNewVersionApprovedRejectedToDelegate": true,
       "delegationSubmittedRevokedToDelegate": true,
       "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
-      "clientKeyAddedDeletedToClientUsers": true
+      "clientKeyAddedDeletedToClientUsers": true,
+      "clientKeyConsumerAddedDeletedToClientUsers": true,
+      "producerKeychainKeyAddedDeletedToClientUsers": true,
+      "purposeQuotaAdjustmentRequestToProducer": true,
+      "purposeOverQuotaStateToConsumer": true
     }
   }
 }

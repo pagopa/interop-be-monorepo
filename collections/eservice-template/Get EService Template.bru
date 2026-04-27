@@ -1,0 +1,20 @@
+meta {
+  name: Get EService Template
+  type: http
+  seq: 91
+}
+
+get {
+  url: {{host-template}}/templates/:templateId
+  body: none
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

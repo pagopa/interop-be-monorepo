@@ -1,0 +1,22 @@
+meta {
+  name: Get Signed Purpose Version Document
+  type: http
+  seq: 94
+}
+
+get {
+  url: {{host-purpose}}/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

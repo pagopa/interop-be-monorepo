@@ -1,0 +1,20 @@
+meta {
+  name: Mark Notification As Unread
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{host-in-app-notification}}/notifications/:notificationId/markAsUnread
+  body: none
+  auth: none
+}
+
+params:path {
+  notificationId: {{notificationId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

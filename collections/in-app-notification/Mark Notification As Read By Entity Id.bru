@@ -1,0 +1,20 @@
+meta {
+  name: Mark Notification As Read By Entity Id
+  type: http
+  seq: 93
+}
+
+post {
+  url: {{host-in-app-notification}}/notifications/markAsReadByEntityId/:entityId
+  body: none
+  auth: none
+}
+
+params:path {
+  entityId: {{entityId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{host-notification-config}}/internal/ensureUserNotificationConfigExistsWithRole
+  url: {{host-notification-config}}/internal/ensureUserNotificationConfigExistsWithRoles
   body: json
   auth: none
 }
@@ -19,6 +19,6 @@ body:json {
   {
     "userId": "{{userId}}",
     "tenantId": "{{tenantId}}",
-    "userRole": "{{userRole}}"
+    "userRoles": ["{{userRole}}"]
   }
 }

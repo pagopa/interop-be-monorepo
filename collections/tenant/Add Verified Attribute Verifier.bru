@@ -1,0 +1,22 @@
+meta {
+  name: Add Verified Attribute Verifier
+  type: http
+  seq: 90
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+  verifierId: {{verifierId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

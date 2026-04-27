@@ -1,0 +1,21 @@
+meta {
+  name: Get EService Templates
+  type: http
+  seq: 90
+}
+
+get {
+  url: {{host-template}}/templates?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

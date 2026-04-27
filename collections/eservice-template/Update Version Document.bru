@@ -1,0 +1,28 @@
+meta {
+  name: Update Version Document
+  type: http
+  seq: 94
+}
+
+post {
+  url: {{host-template}}/templates/:templateId/versions/:templateVersionId/documents/:documentId/update
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+  templateVersionId: {{eserviceTemplateVersionId}}
+  documentId: {{documentId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "prettyName": "Updated Version Document"
+  }
+}

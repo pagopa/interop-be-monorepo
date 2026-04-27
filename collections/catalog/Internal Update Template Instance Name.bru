@@ -1,0 +1,26 @@
+meta {
+  name: Internal Update Template Instance Name
+  type: http
+  seq: 96
+}
+
+post {
+  url: {{host-catalog}}/internal/templates/eservices/:eServiceId/name/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "Updated template instance name"
+  }
+}
