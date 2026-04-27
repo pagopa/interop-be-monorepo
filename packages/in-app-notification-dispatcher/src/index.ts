@@ -25,6 +25,7 @@ import {
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -67,6 +68,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
@@ -76,6 +79,7 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
 });
 
 const notificationDB = drizzle(

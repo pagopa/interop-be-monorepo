@@ -9,6 +9,7 @@ import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedTo
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
 import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
 
 export async function handleAuthorizationEvent(
@@ -82,6 +83,9 @@ export async function handleAuthorizationEvent(
       ]);
       return [...existingNotifications, ...newNotifications];
     })
+    .with({ type: "ProducerKeychainEServiceRemoved" }, (msg) =>
+      handleAsyncEserviceWithoutKeychain(msg, logger, readModelService)
+    )
     .with(
       {
         type: P.union(
@@ -91,7 +95,6 @@ export async function handleAuthorizationEvent(
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
-          "ProducerKeychainEServiceRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded"

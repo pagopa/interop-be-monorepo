@@ -116,6 +116,8 @@ export const eventMailTemplateType = {
   purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
   purposeQuotaAdjustmentResponseMailTemplate:
     "purpose-quota-adjustment-response-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

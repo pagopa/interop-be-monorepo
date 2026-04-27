@@ -72,6 +72,9 @@ describe("handleAuthorizationEvent", () => {
     vi.restoreAllMocks();
     mockGetNotificationRecipients.mockReset();
     readModelService.getEServiceById = vi.fn().mockResolvedValue(asyncEservice);
+    readModelService.eserviceExistsInOtherProducerKeychains = vi
+      .fn()
+      .mockResolvedValue(false);
     mockGetNotificationRecipients.mockResolvedValue([
       { userId: userId1, tenantId: producerId },
       { userId: userId2, tenantId: producerId },
@@ -117,6 +120,36 @@ describe("handleAuthorizationEvent", () => {
     noKeysAsyncEserviceNotifications.forEach((notification) => {
       expect(notification.tenantId).toBe(producerId);
       expect(notification.entityId).toBe(producerKeychainId);
+    });
+  });
+
+  it("should use producerKeychainId as entityId for ProducerKeychainEServiceRemoved", async () => {
+    const decodedMessage: AuthorizationEventEnvelopeV2 = {
+      type: "ProducerKeychainEServiceRemoved",
+      event_version: 2,
+      sequence_num: 1,
+      version: 1,
+      stream_id: generateId(),
+      log_date: new Date(),
+      data: {
+        producerKeychain: toProducerKeychainV2(producerKeychainAfterDeletion),
+        eserviceId,
+      },
+    };
+
+    const notifications = await handleAuthorizationEvent(
+      decodedMessage,
+      logger,
+      readModelService
+    );
+
+    expect(notifications).toHaveLength(3);
+    notifications.forEach((notification) => {
+      expect(notification.tenantId).toBe(producerId);
+      expect(notification.entityId).toBe(producerKeychainId);
+      expect(notification.notificationType).toBe(
+        "producerKeychainKeyAddedDeletedToClientUsers"
+      );
     });
   });
 });
