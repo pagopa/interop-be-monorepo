@@ -55,7 +55,7 @@ import {
 import {
   activeDelegationStates,
   assertDelegationNotExists,
-  assertDelegatorAndDelegateAllowedOrigins,
+  assertDelegatorAndDelegateAllowedForDelegation,
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
   assertEserviceIsConsumerDelegable,
@@ -153,7 +153,7 @@ export function delegationServiceBuilder(
     ]);
 
     assertTenantAllowedToReceiveDelegation(delegate, kind);
-    await assertDelegatorAndDelegateAllowedOrigins(delegator, delegate);
+    assertDelegatorAndDelegateAllowedForDelegation(delegator, delegate);
 
     await match(kind)
       .with(delegationKind.delegatedProducer, () =>
