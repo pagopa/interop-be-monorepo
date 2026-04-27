@@ -27,7 +27,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
-import { match } from "ts-pattern";
 
 export const upsertPlatformStatesCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
@@ -111,24 +110,12 @@ export const deleteCatalogEntry = async (
   logger.info(`Platform-states. Deleted catalog entry ${primaryKey}`);
 };
 
-export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
-  // Used match/exhaustive instead of the ternary so that future states will give an error if not handled
-  match(state)
-    .with(
-      descriptorState.published,
-      descriptorState.deprecated,
-      descriptorState.archiving,
-      () => itemState.active
-    )
-    .with(
-      descriptorState.suspended,
-      descriptorState.archivingSuspended,
-      descriptorState.archived,
-      descriptorState.waitingForApproval,
-      descriptorState.draft,
-      () => itemState.inactive
-    )
-    .exhaustive();
+export const descriptorStateToItemState = (
+  state: DescriptorState
+): ItemState =>
+  state === descriptorState.published || state === descriptorState.deprecated
+    ? itemState.active
+    : itemState.inactive;
 
 export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,
