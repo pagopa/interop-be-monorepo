@@ -123,12 +123,34 @@ async function internalCreateEvents<T extends Event>(
   }
 }
 
+async function internalGetLatestVersion(
+  db: DB,
+  streamId: string
+): Promise<number | undefined> {
+  const dbRecord = await db.oneOrNone(sql.getLatestEventVersion, {
+    stream_id: streamId,
+  });
+  const decodedDBRecord = z
+    .object({ version: z.coerce.number() })
+    .nullish()
+    .safeParse(dbRecord);
+
+  if (!decodedDBRecord.success) {
+    throw genericInternalError(
+      `Error retrieving latest version for stream ${streamId}: ${decodedDBRecord.error.message}`
+    );
+  }
+
+  return decodedDBRecord.data?.version;
+}
+
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
 ): {
   createEvent: (createEvent: CreateEvent<T>) => Promise<CreatedEvent>;
   createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<CreatedEvents>;
+  getLatestVersion: (streamId: string) => Promise<number | undefined>;
 } => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<CreatedEvent> {
     return await internalCreateEvent(db, toBinaryData, createEvent);
@@ -137,6 +159,9 @@ export const eventRepository = <T extends Event>(
     createEvents: Array<CreateEvent<T>>
   ): Promise<CreatedEvents> {
     return await internalCreateEvents(db, toBinaryData, createEvents);
+  },
+  async getLatestVersion(streamId: string): Promise<number | undefined> {
+    return await internalGetLatestVersion(db, streamId);
   },
 });
 
