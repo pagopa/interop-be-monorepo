@@ -62,6 +62,8 @@ const errorCodes = {
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
   eserviceInDraftState: "0047",
+  attributeDailyCallsNotAllowed: "0048",
+  certifiedAttributeGroupNotFoundInSeed: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -192,7 +194,7 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
 
 export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    detail: `dailyCallsPerConsumer can't be greater than or equal to dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
   });
@@ -544,5 +546,26 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
   });
 }

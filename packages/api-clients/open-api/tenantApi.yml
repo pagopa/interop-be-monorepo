@@ -1062,7 +1062,10 @@ paths:
         - tenant
       summary: Updates a tenant
       operationId: maintenanceTenantUpdate
-      description: Updates the specified tenant by its ID
+      description: >-
+        Updates the specified tenant by its ID.
+        Optional fields (e.g. features) are merged with the existing tenant:
+        if provided, they overwrite the current value; if omitted, the current value is preserved.
       responses:
         "204":
           description: Tenant Updated
@@ -1687,6 +1690,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - externalId
         - selfcareId
@@ -1802,6 +1807,12 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeature"
       required:
         - selfcareId
         - externalId

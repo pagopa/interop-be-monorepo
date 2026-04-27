@@ -1,0 +1,2 @@
+export const DEFAULT_DAILY_CALLS_PER_CONSUMER = 1;
+export const DEFAULT_DAILY_CALLS_TOTAL = 10;

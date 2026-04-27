@@ -19,7 +19,7 @@ const errorCodes = {
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
   invalidDelegatorAndDelegateIds: "0005",
-  originNotCompliant: "0006",
+  delegationNotAllowedForTenant: "0006",
   tenantNotAllowedToDelegation: "0007",
   stampNotFound: "0008",
   operationRestrictedToDelegator: "0009",
@@ -84,7 +84,7 @@ export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   });
 }
 
-export function originNotCompliant(
+export function delegationNotAllowedForTenant(
   tenant: Tenant,
   delegatorOrDelegate: "Delegator" | "Delegate"
 ): ApiError<ErrorCodes> {
@@ -93,9 +93,9 @@ export function originNotCompliant(
     .with("Delegate", () => "Delegate")
     .exhaustive();
   return new ApiError({
-    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId?.origin} is not allowed`,
-    code: "originNotCompliant",
-    title: "Origin is not compliant",
+    detail: `Delegation not allowed for tenant ${delegatorOrDelegateString} ${tenant.id}`,
+    code: "delegationNotAllowedForTenant",
+    title: "Tenant not allowed for delegation",
   });
 }
 
