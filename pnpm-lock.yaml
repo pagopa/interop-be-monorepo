@@ -1370,8 +1370,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.14
-        version: 1.8.14
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3035,8 +3035,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.8
-        version: 1.8.8
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4888,8 +4888,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.1
-        version: 1.8.1
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5117,8 +5117,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.10
-        version: 1.8.10
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5536,8 +5536,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.12
-        version: 1.8.12
+        specifier: 1.8.16
+        version: 1.8.16
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7202,20 +7202,8 @@ packages:
   '@pagopa/interop-outbound-models@1.7.0':
     resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
 
-  '@pagopa/interop-outbound-models@1.8.1':
-    resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
-
-  '@pagopa/interop-outbound-models@1.8.12':
-    resolution: {integrity: sha512-+m2RRwz0sxTYFPwG+9mjFKtC49f0r3O0at/OCNjVcHJELvJyO58bYF2jGQszmRB/TPyV5ZM6FlTGX2TvVgPGbw==}
-
-  '@pagopa/interop-outbound-models@1.8.14':
-    resolution: {integrity: sha512-ZbWHhkv/6efGd2jOYtDB5c30jaUgpXZVn815+96fVgM0brhArnkCx+2kxhJJ5GEsr/vNNaFogRPq3y9eliT5tw==}
-
-  '@pagopa/interop-outbound-models@1.8.8':
-    resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
+  '@pagopa/interop-outbound-models@1.8.16':
+    resolution: {integrity: sha512-8CGChz2HuYK6U3fd2/wIC2M8xECGjbRH9EdeuBxBmaNE8bVcj9rLQQRCtPBW8r5hbvKtjjIjQ4qDQdMVn+whdg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13707,31 +13695,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.1':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.12':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.14':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.8':
+  '@pagopa/interop-outbound-models@1.8.16':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

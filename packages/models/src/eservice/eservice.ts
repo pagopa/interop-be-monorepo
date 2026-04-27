@@ -24,6 +24,8 @@ export const descriptorState = {
   suspended: "Suspended",
   archived: "Archived",
   waitingForApproval: "WaitingForApproval",
+  archiving: "Archiving",
+  archivingSuspended: "ArchivingSuspended",
 } as const;
 export const DescriptorState = z.enum([
   Object.values(descriptorState)[0],
@@ -94,6 +96,24 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
+export const archivingScope = {
+  eservice: "EService",
+  descriptor: "Descriptor",
+} as const;
+export const ArchivingScope = z.enum([
+  Object.values(archivingScope)[0],
+  ...Object.values(archivingScope).slice(1),
+]);
+export type ArchivingScope = z.infer<typeof ArchivingScope>;
+
+export const ArchivingSchedule = z.object({
+  archivableOn: z.coerce.date(),
+  startedAt: z.coerce.date(),
+  scope: ArchivingScope,
+});
+
+export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -115,6 +135,7 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  archivingSchedule: ArchivingSchedule.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -145,6 +166,7 @@ export const EService = z.object({
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
+  archivingReason: z.string().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

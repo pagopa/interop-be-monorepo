@@ -377,6 +377,8 @@ const validateLatestDescriptor = (
     descriptorState.deprecated,
     descriptorState.published,
     descriptorState.suspended,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
   ];
 
   const recentActiveDescriptors = eservice.descriptors

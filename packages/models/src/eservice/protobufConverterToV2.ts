@@ -1,6 +1,7 @@
 import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicyV2,
+  ArchivingScopeV2,
   DescriptorRejectionReasonV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
@@ -15,6 +16,7 @@ import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
+  ArchivingScope,
   Descriptor,
   DescriptorRejectionReason,
   DescriptorState,
@@ -24,6 +26,7 @@ import {
   EServiceMode,
   Technology,
   agreementApprovalPolicy,
+  archivingScope,
   descriptorState,
   eserviceMode,
   technology,
@@ -59,6 +62,11 @@ export const toEServiceDescriptorStateV2 = (
     .with(
       descriptorState.waitingForApproval,
       () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
+    )
+    .with(descriptorState.archiving, () => EServiceDescriptorStateV2.ARCHIVING)
+    .with(
+      descriptorState.archivingSuspended,
+      () => EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
     )
     .exhaustive();
 
@@ -98,6 +106,14 @@ export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   uploadDate: input.uploadDate.toISOString(),
 });
 
+export const toEServiceDescriptorScopeV2 = (
+  input: ArchivingScope
+): ArchivingScopeV2 =>
+  match(input)
+    .with(archivingScope.eservice, () => ArchivingScopeV2.ESERVICE)
+    .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
+    .exhaustive();
+
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
@@ -120,6 +136,13 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  archivingSchedule: input.archivingSchedule
+    ? {
+        archivableOn: dateToBigInt(input.archivingSchedule.archivableOn),
+        startedAt: dateToBigInt(input.archivingSchedule.startedAt),
+        scope: toEServiceDescriptorScopeV2(input.archivingSchedule.scope),
+      }
+    : undefined,
 });
 
 export const toRiskAnalysisV2 = (
