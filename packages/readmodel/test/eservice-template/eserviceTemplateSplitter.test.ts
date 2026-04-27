@@ -273,7 +273,7 @@ describe("E-service template splitter", () => {
       metadataVersion: 1,
       createdAt: version.createdAt.toISOString(),
       eserviceTemplateId: eserviceTemplate.id,
-      description: null,
+      description: version.description,
       publishedAt: null,
       suspendedAt: null,
       deprecatedAt: null,
