@@ -4,6 +4,7 @@ import {
   Delegation,
   DelegationId,
   delegationKind,
+  delegationState,
   generateId,
   TenantId,
 } from "pagopa-interop-models";
@@ -67,7 +68,9 @@ describe("API DELETE /producer/delegations/:delegationId test", () => {
       expectedStatus: 403,
     },
     {
-      error: incorrectState(mockDelegation.id, "Revoked", "WaitingForApproval"),
+      error: incorrectState(mockDelegation.id, "Revoked", [
+        delegationState.waitingForApproval,
+      ]),
       expectedStatus: 409,
     },
   ])(

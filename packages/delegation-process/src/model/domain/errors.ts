@@ -134,12 +134,10 @@ export function operationRestrictedToDelegator(
 export function incorrectState(
   delegationId: DelegationId,
   actualState: DelegationState,
-  expected: DelegationState | DelegationState[]
+  expected: DelegationState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${
-      Array.isArray(expected) ? expected.join(",") : expected
-    }`,
+    detail: `Delegation ${delegationId} is in state ${actualState} but expected ${expected.join(",")}`,
     code: "incorrectState",
     title: "Incorrect state",
   });
