@@ -43,6 +43,10 @@ import {
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -146,8 +150,11 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
@@ -300,8 +307,11 @@ describe("create eService from template", () => {
             createdAt: new Date(),
             serverUrls: [],
             audience: [],
-            dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-            dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+            dailyCallsPerConsumer:
+              publishedVersion?.dailyCallsPerConsumer ??
+              DEFAULT_DAILY_CALLS_PER_CONSUMER,
+            dailyCallsTotal:
+              publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
             templateVersionRef: { id: publishedVersion.id },
           },
         ],
@@ -383,8 +393,11 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
@@ -457,8 +470,11 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
@@ -639,9 +655,11 @@ describe("create eService from template", () => {
           serverUrls: [],
           audience: [],
           dailyCallsPerConsumer:
-            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
           dailyCallsTotal:
-            eserviceTemplatePublishedVersion?.dailyCallsTotal ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsTotal ??
+            DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: eserviceTemplatePublishedVersion.id },
         },
       ],

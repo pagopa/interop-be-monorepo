@@ -45,6 +45,10 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 
 describe("upgrade eservice template instance", () => {
   const mockEService = getMockEService();
@@ -187,8 +191,11 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
@@ -369,8 +376,11 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],

@@ -370,22 +370,28 @@ describe("create eservice", () => {
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
 
-  it("should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
-    expect(
-      catalogService.createEService(
-        {
-          name: mockEService.name,
-          description: mockEService.description,
-          technology: "REST",
-          mode: "DELIVER",
-          descriptor: {
-            ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
-            dailyCallsPerConsumer: 100,
-            dailyCallsTotal: 99,
+  it.each([
+    { dailyCallsPerConsumer: 100, dailyCallsTotal: 99 },
+    { dailyCallsPerConsumer: 100, dailyCallsTotal: 100 },
+  ])(
+    "should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer >= dailyCallsTotal",
+    async ({ dailyCallsPerConsumer, dailyCallsTotal }) => {
+      expect(
+        catalogService.createEService(
+          {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+            descriptor: {
+              ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
+              dailyCallsPerConsumer,
+              dailyCallsTotal,
+            },
           },
-        },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-      )
-    ).rejects.toThrowError(inconsistentDailyCalls());
-  });
+          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        )
+      ).rejects.toThrowError(inconsistentDailyCalls());
+    }
+  );
 });

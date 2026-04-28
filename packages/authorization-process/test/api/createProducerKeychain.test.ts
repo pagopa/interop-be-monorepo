@@ -16,6 +16,7 @@ import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 
 describe("API /producerKeychains authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -80,6 +81,22 @@ describe("API /producerKeychains authorization test", () => {
       token,
       body as authorizationApi.ProducerKeychainSeed
     );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed duplicated users in body", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+    authorizationService.createProducerKeychain = vi
+      .fn()
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });
