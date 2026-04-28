@@ -21,6 +21,7 @@ export const ApplicationAuditBeginRequest = z.object({
   uptimeSeconds: z.number(),
   timestamp: z.number(),
   amazonTraceId: z.string().optional(),
+  jwtId: z.string().optional(),
 });
 export type ApplicationAuditBeginRequest = z.infer<
   typeof ApplicationAuditBeginRequest
@@ -40,6 +41,7 @@ export const ApplicationAuditEndRequest = z.object({
   uptimeSeconds: z.number(),
   timestamp: z.number(),
   amazonTraceId: z.string().optional(),
+  jwtId: z.string().optional(),
   organizationId: z.string().optional(),
   userId: z.string().optional(),
   httpResponseStatus: z.number(),
@@ -87,6 +89,8 @@ export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
   uptimeSeconds: z.number(),
   timestamp: z.number(),
   amazonTraceId: z.string().optional(),
+  requestJwtId: z.string().optional(),
+  producedJwtId: z.string().optional(),
   organizationId: z.string().optional(),
   selfcareId: z.string().optional(),
   httpResponseStatus: z.number(),
