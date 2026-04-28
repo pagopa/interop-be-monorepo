@@ -2,29 +2,10 @@ import { Logger } from "pagopa-interop-commons";
 import { AsyncTokenGenerationReadModelService } from "../services/asyncTokenGenerationReadModelService.js";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { collectReadModelContext } from "./common.js";
-import {
-  compareAsyncPlatformStates,
-  compareAsyncPlatformStatesPages,
-} from "./platformStates.js";
-import {
-  compareAsyncTokenGenerationStates,
-  compareAsyncTokenGenerationStatesPages,
-} from "./tokenGenerationStates.js";
-import {
-  compareProducerKeychainPlatformStates,
-  compareProducerKeychainPlatformStatesPages,
-} from "./producerKeychainPlatformStates.js";
-import {
-  compareInteractions,
-  compareInteractionsPages,
-} from "./interactions.js";
-
-export {
-  compareAsyncPlatformStates,
-  compareAsyncTokenGenerationStates,
-  compareInteractions,
-  compareProducerKeychainPlatformStates,
-};
+import { compareAsyncPlatformStatesPages } from "./platformStates.js";
+import { compareAsyncTokenGenerationStatesPages } from "./tokenGenerationStates.js";
+import { compareProducerKeychainPlatformStatesPages } from "./producerKeychainPlatformStates.js";
+import { compareInteractionsPages } from "./interactions.js";
 
 export const compareAsyncTokenGenerationReadModel = async ({
   asyncTokenGenerationReadModelService,

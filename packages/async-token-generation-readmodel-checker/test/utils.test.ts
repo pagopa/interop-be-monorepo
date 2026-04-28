@@ -53,12 +53,10 @@ import {
   it,
   vi,
 } from "vitest";
-import {
-  compareAsyncPlatformStates,
-  compareAsyncTokenGenerationStates,
-  compareAsyncTokenGenerationReadModel,
-  compareInteractions,
-} from "../src/utils/utils.js";
+import { compareInteractions } from "../src/utils/interactions.js";
+import { compareAsyncPlatformStates } from "../src/utils/platformStates.js";
+import { compareAsyncTokenGenerationStates } from "../src/utils/tokenGenerationStates.js";
+import { compareAsyncTokenGenerationReadModel } from "../src/utils/utils.js";
 import {
   addOneAgreement,
   addOneClient,
