@@ -64,6 +64,9 @@ const errorCodes = {
   eserviceInDraftState: "0047",
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
+  descriptorAlreadyArchived: "0050",
+  archivableOnIsNotExpiredYet: "0051",
+  activeSubscriptionsExists: "0052",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -567,5 +570,35 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function archivableOnIsNotExpiredYet(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} cannot be archived yet because the archivableOn date has not expired`,
+    code: "archivableOnIsNotExpiredYet",
+    title: "Archivable On Is Not Expired Yet",
+  });
+}
+
+export function activeSubscriptionsExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active subscriptions exist for descriptor ${descriptorId}`,
+    code: "activeSubscriptionsExists",
+    title: "Active subscriptions exist",
   });
 }

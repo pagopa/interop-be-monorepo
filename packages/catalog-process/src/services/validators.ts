@@ -27,6 +27,8 @@ import {
   EServiceTemplateId,
   type EserviceAttributes,
   DescriptorState,
+  DescriptorId,
+  Agreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -50,9 +52,13 @@ import {
   eServiceUpdateSameNameConflict,
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
+  descriptorAlreadyArchived,
+  archivableOnIsNotExpiredYet,
+  activeSubscriptionsExists,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { isArchivable } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -474,5 +480,31 @@ export function assertDescriptorIsNotLatestVersion(
   const latestDescriptorVersion = getLatestDescriptor(eservice);
   if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertDescriptorIsAlreadyArchived(
+  descriptor: Descriptor
+): void {
+  if (descriptor.state === descriptorState.archived) {
+    throw descriptorAlreadyArchived(descriptor.id);
+  }
+}
+
+export function assertGracePeriodExpired(descriptor: Descriptor): void {
+  if (!descriptor.archivingSchedule) {
+    throw operationForbidden;
+  }
+  if (!isArchivable(descriptor.archivingSchedule.archivableOn, new Date())) {
+    throw archivableOnIsNotExpiredYet(descriptor.id);
+  }
+}
+
+export function assertHasNoAgreement(
+  descriptorId: DescriptorId,
+  agreements: Agreement[]
+): void {
+  if (agreements.length !== 0) {
+    throw activeSubscriptionsExists(descriptorId);
   }
 }
