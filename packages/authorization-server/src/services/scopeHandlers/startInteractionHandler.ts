@@ -4,14 +4,12 @@ import {
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
-  ClientId,
   clientKindTokenGenStates,
   generateId,
   genericInternalError,
   InteractionId,
   interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   asyncClientAssertionClaimsValidationFailed,
@@ -178,7 +176,7 @@ export const handleStartInteraction = async (
     dynamoDBClient,
     interactionsTable,
     interactionId,
-    clientId: unsafeBrandId<ClientId>(clientId),
+    clientId,
     purposeId,
     consumerId: key.consumerId,
     eServiceId: eserviceId,

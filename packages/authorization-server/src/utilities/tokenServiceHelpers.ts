@@ -14,6 +14,7 @@ import {
   generateId,
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
+  itemState,
   makePlatformStatesEServiceDescriptorPK,
   makeProducerKeychainPlatformStatesPK,
   PlatformStatesCatalogEntry,
@@ -63,6 +64,7 @@ import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   kafkaAuditingFailed,
+  platformStateValidationFailed,
   producerKeychainEntryNotFound,
   tokenGenerationStatesEntryNotFound,
   tokenGenerationStatesEntriesByPurposeIdNotFound,
@@ -171,6 +173,15 @@ export const retrieveAsyncCatalogEntry = async (
     AsyncPlatformStatesCatalogEntry.safeParse(catalogEntry);
   if (!asyncCatalogEntry.success) {
     throw asyncExchangePropertiesNotFound(eserviceId, descriptorId);
+  }
+  // The descriptor is pinned on the Interaction at start_interaction; the
+  // token-generation-states row may have been rewritten to point at a
+  // different descriptor, so validatePlatformState(key) would not catch a
+  // pinned descriptor that has since become INACTIVE.
+  if (asyncCatalogEntry.data.state !== itemState.active) {
+    throw platformStateValidationFailed(
+      `E-Service state for pinned descriptor ${descriptorId} is: ${asyncCatalogEntry.data.state}`
+    );
   }
   return asyncCatalogEntry.data;
 };

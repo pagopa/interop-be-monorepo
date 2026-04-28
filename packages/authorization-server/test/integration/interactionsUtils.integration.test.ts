@@ -121,6 +121,7 @@ describe("interactions utils integration", () => {
     expect(retrieved?.state).toBe("confirmation");
     expect(retrieved?.startInteractionTokenIssuedAt).toBe(startIssuedAt);
     expect(retrieved?.callbackInvocationTokenIssuedAt).toBe(callbackIssuedAt);
+    expect(retrieved?.confirmationTokenIssuedAt).toBe(confirmedAt);
     expect(retrieved?.updatedAt).toBe(confirmedAt);
   });
 });
