@@ -34,6 +34,7 @@ import {
   makeInteractionPK,
   makePlatformStatesEServiceDescriptorPK,
   makeProducerKeychainPlatformStatesPK,
+  makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   ProducerKeychain,
   ProducerKeychainPlatformStateEntry,
@@ -54,6 +55,7 @@ import {
 } from "vitest";
 import {
   compareAsyncPlatformStates,
+  compareAsyncTokenGenerationStates,
   compareAsyncTokenGenerationReadModel,
   compareInteractions,
 } from "../src/utils/utils.js";
@@ -351,6 +353,43 @@ describe("Async Token Generation Read Model Checker tests", () => {
     });
 
     expect(differences).toBe(1);
+  });
+
+  it("should detect an unexpected invalid async token-generation-states entry", () => {
+    const fixture = buildFixture();
+    const unexpectedKid = "unexpected-kid";
+    const unexpectedAsyncEntry: TokenGenerationStatesConsumerClient = {
+      PK: makeTokenGenerationStatesClientKidPK({
+        clientId: fixture.client.id,
+        kid: unexpectedKid,
+      }),
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: fixture.tokenGenerationEntry.publicKey,
+      updatedAt: issuedAt,
+      GSIPK_clientId: fixture.client.id,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId: fixture.client.id,
+        kid: unexpectedKid,
+      }),
+      asyncExchange: true,
+    };
+
+    expect(
+      compareAsyncTokenGenerationStates({
+        readModelContext: {
+          eservices: [fixture.eservice],
+          purposes: [fixture.purpose],
+          agreements: [fixture.agreement],
+          clients: [fixture.client],
+          producerKeychains: [],
+        },
+        tokenGenerationStates: [
+          fixture.tokenGenerationEntry,
+          unexpectedAsyncEntry,
+        ],
+        logger: genericLogger,
+      })
+    ).toBe(1);
   });
 
   it("should detect a missing producer-keychain-platform-states entry", async () => {

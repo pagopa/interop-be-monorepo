@@ -628,11 +628,21 @@ const compareAsyncTokenGenerationStateEntries = ({
       continue;
     }
 
-    if (
-      parsedEntry.success &&
-      parsedEntry.data.asyncExchange === true &&
-      !expectedByPK.has(parsedEntry.data.PK)
-    ) {
+    if (entry.clientKind === clientKindTokenGenStates.consumer) {
+      if (entry.asyncExchange !== true) {
+        continue;
+      }
+
+      if (!parsedEntry.success) {
+        differencesCount += logDifference({
+          logger,
+          message: `Unexpected invalid async token-generation-states entry ${entry.PK}`,
+          actual: entry,
+          expected: undefined,
+        });
+        continue;
+      }
+
       differencesCount += logDifference({
         logger,
         message: `Unexpected async token-generation-states entry ${parsedEntry.data.PK}`,
