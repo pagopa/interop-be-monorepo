@@ -117,33 +117,6 @@ const countMissingExpectedProducerKeychainPlatformStates = ({
   return differencesCount;
 };
 
-export const compareProducerKeychainPlatformStates = ({
-  producerKeychains,
-  producerKeychainPlatformStates,
-  logger,
-}: {
-  producerKeychains: ProducerKeychainReadModelEntry[];
-  producerKeychainPlatformStates: ProducerKeychainPlatformStateEntry[];
-  logger: Logger;
-}): number => {
-  const expectedByPK =
-    buildExpectedProducerKeychainPlatformStatesByPK(producerKeychains);
-  const result = compareProducerKeychainPlatformStateEntries({
-    expectedByPK,
-    producerKeychainPlatformStates,
-    logger,
-  });
-
-  return (
-    result.differencesCount +
-    countMissingExpectedProducerKeychainPlatformStates({
-      expectedByPK,
-      seenExpectedPKs: result.seenExpectedPKs,
-      logger,
-    })
-  );
-};
-
 export const compareProducerKeychainPlatformStatesPages = async ({
   producerKeychains,
   producerKeychainPlatformStatesPages,

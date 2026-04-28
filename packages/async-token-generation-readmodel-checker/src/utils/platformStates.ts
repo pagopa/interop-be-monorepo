@@ -22,7 +22,7 @@ type ComparableAsyncPlatformStatesCatalogEntry = Pick<
   | "asyncExchangeProperties"
 >;
 
-export type AsyncPlatformStatesComparisonResult = {
+type AsyncPlatformStatesComparisonResult = {
   differencesCount: number;
   asyncPlatformStatesByPK: Map<string, AsyncPlatformStatesCatalogEntry>;
 };

@@ -22,7 +22,7 @@ type DescriptorWithAsyncExchangeProperties = Descriptor & {
   asyncExchangeProperties: AsyncExchangeProperties;
 };
 
-export type AsyncDescriptor = {
+type AsyncDescriptor = {
   eservice: EService;
   descriptor: DescriptorWithAsyncExchangeProperties;
 };
