@@ -70,10 +70,7 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import {
-  getAllAgreements,
-  getLatestAgreementsOnDescriptor,
-} from "./agreementService.js";
+import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   getAllDelegations,
@@ -797,50 +794,21 @@ export function catalogServiceBuilder(
         totalCount: 0,
       };
 
-      if (consumersIds.length === 0) {
-        const { results, totalCount } = await catalogProcessClient.getEServices(
-          {
-            headers,
-            queries: {
-              name: eserviceName,
-              producersIds: requesterId,
-              delegated,
-              personalData,
-              offset,
-              limit,
-            },
-          }
-        );
+      const { results, totalCount } = await catalogProcessClient.getEServices({
+        headers,
+        queries: {
+          name: eserviceName,
+          producersIds: requesterId,
+          consumersIds,
+          delegated,
+          personalData: consumersIds.length === 0 ? personalData : undefined,
+          offset,
+          limit,
+        },
+      });
 
-        res.results = results;
-        res.totalCount = totalCount;
-      } else {
-        const eserviceIds = (
-          await getAllAgreements(agreementProcessClient, headers, {
-            consumersIds,
-            producersIds: [requesterId],
-            eservicesIds: [],
-            states: [],
-          })
-        ).map((agreement) => agreement.eserviceId);
-
-        const { results, totalCount } = await catalogProcessClient.getEServices(
-          {
-            headers,
-            queries: {
-              name: eserviceName,
-              eservicesIds: eserviceIds,
-              producersIds: requesterId,
-              delegated,
-              offset,
-              limit,
-            },
-          }
-        );
-
-        res.results = results;
-        res.totalCount = totalCount;
-      }
+      res.results = results;
+      res.totalCount = totalCount;
 
       const notificationsPromise = filterUnreadNotifications(
         inAppNotificationManagerClient,

@@ -10,6 +10,7 @@ export function toGetEServicesQueryParams(
     name: params.name,
     technology: params.technology,
     eservicesIds: [],
+    consumersIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],

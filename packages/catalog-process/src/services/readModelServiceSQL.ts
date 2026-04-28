@@ -134,6 +134,7 @@ export function readModelServiceBuilderSQL(
       const {
         eservicesIds,
         producersIds,
+        consumersIds,
         states,
         agreementStates,
         name,
@@ -147,6 +148,9 @@ export function readModelServiceBuilderSQL(
         templatesIds,
         personalData,
       } = filters;
+
+      const hasAgreementJoin =
+        agreementStates.length > 0 || consumersIds.length > 0;
 
       return await readmodelDB.transaction(async (tx) => {
         const totalCountQuery = tx
@@ -264,32 +268,34 @@ export function readModelServiceBuilderSQL(
             })
             .from(agreementInReadmodelAgreement)
             .where(
-              //  agreement states filter
-              agreementStates.length > 0
+              hasAgreementJoin
                 ? and(
-                    inArray(
-                      agreementInReadmodelAgreement.state,
-                      agreementStates
-                    ),
-                    eq(
-                      agreementInReadmodelAgreement.consumerId,
-                      authData.organizationId
-                    )
+                    agreementStates.length > 0
+                      ? inArray(
+                          agreementInReadmodelAgreement.state,
+                          agreementStates
+                        )
+                      : undefined,
+                    consumersIds.length > 0
+                      ? inArray(
+                          agreementInReadmodelAgreement.consumerId,
+                          consumersIds
+                        )
+                      : eq(
+                          agreementInReadmodelAgreement.consumerId,
+                          authData.organizationId
+                        )
                   )
                 : undefined
             )
             .as("agreementSubquery");
 
-          const queryAfterAgreementFilter =
-            agreementStates.length > 0
-              ? queryAfterEserviceFilters.innerJoin(
-                  agreementSubquery,
-                  eq(
-                    eserviceInReadmodelCatalog.id,
-                    agreementSubquery.eserviceId
-                  )
-                )
-              : queryAfterEserviceFilters;
+          const queryAfterAgreementFilter = hasAgreementJoin
+            ? queryAfterEserviceFilters.innerJoin(
+                agreementSubquery,
+                eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+              )
+            : queryAfterEserviceFilters;
 
           return queryAfterAgreementFilter
             .leftJoin(

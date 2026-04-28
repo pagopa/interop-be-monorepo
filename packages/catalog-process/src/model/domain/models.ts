@@ -20,6 +20,7 @@ export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
   producersIds: TenantId[];
+  consumersIds: TenantId[];
   attributesIds: AttributeId[];
   states: DescriptorState[];
   agreementStates: AgreementState[];
