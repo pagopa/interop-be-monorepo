@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 
 describe("createConsumerClient", () => {
   const organizationId: TenantId = generateId();
@@ -77,5 +78,21 @@ describe("createConsumerClient", () => {
       client: toClientV2(expectedClient),
     });
     expect(client.data).toEqual(expectedClient);
+  });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedMembersInSeed();
+    await expect(
+      authorizationService.createConsumerClient(
+        { clientSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
   });
 });

@@ -15181,6 +15181,66 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /tenants/{tenantId}/delegations/allowed:
+    get:
+      tags:
+        - tenants
+      summary: Check if a tenant is allowed to use delegations
+      description: Check if a tenant is allowed to use delegations based on certified attributes
+      operationId: isTenantAllowedToDelegation
+      parameters:
+        - name: tenantId
+          in: path
+          description: The identifier of the tenant
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant delegation allowance status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IsTenantAllowedToDelegation"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Tenant not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /tenants/delegatedFeatures/update:
     post:
       tags:
@@ -25801,6 +25861,14 @@ components:
           type: boolean
       required:
         - hasCertifiedAttributes
+    IsTenantAllowedToDelegation:
+      type: object
+      additionalProperties: false
+      properties:
+        isAllowed:
+          type: boolean
+      required:
+        - isAllowed
     HideOption:
       type: object
       additionalProperties: false
@@ -25962,6 +26030,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     UpdateEServiceDescriptorAgreementApprovalPolicySeed:
       type: object
       additionalProperties: false
@@ -26033,6 +26103,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/DescriptorAttributesSeed"
     Mail:
       type: object
       additionalProperties: false

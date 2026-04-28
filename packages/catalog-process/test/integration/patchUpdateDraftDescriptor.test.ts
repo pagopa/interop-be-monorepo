@@ -447,10 +447,11 @@ describe("patchUpdateDraftDescriptor", () => {
 
   it.each([
     { dailyCallsPerConsumer: 300, dailyCallsTotal: 200 },
+    { dailyCallsPerConsumer: 200, dailyCallsTotal: 200 },
     { dailyCallsPerConsumer: 300 },
     { dailyCallsTotal: 50 },
   ])(
-    "should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal",
+    "should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than or equal to dailyCallsTotal",
     async (seed) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
