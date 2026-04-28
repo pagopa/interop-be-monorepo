@@ -52,9 +52,12 @@ import {
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
+  archivableOnIsNotExpiredYet,
+  descriptorAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { isArchivable } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -561,5 +564,22 @@ export function assertDescriptorArchivingIsNotEserviceScoped(
 ): void {
   if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
     throw descriptorArchivingNotCancelableByScope(descriptor.id);
+  }
+}
+
+export function assertDescriptorIsAlreadyArchived(
+  descriptor: Descriptor
+): void {
+  if (descriptor.state === descriptorState.archived) {
+    throw descriptorAlreadyArchived(descriptor.id);
+  }
+}
+
+export function assertGracePeriodExpired(descriptor: Descriptor): void {
+  if (!descriptor.archivingSchedule) {
+    throw operationForbidden;
+  }
+  if (!isArchivable(descriptor.archivingSchedule.archivableOn, new Date())) {
+    throw archivableOnIsNotExpiredYet(descriptor.id);
   }
 }

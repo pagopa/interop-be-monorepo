@@ -196,6 +196,11 @@ import {
   assertDescriptorArchivable,
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
+  assertDescriptorInRequiredStates,
+  assertDescriptorIsNotLatestVersion,
+  assertDescriptorIsAlreadyArchived,
+  assertGracePeriodExpired,
+  assertHasNoAgreement,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -400,7 +405,7 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-const archiveDescriptor = (
+const archiveDescriptorLogic = (
   streamId: string,
   descriptor: Descriptor,
   logger: Logger
@@ -437,11 +442,6 @@ const replaceRiskAnalysis = (
     riskAnalysis: updatedRiskAnalysis,
   };
 };
-
-const archivingCondition = (descriptor: Descriptor): boolean =>
-  descriptor.state === descriptorState.archiving &&
-  descriptor.archivingSchedule !== undefined &&
-  descriptor.archivingSchedule.archivableOn < new Date();
 
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
@@ -2031,39 +2031,54 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      archivingKind: catalogApi.ArchivingKind,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} (${archivingKind})`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      const updatedDescriptor = updateDescriptorState(
+
+      assertDescriptorIsAlreadyArchived(descriptor);
+
+      await validateArchivingPreconditions(
+        eservice.data.id,
         descriptor,
-        descriptorState.archived
+        archivingKind,
+        readModelService
       );
+
+      const updatedDescriptor = {
+        ...descriptor,
+        state: descriptorState.archived,
+        archivedAt: new Date(),
+        archivingSchedule: undefined,
+      };
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = archivingCondition(descriptor)
-        ? toCreateEventEServiceDescriptorArchivingCompleted(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
-          )
-        : toCreateEventEServiceDescriptorArchived(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
-          );
+      const event =
+        archivingKind === catalogApi.ArchivingKind.Enum.AUTOMATIC
+          ? toCreateEventEServiceDescriptorArchived(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
+          : toCreateEventEServiceDescriptorArchivingCompleted(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            );
 
       await repository.createEvent(event);
     },
+
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -4088,7 +4103,7 @@ const processDescriptorPublication = async (
     eserviceWithPublishedDescriptor,
     hasAgreements
       ? deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
-      : archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
 
@@ -4552,5 +4567,27 @@ const buildInstanceName = ({
     : templateName;
   return { parsedInstanceLabel, instanceName };
 };
+
+async function validateArchivingPreconditions(
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  kind: catalogApi.ArchivingKind,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  if (kind === catalogApi.ArchivingKind.Enum.MANUAL) {
+    return assertGracePeriodExpired(descriptor);
+  }
+
+  const agreements = await readModelService.listAgreements({
+    eservicesIds: [eserviceId],
+    descriptorId: descriptor.id,
+    states: [agreementState.active, agreementState.suspended],
+    limit: 1,
+    consumersIds: [],
+    producersIds: [],
+  });
+
+  assertHasNoAgreement(descriptor.id, agreements);
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

@@ -67,6 +67,9 @@ const errorCodes = {
   certifiedAttributeGroupNotFoundInSeed: "0049",
   eserviceInArchivingOrArchivedState: "0050",
   descriptorArchivingNotCancelableByScope: "0051",
+  descriptorAlreadyArchived: "0052",
+  archivableOnIsNotExpiredYet: "0053",
+  activeSubscriptionsExists: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -590,5 +593,34 @@ export function descriptorArchivingNotCancelableByScope(
     detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
     code: "descriptorArchivingNotCancelableByScope",
     title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function archivableOnIsNotExpiredYet(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} cannot be archived yet because the archivableOn date has not expired`,
+    code: "archivableOnIsNotExpiredYet",
+    title: "Archivable On Is Not Expired Yet",
+  });
+}
+
+export function activeSubscriptionsExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Active subscriptions exist for descriptor ${descriptorId}`,
+    code: "activeSubscriptionsExists",
+    title: "Active subscriptions exist",
   });
 }
