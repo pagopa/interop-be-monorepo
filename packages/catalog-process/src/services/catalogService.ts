@@ -371,6 +371,7 @@ const updateDescriptorState = (
     .with(
       [descriptorState.published, descriptorState.archived],
       [descriptorState.archiving, descriptorState.archived],
+      [descriptorState.archivingSuspended, descriptorState.archived],
       () => ({
         ...descriptor,
         state: newState,
