@@ -168,7 +168,7 @@ describe("Risk Analysis Validation", () => {
     });
   });
 
-  it("should fail if version does not exists", () => {
+  it("should fail if version does not exist", () => {
     const invalidVersionForPA = "9999.0";
     const invalidRiskAnalysis: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_0_Pa,
