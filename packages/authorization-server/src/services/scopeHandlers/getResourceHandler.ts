@@ -148,7 +148,7 @@ export const handleGetResource = async (
     throw asyncExchangeNotEnabled(clientId);
   }
 
-  // 6. Verify client assertion signature
+  // 7. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     key,
@@ -161,7 +161,7 @@ export const handleGetResource = async (
     );
   }
 
-  // 7. Validate platform state (agreement, purpose, descriptor must be ACTIVE)
+  // 8. Validate platform state (agreement, purpose, descriptor must be ACTIVE)
   const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
@@ -169,7 +169,7 @@ export const handleGetResource = async (
     );
   }
 
-  // 8. Rate limiting
+  // 9. Rate limiting
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
   if (limitReached) {
@@ -180,9 +180,9 @@ export const handleGetResource = async (
     };
   }
 
-  // 9. Generate token first, then update interaction state.
-  //    Check the resource-available-time window here so the elapsed
-  //    measurement and the token's iat share the same reference instant.
+  // 10. Generate token first, then update interaction state.
+  //     Check the resource-available-time window here so the elapsed
+  //     measurement and the token's iat share the same reference instant.
   const { asyncExchangeProperties } = catalogEntry;
   const now = new Date();
   const elapsedMs =
@@ -221,7 +221,7 @@ export const handleGetResource = async (
     updatedAt: new Date(token.payload.iat * 1000).toISOString(),
   });
 
-  // 10. Publish audit (consumer-side)
+  // 11. Publish audit (consumer-side)
   await publishAudit({
     producer,
     generatedToken: token,

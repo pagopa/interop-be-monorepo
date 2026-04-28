@@ -156,7 +156,7 @@ export const handleConfirmation = async (
     throw asyncExchangeConfirmationNotEnabled(interactionId);
   }
 
-  // 7. Verify client assertion signature
+  // 8. Verify client assertion signature
   const { errors: signatureErrors } = await verifyClientAssertionSignature(
     clientAssertionJWS,
     key,
@@ -169,7 +169,7 @@ export const handleConfirmation = async (
     );
   }
 
-  // 8. Validate platform state (agreement, purpose, descriptor must be ACTIVE)
+  // 9. Validate platform state (agreement, purpose, descriptor must be ACTIVE)
   const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
@@ -177,7 +177,7 @@ export const handleConfirmation = async (
     );
   }
 
-  // 9. Rate limiting
+  // 10. Rate limiting
   const { limitReached, ...rateLimiterStatus } =
     await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
   if (limitReached) {
@@ -188,7 +188,7 @@ export const handleConfirmation = async (
     };
   }
 
-  // 10. Generate token first, then update interaction state.
+  // 11. Generate token first, then update interaction state.
   //     Check the resource-available-time window here so the elapsed
   //     measurement and the token's iat share the same reference instant.
   const now = new Date();
@@ -228,7 +228,7 @@ export const handleConfirmation = async (
     updatedAt: new Date(token.payload.iat * 1000).toISOString(),
   });
 
-  // 11. Publish audit (consumer-side)
+  // 12. Publish audit (consumer-side)
   await publishAudit({
     producer,
     generatedToken: token,
