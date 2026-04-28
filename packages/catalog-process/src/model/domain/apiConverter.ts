@@ -12,6 +12,8 @@ import {
   eserviceMode,
   Descriptor,
   Document,
+  archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -151,6 +153,14 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
+export const archivingScheduleScopeToApiArchivingScheduleScope = (
+  input: ArchivingScope
+): catalogApi.ArchivingScope =>
+  match<ArchivingScope, catalogApi.ArchivingScope>(input)
+    .with(archivingScope.eservice, () => "ESERVICE")
+    .with(archivingScope.descriptor, () => "DESCRIPTOR")
+    .exhaustive();
+
 export const descriptorToApiDescriptor = (
   descriptor: Descriptor
 ): catalogApi.EServiceDescriptor => ({
@@ -184,6 +194,15 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
+  archivingSchedule: descriptor.archivingSchedule
+    ? {
+        archivableOn: descriptor.archivingSchedule.archivableOn.toJSON(),
+        startedAt: descriptor.archivingSchedule.startedAt.toJSON(),
+        scope: archivingScheduleScopeToApiArchivingScheduleScope(
+          descriptor.archivingSchedule.scope
+        ),
+      }
+    : undefined,
 });
 
 export const eServiceToApiEService = (
