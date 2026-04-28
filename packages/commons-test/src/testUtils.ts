@@ -125,6 +125,7 @@ import {
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
   SelfcareId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -456,6 +457,16 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
+  ...(state === descriptorState.archiving ||
+  state === descriptorState.archivingSuspended
+    ? {
+        archivingSchedule: {
+          scope: archivingScope.descriptor,
+          startedAt: new Date("2026-01-15T10:00:00Z"),
+          archivableOn: new Date("2026-02-14T10:00:00Z"),
+        },
+      }
+    : {}),
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
