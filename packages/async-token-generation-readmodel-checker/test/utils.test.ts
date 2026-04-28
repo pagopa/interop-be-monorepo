@@ -448,6 +448,26 @@ describe("Async Token Generation Read Model Checker tests", () => {
     ).toBe(1);
   });
 
+  it("should detect interactions referencing missing readmodel entries", () => {
+    const fixture = buildFixture();
+
+    expect(
+      compareInteractions({
+        rawInteractions: [fixture.interaction],
+        readModelContext: {
+          eservices: [],
+          purposes: [],
+          agreements: [],
+          clients: [],
+          producerKeychains: [],
+        },
+        platformStates: [],
+        interactionTtlEpsilonSeconds: 0,
+        logger: genericLogger,
+      })
+    ).toBe(4);
+  });
+
   it("should detect missing timestamps and ttl mismatch on interactions", () => {
     const fixture = buildFixture();
     const brokenInteraction: Interaction = {
