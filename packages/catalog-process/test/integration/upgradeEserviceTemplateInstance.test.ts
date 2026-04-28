@@ -210,7 +210,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -392,7 +395,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
