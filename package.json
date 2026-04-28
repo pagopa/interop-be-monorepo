@@ -65,6 +65,11 @@
     "check": "turbo check",
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",
     "lint:autofix": "turbo lint:autofix",
+    "biome:check": "biome check packages scripts",
+    "biome:lint": "biome lint packages scripts --diagnostic-level=error",
+    "biome:format": "biome format packages scripts --write",
+    "bench:lint:eslint": "pnpm --filter pagopa-interop-commons lint",
+    "bench:lint:biome": "biome lint packages/commons",
     "lint:openapi": "turbo lint:openapi",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
@@ -77,6 +82,7 @@
     "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
   },
   "devDependencies": {
+    "@biomejs/biome": "catalog:",
     "@tsconfig/node-lts": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
