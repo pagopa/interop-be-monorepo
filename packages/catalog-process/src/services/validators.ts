@@ -19,7 +19,6 @@ import {
   EServiceId,
   Tenant,
   TenantId,
-  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -232,8 +231,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService,
-  tenantKind: TenantKind
+  eservice: EService
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
