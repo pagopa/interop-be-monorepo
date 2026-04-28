@@ -148,6 +148,7 @@ import {
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
+  assertRiskAnalysisTenantKindMatch,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -2378,6 +2379,22 @@ async function activatePurposeLogic({
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+    const riskAnalysisForm = purpose.data.riskAnalysisForm;
+    if (riskAnalysisForm) {
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysisForm.tenantKind,
+        expectedKind: tenantKind,
+        riskAnalysisFormId: riskAnalysisForm.id,
+      });
+    }
+  }
+
   // We generate the stamp in the transition draft -> active.
   // Instead, the transition waiting_for_approval -> active is performed by the producer,
   // so in this case the stamp doesn't have to be regenerated
