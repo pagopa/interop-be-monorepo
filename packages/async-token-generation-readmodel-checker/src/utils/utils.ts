@@ -44,7 +44,9 @@ import {
 
 type AsyncDescriptor = {
   eservice: EService;
-  descriptor: Descriptor;
+  descriptor: Descriptor & {
+    asyncExchangeProperties: NonNullable<Descriptor["asyncExchangeProperties"]>;
+  };
 };
 
 type ReadModelContext = {
@@ -55,11 +57,49 @@ type ReadModelContext = {
   producerKeychains: ProducerKeychainReadModelEntry[];
 };
 
-type DynamoContext = {
-  platformStates: PlatformStatesGenericEntry[];
-  tokenGenerationStates: TokenGenerationStatesGenericClient[];
-  producerKeychainPlatformStates: ProducerKeychainPlatformStateEntry[];
-  rawInteractions: unknown[];
+type ExpectedAsyncPlatformStatesCatalogEntry = {
+  PK: string;
+  state: ItemState;
+  descriptorAudience: string[];
+  descriptorVoucherLifespan: number;
+  asyncExchange: true;
+  asyncExchangeProperties: NonNullable<Descriptor["asyncExchangeProperties"]>;
+};
+
+type AsyncPlatformStatesComparisonResult = {
+  differencesCount: number;
+  asyncPlatformStatesByPK: Map<string, AsyncPlatformStatesCatalogEntry>;
+};
+
+type ExpectedAsyncTokenGenerationStatesEntry = {
+  PK: string;
+  clientKind: typeof clientKindTokenGenStates.consumer;
+  publicKey: string;
+  consumerId: TenantId;
+  producerId: TenantId;
+  agreementId: Agreement["id"];
+  agreementState: ItemState;
+  purposeState: ItemState;
+  purposeVersionId: PurposeVersion["id"];
+  descriptorState: ItemState;
+  descriptorAudience: string[];
+  descriptorVoucherLifespan: number;
+  asyncExchange: boolean | undefined;
+  GSIPK_clientId: Client["id"];
+  GSIPK_clientId_kid: string;
+  GSIPK_clientId_purposeId: string;
+  GSIPK_purposeId: Purpose["id"];
+  GSIPK_consumerId_eserviceId: string;
+  GSIPK_eserviceId_descriptorId: string;
+};
+
+type ExpectedProducerKeychainPlatformStateEntry = {
+  PK: string;
+  publicKey: string;
+  producerKeychainId: ProducerKeychainReadModelEntry["producerKeychainId"];
+  producerId: TenantId;
+  kid: string;
+  eServiceId: EServiceId;
 };
 
 const validDescriptorStates = [
@@ -114,7 +154,7 @@ const getAsyncDescriptors = (eservices: EService[]): AsyncDescriptor[] =>
     eservice.asyncExchange === true
       ? eservice.descriptors
           .filter(
-            (descriptor) =>
+            (descriptor): descriptor is AsyncDescriptor["descriptor"] =>
               descriptor.asyncExchangeProperties !== undefined &&
               validDescriptorStates.includes(descriptor.state)
           )
@@ -147,38 +187,6 @@ const pushMapValue = <K, V>(map: Map<K, V[]>, key: K, value: V): void => {
   map.set(key, values);
 };
 
-const collectDynamoContext = async (
-  asyncTokenGenerationReadModelService: AsyncTokenGenerationReadModelService
-): Promise<DynamoContext> => {
-  const platformStates = new Array<PlatformStatesGenericEntry>();
-  for await (const page of asyncTokenGenerationReadModelService.readPlatformStatesItemsPages()) {
-    platformStates.push(...page);
-  }
-
-  const tokenGenerationStates = new Array<TokenGenerationStatesGenericClient>();
-  for await (const page of asyncTokenGenerationReadModelService.readTokenGenerationStatesItemsPages()) {
-    tokenGenerationStates.push(...page);
-  }
-
-  const producerKeychainPlatformStates =
-    new Array<ProducerKeychainPlatformStateEntry>();
-  for await (const page of asyncTokenGenerationReadModelService.readProducerKeychainPlatformStatesItemsPages()) {
-    producerKeychainPlatformStates.push(...page);
-  }
-
-  const rawInteractions = new Array<unknown>();
-  for await (const page of asyncTokenGenerationReadModelService.readInteractionsItemsPages()) {
-    rawInteractions.push(...page);
-  }
-
-  return {
-    platformStates,
-    tokenGenerationStates,
-    producerKeychainPlatformStates,
-    rawInteractions,
-  };
-};
-
 const collectReadModelContext = async (
   readModelService: ReadModelServiceSQL
 ): Promise<ReadModelContext> => ({
@@ -190,6 +198,212 @@ const collectReadModelContext = async (
     await readModelService.getAllProducerKeychainReadModelEntries(),
 });
 
+const buildExpectedAsyncPlatformStatesByPK = (
+  eservices: EService[]
+): Map<string, ExpectedAsyncPlatformStatesCatalogEntry> =>
+  new Map(
+    getAsyncDescriptors(eservices).map(({ eservice, descriptor }) => {
+      const pk = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      return [
+        pk,
+        {
+          PK: pk,
+          state: descriptorItemState(descriptor),
+          descriptorAudience: descriptor.audience,
+          descriptorVoucherLifespan: descriptor.voucherLifespan,
+          asyncExchange: true,
+          asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        } satisfies ExpectedAsyncPlatformStatesCatalogEntry,
+      ];
+    })
+  );
+
+const comparableAsyncPlatformStatesEntry = (
+  entry: AsyncPlatformStatesCatalogEntry
+): ExpectedAsyncPlatformStatesCatalogEntry => ({
+  PK: entry.PK,
+  state: entry.state,
+  descriptorAudience: entry.descriptorAudience,
+  descriptorVoucherLifespan: entry.descriptorVoucherLifespan,
+  asyncExchange: entry.asyncExchange,
+  asyncExchangeProperties: entry.asyncExchangeProperties,
+});
+
+const compareAsyncPlatformStatesEntries = ({
+  eservices,
+  platformStates,
+  logger,
+}: {
+  eservices: EService[];
+  platformStates: Iterable<PlatformStatesGenericEntry>;
+  logger: Logger;
+}): AsyncPlatformStatesComparisonResult => {
+  const expectedByPK = buildExpectedAsyncPlatformStatesByPK(eservices);
+  const seenExpectedPKs = new Set<string>();
+  const asyncPlatformStatesByPK = new Map<
+    string,
+    AsyncPlatformStatesCatalogEntry
+  >();
+  let differencesCount = 0;
+
+  for (const entry of platformStates) {
+    const parsedCatalogEntry = PlatformStatesCatalogEntry.safeParse(entry);
+    if (!parsedCatalogEntry.success) {
+      continue;
+    }
+
+    const { PK: pk } = parsedCatalogEntry.data;
+    const expected = expectedByPK.get(pk);
+    const parsedAsyncEntry = AsyncPlatformStatesCatalogEntry.safeParse(
+      parsedCatalogEntry.data
+    );
+
+    if (parsedAsyncEntry.success) {
+      asyncPlatformStatesByPK.set(pk, parsedAsyncEntry.data);
+    }
+
+    if (expected) {
+      seenExpectedPKs.add(pk);
+
+      if (!parsedAsyncEntry.success) {
+        differencesCount += logDifference({
+          logger,
+          message: `Missing or invalid async platform-states catalog entry ${pk}`,
+          actual: parsedCatalogEntry.data,
+          expected,
+        });
+        continue;
+      }
+
+      const comparableActual = comparableAsyncPlatformStatesEntry(
+        parsedAsyncEntry.data
+      );
+
+      if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
+        differencesCount += logDifference({
+          logger,
+          message: `Differences in async platform-states catalog entry ${pk}`,
+          actual: comparableActual,
+          expected,
+        });
+      }
+      continue;
+    }
+
+    if (parsedCatalogEntry.data.asyncExchange === true) {
+      differencesCount += logDifference({
+        logger,
+        message: `Unexpected async platform-states catalog entry ${pk}`,
+        actual: parsedCatalogEntry.data,
+        expected: undefined,
+      });
+    }
+  }
+
+  for (const [pk, expected] of expectedByPK) {
+    if (!seenExpectedPKs.has(pk)) {
+      differencesCount += logDifference({
+        logger,
+        message: `Missing or invalid async platform-states catalog entry ${pk}`,
+        actual: undefined,
+        expected,
+      });
+    }
+  }
+
+  return { differencesCount, asyncPlatformStatesByPK };
+};
+
+const compareAsyncPlatformStatesPages = async ({
+  eservices,
+  platformStatesPages,
+  logger,
+}: {
+  eservices: EService[];
+  platformStatesPages: AsyncGenerator<PlatformStatesGenericEntry[], void, void>;
+  logger: Logger;
+}): Promise<AsyncPlatformStatesComparisonResult> => {
+  const expectedByPK = buildExpectedAsyncPlatformStatesByPK(eservices);
+  const seenExpectedPKs = new Set<string>();
+  const asyncPlatformStatesByPK = new Map<
+    string,
+    AsyncPlatformStatesCatalogEntry
+  >();
+  let differencesCount = 0;
+
+  for await (const page of platformStatesPages) {
+    for (const entry of page) {
+      const parsedCatalogEntry = PlatformStatesCatalogEntry.safeParse(entry);
+      if (!parsedCatalogEntry.success) {
+        continue;
+      }
+
+      const { PK: pk } = parsedCatalogEntry.data;
+      const expected = expectedByPK.get(pk);
+      const parsedAsyncEntry = AsyncPlatformStatesCatalogEntry.safeParse(
+        parsedCatalogEntry.data
+      );
+
+      if (parsedAsyncEntry.success) {
+        asyncPlatformStatesByPK.set(pk, parsedAsyncEntry.data);
+      }
+
+      if (expected) {
+        seenExpectedPKs.add(pk);
+
+        if (!parsedAsyncEntry.success) {
+          differencesCount += logDifference({
+            logger,
+            message: `Missing or invalid async platform-states catalog entry ${pk}`,
+            actual: parsedCatalogEntry.data,
+            expected,
+          });
+          continue;
+        }
+
+        const comparableActual = comparableAsyncPlatformStatesEntry(
+          parsedAsyncEntry.data
+        );
+
+        if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
+          differencesCount += logDifference({
+            logger,
+            message: `Differences in async platform-states catalog entry ${pk}`,
+            actual: comparableActual,
+            expected,
+          });
+        }
+        continue;
+      }
+
+      if (parsedCatalogEntry.data.asyncExchange === true) {
+        differencesCount += logDifference({
+          logger,
+          message: `Unexpected async platform-states catalog entry ${pk}`,
+          actual: parsedCatalogEntry.data,
+          expected: undefined,
+        });
+      }
+    }
+  }
+
+  for (const [pk, expected] of expectedByPK) {
+    if (!seenExpectedPKs.has(pk)) {
+      differencesCount += logDifference({
+        logger,
+        message: `Missing or invalid async platform-states catalog entry ${pk}`,
+        actual: undefined,
+        expected,
+      });
+    }
+  }
+
+  return { differencesCount, asyncPlatformStatesByPK };
+};
+
 export const compareAsyncPlatformStates = ({
   eservices,
   platformStates,
@@ -199,83 +413,11 @@ export const compareAsyncPlatformStates = ({
   platformStates: PlatformStatesGenericEntry[];
   logger: Logger;
 }): number => {
-  const platformCatalogEntriesByPK = new Map(
-    platformStates.flatMap((entry) => {
-      const parsedEntry = PlatformStatesCatalogEntry.safeParse(entry);
-      return parsedEntry.success
-        ? [[parsedEntry.data.PK, parsedEntry.data]]
-        : [];
-    })
-  );
-
-  const expectedByPK = new Map(
-    getAsyncDescriptors(eservices).map(({ eservice, descriptor }) => [
-      makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-      }),
-      {
-        PK: makePlatformStatesEServiceDescriptorPK({
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        }),
-        state: descriptorItemState(descriptor),
-        descriptorAudience: descriptor.audience,
-        descriptorVoucherLifespan: descriptor.voucherLifespan,
-        asyncExchange: true,
-        asyncExchangeProperties: descriptor.asyncExchangeProperties,
-      },
-    ])
-  );
-
-  let differencesCount = 0;
-
-  for (const [pk, expected] of expectedByPK) {
-    const actual = platformCatalogEntriesByPK.get(pk);
-    const parsedActual = actual
-      ? AsyncPlatformStatesCatalogEntry.safeParse(actual)
-      : undefined;
-
-    if (!parsedActual?.success) {
-      differencesCount += logDifference({
-        logger,
-        message: `Missing or invalid async platform-states catalog entry ${pk}`,
-        actual,
-        expected,
-      });
-      continue;
-    }
-
-    const comparableActual = {
-      PK: parsedActual.data.PK,
-      state: parsedActual.data.state,
-      descriptorAudience: parsedActual.data.descriptorAudience,
-      descriptorVoucherLifespan: parsedActual.data.descriptorVoucherLifespan,
-      asyncExchange: parsedActual.data.asyncExchange,
-      asyncExchangeProperties: parsedActual.data.asyncExchangeProperties,
-    };
-
-    if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
-      differencesCount += logDifference({
-        logger,
-        message: `Differences in async platform-states catalog entry ${pk}`,
-        actual: comparableActual,
-        expected,
-      });
-    }
-  }
-
-  for (const [pk, entry] of platformCatalogEntriesByPK) {
-    if (entry.asyncExchange === true && !expectedByPK.has(pk)) {
-      differencesCount += logDifference({
-        logger,
-        message: `Unexpected async platform-states catalog entry ${pk}`,
-        actual: entry,
-        expected: undefined,
-      });
-    }
-  }
-
+  const { differencesCount } = compareAsyncPlatformStatesEntries({
+    eservices,
+    platformStates,
+    logger,
+  });
   return differencesCount;
 };
 
@@ -324,15 +466,9 @@ const buildAsyncDescriptorMap = (
     ])
   );
 
-export const compareAsyncTokenGenerationStates = ({
-  readModelContext,
-  tokenGenerationStates,
-  logger,
-}: {
-  readModelContext: ReadModelContext;
-  tokenGenerationStates: TokenGenerationStatesGenericClient[];
-  logger: Logger;
-}): number => {
+const buildExpectedAsyncTokenGenerationStatesByPK = (
+  readModelContext: ReadModelContext
+): Map<string, ExpectedAsyncTokenGenerationStatesEntry> => {
   const { purposesById } = buildPurposeMaps(readModelContext.purposes);
   const { agreementsByConsumerIdEServiceId } = buildAgreementMaps(
     readModelContext.agreements
@@ -340,12 +476,10 @@ export const compareAsyncTokenGenerationStates = ({
   const asyncDescriptorsByEServiceDescriptor = buildAsyncDescriptorMap(
     readModelContext.eservices
   );
-  const tokenGenerationStatesByPK = new Map(
-    tokenGenerationStates.map((entry) => [entry.PK, entry])
-  );
-  const expectedPKs = new Set<string>();
-
-  let differencesCount = 0;
+  const expectedByPK = new Map<
+    string,
+    ExpectedAsyncTokenGenerationStatesEntry
+  >();
 
   for (const client of readModelContext.clients.filter(
     (c) => c.kind === clientKind.consumer
@@ -384,7 +518,7 @@ export const compareAsyncTokenGenerationStates = ({
           kid: key.kid,
           purposeId,
         });
-        const expected = {
+        const expected: ExpectedAsyncTokenGenerationStatesEntry = {
           PK: expectedPK,
           clientKind: clientKindTokenGenStates.consumer,
           publicKey: key.encodedPem,
@@ -417,67 +551,87 @@ export const compareAsyncTokenGenerationStates = ({
             descriptorId: asyncDescriptor.descriptor.id,
           }),
         };
-        expectedPKs.add(expectedPK);
-
-        const actual = tokenGenerationStatesByPK.get(expectedPK);
-        const parsedActual = actual
-          ? FullTokenGenerationStatesConsumerClient.safeParse(actual)
-          : undefined;
-
-        if (!parsedActual?.success) {
-          differencesCount += logDifference({
-            logger,
-            message: `Missing or invalid async token-generation-states entry ${expectedPK}`,
-            actual,
-            expected,
-          });
-          continue;
-        }
-
-        const comparableActual = {
-          PK: parsedActual.data.PK,
-          clientKind: parsedActual.data.clientKind,
-          publicKey: parsedActual.data.publicKey,
-          consumerId: parsedActual.data.consumerId,
-          producerId: parsedActual.data.producerId,
-          agreementId: parsedActual.data.agreementId,
-          agreementState: parsedActual.data.agreementState,
-          purposeState: parsedActual.data.purposeState,
-          purposeVersionId: parsedActual.data.purposeVersionId,
-          descriptorState: parsedActual.data.descriptorState,
-          descriptorAudience: parsedActual.data.descriptorAudience,
-          descriptorVoucherLifespan:
-            parsedActual.data.descriptorVoucherLifespan,
-          asyncExchange: parsedActual.data.asyncExchange,
-          GSIPK_clientId: parsedActual.data.GSIPK_clientId,
-          GSIPK_clientId_kid: parsedActual.data.GSIPK_clientId_kid,
-          GSIPK_clientId_purposeId: parsedActual.data.GSIPK_clientId_purposeId,
-          GSIPK_purposeId: parsedActual.data.GSIPK_purposeId,
-          GSIPK_consumerId_eserviceId:
-            parsedActual.data.GSIPK_consumerId_eserviceId,
-          GSIPK_eserviceId_descriptorId:
-            parsedActual.data.GSIPK_eserviceId_descriptorId,
-        };
-
-        if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
-          differencesCount += logDifference({
-            logger,
-            message: `Differences in async token-generation-states entry ${expectedPK}`,
-            actual: comparableActual,
-            expected,
-          });
-        }
+        expectedByPK.set(expectedPK, expected);
       }
     }
   }
 
+  return expectedByPK;
+};
+
+const comparableAsyncTokenGenerationStatesEntry = (
+  entry: FullTokenGenerationStatesConsumerClient
+): ExpectedAsyncTokenGenerationStatesEntry => ({
+  PK: entry.PK,
+  clientKind: entry.clientKind,
+  publicKey: entry.publicKey,
+  consumerId: entry.consumerId,
+  producerId: entry.producerId,
+  agreementId: entry.agreementId,
+  agreementState: entry.agreementState,
+  purposeState: entry.purposeState,
+  purposeVersionId: entry.purposeVersionId,
+  descriptorState: entry.descriptorState,
+  descriptorAudience: entry.descriptorAudience,
+  descriptorVoucherLifespan: entry.descriptorVoucherLifespan,
+  asyncExchange: entry.asyncExchange,
+  GSIPK_clientId: entry.GSIPK_clientId,
+  GSIPK_clientId_kid: entry.GSIPK_clientId_kid,
+  GSIPK_clientId_purposeId: entry.GSIPK_clientId_purposeId,
+  GSIPK_purposeId: entry.GSIPK_purposeId,
+  GSIPK_consumerId_eserviceId: entry.GSIPK_consumerId_eserviceId,
+  GSIPK_eserviceId_descriptorId: entry.GSIPK_eserviceId_descriptorId,
+});
+
+const compareAsyncTokenGenerationStateEntries = ({
+  expectedByPK,
+  tokenGenerationStates,
+  logger,
+}: {
+  expectedByPK: Map<string, ExpectedAsyncTokenGenerationStatesEntry>;
+  tokenGenerationStates: Iterable<TokenGenerationStatesGenericClient>;
+  logger: Logger;
+}): { differencesCount: number; seenExpectedPKs: Set<string> } => {
+  const seenExpectedPKs = new Set<string>();
+  let differencesCount = 0;
+
   for (const entry of tokenGenerationStates) {
     const parsedEntry =
       FullTokenGenerationStatesConsumerClient.safeParse(entry);
+    const expected = expectedByPK.get(entry.PK);
+
+    if (expected) {
+      seenExpectedPKs.add(entry.PK);
+
+      if (!parsedEntry.success) {
+        differencesCount += logDifference({
+          logger,
+          message: `Missing or invalid async token-generation-states entry ${entry.PK}`,
+          actual: entry,
+          expected,
+        });
+        continue;
+      }
+
+      const comparableActual = comparableAsyncTokenGenerationStatesEntry(
+        parsedEntry.data
+      );
+
+      if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
+        differencesCount += logDifference({
+          logger,
+          message: `Differences in async token-generation-states entry ${entry.PK}`,
+          actual: comparableActual,
+          expected,
+        });
+      }
+      continue;
+    }
+
     if (
       parsedEntry.success &&
       parsedEntry.data.asyncExchange === true &&
-      !expectedPKs.has(parsedEntry.data.PK)
+      !expectedByPK.has(parsedEntry.data.PK)
     ) {
       differencesCount += logDifference({
         logger,
@@ -488,22 +642,105 @@ export const compareAsyncTokenGenerationStates = ({
     }
   }
 
+  return { differencesCount, seenExpectedPKs };
+};
+
+const countMissingExpectedAsyncTokenGenerationStates = ({
+  expectedByPK,
+  seenExpectedPKs,
+  logger,
+}: {
+  expectedByPK: Map<string, ExpectedAsyncTokenGenerationStatesEntry>;
+  seenExpectedPKs: Set<string>;
+  logger: Logger;
+}): number => {
+  let differencesCount = 0;
+
+  for (const [pk, expected] of expectedByPK) {
+    if (!seenExpectedPKs.has(pk)) {
+      differencesCount += logDifference({
+        logger,
+        message: `Missing or invalid async token-generation-states entry ${pk}`,
+        actual: undefined,
+        expected,
+      });
+    }
+  }
+
   return differencesCount;
 };
 
-export const compareProducerKeychainPlatformStates = ({
-  producerKeychains,
-  producerKeychainPlatformStates,
+export const compareAsyncTokenGenerationStates = ({
+  readModelContext,
+  tokenGenerationStates,
   logger,
 }: {
-  producerKeychains: ProducerKeychainReadModelEntry[];
-  producerKeychainPlatformStates: ProducerKeychainPlatformStateEntry[];
+  readModelContext: ReadModelContext;
+  tokenGenerationStates: TokenGenerationStatesGenericClient[];
   logger: Logger;
 }): number => {
-  const producerKeychainEntriesByPK = new Map(
-    producerKeychainPlatformStates.map((entry) => [entry.PK, entry])
+  const expectedByPK =
+    buildExpectedAsyncTokenGenerationStatesByPK(readModelContext);
+  const result = compareAsyncTokenGenerationStateEntries({
+    expectedByPK,
+    tokenGenerationStates,
+    logger,
+  });
+
+  return (
+    result.differencesCount +
+    countMissingExpectedAsyncTokenGenerationStates({
+      expectedByPK,
+      seenExpectedPKs: result.seenExpectedPKs,
+      logger,
+    })
   );
-  const expectedByPK = new Map(
+};
+
+const compareAsyncTokenGenerationStatesPages = async ({
+  readModelContext,
+  tokenGenerationStatesPages,
+  logger,
+}: {
+  readModelContext: ReadModelContext;
+  tokenGenerationStatesPages: AsyncGenerator<
+    TokenGenerationStatesGenericClient[],
+    void,
+    void
+  >;
+  logger: Logger;
+}): Promise<number> => {
+  const expectedByPK =
+    buildExpectedAsyncTokenGenerationStatesByPK(readModelContext);
+  const seenExpectedPKs = new Set<string>();
+  let differencesCount = 0;
+
+  for await (const page of tokenGenerationStatesPages) {
+    const result = compareAsyncTokenGenerationStateEntries({
+      expectedByPK,
+      tokenGenerationStates: page,
+      logger,
+    });
+    differencesCount += result.differencesCount;
+    for (const pk of result.seenExpectedPKs) {
+      seenExpectedPKs.add(pk);
+    }
+  }
+
+  return (
+    differencesCount +
+    countMissingExpectedAsyncTokenGenerationStates({
+      expectedByPK,
+      seenExpectedPKs,
+      logger,
+    })
+  );
+};
+
+const buildExpectedProducerKeychainPlatformStatesByPK = (
+  producerKeychains: ProducerKeychainReadModelEntry[]
+): Map<string, ExpectedProducerKeychainPlatformStateEntry> =>
+  new Map(
     producerKeychains.map((entry) => [
       makeProducerKeychainPlatformStatesPK({
         producerKeychainId: entry.producerKeychainId,
@@ -525,51 +762,148 @@ export const compareProducerKeychainPlatformStates = ({
     ])
   );
 
+const comparableProducerKeychainPlatformStateEntry = (
+  entry: ProducerKeychainPlatformStateEntry
+): ExpectedProducerKeychainPlatformStateEntry => ({
+  PK: entry.PK,
+  publicKey: entry.publicKey,
+  producerKeychainId: entry.producerKeychainId,
+  producerId: entry.producerId,
+  kid: entry.kid,
+  eServiceId: entry.eServiceId,
+});
+
+const compareProducerKeychainPlatformStateEntries = ({
+  expectedByPK,
+  producerKeychainPlatformStates,
+  logger,
+}: {
+  expectedByPK: Map<string, ExpectedProducerKeychainPlatformStateEntry>;
+  producerKeychainPlatformStates: Iterable<ProducerKeychainPlatformStateEntry>;
+  logger: Logger;
+}): { differencesCount: number; seenExpectedPKs: Set<string> } => {
+  const seenExpectedPKs = new Set<string>();
   let differencesCount = 0;
 
-  for (const [pk, expected] of expectedByPK) {
-    const actual = producerKeychainEntriesByPK.get(pk);
-    if (!actual) {
+  for (const entry of producerKeychainPlatformStates) {
+    const expected = expectedByPK.get(entry.PK);
+    if (!expected) {
       differencesCount += logDifference({
         logger,
-        message: `Missing producer-keychain-platform-states entry ${pk}`,
-        actual,
-        expected,
+        message: `Unexpected producer-keychain-platform-states entry ${entry.PK}`,
+        actual: entry,
+        expected: undefined,
       });
       continue;
     }
 
-    const comparableActual = {
-      PK: actual.PK,
-      publicKey: actual.publicKey,
-      producerKeychainId: actual.producerKeychainId,
-      producerId: actual.producerId,
-      kid: actual.kid,
-      eServiceId: actual.eServiceId,
-    };
+    seenExpectedPKs.add(entry.PK);
+    const comparableActual =
+      comparableProducerKeychainPlatformStateEntry(entry);
 
     if (JSON.stringify(comparableActual) !== JSON.stringify(expected)) {
       differencesCount += logDifference({
         logger,
-        message: `Differences in producer-keychain-platform-states entry ${pk}`,
+        message: `Differences in producer-keychain-platform-states entry ${entry.PK}`,
         actual: comparableActual,
         expected,
       });
     }
   }
 
-  for (const [pk, entry] of producerKeychainEntriesByPK) {
-    if (!expectedByPK.has(pk)) {
+  return { differencesCount, seenExpectedPKs };
+};
+
+const countMissingExpectedProducerKeychainPlatformStates = ({
+  expectedByPK,
+  seenExpectedPKs,
+  logger,
+}: {
+  expectedByPK: Map<string, ExpectedProducerKeychainPlatformStateEntry>;
+  seenExpectedPKs: Set<string>;
+  logger: Logger;
+}): number => {
+  let differencesCount = 0;
+
+  for (const [pk, expected] of expectedByPK) {
+    if (!seenExpectedPKs.has(pk)) {
       differencesCount += logDifference({
         logger,
-        message: `Unexpected producer-keychain-platform-states entry ${pk}`,
-        actual: entry,
-        expected: undefined,
+        message: `Missing producer-keychain-platform-states entry ${pk}`,
+        actual: undefined,
+        expected,
       });
     }
   }
 
   return differencesCount;
+};
+
+export const compareProducerKeychainPlatformStates = ({
+  producerKeychains,
+  producerKeychainPlatformStates,
+  logger,
+}: {
+  producerKeychains: ProducerKeychainReadModelEntry[];
+  producerKeychainPlatformStates: ProducerKeychainPlatformStateEntry[];
+  logger: Logger;
+}): number => {
+  const expectedByPK =
+    buildExpectedProducerKeychainPlatformStatesByPK(producerKeychains);
+  const result = compareProducerKeychainPlatformStateEntries({
+    expectedByPK,
+    producerKeychainPlatformStates,
+    logger,
+  });
+
+  return (
+    result.differencesCount +
+    countMissingExpectedProducerKeychainPlatformStates({
+      expectedByPK,
+      seenExpectedPKs: result.seenExpectedPKs,
+      logger,
+    })
+  );
+};
+
+const compareProducerKeychainPlatformStatesPages = async ({
+  producerKeychains,
+  producerKeychainPlatformStatesPages,
+  logger,
+}: {
+  producerKeychains: ProducerKeychainReadModelEntry[];
+  producerKeychainPlatformStatesPages: AsyncGenerator<
+    ProducerKeychainPlatformStateEntry[],
+    void,
+    void
+  >;
+  logger: Logger;
+}): Promise<number> => {
+  const expectedByPK =
+    buildExpectedProducerKeychainPlatformStatesByPK(producerKeychains);
+  const seenExpectedPKs = new Set<string>();
+  let differencesCount = 0;
+
+  for await (const page of producerKeychainPlatformStatesPages) {
+    const result = compareProducerKeychainPlatformStateEntries({
+      expectedByPK,
+      producerKeychainPlatformStates: page,
+      logger,
+    });
+    differencesCount += result.differencesCount;
+    for (const pk of result.seenExpectedPKs) {
+      seenExpectedPKs.add(pk);
+    }
+  }
+
+  return (
+    differencesCount +
+    countMissingExpectedProducerKeychainPlatformStates({
+      expectedByPK,
+      seenExpectedPKs,
+      logger,
+    })
+  );
 };
 
 const getInteractionRequiredTimestampFields = (
@@ -597,16 +931,16 @@ const getInteractionRequiredTimestampFields = (
   }
 };
 
-export const compareInteractions = ({
+const compareInteractionEntries = ({
   rawInteractions,
   readModelContext,
-  platformStates,
+  asyncPlatformStatesByPK,
   interactionTtlEpsilonSeconds,
   logger,
 }: {
-  rawInteractions: unknown[];
+  rawInteractions: Iterable<unknown>;
   readModelContext: ReadModelContext;
-  platformStates: PlatformStatesGenericEntry[];
+  asyncPlatformStatesByPK: Map<string, AsyncPlatformStatesCatalogEntry>;
   interactionTtlEpsilonSeconds: number | undefined;
   logger: Logger;
 }): number => {
@@ -616,14 +950,6 @@ export const compareInteractions = ({
   );
   const clientsById = new Map(
     readModelContext.clients.map((client) => [client.id, client])
-  );
-  const asyncPlatformStatesByPK = new Map(
-    platformStates.flatMap((entry) => {
-      const parsedEntry = AsyncPlatformStatesCatalogEntry.safeParse(entry);
-      return parsedEntry.success
-        ? [[parsedEntry.data.PK, parsedEntry.data]]
-        : [];
-    })
   );
 
   let differencesCount = 0;
@@ -754,6 +1080,65 @@ export const compareInteractions = ({
   return differencesCount;
 };
 
+export const compareInteractions = ({
+  rawInteractions,
+  readModelContext,
+  platformStates,
+  interactionTtlEpsilonSeconds,
+  logger,
+}: {
+  rawInteractions: unknown[];
+  readModelContext: ReadModelContext;
+  platformStates: PlatformStatesGenericEntry[];
+  interactionTtlEpsilonSeconds: number | undefined;
+  logger: Logger;
+}): number => {
+  const asyncPlatformStatesByPK = new Map(
+    platformStates.flatMap((entry) => {
+      const parsedEntry = AsyncPlatformStatesCatalogEntry.safeParse(entry);
+      return parsedEntry.success
+        ? [[parsedEntry.data.PK, parsedEntry.data]]
+        : [];
+    })
+  );
+
+  return compareInteractionEntries({
+    rawInteractions,
+    readModelContext,
+    asyncPlatformStatesByPK,
+    interactionTtlEpsilonSeconds,
+    logger,
+  });
+};
+
+const compareInteractionsPages = async ({
+  rawInteractionsPages,
+  readModelContext,
+  asyncPlatformStatesByPK,
+  interactionTtlEpsilonSeconds,
+  logger,
+}: {
+  rawInteractionsPages: AsyncGenerator<unknown[], void, void>;
+  readModelContext: ReadModelContext;
+  asyncPlatformStatesByPK: Map<string, AsyncPlatformStatesCatalogEntry>;
+  interactionTtlEpsilonSeconds: number | undefined;
+  logger: Logger;
+}): Promise<number> => {
+  let differencesCount = 0;
+
+  for await (const page of rawInteractionsPages) {
+    differencesCount += compareInteractionEntries({
+      rawInteractions: page,
+      readModelContext,
+      asyncPlatformStatesByPK,
+      interactionTtlEpsilonSeconds,
+      logger,
+    });
+  }
+
+  return differencesCount;
+};
+
 export const compareAsyncTokenGenerationReadModel = async ({
   asyncTokenGenerationReadModelService,
   readModelService,
@@ -765,35 +1150,37 @@ export const compareAsyncTokenGenerationReadModel = async ({
   logger: Logger;
   interactionTtlEpsilonSeconds: number | undefined;
 }): Promise<number> => {
-  const [readModelContext, dynamoContext] = await Promise.all([
-    collectReadModelContext(readModelService),
-    collectDynamoContext(asyncTokenGenerationReadModelService),
-  ]);
+  const readModelContext = await collectReadModelContext(readModelService);
+  const asyncPlatformStatesComparison = await compareAsyncPlatformStatesPages({
+    eservices: readModelContext.eservices,
+    platformStatesPages:
+      asyncTokenGenerationReadModelService.readPlatformStatesItemsPages(),
+    logger,
+  });
 
   return (
-    compareAsyncPlatformStates({
-      eservices: readModelContext.eservices,
-      platformStates: dynamoContext.platformStates,
-      logger,
-    }) +
-    compareAsyncTokenGenerationStates({
+    asyncPlatformStatesComparison.differencesCount +
+    (await compareAsyncTokenGenerationStatesPages({
       readModelContext,
-      tokenGenerationStates: dynamoContext.tokenGenerationStates,
+      tokenGenerationStatesPages:
+        asyncTokenGenerationReadModelService.readTokenGenerationStatesItemsPages(),
       logger,
-    }) +
-    compareProducerKeychainPlatformStates({
+    })) +
+    (await compareProducerKeychainPlatformStatesPages({
       producerKeychains: readModelContext.producerKeychains,
-      producerKeychainPlatformStates:
-        dynamoContext.producerKeychainPlatformStates,
+      producerKeychainPlatformStatesPages:
+        asyncTokenGenerationReadModelService.readProducerKeychainPlatformStatesItemsPages(),
       logger,
-    }) +
-    compareInteractions({
-      rawInteractions: dynamoContext.rawInteractions,
+    })) +
+    (await compareInteractionsPages({
+      rawInteractionsPages:
+        asyncTokenGenerationReadModelService.readInteractionsItemsPages(),
       readModelContext,
-      platformStates: dynamoContext.platformStates,
+      asyncPlatformStatesByPK:
+        asyncPlatformStatesComparison.asyncPlatformStatesByPK,
       interactionTtlEpsilonSeconds,
       logger,
-    })
+    }))
   );
 };
 
