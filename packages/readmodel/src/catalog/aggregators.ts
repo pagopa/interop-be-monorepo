@@ -21,6 +21,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -418,6 +419,9 @@ export const aggregateRiskAnalysisForm = (
   return {
     version: riskAnalysisSQL.riskAnalysisFormVersion,
     id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
+    tenantKind: riskAnalysisSQL.tenantKind
+      ? TenantKind.parse(riskAnalysisSQL.tenantKind)
+      : undefined,
     singleAnswers,
     multiAnswers,
   };

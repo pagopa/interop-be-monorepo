@@ -46,10 +46,10 @@ message EServiceTemplateVersionV2 {
 }
 
 message EServiceTemplateRiskAnalysisV2 {
+  reserved 4;
   string id = 1;
   string name = 2;
   eservice.v2.EServiceRiskAnalysisFormV2 riskAnalysisForm = 3;
-  tenant.v2.TenantKindV2 tenantKind = 4;
   int64 createdAt = 5;
 }
 

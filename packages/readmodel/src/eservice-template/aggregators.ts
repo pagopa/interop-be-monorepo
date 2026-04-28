@@ -5,12 +5,11 @@ import {
   EServiceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
+  RiskAnalysis,
   stringToDate,
   Technology,
-  TenantKind,
   unsafeBrandId,
   WithMetadata,
   type EServiceTemplateAttribute,
@@ -35,12 +34,11 @@ import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 export const aggregateEServiceTemplateRiskAnalysis = (
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL,
   answers: EServiceTemplateRiskAnalysisAnswerSQL[]
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   id: unsafeBrandId(riskAnalysisSQL.id),
   name: riskAnalysisSQL.name,
   createdAt: stringToDate(riskAnalysisSQL.createdAt),
   riskAnalysisForm: aggregateRiskAnalysisForm(riskAnalysisSQL, answers),
-  tenantKind: TenantKind.parse(riskAnalysisSQL.tenantKind),
 });
 
 export const aggregateEServiceTemplateVersion = ({

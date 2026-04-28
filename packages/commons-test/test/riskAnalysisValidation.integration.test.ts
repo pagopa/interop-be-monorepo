@@ -38,14 +38,12 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       expiredRiskAnalysis2_0_Pa,
       false,
-      "PA",
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       expiredRiskAnalysis2_0_Pa,
       true,
-      "PA",
       new Date(),
       undefined
     );
@@ -64,6 +62,7 @@ describe("Risk Analysis Validation", () => {
 
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis3_0_Pa.version,
+      tenantKind: tenantKind.PA,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
       multiAnswers: [],
     };
@@ -71,7 +70,6 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis3_0_Pa,
       true,
-      "PA",
       new Date(),
       undefined
     );
@@ -87,14 +85,12 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       false,
-      "PRIVATE",
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
       validRiskAnalysis2_0_Private,
       true,
-      "PRIVATE",
       new Date(),
       undefined
     );
@@ -109,6 +105,7 @@ describe("Risk Analysis Validation", () => {
   it("should succeed on correct form 2.0 (not expired) schema only on tenant kind PRIVATE", () => {
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis2_0_Private.version,
+      tenantKind: tenantKind.PRIVATE,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
       multiAnswers: [],
     };
@@ -116,7 +113,6 @@ describe("Risk Analysis Validation", () => {
     const result = validateRiskAnalysis(
       validSchemaOnlyRiskAnalysis2_0_Private,
       true,
-      "PRIVATE",
       new Date(),
       undefined
     );
@@ -129,23 +125,24 @@ describe("Risk Analysis Validation", () => {
 
   it("should succeed on correct form 2.0 (not expired) on tenant kind GSP", () => {
     const result = validateRiskAnalysis(
-      validRiskAnalysis2_0_Private,
+      { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       false,
-      "GSP",
       new Date(),
       undefined
     );
     const resultSchemaOnly = validateRiskAnalysis(
-      validRiskAnalysis2_0_Private,
+      { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       true,
-      "GSP",
       new Date(),
       undefined
     );
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysis2_0_Private,
+      value: {
+        ...validatedRiskAnalysis2_0_Private,
+        tenantKind: tenantKind.GSP,
+      },
     });
     expect(result).toEqual(resultSchemaOnly);
   });
@@ -153,14 +150,14 @@ describe("Risk Analysis Validation", () => {
   it("should succeed on correct form 2.0 (not expired) schema only on tenant kind GSP", () => {
     const expected: RiskAnalysisValidatedForm = {
       version: validSchemaOnlyRiskAnalysis2_0_Private.version,
+      tenantKind: tenantKind.GSP,
       singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
       multiAnswers: [],
     };
 
     const result = validateRiskAnalysis(
-      validSchemaOnlyRiskAnalysis2_0_Private,
+      { ...validSchemaOnlyRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
       true,
-      "GSP",
       new Date(),
       undefined
     );
@@ -171,7 +168,7 @@ describe("Risk Analysis Validation", () => {
     });
   });
 
-  it("should fail if version does not exists", () => {
+  it("should fail if version does not exist", () => {
     const invalidVersionForPA = "9999.0";
     const invalidRiskAnalysis: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis3_0_Pa,
@@ -179,13 +176,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(
-        invalidRiskAnalysis,
-        false,
-        "PA",
-        new Date(),
-        undefined
-      )
+      validateRiskAnalysis(invalidRiskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PA", invalidVersionForPA)],
@@ -198,13 +189,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(
-        invalidRiskAnalysis2,
-        false,
-        "PRIVATE",
-        new Date(),
-        undefined
-      )
+      validateRiskAnalysis(invalidRiskAnalysis2, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [rulesVersionNotFoundError("PRIVATE", invalidVersionForPrivate)],
@@ -219,13 +204,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(
-        expiredRiskAnalysis,
-        false,
-        "PA",
-        new Date(),
-        undefined
-      )
+      validateRiskAnalysis(expiredRiskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
@@ -238,13 +217,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(
-        expiredRiskAnalysis2,
-        false,
-        "PRIVATE",
-        new Date(),
-        undefined
-      )
+      validateRiskAnalysis(expiredRiskAnalysis2, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPrivate, "PRIVATE")],
@@ -256,13 +229,7 @@ describe("Risk Analysis Validation", () => {
     const expiredRiskAnalysis = validRiskAnalysis3_0_Pa;
 
     expect(
-      validateRiskAnalysis(
-        expiredRiskAnalysis,
-        false,
-        "PA",
-        new Date(),
-        undefined
-      )
+      validateRiskAnalysis(expiredRiskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [expiredRulesVersionError(expiredVersionForPA, tenantKind.PA)],
@@ -272,6 +239,7 @@ describe("Risk Analysis Validation", () => {
   it("should fail if a provided answer depends on missing fields", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         ...validRiskAnalysis3_1_Pa.answers,
         doneDpia: [],
@@ -282,7 +250,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [
@@ -297,6 +265,7 @@ describe("Risk Analysis Validation", () => {
   it("should succeed schema only even if a provided answer depends on a missing field", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         doneDpia: [],
         confirmedDoneDpia: ["YES"],
@@ -306,11 +275,12 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
         version: validRiskAnalysis3_1_Pa.version,
+        tenantKind: tenantKind.PA,
         singleAnswers: [
           { key: "confirmedDoneDpia", value: "YES" },
           { key: "reasonPolicyNotProvided", value: "reason" },
@@ -323,6 +293,7 @@ describe("Risk Analysis Validation", () => {
   it("should fail if a provided answer depends on existing fields with unexpected values", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         ...validRiskAnalysis3_1_Pa.answers,
         purpose: ["INSTITUTIONAL"],
@@ -333,7 +304,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [
@@ -360,6 +331,7 @@ describe("Risk Analysis Validation", () => {
   it("should succeed schema only even if a provided answer depends on an existing field with an unexpected value", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         purpose: ["INSTITUTIONAL"],
         otherPurpose: ["otherPurpose"], // otherPurpose requires purpose to be OTHER
@@ -369,11 +341,12 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
+        tenantKind: tenantKind.PA,
         singleAnswers: [
           { key: "purpose", value: "INSTITUTIONAL" },
           { key: "otherPurpose", value: "otherPurpose" },
@@ -392,6 +365,7 @@ describe("Risk Analysis Validation", () => {
   it("should fail on missing expected answers", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         ...validRiskAnalysis3_1_Pa.answers,
         doneDpia: [],
@@ -400,7 +374,7 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [
@@ -413,6 +387,7 @@ describe("Risk Analysis Validation", () => {
   it("should succeeed schema only even on missing expected answers", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: "3.1",
+      tenantKind: tenantKind.PA,
       answers: {
         purpose: ["INSTITUTIONAL"],
         institutionalPurpose: ["institutionalPurpose"],
@@ -423,11 +398,12 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, true, new Date(), undefined)
     ).toEqual({
       type: "valid",
       value: {
         version: riskAnalysis.version,
+        tenantKind: tenantKind.PA,
         singleAnswers: [
           { key: "purpose", value: "INSTITUTIONAL" },
           { key: "institutionalPurpose", value: "institutionalPurpose" },
@@ -442,6 +418,7 @@ describe("Risk Analysis Validation", () => {
   it("should fail on unexpected field name both schema only and not", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         ...validRiskAnalysis3_1_Pa.answers,
         unexpectedFieldA: ["unexpected value A"],
@@ -451,13 +428,11 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
-    ).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
-    );
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+    ).toEqual(validateRiskAnalysis(riskAnalysis, true, new Date(), undefined));
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [
@@ -471,6 +446,7 @@ describe("Risk Analysis Validation", () => {
   it("should fail on unexpected field value both schema only and not", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_1_Pa.version,
+      tenantKind: tenantKind.PA,
       answers: {
         ...validRiskAnalysis3_1_Pa.answers,
         institutionalPurpose: [],
@@ -480,13 +456,11 @@ describe("Risk Analysis Validation", () => {
     };
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
-    ).toEqual(
-      validateRiskAnalysis(riskAnalysis, true, "PA", new Date(), undefined)
-    );
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
+    ).toEqual(validateRiskAnalysis(riskAnalysis, true, new Date(), undefined));
 
     expect(
-      validateRiskAnalysis(riskAnalysis, false, "PA", new Date(), undefined)
+      validateRiskAnalysis(riskAnalysis, false, new Date(), undefined)
     ).toEqual({
       type: "invalid",
       issues: [
@@ -517,7 +491,12 @@ describe("Risk Analysis Validation", () => {
       },
     };
     expect(
-      validateRiskAnalysis(riskAnalysisForm, false, "GSP", new Date(), false)
+      validateRiskAnalysis(
+        { ...riskAnalysisForm, tenantKind: tenantKind.GSP },
+        false,
+        new Date(),
+        false
+      )
     ).toEqual({
       type: "invalid",
       issues: [incompatiblePersonalDataError()],
@@ -527,15 +506,17 @@ describe("Risk Analysis Validation", () => {
   it("should succeed if the risk analysis is PRIVATE 2.0 and the eservice doesn't have the personalData flag", () => {
     expect(
       validateRiskAnalysis(
-        validRiskAnalysis2_0_Private,
+        { ...validRiskAnalysis2_0_Private, tenantKind: tenantKind.GSP },
         false,
-        "GSP",
         new Date(),
         undefined
       )
     ).toEqual({
       type: "valid",
-      value: validatedRiskAnalysis2_0_Private,
+      value: {
+        ...validatedRiskAnalysis2_0_Private,
+        tenantKind: tenantKind.GSP,
+      },
     });
   });
 
@@ -550,7 +531,6 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           validRiskAnalysis3_0_Pa,
           false,
-          "PA",
           new Date(),
           personalDataInEService
         )
@@ -576,7 +556,6 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           validRiskAnalysis3_0_Pa,
           false,
-          "PA",
           new Date(),
           undefined
         )
@@ -597,7 +576,6 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         validRiskAnalysis3_0_Pa,
         false,
-        "PA",
         new Date(),
         undefined
       )
@@ -623,7 +601,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
     expect(
-      validateRiskAnalysis(riskAnalysisForm, false, "PA", new Date(), false)
+      validateRiskAnalysis(riskAnalysisForm, false, new Date(), false)
     ).toEqual({
       type: "invalid",
       issues: [incompatiblePersonalDataError()],
@@ -635,7 +613,6 @@ describe("Risk Analysis Validation", () => {
       validateRiskAnalysis(
         validRiskAnalysis3_1_Pa,
         false,
-        "PA",
         new Date(),
         undefined
       )
@@ -659,7 +636,6 @@ describe("Risk Analysis Validation", () => {
         validateRiskAnalysis(
           riskAnalysisForm,
           false,
-          "PA",
           new Date(),
           personalDataInEService
         )

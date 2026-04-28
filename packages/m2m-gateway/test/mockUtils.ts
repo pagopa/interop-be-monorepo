@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   TenantId,
   generateId,
@@ -81,22 +80,32 @@ export function getMockDownloadedDocument({
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): m2mGatewayApi.EServiceRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+): m2mGatewayApi.EServiceRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-});
+  );
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: {
+      version,
+      answers,
+    },
+  };
+};
 
 export const buildEserviceTemplateRiskAnalysisSeed = (
-  riskAnalysis: EServiceTemplateRiskAnalysis
-): m2mGatewayApi.EServiceTemplateRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+  riskAnalysis: RiskAnalysis
+): m2mGatewayApi.EServiceTemplateRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-  tenantKind: riskAnalysis.tenantKind,
-});
+  );
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: { version, answers },
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!,
+  };
+};
 
 export function testToM2MEServiceRiskAnalysisAnswers(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]

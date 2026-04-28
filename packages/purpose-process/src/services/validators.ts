@@ -3,6 +3,7 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -108,20 +109,17 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
-  tenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+  riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
-  tenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -134,9 +132,8 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -146,7 +143,6 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -739,7 +735,7 @@ function buildAnswersSeed(
 
 export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
   eservicePersonalData: boolean | undefined
@@ -763,15 +759,15 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     riskAnalysisForm
   );
 
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+  const formToValidate: RiskAnalysisFormToValidate = {
     version: purposeTemplate.purposeRiskAnalysisForm.version,
     answers: answersToSeed,
+    tenantKind,
   };
 
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
-    tenantKind,
     createdAt,
     eservicePersonalData
   );

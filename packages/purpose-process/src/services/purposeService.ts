@@ -14,6 +14,7 @@ import {
   Ownership,
   PDFGenerator,
   RiskAnalysisFormRules,
+  RiskAnalysisFormToValidate,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -1104,15 +1105,10 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
-          const tenantKind = await retrieveTenantKind(
-            purpose.data.consumerId,
-            readModelService
-          );
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
-            tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1351,10 +1347,22 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      const tenantKindToWriteInRA = await retrieveTenantKind(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId),
+        readModelService
+      );
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeSeed.riskAnalysisForm
+          ? {
+              ...purposeSeed.riskAnalysisForm,
+              tenantKind: tenantKindToWriteInRA,
+            }
+          : undefined;
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        purposeSeed.riskAnalysisForm,
+        riskAnalysisFormToValidate,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService),
         createdAt,
         eservice.personalData
       );
@@ -1688,9 +1696,17 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        body.riskAnalysisForm
+          ? {
+              ...body.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
-        body.riskAnalysisForm,
+        formToValidate,
         tenantKind,
         createdAt,
         eservicePersonalData
@@ -1863,10 +1879,24 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeUpdateContent.riskAnalysisForm
+          ? {
+              ...purposeUpdateContent.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
+      const updatedRiskAnalysisForm = formToValidate
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
-            purposeUpdateContent.riskAnalysisForm,
+            formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
@@ -2100,15 +2130,25 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
-          true,
-          tenantKind,
-          new Date(),
-          eservice.personalData
-        )
+      ? (() => {
+          const validated = validateAndTransformRiskAnalysis(
+            riskAnalysisFormToValidate,
+            true,
+            new Date(),
+            eservice.personalData
+          );
+          return validated;
+        })()
       : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {

@@ -110,6 +110,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId,
+      tenantKind: purposeRiskAnalysisForm.tenantKind!,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -231,8 +232,10 @@ describe("Purpose splitter", () => {
       signedContract: purposeVersionSignedDocument,
     };
 
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      tenantKind: undefined,
+    };
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -278,6 +281,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId: null,
+      tenantKind: null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =

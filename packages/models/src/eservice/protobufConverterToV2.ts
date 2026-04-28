@@ -8,10 +8,14 @@ import {
   EServiceDocumentV2,
   EServiceModeV2,
   EServiceRiskAnalysisV2,
+  EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
 } from "../gen/v2/eservice/eservice.js";
-import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import {
+  RiskAnalysis,
+  RiskAnalysisForm,
+} from "../risk-analysis/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
@@ -28,6 +32,7 @@ import {
   eserviceMode,
   technology,
 } from "./eservice.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
 const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy | undefined
@@ -127,6 +132,14 @@ export const toRiskAnalysisV2 = (
 ): EServiceRiskAnalysisV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
+  riskAnalysisForm: toRiskAnalysisFormV2(input.riskAnalysisForm),
+});
+
+export const toRiskAnalysisFormV2 = (
+  input: RiskAnalysisForm
+): EServiceRiskAnalysisFormV2 => ({
+  ...input,
+  tenantKind: input.tenantKind ? toTenantKindV2(input.tenantKind) : undefined,
 });
 
 export const toEServiceV2 = (eservice: EService): EServiceV2 => ({

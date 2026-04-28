@@ -1,5 +1,4 @@
 import {
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   RiskAnalysisFormId,
@@ -10,7 +9,10 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
-import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import {
+  missingTenantKindError,
+  RiskAnalysisValidationIssue,
+} from "./riskAnalysisValidationErrors.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";
@@ -28,6 +30,7 @@ export type RiskAnalysisValidationResult<T> =
 
 export type RiskAnalysisFormToValidate = {
   version: string;
+  tenantKind: TenantKind;
   answers: Record<string, string[]>;
 };
 
@@ -53,6 +56,7 @@ export type RiskAnalysisValidatedSingleOrMultiAnswer =
 
 export type RiskAnalysisValidatedForm = {
   version: string;
+  tenantKind: TenantKind;
   singleAnswers: RiskAnalysisValidatedSingleAnswer[];
   multiAnswers: RiskAnalysisValidatedMultiAnswer[];
 };
@@ -83,27 +87,13 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
   };
 }
 
-export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
-  validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"],
-  tenantKind: TenantKind
-): EServiceTemplateRiskAnalysis {
-  return {
-    id: generateId<RiskAnalysisId>(),
-    name,
-    createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    tenantKind,
-  };
-}
-
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
   validatedForm: RiskAnalysisValidatedForm
 ): RiskAnalysisForm {
   return {
     id: generateId<RiskAnalysisFormId>(),
     version: validatedForm.version,
+    tenantKind: validatedForm.tenantKind,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       ...a,
       id: generateId<RiskAnalysisSingleAnswerId>(),
@@ -118,8 +108,12 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {
+  if (!form.tenantKind) {
+    throw missingTenantKindError();
+  }
   return {
     version: form.version,
+    tenantKind: form.tenantKind,
     answers: {
       ...form.singleAnswers.reduce(
         (acc, singleAnswer) => ({
