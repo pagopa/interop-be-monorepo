@@ -110,7 +110,6 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorSubmittedByDelegate",
                   "EServiceDescriptorRejectedByDelegator",
                   "EServiceDescriptorInterfaceAdded",
-                  "EServiceDescriptorInterfaceUpdated",
                   "EServiceDescriptorInterfaceDeleted"
                 ),
                 async () => [

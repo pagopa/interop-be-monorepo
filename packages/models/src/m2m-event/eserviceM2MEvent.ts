@@ -59,7 +59,6 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorDocumentDeletedByTemplateUpdate",
   "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
   "EServiceDescriptorInterfaceAdded",
-  "EServiceDescriptorInterfaceUpdated",
   "EServiceDescriptorInterfaceDeleted",
 ]);
 export type EServiceM2MEventType = z.infer<typeof EServiceM2MEventType>;

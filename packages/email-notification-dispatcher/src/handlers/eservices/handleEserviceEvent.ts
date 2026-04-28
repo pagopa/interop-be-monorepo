@@ -146,7 +146,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",

@@ -80,12 +80,6 @@ message EServiceDescriptorDocumentAddedV2 {
   EServiceV2 eservice = 3;
 }
 
-message EServiceDescriptorInterfaceUpdatedV2 {
-  string descriptorId = 1;
-  string documentId = 2;
-  EServiceV2 eservice = 3;
-}
-
 message EServiceDescriptorDocumentUpdatedV2 {
   string descriptorId = 1;
   string documentId = 2;
