@@ -806,7 +806,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/archive",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -816,6 +816,7 @@ const eservicesRouter = (
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.body,
             ctx
           );
           return res.status(204).send();

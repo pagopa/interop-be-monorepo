@@ -1080,9 +1080,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     post:
       security:
         - bearerAuth: []
@@ -1090,8 +1088,8 @@ paths:
         - process
       summary: Archive the selected descriptor.
       operationId: archiveDescriptor
-      description: Archives the specified descriptor
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId
           in: path
           description: the eservice id
@@ -1101,11 +1099,17 @@ paths:
             format: uuid
         - name: descriptorId
           in: path
-          description: the descriptor Id
           required: true
           schema:
             type: string
             format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArchivingKind"
       responses:
         "204":
           description: E-Service Descriptor archived
@@ -1116,7 +1120,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: Not found
+          description: E-Service or Descriptor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -3815,6 +3831,12 @@ components:
       enum:
         - ESERVICE
         - DESCRIPTOR
+    ArchivingKind:
+      type: string
+      description: Archiving Kind
+      enum:
+        - AUTOMATIC
+        - MANUAL
     Attribute:
       type: object
       additionalProperties: false
