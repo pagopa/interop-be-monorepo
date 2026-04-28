@@ -943,9 +943,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Suspend an E-Service Descriptor in Published, Deprecated or Achiving state
+      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving state
       operationId: suspendDescriptor
-      description: Suspend an E-Service Descriptor that is in Published, Deprecated or Archiving state, transitioning it to Suspended state or in ArchivingSuspended if previuos state was Archiving
+      description: Suspend an E-Service Descriptor that is in Published, Deprecated or Archiving state, transitioning it to Suspended state or in ArchivingSuspended if previous state was Archiving
       parameters:
         - name: eServiceId
           in: path
