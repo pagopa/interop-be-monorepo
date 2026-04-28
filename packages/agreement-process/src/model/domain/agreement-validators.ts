@@ -14,8 +14,6 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
-  AgreementStamp,
-  AgreementStamps,
   delegationKind,
   Delegation,
   delegationState,
@@ -39,7 +37,6 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
-  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -570,12 +567,3 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id }) as VerifiedAgreementAttribute);
 };
-
-export function assertStampExists<S extends keyof AgreementStamps>(
-  stamps: AgreementStamps,
-  stamp: S
-): asserts stamps is AgreementStamps & Record<S, AgreementStamp> {
-  if (!stamps[stamp]) {
-    throw agreementStampNotFound(stamp);
-  }
-}

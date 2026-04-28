@@ -5,7 +5,6 @@ import {
   FileManager,
   FormQuestionRules,
   LocalizedText,
-  PDFGenerator,
   RiskAnalysisFormRules,
   answerNotFoundInConfigError,
   dataType,
@@ -16,6 +15,7 @@ import {
   incompatibleConfigError,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   generateId,
   PurposeTemplate,

@@ -317,10 +317,13 @@ const agreementRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const agreement = await agreementService.archiveAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.archiveAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(

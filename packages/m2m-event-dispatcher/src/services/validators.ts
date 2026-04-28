@@ -16,6 +16,8 @@ import {
   AuthorizationEventEnvelopeV2,
   ClientV2,
   ProducerKeychainV2,
+  PurposeTemplateV2,
+  PurposeTemplateEventEnvelopeV2,
 } from "pagopa-interop-models";
 import { purposeEServiceNotFound } from "../models/errors.js";
 
@@ -100,5 +102,15 @@ export function assertProducerKeychainExistsInEvent(
 } {
   if (!event.data.producerKeychain) {
     throw missingKafkaMessageDataError("producerKeychain", event.type);
+  }
+}
+
+export function assertPurposeTemplateExistsInEvent(
+  event: PurposeTemplateEventEnvelopeV2
+): asserts event is PurposeTemplateEventEnvelopeV2 & {
+  data: { purposeTemplate: PurposeTemplateV2 };
+} {
+  if (!event.data.purposeTemplate) {
+    throw missingKafkaMessageDataError("purposeTemplate", event.type);
   }
 }
