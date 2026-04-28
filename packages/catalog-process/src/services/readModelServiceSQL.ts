@@ -262,6 +262,19 @@ export function readModelServiceBuilderSQL(
             eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
           );
 
+          const agreementStateClause =
+            agreementStates.length > 0
+              ? inArray(agreementInReadmodelAgreement.state, agreementStates)
+              : undefined;
+
+          const agreementConsumerClause =
+            consumersIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.consumerId, consumersIds)
+              : eq(
+                  agreementInReadmodelAgreement.consumerId,
+                  authData.organizationId
+                );
+
           const agreementSubquery = tx
             .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
               eserviceId: agreementInReadmodelAgreement.eserviceId,
@@ -269,23 +282,7 @@ export function readModelServiceBuilderSQL(
             .from(agreementInReadmodelAgreement)
             .where(
               hasAgreementJoin
-                ? and(
-                    agreementStates.length > 0
-                      ? inArray(
-                          agreementInReadmodelAgreement.state,
-                          agreementStates
-                        )
-                      : undefined,
-                    consumersIds.length > 0
-                      ? inArray(
-                          agreementInReadmodelAgreement.consumerId,
-                          consumersIds
-                        )
-                      : eq(
-                          agreementInReadmodelAgreement.consumerId,
-                          authData.organizationId
-                        )
-                  )
+                ? and(agreementStateClause, agreementConsumerClause)
                 : undefined
             )
             .as("agreementSubquery");

@@ -786,13 +786,6 @@ export function catalogServiceBuilder(
         )}`
       );
       const requesterId = authData.organizationId;
-      const res: {
-        results: catalogApi.EService[];
-        totalCount: number;
-      } = {
-        results: [],
-        totalCount: 0,
-      };
 
       const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
@@ -801,60 +794,54 @@ export function catalogServiceBuilder(
           producersIds: requesterId,
           consumersIds,
           delegated,
-          personalData: consumersIds.length === 0 ? personalData : undefined,
+          personalData,
           offset,
           limit,
         },
       });
 
-      res.results = results;
-      res.totalCount = totalCount;
-
-      const notificationsPromise = filterUnreadNotifications(
-        inAppNotificationManagerClient,
-        res.results.map((a) => a.id),
-        ctx
+      const eserviceIds = results.map((r) => r.id);
+      const eserviceTemplatesIds = Array.from(
+        new Set(
+          results.map((r) => r.templateId).filter((id): id is string => !!id)
+        )
       );
 
-      const delegations = await getAllDelegations(
-        delegationProcessClient,
-        headers,
-        {
-          delegateIds: [],
-          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
-          kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
-          eserviceIds: res.results.map((r) => r.id),
-        }
+      const [notifications, delegations, eserviceTemplates] = await Promise.all(
+        [
+          filterUnreadNotifications(
+            inAppNotificationManagerClient,
+            eserviceIds,
+            ctx
+          ),
+          getAllDelegations(delegationProcessClient, headers, {
+            delegateIds: [],
+            delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+            kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+            eserviceIds,
+          }),
+          getAllFromPaginated(
+            async (offset, limit) =>
+              await eserviceTemplateProcessClient.getEServiceTemplates({
+                headers,
+                queries: {
+                  eserviceTemplatesIds,
+                  offset,
+                  limit,
+                },
+              })
+          ),
+        ]
       );
+
       const delegationTenants = await getTenantsFromDelegation(
         tenantProcessClient,
         delegations,
         headers
       );
 
-      const eserviceTemplatesIds = Array.from(
-        new Set(
-          res.results
-            .map((r) => r.templateId)
-            .filter((id): id is string => !!id)
-        )
-      );
-
-      const eserviceTemplates = await getAllFromPaginated(
-        async (offset, limit) =>
-          await eserviceTemplateProcessClient.getEServiceTemplates({
-            headers,
-            queries: {
-              eserviceTemplatesIds,
-              offset,
-              limit,
-            },
-          })
-      );
-      const notifications = await notificationsPromise;
-
       return {
-        results: res.results.map((result) =>
+        results: results.map((result) =>
           enhanceProducerEService(
             result,
             requesterId,
@@ -867,7 +854,7 @@ export function catalogServiceBuilder(
         pagination: {
           offset,
           limit,
-          totalCount: res.totalCount,
+          totalCount,
         },
       };
     },
