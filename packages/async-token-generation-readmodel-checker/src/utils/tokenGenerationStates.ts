@@ -20,8 +20,8 @@ import {
   getLastPurposeVersion,
   logDifference,
   purposeVersionItemState,
-  ReadModelContext,
 } from "./common.js";
+import { ReadModelContext } from "./readModelContext.js";
 
 type ComparableFullTokenGenerationStatesConsumerClient = Pick<
   FullTokenGenerationStatesConsumerClient,

@@ -3,7 +3,6 @@ import {
   Agreement,
   agreementState,
   AsyncExchangeProperties,
-  Client,
   Descriptor,
   descriptorState,
   EService,
@@ -18,10 +17,6 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import { diff } from "json-diff";
-import {
-  ProducerKeychainReadModelEntry,
-  ReadModelServiceSQL,
-} from "../services/readModelServiceSQL.js";
 
 type DescriptorWithAsyncExchangeProperties = Descriptor & {
   asyncExchangeProperties: AsyncExchangeProperties;
@@ -30,14 +25,6 @@ type DescriptorWithAsyncExchangeProperties = Descriptor & {
 export type AsyncDescriptor = {
   eservice: EService;
   descriptor: DescriptorWithAsyncExchangeProperties;
-};
-
-export type ReadModelContext = {
-  eservices: EService[];
-  purposes: Purpose[];
-  agreements: Agreement[];
-  clients: Client[];
-  producerKeychains: ProducerKeychainReadModelEntry[];
 };
 
 const validDescriptorStates = [
@@ -174,14 +161,3 @@ export const logDifference = ({
   );
   return 1;
 };
-
-export const collectReadModelContext = async (
-  readModelService: ReadModelServiceSQL
-): Promise<ReadModelContext> => ({
-  eservices: await readModelService.getAllReadModelEServices(),
-  purposes: await readModelService.getAllReadModelPurposes(),
-  agreements: await readModelService.getAllReadModelAgreements(),
-  clients: await readModelService.getAllReadModelClients(),
-  producerKeychains:
-    await readModelService.getAllProducerKeychainReadModelEntries(),
-});

@@ -11,8 +11,8 @@ import {
   buildAsyncDescriptorMap,
   buildPurposeMaps,
   logDifference,
-  ReadModelContext,
 } from "./common.js";
+import { ReadModelContext } from "./readModelContext.js";
 
 const getInteractionRequiredTimestampFields = (
   interaction: Interaction
