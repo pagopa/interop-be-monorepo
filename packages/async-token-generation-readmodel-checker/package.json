@@ -1,9 +1,9 @@
 {
-  "name": "pagopa-interop-token-generation-readmodel-checker",
+  "name": "pagopa-interop-async-token-generation-readmodel-checker",
   "private": true,
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability token-generation-readmodel-checker job",
+  "description": "PagoPA Interoperability async token-generation read model checker job",
   "main": "dist",
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.build.json",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
@@ -29,12 +29,12 @@
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
     "json-diff": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
-    "ts-pattern": "catalog:",
     "zod": "catalog:"
   }
 }

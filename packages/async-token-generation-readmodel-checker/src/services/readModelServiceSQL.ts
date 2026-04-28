@@ -1,9 +1,19 @@
-import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
+import { and, eq } from "drizzle-orm";
 import {
-  aggregateEserviceArray,
-  aggregatePurposeArray,
+  Agreement,
+  Client,
+  EService,
+  EServiceId,
+  ProducerKeychainId,
+  Purpose,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
   aggregateAgreementArray,
   aggregateClientArray,
+  aggregateEserviceArray,
+  aggregatePurposeArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -12,12 +22,23 @@ import {
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   DrizzleReturnType,
-  eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
+  producerKeychainEserviceInReadmodelProducerKeychain,
+  producerKeychainInReadmodelProducerKeychain,
+  producerKeychainKeyInReadmodelProducerKeychain,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+
+export type ProducerKeychainReadModelEntry = {
+  producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
+  kid: string;
+  publicKey: string;
+  eServiceId: EServiceId;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
@@ -102,6 +123,58 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         usersSQL: [],
       }).map((c) => c.data);
     },
+
+    async getAllProducerKeychainReadModelEntries(): Promise<
+      ProducerKeychainReadModelEntry[]
+    > {
+      const rows = await readModelDB
+        .select({
+          producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+          producerId: producerKeychainInReadmodelProducerKeychain.producerId,
+          kid: producerKeychainKeyInReadmodelProducerKeychain.kid,
+          publicKey: producerKeychainKeyInReadmodelProducerKeychain.encodedPem,
+          eServiceId:
+            producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+        })
+        .from(producerKeychainInReadmodelProducerKeychain)
+        .innerJoin(
+          producerKeychainKeyInReadmodelProducerKeychain,
+          and(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.id,
+              producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+            ),
+            eq(
+              producerKeychainInReadmodelProducerKeychain.metadataVersion,
+              producerKeychainKeyInReadmodelProducerKeychain.metadataVersion
+            )
+          )
+        )
+        .innerJoin(
+          producerKeychainEserviceInReadmodelProducerKeychain,
+          and(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.id,
+              producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+            ),
+            eq(
+              producerKeychainInReadmodelProducerKeychain.metadataVersion,
+              producerKeychainEserviceInReadmodelProducerKeychain.metadataVersion
+            )
+          )
+        );
+
+      return rows.map((row) => ({
+        producerKeychainId: unsafeBrandId<ProducerKeychainId>(
+          row.producerKeychainId
+        ),
+        producerId: unsafeBrandId<TenantId>(row.producerId),
+        kid: row.kid,
+        publicKey: row.publicKey,
+        eServiceId: unsafeBrandId<EServiceId>(row.eServiceId),
+      }));
+    },
   };
 }
+
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
