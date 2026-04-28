@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ClientId, generateId } from "pagopa-interop-models";
+import {
+  ClientId,
+  generateId,
+  makeTokenGenerationStatesClientKidPurposePK,
+  PurposeId,
+} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { api, asyncTokenService } from "../vitest.api.setup.js";
 import {
@@ -9,6 +14,7 @@ import {
   asyncRequestValidationFailed,
   asyncScopeNotYetImplemented,
   invalidAsyncScope,
+  tokenGenerationStatesEntryNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("POST /authorization-server/token.oauth2.async", async () => {
@@ -71,6 +77,16 @@ describe("POST /authorization-server/token.oauth2.async", async () => {
       error: asyncClientAssertionClaimsValidationFailed(
         clientId,
         "invalid claims"
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: tokenGenerationStatesEntryNotFound(
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid: "missing-kid",
+          purposeId: generateId<PurposeId>(),
+        })
       ),
       expectedStatus: 400,
     },

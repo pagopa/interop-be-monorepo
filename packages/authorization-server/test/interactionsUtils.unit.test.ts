@@ -6,6 +6,7 @@ import {
 import { marshall } from "@aws-sdk/util-dynamodb";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   generateId,
@@ -50,6 +51,7 @@ describe("interactions utils", () => {
       dynamoDBClient: dynamoDBClient as never,
       interactionsTable,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId,
       eServiceId,
@@ -91,6 +93,7 @@ describe("interactions utils", () => {
         dynamoDBClient: dynamoDBClient as never,
         interactionsTable,
         interactionId,
+        clientId: generateId<ClientId>(),
         purposeId,
         consumerId,
         eServiceId,
@@ -108,6 +111,7 @@ describe("interactions utils", () => {
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,
@@ -148,6 +152,7 @@ describe("interactions utils", () => {
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,
