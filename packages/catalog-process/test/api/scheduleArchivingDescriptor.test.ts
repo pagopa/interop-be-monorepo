@@ -55,7 +55,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mockEService);
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
