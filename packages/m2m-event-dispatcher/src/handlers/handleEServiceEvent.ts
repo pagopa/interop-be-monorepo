@@ -124,7 +124,6 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorInterfaceDeleted"
           ),
         },

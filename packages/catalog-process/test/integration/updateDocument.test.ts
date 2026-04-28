@@ -21,7 +21,6 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
-  EServiceDescriptorInterfaceUpdatedV2,
   DescriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -152,11 +151,11 @@ describe("update Document", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorInterfaceUpdated",
+      type: "EServiceDescriptorDocumentUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceUpdatedV2,
+      messageType: EServiceDescriptorDocumentUpdatedV2,
       payload: writtenEvent.data,
     });
 
@@ -301,11 +300,11 @@ describe("update Document", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorInterfaceUpdated",
+      type: "EServiceDescriptorDocumentUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceUpdatedV2,
+      messageType: EServiceDescriptorDocumentUpdatedV2,
       payload: writtenEvent.data,
     });
 
