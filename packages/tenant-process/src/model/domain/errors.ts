@@ -38,7 +38,8 @@ const errorCodes = {
   descriptorNotFoundInEservice: "0028",
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
-  tenantNotAllowedForDelegation: "0031",
+  invalidTenantFeature: "0031",
+  tenantNotAllowedForDelegation: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -334,5 +335,13 @@ export function operationRestrictedToDelegate(): ApiError<ErrorCodes> {
     detail: "Not allowed to add declared attribute",
     code: "operationRestrictedToDelegate",
     title: "Not allowed to add declared attribute",
+  });
+}
+
+export function invalidTenantFeature(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Tenant feature variant could not be determined",
+    code: "invalidTenantFeature",
+    title: "Invalid tenant feature",
   });
 }

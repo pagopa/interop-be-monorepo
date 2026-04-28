@@ -40,386 +40,325 @@ describe("updateTenantDelegatedFeatures", async () => {
     vi.useRealTimers();
   });
 
-  config.delegationsAllowedOrigins = ["IPA", "TEST"];
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly add Consumer feature (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
-        },
-      };
+  it("Should correctly add Consumer feature", async () => {
+    const mockTenant: Tenant = getMockTenant();
 
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: false,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedConsumerFeatureAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = protobufDecoder(
+      TenantDelegatedConsumerFeatureAddedV2
+    ).parse(writtenEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [
+        ...mockTenant.features,
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: true,
-            isDelegatedProducerFeatureEnabled: false,
-          },
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
+      ],
+      updatedAt: new Date(),
+    };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockTenant.id,
-        "tenant",
-        postgresDB
-      );
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
 
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedConsumerFeatureAdded",
-        event_version: 2,
-      });
+  it("Should correctly add Producer feature", async () => {
+    const mockTenant: Tenant = getMockTenant();
 
-      const writtenPayload = protobufDecoder(
-        TenantDelegatedConsumerFeatureAddedV2
-      ).parse(writtenEvent.data);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [
-          ...mockTenant.features,
-          {
-            type: "DelegatedConsumer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-        updatedAt: new Date(),
-      };
-
-      expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
-
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly add Producer feature (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: true,
         },
-      };
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
 
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedProducerFeatureAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = protobufDecoder(
+      TenantDelegatedProducerFeatureAddedV2
+    ).parse(writtenEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [
+        ...mockTenant.features,
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: false,
-            isDelegatedProducerFeatureEnabled: true,
-          },
+          type: "DelegatedProducer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
+      ],
+      updatedAt: new Date(),
+    };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockTenant.id,
-        "tenant",
-        postgresDB
-      );
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
 
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedProducerFeatureAdded",
-        event_version: 2,
-      });
-
-      const writtenPayload = protobufDecoder(
-        TenantDelegatedProducerFeatureAddedV2
-      ).parse(writtenEvent.data);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [
-          ...mockTenant.features,
-          {
-            type: "DelegatedProducer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-        updatedAt: new Date(),
-      };
-
-      expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
-
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly remove Consumer feature (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
-        },
-        features: [
-          {
-            type: "DelegatedConsumer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-      };
-
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
+  it("Should correctly remove Consumer feature", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: false,
-            isDelegatedProducerFeatureEnabled: false,
-          },
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
+      ],
+    };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockTenant.id,
-        "tenant",
-        postgresDB
-      );
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedConsumerFeatureRemoved",
-        event_version: 2,
-      });
-
-      const writtenPayload = protobufDecoder(
-        TenantDelegatedConsumerFeatureRemovedV2
-      ).parse(writtenEvent.data);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [],
-        updatedAt: new Date(),
-      };
-
-      expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
-
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly remove Producer feature (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
         },
-        features: [
-          {
-            type: "DelegatedProducer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-      };
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
 
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      event_version: 2,
+    });
+
+    const writtenPayload = protobufDecoder(
+      TenantDelegatedConsumerFeatureRemovedV2
+    ).parse(writtenEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [],
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
+
+  it("Should correctly remove Producer feature", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: false,
-            isDelegatedProducerFeatureEnabled: false,
-          },
+          type: "DelegatedProducer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
+      ],
+    };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockTenant.id,
-        "tenant",
-        postgresDB
-      );
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedProducerFeatureRemoved",
-        event_version: 2,
-      });
-
-      const writtenPayload = protobufDecoder(
-        TenantDelegatedProducerFeatureRemovedV2
-      ).parse(writtenEvent.data);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [],
-        updatedAt: new Date(),
-      };
-
-      expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
-
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly add both Consumer and Producer features (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
         },
-      };
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
 
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedProducerFeatureRemoved",
+      event_version: 2,
+    });
+
+    const writtenPayload = protobufDecoder(
+      TenantDelegatedProducerFeatureRemovedV2
+    ).parse(writtenEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [],
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
+
+  it("Should correctly add both Consumer and Producer features", async () => {
+    const mockTenant: Tenant = getMockTenant();
+
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: true,
+          isDelegatedProducerFeatureEnabled: true,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
+
+    const consumerEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      1,
+      "tenant",
+      postgresDB
+    );
+
+    expect(consumerEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedConsumerFeatureAdded",
+      event_version: 2,
+    });
+
+    const producerEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      2,
+      "tenant",
+      postgresDB
+    );
+
+    expect(producerEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "2",
+      type: "TenantDelegatedProducerFeatureAdded",
+      event_version: 2,
+    });
+
+    const lastUpdatedPayload = protobufDecoder(
+      TenantDelegatedProducerFeatureAddedV2
+    ).parse(producerEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [
+        ...mockTenant.features,
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: true,
-            isDelegatedProducerFeatureEnabled: true,
-          },
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
-
-      const consumerEvent = await readEventByStreamIdAndVersion(
-        mockTenant.id,
-        1,
-        "tenant",
-        postgresDB
-      );
-
-      expect(consumerEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedConsumerFeatureAdded",
-        event_version: 2,
-      });
-
-      const producerEvent = await readEventByStreamIdAndVersion(
-        mockTenant.id,
-        2,
-        "tenant",
-        postgresDB
-      );
-
-      expect(producerEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "2",
-        type: "TenantDelegatedProducerFeatureAdded",
-        event_version: 2,
-      });
-
-      const lastUpdatedPayload = protobufDecoder(
-        TenantDelegatedProducerFeatureAddedV2
-      ).parse(producerEvent.data);
-
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [
-          ...mockTenant.features,
-          {
-            type: "DelegatedConsumer",
-            availabilityTimestamp: new Date(),
-          },
-          {
-            type: "DelegatedProducer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-        updatedAt: new Date(),
-      };
-
-      expect(lastUpdatedPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
-
-  it.each(config.delegationsAllowedOrigins)(
-    "Should correctly remove both Consumer and Producer features (origin: %s)",
-    async (origin) => {
-      const mockTenant: Tenant = {
-        ...getMockTenant(),
-        externalId: {
-          value: generateId(),
-          origin,
-        },
-        features: [
-          {
-            type: "DelegatedConsumer",
-            availabilityTimestamp: new Date(),
-          },
-          {
-            type: "DelegatedProducer",
-            availabilityTimestamp: new Date(),
-          },
-        ],
-      };
-
-      await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures(
         {
-          tenantFeatures: {
-            isDelegatedConsumerFeatureEnabled: false,
-            isDelegatedProducerFeatureEnabled: false,
-          },
+          type: "DelegatedProducer",
+          availabilityTimestamp: new Date(),
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      );
+      ],
+      updatedAt: new Date(),
+    };
 
-      const consumerEvent = await readEventByStreamIdAndVersion(
-        mockTenant.id,
-        1,
-        "tenant",
-        postgresDB
-      );
+    expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
 
-      expect(consumerEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "1",
-        type: "TenantDelegatedConsumerFeatureRemoved",
-        event_version: 2,
-      });
+  it("Should correctly remove both Consumer and Producer features", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "DelegatedConsumer",
+          availabilityTimestamp: new Date(),
+        },
+        {
+          type: "DelegatedProducer",
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
 
-      const producerEvent = await readEventByStreamIdAndVersion(
-        mockTenant.id,
-        2,
-        "tenant",
-        postgresDB
-      );
+    await addOneTenant(mockTenant);
+    await tenantService.updateTenantDelegatedFeatures(
+      {
+        tenantFeatures: {
+          isDelegatedConsumerFeatureEnabled: false,
+          isDelegatedProducerFeatureEnabled: false,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+    );
 
-      expect(producerEvent).toMatchObject({
-        stream_id: mockTenant.id,
-        version: "2",
-        type: "TenantDelegatedProducerFeatureRemoved",
-        event_version: 2,
-      });
+    const consumerEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      1,
+      "tenant",
+      postgresDB
+    );
 
-      const lastUpdatedPayload = protobufDecoder(
-        TenantDelegatedProducerFeatureRemovedV2
-      ).parse(producerEvent.data);
+    expect(consumerEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      event_version: 2,
+    });
 
-      const updatedTenant: Tenant = {
-        ...mockTenant,
-        features: [],
-        updatedAt: new Date(),
-      };
+    const producerEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      2,
+      "tenant",
+      postgresDB
+    );
 
-      expect(lastUpdatedPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
-      });
-    }
-  );
+    expect(producerEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "2",
+      type: "TenantDelegatedProducerFeatureRemoved",
+      event_version: 2,
+    });
+
+    const lastUpdatedPayload = protobufDecoder(
+      TenantDelegatedProducerFeatureRemovedV2
+    ).parse(producerEvent.data);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      features: [],
+      updatedAt: new Date(),
+    };
+
+    expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+  });
 
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const organizationId = generateId<TenantId>();
@@ -435,13 +374,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw tenantNotAllowedForDelegation if the requester tenant has externalId origin not compliant", async () => {
+  it("Should throw tenantNotAllowedForDelegation if the requester tenant lacks the required certified attribute", async () => {
+    (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+      false;
+
     const tenant = getMockTenant();
-    const origin = "UNKNOWN";
 
     await addOneTenant(tenant);
 
-    expect(
+    await expect(
       tenantService.updateTenantDelegatedFeatures(
         {
           tenantFeatures: {
@@ -449,13 +390,13 @@ describe("updateTenantDelegatedFeatures", async () => {
             isDelegatedProducerFeatureEnabled: true,
           },
         },
-        getMockContext({
-          authData: {
-            ...getMockAuthData(tenant.id),
-            externalId: { origin, value: "test" },
-          },
-        })
+        getMockContext({ authData: getMockAuthData(tenant.id) })
       )
-    ).rejects.toThrowError(tenantNotAllowedForDelegation(tenant.id, origin));
+    ).rejects.toThrowError(
+      tenantNotAllowedForDelegation(tenant.id, tenant.externalId.origin)
+    );
+
+    (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
+      true;
   });
 });

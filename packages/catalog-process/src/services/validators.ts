@@ -25,6 +25,7 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  type EServiceAttribute,
   type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -47,8 +48,8 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
-  eserviceInDraftState,
   attributeDailyCallsNotAllowed,
+  eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -357,7 +358,7 @@ export function assertConsistentDailyCalls({
   dailyCallsPerConsumer: number;
   dailyCallsTotal: number;
 }): void {
-  if (dailyCallsPerConsumer > dailyCallsTotal) {
+  if (dailyCallsPerConsumer >= dailyCallsTotal) {
     throw inconsistentDailyCalls();
   }
 }
@@ -429,6 +430,75 @@ export function assertDailyCallsForCertifiedAttributesOnly(
   }
 }
 
+export function assertTemplateInstanceAttributeStructureUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined,
+  descriptorAttributes: EserviceAttributes,
+  seedAttributes: catalogApi.AttributesSeed
+): void {
+  if (templateId === undefined) {
+    return;
+  }
+
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.certified,
+    seedAttributes.certified
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.declared,
+    seedAttributes.declared
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.verified,
+    seedAttributes.verified
+  );
+}
+
+function assertAttributeGroupsUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId,
+  descriptorGroups: EServiceAttribute[][],
+  seedGroups: catalogApi.AttributeSeed[][]
+): void {
+  if (descriptorGroups.length !== seedGroups.length) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+
+  for (const descriptorGroup of descriptorGroups) {
+    const matchingSeedGroup = seedGroups.find(
+      (seedGroup) =>
+        seedGroup.length === descriptorGroup.length &&
+        descriptorGroup.every((descriptorAttr) =>
+          seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
+        )
+    );
+
+    if (!matchingSeedGroup) {
+      throw templateInstanceNotAllowed(eserviceId, templateId);
+    }
+
+    for (const descriptorAttr of descriptorGroup) {
+      const seedAttr = matchingSeedGroup.find(
+        (attr) => attr.id === descriptorAttr.id
+      );
+
+      if (
+        !seedAttr ||
+        seedAttr.explicitAttributeVerification !==
+          descriptorAttr.explicitAttributeVerification
+      ) {
+        throw templateInstanceNotAllowed(eserviceId, templateId);
+      }
+    }
+  }
+}
+
 export function assertAttributeDailyCallsConsistentWithTotal(
   attributes: EserviceAttributes,
   dailyCallsTotal: number
@@ -437,7 +507,7 @@ export function assertAttributeDailyCallsConsistentWithTotal(
     for (const attribute of attributeGroup) {
       if (
         attribute.dailyCallsPerConsumer !== undefined &&
-        attribute.dailyCallsPerConsumer > dailyCallsTotal
+        attribute.dailyCallsPerConsumer >= dailyCallsTotal
       ) {
         throw inconsistentDailyCalls();
       }

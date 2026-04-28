@@ -82,7 +82,7 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
       title: error.title,
       status: 403,
       detail: error.detail,
-      errors: [{ code: "005-0031", detail: error.detail }],
+      errors: [{ code: "005-0032", detail: error.detail }],
     });
   });
 

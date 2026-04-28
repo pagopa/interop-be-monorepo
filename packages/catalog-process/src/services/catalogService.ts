@@ -184,11 +184,16 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
-  assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertTemplateInstanceAttributeStructureUnchanged,
+  assertIsNotDraftEservice,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -1594,12 +1599,32 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+      }
+
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedAttributes,
+        seed.dailyCallsTotal
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         audience: seed.audience,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         state: descriptorState.draft,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
         agreementApprovalPolicy:
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
@@ -2079,35 +2104,25 @@ export function catalogServiceBuilder(
 
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
-      assertAttributeDailyCallsConsistentWithTotal(
-        descriptor.attributes,
-        seed.dailyCallsTotal
-      );
 
-      let updatedDescriptor: Descriptor = {
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
+      const updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
       };
 
-      if (seed.attributes) {
-        const parsedAttributes = await parseAndCheckAttributes(
-          seed.attributes,
-          readModelService
-        );
-
-        assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
-        assertAttributeDailyCallsConsistentWithTotal(
-          parsedAttributes,
-          seed.dailyCallsTotal
-        );
-
-        updatedDescriptor = {
-          ...updatedDescriptor,
-          attributes: parsedAttributes,
-        };
-      }
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2155,11 +2170,37 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      const updatedEService = replaceDescriptor(eservice.data, {
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+      }
+
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
+      const updatedDescriptor: Descriptor = {
         ...descriptor,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
-      });
+        attributes: updatedAttributes,
+      };
+
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
 
       const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,
@@ -3060,9 +3101,19 @@ export function catalogServiceBuilder(
         return;
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      const updatedAttributes = retainCurrentCertifiedDailyCalls(
+        parsedAttributes,
+        descriptor.attributes
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: updatedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3291,8 +3342,10 @@ export function catalogServiceBuilder(
         description: lastVersion.description,
         voucherLifespan: lastVersion.voucherLifespan,
         audience: [],
-        dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
-        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 1,
+        dailyCallsPerConsumer:
+          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
+        dailyCallsTotal:
+          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
         agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
         attributes: lastVersion.attributes,
         docs,
@@ -3378,8 +3431,10 @@ export function catalogServiceBuilder(
               audience: [],
               voucherLifespan: publishedVersion.voucherLifespan,
               dailyCallsPerConsumer:
-                publishedVersion.dailyCallsPerConsumer ?? 1,
-              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 1,
+                publishedVersion.dailyCallsPerConsumer ??
+                DEFAULT_DAILY_CALLS_PER_CONSUMER,
+              dailyCallsTotal:
+                publishedVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
               agreementApprovalPolicy:
                 agreementApprovalPolicyToApiAgreementApprovalPolicy(
                   publishedVersion.agreementApprovalPolicy
@@ -3958,6 +4013,112 @@ const processDescriptorPublication = async (
       : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+/**
+ * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Used with template instances. This ensures that when a template updates and
+ * propagates its attributes to its instances, any custom threshold configured
+ * on the instance is preserved instead of being cleared.
+ */
+function retainCurrentCertifiedDailyCalls(
+  incomingAttributes: EserviceAttributes,
+  currentAttributes: EserviceAttributes
+): EserviceAttributes {
+  function isMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[]
+  ): boolean {
+    return currentGroup.every((currentAttribute) =>
+      incomingGroup.some(
+        (incomingAttribute) => incomingAttribute.id === currentAttribute.id
+      )
+    );
+  }
+
+  function findMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroups: EServiceAttribute[][],
+    usedCurrentGroupIndexes: Set<number>
+  ): EServiceAttribute[] | undefined {
+    for (const [groupIndex, currentGroup] of currentGroups.entries()) {
+      if (usedCurrentGroupIndexes.has(groupIndex)) {
+        continue;
+      }
+
+      if (!isMatchingCertifiedGroup(incomingGroup, currentGroup)) {
+        continue;
+      }
+
+      usedCurrentGroupIndexes.add(groupIndex);
+      return currentGroup;
+    }
+
+    return undefined;
+  }
+
+  function findCurrentCertifiedAttribute(
+    incomingAttribute: EServiceAttribute,
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute | undefined {
+    return currentGroup?.find(
+      (currentAttribute) => currentAttribute.id === incomingAttribute.id
+    );
+  }
+
+  function retainCurrentDailyCallsPerConsumer(
+    incomingAttribute: EServiceAttribute,
+    currentAttribute: EServiceAttribute | undefined
+  ): EServiceAttribute {
+    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    if (currentDailyCalls === undefined) {
+      return incomingAttribute;
+    }
+
+    return {
+      ...incomingAttribute,
+      dailyCallsPerConsumer: currentDailyCalls,
+    };
+  }
+
+  function retainCurrentDailyCallsInCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute[] {
+    return incomingGroup.map((incomingAttribute) => {
+      const currentAttribute = findCurrentCertifiedAttribute(
+        incomingAttribute,
+        currentGroup
+      );
+
+      return retainCurrentDailyCallsPerConsumer(
+        incomingAttribute,
+        currentAttribute
+      );
+    });
+  }
+
+  const usedCurrentGroupIndexes = new Set<number>();
+  const updatedCertifiedAttributes = incomingAttributes.certified.map(
+    (incomingGroup) => {
+      const currentGroup = findMatchingCertifiedGroup(
+        incomingGroup,
+        currentAttributes.certified,
+        usedCurrentGroupIndexes
+      );
+
+      return retainCurrentDailyCallsInCertifiedGroup(
+        incomingGroup,
+        currentGroup
+      );
+    }
+  );
+
+  return {
+    certified: updatedCertifiedAttributes,
+    declared: incomingAttributes.declared,
+    verified: incomingAttributes.verified,
+  };
+}
 
 function updateEServiceDescriptorAttributeInAdd(
   eserviceId: EServiceId,
