@@ -514,6 +514,90 @@ describe("get eservices", () => {
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
+  it("should get the producer's eServices consumed by the given consumers (parameters: consumersIds, producersIds)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [organizationId1],
+        consumersIds: [organizationId3],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+      },
+      0,
+      50,
+      getMockContext({
+        authData: getMockAuthData(organizationId1),
+      })
+    );
+    expect(result.totalCount).toBe(2);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice3])
+    );
+  });
+  it("should return an empty list when no eservice matches consumersIds (parameters: consumersIds, producersIds)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [organizationId1],
+        consumersIds: [generateId<TenantId>()],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+      },
+      0,
+      50,
+      getMockContext({
+        authData: getMockAuthData(organizationId1),
+      })
+    );
+    expect(result.totalCount).toBe(0);
+    expect(result.results).toEqual([]);
+  });
+  it("should combine consumersIds with agreementStates (parameters: consumersIds, producersIds, agreementStates)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [organizationId1],
+        consumersIds: [organizationId3],
+        states: [],
+        agreementStates: ["Active"],
+        attributesIds: [],
+        templatesIds: [],
+      },
+      0,
+      50,
+      getMockContext({
+        authData: getMockAuthData(organizationId1),
+      })
+    );
+    expect(result.totalCount).toBe(2);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice3])
+    );
+  });
+  it("should exclude eservices when no agreement matches the requested agreementStates (parameters: consumersIds, producersIds, agreementStates)", async () => {
+    const result = await catalogService.getEServices(
+      {
+        eservicesIds: [],
+        producersIds: [organizationId1],
+        consumersIds: [organizationId3],
+        states: [],
+        agreementStates: ["Suspended"],
+        attributesIds: [],
+        templatesIds: [],
+      },
+      0,
+      50,
+      getMockContext({
+        authData: getMockAuthData(organizationId1),
+      })
+    );
+    expect(result.totalCount).toBe(0);
+    expect(result.results).toEqual([]);
+  });
   it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
     const result = await catalogService.getEServices(
       {
