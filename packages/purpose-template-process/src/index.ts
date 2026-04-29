@@ -1,6 +1,7 @@
 import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import {
   catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -12,12 +13,15 @@ import { purposeTemplateServiceBuilder } from "./services/purposeTemplateService
 const readModelDB = makeDrizzleConnection(config);
 const fileManager = initFileManager(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 });
 

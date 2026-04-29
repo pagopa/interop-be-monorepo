@@ -46,6 +46,10 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => commonPurposeTemplatesErrorMapper(error);
 
+export const getPurposeTemplateEServiceTemplatesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number => commonPurposeTemplatesErrorMapper(error);
+
 export const getPurposeTemplateEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -74,6 +78,24 @@ export const linkEservicesToPurposeTemplateErrorMapper = (
     .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "associationBetweenEServiceAndPurposeTemplateAlreadyExists",
+      "purposeTemplateNotInExpectedStates",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const linkEServiceTemplatesToPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "associationEServiceTemplatesForPurposeTemplateFailed",
+      "tooManyEServiceTemplatesForPurposeTemplate",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists",
       "purposeTemplateNotInExpectedStates",
       () => HTTP_STATUS_CONFLICT
     )

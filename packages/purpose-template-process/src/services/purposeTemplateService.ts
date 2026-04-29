@@ -19,6 +19,10 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  EServiceTemplateVersionPurposeTemplate,
   generateId,
   ListResult,
   PurposeTemplate,
@@ -47,6 +51,7 @@ import {
 import { match } from "ts-pattern";
 import {
   associationEServicesForPurposeTemplateFailed,
+  associationEServiceTemplatesForPurposeTemplateFailed,
   disassociationEServicesFromPurposeTemplateFailed,
   eServiceDescriptorPurposeTemplateNotFound,
   invalidAssociatedEServiceForPublication,
@@ -69,6 +74,7 @@ import {
   toCreateEventPurposeTemplateDraftDeleted,
   toCreateEventPurposeTemplateDraftUpdated,
   toCreateEventPurposeTemplateEServiceLinked,
+  toCreateEventPurposeTemplateEServiceTemplateLinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
   toCreateEventPurposeTemplateSuspended,
@@ -84,6 +90,7 @@ import {
 import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
+  GetPurposeTemplateEServiceTemplatesFilters,
   GetPurposeTemplatesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
@@ -96,6 +103,7 @@ import {
   assertConsistentFreeOfCharge,
   assertDocumentsLimitsNotReached,
   assertEServiceIdsCountIsBelowThreshold,
+  assertEServiceTemplateIdsCountIsBelowThreshold,
   assertPurposeTemplateHasRiskAnalysisForm,
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
@@ -109,6 +117,7 @@ import {
   validateAssociatedEserviceForPublication,
   validateEservicesAssociations,
   validateEservicesDisassociations,
+  validateEServiceTemplatesAssociations,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   validateRiskAnalysisAnswerOrThrow,
   validateRiskAnalysisTemplateOrThrow,
@@ -841,6 +850,28 @@ export function purposeTemplateServiceBuilder(
     );
   }
 
+  function linkValidationResultsToEServiceTemplateVersionPurposeTemplates(
+    validationResults: Array<{
+      eserviceTemplate: EServiceTemplate;
+      eserviceTemplateVersionId: EServiceTemplateVersionId;
+    }>,
+    purposeTemplateId: PurposeTemplateId,
+    creationTimestamp: Date,
+    createdEvents: Awaited<ReturnType<typeof repository.createEvents>>
+  ): Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>> {
+    return validationResults.map((validationResult) => ({
+      data: {
+        purposeTemplateId,
+        eserviceTemplateId: validationResult.eserviceTemplate.id,
+        eserviceTemplateVersionId: validationResult.eserviceTemplateVersionId,
+        createdAt: creationTimestamp,
+      },
+      metadata: {
+        version: createdEvents.latestNewVersions.get(purposeTemplateId) ?? 0,
+      },
+    }));
+  }
+
   return {
     async createPurposeTemplate(
       seed: purposeTemplateApi.PurposeTemplateSeed,
@@ -1035,6 +1066,35 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
+    async getPurposeTemplateEServiceTemplates(
+      filters: GetPurposeTemplateEServiceTemplatesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceTemplateVersionPurposeTemplate>> {
+      const { purposeTemplateId } = filters;
+
+      logger.info(
+        `Retrieving e-service templates linked to purpose template ${purposeTemplateId} with filters: ${JSON.stringify(
+          filters
+        )}`
+      );
+
+      applyVisibilityToPurposeTemplate(
+        await retrievePurposeTemplate(purposeTemplateId, readModelService),
+        authData
+      );
+
+      return await readModelService.getPurposeTemplateEServiceTemplates(
+        filters,
+        {
+          offset,
+          limit,
+        }
+      );
+    },
     async getPurposeTemplateEServiceDescriptor(
       purposeTemplateId: PurposeTemplateId,
       eserviceId: EServiceId,
@@ -1130,6 +1190,81 @@ export function purposeTemplateServiceBuilder(
       const createdEvents = await repository.createEvents(createEvents);
 
       return linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
+        validationResult.value,
+        purposeTemplateId,
+        creationTimestamp,
+        createdEvents
+      );
+    },
+    async linkEServiceTemplatesToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateIds: EServiceTemplateId[],
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+      logger.info(
+        `Linking e-service templates ${eserviceTemplateIds} to purpose template ${purposeTemplateId}`
+      );
+
+      assertEServiceTemplateIdsCountIsBelowThreshold(
+        eserviceTemplateIds.length
+      );
+
+      const purposeTemplate = await retrievePurposeTemplate(
+        purposeTemplateId,
+        readModelService
+      );
+
+      assertPurposeTemplateStateIsValid(purposeTemplate.data, [
+        purposeTemplateState.draft,
+        purposeTemplateState.published,
+      ]);
+
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        authData
+      );
+
+      const validationResult = await validateEServiceTemplatesAssociations(
+        eserviceTemplateIds,
+        purposeTemplate.data,
+        readModelService
+      );
+
+      if (validationResult.type === "invalid") {
+        throw associationEServiceTemplatesForPurposeTemplateFailed(
+          validationResult.issues,
+          eserviceTemplateIds,
+          purposeTemplateId
+        );
+      }
+
+      const creationTimestamp = new Date();
+
+      const createEvents = validationResult.value.map((pair, index) => {
+        const link: EServiceTemplateVersionPurposeTemplate = {
+          purposeTemplateId,
+          eserviceTemplateId: pair.eserviceTemplate.id,
+          eserviceTemplateVersionId: pair.eserviceTemplateVersionId,
+          createdAt: creationTimestamp,
+        };
+        const version = purposeTemplate.metadata.version + index;
+        return toCreateEventPurposeTemplateEServiceTemplateLinked(
+          link,
+          purposeTemplate.data,
+          pair.eserviceTemplate,
+          correlationId,
+          version
+        );
+      });
+
+      const createdEvents = await repository.createEvents(createEvents);
+
+      return linkValidationResultsToEServiceTemplateVersionPurposeTemplates(
         validationResult.value,
         purposeTemplateId,
         creationTimestamp,

@@ -83,5 +83,10 @@ export async function handleMessageV2(
         }
       );
     })
+    .with(
+      { type: "PurposeTemplateEServiceTemplateLinked" },
+      { type: "PurposeTemplateEServiceTemplateUnlinked" },
+      () => Promise.resolve()
+    )
     .exhaustive();
 }
