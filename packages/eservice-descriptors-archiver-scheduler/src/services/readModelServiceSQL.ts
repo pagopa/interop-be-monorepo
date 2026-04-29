@@ -38,24 +38,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
         })
-        .from(eserviceInReadmodelCatalog)
-        .where(
-          and(
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.archiving,
-              descriptorState.archivingSuspended,
-            ]),
-            lt(
-              // FIXME: convertire in giorno mese anno NO timestamp
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-              new Date(toUTCMidnight(new Date(), 0)).toISOString()
-            ),
-            eq(
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
-              archivingScope.descriptor
-            )
-          )
-        )
+        .from(eserviceDescriptorInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
           eq(
@@ -68,6 +51,22 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            inArray(eserviceDescriptorInReadmodelCatalog.state, [
+              descriptorState.archiving,
+              descriptorState.archivingSuspended,
+            ]),
+            lt(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              new Date(toUTCMidnight(new Date(), 0)).toISOString()
+            ),
+            eq(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+              archivingScope.descriptor
+            )
           )
         );
 
