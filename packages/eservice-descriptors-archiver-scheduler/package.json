@@ -1,0 +1,41 @@
+{
+  "name": "pagopa-interop-eservice-descriptors-archiver-scheduler",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "private": true,
+  "description": "PagoPA Interoperability e-service descriptors archiver scheduler",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "dependencies": {
+    "csv-stringify": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "octokit": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:",
+    "@zodios/core": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
