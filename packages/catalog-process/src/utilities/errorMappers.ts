@@ -189,6 +189,7 @@ export const createDescriptorErrorMapper = (
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
+      "eserviceInArchivingOrArchivedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

@@ -193,6 +193,7 @@ import {
   assertAttributeDailyCallsConsistentWithTotal,
   assertDescriptorInRequiredStates,
   assertDescriptorIsNotLatestVersion,
+  assertEserviceIsNotInArchivingOrArchivedState,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1369,6 +1370,8 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEserviceIsNotInArchivingOrArchivedState(eservice.data);
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
