@@ -63,6 +63,35 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
+export const FeatureFlagDpopClientAssertionDebuggerConfig = z
+  .discriminatedUnion("FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER", [
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z.literal("true"),
+      DPOP_HTU_BASE: z.string(),
+      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number(),
+      DPOP_DURATION_SECONDS: z.coerce.number(),
+    }),
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
+        .literal("false")
+        .optional()
+        .default("false"),
+    }),
+  ])
+  .transform((c) =>
+    c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER === "true"
+      ? {
+          featureFlagDpopClientAssertionDebugger: true as const,
+          dpopHtuBase: c.DPOP_HTU_BASE,
+          dpopIatToleranceSeconds: c.DPOP_IAT_TOLERANCE_SECONDS,
+          dpopDurationSeconds: c.DPOP_DURATION_SECONDS,
+        }
+      : { featureFlagDpopClientAssertionDebugger: false as const }
+  );
+export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
+  typeof FeatureFlagDpopClientAssertionDebuggerConfig
+>;
+
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
     FEATURE_FLAG_PURPOSE_TEMPLATE: z
@@ -161,6 +190,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagDpopClientAssertionDebuggerConfig &
   FeatureFlagPurposeTemplateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &

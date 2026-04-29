@@ -27,6 +27,7 @@ const toolRouter = (
         req.body.client_assertion,
         req.body.client_assertion_type,
         req.body.grant_type,
+        req.body.dpop_proof,
         ctx
       );
       return res
