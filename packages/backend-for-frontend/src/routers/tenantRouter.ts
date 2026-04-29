@@ -386,6 +386,27 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/tenants/:tenantId/delegations/allowed", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await tenantService.isTenantAllowedToDelegation(
+          unsafeBrandId(req.params.tenantId),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.IsTenantAllowedToDelegation.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error checking delegation allowance for tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/tenants/delegatedFeatures/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

@@ -200,8 +200,16 @@ describe("clone descriptor", () => {
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(newEService));
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(newEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -270,7 +278,11 @@ describe("clone descriptor", () => {
     const expectedName = `Name exceeding the maximum ... - clone - ${dateAtRomeZone(
       cloneTimestamp
     )} ${timeAtRomeZone(cloneTimestamp)}`;
-    expect(writtenPayload.eservice!.name).toEqual(expectedName);
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: expect.objectContaining({ name: expectedName }),
+    });
     expect(expectedName.length).toBe(60);
     expect(newEService.name).toEqual(expectedName);
   });

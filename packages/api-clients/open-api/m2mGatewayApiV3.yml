@@ -379,6 +379,50 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /agreements/{agreementId}/archive:
+    parameters:
+      - schema:
+          $ref: "#/components/schemas/AgreementId"
+        name: agreementId
+        description: The ID of the Agreement to archive
+        in: path
+        required: true
+    post:
+      tags:
+        - agreements
+      summary: Archive an Agreement in Active or Suspended state
+      description: |
+        Archive an Agreement that is in Active or Suspended state, transitioning it to Archived state.
+        The Archived state is not reversible.
+      operationId: archiveAgreement
+      responses:
+        "200":
+          description: Agreement archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /agreements/{agreementId}/submit:
     parameters:
       - schema:
@@ -7456,6 +7500,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -9577,6 +9625,33 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplateEvents:
+    get:
+      tags:
+        - events
+      summary: Get Purpose Template events
+      description: |
+        Retrieve list of Purpose Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Purpose Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateEvents"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /users:
     get:
       tags:
@@ -10302,6 +10377,7 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_INSTANCE_LABEL_UPDATED
+            - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
         eventTimestamp:
           type: string
           format: date-time
@@ -10592,6 +10668,51 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProducerDelegationEvent"
+    PurposeTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PURPOSE_TEMPLATE_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_DELETED
+            - PURPOSE_TEMPLATE_PUBLISHED
+            - PURPOSE_TEMPLATE_SUSPENDED
+            - PURPOSE_TEMPLATE_UNSUSPENDED
+            - PURPOSE_TEMPLATE_ARCHIVED
+            - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+            - PURPOSE_TEMPLATE_ESERVICE_LINKED
+            - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeTemplateId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeTemplateId
+
+    PurposeTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false
@@ -11471,7 +11592,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -11756,7 +11877,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceTemplateIntendedTargetUpdateSeed:
@@ -11868,7 +11989,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -11942,7 +12063,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12027,7 +12148,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12069,7 +12190,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false

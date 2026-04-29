@@ -110,9 +110,11 @@ describe("delete Document", () => {
         ],
       };
 
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.documentId).toEqual(document.id);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: document.id,
+        eservice: toEServiceV2(expectedEService),
+      });
 
       expect(fileManager.delete).toHaveBeenCalledWith(
         config.s3Bucket,
@@ -192,9 +194,11 @@ describe("delete Document", () => {
       ],
     };
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: interfaceDocument.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -280,9 +284,11 @@ describe("delete Document", () => {
       ],
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: interfaceDocument.id,
+      eservice: expectedEservice,
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,

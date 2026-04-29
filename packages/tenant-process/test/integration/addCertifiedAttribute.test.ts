@@ -115,7 +115,10 @@ describe("addCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: tenantAttributeSeed.id,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,
       metadata: { version: 1 },
@@ -241,7 +244,10 @@ describe("addCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: tenantAttributeSeed.id,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,
       metadata: { version: 1 },
