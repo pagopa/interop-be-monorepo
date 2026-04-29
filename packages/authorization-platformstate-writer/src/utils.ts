@@ -827,7 +827,7 @@ export const upsertTokenGenStatesConsumerClientsV1 = async ({
 
       if (clientEntries.data.length === 0) {
         if (!data.LastEvaluatedKey) {
-          return [];
+          break;
         }
         exclusiveStartKey = data.LastEvaluatedKey;
         continue;
