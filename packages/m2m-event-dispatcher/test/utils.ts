@@ -1,4 +1,3 @@
-import { randomInt } from "crypto";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
@@ -68,9 +67,11 @@ export const testReadModelService = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDB),
 });
 
+let mockEventVersionCounter = 0;
+
 export const getMockEventEnvelopeCommons = () => ({
   sequence_num: 1,
-  version: randomInt(1, 1000),
+  version: ++mockEventVersionCounter,
   event_version: 2,
   log_date: new Date(),
 });

@@ -94,7 +94,11 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         ],
       };
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expect.any(String),
+        eservice: toEServiceV2(updatedEService),
+      });
     }
   );
 
