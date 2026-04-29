@@ -118,6 +118,7 @@ const eservicesRouter = (
           name,
           eservicesIds,
           producersIds,
+          consumersIds,
           attributesIds,
           states,
           technology,
@@ -137,6 +138,7 @@ const eservicesRouter = (
           {
             eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
             producersIds: producersIds.map<TenantId>(unsafeBrandId),
+            consumersIds: consumersIds.map<TenantId>(unsafeBrandId),
             attributesIds: attributesIds.map<AttributeId>(unsafeBrandId),
             states: states.map(apiDescriptorStateToDescriptorState),
             agreementStates: agreementStates.map(

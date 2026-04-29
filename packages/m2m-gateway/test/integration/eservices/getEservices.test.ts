@@ -83,6 +83,7 @@ describe("getEservices", () => {
         limit: mockParams.limit,
         name: undefined,
         eservicesIds: [],
+        consumersIds: [],
         attributesIds: [],
         states: [],
         agreementStates: [],
