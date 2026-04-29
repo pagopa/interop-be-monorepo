@@ -27,6 +27,7 @@ import AdmZip from "adm-zip";
 import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import * as apiUtils from "pagopa-interop-commons";
 import type {
+  AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -87,6 +88,7 @@ describe("importEService", () => {
     createDummyStub<agreementApi.AgreementProcessClient>();
   const mockAttributeProcessClient =
     createDummyStub<attributeRegistryApi.AttributeProcessClient>();
+  const mockAuthorizationClient = createDummyStub<AuthorizationProcessClient>();
   const mockDelegationProcessClient =
     createDummyStub<DelegationProcessClient>();
   const mockEServiceTemplateProcessClient =
@@ -105,6 +107,7 @@ describe("importEService", () => {
     mockTenantProcessClient,
     mockAgreementProcessClient,
     mockAttributeProcessClient,
+    mockAuthorizationClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
     mockInAppNotificationManagerClient,

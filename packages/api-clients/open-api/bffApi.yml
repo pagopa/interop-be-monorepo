@@ -26435,6 +26435,8 @@ components:
         - agreementApprovalPolicy
         - eservice
         - attributes
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26496,6 +26498,10 @@ components:
           type: array
           items:
             type: string
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
