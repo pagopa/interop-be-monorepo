@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { CorrelationId } from "pagopa-interop-models";
 import {
-  AuthorizationProcessClient,
-  PagoPAInteropBeClients,
-  SelfcareV2UserClient,
-} from "../clients/clientsProvider.js";
+  authorizationApi,
+  bffApi,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
+import { clientNotFound } from "../model/errors.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
@@ -93,7 +96,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         params: { clientId },
         headers: ctx.headers,
       });
-      return enhanceClient(apiClients, client, ctx);
+      return match(client)
+        .with(
+          { visibility: authorizationApi.Visibility.Values.FULL },
+          (fullClient) => enhanceClient(apiClients, fullClient, ctx)
+        )
+        .with(
+          { visibility: authorizationApi.Visibility.Values.PARTIAL },
+          () => {
+            throw clientNotFound(clientId);
+          }
+        )
+        .exhaustive();
     },
 
     async deleteClient(
@@ -128,7 +142,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Deleting key ${keyId} from client ${clientId}`);
 
-      return authorizationClient.client.deleteClientKeyById(undefined, {
+      await authorizationClient.client.deleteClientKeyById(undefined, {
         params: { clientId, keyId },
         headers,
       });
@@ -141,7 +155,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
 
-      return authorizationClient.client.removeUser(undefined, {
+      await authorizationClient.client.removeUser(undefined, {
         params: { clientId, userId },
         headers,
       });
@@ -177,6 +191,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         }
       );
+      assertClientVisibilityIsFull(client);
 
       return enhanceClient(apiClients, client, ctx);
     },
@@ -263,8 +278,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
 
     async getClientUsers(
       clientId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
@@ -278,7 +292,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           getSelfcareCompactUserById(
             selfcareV2UserClient,
             id,
-            selfcareId,
+            authData.selfcareId,
             correlationId
           )
         )
@@ -288,8 +302,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     async getClientKeyById(
       clientId: string,
       keyId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
@@ -308,7 +321,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       return decorateKey(
         selfcareV2UserClient,
         key,
-        selfcareId,
+        authData.selfcareId,
         client.users,
         correlationId
       );
@@ -376,10 +389,9 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
-  client: authorizationApi.Client,
+  client: authorizationApi.FullClient,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  assertClientVisibilityIsFull(client);
   const [consumer, admin, ...purposes] = await Promise.all([
     apiClients.tenantProcessClient.tenant.getTenant({
       params: { id: client.consumerId },
@@ -451,7 +463,7 @@ async function enhancePurpose(
 }
 
 export async function decorateKey(
-  selfcareClient: SelfcareV2UserClient,
+  selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],

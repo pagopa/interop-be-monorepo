@@ -63,7 +63,7 @@ export async function handlePurposeVersionSuspendedByProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionSuspendedByProducer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -80,6 +80,7 @@ export async function handlePurposeVersionSuspendedByProducer(
         producerName: producer.name,
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

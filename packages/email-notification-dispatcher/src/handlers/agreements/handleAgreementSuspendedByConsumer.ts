@@ -60,7 +60,7 @@ export async function handleAgreementSuspendedByConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementSuspendedByConsumer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -77,6 +77,7 @@ export async function handleAgreementSuspendedByConsumer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

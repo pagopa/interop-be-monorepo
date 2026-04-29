@@ -17,6 +17,7 @@ message EServiceV2 {
   optional bool isClientAccessDelegable = 12;
   optional string templateId = 13;
   optional bool personalData = 14;
+  optional string instanceLabel = 15;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -48,6 +49,7 @@ message EServiceRiskAnalysisMultiAnswerV2 {
 message EServiceAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
+  optional int32 dailyCallsPerConsumer = 3;
 }
 
 message EServiceAttributeV2 {

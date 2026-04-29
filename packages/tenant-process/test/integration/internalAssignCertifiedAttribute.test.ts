@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, tenantAttributeType } from "pagopa-interop-models";
 
 import {
   getMockAttribute,
@@ -10,10 +9,10 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
-  Attribute,
   unsafeBrandId,
   protobufDecoder,
   TenantCertifiedAttributeAssignedV2,
+  tenantAttributeType,
   fromTenantKindV2,
   toTenantV2,
 } from "pagopa-interop-models";
@@ -31,12 +30,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("internalAssignCertifiedAttributes", async () => {
-  const certifiedAttribute: Attribute = {
-    ...getMockAttribute(),
-    kind: attributeKind.certified,
-    origin: "certifier-id",
-    code: "0001",
-  };
+  const certifiedAttribute = getMockAttribute();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -94,7 +88,10 @@ describe("internalAssignCertifiedAttributes", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: certifiedAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should re-assign the attribute if it was revoked", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
@@ -150,7 +147,10 @@ describe("internalAssignCertifiedAttributes", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: certifiedAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {

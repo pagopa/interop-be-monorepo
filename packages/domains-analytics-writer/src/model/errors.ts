@@ -1,13 +1,10 @@
 import { InternalError } from "pagopa-interop-models";
 
-const errorCodes = {
-  insertStagingRecordsError: "INSERT_STAGING_RECORDS_ERROR",
-  mergeDataError: "MERGE_DATA_ERROR",
-  setupStagingTablesError: "SETUP_STAGING_TABLES_ERROR",
-  setupPartialStagingTablesError: "SETUP_PARTIAL_STAGING_TABLES_ERROR",
-} as const;
-
-type ErrorCodes = keyof typeof errorCodes;
+type ErrorCodes =
+  | "insertStagingRecordsError"
+  | "mergeDataError"
+  | "setupStagingTablesError"
+  | "setupPartialStagingTablesError";
 
 export function setupStagingTablesError(
   detail: unknown

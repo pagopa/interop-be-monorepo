@@ -148,7 +148,7 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
       );
-    expect(attributes.results).toEqual(response);
+    expect(attributes.results).toStrictEqual(response);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetEServiceTemplateById,
       params: { templateId: eserviceTemplate.id },
@@ -181,7 +181,7 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response1);
+    expect(result).toStrictEqual(response1);
 
     const response2: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttributes =
       {
@@ -201,7 +201,7 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result2).toEqual(response2);
+    expect(result2).toStrictEqual(response2);
   });
 
   it("Should throw eserviceTemplateVersionNotFound in case the returned eserviceTemplate has no version with the given id", async () => {

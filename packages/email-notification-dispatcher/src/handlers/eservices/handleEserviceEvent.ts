@@ -1,6 +1,6 @@
 import {
   EmailNotificationMessagePayload,
-  EServiceEventV2,
+  EServiceEvent,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
@@ -13,7 +13,7 @@ import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSus
 import { handleEserviceStateChanged } from "./handleEserviceStateChanged.js";
 
 export async function handleEServiceEvent(
-  params: HandlerParams<typeof EServiceEventV2>
+  params: HandlerParams<typeof EServiceEvent>
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -23,32 +23,45 @@ export async function handleEServiceEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
-    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
-      handleEserviceDescriptorPublished({
-        eserviceV2Msg: eservice,
-        logger,
-        readModelService,
-        templateService,
-        correlationId,
-      })
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
+    .with(
+      { type: "EServiceDescriptorPublished" },
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorPublished({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
-    .with({ type: "EServiceDescriptorActivated" }, ({ data: { eservice } }) =>
-      handleEserviceDescriptorActivated({
-        eserviceV2Msg: eservice,
-        logger,
-        readModelService,
-        templateService,
-        correlationId,
-      })
+    .with(
+      { type: "EServiceDescriptorActivated" },
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorActivated({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
-    .with({ type: "EServiceDescriptorSuspended" }, ({ data: { eservice } }) =>
-      handleEserviceDescriptorSuspended({
-        eserviceV2Msg: eservice,
-        logger,
-        readModelService,
-        templateService,
-        correlationId,
-      })
+    .with(
+      { type: "EServiceDescriptorSuspended" },
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorSuspended({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
@@ -136,12 +149,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

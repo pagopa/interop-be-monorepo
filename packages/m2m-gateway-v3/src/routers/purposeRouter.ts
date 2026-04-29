@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -23,12 +24,14 @@ import {
   getPurposeAgreementErrorMapper,
   createPurposeErrorMapper,
   updateDraftPurposeErrorMapper,
+  getRemainingDailyCallsErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
-  purposeService: PurposeService
+  purposeService: PurposeService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -289,7 +292,12 @@ const purposeRouter = (
               ctx
             );
 
-          return sendDownloadedDocumentAsFormData(document, res);
+          return sendDownloadedDocumentAsFormData(
+            document,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -332,7 +340,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -364,6 +372,29 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const result = await purposeService.getRemainingDailyCalls(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApiV3.RemainingDailyCallsResponse.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getRemainingDailyCallsErrorMapper,
+          ctx,
+          `Error retrieving remaining daily calls for purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -375,7 +406,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

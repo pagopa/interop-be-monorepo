@@ -3,8 +3,6 @@ import {
   EServiceV2,
   missingKafkaMessageDataError,
   fromEServiceV2,
-  DescriptorId,
-  EServiceIdDescriptorId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -17,7 +15,6 @@ import { activeProducerDelegationNotFound } from "../../models/errors.js";
 
 export async function handleEserviceNewVersionSubmittedToDelegator(
   eserviceV2Msg: EServiceV2 | undefined,
-  descriptorId: DescriptorId,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
@@ -28,7 +25,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     );
   }
   logger.info(
-    `Handle eservice new version submitted in-app notification for eservice ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eserviceV2Msg.id}, eventType: EServiceDescriptorSubmittedByDelegate`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
@@ -51,7 +48,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for eservice ${eserviceV2Msg.id}`
+      `No users with notifications enabled for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eservice.id}, eventType: EServiceDescriptorSubmittedByDelegate`
     );
     return [];
   }
@@ -66,15 +63,11 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     eservice.name
   );
 
-  const entityId = EServiceIdDescriptorId.parse(
-    `${eservice.id}/${descriptorId}`
-  );
-
   return usersWithNotifications.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
     body,
     notificationType: "eserviceNewVersionSubmittedToDelegator",
-    entityId,
+    entityId: producerDelegation.id,
   }));
 }

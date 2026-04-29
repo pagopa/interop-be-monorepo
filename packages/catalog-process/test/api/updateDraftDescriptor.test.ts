@@ -23,6 +23,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -130,6 +131,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

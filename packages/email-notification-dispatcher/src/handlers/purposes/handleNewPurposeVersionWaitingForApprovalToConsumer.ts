@@ -56,12 +56,12 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleNewPurposeVersionWaitingForApprovalToConsumer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -79,6 +79,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
         dailyCalls: dailyCallsPerConsumer,
         isNewVersion: true,
         ctaLabel: `Gestisci finalità`,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

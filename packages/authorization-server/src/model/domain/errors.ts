@@ -17,7 +17,6 @@ const errorCodes = {
   platformStateValidationFailed: "0008",
   dpopProofValidationFailed: "0009",
   dpopProofSignatureValidationFailed: "0010",
-  unexpectedDPoPProofForAPIToken: "0011",
   dpopProofJtiAlreadyUsed: "0012",
 };
 
@@ -126,20 +125,10 @@ export function dpopProofSignatureValidationFailed(
   });
 }
 
-export function unexpectedDPoPProofForAPIToken(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
-    code: "unexpectedDPoPProofForAPIToken",
-    title: "Unexpected DPoP proof for API token",
-  });
-}
-
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof JTI ${jti} already in cache`,
+    detail: `DPoP proof JTI ${jti} already used`,
     code: "dpopProofJtiAlreadyUsed",
-    title: "DPoP proof JTI already in cache",
+    title: "DPoP proof JTI already used",
   });
 }

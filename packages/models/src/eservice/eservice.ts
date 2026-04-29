@@ -43,6 +43,7 @@ export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
 export const EServiceAttribute = z.object({
   id: AttributeId,
+  dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
@@ -142,6 +143,7 @@ export const EService = z.object({
   isClientAccessDelegable: z.boolean().optional(),
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
+  instanceLabel: z.string().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

@@ -60,7 +60,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleNewPurposeVersionWaitingForApprovalToProducer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -78,6 +78,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToProducer(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        selfcareId: producer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

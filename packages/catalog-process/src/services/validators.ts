@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
-  DescriptorState,
   EService,
   EServiceId,
   Tenant,
@@ -26,12 +25,15 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
+  type EServiceAttribute,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
+  invalidDelegationFlags,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
@@ -46,8 +48,10 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  attributeDailyCallsNotAllowed,
+  eserviceInDraftState,
 } from "../model/domain/errors.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -75,13 +79,6 @@ export function descriptorStatesNotAllowingInterfaceOperations(
     .with(descriptorState.draft, () => false)
     .otherwise(() => true);
 }
-
-export const activeDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archived,
-];
 
 function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
@@ -176,6 +173,13 @@ export function assertIsDraftEservice(eservice: EService): void {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
+
+export function assertIsNotDraftEservice(eservice: EService): void {
+  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+    throw eserviceInDraftState(eservice.id);
+  }
+}
+
 export function assertIsDraftDescriptor(descriptor: Descriptor): void {
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
@@ -185,6 +189,15 @@ export function assertIsDraftDescriptor(descriptor: Descriptor): void {
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
     throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+export function assertValidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): void {
+  if (isConsumerDelegable === false && isClientAccessDelegable === true) {
+    throw invalidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
   }
 }
 
@@ -345,7 +358,7 @@ export function assertConsistentDailyCalls({
   dailyCallsPerConsumer: number;
   dailyCallsTotal: number;
 }): void {
-  if (dailyCallsPerConsumer > dailyCallsTotal) {
+  if (dailyCallsPerConsumer >= dailyCallsTotal) {
     throw inconsistentDailyCalls();
   }
 }
@@ -404,4 +417,100 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (attribute.dailyCallsPerConsumer !== undefined) {
+      throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertTemplateInstanceAttributeStructureUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined,
+  descriptorAttributes: EserviceAttributes,
+  seedAttributes: catalogApi.AttributesSeed
+): void {
+  if (templateId === undefined) {
+    return;
+  }
+
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.certified,
+    seedAttributes.certified
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.declared,
+    seedAttributes.declared
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.verified,
+    seedAttributes.verified
+  );
+}
+
+function assertAttributeGroupsUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId,
+  descriptorGroups: EServiceAttribute[][],
+  seedGroups: catalogApi.AttributeSeed[][]
+): void {
+  if (descriptorGroups.length !== seedGroups.length) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+
+  for (const descriptorGroup of descriptorGroups) {
+    const matchingSeedGroup = seedGroups.find(
+      (seedGroup) =>
+        seedGroup.length === descriptorGroup.length &&
+        descriptorGroup.every((descriptorAttr) =>
+          seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
+        )
+    );
+
+    if (!matchingSeedGroup) {
+      throw templateInstanceNotAllowed(eserviceId, templateId);
+    }
+
+    for (const descriptorAttr of descriptorGroup) {
+      const seedAttr = matchingSeedGroup.find(
+        (attr) => attr.id === descriptorAttr.id
+      );
+
+      if (
+        !seedAttr ||
+        seedAttr.explicitAttributeVerification !==
+          descriptorAttr.explicitAttributeVerification
+      ) {
+        throw templateInstanceNotAllowed(eserviceId, templateId);
+      }
+    }
+  }
+}
+
+export function assertAttributeDailyCallsConsistentWithTotal(
+  attributes: EserviceAttributes,
+  dailyCallsTotal: number
+): void {
+  for (const attributeGroup of attributes.certified) {
+    for (const attribute of attributeGroup) {
+      if (
+        attribute.dailyCallsPerConsumer !== undefined &&
+        attribute.dailyCallsPerConsumer >= dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+    }
+  }
 }

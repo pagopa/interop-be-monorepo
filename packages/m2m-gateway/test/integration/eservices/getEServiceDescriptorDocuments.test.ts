@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  catalogApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { getMockedApiEserviceDoc } from "pagopa-interop-commons-test";
 import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import {
@@ -9,7 +13,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getEServiceDescriptorDocuments", () => {
   const mockQueryParams: m2mGatewayApi.GetEServiceDescriptorDocumentsQueryParams =
@@ -80,7 +83,7 @@ describe("getEServiceDescriptorDocuments", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mDocumentsResponse);
+    expect(result).toStrictEqual(m2mDocumentsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceDocuments,
       params: {

@@ -54,7 +54,7 @@ export async function handleAgreementUpgraded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementUpgraded - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -71,6 +71,7 @@ export async function handleAgreementUpgraded(
         consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

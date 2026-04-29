@@ -39,14 +39,14 @@ export async function handlePurposeVersionRejectedFirstVersion(
   // Only send notification if there is only one version (version count = 1)
   if (purpose.versions.length !== 1) {
     logger.info(
-      `Purpose ${purpose.id} has more than one version, skipping purposeVersionRejectedFirstVersion notification`
+      `Skipping email notification for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has more than one version`
     );
     return [];
   }
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.purposeVersionActivatedMailTemplate
+      eventMailTemplateType.purposeVersionRejectedMailTemplate
     ),
     retrieveEService(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
@@ -64,7 +64,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -82,6 +82,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
         ctaLabel: `Visualizza finalità`,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

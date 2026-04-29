@@ -57,7 +57,7 @@ export async function handleAgreementActivatedToConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementActivatedToConsumer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -74,6 +74,7 @@ export async function handleAgreementActivatedToConsumer(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

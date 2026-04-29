@@ -2,13 +2,20 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "daemon": false,
-  "globalDependencies": ["tsconfig.json"],
-  "globalEnv": ["CI"],
+  "globalDependencies": [
+    "tsconfig.json"
+  ],
+  "globalEnv": [
+    "CI"
+  ],
   "tasks": {
     "start": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["^build", "//#infra:start"]
+      "dependsOn": [
+        "^build",
+        "//#infra:start"
+      ]
     },
     "//#infra:start": {
       "cache": false
@@ -20,51 +27,91 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
     },
     "check": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^build",
+        "^check"
+      ],
+      "outputs": []
     },
     "generate-model": {
-      "dependsOn": ["^generate-model"],
-      "outputs": ["src/generated/**"]
+      "dependsOn": [
+        "^generate-model"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
     },
     "generate-protobuf": {
-      "dependsOn": ["^generate-protobuf"],
-      "outputs": ["src/gen/**"]
+      "dependsOn": [
+        "^generate-protobuf"
+      ],
+      "outputs": [
+        "src/gen/**"
+      ]
     },
     "test": {
-      "dependsOn": ["build", "^test", "test:integration", "test:api"]
+      "dependsOn": [
+        "build",
+        "^test",
+        "test:integration",
+        "test:api"
+      ]
     },
     "test:integration": {
-      "dependsOn": ["build", "^test:integration"]
+      "dependsOn": [
+        "build",
+        "^test:integration"
+      ]
     },
     "test:api": {
-      "dependsOn": ["build", "^test:api"]
+      "dependsOn": [
+        "build",
+        "^test:api"
+      ]
     },
     "lint": {
-      "dependsOn": ["build", "^lint"],
-      "outputs": [".eslintcache"]
+      "dependsOn": [
+        "build",
+        "^lint"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
     },
     "lint:autofix": {
-      "dependsOn": ["build"],
-      "outputs": ["dist"]
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "dist"
+      ]
     },
     "lint:openapi": {
-      "dependsOn": ["^lint:openapi"],
+      "dependsOn": [
+        "^lint:openapi"
+      ],
       "cache": false
     },
-    "format:check": {
-      "dependsOn": ["^format:check"]
-    },
-    "format:write": {
-      "dependsOn": ["^format:write"]
-    },
     "generate-db-models": {
-      "dependsOn": ["//#infra:start", "^generate-db-models"],
-      "outputs": ["src/generated/**"]
+      "dependsOn": [
+        "//#infra:start",
+        "^generate-db-models"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
     }
   }
 }

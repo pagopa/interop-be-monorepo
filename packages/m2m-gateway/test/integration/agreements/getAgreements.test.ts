@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  agreementApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiAgreement,
@@ -13,7 +17,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getAgreements", () => {
   const mockQueryParams: m2mGatewayApi.GetAgreementsQueryParams = {
@@ -116,11 +119,12 @@ describe("getAgreements", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementsResponse);
+    expect(result).toStrictEqual(m2mAgreementsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreements,
       queries: {
         consumersIds: mockQueryParams.consumerIds,
+        exactConsumerIdMatch: false,
         eservicesIds: mockQueryParams.eserviceIds,
         producersIds: mockQueryParams.producerIds,
         descriptorsIds: mockQueryParams.descriptorIds,

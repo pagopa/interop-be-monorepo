@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import { getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId } from "pagopa-interop-commons-test/index.js";
 import {
@@ -9,7 +13,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   const mockQueryParams: m2mGatewayApi.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
@@ -98,7 +101,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(m2mDocumentsResponse);
+    expect(result).toStrictEqual(m2mDocumentsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient

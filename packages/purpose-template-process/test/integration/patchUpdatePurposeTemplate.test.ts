@@ -28,7 +28,6 @@ import {
   purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("patch update purpose template", () => {
@@ -158,13 +157,344 @@ describe("patch update purpose template", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.purposeTemplate).toEqual(
-        toPurposeTemplateV2(expectedPurposeTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      });
       expect(updatePurposeTemplateReturn).toEqual({
         data: expectedPurposeTemplate,
         metadata: { version: 1 },
       });
+    }
+  );
+
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PatchUpdatePurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeFreeOfChargeReason: newFreeOfChargeReason },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+      {
+        purposeFreeOfChargeReason: null,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: undefined,
+        purposeFreeOfChargeReason: undefined,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: null,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeFreeOfChargeReason: null,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeTemplateApi.PatchUpdatePurposeTemplateSeed;
+
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const patchPurposeTemplateResult =
+        await purposeTemplateService.patchUpdatePurposeTemplate(
+          mockPurposeTemplate.id,
+          cleanedSeed,
+          getMockContextM2MAdmin({
+            organizationId: mockPurposeTemplate.creatorId,
+          })
+        );
+
+      const expectedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeIsFreeOfCharge: expected.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: expected.purposeFreeOfChargeReason,
+        updatedAt: new Date(),
+      };
+
+      expect(patchPurposeTemplateResult).toEqual({
+        data: expectedPurposeTemplate,
+        metadata: { version: 1 },
+      });
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PatchUpdatePurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeFreeOfChargeReason: newFreeOfChargeReason },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      expect(
+        purposeTemplateService.patchUpdatePurposeTemplate(
+          mockPurposeTemplate.id,
+          seed,
+          getMockContextM2MAdmin({
+            organizationId: mockPurposeTemplate.creatorId,
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.purposeIsFreeOfCharge,
+          wrongUpdatedData.purposeFreeOfChargeReason
+        )
+      );
     }
   );
 
@@ -180,7 +510,7 @@ describe("patch update purpose template", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(mockPurposeTemplate);
@@ -190,7 +520,7 @@ describe("patch update purpose template", () => {
         {},
         getMockContextM2MAdmin({ organizationId: requesterId })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
   });
 
   it("should throw purposeTemplateTitleConflict if the updated title is already in use", async () => {
@@ -271,33 +601,4 @@ describe("patch update purpose template", () => {
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
-
-  it.each([{ freeOfChargeReason: "Some reason" }, { freeOfChargeReason: "" }])(
-    "should throw invalidFreeOfChargeReason if purposeFreeOfChargerReason is defined and purposeIsFreeOfCharge is false",
-    async ({ freeOfChargeReason }) => {
-      const purposeTemplate: PurposeTemplate = {
-        ...mockPurposeTemplate,
-        purposeIsFreeOfCharge: true,
-        purposeFreeOfChargeReason: "Some reason",
-      };
-
-      await addOnePurposeTemplate(purposeTemplate);
-
-      const isFreeOfCharge = false;
-      expect(
-        purposeTemplateService.patchUpdatePurposeTemplate(
-          purposeTemplate.id,
-          {
-            purposeIsFreeOfCharge: isFreeOfCharge,
-            purposeFreeOfChargeReason: freeOfChargeReason,
-          },
-          getMockContextM2MAdmin({
-            organizationId: purposeTemplate.creatorId,
-          })
-        )
-      ).rejects.toThrowError(
-        invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
-      );
-    }
-  );
 });

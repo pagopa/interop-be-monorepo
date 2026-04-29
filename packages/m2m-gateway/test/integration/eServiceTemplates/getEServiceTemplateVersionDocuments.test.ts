@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  eserviceTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEserviceDoc,
   getMockedApiEServiceTemplate,
@@ -13,7 +17,6 @@ import {
   mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 
@@ -157,7 +160,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(m2mDocumentsResponse);
+    expect(result).toStrictEqual(m2mDocumentsResponse);
   });
 
   it("Should apply filters (offset, limit)", async () => {
@@ -181,7 +184,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response1);
+    expect(result).toStrictEqual(response1);
 
     const response2: m2mGatewayApi.Documents = {
       pagination: {
@@ -203,7 +206,7 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result2).toEqual(response2);
+    expect(result2).toStrictEqual(response2);
 
     const response3: m2mGatewayApi.Documents = {
       pagination: {
@@ -225,6 +228,6 @@ describe("getEServiceTemplateVersionDocuments", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result3).toEqual(response3);
+    expect(result3).toStrictEqual(response3);
   });
 });

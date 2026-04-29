@@ -35,7 +35,7 @@ export const addDelegationSignedContract = async (
 
   const { delegationProcessClient } = getInteropBeClients();
 
-  await delegationProcessClient.delegation.addSignedDelegationContractMetadata(
+  await delegationProcessClient.addSignedDelegationContractMetadata(
     signedContract,
     {
       params: { delegationId },

@@ -185,7 +185,7 @@ describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(response);
+    expect(result).toStrictEqual(response);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: eservice.id },

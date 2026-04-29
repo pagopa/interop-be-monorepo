@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiEservice,
-  randomBoolean,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -18,8 +18,8 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
 
   const mockSeed: m2mGatewayApiV3.EServiceDelegationUpdateSeed = {
-    isClientAccessDelegable: randomBoolean(),
-    isConsumerDelegable: randomBoolean(),
+    isClientAccessDelegable: true,
+    isConsumerDelegable: true,
   };
 
   const mockM2MEService: m2mGatewayApiV3.EService =
@@ -32,7 +32,9 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
   ) =>
     request(api)
       .patch(`${appBasePath}/eservices/${eserviceId}/delegation`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -68,11 +70,11 @@ describe("PATCH /eservices/:eserviceId/delegation router test", () => {
 
   it.each([
     {},
-    { isClientAccessDelegable: randomBoolean() },
-    { isConsumerDelegable: randomBoolean() },
+    { isConsumerDelegable: true },
+    { isClientAccessDelegable: false },
     {
-      isClientAccessDelegable: randomBoolean(),
-      isConsumerDelegable: randomBoolean(),
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
     },
   ] satisfies m2mGatewayApiV3.EServiceDelegationUpdateSeed[])(
     "Should return 200 with partial seed (seed #%#)",

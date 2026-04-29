@@ -56,6 +56,7 @@ const ExportedDescriptor = Descriptor.pick({
   voucherLifespan: true,
   dailyCallsPerConsumer: true,
   dailyCallsTotal: true,
+  agreementApprovalPolicy: true,
   state: true,
   publishedAt: true,
   suspendedAt: true,
@@ -79,6 +80,9 @@ export const ExportedEService = EService.pick({
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
+    isSignalHubEnabled: z.boolean().optional(),
+    isConsumerDelegable: z.boolean().optional(),
+    isClientAccessDelegable: z.boolean().optional(),
   })
 );
 export type ExportedEService = z.infer<typeof ExportedEService>;

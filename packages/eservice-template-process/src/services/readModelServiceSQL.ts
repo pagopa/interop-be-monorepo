@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -19,9 +20,10 @@ import {
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
+  CompactOrganization,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -42,7 +44,18 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { match } from "ts-pattern";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
@@ -78,9 +91,9 @@ export function readModelServiceBuilderSQL({
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);
@@ -130,9 +143,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -284,40 +297,51 @@ export function readModelServiceBuilderSQL({
         queryResult[0]?.totalCount ?? 0
       );
     },
-    async checkNameConflictInstances(
+    async hasInstanceNameConflicts(
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> {
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const instanceProducerIds = (
-          await tx
-            .select({
-              producerId: eserviceInReadmodelCatalog.producerId,
-            })
-            .from(eserviceInReadmodelCatalog)
-            .where(
-              and(
-                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
-              )
-            )
-            .groupBy(eserviceInReadmodelCatalog.producerId)
-        ).map((d) => d.producerId);
+      /**
+       * Checks whether renaming a template to `newName` would cause a name conflict
+       * for any of its instances. For each instance, the expected new name is computed as
+       * `newName - instanceLabel` (or just `newName` if the instance has no label),
+       * then we verify that no other eservice by the same producer already uses that name.
+       */
 
-        return await tx
-          .select({
-            count: count(),
-          })
-          .from(eserviceInReadmodelCatalog)
-          .where(
-            and(
-              ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
-              inArray(
-                eserviceInReadmodelCatalog.producerId,
-                instanceProducerIds
-              )
+      const templateInstances = alias(
+        eserviceInReadmodelCatalog,
+        "template_instances"
+      );
+
+      const escapedNewName = escapeSqlLike(newName);
+
+      const queryResult = await readModelDB
+        .select({ count: count() })
+        .from(templateInstances)
+        .where(
+          and(
+            eq(templateInstances.templateId, eserviceTemplate.id),
+            exists(
+              readModelDB
+                .select()
+                .from(eserviceInReadmodelCatalog)
+                .where(
+                  and(
+                    eq(
+                      eserviceInReadmodelCatalog.producerId,
+                      templateInstances.producerId
+                    ),
+                    ne(eserviceInReadmodelCatalog.id, templateInstances.id),
+                    sql`${eserviceInReadmodelCatalog.name} ILIKE CASE
+                      WHEN ${templateInstances.instanceLabel} IS NOT NULL
+                        THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
+                      ELSE ${escapedNewName}
+                    END ESCAPE '\\'`
+                  )
+                )
             )
-          );
-      });
+          )
+        );
 
       return queryResult.length > 0 ? queryResult[0].count > 0 : false;
     },
@@ -325,7 +349,7 @@ export function readModelServiceBuilderSQL({
       name: string | undefined,
       limit: number,
       offset: number
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       const queryResult = await readModelDB
         .select(
           withTotalCount({
@@ -357,7 +381,10 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined
           )
         )
@@ -366,16 +393,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data: CompactOrganization[] = queryResult.map((d) => ({
+        id: unsafeBrandId(d.id),
+        name: d.name,
+      }));
 
-      const result = z
-        .array(eserviceTemplateApi.CompactOrganization)
-        .safeParse(data);
+      const result = z.array(CompactOrganization).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(

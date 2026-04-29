@@ -67,7 +67,7 @@ export async function handleTenantCertifiedAttributeAssigned(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Tenant ${tenant.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleTenantCertifiedAttributeAssigned - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -88,6 +88,7 @@ export async function handleTenantCertifiedAttributeAssigned(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
         attributeName: attribute.name,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

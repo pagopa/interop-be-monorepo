@@ -11,14 +11,12 @@ import {
   genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
-  tenantProcessClient: TenantProcessClient,
+  tenantProcessClient: Pick<tenantApi.TenantProcessClient, "selfcare">,
   productName: string,
   allowedOrigins: string[]
 ) {
@@ -61,11 +59,7 @@ export function selfcareOnboardingProcessorBuilder(
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
 
         const institution = eventPayload.institution;
-        const origin = match(institution.institutionType)
-          .with("SCP", () => `${institution.origin}-SCP`)
-          .with("PRV", () => `${institution.origin}-PRV`)
-          .with("PT", () => `${institution.origin}-PT`)
-          .otherwise(() => institution.origin);
+        const origin = institution.origin;
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
@@ -93,6 +87,7 @@ export function selfcareOnboardingProcessorBuilder(
             address: institution.digitalAddress,
           },
           subUnitType: institution.subUnitType || undefined,
+          selfcareInstitutionType: institution.institutionType,
         };
 
         const token = (await refreshableToken.get()).serialized;

@@ -43,7 +43,10 @@ describe("maintenanceTenantDelete", async () => {
     const writtenPayload: MaintenanceTenantDeletedV2 | undefined =
       protobufDecoder(MaintenanceTenantDeletedV2).parse(writtenEvent.data);
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(mockTenant));
+    expect(writtenPayload).toEqual({
+      tenantId: mockTenant.id,
+      tenant: toTenantV2(mockTenant),
+    });
   });
   it("Should throw tenantNotFound when the tenant doesn't exists", async () => {
     const mockTenant = getMockTenant();

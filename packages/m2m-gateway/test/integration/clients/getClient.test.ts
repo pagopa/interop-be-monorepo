@@ -12,7 +12,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { unexpectedClientKind } from "../../../src/model/errors.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getClient", () => {
@@ -54,7 +54,7 @@ describe("getClient", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientResponse);
+    expect(result).toStrictEqual(m2mClientResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockPartialClientFromProcess.data.id },
@@ -77,14 +77,14 @@ describe("getClient", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mFullClientResponse);
+    expect(result).toStrictEqual(m2mFullClientResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockFullClientFromProcess.data.id },
     });
   });
 
-  it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
+  it("Should throw clientNotFound in case the returned client is not an E-Service Client", async () => {
     const mockResponse = {
       ...mockPartialClientFromProcess,
       data: {
@@ -100,7 +100,7 @@ describe("getClient", () => {
         unsafeBrandId(mockPartialClientFromProcess.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(unexpectedClientKind(mockResponse.data));
+    ).rejects.toThrowError(clientNotFound(mockResponse.data));
 
     const mockResponsFull = {
       ...mockFullClientFromProcess,
@@ -117,6 +117,6 @@ describe("getClient", () => {
         unsafeBrandId(mockFullClientFromProcess.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(unexpectedClientKind(mockResponsFull.data));
+    ).rejects.toThrowError(clientNotFound(mockResponsFull.data));
   });
 });

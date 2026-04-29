@@ -91,7 +91,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,

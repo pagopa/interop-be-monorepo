@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
   getMockedApiEServiceDescriptorPurposeTemplate,
@@ -12,7 +16,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("getPurposeTemplateEServiceDescriptors", () => {
@@ -93,7 +96,7 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeTemplateEServicesResponse);
+    expect(result).toStrictEqual(m2mPurposeTemplateEServicesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient

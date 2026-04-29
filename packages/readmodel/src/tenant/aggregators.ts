@@ -112,6 +112,10 @@ export const aggregateTenant = ({
     ...(tenantSQL.subUnitType
       ? { subUnitType: TenantUnitType.parse(tenantSQL.subUnitType) }
       : {}),
+    ...(tenantSQL.selfcareInstitutionType
+      ? { selfcareInstitutionType: tenantSQL.selfcareInstitutionType }
+      : {}),
+
     attributes,
     externalId: {
       origin: tenantSQL.externalIdOrigin,
@@ -193,7 +197,7 @@ const createTenantSQLPropertyMap = <
     | TenantVerifiedAttributeSQL
     | TenantVerifiedAttributeVerifierSQL
     | TenantVerifiedAttributeRevokerSQL
-    | TenantFeatureSQL
+    | TenantFeatureSQL,
 >(
   items: T[]
 ): Map<TenantId, T[]> =>
@@ -210,7 +214,7 @@ const createTenantSQLPropertyMap = <
 const createTenantVerifiedAttributeSQLPropertyMap = <
   T extends
     | TenantVerifiedAttributeVerifierSQL
-    | TenantVerifiedAttributeRevokerSQL
+    | TenantVerifiedAttributeRevokerSQL,
 >(
   items: T[]
 ): Map<AttributeId, T[]> =>

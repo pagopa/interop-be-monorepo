@@ -28,7 +28,7 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
-import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
+import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
@@ -91,6 +91,7 @@ describe("clone descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      personalData: true,
     };
     await addOneEService(eservice);
 
@@ -193,14 +194,22 @@ describe("clone descriptor", () => {
     const expectedEService: EService = {
       ...eservice,
       id: unsafeBrandId(writtenPayload.eservice!.id),
-      name: `${eservice.name} - clone - ${formatDateddMMyyyyHHmmss(
+      name: `${eservice.name} - clone - ${dateAtRomeZone(
         cloneTimestamp
-      )}`,
+      )} ${timeAtRomeZone(cloneTimestamp)}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(newEService));
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(newEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -235,6 +244,47 @@ describe("clone descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
+  });
+  it("should truncate cloned eService name to 60 characters when original name plus suffix exceeds limit", async () => {
+    vi.spyOn(fileManager, "copy");
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      name: "Name exceeding the maximum length when the suffix is added!",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const cloneTimestamp = new Date();
+    const newEService = await catalogService.cloneDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(newEService.id);
+    expect(writtenEvent.type).toBe("EServiceCloned");
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceClonedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedName = `Name exceeding the maximum ... - clone - ${dateAtRomeZone(
+      cloneTimestamp
+    )} ${timeAtRomeZone(cloneTimestamp)}`;
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: expect.objectContaining({ name: expectedName }),
+    });
+    expect(expectedName.length).toBe(60);
+    expect(newEService.name).toEqual(expectedName);
   });
   it("should fail if one of the file copy fails", async () => {
     const descriptor: Descriptor = {
@@ -275,7 +325,9 @@ describe("clone descriptor", () => {
     const cloneTimestamp = new Date();
     const conflictEServiceName = `${
       existentEService.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    } - clone - ${dateAtRomeZone(cloneTimestamp)} ${timeAtRomeZone(
+      cloneTimestamp
+    )}`;
 
     const newEService: EService = {
       ...mockEService,
@@ -295,9 +347,9 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
-        `${existentEService.name} - clone - ${formatDateddMMyyyyHHmmss(
+        `${existentEService.name} - clone - ${dateAtRomeZone(
           cloneTimestamp
-        )}`,
+        )} ${timeAtRomeZone(cloneTimestamp)}`,
         existentEService.producerId
       )
     );
@@ -318,9 +370,9 @@ describe("clone descriptor", () => {
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${dateAtRomeZone(
       cloneTimestamp
-    )}`;
+    )} ${timeAtRomeZone(cloneTimestamp)}`;
 
     const eservice2: EService = {
       ...mockEService,
@@ -338,9 +390,9 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
-        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+        `${eservice1.name} - clone - ${dateAtRomeZone(
           cloneTimestamp
-        )}`,
+        )} ${timeAtRomeZone(cloneTimestamp)}`,
         eservice1.producerId
       )
     );
@@ -361,9 +413,9 @@ describe("clone descriptor", () => {
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${
-      eservice1.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    const conflictEServiceName = `${eservice1.name} - clone - ${dateAtRomeZone(
+      cloneTimestamp
+    )} ${timeAtRomeZone(cloneTimestamp)}`;
 
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -379,9 +431,9 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(
       eserviceTemplateNameConflict(
-        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+        `${eservice1.name} - clone - ${dateAtRomeZone(
           cloneTimestamp
-        )}`
+        )} ${timeAtRomeZone(cloneTimestamp)}`
       )
     );
   });
@@ -401,9 +453,9 @@ describe("clone descriptor", () => {
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${dateAtRomeZone(
       cloneTimestamp
-    )}`;
+    )} ${timeAtRomeZone(cloneTimestamp)}`;
 
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -419,9 +471,9 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(
       eserviceTemplateNameConflict(
-        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+        `${eservice1.name} - clone - ${dateAtRomeZone(
           cloneTimestamp
-        )}`
+        )} ${timeAtRomeZone(cloneTimestamp)}`
       )
     );
   });

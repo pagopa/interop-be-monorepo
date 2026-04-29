@@ -105,9 +105,10 @@ describe("update draft version", () => {
       messageType: EServiceTemplateDraftVersionUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {
@@ -277,9 +278,10 @@ describe("update draft version", () => {
       messageType: EServiceTemplateDraftVersionUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEserviceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEserviceTemplate),
+    });
   });
 
   it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {

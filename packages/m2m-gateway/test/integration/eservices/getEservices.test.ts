@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { getMockedApiEservice } from "pagopa-interop-commons-test";
 import {
@@ -8,8 +12,10 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("getEservices", () => {
   const mockParams: m2mGatewayApi.GetEServicesQueryParams = {
@@ -47,31 +53,11 @@ describe("getEservices", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const eserviceResponse1: m2mGatewayApi.EService = {
-      id: mockApiEservice1.id,
-      producerId: mockApiEservice1.producerId,
-      name: mockApiEservice1.name,
-      description: mockApiEservice1.description,
-      technology: mockApiEservice1.technology,
-      mode: mockApiEservice1.mode,
-      isSignalHubEnabled: mockApiEservice1.isSignalHubEnabled,
-      isConsumerDelegable: mockApiEservice1.isConsumerDelegable,
-      isClientAccessDelegable: mockApiEservice1.isClientAccessDelegable,
-      templateId: mockApiEservice1.templateId,
-    };
+    const eserviceResponse1: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockApiEservice1);
 
-    const eserviceResponse2: m2mGatewayApi.EService = {
-      id: mockApiEservice2.id,
-      producerId: mockApiEservice2.producerId,
-      name: mockApiEservice2.name,
-      description: mockApiEservice2.description,
-      technology: mockApiEservice2.technology,
-      mode: mockApiEservice2.mode,
-      isSignalHubEnabled: mockApiEservice2.isSignalHubEnabled,
-      isConsumerDelegable: mockApiEservice2.isConsumerDelegable,
-      isClientAccessDelegable: mockApiEservice2.isClientAccessDelegable,
-      templateId: mockApiEservice2.templateId,
-    };
+    const eserviceResponse2: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockApiEservice2);
 
     const eservicesResponse: m2mGatewayApi.EServices = {
       pagination: {
@@ -87,7 +73,7 @@ describe("getEservices", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(eservicesResponse);
+    expect(result).toStrictEqual(eservicesResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServices,
       queries: {

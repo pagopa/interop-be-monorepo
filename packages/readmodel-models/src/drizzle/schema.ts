@@ -407,6 +407,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isClientAccessDelegable: boolean("is_client_access_delegable"),
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
+    instanceLabel: varchar("instance_label"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -1120,6 +1121,7 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
     selfcareId: varchar("selfcare_id"),
     externalIdOrigin: varchar("external_id_origin").notNull(),
     externalIdValue: varchar("external_id_value").notNull(),
+    selfcareInstitutionType: varchar("selfcare_institution_type"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",
@@ -1527,6 +1529,7 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       descriptorId: uuid("descriptor_id").notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
     },
     (table) => [
       foreignKey({

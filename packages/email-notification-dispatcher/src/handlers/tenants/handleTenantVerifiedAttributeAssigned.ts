@@ -63,7 +63,7 @@ export async function handleTenantVerifiedAttributeAssigned(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${tenant.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleTenantVerifiedAttributeAssigned - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -103,6 +103,7 @@ export async function handleTenantVerifiedAttributeAssigned(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         verifierName: verifierTenant.name,
         attributeName: attribute.name,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

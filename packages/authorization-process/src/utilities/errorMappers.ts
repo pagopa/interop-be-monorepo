@@ -22,12 +22,16 @@ export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
 export const createConsumerClientErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createApiClientErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -90,8 +94,9 @@ export const addClientUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientNotFound", "tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("clientUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingSelfcareId", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientAdminErrorMapper = (
@@ -205,7 +210,9 @@ export const getClientKeyWithClientErrorMapper = (
 export const createProducerKeychainErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code)
+    .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainsErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -246,6 +253,11 @@ export const addProducerKeychainUserErrorMapper = (
     )
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingSelfcareId",
+      "tenantNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeProducerKeychainUserErrorMapper = (
@@ -255,9 +267,9 @@ export const removeProducerKeychainUserErrorMapper = (
     .with(
       "producerKeychainNotFound",
       "producerKeychainUserIdNotFound",
+      "tenantNotAllowedOnProducerKeychain",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteProducerKeychainKeyByIdErrorMapper = (

@@ -31,7 +31,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}/${eserviceTemplateVersionId}`
+    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateVersionSuspended`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -58,11 +58,10 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}/${eserviceTemplateVersionId}`
+      `No users with notifications enabled for handleEserviceTemplateStatusChangedToInstantiator - entityId: ${eserviceTemplate.id}, eventType: EServiceTemplateVersionSuspended`
     );
     return [];
   }
-
   const creator = await retrieveTenant(
     eserviceTemplate.creatorId,
     readModelService
@@ -83,8 +82,8 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateStatusChangedToInstantiator(
-          creator.name,
-          eserviceTemplate.name
+          eserviceTemplate.name,
+          creator.name
         ),
         notificationType: "eserviceTemplateStatusChangedToInstantiator",
         entityId,

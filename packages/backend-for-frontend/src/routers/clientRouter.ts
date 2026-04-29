@@ -10,7 +10,10 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { ClientService } from "../services/clientService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getClientUsersErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getClientErrorMapper,
+  getClientUsersErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -60,7 +63,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving client ${req.params.clientId}`
         );
@@ -112,7 +115,6 @@ const clientRouter = (
         const key = await clientService.getClientKeyById(
           req.params.clientId,
           req.params.keyId,
-          ctx.authData.selfcareId,
           ctx
         );
 
@@ -243,7 +245,6 @@ const clientRouter = (
       try {
         const users = await clientService.getClientUsers(
           req.params.clientId,
-          ctx.authData.selfcareId,
           ctx
         );
 

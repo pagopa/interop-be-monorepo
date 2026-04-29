@@ -35,7 +35,6 @@ import {
   EServiceSQL,
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
-  EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
@@ -289,6 +288,9 @@ export const aggregateEservice = ({
           personalData: eserviceSQL.personalData,
         }
       : {}),
+    ...(eserviceSQL.instanceLabel !== null
+      ? { instanceLabel: eserviceSQL.instanceLabel }
+      : {}),
   };
   return {
     data: eservice,
@@ -361,7 +363,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorTemplateVersionRefSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
@@ -434,14 +436,13 @@ export const aggregateRiskAnalysis = (
 });
 
 export const attributesSQLtoAttributes = (
-  attributesSQL:
-    | EServiceDescriptorAttributeSQL[]
-    | EServiceTemplateVersionAttributeSQL[]
+  attributesSQL: EServiceDescriptorAttributeSQL[]
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
     const currentAttribute: EServiceAttribute = {
       id: unsafeBrandId(current.attributeId),
+      dailyCallsPerConsumer: current.dailyCallsPerConsumer ?? undefined,
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

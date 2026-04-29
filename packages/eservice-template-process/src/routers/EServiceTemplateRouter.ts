@@ -7,7 +7,6 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
-  assertFeatureFlagEnabled,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -46,11 +45,11 @@ import {
   deleteEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
+  compactOrganizationToApi,
   eserviceTemplateToApiEServiceTemplate,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -845,8 +844,6 @@ const eserviceTemplatesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
-
         const updatedEServiceTemplate =
           await eserviceTemplateService.updateEServiceTemplatePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.templateId),
@@ -893,7 +890,7 @@ const eserviceTemplatesRouter = (
 
         return res.status(200).send(
           eserviceTemplateApi.CompactOrganizations.parse({
-            results,
+            results: results.map(compactOrganizationToApi),
             totalCount,
           })
         );

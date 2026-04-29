@@ -74,7 +74,7 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for instantiator tenants. EService template ${eserviceTemplate.id}, eservice template version ${eserviceTemplateVersionId}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEServiceTemplateVersionSuspendedToInstantiator - entityId: ${eserviceTemplate.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -105,6 +105,7 @@ export async function handleEServiceTemplateVersionSuspendedToInstantiator(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             creatorName: creator.name,
             templateName: eserviceTemplate.name,
+            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   is_client_access_delegable BOOLEAN,
   template_id UUID,
   personal_data BOOLEAN,
+  instance_label VARCHAR,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -99,6 +100,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
+  daily_calls_per_consumer INTEGER,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

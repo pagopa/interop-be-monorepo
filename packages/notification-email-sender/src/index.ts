@@ -152,7 +152,9 @@ export async function handleCatalogMessage(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

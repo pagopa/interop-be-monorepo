@@ -1,5 +1,9 @@
 /* eslint-disable max-params */
-import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import {
+  Logger,
+  RefreshableInteropToken,
+  waitForReadModelMetadataVersion,
+} from "pagopa-interop-commons";
 import { CorrelationId, TenantFeatureCertifier } from "pagopa-interop-models";
 import { parse } from "csv/sync";
 import {
@@ -14,12 +18,18 @@ import { IvassReadModelTenant } from "../model/tenant.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 import { ReadModelQueriesSQL } from "./readModelQueriesServiceSQL.js";
 
+type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
 export async function importAttributes(
   csvDownloader: () => Promise<string>,
   readModel: ReadModelQueriesSQL,
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
+  pollingConfig: PollingConfig,
   ivassTenantId: string,
   logger: Logger,
   correlationId: CorrelationId
@@ -40,6 +50,7 @@ export async function importAttributes(
     attributes,
     fileContent,
     recordsBatchSize,
+    pollingConfig,
     logger,
     correlationId
   );
@@ -50,6 +61,7 @@ export async function importAttributes(
     refreshableToken,
     allOrgsInFile,
     attributes,
+    pollingConfig,
     logger,
     correlationId
   );
@@ -64,6 +76,7 @@ async function assignAttributes(
   attributes: IvassAttributes,
   fileContent: string,
   batchSize: number,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<string[]> {
@@ -104,6 +117,8 @@ async function assignAttributes(
             refreshableToken,
             tenant,
             attributes.ivassInsurances,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -134,6 +149,7 @@ async function unassignAttributes(
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
   attributes: IvassAttributes,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -151,6 +167,8 @@ async function unassignAttributes(
           refreshableToken,
           tenant,
           attributes.ivassInsurances,
+          readModel,
+          pollingConfig,
           logger,
           correlationId
         );
@@ -164,9 +182,8 @@ async function getAttributesIdentifiers(
   readModel: ReadModelQueriesSQL,
   ivassTenantId: string
 ): Promise<IvassAttributes> {
-  const ivassTenant: IvassReadModelTenant = await readModel.getTenantById(
-    ivassTenantId
-  );
+  const ivassTenant: IvassReadModelTenant =
+    await readModel.getTenantById(ivassTenantId);
   const certifier = ivassTenant.features.find(
     (f) => f.type === "PersistentCertifier"
   );
@@ -200,6 +217,8 @@ async function assignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: IvassReadModelTenant,
   attribute: AttributeIdentifiers,
+  readModel: ReadModelQueriesSQL,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -211,13 +230,26 @@ async function assignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    await tenantProcess.internalAssignCertifiedAttribute(
+    const metadata = await tenantProcess.internalAssignCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
       attribute.externalId.value,
       context,
       logger
+    );
+
+    if (!metadata) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
+      );
+      return;
+    }
+
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
+      metadata.version,
+      pollingConfig
     );
   }
 }
@@ -227,6 +259,8 @@ async function unassignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: IvassReadModelTenant,
   attribute: AttributeIdentifiers,
+  readModel: ReadModelQueriesSQL,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -238,13 +272,26 @@ async function unassignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    await tenantProcess.internalRevokeCertifiedAttribute(
+    const metadata = await tenantProcess.internalRevokeCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
       attribute.externalId.value,
       context,
       logger
+    );
+
+    if (!metadata) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
+      );
+      return;
+    }
+
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
+      metadata.version,
+      pollingConfig
     );
   }
 }
@@ -288,7 +335,7 @@ function getBatch(
         return null;
       }
     })
-    .map((r) => {
+    .map((r): CsvRow | null => {
       if (!r) {
         return null;
       } else {
@@ -298,7 +345,6 @@ function getBatch(
           DATA_CANCELLAZIONE_ALBO_ELENCO: r.DATA_CANCELLAZIONE_ALBO_ELENCO,
           CODICE_FISCALE: r.CODICE_FISCALE,
         };
-
         return row;
       }
     })

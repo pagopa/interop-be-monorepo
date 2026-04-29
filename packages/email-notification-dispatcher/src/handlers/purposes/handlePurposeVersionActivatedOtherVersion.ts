@@ -40,7 +40,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
   // Only send notification if there are multiple versions (version count > 1)
   if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has only one version, skipping purposeVersionActivatedOtherVersion notification`
+      `Skipping email notification for handlePurposeVersionActivatedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has only one version`
     );
     return [];
   }
@@ -69,7 +69,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionActivatedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -89,6 +89,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
         dailyCalls: dailyCallsPerConsumer,
         isAccepted: true,
         ctaLabel: `Visualizza finalità`,
+        selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

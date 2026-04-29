@@ -15,13 +15,14 @@ import {
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
-  formatDateddMMyyyyHHmmss,
+  dateAtRomeZone,
+  timeAtRomeZone,
   assertFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
+  MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -90,7 +91,6 @@ import {
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
-  invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -103,6 +103,7 @@ import {
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   missingPersonalDataFlag,
   eServiceTemplateWithoutPersonalDataFlag,
+  certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -149,6 +150,8 @@ import {
   toCreateEventEServiceSignalhubFlagDisabled,
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
+  toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -180,8 +183,17 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
+  assertValidDelegationFlags,
+  assertDailyCallsForCertifiedAttributesOnly,
+  assertAttributeDailyCallsConsistentWithTotal,
+  assertTemplateInstanceAttributeStructureUnchanged,
+  assertIsNotDraftEservice,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -284,9 +296,8 @@ const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<EServiceTemplate> => {
-  const eserviceTemplate = await readModelService.getEServiceTemplateById(
-    eserviceTemplateId
-  );
+  const eserviceTemplate =
+    await readModelService.getEServiceTemplateById(eserviceTemplateId);
   if (eserviceTemplate === undefined) {
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
@@ -491,6 +502,7 @@ async function innerCreateEService(
   {
     seed,
     template,
+    instanceLabel,
   }: {
     seed: catalogApi.EServiceSeed;
     template:
@@ -501,6 +513,7 @@ async function innerCreateEService(
           riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
+    instanceLabel?: string | undefined;
   },
   readModelService: ReadModelServiceSQL,
   {
@@ -521,9 +534,15 @@ async function innerCreateEService(
     throw originNotCompliant(origin);
   }
 
+  const eserviceId = generateId<EServiceId>();
+  assertValidDelegationFlags(
+    seed.isConsumerDelegable,
+    seed.isClientAccessDelegable
+  );
+
   const creationDate = new Date();
   const newEService: EService = {
-    id: generateId(),
+    id: eserviceId,
     producerId: authData.organizationId,
     name: seed.name,
     description: seed.description,
@@ -541,9 +560,8 @@ async function innerCreateEService(
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
     templateId: template?.id,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: seed.personalData }
-      : {}),
+    personalData: seed.personalData,
+    instanceLabel: instanceLabel,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -973,8 +991,34 @@ export function catalogServiceBuilder(
       assertEServiceIsTemplateInstance(eservice.data);
       assertIsDraftEservice(eservice.data);
 
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel: eserviceSeed.instanceLabel,
+        });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      assertValidDelegationFlags(
+        eserviceSeed.isConsumerDelegable,
+        eserviceSeed.isClientAccessDelegable
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel: parsedInstanceLabel,
         isSignalHubEnabled: eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
@@ -1321,7 +1365,12 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        eserviceDescriptorSeed.dailyCallsTotal
+      );
 
       const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
@@ -1550,12 +1599,32 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+      }
+
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedAttributes,
+        seed.dailyCallsTotal
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         audience: seed.audience,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         state: descriptorState.draft,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
         agreementApprovalPolicy:
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
@@ -1626,10 +1695,7 @@ export function catalogServiceBuilder(
         throw audienceCannotBeEmpty(descriptor.id);
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -1861,9 +1927,20 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const clonedEServiceName = `${
-        eservice.data.name
-      } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
+      const currentDate = new Date();
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
+      const dots = "...";
+      const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
+      const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
+      const clonedEServiceName =
+        eservice.data.name.length + suffix.length <= maxNameLength
+          ? `${eservice.data.name}${suffix}`
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -1953,6 +2030,7 @@ export function catalogServiceBuilder(
             archivedAt: undefined,
           },
         ],
+        personalData: eservice.data.personalData,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -2027,12 +2105,24 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         voucherLifespan: seed.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
+        attributes: updatedAttributes,
       };
+
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -2080,11 +2170,37 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      const updatedEService = replaceDescriptor(eservice.data, {
+      if (seed.attributes) {
+        assertTemplateInstanceAttributeStructureUnchanged(
+          eserviceId,
+          eservice.data.templateId,
+          descriptor.attributes,
+          seed.attributes
+        );
+      }
+
+      const updatedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
+
+      assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+
+      const updatedDescriptor: Descriptor = {
         ...descriptor,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
-      });
+        attributes: updatedAttributes,
+      };
+
+      assertAttributeDailyCallsConsistentWithTotal(
+        updatedDescriptor.attributes,
+        seed.dailyCallsTotal
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
 
       const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,
@@ -2438,8 +2554,17 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      if (!isConsumerDelegable && isClientAccessDelegable) {
-        throw invalidEServiceFlags(eserviceId);
+      assertValidDelegationFlags(isConsumerDelegable, isClientAccessDelegable);
+
+      const oldIsConsumerDelegable = eservice.data.isConsumerDelegable || false;
+      const oldIsClientAccessDelegable =
+        eservice.data.isClientAccessDelegable || false;
+
+      if (
+        oldIsConsumerDelegable === isConsumerDelegable &&
+        oldIsClientAccessDelegable === isClientAccessDelegable
+      ) {
+        return eservice;
       }
 
       const updatedEservice: EService = {
@@ -2448,126 +2573,52 @@ export function catalogServiceBuilder(
         isClientAccessDelegable,
       };
 
-      const events = match({
-        isConsumerDelegable,
-        oldIsConsumerDelegable: eservice.data.isConsumerDelegable || false,
-        isClientAccessDelegable,
-        oldIsClientAccessDelegable:
-          eservice.data.isClientAccessDelegable || false,
-      })
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true, // should never happen
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: false,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version + 1,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsConsumerDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: false,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: true,
-            oldIsConsumerDelegable: true,
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: true,
-          },
-          () => [
-            toCreateEventEServiceIsClientAccessDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            ),
-          ]
-        )
-        .with(
-          {
-            isConsumerDelegable: false,
-            oldIsConsumerDelegable: false,
-          },
-          {
-            isClientAccessDelegable: true,
-            oldIsClientAccessDelegable: true,
-          },
-          {
-            isClientAccessDelegable: false,
-            oldIsClientAccessDelegable: false,
-          },
-          () => undefined
-        )
-        .exhaustive();
+      const consumerDelegableEvent =
+        oldIsConsumerDelegable === isConsumerDelegable
+          ? undefined
+          : isConsumerDelegable
+            ? toCreateEventEServiceIsConsumerDelegableEnabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsConsumerDelegableDisabled(
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              );
 
-      if (events) {
-        const createdEvents = await repository.createEvents(events);
+      const clientAccessEventVersion =
+        eservice.metadata.version + (consumerDelegableEvent ? 1 : 0);
 
-        return {
-          data: updatedEservice,
-          metadata: {
-            version:
-              createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
-          },
-        };
-      }
-      return eservice;
+      const clientAccessDelegableEvent =
+        oldIsClientAccessDelegable === isClientAccessDelegable
+          ? undefined
+          : isClientAccessDelegable
+            ? toCreateEventEServiceIsClientAccessDelegableEnabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              )
+            : toCreateEventEServiceIsClientAccessDelegableDisabled(
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              );
+
+      const events = [
+        consumerDelegableEvent,
+        clientAccessDelegableEvent,
+      ].filter(
+        (event): event is CreateEvent<EServiceEvent> => event !== undefined
+      );
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedEservice.id) ?? 0,
+        },
+      };
     },
     async updateEServiceName(
       eserviceId: EServiceId,
@@ -2735,10 +2786,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eservice.data.personalData === undefined
-      ) {
+      if (eservice.data.personalData === undefined) {
         throw missingPersonalDataFlag(eserviceId, descriptorId);
       }
 
@@ -2861,13 +2909,30 @@ export function catalogServiceBuilder(
         seed
       );
 
-      if (newAttributes.length === 0) {
+      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertAttributeDailyCallsConsistentWithTotal(
+        parsedAttributes,
+        descriptor.dailyCallsTotal
+      );
+
+      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -2892,26 +2957,31 @@ export function catalogServiceBuilder(
     },
     async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
-      newName: string,
+      updatedTemplateName: string,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Internal updating name of EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (newName === eservice.data.name) {
+      const { instanceName: updatedInstanceName } = buildInstanceName({
+        templateName: updatedTemplateName,
+        instanceLabel: eservice.data.instanceLabel,
+      });
+
+      if (updatedInstanceName === eservice.data.name) {
         return;
       }
 
       await assertEServiceNameAvailableForProducer(
-        newName,
+        updatedInstanceName,
         eservice.data.producerId,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: newName,
+        name: updatedInstanceName,
       };
 
       await repository.createEvent(
@@ -3031,9 +3101,19 @@ export function catalogServiceBuilder(
         return;
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+
+      const updatedAttributes = retainCurrentCertifiedDailyCalls(
+        parsedAttributes,
+        descriptor.attributes
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: updatedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -3262,8 +3342,10 @@ export function catalogServiceBuilder(
         description: lastVersion.description,
         voucherLifespan: lastVersion.voucherLifespan,
         audience: [],
-        dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
-        dailyCallsTotal: lastVersion.dailyCallsTotal ?? 1,
+        dailyCallsPerConsumer:
+          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
+        dailyCallsTotal:
+          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
         agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
         attributes: lastVersion.attributes,
         docs,
@@ -3293,9 +3375,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
 
-      const template = await readModelService.getEServiceTemplateById(
-        templateId
-      );
+      const template =
+        await readModelService.getEServiceTemplateById(templateId);
 
       if (!template) {
         throw eServiceTemplateNotFound(templateId);
@@ -3320,16 +3401,18 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
+      const { parsedInstanceLabel, instanceName } = buildInstanceName({
+        templateName: template.name,
+        instanceLabel: seed.instanceLabel,
+      });
+
       await assertEServiceNameAvailableForProducer(
-        template.name,
+        instanceName,
         ctx.authData.organizationId,
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        template.personalData === undefined
-      ) {
+      if (template.personalData === undefined) {
         throw eServiceTemplateWithoutPersonalDataFlag(
           template.id,
           publishedVersion.id
@@ -3339,7 +3422,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: template.name,
+            name: instanceName,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -3348,8 +3431,10 @@ export function catalogServiceBuilder(
               audience: [],
               voucherLifespan: publishedVersion.voucherLifespan,
               dailyCallsPerConsumer:
-                publishedVersion.dailyCallsPerConsumer ?? 1,
-              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 1,
+                publishedVersion.dailyCallsPerConsumer ??
+                DEFAULT_DAILY_CALLS_PER_CONSUMER,
+              dailyCallsTotal:
+                publishedVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
               agreementApprovalPolicy:
                 agreementApprovalPolicyToApiAgreementApprovalPolicy(
                   publishedVersion.agreementApprovalPolicy
@@ -3367,6 +3452,7 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
             riskAnalysis,
           },
+          instanceLabel: parsedInstanceLabel,
         },
         readModelService,
         ctx
@@ -3611,8 +3697,12 @@ export function catalogServiceBuilder(
     async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
       personalData: boolean,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Setting personalData flag for E-Service ${eserviceId} to ${personalData}`
       );
@@ -3646,9 +3736,99 @@ export function catalogServiceBuilder(
           correlationId
         );
 
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
+    },
+    async updateEServiceInstanceLabelAfterPublication(
+      eserviceId: EServiceId,
+      instanceLabel: string | undefined,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateId,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
+        buildInstanceName({
+          templateName: template.name,
+          instanceLabel,
+        });
+
+      if (updatedInstanceName !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          updatedInstanceName,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        name: updatedInstanceName,
+        instanceLabel: parsedInstanceLabel,
+      };
+
+      const event = toCreateEventEServiceInstanceLabelUpdated(
+        eservice.metadata.version,
+        updatedEservice,
+        correlationId
+      );
+
       await repository.createEvent(event);
 
       return updatedEservice;
+    },
+    async maintenanceResetEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      currentVersion: number,
+      reason: string,
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Maintenance reset personalData flag for E-Service ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertIsNotDraftEservice(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        personalData: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceEServicePersonalDataFlagReset(
+          currentVersion,
+          updatedEservice,
+          reason,
+          correlationId
+        )
+      );
     },
   };
 }
@@ -3834,6 +4014,112 @@ const processDescriptorPublication = async (
   );
 };
 
+/**
+ * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Used with template instances. This ensures that when a template updates and
+ * propagates its attributes to its instances, any custom threshold configured
+ * on the instance is preserved instead of being cleared.
+ */
+function retainCurrentCertifiedDailyCalls(
+  incomingAttributes: EserviceAttributes,
+  currentAttributes: EserviceAttributes
+): EserviceAttributes {
+  function isMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[]
+  ): boolean {
+    return currentGroup.every((currentAttribute) =>
+      incomingGroup.some(
+        (incomingAttribute) => incomingAttribute.id === currentAttribute.id
+      )
+    );
+  }
+
+  function findMatchingCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroups: EServiceAttribute[][],
+    usedCurrentGroupIndexes: Set<number>
+  ): EServiceAttribute[] | undefined {
+    for (const [groupIndex, currentGroup] of currentGroups.entries()) {
+      if (usedCurrentGroupIndexes.has(groupIndex)) {
+        continue;
+      }
+
+      if (!isMatchingCertifiedGroup(incomingGroup, currentGroup)) {
+        continue;
+      }
+
+      usedCurrentGroupIndexes.add(groupIndex);
+      return currentGroup;
+    }
+
+    return undefined;
+  }
+
+  function findCurrentCertifiedAttribute(
+    incomingAttribute: EServiceAttribute,
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute | undefined {
+    return currentGroup?.find(
+      (currentAttribute) => currentAttribute.id === incomingAttribute.id
+    );
+  }
+
+  function retainCurrentDailyCallsPerConsumer(
+    incomingAttribute: EServiceAttribute,
+    currentAttribute: EServiceAttribute | undefined
+  ): EServiceAttribute {
+    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    if (currentDailyCalls === undefined) {
+      return incomingAttribute;
+    }
+
+    return {
+      ...incomingAttribute,
+      dailyCallsPerConsumer: currentDailyCalls,
+    };
+  }
+
+  function retainCurrentDailyCallsInCertifiedGroup(
+    incomingGroup: EServiceAttribute[],
+    currentGroup: EServiceAttribute[] | undefined
+  ): EServiceAttribute[] {
+    return incomingGroup.map((incomingAttribute) => {
+      const currentAttribute = findCurrentCertifiedAttribute(
+        incomingAttribute,
+        currentGroup
+      );
+
+      return retainCurrentDailyCallsPerConsumer(
+        incomingAttribute,
+        currentAttribute
+      );
+    });
+  }
+
+  const usedCurrentGroupIndexes = new Set<number>();
+  const updatedCertifiedAttributes = incomingAttributes.certified.map(
+    (incomingGroup) => {
+      const currentGroup = findMatchingCertifiedGroup(
+        incomingGroup,
+        currentAttributes.certified,
+        usedCurrentGroupIndexes
+      );
+
+      return retainCurrentDailyCallsInCertifiedGroup(
+        incomingGroup,
+        currentGroup
+      );
+    }
+  );
+
+  return {
+    certified: updatedCertifiedAttributes,
+    declared: incomingAttributes.declared,
+    verified: incomingAttributes.verified,
+  };
+}
+
 function updateEServiceDescriptorAttributeInAdd(
   eserviceId: EServiceId,
   descriptor: Descriptor,
@@ -3904,6 +4190,37 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
+function hasCertifiedAttributeDailyCallsChanged(
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): boolean {
+  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
+    const seedAttrGroup = seed.certified.find((seedGroup) =>
+      descriptorAttributesGroup.every((descriptorAttribute) =>
+        seedGroup.some(
+          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
+        )
+      )
+    );
+
+    if (seedAttrGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
+    }
+
+    return descriptorAttributesGroup.some((descriptorAttribute) => {
+      const seedAttribute = seedAttrGroup.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+
+      return (
+        seedAttribute?.dailyCallsPerConsumer !==
+        descriptorAttribute.dailyCallsPerConsumer
+      );
+    });
+  });
+}
+
 function evaluateTemplateVersionRef(
   descriptor: Descriptor,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
@@ -3965,7 +4282,7 @@ async function extractEServiceRiskAnalysisFromTemplate(
           createdAt: r.createdAt,
           name: r.name,
           riskAnalysisForm: r.riskAnalysisForm,
-        } satisfies RiskAnalysis)
+        }) satisfies RiskAnalysis
     );
 
   if (riskAnalysis.length === 0) {
@@ -4087,6 +4404,11 @@ async function updateDraftEService(
     )
     .exhaustive();
 
+  assertValidDelegationFlags(
+    updatedIsConsumerDelegable,
+    updatedIsClientAccessDelegable
+  );
+
   const updatedPersonalData = match(typeAndSeed)
     .with({ type: "put" }, ({ seed }) => seed.personalData)
     .with(
@@ -4118,9 +4440,7 @@ async function updateDraftEService(
       .with(false, () => false)
       .with(true, () => updatedIsClientAccessDelegable)
       .exhaustive(),
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
@@ -4193,6 +4513,12 @@ async function updateDraftDescriptor(
       )
     : descriptor.attributes;
 
+  assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertAttributeDailyCallsConsistentWithTotal(
+    updatedAttributes,
+    updatedDailyCallsTotal
+  );
+
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
         agreementApprovalPolicy
@@ -4226,5 +4552,33 @@ async function updateDraftDescriptor(
     metadata: { version: event.newVersion },
   };
 }
+
+/**
+ * Builds the instance name from the template name and optional instance label.
+ * - templateName: maxLength 45
+ * - separator " - ": 3 characters
+ * - instanceLabel: maxLength 12
+ * - eservice name (result): maxLength 60
+ *
+ * Also, empty spaces are removed, and an empty string is treated as undefined
+ */
+const buildInstanceName = ({
+  templateName,
+  instanceLabel,
+}: {
+  templateName: string;
+  instanceLabel: string | undefined;
+}): { parsedInstanceLabel?: string; instanceName: string } => {
+  const trimmedInstanceLabel = instanceLabel?.trim();
+  const parsedInstanceLabel =
+    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
+      ? trimmedInstanceLabel
+      : undefined;
+
+  const instanceName = parsedInstanceLabel
+    ? `${templateName} - ${parsedInstanceLabel}`
+    : templateName;
+  return { parsedInstanceLabel, instanceName };
+};
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

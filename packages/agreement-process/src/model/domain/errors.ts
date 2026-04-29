@@ -8,8 +8,6 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
-  AttributeId,
-  Agreement,
   DelegationId,
 } from "pagopa-interop-models";
 
@@ -223,16 +221,6 @@ export function consumerWithNotValidEmail(
   });
 }
 
-export function agreementStampNotFound(
-  stamp: keyof Agreement["stamps"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement ${stamp} stamp not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
-  });
-}
-
 export function publishedDescriptorNotFound(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -272,16 +260,6 @@ export function documentChangeNotAllowed(
     detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
     code: "documentsChangeNotAllowed",
     title: "Document change not allowed",
-  });
-}
-
-export function attributeNotFound(
-  attributeId: AttributeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Attribute ${attributeId} not found`,
-    code: "attributeNotFound",
-    title: "Attribute not found",
   });
 }
 

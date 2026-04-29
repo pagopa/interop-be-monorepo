@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
   getMockedApiConsumerPartialClient,
@@ -14,7 +18,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { unexpectedClientKind } from "../../../src/model/errors.js";
 
 describe("getClients", () => {
@@ -102,7 +105,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {
@@ -143,7 +146,7 @@ describe("getClients", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientsResponse);
+    expect(result).toStrictEqual(m2mClientsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClients,
       queries: {

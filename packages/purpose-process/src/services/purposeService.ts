@@ -6,20 +6,16 @@ import {
   AuthData,
   CreateEvent,
   DB,
-  FileManager,
   InternalAuthData,
-  Logger,
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
-  PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
   WithLogger,
   eventRepository,
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
-  getIpaCode,
   getLatestVersionFormRules,
   isFeatureFlagEnabled,
   ownership,
@@ -51,7 +47,6 @@ import {
   Tenant,
   TenantId,
   TenantKind,
-  UserId,
   WithMetadata,
   eserviceMode,
   generateId,
@@ -88,7 +83,6 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
 } from "../model/domain/errors.js";
-import { PurposeDocumentEServiceInfo } from "../model/domain/models.js";
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
@@ -118,13 +112,9 @@ import {
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
 
-export type GetPurposesFilters = Omit<
-  ReadModelGetPurposesFilters,
-  "purposesIds"
-> & {
+type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
-import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 import {
   assertConsistentFreeOfCharge,
   assertEserviceMode,
@@ -151,6 +141,7 @@ import {
   validateRiskAnalysisAgainstTemplateOrThrow,
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  getUpdatedQuotas,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -320,9 +311,7 @@ async function retrievePublishedPurposeTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL,
-  fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  readModelService: ReadModelServiceSQL
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -1025,40 +1014,14 @@ export function purposeServiceBuilder(
         },
       };
 
-      const riskAnalysisDocument = isFeatureFlagEnabled(
-        config,
-        "featureFlagPurposesContractBuilder"
-      )
-        ? await generateRiskAnalysisDocument({
-            eservice,
-            purpose: purpose.data,
-            userId: stamps.creation.who,
-            dailyCalls: seed.dailyCalls,
-            readModelService,
-            fileManager,
-            pdfGenerator,
-            logger,
-          })
-        : undefined;
-
-      const newPurposeVersion: PurposeVersion = riskAnalysisDocument
-        ? {
-            id: generateId(),
-            riskAnalysis: riskAnalysisDocument,
-            state: purposeVersionState.active,
-            dailyCalls: seed.dailyCalls,
-            firstActivationAt: new Date(),
-            createdAt: new Date(),
-            stamps,
-          }
-        : {
-            id: generateId(),
-            state: purposeVersionState.active,
-            dailyCalls: seed.dailyCalls,
-            firstActivationAt: new Date(),
-            createdAt: new Date(),
-            stamps,
-          };
+      const newPurposeVersion: PurposeVersion = {
+        id: generateId(),
+        state: purposeVersionState.active,
+        dailyCalls: seed.dailyCalls,
+        firstActivationAt: new Date(),
+        createdAt: new Date(),
+        stamps,
+      };
 
       const oldVersions = archiveActiveAndSuspendedPurposeVersions(
         purpose.data.versions
@@ -1134,21 +1097,21 @@ export function purposeServiceBuilder(
         if (!riskAnalysisForm) {
           throw missingRiskAnalysis(purposeId);
         }
-
-        const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-          eservice,
-          purpose.data.consumerId,
-          readModelService
-        );
-
-        validateRiskAnalysisOrThrow({
-          riskAnalysisForm:
-            riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-          schemaOnlyValidation: false,
-          tenantKind,
-          dateForExpirationValidation: new Date(),
-          personalDataInEService: eservice.personalData,
-        });
+        // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
+        if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
+          validateRiskAnalysisOrThrow({
+            riskAnalysisForm:
+              riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+            schemaOnlyValidation: false,
+            tenantKind,
+            dateForExpirationValidation: new Date(),
+            personalDataInEService: eservice.personalData,
+          });
+        }
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -1190,13 +1153,8 @@ export function purposeServiceBuilder(
               fromState: purposeVersionState.draft,
               purpose,
               purposeVersion,
-              eservice,
-              readModelService,
-              fileManager,
-              pdfGenerator,
               correlationId,
               authData,
-              logger,
             });
           }
         )
@@ -1231,13 +1189,8 @@ export function purposeServiceBuilder(
               fromState: purposeVersionState.waitingForApproval,
               purpose,
               purposeVersion,
-              eservice,
-              readModelService,
-              fileManager,
-              pdfGenerator,
               correlationId,
               authData,
-              logger,
             })
         )
         .with(
@@ -1384,6 +1337,7 @@ export function purposeServiceBuilder(
       const createdAt = new Date();
 
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
         false,
@@ -1466,11 +1420,6 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const producerKind = await retrieveTenantKind(
-        eservice.producerId,
-        readModelService
-      );
-
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       await assertPurposeTitleIsNotDuplicated({
@@ -1481,16 +1430,6 @@ export function purposeServiceBuilder(
       });
 
       const createdAt = new Date();
-
-      validateRiskAnalysisOrThrow({
-        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
-          riskAnalysis.riskAnalysisForm
-        ),
-        schemaOnlyValidation: false,
-        tenantKind: producerKind,
-        dateForExpirationValidation: createdAt,
-        personalDataInEService: eservice.personalData,
-      });
 
       const newVersion: PurposeVersion = {
         id: generateId(),
@@ -2014,6 +1953,46 @@ export function purposeServiceBuilder(
         documentId
       );
     },
+    async getRemainingDailyCalls({
+      purposeId,
+      ctx: { authData, logger },
+    }: {
+      purposeId: PurposeId;
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>;
+    }): Promise<purposeApi.RemainingDailyCallsResponse> {
+      logger.info(`Retrieving remaining daily calls for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const quotas = await getUpdatedQuotas(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      const remainingDailyCallsPerConsumer = Math.max(
+        0,
+        quotas.maxDailyCallsPerConsumer - quotas.currentConsumerCalls
+      );
+      const remainingDailyCallsTotal = Math.max(
+        0,
+        quotas.maxDailyCallsTotal - quotas.currentTotalCalls
+      );
+      return {
+        remainingDailyCallsPerConsumer,
+        remainingDailyCallsTotal,
+      };
+    },
   };
 }
 
@@ -2195,82 +2174,6 @@ const performUpdatePurpose = async (
   };
 };
 
-async function generateRiskAnalysisDocument({
-  eservice,
-  purpose,
-  userId,
-  dailyCalls,
-  readModelService,
-  fileManager,
-  pdfGenerator,
-  logger,
-}: {
-  eservice: EService;
-  purpose: Purpose;
-  userId?: UserId;
-  dailyCalls: number;
-  readModelService: ReadModelServiceSQL;
-  fileManager: FileManager;
-  pdfGenerator: PDFGenerator;
-  logger: Logger;
-}): Promise<PurposeVersionDocument> {
-  const [producer, consumer, producerDelegation, consumerDelegation] =
-    await Promise.all([
-      retrieveTenant(eservice.producerId, readModelService),
-      retrieveTenant(purpose.consumerId, readModelService),
-      readModelService.getActiveProducerDelegationByEserviceId(eservice.id),
-      retrievePurposeDelegation(purpose, readModelService),
-    ]);
-
-  const [producerDelegate, consumerDelegate] = await Promise.all([
-    producerDelegation &&
-      retrieveTenant(producerDelegation.delegateId, readModelService),
-    consumerDelegation &&
-      retrieveTenant(consumerDelegation.delegateId, readModelService),
-  ]);
-
-  const eserviceInfo: PurposeDocumentEServiceInfo = {
-    name: eservice.name,
-    mode: eservice.mode,
-    producerName: producer.name,
-    producerIpaCode: getIpaCode(producer),
-    consumerName: consumer.name,
-    consumerIpaCode: getIpaCode(consumer),
-    producerDelegationId: producerDelegation?.id,
-    producerDelegateName: producerDelegate?.name,
-    producerDelegateIpaCode: producerDelegate && getIpaCode(producerDelegate),
-    consumerDelegationId: consumerDelegation?.id,
-    consumerDelegateName: consumerDelegate?.name,
-    consumerDelegateIpaCode: consumerDelegate && getIpaCode(consumerDelegate),
-  };
-
-  function getTenantKind(tenant: Tenant): TenantKind {
-    if (!tenant.kind) {
-      throw tenantKindNotFound(tenant.id);
-    }
-    return tenant.kind;
-  }
-
-  const tenantKind = match(eservice.mode)
-    .with(eserviceMode.deliver, () => getTenantKind(consumer))
-    .with(eserviceMode.receive, () => getTenantKind(producer))
-    .exhaustive();
-
-  return await riskAnalysisDocumentBuilder(
-    pdfGenerator,
-    fileManager,
-    config,
-    logger
-  ).createRiskAnalysisDocument(
-    purpose,
-    dailyCalls,
-    eserviceInfo,
-    tenantKind,
-    "it",
-    userId
-  );
-}
-
 const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
   const nonWaitingVersions = purposeToClone.versions.filter(
     (v) => v.state !== purposeVersionState.waitingForApproval
@@ -2357,26 +2260,16 @@ async function activatePurposeLogic({
   fromState,
   purpose,
   purposeVersion,
-  eservice,
-  readModelService,
-  fileManager,
-  pdfGenerator,
   correlationId,
   authData,
-  logger,
 }: {
   fromState:
     | typeof purposeVersionState.draft
     | typeof purposeVersionState.waitingForApproval;
   purpose: WithMetadata<Purpose>;
   purposeVersion: PurposeVersion;
-  eservice: EService;
-  readModelService: ReadModelServiceSQL;
-  fileManager: FileManager;
-  pdfGenerator: PDFGenerator;
   correlationId: CorrelationId;
   authData: UIAuthData | M2MAdminAuthData;
-  logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -2391,38 +2284,13 @@ async function activatePurposeLogic({
     .with(purposeVersionState.waitingForApproval, () => purposeVersion.stamps)
     .exhaustive();
 
-  const riskAnalysis = isFeatureFlagEnabled(
-    config,
-    "featureFlagPurposesContractBuilder"
-  )
-    ? await generateRiskAnalysisDocument({
-        eservice,
-        purpose: purpose.data,
-        userId: stamps?.creation.who,
-        dailyCalls: purposeVersion.dailyCalls,
-        readModelService,
-        fileManager,
-        pdfGenerator,
-        logger,
-      })
-    : undefined;
-
-  const updatedPurposeVersion: PurposeVersion = riskAnalysis
-    ? {
-        ...purposeVersion,
-        state: purposeVersionState.active,
-        riskAnalysis,
-        stamps,
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-      }
-    : {
-        ...purposeVersion,
-        state: purposeVersionState.active,
-        stamps,
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-      };
+  const updatedPurposeVersion: PurposeVersion = {
+    ...purposeVersion,
+    state: purposeVersionState.active,
+    stamps,
+    updatedAt: new Date(),
+    firstActivationAt: new Date(),
+  };
 
   const unsuspendedPurpose: Purpose =
     fromState === purposeVersionState.waitingForApproval

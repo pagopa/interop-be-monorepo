@@ -1,9 +1,4 @@
-import {
-  NewNotification,
-  DescriptorId,
-  EServiceEventEnvelopeV2,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -12,11 +7,15 @@ import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEser
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 
 export async function handleEServiceEvent(
-  decodedMessage: EServiceEventEnvelopeV2,
+  decodedMessage: EServiceEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union(
@@ -42,10 +41,9 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
-      ({ data: { eservice, descriptorId } }) =>
+      ({ data: { eservice } }) =>
         handleEserviceNewVersionSubmittedToDelegator(
           eservice,
-          unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService
         )
@@ -57,10 +55,9 @@ export async function handleEServiceEvent(
           "EServiceDescriptorRejectedByDelegator"
         ),
       },
-      ({ data: { eservice, descriptorId }, type }) =>
+      ({ data: { eservice }, type }) =>
         handleEserviceNewVersionApprovedRejectedToDelegate(
           eservice,
-          unsafeBrandId<DescriptorId>(descriptorId),
           logger,
           readModelService,
           type
@@ -93,12 +90,14 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeleted"
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

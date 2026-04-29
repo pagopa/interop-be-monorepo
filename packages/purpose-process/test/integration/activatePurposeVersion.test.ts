@@ -2,9 +2,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -21,6 +18,7 @@ import {
   getMockContext,
   sortPurpose,
   getMockPurposeTemplate,
+  getMockExpiredRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -52,8 +50,6 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  genericLogger,
-  getIpaCode,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -71,8 +67,6 @@ import {
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
-import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -80,8 +74,6 @@ import {
   addOnePurpose,
   addOnePurposeTemplate,
   addOneTenant,
-  fileManager,
-  pdfGenerator,
   postgresDB,
   purposeService,
 } from "../integrationUtils.js";
@@ -149,8 +141,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const consumerUserId = generateId<UserId>();
     const versionWithStamp: PurposeVersion = {
       ...mockPurposeVersion,
@@ -209,45 +199,15 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: versionWithStamp.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId: consumerUserId,
-      consumerId: purposeWithStamp.consumerId,
-    };
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
-
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: versionWithStamp.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -255,8 +215,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
 
     const producerDelegation = getMockDelegation({
@@ -312,45 +270,15 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: mockPurposeVersion.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: producerDelegation.id,
-      producerDelegateName: delegate.name,
-      producerDelegateIpaCode: delegate.externalId.value,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId: undefined,
-      consumerId: mockPurpose.consumerId,
-    };
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
-
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -417,9 +345,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -486,9 +418,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -558,9 +494,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: activateResponse.data.id,
+    });
 
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[1],
@@ -628,9 +568,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersionMock.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -690,9 +634,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -700,8 +647,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should write on event-store for the activation of a purpose version in draft", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -728,41 +673,7 @@ describe("activatePurposeVersion", () => {
 
     const updatedVersion = activateResponse.data;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: purposeVersionMock.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -788,9 +699,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -798,7 +712,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
-    vi.spyOn(pdfGenerator, "generate");
     const consumerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -846,41 +759,7 @@ describe("activatePurposeVersion", () => {
 
     const updatedVersion = activateResponse.data;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: purposeVersionMock.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: delegation.id,
-      consumerDelegateName: consumerDelegate.name,
-      consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
     const writtenEvent = await readLastEventByStreamId(
       purpose.id,
@@ -906,18 +785,86 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
     });
   });
+  it("should succeed when risk analysis is expired and the purpose version in draft state is activated correctly for eservice in receive mode", async () => {
+    const eservice = {
+      ...mockEService,
+      mode: eserviceMode.receive,
+    };
+    const purposeVersionMock: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
+      versions: [purposeVersionMock],
+    };
 
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+    expect(updatedVersion.riskAnalysis).toBeDefined();
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
+  });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the purpose version in draft state is activated correctly", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -1008,41 +955,7 @@ describe("activatePurposeVersion", () => {
 
     const updatedVersion = activateResponse.data;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: purposeVersionMock.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: eservice.name,
-      producerName: producer.name,
-      producerIpaCode: getIpaCode(producer),
-      consumerName: consumer.name,
-      consumerIpaCode: getIpaCode(consumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: producerDelegation.id,
-      producerDelegateName: producerDelegate.name,
-      producerDelegateIpaCode: producerDelegate.externalId.value,
-      consumerDelegationId: consumerDelegation.id,
-      consumerDelegateName: consumerDelegate.name,
-      consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId,
-      consumerId: consumer.id,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -1068,9 +981,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -1078,8 +994,6 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and also the producer of the eservice and the purpose version in draft state is activated correctly", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -1148,41 +1062,7 @@ describe("activatePurposeVersion", () => {
 
     const updatedVersion = activateResponse.data;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: purposeVersionMock.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: eservice.name,
-      producerName: producer.name,
-      producerIpaCode: getIpaCode(producer),
-      consumerName: consumer.name,
-      consumerIpaCode: getIpaCode(consumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: consumerDelegation.id,
-      consumerDelegateName: producer.name,
-      consumerDelegateIpaCode: producer.externalId.value,
-      userId,
-      consumerId: consumer.id,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(updatedVersion.riskAnalysis!.path);
+    expect(updatedVersion.riskAnalysis).toBeDefined();
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -1208,9 +1088,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -1593,25 +1476,25 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
 
-  it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
+  it("should not require producer tenant lookup when producer does not exist in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
 
-    expect(async () => {
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          delegationId: undefined,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
-    }).rejects.toThrowError(tenantNotFound(mockProducer.id));
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+    );
+
+    expect(activateResponse.data.riskAnalysis).toBeDefined();
   });
 
-  it("should throw tenantKindNotFound if e-service mode is DELIVER and the tenant consumer has no kind", async () => {
+  it("should not require tenant kind check when document generation is not used", async () => {
     const consumer: Tenant = { ...mockConsumer, kind: undefined };
     const eservice: EService = {
       ...mockEService,
@@ -1624,43 +1507,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(consumer);
     await addOneTenant(mockProducer);
 
-    expect(async () => {
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          delegationId: undefined,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
-    }).rejects.toThrowError(tenantKindNotFound(consumer.id));
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+    );
+
+    expect(activateResponse.data.riskAnalysis).toBeDefined();
   });
-
-  it("should throw tenantKindNotFound if e-service mode is RECEIVE and the tenant producer has no kind", async () => {
-    const producer: Tenant = { ...mockProducer, kind: undefined };
-    const eservice: EService = {
-      ...mockEService,
-      mode: eserviceMode.receive,
-    };
-
-    await addOnePurpose(mockPurpose);
-    await addOneEService(eservice);
-    await addOneAgreement(mockAgreement);
-    await addOneTenant(mockConsumer);
-    await addOneTenant(producer);
-
-    expect(async () => {
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          delegationId: undefined,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
-    }).rejects.toThrowError(tenantKindNotFound(producer.id));
-  });
-
   it.each([
     purposeVersionState.active,
     purposeVersionState.archived,

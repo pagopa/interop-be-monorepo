@@ -339,6 +339,27 @@ export function agreementServiceBuilder(
         headers
       );
     },
+    async archiveAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Agreement> {
+      logger.info(`Archiving agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.archiveAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
+    },
     async upgradeAgreement(
       agreementId: AgreementId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>

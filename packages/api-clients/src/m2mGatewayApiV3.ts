@@ -213,6 +213,11 @@ export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
   "getPurposeEvents"
 >;
 
+export type GetEventManagerPurposeTemplatesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeTemplateEvents"
+>;
+
 export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getTenantEvents"
@@ -242,5 +247,15 @@ export type GetEventManagerProducerKeyEventsQueryParams =
 
 export type GetEventManagerProducerKeychainEventsQueryParams =
   QueryParametersByAlias<EventManagerApi, "getProducerKeychainEvents">;
+
+export type GetClientUsersQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientUsers"
+>;
+
+export type GetProducerKeychainUsersQueryParams = QueryParametersByAlias<
+  ProducerKeychainApi,
+  "getProducerKeychainUsers"
+>;
 
 export * from "./generated/m2mGatewayApiV3.js";

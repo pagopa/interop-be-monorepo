@@ -11,7 +11,6 @@ import {
   M2MAdminAuthData,
   riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
   retrieveOriginFromAuthData,
-  isFeatureFlagEnabled,
   Logger,
 } from "pagopa-interop-commons";
 import {
@@ -41,6 +40,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CompactOrganization,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -124,9 +124,8 @@ const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<EServiceTemplate>> => {
-  const eserviceTemplate = await readModelService.getEServiceTemplateById(
-    eserviceTemplateId
-  );
+  const eserviceTemplate =
+    await readModelService.getEServiceTemplateById(eserviceTemplateId);
   if (eserviceTemplate === undefined) {
     throw eserviceTemplateNotFound(eserviceTemplateId);
   }
@@ -522,10 +521,8 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eserviceTemplate.data.personalData === undefined
-      ) {
+
+      if (eserviceTemplate.data.personalData === undefined) {
         throw missingPersonalDataFlag(
           eserviceTemplateId,
           eserviceTemplateVersionId
@@ -542,12 +539,12 @@ export function eserviceTemplateServiceBuilder(
                 publishedAt: new Date(),
               }
             : eserviceTemplateVersion.version > v.version
-            ? {
-                ...v,
-                state: eserviceTemplateVersionState.deprecated,
-                deprecatedAt: new Date(),
-              }
-            : v
+              ? {
+                  ...v,
+                  state: eserviceTemplateVersionState.deprecated,
+                  deprecatedAt: new Date(),
+                }
+              : v
         ),
       };
 
@@ -655,13 +652,13 @@ export function eserviceTemplateServiceBuilder(
       if (name !== eserviceTemplate.data.name) {
         await assertEServiceTemplateNameAvailable(name, readModelService);
 
-        const hasConflictingInstances =
-          await readModelService.checkNameConflictInstances(
+        const hasInstanceNameConflicts =
+          await readModelService.hasInstanceNameConflicts(
             eserviceTemplate.data,
             name
           );
 
-        if (hasConflictingInstances) {
+        if (hasInstanceNameConflicts) {
           throw instanceNameConflict(eserviceTemplateId);
         }
       }
@@ -1329,9 +1326,7 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-          ? { personalData: seed.personalData }
-          : {}),
+        personalData: seed.personalData,
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -1561,7 +1556,7 @@ export function eserviceTemplateServiceBuilder(
       limit: number,
       offset: number,
       { logger }: WithLogger<AppContext>
-    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+    ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving eservice template creator with name ${creatorName}, limit ${limit}, offset ${offset}`
       );
@@ -2166,9 +2161,7 @@ async function updateDraftEServiceTemplate(
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
-      : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
@@ -2287,10 +2280,10 @@ async function updateDraftEServiceTemplateVersion(
       seed.agreementApprovalPolicy === null
         ? undefined
         : seed.agreementApprovalPolicy === undefined
-        ? eserviceTemplateVersion.agreementApprovalPolicy
-        : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
+          ? eserviceTemplateVersion.agreementApprovalPolicy
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
     )
     .exhaustive();
 

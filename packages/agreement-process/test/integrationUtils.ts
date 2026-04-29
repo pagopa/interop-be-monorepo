@@ -10,7 +10,8 @@ import {
   sortAgreements,
   sortBy,
 } from "pagopa-interop-commons-test";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
+import { afterEach, expect, inject } from "vitest";
+import type { DeeplyAllowMatchers } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -27,12 +28,7 @@ import {
   DeclaredAttributeV2,
   VerifiedAttributeV2,
 } from "pagopa-interop-models";
-import {
-  genericLogger,
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
-import puppeteer, { Browser } from "puppeteer";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -63,18 +59,6 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
 
 afterEach(cleanup);
 
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
@@ -92,13 +76,10 @@ const readModelService = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-export const pdfGenerator = await initPDFGenerator();
-
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
-  fileManager,
-  pdfGenerator
+  fileManager
 );
 const writeAgreementInEventstore = async (
   agreement: Agreement
@@ -234,7 +215,9 @@ export function expectGenericSinglePageListResult<T>(
 ): void {
   expect(actual).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(
+      expected as unknown as Array<DeeplyAllowMatchers<T>>
+    ),
   });
   expect(actual.results).toHaveLength(expected.length);
 }

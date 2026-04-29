@@ -127,12 +127,12 @@ describe("publishEServiceTemplateVersion", () => {
       ],
     });
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion.id
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual({
-      ...expectedEServiceTemplate,
-      versions: expect.arrayContaining(expectedEServiceTemplate.versions),
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      eserviceTemplate: {
+        ...expectedEServiceTemplate,
+        versions: expect.arrayContaining(expectedEServiceTemplate.versions),
+      },
     });
   });
 
@@ -261,7 +261,7 @@ describe("publishEServiceTemplateVersion", () => {
     );
   });
 
-  it("should throw riskAnalysisValidationFailed if the eservice template mode is receive and doesn't have any risk analysis", async () => {
+  it("should throw missingRiskAnalysis if the eservice template mode is receive and doesn't have any risk analysis", async () => {
     const tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,

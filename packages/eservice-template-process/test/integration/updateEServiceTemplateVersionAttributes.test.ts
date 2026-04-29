@@ -163,12 +163,16 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         messageType: EServiceTemplateVersionAttributesUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(updatedEServiceTemplate)
-      );
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(returnedEServiceTemplate.data)
-      );
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: mockEServiceTemplateVersion.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      });
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: mockEServiceTemplateVersion.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+      });
     }
   );
 

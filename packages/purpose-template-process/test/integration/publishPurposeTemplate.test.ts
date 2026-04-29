@@ -30,11 +30,11 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { invalidDescriptorStateForPublicationError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   invalidAssociatedEServiceForPublication,
+  purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_PUBLICATION } from "../../src/services/validators.js";
 import {
@@ -98,16 +98,21 @@ describe("publishPurposeTemplate", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
-      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
-    );
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
+      purposeTemplate: sortPurposeTemplate(
+        toPurposeTemplateV2(expectedPurposeTemplate)
+      ),
+    });
     expect(publishResponse).toMatchObject({
       data: updatedPurposeTemplate,
       metadata: { version: 1 },
     });
   });
 
-  it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
+  it("should throw purposeTemplateNotFound if the caller is not the creator of the purpose template", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const otherTenantId = generateId<TenantId>();
@@ -117,7 +122,7 @@ describe("publishPurposeTemplate", () => {
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
+    }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template has no risk analysis template", async () => {

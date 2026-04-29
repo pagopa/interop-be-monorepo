@@ -6,7 +6,6 @@ import {
   FormQuestionRules,
   LocalizedText,
   Logger,
-  PDFGenerator,
   RiskAnalysisFormRules,
   answerNotFoundInConfigError,
   dataType,
@@ -16,6 +15,7 @@ import {
   incompatibleConfigError,
   unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   Purpose,
   PurposeVersionDocument,
@@ -92,9 +92,9 @@ export const riskAnalysisDocumentBuilder = (
       const documentCreatedAt = messageTimestamp;
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
-      // Handle GSP that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
+      // Handle any non-PA tenant kinds that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
       const usePAFallback =
-        tenantKind === TenantKind.Enum.GSP &&
+        tenantKind !== TenantKind.Enum.PA &&
         ["3.0", "3.1"].includes(riskAnalysisVersion);
 
       const riskAnalysisFormConfig =

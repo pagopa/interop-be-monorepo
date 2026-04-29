@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
   getMockedApiPartialProducerKeychain,
@@ -14,7 +18,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getProducerKeychains", () => {
   const mockParams: m2mGatewayApi.GetProducerKeychainsQueryParams = {
@@ -102,7 +105,7 @@ describe("getProducerKeychains", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainsResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain
@@ -148,7 +151,7 @@ describe("getProducerKeychains", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mProducerKeychainsResponse);
+    expect(result).toStrictEqual(m2mProducerKeychainsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.authorizationClient.producerKeychain

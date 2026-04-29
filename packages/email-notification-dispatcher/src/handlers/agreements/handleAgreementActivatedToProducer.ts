@@ -37,12 +37,13 @@ export async function handleAgreementActivatedToProducer(
 
   const agreement = fromAgreementV2(agreementV2Msg);
 
-  const [htmlTemplate, eservice, producer] = await Promise.all([
+  const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.agreementActivatedToProducerMailTemplate
     ),
     retrieveAgreementEservice(agreement, readModelService),
     retrieveTenant(agreement.producerId, readModelService),
+    retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
   const targets = await getRecipientsForTenants({
@@ -55,7 +56,7 @@ export async function handleAgreementActivatedToProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementActivatedToProducer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -63,14 +64,16 @@ export async function handleAgreementActivatedToProducer(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Richiesta di fruizione accettata automaticamente`,
+      subject: `Richiesta di fruizione accettata`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: "Richiesta di fruizione accettata automaticamente",
+        title: "Richiesta di fruizione accettata",
         notificationType,
         entityId: agreement.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
+        consumerName: consumer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

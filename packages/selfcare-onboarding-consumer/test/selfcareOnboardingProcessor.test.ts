@@ -16,10 +16,8 @@ import {
   MockInstance,
   vi,
 } from "vitest";
-import {
-  TenantProcessClient,
-  tenantProcessClientBuilder,
-} from "../src/clients/tenantProcessClient.js";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { tenantProcessClientBuilder } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
 import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import {
@@ -35,9 +33,8 @@ import {
 } from "./utils.js";
 
 describe("Message processor", () => {
-  let tenantProcessClientMock: TenantProcessClient = tenantProcessClientBuilder(
-    config.tenantProcessUrl
-  );
+  let tenantProcessClientMock: Pick<tenantApi.TenantProcessClient, "selfcare"> =
+    tenantProcessClientBuilder(config.tenantProcessUrl);
   let tokenGeneratorMock = new InteropTokenGenerator(config);
   let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareOnboardingProcessor: ReturnType<
@@ -108,7 +105,10 @@ describe("Message processor", () => {
       message: {
         ...kafkaMessagePayload.message,
         value: Buffer.from(
-          JSON.stringify({ ...correctEventPayload, product: "another-product" })
+          JSON.stringify({
+            ...correctEventPayload,
+            product: "another-product",
+          })
         ),
       },
     };
@@ -173,9 +173,13 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "IPA", value: "ipa_123" },
+        externalId: {
+          origin: "IPA",
+          value: "ipa_123",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -212,9 +216,13 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "IPA", value: "AOO_456" },
+        externalId: {
+          origin: "IPA",
+          value: "AOO_456",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -252,9 +260,13 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "tax789" },
+        externalId: {
+          origin: "ANAC",
+          value: "tax789",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -289,13 +301,16 @@ describe("Message processor", () => {
 
       await selfcareOnboardingProcessor.processMessage(message);
 
-      const expectedOrigin = origin + "-" + institutionType;
       expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
       expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          externalId: { origin: expectedOrigin, value: "tax789" },
+          externalId: {
+            origin: origin,
+            value: "tax789",
+          },
           selfcareId: correctEventPayload.institutionId,
           name: correctInstitutionEventField.description,
+          selfcareInstitutionType: institutionType,
         }),
         expect.objectContaining({
           headers: getInteropHeaders({
@@ -333,9 +348,13 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "anac_123" },
+        externalId: {
+          origin: "ANAC",
+          value: "anac_123",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
@@ -373,9 +392,13 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
     expect(selfcareUpsertTenantSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        externalId: { origin: "ANAC", value: "anac_123" },
+        externalId: {
+          origin: "ANAC",
+          value: "anac_123",
+        },
         selfcareId: correctEventPayload.institutionId,
         name: correctInstitutionEventField.description,
+        selfcareInstitutionType: "PA",
       }),
       expect.objectContaining({
         headers: getInteropHeaders({

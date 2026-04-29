@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  tenantApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import { getMockedApiTenant } from "pagopa-interop-commons-test";
 import {
@@ -9,7 +13,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("getTenants", () => {
@@ -89,7 +92,7 @@ describe("getTenants", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
       queries: {

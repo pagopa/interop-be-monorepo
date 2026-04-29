@@ -29,7 +29,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("declared attribute creation", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = getMockAttribute(attributeKind.declared);
   const mockTenant = getMockTenant();
 
   it.each([
@@ -77,12 +77,12 @@ describe("declared attribute creation", () => {
         creationTime: new Date(writtenPayload.attribute!.creationTime),
       };
 
-      expect(writtenPayload.attribute).toEqual(
-        toAttributeV1(expectedAttribute)
-      );
-      expect(writtenPayload.attribute).toEqual(
-        toAttributeV1(createDeclaredAttributeResponse.data)
-      );
+      expect(writtenPayload).toEqual({
+        attribute: toAttributeV1(expectedAttribute),
+      });
+      expect(writtenPayload).toEqual({
+        attribute: toAttributeV1(createDeclaredAttributeResponse.data),
+      });
       expect(createDeclaredAttributeResponse).toEqual({
         data: expectedAttribute,
         metadata: {

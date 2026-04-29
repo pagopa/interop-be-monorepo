@@ -2,7 +2,6 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  assertFeatureFlagEnabled,
   authRole,
   ExpressContext,
   fromAppContext,
@@ -77,9 +76,10 @@ import {
   documentListErrorMapper,
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
+  updateEServiceInstanceLabelErrorMapper,
+  maintenanceResetEServicePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
-import { config } from "../config/config.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -97,6 +97,7 @@ const eservicesRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    MAINTENANCE_ROLE,
   } = authRole;
 
   eservicesRouter
@@ -1511,16 +1512,16 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/personalDataFlag", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        assertFeatureFlagEnabled(config, "featureFlagEservicePersonalData");
-
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServicePersonalDataFlagAfterPublication(
             unsafeBrandId(req.params.eServiceId),
             req.body.personalData,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -1535,7 +1536,61 @@ const eservicesRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/templates/eservices/:eServiceId/instanceLabel/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+          const updatedEService =
+            await catalogService.updateEServiceInstanceLabelAfterPublication(
+              unsafeBrandId(req.params.eServiceId),
+              req.body.instanceLabel,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceInstanceLabelErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/maintenance/eservices/:eServiceId/personalDataFlag",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await catalogService.maintenanceResetEServicePersonalDataFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.currentVersion,
+            req.body.reason,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceResetEServicePersonalDataFlagErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return eservicesRouter;
 };

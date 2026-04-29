@@ -17,9 +17,28 @@ export function toGetPurposesApiQueryParams(
     offset: params.offset,
     consumersIds: params.consumerIds,
     producersIds: [],
+    clientId: undefined,
     states: params.states,
     excludeDraft: false,
     name: params.title,
+  };
+}
+
+export function toGetPurposesApiQueryParamsForClient(
+  params: {
+    clientId: string;
+  } & m2mGatewayApiV3.GetClientPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    eservicesIds: params.eserviceIds,
+    limit: params.limit,
+    offset: params.offset,
+    consumersIds: [],
+    producersIds: [],
+    clientId: params.clientId,
+    states: params.states,
+    excludeDraft: false,
+    name: "",
   };
 }
 
@@ -52,7 +71,6 @@ export function toM2MGatewayApiPurpose(
     description: purpose.description,
     createdAt: purpose.createdAt,
     updatedAt: purpose.updatedAt,
-    isRiskAnalysisValid: purpose.isRiskAnalysisValid,
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
@@ -89,6 +107,7 @@ export function toGetAgreementsApiQueryParamsForPurpose(
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: [purpose.consumerId],
+    exactConsumerIdMatch: true,
     eservicesIds: [purpose.eserviceId],
     states: [
       m2mGatewayApiV3.AgreementState.Values.ACTIVE,
@@ -99,5 +118,14 @@ export function toGetAgreementsApiQueryParamsForPurpose(
     showOnlyUpgradeable: false,
     offset: 0,
     limit: 1,
+  };
+}
+
+export function toM2MGatewayApiRemainingDailyCallsResponse(
+  response: purposeApi.RemainingDailyCallsResponse
+): m2mGatewayApiV3.RemainingDailyCallsResponse {
+  return {
+    remainingDailyCallsPerConsumer: response.remainingDailyCallsPerConsumer,
+    remainingDailyCallsTotal: response.remainingDailyCallsTotal,
   };
 }

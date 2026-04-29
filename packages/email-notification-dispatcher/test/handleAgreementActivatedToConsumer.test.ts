@@ -364,6 +364,11 @@ describe("handleAgreementActivated", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
+      expect(message.email.body).toContain("<!-- Logo -->");
+      expect(message.email.body).toContain(
+        'src="https://raw.githubusercontent.com/pagopa/selfcare-infra/main/src/core/assets/logo_pagopacorp.png"'
+      );
+      expect(message.email.body).toContain('alt="Logo PagoPA"');
       expect(message.email.body).toContain(
         `La tua richiesta per &quot;${eservice.name}&quot; è stata accettata`
       );

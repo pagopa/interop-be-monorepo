@@ -60,7 +60,7 @@ export async function handleConsumerDelegationRevoked(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Delegation ${delegation.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleConsumerDelegationRevoked - entityId: ${delegation.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -76,6 +76,7 @@ export async function handleConsumerDelegationRevoked(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
     },

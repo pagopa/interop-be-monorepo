@@ -5,9 +5,9 @@ import {
   FileManager,
   formatDateyyyyMMddHHmmss,
   Logger,
-  PDFGenerator,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   Delegation,
   DelegationContractDocument,
@@ -255,9 +255,7 @@ export const contractBuilder = {
 function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
-): asserts stamps is Delegation["stamps"] & {
-  [key in S]: DelegationStamp;
-} {
+): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
   }

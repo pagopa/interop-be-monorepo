@@ -76,9 +76,10 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
       oldName: eserviceTemplate.name,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+      oldName: eserviceTemplate.name,
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
@@ -259,6 +260,85 @@ describe("updateEServiceTemplateName", () => {
         })
       )
     ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
+  });
+
+  it("should throw instanceNameConflict if the computed instance name with instanceLabel conflicts with an existing eservice", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const updatedName = "eservice template new name";
+    const producerId = generateId<TenantId>();
+    const instanceLabel = "test label";
+
+    const templateInstance: EService = {
+      ...getMockEService(undefined, producerId, [], eserviceTemplate.id),
+      name: `${eserviceTemplate.name} - ${instanceLabel}`,
+      instanceLabel,
+    };
+
+    // Another eservice by the same producer that conflicts
+    // with the computed new name: "eservice template new name - test label"
+    const tenantEService: EService = {
+      ...getMockEService(),
+      producerId,
+      name: `${updatedName} - ${instanceLabel}`,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEService(tenantEService);
+    await addOneEService(templateInstance);
+
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        updatedName,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
+  });
+
+  it("should not throw instanceNameConflict when instance with label does not conflict", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const updatedName = "eservice template new name";
+    const producerId = generateId<TenantId>();
+    const instanceLabel = "test label";
+
+    const templateInstance: EService = {
+      ...getMockEService(undefined, producerId, [], eserviceTemplate.id),
+      name: `${eserviceTemplate.name} - ${instanceLabel}`,
+      instanceLabel,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEService(templateInstance);
+
+    const result = await eserviceTemplateService.updateEServiceTemplateName(
+      eserviceTemplate.id,
+      updatedName,
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
+
+    expect(result.data.name).toBe(updatedName);
   });
 
   it("should throw eServiceTemplateUpdateSameNameConflict trying to update the name to the same value", async () => {
