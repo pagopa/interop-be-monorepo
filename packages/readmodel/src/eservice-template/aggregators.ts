@@ -441,7 +441,6 @@ export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL.forEach((current) => {
     const currentAttribute: EServiceTemplateAttribute = {
       id: unsafeBrandId(current.attributeId),
-      explicitAttributeVerification: current.explicitAttributeVerification,
     };
     const group = attributesMap.get(current.groupId);
     if (group) {
