@@ -66,6 +66,7 @@ const errorCodes = {
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
+  clientNotFound: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -265,6 +266,16 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+
+export function clientNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
 
@@ -512,8 +523,8 @@ export function dpopProofSignatureValidationFailed(
 
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof JTI ${jti} already in cache`,
+    detail: `DPoP proof JTI ${jti} already used`,
     code: "dpopProofJtiAlreadyUsed",
-    title: "DPoP proof JTI already in cache",
+    title: "DPoP proof JTI already used",
   });
 }

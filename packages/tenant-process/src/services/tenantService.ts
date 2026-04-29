@@ -93,6 +93,7 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -104,7 +105,7 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  assertRequesterDelegationsAllowedOrigin,
+  assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
@@ -1256,19 +1257,25 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
+      const { features: apiFeatures, ...restTenantUpdate } = tenantUpdate;
+
       const convertedTenantUpdate = {
-        ...tenantUpdate,
-        mails: tenantUpdate.mails.map((mail) => ({
+        ...restTenantUpdate,
+        mails: restTenantUpdate.mails.map((mail) => ({
           ...mail,
           createdAt: new Date(mail.createdAt),
         })),
-        onboardedAt: new Date(tenantUpdate.onboardedAt),
+        onboardedAt: new Date(restTenantUpdate.onboardedAt),
       };
 
       const updatedTenant: Tenant = {
         ...tenant.data,
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
+        selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
+        ...(apiFeatures !== undefined && {
+          features: apiFeatures.map(fromApiTenantFeature),
+        }),
         updatedAt: new Date(),
       };
 
@@ -1837,12 +1844,12 @@ export function tenantServiceBuilder(
         `Updating tenant delegated features for tenant ${authData.organizationId}`
       );
 
-      assertRequesterDelegationsAllowedOrigin(authData);
-
       const requesterTenant = await retrieveTenant(
         authData.organizationId,
         readModelService
       );
+
+      assertTenantAllowedForDelegation(requesterTenant.data);
 
       const delegatedConsumerEvent = match(
         tenantFeatures.isDelegatedConsumerFeatureEnabled

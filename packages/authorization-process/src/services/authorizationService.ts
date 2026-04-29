@@ -118,6 +118,7 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
   assertTenantHasSelfcareId,
+  assertMembersAreUnique,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -265,6 +266,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -299,6 +303,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -386,7 +393,11 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
@@ -1000,6 +1011,8 @@ export function authorizationServiceBuilder(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
 
+      assertMembersAreUnique(producerKeychainSeed.members);
+
       const producerKeychain: ProducerKeychain = {
         id: generateId(),
         producerId: authData.organizationId,
@@ -1106,7 +1119,11 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting producer keychain ${producerKeychainId}`);
 

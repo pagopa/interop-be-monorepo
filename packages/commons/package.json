@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
+    "build": "tsc && pnpm run copy-sql-files",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
   "dependencies": {
@@ -43,7 +43,6 @@
     "nodemailer": "catalog:",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "catalog:",
-    "puppeteer": "catalog:",
     "rate-limiter-flexible": "catalog:",
     "redis": "catalog:",
     "ts-pattern": "catalog:",
@@ -57,7 +56,6 @@
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/nodemailer": "catalog:",
-    "cpx2": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"

@@ -5693,6 +5693,119 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/personalDataFlag:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Set personalData flag for an E-Service after its publication
+      description: Set personalData flag for an E-Service in Published, Suspended, or Deprecated state. The flag can only be set once.
+      operationId: updateEServicePersonalDataFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: E-Service personalData flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors:
     parameters:
       - name: eserviceId
@@ -19405,6 +19518,7 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_INSTANCE_LABEL_UPDATED
+            - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
         eventTimestamp:
           type: string
           format: date-time
@@ -20558,7 +20672,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -20843,7 +20957,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceTemplateIntendedTargetUpdateSeed:
@@ -20955,7 +21069,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -21029,7 +21143,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -21114,7 +21228,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -21156,7 +21270,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
@@ -21164,6 +21278,14 @@ components:
         - isSignalHubEnabled
       properties:
         isSignalHubEnabled:
+          type: boolean
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - personalData
+      properties:
+        personalData:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:

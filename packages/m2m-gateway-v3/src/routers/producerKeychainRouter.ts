@@ -95,6 +95,26 @@ const producerKeychainRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/producerKeychains/:keychainId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await producerKeychainService.deleteProducerKeychain(
+          unsafeBrandId(req.params.keychainId),
+          ctx
+        );
+        return res.status(200).send({});
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting producer keychain with id ${req.params.keychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/producerKeychains/:keychainId/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

@@ -95,8 +95,6 @@ describe("updateDraftPurpose", () => {
       eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
       id: mockPurposeProcessGetResponse.data.id,
       isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponse.data.title,
       currentVersion: purposeVersion
         ? testToM2mGatewayApiPurposeVersion(purposeVersion)
@@ -159,8 +157,6 @@ describe("updateDraftPurpose", () => {
       id: mockPurposeProcessGetResponseWithTemplate.data.id,
       isFreeOfCharge:
         mockPurposeProcessGetResponseWithTemplate.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponseWithTemplate.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponseWithTemplate.data.title,
       currentVersion: purposeVersion
         ? testToM2mGatewayApiPurposeVersion(purposeVersion)
