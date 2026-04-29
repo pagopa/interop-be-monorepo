@@ -125,7 +125,7 @@ async function getAttributeAssignerOrRevokerName(
         if (!attribute.origin) {
           throw attributeOriginUndefined(attribute.id);
         }
-        return ["ANAC", "IPA", "IVASS"].includes(attribute.origin)
+        return ["ANAC", "IPA", "IVASS", "SELFCARE"].includes(attribute.origin)
           ? attribute.origin
           : (
               await retrieveTenantByCertifierId(
