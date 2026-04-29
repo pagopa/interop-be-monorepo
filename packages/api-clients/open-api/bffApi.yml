@@ -3951,6 +3951,50 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Cancel the archiving process for an E-Service Descriptor
+      description: Cancel the archiving process for an E-Service Descriptor
+      operationId: cancelEServiceDescriptorArchiving
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: E-Service Descriptor archiving canceled
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
     post:
       security:

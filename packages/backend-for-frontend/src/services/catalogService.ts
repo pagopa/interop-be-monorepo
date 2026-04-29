@@ -1388,6 +1388,23 @@ export function catalogServiceBuilder(
         }
       );
     },
+
+    cancelEServiceDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Canceling archiving for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelEServiceDescriptorArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
