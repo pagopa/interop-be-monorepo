@@ -68,8 +68,8 @@ export const FeatureFlagDpopClientAssertionDebuggerConfig = z
     z.object({
       FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z.literal("true"),
       DPOP_HTU_BASE: z.string(),
-      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number().default(60),
-      DPOP_DURATION_SECONDS: z.coerce.number().default(60),
+      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number(),
+      DPOP_DURATION_SECONDS: z.coerce.number(),
     }),
     z.object({
       FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
