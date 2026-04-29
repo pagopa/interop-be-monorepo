@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { and, eq, inArray, lt } from "drizzle-orm";
 import {
   descriptorState,
   unsafeBrandId,
   archivingScope,
 } from "pagopa-interop-models";
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { toUTCMidnight } from "pagopa-interop-commons";
 import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
@@ -47,7 +48,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             lt(
               // FIXME: convertire in giorno mese anno NO timestamp
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-              new Date().toISOString()
+              new Date(toUTCMidnight(new Date(), 0)).toISOString()
             ),
             eq(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
