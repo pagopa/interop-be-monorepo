@@ -149,7 +149,7 @@ export function readModelServiceBuilderSQL(
         personalData,
       } = filters;
 
-      const hasAgreementJoin =
+      const requiresAgreementJoin =
         agreementStates.length > 0 || consumersIds.length > 0;
 
       return await readmodelDB.transaction(async (tx) => {
@@ -281,13 +281,13 @@ export function readModelServiceBuilderSQL(
             })
             .from(agreementInReadmodelAgreement)
             .where(
-              hasAgreementJoin
+              requiresAgreementJoin
                 ? and(agreementStateClause, agreementConsumerClause)
                 : undefined
             )
             .as("agreementSubquery");
 
-          const queryAfterAgreementFilter = hasAgreementJoin
+          const queryAfterAgreementFilter = requiresAgreementJoin
             ? queryAfterEserviceFilters.innerJoin(
                 agreementSubquery,
                 eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
