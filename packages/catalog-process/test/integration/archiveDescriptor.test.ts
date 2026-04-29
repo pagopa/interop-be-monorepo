@@ -11,7 +11,8 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceDescriptorActivatedV2,
+  EServiceDescriptorArchivedV2,
+  EServiceDescriptorArchivingCompletedV2,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -44,6 +45,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
+      "AUTOMATIC",
       getMockContextInternal({})
     );
 
@@ -53,7 +55,7 @@ describe("archive descriptor", () => {
     expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
     expect(writtenEvent.event_version).toBe(2);
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorActivatedV2,
+      messageType: EServiceDescriptorArchivedV2,
       payload: writtenEvent.data,
     });
 
@@ -92,6 +94,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
+      "MANUAL",
       getMockContextInternal({})
     );
 
@@ -101,7 +104,7 @@ describe("archive descriptor", () => {
     expect(writtenEvent.type).toBe("EServiceDescriptorArchivingCompleted");
     expect(writtenEvent.event_version).toBe(2);
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorActivatedV2,
+      messageType: EServiceDescriptorArchivingCompletedV2,
       payload: writtenEvent.data,
     });
 
@@ -127,6 +130,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         mockEService.id,
         mockDescriptor.id,
+        "AUTOMATIC",
         getMockContextInternal({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -143,6 +147,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         eservice.id,
         mockDescriptor.id,
+        "AUTOMATIC",
         getMockContextInternal({})
       )
     ).rejects.toThrowError(

@@ -64,7 +64,7 @@ export async function archiveDescriptorForArchivedAgreement(
     .with({ state: descriptorState.deprecated }, async () => {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await catalogProcessClient.archiveDescriptor(undefined, {
+      await catalogProcessClient.archiveDescriptor("AUTOMATIC", {
         params: {
           eServiceId: archivedAgreement.eserviceId,
           descriptorId: archivedAgreement.descriptorId,
@@ -86,7 +86,7 @@ export async function archiveDescriptorForArchivedAgreement(
       if (newerDescriptorExists) {
         const token = (await refreshableToken.get()).serialized;
         const headers = getHeaders(correlationId, token);
-        await catalogProcessClient.archiveDescriptor(undefined, {
+        await catalogProcessClient.archiveDescriptor("AUTOMATIC", {
           params: {
             eServiceId: archivedAgreement.eserviceId,
             descriptorId: archivedAgreement.descriptorId,
