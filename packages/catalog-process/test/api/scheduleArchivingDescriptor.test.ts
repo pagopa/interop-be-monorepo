@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
+  ArchivingScope,
   Descriptor,
   DescriptorId,
   descriptorState,
@@ -17,18 +18,23 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceToApiEService,
+  descriptorToApiDescriptor,
+  archivingScheduleScopeToApiArchivingScheduleScope,
+} from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive authorization test", () => {
   const descriptor: Descriptor = {
-    ...getMockDescriptor(),
-    state: descriptorState.deprecated,
+    ...getMockDescriptor(descriptorState.archiving),
+    version: "1",
   };
 
   const mockEService: EService = {
@@ -36,7 +42,24 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     descriptors: [descriptor],
   };
 
+  const mockApiArchivingScope = catalogApi.ArchivingScope.parse(
+    archivingScheduleScopeToApiArchivingScheduleScope(
+      ArchivingScope.Enum.Descriptor
+    )
+  );
+
+  const apiDescriptor = catalogApi.EServiceDescriptor.parse(
+    descriptorToApiDescriptor(descriptor)
+  );
+
+  apiDescriptor.archivingSchedule = {
+    scope: mockApiArchivingScope,
+    startedAt: descriptor.archivingSchedule?.startedAt.toJSON(),
+    archivableOn: descriptor.archivingSchedule?.archivableOn.toJSON(),
+  };
+
   const mockApiEservice = eServiceToApiEService(mockEService);
+  mockApiEservice.descriptors = [apiDescriptor];
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
@@ -55,7 +78,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mockEService);
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
