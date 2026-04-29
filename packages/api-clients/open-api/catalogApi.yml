@@ -991,7 +991,7 @@ paths:
         - process
       summary: Activate the selected descriptor.
       operationId: activateDescriptor
-      description: Activate the selected descriptor
+      description: Activates the specified descriptor
       parameters:
         - name: eServiceId
           in: path
