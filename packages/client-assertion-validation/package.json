@@ -25,9 +25,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
-    "jsonwebtoken": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:",
