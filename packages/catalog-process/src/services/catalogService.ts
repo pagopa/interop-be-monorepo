@@ -4044,7 +4044,6 @@ const processDescriptorPublication = async (
   );
 
   if (!currentActiveDescriptor) {
-    // No previous active descriptor, so we can just return the published descriptor
     return eserviceWithPublishedDescriptor;
   }
 
