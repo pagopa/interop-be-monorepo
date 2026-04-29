@@ -64,17 +64,30 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
 >;
 
 export const FeatureFlagDpopClientAssertionDebuggerConfig = z
-  .object({
-    FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagDpopClientAssertionDebugger:
-      c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER ?? false,
-  }));
+  .discriminatedUnion("FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER", [
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z.literal("true"),
+      DPOP_HTU_BASE: z.string(),
+      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number().default(60),
+      DPOP_DURATION_SECONDS: z.coerce.number().default(60),
+    }),
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
+        .literal("false")
+        .optional()
+        .default("false"),
+    }),
+  ])
+  .transform((c) =>
+    c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER === "true"
+      ? {
+          featureFlagDpopClientAssertionDebugger: true as const,
+          dpopHtuBase: c.DPOP_HTU_BASE,
+          dpopIatToleranceSeconds: c.DPOP_IAT_TOLERANCE_SECONDS,
+          dpopDurationSeconds: c.DPOP_DURATION_SECONDS,
+        }
+      : { featureFlagDpopClientAssertionDebugger: false as const }
+  );
 export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
   typeof FeatureFlagDpopClientAssertionDebuggerConfig
 >;

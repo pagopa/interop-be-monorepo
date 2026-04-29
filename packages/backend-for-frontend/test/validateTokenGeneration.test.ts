@@ -22,6 +22,9 @@ describe("validateTokenGeneration", () => {
   const MOCK_CLIENT_ASSERTION_TYPE = "test_client_assertion_type";
   const MOCK_GRANT_TYPE = "test_grant_type";
   const MOCK_DPOP_PROOF = "test_dpop_proof_jws";
+  const MOCK_DPOP_HTU_BASE = "test/authorization-server/token.oauth2";
+  const MOCK_DPOP_IAT_TOLERANCE_SECONDS = 60;
+  const MOCK_DPOP_DURATION_SECONDS = 60;
   const MOCK_KID = "kid123";
   const MOCK_PURPOSE_ID = generateId<PurposeId>();
   const MOCK_JWT_PAYLOAD = {
@@ -532,7 +535,12 @@ describe("validateTokenGeneration", () => {
 
   describe("DPoP validation", () => {
     beforeEach(() => {
-      config.featureFlagDpopClientAssertionDebugger = true;
+      Object.assign(config, {
+        featureFlagDpopClientAssertionDebugger: true,
+        dpopHtuBase: MOCK_DPOP_HTU_BASE,
+        dpopIatToleranceSeconds: MOCK_DPOP_IAT_TOLERANCE_SECONDS,
+        dpopDurationSeconds: MOCK_DPOP_DURATION_SECONDS,
+      });
     });
 
     it("should fail when DPoP proof is provided and the DPoP debugger feature flag is disabled", async () => {
@@ -573,7 +581,7 @@ describe("validateTokenGeneration", () => {
             payload: {
               jti: "123",
               iat: 123,
-              htu: config.dpopHtuBase,
+              htu: MOCK_DPOP_HTU_BASE,
               htm: "POST",
             },
           },
@@ -620,10 +628,10 @@ describe("validateTokenGeneration", () => {
 
       expect(dpopValidation.verifyDPoPProof).toHaveBeenCalledWith({
         dpopProofJWS: MOCK_DPOP_PROOF,
-        expectedDPoPProofHtu: config.dpopHtuBase,
+        expectedDPoPProofHtu: MOCK_DPOP_HTU_BASE,
         expectedDPoPProofHtm: "POST",
-        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
-        dpopProofDurationSeconds: config.dpopDurationSeconds,
+        dpopProofIatToleranceSeconds: MOCK_DPOP_IAT_TOLERANCE_SECONDS,
+        dpopProofDurationSeconds: MOCK_DPOP_DURATION_SECONDS,
       });
     });
 
@@ -687,7 +695,7 @@ describe("validateTokenGeneration", () => {
       });
     });
 
-    it("should classify HTU mismatch as DPoP match validation failure", async () => {
+    it("should return HTU mismatch as DPoP validation failure", async () => {
       const htuError: ApiError<"invalidDPoPHtu"> = {
         code: "invalidDPoPHtu",
         message: "HTU mismatch",
@@ -739,7 +747,7 @@ describe("validateTokenGeneration", () => {
             payload: {
               jti: "123",
               iat: 123,
-              htu: config.dpopHtuBase,
+              htu: MOCK_DPOP_HTU_BASE,
               htm: "POST",
             },
           },

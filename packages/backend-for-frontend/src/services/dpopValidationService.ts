@@ -1,11 +1,11 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, featureFlagNotEnabled } from "pagopa-interop-models";
 import {
   verifyDPoPProof,
   verifyDPoPProofSignature,
 } from "pagopa-interop-dpop-validation";
-import { config } from "../config/config.js";
+import { config, type BffProcessConfig } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 
 export type DPoPValidationSteps = Pick<
@@ -21,6 +21,8 @@ export async function validateDPoPProofForTokenGeneration(
     return undefined;
   }
 
+  assertDpopClientAssertionDebuggerConfig(config);
+
   ctx.logger.info("Validating DPoP proof for token generation debug tool");
 
   const validationResult = verifyDPoPProof({
@@ -32,17 +34,7 @@ export async function validateDPoPProofForTokenGeneration(
   });
 
   if (validationResult.errors) {
-    const dpopProofErrors = validationResult.errors.filter(
-      (error: ApiError<string>) => !isDPoPMatchError(error.code)
-    );
-    const dpopMatchErrors = validationResult.errors.filter(
-      (error: ApiError<string>) => isDPoPMatchError(error.code)
-    );
-
-    return toDPoPValidationSteps({
-      dpopProofErrors,
-      dpopMatchErrors,
-    });
+    return toDPoPValidationSteps(validationResult.errors);
   }
 
   const { dpopProofJWT } = validationResult.data;
@@ -53,28 +45,30 @@ export async function validateDPoPProofForTokenGeneration(
   );
 
   if (signatureResult.errors) {
-    return toDPoPValidationSteps({
-      dpopSignatureErrors: signatureResult.errors,
-    });
+    return toDPoPValidationSteps(signatureResult.errors);
   }
 
-  return toDPoPValidationSteps({});
+  return toDPoPValidationSteps();
 }
 
-function toDPoPValidationSteps(errs: {
-  dpopProofErrors?: Array<ApiError<string>>;
-  dpopMatchErrors?: Array<ApiError<string>>;
-  dpopSignatureErrors?: Array<ApiError<string>>;
-}): DPoPValidationSteps {
-  const dpopProofErrors = errs.dpopProofErrors ?? [];
-  const dpopMatchErrors = errs.dpopMatchErrors ?? [];
-  const dpopSignatureErrors = errs.dpopSignatureErrors ?? [];
-  const dpopValidationErrors = [
-    ...dpopProofErrors,
-    ...dpopMatchErrors,
-    ...dpopSignatureErrors,
-  ];
+type DPoPClientAssertionDebuggerConfig = BffProcessConfig & {
+  featureFlagDpopClientAssertionDebugger: true;
+  dpopHtuBase: string;
+  dpopIatToleranceSeconds: number;
+  dpopDurationSeconds: number;
+};
 
+function assertDpopClientAssertionDebuggerConfig(
+  config: BffProcessConfig
+): asserts config is DPoPClientAssertionDebuggerConfig {
+  if (!config.featureFlagDpopClientAssertionDebugger) {
+    throw featureFlagNotEnabled("featureFlagDpopClientAssertionDebugger");
+  }
+}
+
+function toDPoPValidationSteps(
+  dpopValidationErrors: Array<ApiError<string>> = []
+): DPoPValidationSteps {
   return {
     dpopValidation: {
       result:
@@ -97,13 +91,4 @@ function apiErrorsToValidationFailures<T extends string>(
     code: err.code,
     reason: err.message,
   }));
-}
-
-function isDPoPMatchError(code: string): boolean {
-  return (
-    code === "dpopHtuNotFound" ||
-    code === "invalidDPoPHtu" ||
-    code === "dpopHtmNotFound" ||
-    code === "invalidDPoPHtm"
-  );
 }
