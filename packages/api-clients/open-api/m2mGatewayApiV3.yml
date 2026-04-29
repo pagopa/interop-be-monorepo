@@ -3900,10 +3900,7 @@ paths:
       tags:
         - eservices
       summary: Schedule the archiving process for an E-Service Descriptor
-      description: Schedules an archiving of an E-Service Descriptor that is in
-        Deprecated or Suspended state, transitioning it to Archiving or
-        ArchivingSuspended (if state was Suspended), starting the grace period.
-      operationId: scheduleArchiveEserviceDescriptor
+      description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period. 
       parameters:
         - name: eserviceId
           in: path
