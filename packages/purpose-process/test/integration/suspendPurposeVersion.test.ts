@@ -115,9 +115,13 @@ describe("suspendPurposeVersion", () => {
         payload: writtenEvent.data,
       });
 
-      expect(sortPurpose(writtenPayload.purpose)).toEqual(
-        sortPurpose(toPurposeV2(expectedPurpose))
-      );
+      expect({
+        ...writtenPayload,
+        purpose: sortPurpose(writtenPayload.purpose),
+      }).toEqual({
+        purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+        versionId: mockPurposeVersion1.id,
+      });
       expect(suspendResponse).toMatchObject({
         data: expectedPurpose.versions[0],
         metadata: { version: 1 },
@@ -180,9 +184,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -253,9 +261,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
 
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
@@ -319,9 +331,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
 
@@ -398,9 +414,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -478,9 +498,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -604,9 +628,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -716,9 +744,13 @@ describe("suspendPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(suspendResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },

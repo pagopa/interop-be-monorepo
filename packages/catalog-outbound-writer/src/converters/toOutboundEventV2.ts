@@ -100,7 +100,7 @@ export function toOutboundEventV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

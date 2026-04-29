@@ -97,11 +97,15 @@ describe("update Document", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.documentId).toEqual(mockDocument.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(
-        toEServiceV2({
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+        eservice: expectedEservice,
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+        eservice: toEServiceV2({
           ...eservice,
           descriptors: [
             {
@@ -109,8 +113,8 @@ describe("update Document", () => {
               docs: [returnedDocument],
             },
           ],
-        })
-      );
+        }),
+      });
     }
   );
 
@@ -156,11 +160,15 @@ describe("update Document", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(mockDocument.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2({
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: expectedEservice,
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: toEServiceV2({
         ...eservice,
         descriptors: [
           {
@@ -168,8 +176,8 @@ describe("update Document", () => {
             interface: returnedDocument,
           },
         ],
-      })
-    );
+      }),
+    });
   });
 
   it.each(
@@ -231,11 +239,15 @@ describe("update Document", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.documentId).toEqual(mockDocument.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(
-        toEServiceV2({
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+        eservice: expectedEservice,
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+        eservice: toEServiceV2({
           ...eservice,
           descriptors: [
             {
@@ -243,8 +255,8 @@ describe("update Document", () => {
               docs: [returnedDocument],
             },
           ],
-        })
-      );
+        }),
+      });
     }
   );
 
@@ -297,11 +309,15 @@ describe("update Document", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(mockDocument.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2({
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: expectedEservice,
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: toEServiceV2({
         ...eservice,
         descriptors: [
           {
@@ -309,8 +325,8 @@ describe("update Document", () => {
             interface: returnedDocument,
           },
         ],
-      })
-    );
+      }),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

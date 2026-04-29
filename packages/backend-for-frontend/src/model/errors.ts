@@ -56,6 +56,7 @@ const errorCodes = {
   operationForbidden: "0048",
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
+  clientNotFound: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -472,5 +473,13 @@ export function templateInstanceNotAllowed(
     detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
+  });
+}
+
+export function clientNotFound(clientId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
