@@ -20,6 +20,7 @@ import {
   EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
   EServiceEventEnvelope,
+  EServiceEventEnvelopeV2,
   EServiceTemplateId,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
@@ -383,7 +384,10 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe("EServiceDescriptorArchived, EServiceDescriptorArchivingCompleted", () => {
+  describe.each([
+    "EServiceDescriptorArchived",
+    "EServiceDescriptorArchivingCompleted",
+  ])("%s", (eventName) => {
     it("should delete the entry from platform states and update token generation states", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -402,11 +406,13 @@ describe("integration tests V2 events", async () => {
         eservice: toEServiceV2(eservice),
         descriptorId: archivedDescriptor.id,
       };
-      const message: EServiceEventEnvelope = {
+      const message: EServiceEventEnvelopeV2 = {
         sequence_num: 1,
         stream_id: eservice.id,
         version: 2,
-        type: "EServiceDescriptorArchived",
+        type: eventName as
+          | "EServiceDescriptorArchived"
+          | "EServiceArchivingCompleted",
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -534,7 +540,7 @@ describe("integration tests V2 events", async () => {
         log_date: new Date(),
       };
 
-      await Promise.all(
+      const primaryKeysAndClients = await Promise.all(
         eservice.descriptors.map(async (descriptor) => {
           const primaryKey = makePlatformStatesEServiceDescriptorPK({
             eserviceId: eservice.id,
@@ -590,37 +596,41 @@ describe("integration tests V2 events", async () => {
             tokenGenStatesConsumerClient2,
             dynamoDBClient
           );
-
-          await handleMessageV2(message, dynamoDBClient, genericLogger);
-
-          const retrievedEntry = await readCatalogEntry(
+          return {
             primaryKey,
-            dynamoDBClient
-          );
-          expect(retrievedEntry).toBeUndefined();
-
-          // token-generation-states
-          const retrievedTokenGenStatesEntries =
-            await readAllTokenGenStatesItems(dynamoDBClient);
-          const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
-            {
-              ...tokenGenStatesConsumerClient1,
-              descriptorState: itemState.inactive,
-              updatedAt: new Date().toISOString(),
-            };
-          const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
-            {
-              ...tokenGenStatesConsumerClient2,
-              descriptorState: itemState.inactive,
-              updatedAt: new Date().toISOString(),
-            };
-          expect(retrievedTokenGenStatesEntries).toEqual(
-            expect.arrayContaining([
-              expectedTokenGenStatesConsumeClient1,
-              expectedTokenGenStatesConsumeClient2,
-            ])
-          );
+            tokenGenStatesConsumerClients: [
+              tokenGenStatesConsumerClient1,
+              tokenGenStatesConsumerClient2,
+            ],
+          };
         })
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      await Promise.all(
+        primaryKeysAndClients.map(
+          async ({ primaryKey, tokenGenStatesConsumerClients }) => {
+            const retrievedEntry = await readCatalogEntry(
+              primaryKey,
+              dynamoDBClient
+            );
+            expect(retrievedEntry).toBeUndefined();
+
+            // token-generation-states
+            const retrievedTokenGenStatesEntries =
+              await readAllTokenGenStatesItems(dynamoDBClient);
+            const expectedTokenGenStatesConsumeClients =
+              tokenGenStatesConsumerClients.map((client) => ({
+                ...client,
+                updatedAt: new Date().toISOString(),
+                descriptorState: itemState.inactive,
+              }));
+            expect(retrievedTokenGenStatesEntries).toEqual(
+              expect.arrayContaining(expectedTokenGenStatesConsumeClients)
+            );
+          }
+        )
       );
     });
   });
