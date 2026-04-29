@@ -45,6 +45,7 @@ catalog:
   "@zodios/core": 10.9.6
   "@zodios/express": 10.6.1
   adm-zip: 0.5.16
+  asn1js: 3.0.7
   archiver: 7.0.1
   aws-msk-iam-sasl-signer-js: 1.0.1
   aws-sdk-client-mock: 4.0.1
@@ -88,6 +89,7 @@ catalog:
   p-limit: 6.2.0
   p-retry: 6.2.1
   pg: 8.13.1
+  pkijs: 3.4.0
   prettier: 3.8.1
   pg-promise: 11.8.0
   puppeteer: 22.11.2
