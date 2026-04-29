@@ -71,9 +71,7 @@ describe("create descriptor", async () => {
       ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -110,9 +108,7 @@ describe("create descriptor", async () => {
       serverUrls: [],
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -163,9 +159,7 @@ describe("create descriptor", async () => {
       ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -215,9 +209,7 @@ describe("create descriptor", async () => {
       serverUrls: [],
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
       docs: [],
@@ -291,9 +283,7 @@ describe("create descriptor", async () => {
       ...buildCreateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
     };
@@ -343,9 +333,7 @@ describe("create descriptor", async () => {
       serverUrls: [],
       attributes: {
         certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: attribute.id }]],
         verified: [],
       },
       docs: [],
@@ -439,14 +427,12 @@ describe("create descriptor", async () => {
         certified: [],
         declared: [
           [
-            { id: attribute.id, explicitAttributeVerification: false },
+            { id: attribute.id },
             {
               id: notExistingId1,
-              explicitAttributeVerification: false,
             },
             {
               id: notExistingId2,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -581,7 +567,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockCertifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -590,7 +575,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockDeclaredAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -640,7 +624,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockCertifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -649,7 +632,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockDeclaredAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -695,7 +677,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockCertifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 200,
             },
           ],
@@ -741,7 +722,6 @@ describe("create descriptor", async () => {
           [
             {
               id: mockDeclaredAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],

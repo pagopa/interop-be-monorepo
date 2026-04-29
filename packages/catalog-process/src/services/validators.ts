@@ -488,11 +488,7 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
-      if (
-        !seedAttr ||
-        seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
-      ) {
+      if (!seedAttr) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
     }

@@ -74,7 +74,7 @@ const toCatalogAttributeValueV1 = (
     a: EServiceAttribute
   ): CatalogAttributeValueV1 => ({
     id: a.id,
-    explicitAttributeVerification: a.explicitAttributeVerification,
+    explicitAttributeVerification: false,
   });
 
   return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];

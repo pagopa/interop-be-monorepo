@@ -43,7 +43,6 @@ export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
 export const EServiceAttribute = z.object({
   id: AttributeId,
-  explicitAttributeVerification: z.boolean(),
   dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;

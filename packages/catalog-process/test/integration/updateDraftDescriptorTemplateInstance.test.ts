@@ -411,7 +411,6 @@ describe("update draft descriptor instance", () => {
           [
             {
               id: certifiedAttributeId,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -436,7 +435,6 @@ describe("update draft descriptor instance", () => {
         [
           {
             id: certifiedAttributeId,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 500,
           },
         ],
@@ -463,7 +461,6 @@ describe("update draft descriptor instance", () => {
               [
                 {
                   id: certifiedAttributeId,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 500,
                 },
               ],
@@ -519,7 +516,6 @@ describe("update draft descriptor instance", () => {
           [
             {
               id: certifiedAttributeId,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -559,7 +555,6 @@ describe("update draft descriptor instance", () => {
               [
                 {
                   id: certifiedAttributeId,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 500,
                 },
               ],
@@ -608,7 +603,6 @@ describe("update draft descriptor instance", () => {
           [
             {
               id: certifiedAttributeId,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -637,7 +631,6 @@ describe("update draft descriptor instance", () => {
             [
               {
                 id: certifiedAttributeId,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -669,7 +662,6 @@ describe("update draft descriptor instance", () => {
               [
                 {
                   id: certifiedAttributeId,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -706,7 +698,6 @@ describe("update draft descriptor instance", () => {
           [
             {
               id: declaredAttributeId,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -731,7 +722,6 @@ describe("update draft descriptor instance", () => {
         [
           {
             id: declaredAttributeId,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 100,
           },
         ],
@@ -774,7 +764,6 @@ describe("update draft descriptor instance", () => {
           [
             {
               id: certifiedAttributeId,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -799,7 +788,6 @@ describe("update draft descriptor instance", () => {
         [
           {
             id: certifiedAttributeId,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 500,
           },
         ],

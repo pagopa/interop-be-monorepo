@@ -173,8 +173,6 @@ describe("E-service splitter", () => {
       attributeId: certifiedAttribute.id,
       descriptorId: descriptor.id,
       groupId: 0,
-      explicitAttributeVerification:
-        certifiedAttribute.explicitAttributeVerification,
       dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
     };
 

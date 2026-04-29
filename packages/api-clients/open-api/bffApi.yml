@@ -28553,8 +28553,6 @@ components:
           type: string
         description:
           type: string
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -28564,7 +28562,6 @@ components:
         - id
         - name
         - description
-        - explicitAttributeVerification
     DescriptorAttributesSeed:
       type: object
       additionalProperties: false
@@ -28598,8 +28595,6 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -28607,7 +28602,6 @@ components:
           maximum: 1000000000
       required:
         - id
-        - explicitAttributeVerification
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
@@ -29981,11 +29975,8 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
       required:
         - id
-        - explicitAttributeVerification
     EServiceTemplatePersonalDataFlagUpdateSeed:
       type: object
       additionalProperties: false

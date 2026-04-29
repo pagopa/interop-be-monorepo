@@ -391,7 +391,7 @@ describe("update descriptor", () => {
       publishedAt: new Date(),
       attributes: {
         certified: [
-          [{ id: certifiedAttribute.id, explicitAttributeVerification: false }],
+          [{ id: certifiedAttribute.id }],
         ],
         verified: [],
         declared: [],
@@ -412,7 +412,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 100,
             },
           ],
@@ -435,7 +434,6 @@ describe("update descriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 100,
                 },
               ],
@@ -487,7 +485,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -511,7 +508,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -533,7 +529,6 @@ describe("update descriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -583,7 +578,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -607,7 +601,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -629,7 +622,6 @@ describe("update descriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -694,7 +686,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 200,
             },
           ],
@@ -733,7 +724,6 @@ describe("update descriptor", () => {
                   [
                     {
                       id: nonCertifiedAttribute.id,
-                      explicitAttributeVerification: false,
                     },
                   ],
                 ]
@@ -744,7 +734,6 @@ describe("update descriptor", () => {
                   [
                     {
                       id: nonCertifiedAttribute.id,
-                      explicitAttributeVerification: false,
                     },
                   ],
                 ]
@@ -759,7 +748,6 @@ describe("update descriptor", () => {
 
       const attributeWithDailyCalls = {
         id: nonCertifiedAttribute.id,
-        explicitAttributeVerification: false,
         dailyCallsPerConsumer: 100,
       };
       const seed: catalogApi.UpdateEServiceDescriptorQuotasSeed = {
@@ -804,7 +792,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
