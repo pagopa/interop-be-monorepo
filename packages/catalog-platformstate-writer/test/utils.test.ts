@@ -259,17 +259,20 @@ describe("utils tests", async () => {
   });
 
   describe("descriptorStateToClientState", async () => {
-    it.each([descriptorState.published, descriptorState.deprecated])(
-      "should convert %s state to active",
-      async (s) => {
-        expect(descriptorStateToItemState(s)).toBe(itemState.active);
-      }
-    );
+    it.each([
+      descriptorState.published,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+    ])("should convert %s state to active", async (s) => {
+      expect(descriptorStateToItemState(s)).toBe(itemState.active);
+    });
 
     it.each([
       descriptorState.archived,
       descriptorState.draft,
       descriptorState.suspended,
+      descriptorState.archivingSuspended,
+      descriptorState.waitingForApproval,
     ])("should convert %s state to inactive", async (s) => {
       expect(descriptorStateToItemState(s)).toBe(itemState.inactive);
     });
