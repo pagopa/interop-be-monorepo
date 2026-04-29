@@ -37,13 +37,13 @@ export const nextDescriptorVersion = (eservice: EService): string => {
   return (parsedVersion + 1).toString();
 };
 
-export const getLatestDescriptorByStates = (
+export const getPreviousDescriptorByStates = (
   eservice: EService,
+  newVersion: string,
   states: DescriptorState[]
 ): Descriptor | undefined =>
-  [...eservice.descriptors]
-    .filter((d) => states.includes(d.state))
-    .sort(
-      (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
-    )
-    .at(-1);
+  eservice.descriptors.find(
+    (d) =>
+      d.version === (parseVersionNumber(newVersion) - 1).toString() &&
+      states.includes(d.state)
+  );

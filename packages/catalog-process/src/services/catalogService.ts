@@ -158,7 +158,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
-  getLatestDescriptorByStates,
+  getPreviousDescriptorByStates,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -4021,10 +4021,14 @@ const processDescriptorPublication = async (
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
-  const currentActiveDescriptor = getLatestDescriptorByStates(eservice, [
-    descriptorState.published,
-    descriptorState.suspended, // The last active descriptor could be suspended
-  ]);
+  const currentActiveDescriptor = getPreviousDescriptorByStates(
+    eservice,
+    descriptor.version,
+    [
+      descriptorState.published,
+      descriptorState.suspended, // The last active descriptor could be suspended
+    ]
+  );
 
   const publishedDescriptor = updateDescriptorState(
     descriptor,
