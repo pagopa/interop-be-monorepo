@@ -61,7 +61,6 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             id: declaredAttributeId,
-            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -69,7 +68,6 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             id: certifiedAttributeId,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
           },
         ],
@@ -78,7 +76,6 @@ describe("getCatalogEServiceDescriptor", () => {
         [
           {
             id: verifiedAttributeId,
-            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -145,7 +142,6 @@ describe("getCatalogEServiceDescriptor", () => {
             description: attributeDescription,
             id: certifiedAttributeId,
             name: certifiedAttributeName,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
           },
         ],
@@ -156,7 +152,6 @@ describe("getCatalogEServiceDescriptor", () => {
             description: attributeDescription,
             id: declaredAttributeId,
             name: declaredAttributeName,
-            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -166,7 +161,6 @@ describe("getCatalogEServiceDescriptor", () => {
             description: attributeDescription,
             id: verifiedAttributeId,
             name: verifiedAttributeName,
-            explicitAttributeVerification: false,
           },
         ],
       ],

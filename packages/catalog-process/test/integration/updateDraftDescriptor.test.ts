@@ -446,7 +446,6 @@ describe("updateDraftDescriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -455,7 +454,6 @@ describe("updateDraftDescriptor", () => {
           [
             {
               id: verifiedAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -480,7 +478,6 @@ describe("updateDraftDescriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -489,7 +486,6 @@ describe("updateDraftDescriptor", () => {
           [
             {
               id: verifiedAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -510,7 +506,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 500,
                 },
               ],
@@ -519,7 +514,6 @@ describe("updateDraftDescriptor", () => {
               [
                 {
                   id: verifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],

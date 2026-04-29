@@ -443,12 +443,10 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             [
               {
                 id: mockCertifiedAttribute1.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: dailyCallsAttr1,
               },
               {
                 id: mockCertifiedAttribute2.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: dailyCallsAttr2,
               },
             ],
@@ -470,15 +468,12 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute2.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute3.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -487,7 +482,6 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             ...validMockDescriptorVerifiedAttributes[0],
             {
               id: mockVerifiedAttribute3.id,
-              explicitAttributeVerification: false,
             },
           ],
           validMockDescriptorVerifiedAttributes[1],
@@ -554,24 +548,20 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             [
               {
                 id: mockCertifiedAttribute1.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: firstGroupAttr1DailyCalls,
               },
               {
                 id: mockCertifiedAttribute2.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: firstGroupAttr2DailyCalls,
               },
             ],
             [
               {
                 id: mockCertifiedAttribute1.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: secondGroupAttr1DailyCalls,
               },
               {
                 id: mockCertifiedAttribute2.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: secondGroupAttr2DailyCalls,
               },
             ],
@@ -593,25 +583,20 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute2.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute3.id,
-              explicitAttributeVerification: false,
             },
           ],
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute2.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -649,28 +634,23 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
                 [
                   {
                     id: mockCertifiedAttribute1.id,
-                    explicitAttributeVerification: false,
                     dailyCallsPerConsumer: firstGroupAttr1DailyCalls,
                   },
                   {
                     id: mockCertifiedAttribute2.id,
-                    explicitAttributeVerification: false,
                     dailyCallsPerConsumer: firstGroupAttr2DailyCalls,
                   },
                   {
                     id: mockCertifiedAttribute3.id,
-                    explicitAttributeVerification: false,
                   },
                 ],
                 [
                   {
                     id: mockCertifiedAttribute1.id,
-                    explicitAttributeVerification: false,
                     dailyCallsPerConsumer: secondGroupAttr1DailyCalls,
                   },
                   {
                     id: mockCertifiedAttribute2.id,
-                    explicitAttributeVerification: false,
                     dailyCallsPerConsumer: secondGroupAttr2DailyCalls,
                   },
                 ],
