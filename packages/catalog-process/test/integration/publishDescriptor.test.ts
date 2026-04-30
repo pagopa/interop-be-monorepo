@@ -4,6 +4,7 @@ import {
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockExpiredRiskAnalysis,
   getMockDelegation,
   getMockAuthData,
   getMockContext,
@@ -752,5 +753,86 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
+
+  it("should succeed publishing a new descriptor when risk analysis form version is expired but was valid at first publication", async () => {
+    const firstPublishedAt = new Date("2026-07-01");
+
+    const descriptor1: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "1",
+      state: descriptorState.published,
+      publishedAt: firstPublishedAt,
+      interface: getMockDocument(),
+    };
+    const descriptor2: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.draft,
+      interface: getMockDocument(),
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    // PA 2.0 is expired, but was valid at firstPublishedAt (2026-07-01)
+    const riskAnalysis = getMockExpiredRiskAnalysis(tenantKind.PA);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor1, descriptor2],
+      riskAnalysis: [riskAnalysis],
+      personalData: true,
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    const publishDescriptorResponse = await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor2.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorPublished",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorPublishedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor1: Descriptor = {
+      ...descriptor1,
+      archivedAt: new Date(),
+      state: descriptorState.archived,
+    };
+    const expectedDescriptor2: Descriptor = {
+      ...descriptor2,
+      publishedAt: new Date(),
+      state: descriptorState.published,
+    };
+
+    const expectedEservice: EService = {
+      ...eservice,
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
+    };
+
+    expect(publishDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
+    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 });
