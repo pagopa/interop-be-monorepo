@@ -4,6 +4,7 @@ import {
   descriptorState,
   unsafeBrandId,
   archivingScope,
+  EServiceId,
 } from "pagopa-interop-models";
 import { toUTCMidnight } from "pagopa-interop-commons";
 import {
@@ -77,6 +78,46 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         descriptorId: unsafeBrandId(descriptor.id),
       }));
       return refsToBeArchived;
+    },
+    async getExpiredArchivableEserviceRefs(): Promise<EServiceId[]> {
+      const queryResult: {
+        eservice: EServiceSQL;
+      }[] = await readModelDB
+        .selectDistinct({
+          eservice: eserviceInReadmodelCatalog,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            inArray(eserviceDescriptorInReadmodelCatalog.state, [
+              descriptorState.archiving,
+              descriptorState.archivingSuspended,
+            ]),
+            lt(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              new Date(toUTCMidnight(new Date(), 0)).toISOString()
+            ),
+            eq(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+              archivingScope.eservice
+            )
+          )
+        );
+      return queryResult.map((row) => unsafeBrandId(row.eservice.id));
     },
   };
 }
