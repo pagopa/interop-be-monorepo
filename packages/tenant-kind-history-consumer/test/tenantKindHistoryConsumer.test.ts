@@ -7,9 +7,9 @@ import {
 } from "./utils.js";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
-describe("tenantKindHistory Writer Service", async () => {
+describe("tenantKindHistory Writer Service", () => {
   it("writes history only when there is a tenant kind change", async () => {
     const tenant: Tenant = getMockTenant();
 
@@ -82,7 +82,8 @@ describe("tenantKindHistory Writer Service", async () => {
     const backToFirst = await tenantKindHistoryDB
       .select()
       .from(tenantKindHistory)
-      .where(eq(tenantKindHistory.tenantId, tenant.id));
+      .where(eq(tenantKindHistory.tenantId, tenant.id))
+      .orderBy(asc(tenantKindHistory.metadataVersion));
 
     expect(backToFirst).toHaveLength(3);
     expect(backToFirst[0]).toMatchObject({
