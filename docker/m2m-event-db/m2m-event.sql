@@ -175,6 +175,11 @@ CREATE TABLE IF NOT EXISTS m2m_event.key (
   kid VARCHAR NOT NULL,
   client_id UUID NOT NULL,
 
+  -- Columns to filter events based on tenant
+  consumer_id UUID NOT NULL,
+
+  visibility VARCHAR NOT NULL,
+
   PRIMARY KEY (id)
 );
 
@@ -187,6 +192,11 @@ CREATE TABLE IF NOT EXISTS m2m_event.producer_key (
   resource_version INT NOT NULL,
   kid VARCHAR NOT NULL,
   producer_keychain_id UUID NOT NULL,
+
+  -- Columns to filter events based on tenant
+  producer_id UUID NOT NULL,
+
+  visibility VARCHAR NOT NULL,
 
   PRIMARY KEY (id)
 );
@@ -207,4 +217,3 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_template (
   
   PRIMARY KEY (id)
 );
-

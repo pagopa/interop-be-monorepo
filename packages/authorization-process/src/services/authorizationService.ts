@@ -1694,6 +1694,7 @@ export function authorizationServiceBuilder(
       kid: string,
       {
         logger,
+        authData,
       }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
     ): Promise<authorizationApi.ClientJWK> {
       logger.info(`Retrieving key with id ${kid}`);
@@ -1704,12 +1705,19 @@ export function authorizationServiceBuilder(
         throw jwkNotFound(kid);
       }
 
+      const { data: client } = await retrieveClient(
+        clientKey.clientId,
+        readModelService
+      );
+      assertOrganizationIsClientConsumer(authData, client);
+
       return clientJWKToApiClientJWK(clientKey);
     },
     async getProducerJWKByKid(
       kid: string,
       {
         logger,
+        authData,
       }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
     ): Promise<authorizationApi.ProducerJWK> {
       logger.info(`Retrieving key with id ${kid}`);
@@ -1719,6 +1727,12 @@ export function authorizationServiceBuilder(
       if (!producerKey) {
         throw producerJwkNotFound(kid);
       }
+
+      const { data: producerKeychain } = await retrieveProducerKeychain(
+        producerKey.producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(authData, producerKeychain);
 
       return producerJWKToApiProducerJWK(producerKey);
     },

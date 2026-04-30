@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { m2mEventApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { eventService, mockInteropBeClients } from "../../integrationUtils.js";
+import {
+  eventService,
+  expectApiClientGetToHaveBeenCalledWith,
+  mockInteropBeClients,
+} from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
@@ -11,6 +15,13 @@ describe("getKeyEvents integration", () => {
       id: generateId(),
       eventTimestamp: new Date().toJSON(),
       eventType: "CLIENT_KEY_ADDED",
+      clientId: generateId(),
+      kid: generateId(),
+    },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "CLIENT_KEY_DELETED",
       clientId: generateId(),
       kid: generateId(),
     },
@@ -32,7 +43,7 @@ describe("getKeyEvents integration", () => {
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and return empty events array",
+    "Should return key events from the event manager",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApiV3.KeyEvents = {
         events,
@@ -45,6 +56,13 @@ describe("getKeyEvents integration", () => {
         getMockM2MAdminAppContext()
       );
       expect(result).toStrictEqual(expectedResponse);
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockGetKeyM2MEvents,
+        queries: {
+          lastEventId,
+          limit: 10,
+        },
+      });
     }
   );
 });

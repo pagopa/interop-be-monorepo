@@ -236,12 +236,21 @@ export function m2mEventReaderServiceSQLBuilder(
     },
     async getKeyM2MEvents(
       lastEventId: KeyM2MEventId | undefined,
-      limit: number
+      limit: number,
+      requester: TenantId
     ): Promise<KeyM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
         .from(keyInM2MEvent)
-        .where(afterEventIdFilter(keyInM2MEvent, lastEventId))
+        .where(
+          and(
+            afterEventIdFilter(keyInM2MEvent, lastEventId),
+            visibilityFilter(keyInM2MEvent, {
+              ownerFilter: eq(keyInM2MEvent.consumerId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
         .orderBy(asc(keyInM2MEvent.id))
         .limit(limit);
 
@@ -296,12 +305,21 @@ export function m2mEventReaderServiceSQLBuilder(
 
     async getProducerKeyM2MEvents(
       lastEventId: ProducerKeyM2MEventId | undefined,
-      limit: number
+      limit: number,
+      requester: TenantId
     ): Promise<ProducerKeyM2MEvent[]> {
       const sqlEvents = await m2mEventDB
         .select()
         .from(producerKeyInM2MEvent)
-        .where(afterEventIdFilter(producerKeyInM2MEvent, lastEventId))
+        .where(
+          and(
+            afterEventIdFilter(producerKeyInM2MEvent, lastEventId),
+            visibilityFilter(producerKeyInM2MEvent, {
+              ownerFilter: eq(producerKeyInM2MEvent.producerId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
         .orderBy(asc(producerKeyInM2MEvent.id))
         .limit(limit);
 
