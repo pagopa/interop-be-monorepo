@@ -246,6 +246,12 @@ export function assertRiskAnalysisIsValidForPublication(
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
+  const firstPublishedAt = eservice.descriptors.find(
+    (d) => d.publishedAt !== undefined
+  )?.publishedAt;
+
+  const dateForRiskAnalysisValidation = firstPublishedAt ?? new Date();
+
   eservice.riskAnalysis.forEach((riskAnalysis) => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -253,7 +259,7 @@ export function assertRiskAnalysisIsValidForPublication(
       ),
       false,
       tenantKind,
-      new Date(),
+      dateForRiskAnalysisValidation,
       eservice.personalData
     );
 
