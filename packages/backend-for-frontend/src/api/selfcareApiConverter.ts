@@ -40,21 +40,19 @@ export const toApiSelfcareInstitution = (
         };
       }
     )
-    .with({ institutionId: P.nullish }, () => {
+    .with({ institutionId: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
     })
-    .with({ institutionDescription: P.nullish }, () => {
+    .with({ institutionDescription: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled(
         "UserInstitutionResource",
         "institutionDescription"
       );
     })
-    .with({ products: P.nullish }, () => {
+    .with({ products: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserInstitutionResource", "products");
     })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("UserInstitutionResource", "unknown");
-    });
+    .exhaustive();
 
 export const toApiSelfcareProduct = (
   input: selfcareV2ClientApi.ProductResource
@@ -70,9 +68,6 @@ export const toApiSelfcareUser = (
   match(input)
     .with(
       {
-        id: P.nonNullable,
-        name: P.nonNullable,
-        surname: P.nonNullable,
         roles: P.nonNullable,
       },
       (user) => ({
@@ -83,18 +78,7 @@ export const toApiSelfcareUser = (
         tenantId,
       })
     )
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "id");
-    })
-    .with({ name: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "name");
-    })
-    .with({ surname: P.nullish }, () => {
-      throw selfcareEntityNotFilled("UserResource", "surname");
-    })
-    .with({ roles: P.nullish }, () => {
+    .with({ roles: P.nullish.optional() }, () => {
       throw selfcareEntityNotFilled("UserResource", "roles");
     })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("UserResource", "unknown");
-    });
+    .exhaustive();
