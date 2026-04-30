@@ -756,7 +756,7 @@ describe("publish descriptor", () => {
   });
 
   it("should succeed publishing a new descriptor when risk analysis form version is expired but was valid at first publication", async () => {
-    const firstPublishedAt = new Date("2026-07-01");
+    const firstPublishedAt = new Date("2023-07-01");
 
     const descriptor1: Descriptor = {
       ...mockDescriptor,
@@ -779,7 +779,7 @@ describe("publish descriptor", () => {
       kind: tenantKind.PA,
     };
 
-    // PA 2.0 is expired, but was valid at firstPublishedAt (2026-07-01)
+    // PA 2.0 is expired, but was valid at firstPublishedAt (2023-07-01)
     const riskAnalysis = getMockExpiredRiskAnalysis(tenantKind.PA);
 
     const eservice: EService = {
