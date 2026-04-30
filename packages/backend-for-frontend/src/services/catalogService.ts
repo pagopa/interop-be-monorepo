@@ -6,6 +6,7 @@ import AdmZip from "adm-zip";
 import {
   agreementApi,
   attributeRegistryApi,
+  authorizationApi,
   bffApi,
   catalogApi,
   delegationApi,
@@ -33,6 +34,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -303,11 +305,30 @@ const getAllEserviceConsumers = async (
     })
   );
 
+const getAllProducerKeychainsByEService = async (
+  authorizationClient: AuthorizationProcessClient,
+  headers: Headers,
+  eServiceId: EServiceId,
+  producerId: TenantId
+): Promise<authorizationApi.ProducerKeychain[]> =>
+  await getAllFromPaginated(async (offset, limit) =>
+    authorizationClient.producerKeychain.getProducerKeychains({
+      headers,
+      queries: {
+        eserviceId: eServiceId,
+        producerId,
+        offset,
+        limit,
+      },
+    })
+  );
+
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
+  authorizationClient: AuthorizationProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
@@ -387,10 +408,25 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const attributes = await getAllBulkAttributes(
-        attributeProcessClient,
-        headers,
-        descriptorAttributeIds
+      const [attributes, producerKeychains] = await Promise.all([
+        getAllBulkAttributes(
+          attributeProcessClient,
+          headers,
+          descriptorAttributeIds
+        ),
+        getAllProducerKeychainsByEService(
+          authorizationClient,
+          headers,
+          eserviceId,
+          requesterId
+        ),
+      ]);
+
+      const hasProducerKeychain = producerKeychains.length > 0;
+      const hasProducerKeychainKeys = producerKeychains.some(
+        (keychain) =>
+          keychain.visibility === authorizationApi.Visibility.Values.FULL &&
+          keychain.keys.length > 0
       );
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
@@ -442,6 +478,14 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
+      const producerDescriptorEService =
+        await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+          eservice,
+          producerTenant,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
+        );
+
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -457,11 +501,7 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice:
-          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
-            eservice,
-            producerTenant
-          ),
+        eservice: producerDescriptorEService,
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
