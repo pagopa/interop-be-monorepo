@@ -78,7 +78,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
         generateId(),
         mockProducerKeychain.data.id
       ),
-      expectedStatus: 403,
+      expectedStatus: 404,
     },
     {
       error: userWithoutSecurityPrivileges(generateId(), users[0]),
