@@ -181,8 +181,6 @@ export const getMockBffApiProducerEServiceDescriptor =
       z.array(bffApi.DescriptorRejectionReason).optional()
     ),
     serverUrls: generateMock(z.array(z.string().url()).optional()),
-    hasProducerKeychain: generateMock(z.boolean()),
-    hasProducerKeychainKeys: generateMock(z.boolean()),
     templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   });

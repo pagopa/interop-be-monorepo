@@ -194,8 +194,8 @@ describe("getProducerEServiceDescriptor", () => {
       bffMockContext
     );
 
-    expect(result.hasProducerKeychain).toBe(false);
-    expect(result.hasProducerKeychainKeys).toBe(false);
+    expect(result.eservice.hasProducerKeychain).toBe(false);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(false);
   });
 
   it("should distinguish a producer keychain without keys", async () => {
@@ -207,8 +207,8 @@ describe("getProducerEServiceDescriptor", () => {
       bffMockContext
     );
 
-    expect(result.hasProducerKeychain).toBe(true);
-    expect(result.hasProducerKeychainKeys).toBe(false);
+    expect(result.eservice.hasProducerKeychain).toBe(true);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(false);
   });
 
   it("should return true fields when the producer keychain has keys", async () => {
@@ -220,8 +220,8 @@ describe("getProducerEServiceDescriptor", () => {
       bffMockContext
     );
 
-    expect(result.hasProducerKeychain).toBe(true);
-    expect(result.hasProducerKeychainKeys).toBe(true);
+    expect(result.eservice.hasProducerKeychain).toBe(true);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(true);
     expect(mockProducerKeychains).toHaveBeenCalledWith({
       headers: bffMockContext.headers,
       queries: {
@@ -248,8 +248,8 @@ describe("getProducerEServiceDescriptor", () => {
       delegateBffMockContext
     );
 
-    expect(result.hasProducerKeychain).toBe(true);
-    expect(result.hasProducerKeychainKeys).toBe(true);
+    expect(result.eservice.hasProducerKeychain).toBe(true);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(true);
     expect(mockProducerKeychains).toHaveBeenCalledWith({
       headers: delegateBffMockContext.headers,
       queries: {

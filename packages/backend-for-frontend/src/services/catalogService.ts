@@ -478,6 +478,14 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
+      const producerDescriptorEService =
+        await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+          eservice,
+          producerTenant,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
+        );
+
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -493,19 +501,13 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice:
-          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
-            eservice,
-            producerTenant
-          ),
+        eservice: producerDescriptorEService,
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
         suspendedAt: descriptor.suspendedAt,
         rejectionReasons: descriptor.rejectionReasons,
         serverUrls: descriptor.serverUrls,
-        hasProducerKeychain,
-        hasProducerKeychainKeys,
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
