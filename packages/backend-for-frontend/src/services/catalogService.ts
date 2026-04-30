@@ -418,7 +418,7 @@ export function catalogServiceBuilder(
           authorizationClient,
           headers,
           eserviceId,
-          unsafeBrandId<TenantId>(eservice.producerId)
+          requesterId
         ),
       ]);
 

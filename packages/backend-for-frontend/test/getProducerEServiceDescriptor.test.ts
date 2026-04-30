@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   attributeRegistryApi,
   authorizationApi,
@@ -6,6 +6,7 @@ import {
   agreementApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  delegationApi,
 } from "pagopa-interop-api-clients";
 import {
   DescriptorId,
@@ -23,9 +24,11 @@ import type {
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { config } from "../src/config/config.js";
 import { fileManager, getBffMockContext } from "./utils.js";
+import { getMockDelegationApiDelegation } from "./mockUtils.js";
 
 describe("getProducerEServiceDescriptor", () => {
   const tenantId: TenantId = generateId<TenantId>();
+  const delegateId: TenantId = generateId<TenantId>();
   const eServiceId: EServiceId = generateId<EServiceId>();
   const descriptorId: DescriptorId = generateId<DescriptorId>();
 
@@ -34,6 +37,13 @@ describe("getProducerEServiceDescriptor", () => {
     organizationId: tenantId,
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
+  const delegateAuthData: AuthData = {
+    ...getMockAuthData(),
+    organizationId: delegateId,
+  };
+  const delegateBffMockContext = getBffMockContext(
+    getMockContext({ authData: delegateAuthData })
+  );
 
   const descriptor: catalogApi.EServiceDescriptor = {
     id: descriptorId,
@@ -71,12 +81,12 @@ describe("getProducerEServiceDescriptor", () => {
 
   const mockTenantProcessClient = {
     tenant: {
-      getTenant: vi.fn().mockResolvedValue({
-        id: tenantId,
-        name: "mockTenant",
+      getTenant: vi.fn(({ params: { id } }) => ({
+        id,
+        name: id === delegateId ? "mockDelegate" : "mockTenant",
         attributes: [],
         mails: [],
-      }),
+      })),
     },
   } as unknown as TenantProcessClient;
 
@@ -91,6 +101,7 @@ describe("getProducerEServiceDescriptor", () => {
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
   const mockProducerKeychains = vi.fn();
+  const mockGetDelegations = vi.fn();
 
   const mockAuthorizationClient = {
     producerKeychain: {
@@ -100,10 +111,7 @@ describe("getProducerEServiceDescriptor", () => {
 
   const mockDelegationProcessClient = {
     delegation: {
-      getDelegations: vi.fn().mockResolvedValue({
-        results: [],
-        totalCount: 0,
-      }),
+      getDelegations: mockGetDelegations,
     },
   } as unknown as DelegationProcessClient;
 
@@ -136,12 +144,13 @@ describe("getProducerEServiceDescriptor", () => {
   });
 
   const mockFullProducerKeychain = (
-    keys: authorizationApi.Key[]
+    keys: authorizationApi.Key[],
+    producerId: TenantId = tenantId
   ): authorizationApi.ProducerKeychain => ({
     visibility: authorizationApi.Visibility.Values.FULL,
     id: generateId(),
     name: "mockProducerKeychain",
-    producerId: tenantId,
+    producerId,
     createdAt: new Date().toISOString(),
     eservices: [eServiceId],
     description: "mockDescription",
@@ -157,6 +166,24 @@ describe("getProducerEServiceDescriptor", () => {
       totalCount: results.length,
     });
   };
+
+  const mockActiveProducerDelegation: delegationApi.Delegation = {
+    ...getMockDelegationApiDelegation(),
+    delegatorId: tenantId,
+    delegateId,
+    eserviceId: eServiceId,
+    state: delegationApi.DelegationState.Values.ACTIVE,
+    kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+  };
+
+  beforeEach(() => {
+    mockProducerKeychains.mockReset();
+    mockGetDelegations.mockReset();
+    mockGetDelegations.mockResolvedValue({
+      results: [],
+      totalCount: 0,
+    });
+  });
 
   it("should return false fields when the descriptor eservice has no producer keychain", async () => {
     mockProducerKeychainsResponse([]);
@@ -200,6 +227,34 @@ describe("getProducerEServiceDescriptor", () => {
       queries: {
         eserviceId: eServiceId,
         producerId: tenantId,
+        offset: 0,
+        limit: 50,
+      },
+    });
+  });
+
+  it("should check producer keychains owned by the delegated producer requester", async () => {
+    mockGetDelegations.mockResolvedValue({
+      results: [mockActiveProducerDelegation],
+      totalCount: 1,
+    });
+    mockProducerKeychainsResponse([
+      mockFullProducerKeychain([mockKey()], delegateId),
+    ]);
+
+    const result = await catalogService.getProducerEServiceDescriptor(
+      eServiceId,
+      descriptorId,
+      delegateBffMockContext
+    );
+
+    expect(result.hasProducerKeychain).toBe(true);
+    expect(result.hasProducerKeychainKeys).toBe(true);
+    expect(mockProducerKeychains).toHaveBeenCalledWith({
+      headers: delegateBffMockContext.headers,
+      queries: {
+        eserviceId: eServiceId,
+        producerId: delegateId,
         offset: 0,
         limit: 50,
       },
