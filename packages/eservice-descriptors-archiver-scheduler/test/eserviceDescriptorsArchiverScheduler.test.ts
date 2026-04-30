@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 import {
-  getMockAgreement,
-  getMockDescriptorPublished,
+  getMockDescriptor,
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
@@ -21,19 +20,17 @@ import {
 import {
   CorrelationId,
   Descriptor,
-  EServiceId,
   TenantId,
-  agreementState,
   descriptorState,
   generateId,
-  genericInternalError,
 } from "pagopa-interop-models";
 import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { eserviceDescriptorsArchiverSchedulerServiceBuilder } from "../src/services/eserviceDescriptorsArchiverSchedulerService.js";
-import { addOneAgreement, addOneEService, readModelService } from "./utils.js";
+import { RefsToBeArchived } from "../src/models/models.js";
+import { addOneEService, readModelService } from "./utils.js";
 
 describe("EService Descriptors Archiver Scheduler", async () => {
   describe("eserviceDescriptorsArchiverScheduler", async () => {
@@ -64,25 +61,268 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       vi.clearAllMocks();
     });
 
-    it.only("should call archive Descriptor when archivableOn is expired", async () => {
+    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
+      "should call archive Descriptor when archivableOn is expired and state is %s",
+      async (state) => {
+        const producerId: TenantId = generateId();
+
+        const numberOfArchivableDescriptors = 5;
+
+        const refs: RefsToBeArchived[] = await Promise.all(
+          Array.from(
+            { length: numberOfArchivableDescriptors },
+            async (): Promise<RefsToBeArchived> => {
+              const descriptor: Descriptor = {
+                ...getMockDescriptor(),
+                state,
+                archivingSchedule: {
+                  archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                  startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                  scope: "Descriptor",
+                },
+              };
+
+              const eservice = {
+                ...getMockEService(),
+                producerId,
+                descriptors: [descriptor],
+              };
+
+              await addOneEService(eservice);
+
+              return {
+                eserviceId: eservice.id,
+                descriptorId: descriptor.id,
+              };
+            }
+          )
+        );
+
+        const archiverService =
+          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+            readModelService,
+            catalogProcessClient: catalogProcessClient,
+            loggerInstance: genericLogger,
+            refreshableToken: mockRefreshableToken,
+          });
+        await archiverService.archiveDescriptors();
+
+        refs.forEach((ref) => {
+          expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
+            "MANUAL",
+            {
+              params: {
+                eServiceId: ref.eserviceId,
+                descriptorId: ref.descriptorId,
+              },
+              headers: expect.objectContaining({
+                ...testHeaders,
+                "X-Correlation-Id": expect.any(String),
+              }),
+            }
+          );
+        });
+        expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(
+          numberOfArchivableDescriptors
+        );
+      }
+    );
+
+    const notArchivingStates = [
+      descriptorState.published,
+      descriptorState.deprecated,
+      descriptorState.suspended,
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      descriptorState.draft,
+    ];
+
+    it.each(notArchivingStates)(
+      "should not call archive Descriptor when is in state %s",
+      async (state) => {
+        const producerId: TenantId = generateId();
+
+        const numberOfNonArchivableDescriptors = 5;
+
+        const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+          Array.from(
+            { length: numberOfNonArchivableDescriptors },
+            async (): Promise<RefsToBeArchived> => {
+              const descriptor: Descriptor = {
+                ...getMockDescriptor(),
+                state,
+                version: "1",
+              };
+
+              const eservice = {
+                ...getMockEService(),
+                producerId,
+                descriptors: [descriptor],
+              };
+
+              await addOneEService(eservice);
+
+              return {
+                eserviceId: eservice.id,
+                descriptorId: descriptor.id,
+              };
+            }
+          )
+        );
+
+        const archiverService =
+          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+            readModelService,
+            catalogProcessClient: catalogProcessClient,
+            loggerInstance: genericLogger,
+            refreshableToken: mockRefreshableToken,
+          });
+        await archiverService.archiveDescriptors();
+
+        nonArchivableRefs.forEach((ref) => {
+          expect(
+            catalogProcessClient.archiveDescriptor
+          ).not.toHaveBeenCalledWith("MANUAL", {
+            params: {
+              eServiceId: ref.eserviceId,
+              descriptorId: ref.descriptorId,
+            },
+            headers: expect.objectContaining({
+              ...testHeaders,
+              "X-Correlation-Id": expect.any(String),
+            }),
+          });
+        });
+
+        expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(0);
+      }
+    );
+
+    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
+      "should not call archive Descriptor when archivableOn is not expired and in state %s",
+      async (state) => {
+        const producerId: TenantId = generateId();
+
+        const numberOfNonArchivableDescriptors = 5;
+
+        const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+          Array.from(
+            { length: numberOfNonArchivableDescriptors },
+            async (): Promise<RefsToBeArchived> => {
+              const descriptor: Descriptor = {
+                ...getMockDescriptor(),
+                state,
+                archivingSchedule: {
+                  archivableOn: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+                  startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                  scope: "Descriptor",
+                },
+              };
+
+              const eservice = {
+                ...getMockEService(),
+                producerId,
+                descriptors: [descriptor],
+              };
+
+              await addOneEService(eservice);
+
+              return {
+                eserviceId: eservice.id,
+                descriptorId: descriptor.id,
+              };
+            }
+          )
+        );
+
+        const archiverService =
+          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+            readModelService,
+            catalogProcessClient: catalogProcessClient,
+            loggerInstance: genericLogger,
+            refreshableToken: mockRefreshableToken,
+          });
+        await archiverService.archiveDescriptors();
+
+        nonArchivableRefs.forEach((ref) => {
+          expect(
+            catalogProcessClient.archiveDescriptor
+          ).not.toHaveBeenCalledWith("MANUAL", {
+            params: {
+              eServiceId: ref.eserviceId,
+              descriptorId: ref.descriptorId,
+            },
+            headers: expect.objectContaining({
+              ...testHeaders,
+              "X-Correlation-Id": expect.any(String),
+            }),
+          });
+        });
+        expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(0);
+      }
+    );
+
+    it("should not call archive Descriptor when is not in archiving state", async () => {
       const producerId: TenantId = generateId();
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: descriptorState.archiving,
-        archivingSchedule: {
-          archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
-          startedAt: new Date(toUTCMidnight(new Date(), -30)),
-          scope: "Descriptor",
-        },
-      };
 
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor],
-      };
+      const numberOfArchivableDescriptors = 5;
+      const numberOfNonArchivableDescriptors = 5;
 
-      await addOneEService(eservice);
+      const archivableRefs: RefsToBeArchived[] = await Promise.all(
+        Array.from(
+          { length: numberOfArchivableDescriptors },
+          async (): Promise<RefsToBeArchived> => {
+            const descriptor: Descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.archiving,
+              archivingSchedule: {
+                archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                scope: "Descriptor",
+              },
+            };
+
+            const eservice = {
+              ...getMockEService(),
+              producerId,
+              descriptors: [descriptor],
+            };
+
+            await addOneEService(eservice);
+
+            return {
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            };
+          }
+        )
+      );
+
+      const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+        Array.from(
+          { length: numberOfNonArchivableDescriptors },
+          async (): Promise<RefsToBeArchived> => {
+            const descriptor: Descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.published,
+              version: "1",
+            };
+
+            const eservice = {
+              ...getMockEService(),
+              producerId,
+              descriptors: [descriptor],
+            };
+
+            await addOneEService(eservice);
+
+            return {
+              eserviceId: eservice.id,
+              descriptorId: descriptor.id,
+            };
+          }
+        )
+      );
 
       const archiverService =
         eserviceDescriptorsArchiverSchedulerServiceBuilder({
@@ -93,324 +333,40 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         });
       await archiverService.archiveDescriptors();
 
-      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-        undefined,
-        {
-          params: {
-            eServiceId: eservice.id,
-            descriptorId: descriptor.id,
-          },
-          headers: testHeaders,
-        }
-      );
-    });
+      archivableRefs.forEach((ref) => {
+        expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
+          "MANUAL",
+          {
+            params: {
+              eServiceId: ref.eserviceId,
+              descriptorId: ref.descriptorId,
+            },
+            headers: expect.objectContaining({
+              ...testHeaders,
+              "X-Correlation-Id": expect.any(String),
+            }),
+          }
+        );
+      });
 
-    it("should call archive Descriptor when all Agreements are Archived, the Descriptor is suspended, and a newer Descriptor exists", async () => {
-      const producerId: TenantId = generateId();
-      const descriptor = {
-        ...getMockDescriptorPublished(),
-        state: descriptorState.suspended,
-        version: "1",
-      };
+      nonArchivableRefs.forEach((ref) => {
+        expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalledWith(
+          "MANUAL",
+          {
+            params: {
+              eServiceId: ref.eserviceId,
+              descriptorId: ref.descriptorId,
+            },
+            headers: expect.objectContaining({
+              ...testHeaders,
+              "X-Correlation-Id": expect.any(String),
+            }),
+          }
+        );
+      });
 
-      const newerDescriptor = {
-        ...getMockDescriptorPublished(),
-        version: "2",
-      };
-
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor, newerDescriptor],
-      };
-      const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(archivedAgreement);
-      await addOneAgreement(otherAgreement1);
-      await addOneAgreement(otherAgreement2);
-
-      await archiveDescriptorForArchivedAgreement(
-        archivedAgreement,
-        mockRefreshableToken,
-        readModelService,
-        catalogProcessClient,
-        genericLogger,
-        testCorrelationId
-      );
-
-      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-        undefined,
-        {
-          params: {
-            eServiceId: eservice.id,
-            descriptorId: descriptor.id,
-          },
-          headers: testHeaders,
-        }
-      );
-    });
-
-    it("should not call archive Descriptor when not all Agreements are Archived", async () => {
-      const producerId: TenantId = generateId();
-      const descriptor = getMockDescriptorPublished();
-
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor],
-      };
-      const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.active
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(archivedAgreement);
-      await addOneAgreement(otherAgreement1);
-      await addOneAgreement(otherAgreement2);
-
-      await archiveDescriptorForArchivedAgreement(
-        archivedAgreement,
-        mockRefreshableToken,
-        readModelService,
-        catalogProcessClient,
-        genericLogger,
-        testCorrelationId
-      );
-
-      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
-    });
-
-    it("should not call archive Descriptor when the Descriptor not deprecated or suspended", async () => {
-      const producerId: TenantId = generateId();
-      const descriptor = {
-        ...getMockDescriptorPublished(),
-        state: descriptorState.published,
-      };
-
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor],
-      };
-      const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(archivedAgreement);
-      await addOneAgreement(otherAgreement1);
-      await addOneAgreement(otherAgreement2);
-
-      await archiveDescriptorForArchivedAgreement(
-        archivedAgreement,
-        mockRefreshableToken,
-        readModelService,
-        catalogProcessClient,
-        genericLogger,
-        testCorrelationId
-      );
-
-      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
-    });
-
-    it("should not call archive Descriptor when the Descriptor is suspended but no newer Descriptor exists", async () => {
-      const producerId: TenantId = generateId();
-      const descriptor = {
-        ...getMockDescriptorPublished(),
-        state: descriptorState.suspended,
-        version: "1",
-      };
-
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [descriptor],
-      };
-      const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        descriptorId: descriptor.id,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(archivedAgreement);
-      await addOneAgreement(otherAgreement1);
-      await addOneAgreement(otherAgreement2);
-
-      await archiveDescriptorForArchivedAgreement(
-        archivedAgreement,
-        mockRefreshableToken,
-        readModelService,
-        catalogProcessClient,
-        genericLogger,
-        testCorrelationId
-      );
-
-      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
-    });
-
-    it("should throw an error when the EService is not found", async () => {
-      const archivedAgreement = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.archived
-      );
-
-      await expect(
-        archiveDescriptorForArchivedAgreement(
-          archivedAgreement,
-          mockRefreshableToken,
-          readModelService,
-          catalogProcessClient,
-          genericLogger,
-          testCorrelationId
-        )
-      ).rejects.toThrowError(
-        genericInternalError(
-          `EService not found for agreement ${archivedAgreement.id}`
-        )
-      );
-    });
-
-    it("should throw an error when the Descriptor is not found", async () => {
-      const producerId: TenantId = generateId();
-      const eservice = {
-        ...getMockEService(),
-        producerId,
-      };
-      const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
-        producerId,
-      };
-
-      await addOneEService(eservice);
-
-      await expect(
-        archiveDescriptorForArchivedAgreement(
-          archivedAgreement,
-          mockRefreshableToken,
-          readModelService,
-          catalogProcessClient,
-          genericLogger,
-          testCorrelationId
-        )
-      ).rejects.toThrowError(
-        genericInternalError(
-          `Descriptor not found for agreement ${archivedAgreement.id}`
-        )
+      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(
+        numberOfArchivableDescriptors
       );
     });
   });
