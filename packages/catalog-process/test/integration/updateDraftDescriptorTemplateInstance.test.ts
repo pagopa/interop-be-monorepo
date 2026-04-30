@@ -321,7 +321,7 @@ describe("update draft descriptor instance", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than or equal to dailyCallsTotal", async () => {
+  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
     const template = getMockEServiceTemplate();
 
     const descriptor: Descriptor = {

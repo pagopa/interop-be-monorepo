@@ -358,7 +358,7 @@ export function assertConsistentDailyCalls({
   dailyCallsPerConsumer: number;
   dailyCallsTotal: number;
 }): void {
-  if (dailyCallsPerConsumer >= dailyCallsTotal) {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
     throw inconsistentDailyCalls();
   }
 }
@@ -507,7 +507,7 @@ export function assertAttributeDailyCallsConsistentWithTotal(
     for (const attribute of attributeGroup) {
       if (
         attribute.dailyCallsPerConsumer !== undefined &&
-        attribute.dailyCallsPerConsumer >= dailyCallsTotal
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
       ) {
         throw inconsistentDailyCalls();
       }
