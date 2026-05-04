@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import {
   descriptorState,
   unsafeBrandId,
@@ -16,7 +16,7 @@ import {
   EServiceDescriptorArchivingScheduleSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
-import { RefsToBeArchived } from "../models/models.js";
+import { RefsToBeArchived, TestQueryModel } from "../models/models.js";
 
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
@@ -88,7 +88,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
-          eserviceInReadmodelCatalog,
+          eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
             eserviceDescriptorInReadmodelCatalog.eserviceId
@@ -118,6 +118,94 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         );
       return queryResult.map((row) => unsafeBrandId(row.eservice.id));
+    },
+    async getEserviceArchivabilityReport(eserviceId: EServiceId): Promise<TestQueryModel[]> {
+      const queryResult = await readModelDB
+        .select({
+          eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,
+          wrongDescriptorIds: sql<string[]>`
+        array_agg(${eserviceDescriptorInReadmodelCatalog.id})
+        filter (where ${eserviceDescriptorInReadmodelCatalog.state} not in ('Archiving', 'ArchivingSuspended', 'Archived'))
+      `.as("wrong_descriptor_ids"),
+          archivableOnMax: sql<Date>`
+        max(${eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn})
+      `.as("archivable_on_max"),
+          wrongStates: sql<number>`
+        sum(case when ${eserviceDescriptorInReadmodelCatalog.state} not in ('Archiving', 'ArchivingSuspended', 'Archived') then 1 else 0 end)
+      `.as("wrong_states"),
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceId
+          )
+        )
+        .groupBy(
+          eserviceDescriptorInReadmodelCatalog.eserviceId
+        );
+
+      return queryResult as TestQueryModel[]
+    },
+    async getEserviceArchivabilityReport2(eserviceId: EServiceId) {
+      const queryResult = await readModelDB
+        .select({
+          eserviceId:
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+
+          miniDescriptor: sql<
+            { id: string; state: string }[]
+          >`
+      array_agg(
+        json_build_object(
+          'id', ${eserviceDescriptorInReadmodelCatalog.id},
+          'state', ${eserviceDescriptorInReadmodelCatalog.state}
+        )
+      )
+    `,
+
+          archivableOnMax: sql<Date | null>`
+      max(${eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn})
+    `,
+
+          wrongStates: sql<number>`
+      sum(
+        case
+          when ${eserviceDescriptorInReadmodelCatalog.state} not in (
+            'Archiving',
+            'ArchivingSuspended',
+            'Archived'
+          )
+          then 1
+          else 0
+        end
+      )
+    `,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceId
+          )
+        )
+        .groupBy(eserviceDescriptorInReadmodelCatalog.eserviceId);
+
+      return queryResult;
     },
   };
 }
