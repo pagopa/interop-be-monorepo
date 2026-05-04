@@ -385,7 +385,10 @@ export function readModelServiceBuilderSQL({
               ),
               // TENANT FILTER
               name
-                ? ilikeEscaped(tenantInReadmodelTenant.name, `%${escapeSqlLike(name)}%`)
+                ? ilikeEscaped(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeSqlLike(name)}%`
+                  )
                 : undefined
             )
           )
