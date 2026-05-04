@@ -18,6 +18,10 @@ import {
 } from "../api/selfcareApiConverter.js";
 import { config } from "../config/config.js";
 import { assertRequesterCanRetrieveUsers } from "./validators.js";
+import { isAxiosError } from "axios";
+
+const isAxiosNotFoundError = (error: unknown): boolean =>
+  isAxiosError(error) && error.response?.status === 404;
 
 export async function getSelfcareCompactUserById(
   selfcareClient: SelfcareV2UsersClient,
@@ -25,15 +29,31 @@ export async function getSelfcareCompactUserById(
   selfcareId: string,
   correlationId: CorrelationId
 ): Promise<bffApi.CompactUser> {
-  const user = await selfcareClient.getUserInfoUsingGET({
-    params: { id: userId },
-    queries: { institutionId: selfcareId },
-    headers: {
-      "X-Correlation-Id": correlationId,
-    },
-  });
+  try {
+    const user = await selfcareClient.getUserInfoUsingGET({
+      params: { id: userId },
+      queries: { institutionId: selfcareId },
+      headers: { "X-Correlation-Id": correlationId },
+    });
 
-  return toBffApiCompactUser(user, userId);
+    return toBffApiCompactUser(user, userId);
+  } catch (error: unknown) {
+    /**
+     * To avoid breaking the user experience in case of a user that has been removed from selfcare but is still referenced in a client,
+     * we return a fallback user instead of throwing an error.
+     */
+    if (isAxiosNotFoundError(error)) {
+      return toBffApiCompactUser(
+        {
+          id: userId,
+          name: "Utente rimosso",
+          surname: "",
+        },
+        userId
+      );
+    }
+    throw error;
+  }
 }
 
 export function selfcareServiceBuilder({

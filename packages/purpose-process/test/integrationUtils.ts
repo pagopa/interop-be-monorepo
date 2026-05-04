@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
-import {
   ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
@@ -29,8 +25,7 @@ import {
   PurposeRiskAnalysisFormV2,
   Client,
 } from "pagopa-interop-models";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
-import puppeteer, { Browser } from "puppeteer";
+import { afterEach, expect, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -56,7 +51,7 @@ import {
 } from "../src/services/purposeService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
@@ -90,24 +85,9 @@ const readModelService = readModelServiceBuilderSQL({
   clientReadModelServiceSQL,
 });
 
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-export const pdfGenerator = await initPDFGenerator();
-
 export const purposeService = purposeServiceBuilder(
   postgresDB,
-  readModelService,
-  fileManager,
-  pdfGenerator
+  readModelService
 );
 
 export const addOneClient = async (client: Client): Promise<void> => {

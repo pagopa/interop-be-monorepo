@@ -1,9 +1,9 @@
 import {
-  ZodiosPlugin,
-  ZodiosEndpointDefinitions,
   AnyZodiosRequestOptions,
+  ZodiosEndpointDefinitions,
   ZodiosInstance,
   ZodiosOptions,
+  ZodiosPlugin,
 } from "@zodios/core";
 import { ReadonlyDeep } from "@zodios/core/lib/utils.types";
 import { AxiosResponse } from "axios";
@@ -22,7 +22,7 @@ function zodiosMetadataPlugin(): ZodiosPlugin {
 
       const data: WithMaybeMetadata<unknown> = {
         data: response.data,
-        metadata: !isNaN(metadataVersion)
+        metadata: !Number.isNaN(metadataVersion)
           ? {
               version: metadataVersion,
             }
@@ -37,11 +37,6 @@ function zodiosMetadataPlugin(): ZodiosPlugin {
   };
 }
 
-/**
- * The shape we actually get from each api-client thanks to the zodiosMetadataPlugin.
- * Same as WithMetadata<T> but with the metadata field optional.
- * This is because the plugin will only add the metadata field if the header is present.
- */
 export type WithMaybeMetadata<T> = {
   data: T;
   metadata:
@@ -51,28 +46,16 @@ export type WithMaybeMetadata<T> = {
     | undefined;
 };
 
-/**
- * If a function returns Promise<T>,
- * replace that with Promise<WithMaybeMetadata<T>>.
- */
 type MethodWithOptionalMetadata<TMethod> = TMethod extends (
   ...args: infer A
 ) => Promise<infer TOriginal>
   ? (...args: A) => Promise<WithMaybeMetadata<TOriginal>>
   : TMethod;
 
-/**
- * Takes an entire Zodios client (an object)
- * and re-types each function using MethodWithOptionalMetadata.
- */
 export type ZodiosClientWithMetadata<TClient> = {
   [K in keyof TClient]: MethodWithOptionalMetadata<TClient[K]>;
 };
 
-/**
- * A function that just casts the client to the patched,
- * to convince TypeScript that the client actually returns data with metadata.
- */
 function enhanceZodiosClientWithMetadata<TClient>(
   client: TClient
 ): ZodiosClientWithMetadata<TClient> {

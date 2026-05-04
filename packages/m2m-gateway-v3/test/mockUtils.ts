@@ -217,7 +217,6 @@ export const testToM2mGatewayApiPurpose = (
   description: purpose.description,
   createdAt: purpose.createdAt,
   updatedAt: purpose.updatedAt,
-  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   delegationId: purpose.delegationId,

@@ -17,6 +17,7 @@ import {
   PurposeTemplateEServiceLinkedV2,
   PurposeTemplateId,
   Tenant,
+  dateToBigInt,
   descriptorState,
   generateId,
   purposeTemplateState,
@@ -145,11 +146,12 @@ describe("linkEservicesToPurposeTemplate", () => {
       payload: lastWrittenEvent.data,
     });
 
-    expect(lastWrittenPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
-    expect(lastWrittenPayload.eservice).toEqual(toEServiceV2(eService2));
-    expect(lastWrittenPayload.descriptorId).toBe(descriptor2.id);
+    expect(lastWrittenPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      eservice: toEServiceV2(eService2),
+      descriptorId: descriptor2.id,
+      createdAt: dateToBigInt(new Date()),
+    });
 
     vi.useRealTimers();
   });

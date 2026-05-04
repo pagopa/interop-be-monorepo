@@ -1,5 +1,3 @@
-import { fileURLToPath } from "url";
-import path from "path";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -16,8 +14,6 @@ import {
   generateId,
   TenantId,
   EServiceId,
-  unsafeBrandId,
-  DelegationContractId,
   delegationKind,
   UserId,
   toDelegationV2,
@@ -25,29 +21,19 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  dateAtRomeZone,
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
-import {
   delegationNotFound,
   incorrectState,
   operationRestrictedToDelegator,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   activeDelegationStates,
   inactiveDelegationStates,
 } from "../../src/services/validators.js";
-import { DelegationRevocationPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationService,
-  fileManager,
-  pdfGenerator,
   readLastDelegationEvent,
 } from "../integrationUtils.js";
 
@@ -72,7 +58,6 @@ describe.each([
   });
 
   it("should revoke a delegation if it exists", async () => {
-    vi.spyOn(pdfGenerator, "generate");
     const currentExecutionTime = new Date();
     const eserviceId = generateId<EServiceId>();
     const delegatorId = generateId<TenantId>();
@@ -127,25 +112,6 @@ describe.each([
       payload: event.data,
     });
 
-    const expectedContractId = unsafeBrandId<DelegationContractId>(
-      actualDelegation!.revocationContract!.id
-    );
-    const expectedContractName = `${formatDateyyyyMMddHHmmss(
-      currentExecutionTime
-    )}_delegation_revocation_contract.pdf`;
-    const expectedContract = {
-      id: expectedContractId,
-      contentType: "application/pdf",
-      createdAt: currentExecutionTime,
-      name: expectedContractName,
-      path: `${config.delegationDocumentsPath}/${existentDelegation.id}/${expectedContractId}/${expectedContractName}`,
-      prettyName: `Revoca_Delega_${eservice.name}`,
-    };
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(expectedContract.path);
-
     const revokedDelegationWithoutContract: Delegation = {
       ...existentDelegation,
       state: delegationState.revoked,
@@ -159,45 +125,9 @@ describe.each([
       },
     };
 
-    const expectedDelegation = toDelegationV2({
-      ...revokedDelegationWithoutContract,
-      revocationContract: expectedContract,
-    });
+    const expectedDelegation = toDelegationV2(revokedDelegationWithoutContract);
     expect(actualDelegation).toEqual(expectedDelegation);
-
-    const expectedPdfPayload: DelegationRevocationPDFPayload = {
-      delegationKindText:
-        kind === delegationKind.delegatedConsumer
-          ? "alla fruizione"
-          : "all’erogazione",
-      delegationActionText:
-        kind === delegationKind.delegatedConsumer
-          ? "a gestire la fruizione dell’"
-          : "ad erogare l’",
-      todayDate: dateAtRomeZone(currentExecutionTime),
-      todayTime: timeAtRomeZone(currentExecutionTime),
-      delegationId: revokedDelegationWithoutContract.id,
-      delegatorName: delegator.name,
-      delegatorIpaCode: delegator.externalId.value,
-      delegateName: delegate.name,
-      delegateIpaCode: delegate.externalId.value,
-      eserviceId: eservice.id,
-      eserviceName: eservice.name,
-      submitterId: revokedDelegationWithoutContract.stamps.submission.who,
-      revokerId: revokedDelegationWithoutContract.stamps.revocation!.who,
-      revocationDate: dateAtRomeZone(currentExecutionTime),
-      revocationTime: timeAtRomeZone(currentExecutionTime),
-    };
-
-    expect(pdfGenerator.generate).toHaveBeenCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates",
-        "delegationRevokedTemplate.html"
-      ),
-      expectedPdfPayload
-    );
+    expect(actualDelegation!.revocationContract).toBeUndefined();
   });
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {

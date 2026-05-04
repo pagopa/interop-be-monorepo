@@ -1,0 +1,19 @@
+meta {
+  name: Delete producer keychain
+  type: http
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:keychainId
+  body: none
+  auth: none
+}
+
+params:path {
+  keychainId: {{keychainId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

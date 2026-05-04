@@ -1,8 +1,9 @@
-import { and, eq, ilike, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   ascLower,
-  escapeRegExp,
+  escapeSqlLike,
   getTableTotalCount,
+  ilikeEscaped,
 } from "pagopa-interop-commons";
 import {
   Client,
@@ -136,7 +137,10 @@ export function readModelServiceBuilderSQL({
             and(
               // NAME FILTER
               name
-                ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
+                ? ilikeEscaped(
+                    clientInReadmodelClient.name,
+                    `%${escapeSqlLike(name)}%`
+                  )
                 : undefined,
               // USERS FILTER
               userIds.length > 0
@@ -332,9 +336,9 @@ export function readModelServiceBuilderSQL({
             and(
               // NAME FILTER
               name
-                ? ilike(
+                ? ilikeEscaped(
                     producerKeychainInReadmodelProducerKeychain.name,
-                    `%${escapeRegExp(name)}%`
+                    `%${escapeSqlLike(name)}%`
                   )
                 : undefined,
               // USERS FILTER

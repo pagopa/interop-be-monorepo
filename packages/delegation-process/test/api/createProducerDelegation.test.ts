@@ -25,7 +25,7 @@ import {
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotFound,
-  originNotCompliant,
+  delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -93,7 +93,7 @@ describe("API POST /producer/delegations test", () => {
     { error: tenantNotFound(mockDelegator.id), expectedStatus: 400 },
     { error: delegatorAndDelegateSameIdError(), expectedStatus: 400 },
     {
-      error: originNotCompliant(mockDelegator, "Delegator"),
+      error: delegationNotAllowedForTenant(mockDelegator, "Delegator"),
       expectedStatus: 403,
     },
     {

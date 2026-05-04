@@ -143,6 +143,28 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.getRemainingDailyCalls(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.RemainingDailyCallsResponse.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving remaining daily calls for Purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/purposes/:purposeId/clone", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -530,7 +552,6 @@ const purposeRouter = (
         }
       }
     );
-
   return purposeRouter;
 };
 

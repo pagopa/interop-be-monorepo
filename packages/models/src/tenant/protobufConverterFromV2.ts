@@ -202,5 +202,6 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
       input.subUnitType != null
         ? fromTenantUnitTypeV2(input.subUnitType)
         : undefined,
+    selfcareInstitutionType: input.selfcareInstitutionType,
   };
 };

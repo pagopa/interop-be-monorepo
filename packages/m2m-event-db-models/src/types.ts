@@ -11,6 +11,7 @@ import {
   producerKeyInM2MEvent,
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
+  purposeTemplateInM2MEvent,
   tenantInM2MEvent,
 } from "./drizzle/schema.js";
 
@@ -35,4 +36,7 @@ export type ProducerKeychainM2MEventSQL = InferSelectModel<
 export type KeyM2MEventSQL = InferSelectModel<typeof keyInM2MEvent>;
 export type ProducerKeyM2MEventSQL = InferSelectModel<
   typeof producerKeyInM2MEvent
+>;
+export type PurposeTemplateM2MEventSQL = InferSelectModel<
+  typeof purposeTemplateInM2MEvent
 >;

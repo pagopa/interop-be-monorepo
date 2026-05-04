@@ -2,7 +2,6 @@ import {
   and,
   eq,
   getTableColumns,
-  ilike,
   inArray,
   isNull,
   ne,
@@ -14,9 +13,10 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
   getTableTotalCount,
   getValidFormRulesVersions,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -100,9 +100,9 @@ const getPurposeTemplatesFilters = (
   } = filters;
 
   const purposeTitleFilter = purposeTitle
-    ? ilike(
+    ? ilikeEscaped(
         purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-        `%${escapeRegExp(purposeTitle)}%`
+        `%${escapeSqlLike(purposeTitle)}%`
       )
     : undefined;
 
@@ -207,9 +207,9 @@ export function readModelServiceBuilderSQL({
       title: string
     ): Promise<Array<WithMetadata<PurposeTemplate>>> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
-        ilike(
+        ilikeEscaped(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-          escapeRegExp(title)
+          escapeSqlLike(title)
         )
       );
     },
@@ -532,9 +532,9 @@ export function readModelServiceBuilderSQL({
                 ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
                 : undefined,
               eserviceName
-                ? ilike(
+                ? ilikeEscaped(
                     eserviceInReadmodelCatalog.name,
-                    `%${escapeRegExp(eserviceName)}%`
+                    `%${escapeSqlLike(eserviceName)}%`
                   )
                 : undefined
             )
@@ -638,9 +638,9 @@ export function readModelServiceBuilderSQL({
                 purposeTemplateState.published
               ),
               creatorName
-                ? ilike(
+                ? ilikeEscaped(
                     tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(creatorName)}%`
+                    `%${escapeSqlLike(creatorName)}%`
                   )
                 : undefined
             )

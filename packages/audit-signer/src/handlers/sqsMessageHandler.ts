@@ -51,7 +51,10 @@ async function processMessage(
       safeStorageRequest,
       logger
     );
-    logger.info(`Created file on safe storage with key: ${key}`);
+
+    logger.info(
+      `Created file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
+    );
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
@@ -60,6 +63,10 @@ async function processMessage(
       secret,
       checksum,
       logger
+    );
+
+    logger.info(
+      `Uploaded file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
     );
 
     await signatureService.saveSignatureReference(
@@ -72,9 +79,7 @@ async function processMessage(
       },
       logger
     );
-    logger.info(
-      `Processed voucher audit with key: ${key} and file: ${fileName}`
-    );
+    logger.info(`Processed voucher audit with key: ${key} and file: ${s3Key}`);
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;
