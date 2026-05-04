@@ -17,7 +17,6 @@ import {
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
-  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -56,7 +55,6 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
-import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceNotFound,
@@ -1081,10 +1079,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
-        purpose.data.purposeTemplateId
-      ) {
+      if (purpose.data.purposeTemplateId) {
         await retrievePublishedPurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService

@@ -5,7 +5,6 @@ import {
   ReadModelSQLDbConfig,
   S3Config,
   FileManagerConfig,
-  FeatureFlagPurposeTemplateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -26,9 +25,7 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
         purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
         maxEServicesPerLinkRequest: c.MAX_ESERVICES_PER_LINK_REQUEST,
       }))
-  )
-  .and(FeatureFlagPurposeTemplateConfig);
-
+  );
 type PurposeTemplateProcessConfig = z.infer<
   typeof PurposeTemplateProcessConfig
 >;

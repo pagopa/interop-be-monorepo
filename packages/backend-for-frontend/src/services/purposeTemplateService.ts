@@ -8,7 +8,6 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
-  assertFeatureFlagEnabled,
   FileManager,
   validateAndStorePDFDocument,
   WithLogger,
@@ -62,7 +61,6 @@ export function purposeTemplateServiceBuilder(
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Creating purpose template`);
       const result = await purposeTemplateClient.createPurposeTemplate(seed, {
         headers,
@@ -78,8 +76,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
       );
-
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
         {
@@ -103,8 +99,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
       );
-
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
         {
@@ -133,8 +127,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, authData, logger } = ctx;
 
       logger.info(
@@ -186,7 +178,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CatalogPurposeTemplates> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const { headers, logger } = ctx;
 
       logger.info(
@@ -251,8 +242,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -328,8 +317,6 @@ export function purposeTemplateServiceBuilder(
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<Buffer> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -356,8 +343,6 @@ export function purposeTemplateServiceBuilder(
       id: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Retrieving Purpose Template ${id}`);
 
       const result = await purposeTemplateClient.getPurposeTemplate({
@@ -395,8 +380,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Publishing purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.publishPurposeTemplate(undefined, {
         params: {
@@ -409,8 +392,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.unsuspendPurposeTemplate(undefined, {
         params: {
@@ -423,8 +404,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Suspending purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.suspendPurposeTemplate(undefined, {
         params: {
@@ -437,8 +416,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Archiving purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.archivePurposeTemplate(undefined, {
         params: {
@@ -453,7 +430,6 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const updatedPurposeTemplate =
         await purposeTemplateClient.updatePurposeTemplate(seed, {
           headers,
@@ -471,7 +447,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Adding annotation document to purpose template ${purposeTemplateId} and answer ${answerId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const documentId = randomUUID();
 
@@ -518,7 +493,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Downloading risk analysis template document from purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const unsignedDocument =
         await purposeTemplateClient.getRiskAnalysisTemplateDocument({
@@ -541,7 +515,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Downloading signed risk analysis template document from purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const signedDocument =
         await purposeTemplateClient.getRiskAnalysisTemplateSignedDocument({
@@ -565,7 +538,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Creating risk analysis answer for purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
         seed,
         {
@@ -585,7 +557,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Adding risk analysis answer annotation for purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.addRiskAnalysisAnswerAnnotationForPurposeTemplate(
         seed,
         {
@@ -601,8 +572,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       await purposeTemplateClient.deletePurposeTemplate(undefined, {
@@ -621,8 +590,6 @@ export function purposeTemplateServiceBuilder(
       answerId: PurposeTemplateId;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -651,8 +618,6 @@ export function purposeTemplateServiceBuilder(
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -678,8 +643,6 @@ export function purposeTemplateServiceBuilder(
       body: bffApi.UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
