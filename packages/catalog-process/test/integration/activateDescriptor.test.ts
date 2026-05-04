@@ -18,7 +18,7 @@ import {
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi, afterEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -35,6 +35,12 @@ describe("activate descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.resetAllMocks();
+  });
+
   it.each([
     [descriptorState.suspended, descriptorState.published, 0],
     [descriptorState.suspended, descriptorState.deprecated, 1],
@@ -42,6 +48,10 @@ describe("activate descriptor", () => {
   ])(
     "should write on event-store for the activation of a descriptor from state %s to state %s",
     async (startingState, expectedState, numberOfMoreRecentDescriptors) => {
+      const fixedDate = new Date();
+
+      vi.useFakeTimers();
+      vi.setSystemTime(fixedDate);
       const descriptor: Descriptor = {
         ...mockDescriptor,
         interface: mockDocument,
@@ -68,9 +78,12 @@ describe("activate descriptor", () => {
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
-      const expectedDescriptor = {
+      const expectedDescriptor: Descriptor = {
         ...descriptor,
         state: expectedState,
+        suspendedAt: undefined,
+        deprecatedAt:
+          expectedState === descriptorState.deprecated ? new Date() : undefined,
       };
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
