@@ -21,9 +21,10 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
+  descriptorAlreadyArchived,
 } from "../../src/model/domain/errors.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
+describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     interface: getMockDocument(),
@@ -43,7 +44,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
     descriptorId: DescriptorId
   ) =>
     request(api)
-      .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/archive`)
+      .post(
+        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/archive`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -66,6 +69,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
 
   it.each([
     {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
       error: eServiceNotFound(mockEService.id),
       expectedStatus: 404,
     },
@@ -74,8 +81,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
       expectedStatus: 404,
     },
     {
-      error: operationForbidden,
-      expectedStatus: 403,
+      error: descriptorAlreadyArchived(descriptor.id),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

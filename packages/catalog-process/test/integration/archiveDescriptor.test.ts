@@ -50,10 +50,13 @@ describe("archive descriptor", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorArchived",
+      event_version: 2,
+    });
+
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorArchivedV2,
       payload: writtenEvent.data,
@@ -99,10 +102,13 @@ describe("archive descriptor", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorArchivingCompleted");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorArchivingCompleted",
+      event_version: 2,
+    });
+
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorArchivingCompletedV2,
       payload: writtenEvent.data,
@@ -114,6 +120,7 @@ describe("archive descriptor", () => {
       archivedAt: new Date(
         Number(writtenPayload.eservice!.descriptors[0]!.archivedAt)
       ),
+      archivingSchedule: undefined,
     };
 
     const expectedEService = toEServiceV2({

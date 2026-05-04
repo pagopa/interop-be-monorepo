@@ -2051,12 +2051,10 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedDescriptor = {
-        ...descriptor,
-        state: descriptorState.archived,
-        archivedAt: new Date(),
-        archivingSchedule: undefined,
-      };
+      const updatedDescriptor = updateDescriptorState(
+        { ...descriptor, archivingSchedule: undefined },
+        descriptorState.archived
+      );
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
