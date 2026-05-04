@@ -348,9 +348,14 @@ const updateDescriptorState = (
       state: newState,
       suspendedAt: new Date(),
     }))
+    .with([descriptorState.suspended, descriptorState.deprecated], () => ({
+      ...descriptor,
+      state: newState,
+      suspendedAt: undefined,
+      deprecatedAt: new Date(),
+    }))
     .with(
       [descriptorState.suspended, descriptorState.published],
-      [descriptorState.suspended, descriptorState.deprecated],
       [descriptorState.archivingSuspended, descriptorState.archiving],
       () => ({
         ...descriptor,
