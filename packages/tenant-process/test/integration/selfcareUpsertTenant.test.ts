@@ -79,7 +79,9 @@ describe("selfcareUpsertTenant", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it.each([
     { origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER, type: "PA" },
@@ -133,7 +135,9 @@ describe("selfcareUpsertTenant", async () => {
         mails: [],
       };
 
-      expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+      expect(writtenPayload).toEqual({
+        tenant: toTenantV2(expectedTenant),
+      });
     }
   );
   it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {

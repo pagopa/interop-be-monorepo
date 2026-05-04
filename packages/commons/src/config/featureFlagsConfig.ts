@@ -63,6 +63,35 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
+export const FeatureFlagDpopClientAssertionDebuggerConfig = z
+  .discriminatedUnion("FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER", [
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z.literal("true"),
+      DPOP_HTU_BASE: z.string(),
+      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number(),
+      DPOP_DURATION_SECONDS: z.coerce.number(),
+    }),
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
+        .literal("false")
+        .optional()
+        .default("false"),
+    }),
+  ])
+  .transform((c) =>
+    c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER === "true"
+      ? {
+          featureFlagDpopClientAssertionDebugger: true as const,
+          dpopHtuBase: c.DPOP_HTU_BASE,
+          dpopIatToleranceSeconds: c.DPOP_IAT_TOLERANCE_SECONDS,
+          dpopDurationSeconds: c.DPOP_DURATION_SECONDS,
+        }
+      : { featureFlagDpopClientAssertionDebugger: false as const }
+  );
+export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
+  typeof FeatureFlagDpopClientAssertionDebuggerConfig
+>;
+
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
     FEATURE_FLAG_PURPOSE_TEMPLATE: z
@@ -93,12 +122,97 @@ export type FeatureFlagAsyncExchangeConfig = z.infer<
   typeof FeatureFlagAsyncExchangeConfig
 >;
 
+export const FeatureFlagDelegationsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationsContractBuilder:
+      c.FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagDelegationsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagDelegationsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagAgreementsProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAgreementsContractBuilder:
+      c.FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagAgreementsProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagAgreementsProcessContractBuilderConfig
+>;
+
+export const FeatureFlagPurposesProcessContractBuilderConfig = z
+  .object({
+    FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagPurposesContractBuilder:
+      c.FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER ?? false,
+  }));
+export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
+  typeof FeatureFlagPurposesProcessContractBuilderConfig
+>;
+
+export const FeatureFlagDelegationConstraintSkipConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationConstraintSkip:
+      c.FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP ?? false,
+  }));
+export type FeatureFlagDelegationConstraintSkipConfig = z.infer<
+  typeof FeatureFlagDelegationConstraintSkipConfig
+>;
+
+export const FeatureFlagUseSignedDocumentConfig = z
+  .object({
+    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
+  }));
+export type FeatureFlagUseSignedDocumentConfig = z.infer<
+  typeof FeatureFlagUseSignedDocumentConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
   FeatureFlagAsyncExchangeConfig &
-  FeatureFlagPurposeTemplateConfig;
+  FeatureFlagDpopClientAssertionDebuggerConfig &
+  FeatureFlagPurposeTemplateConfig &
+  FeatureFlagDelegationsProcessContractBuilderConfig &
+  FeatureFlagAgreementsProcessContractBuilderConfig &
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagUseSignedDocumentConfig &
+  FeatureFlagDelegationConstraintSkipConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

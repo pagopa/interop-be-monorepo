@@ -94,7 +94,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

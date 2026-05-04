@@ -15,7 +15,8 @@ import {
   tenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { invalidTenantFeature } from "./errors.js";
 
 function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
   return match<TenantKind, tenantApi.TenantKind>(input)
@@ -140,6 +141,27 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
   };
+}
+
+export function fromApiTenantFeature(
+  input: tenantApi.TenantFeature
+): TenantFeature {
+  return match<tenantApi.TenantFeature, TenantFeature>(input)
+    .with({ certifier: P.not(P.nullish) }, ({ certifier }) => ({
+      type: tenantFeatureType.persistentCertifier,
+      certifierId: certifier.certifierId,
+    }))
+    .with({ delegatedProducer: P.not(P.nullish) }, ({ delegatedProducer }) => ({
+      type: tenantFeatureType.delegatedProducer,
+      availabilityTimestamp: new Date(delegatedProducer.availabilityTimestamp),
+    }))
+    .with({ delegatedConsumer: P.not(P.nullish) }, ({ delegatedConsumer }) => ({
+      type: tenantFeatureType.delegatedConsumer,
+      availabilityTimestamp: new Date(delegatedConsumer.availabilityTimestamp),
+    }))
+    .otherwise(() => {
+      throw invalidTenantFeature();
+    });
 }
 
 export function apiTenantFeatureTypeToTenantFeatureType(

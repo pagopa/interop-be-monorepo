@@ -229,7 +229,7 @@ describe("authenticationDPoPMiddleware", () => {
       .set("Authorization", `DPoP ${mockDPoPData.accessToken}`)
       .set("DPoP", mockDPoPData.dpopProof);
 
-    expect(res2.body.title).toEqual("DPoP proof JTI already in cache");
+    expect(res2.body.title).toEqual("DPoP proof JTI already used");
     expect(res2.status).toBe(401);
     expectResponseToContainErrorCodeMatching(res2, /-0044$/g);
   });

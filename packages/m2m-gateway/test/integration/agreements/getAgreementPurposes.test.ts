@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiAgreement,
@@ -17,7 +21,6 @@ import {
   testToM2mGatewayApiPurpose,
   testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getAgreementPurposes", () => {
   const mockParams: m2mGatewayApi.GetAgreementPurposesQueryParams = {

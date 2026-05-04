@@ -127,12 +127,12 @@ describe("publishEServiceTemplateVersion", () => {
       ],
     });
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion.id
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual({
-      ...expectedEServiceTemplate,
-      versions: expect.arrayContaining(expectedEServiceTemplate.versions),
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      eserviceTemplate: {
+        ...expectedEServiceTemplate,
+        versions: expect.arrayContaining(expectedEServiceTemplate.versions),
+      },
     });
   });
 
