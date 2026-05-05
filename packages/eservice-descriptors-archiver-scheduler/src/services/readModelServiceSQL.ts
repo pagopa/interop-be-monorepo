@@ -16,7 +16,11 @@ import {
   EServiceDescriptorArchivingScheduleSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
-import { RefsToBeArchived, WrongEServices } from "../models/models.js";
+import {
+  RefsToBeArchived,
+  WrongDescriptor,
+  WrongEServices,
+} from "../models/models.js";
 
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
@@ -125,7 +129,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       const queryResult = await readModelDB
         .select({
           eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,
-          wrongDescriptors: sql<{ id: string; state: string }[]>`
+          wrongDescriptors: sql<WrongDescriptor[]>`
         array_agg(json_build_object(
           'id', ${eserviceDescriptorInReadmodelCatalog.id},
           'state', ${eserviceDescriptorInReadmodelCatalog.state},

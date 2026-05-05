@@ -17,11 +17,14 @@ const WrongDescriptor = z.object({
   state: DescriptorState,
   scope: ArchivingScope.nullable(),
 });
-type WrongDescriptor = z.infer<typeof WrongDescriptor>;
+export type WrongDescriptor = z.infer<typeof WrongDescriptor>;
 
 const WrongEService = z.object({
   eserviceId: EServiceId,
-  wrongDescriptors: z.array(WrongDescriptor),
+  wrongDescriptors: z
+    .array(WrongDescriptor)
+    .nullish()
+    .transform((value): WrongDescriptor[] => value ?? []),
 });
 
 export type WrongEService = z.infer<typeof WrongEService>;
