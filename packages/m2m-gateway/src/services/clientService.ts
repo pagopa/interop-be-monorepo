@@ -1,11 +1,14 @@
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { clientAdminIdNotFound } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
@@ -80,6 +83,10 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving client with id ${clientId}`);
 
       const client = await retrieveClientById(clientId, headers);
+
+      if (client.data.kind === authorizationApi.ClientKind.Values.API) {
+        throw clientNotFound(client.data);
+      }
 
       return toM2MGatewayApiConsumerClient(client.data);
     },

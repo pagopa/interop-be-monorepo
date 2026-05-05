@@ -6,6 +6,7 @@ import {
 import {
   getMockedApiEServiceTemplate,
   generateToken,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { describe, it, vi, expect } from "vitest";
@@ -60,7 +61,9 @@ describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/quotas router
       .patch(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/quotas`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

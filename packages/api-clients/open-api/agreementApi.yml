@@ -432,6 +432,9 @@ paths:
       responses:
         "200":
           description: Agreement archived.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -590,6 +593,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - in: query
+          name: exactConsumerIdMatch
+          description: use consumerIds to retrieve agreements with those specific consumersIds, regardless the delegations
+          schema:
+            type: boolean
+          required: true
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

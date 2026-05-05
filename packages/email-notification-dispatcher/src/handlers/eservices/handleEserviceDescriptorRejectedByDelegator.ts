@@ -63,7 +63,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEserviceDescriptorRejectedByDelegator - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }

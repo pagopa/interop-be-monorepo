@@ -1,5 +1,9 @@
 import { basename } from "path";
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   FileManager,
   M2MAdminAuthData,
@@ -20,7 +24,6 @@ import {
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
@@ -30,6 +33,7 @@ import {
 import {
   purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../model/errors.js";
 import {
@@ -557,6 +561,12 @@ export function purposeServiceBuilder(
       }
 
       if (!version.riskAnalysis) {
+        if (
+          version.state === purposeApi.PurposeVersionState.Values.ACTIVE ||
+          version.state === purposeApi.PurposeVersionState.Values.SUSPENDED
+        ) {
+          throw purposeVersionDocumentNotReady(purposeId, versionId);
+        }
         throw purposeVersionDocumentNotFound(purposeId, versionId);
       }
 

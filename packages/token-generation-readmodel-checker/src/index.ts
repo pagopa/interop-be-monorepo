@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { compareTokenGenerationReadModel } from "./utils/utils.js";
 import { config } from "./configs/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
@@ -18,24 +18,26 @@ async function main(): Promise<void> {
   );
   loggerInstance.info("> Connecting to database...");
 
-  const readModelDB = makeDrizzleConnection(config);
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+  const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
+  try {
+    const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-  loggerInstance.info("> Connected to database!\n");
+    loggerInstance.info("> Connected to database!\n");
 
-  const differencesCount = await compareTokenGenerationReadModel(
-    dynamoDBClient,
-    readModelServiceSQL,
-    loggerInstance
-  );
+    const differencesCount = await compareTokenGenerationReadModel(
+      dynamoDBClient,
+      readModelServiceSQL,
+      loggerInstance
+    );
 
-  if (differencesCount > 0) {
-    loggerInstance.error(`Differences count: ${differencesCount}`);
-  } else {
-    loggerInstance.info("No differences found");
+    if (differencesCount > 0) {
+      loggerInstance.error(`Differences count: ${differencesCount}`);
+    } else {
+      loggerInstance.info("No differences found");
+    }
+  } finally {
+    await cleanup();
   }
 }
 
 await main();
-
-process.exit(0);

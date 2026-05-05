@@ -57,7 +57,7 @@ export async function handleAgreementActivatedToConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementActivatedToConsumer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }

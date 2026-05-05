@@ -24,7 +24,6 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
   hyperlinkDetectionError,
 } from "../../src/model/domain/errors.js";
 
@@ -178,10 +177,6 @@ describe("API PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:ans
         purposeTemplateState.archived
       ),
       expectedStatus: HTTP_STATUS_CONFLICT,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
     {
       error: purposeTemplateRiskAnalysisFormNotFound(purposeTemplateId),

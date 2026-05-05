@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiPurpose,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -16,21 +17,23 @@ describe("DELETE /purpose/:purposeId router test", () => {
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)
       .delete(`${appBasePath}/purposes/${purposeId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiPurpose = getMockedApiPurpose();
   const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.deletePurpose = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockM2MPurposeResponse.id);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     }
   );
 

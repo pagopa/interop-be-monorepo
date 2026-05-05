@@ -9,7 +9,6 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
-  TenantId,
   TargetTenantKind,
 } from "pagopa-interop-models";
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
@@ -107,14 +106,6 @@ export function ruleSetNotFoundError(
     detail: `No risk analysis rule set found for target tenant kind ${targetTenantKind}`,
     code: "ruleSetNotFoundError",
     title: "No risk analysis rule set found for target tenant kind",
-  });
-}
-
-export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation because it's not the creator`,
-    code: "tenantNotAllowed",
-    title: "Tenant not allowed",
   });
 }
 

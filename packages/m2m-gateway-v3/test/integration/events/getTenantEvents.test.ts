@@ -48,7 +48,7 @@ describe("getTenantEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetTenantM2MEvents,
         queries: {

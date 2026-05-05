@@ -28,8 +28,8 @@ export const createStamp = (
   const delegationId = isProducerDelegate
     ? activeDelegations.producerDelegation?.id
     : isConsumerDelegate
-    ? activeDelegations.consumerDelegation?.id
-    : undefined;
+      ? activeDelegations.consumerDelegation?.id
+      : undefined;
 
   return {
     who: authData.userId,

@@ -24,6 +24,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import AdmZip from "adm-zip";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import * as apiUtils from "pagopa-interop-commons";
 import type {
   DelegationProcessClient,
@@ -78,6 +79,8 @@ describe("importEService", () => {
     createEService: vi.fn().mockResolvedValue(baseEService),
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
+    createRiskAnalysis: vi.fn().mockResolvedValue(undefined),
+    deleteEService: vi.fn().mockResolvedValue(undefined),
   } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
   const mockAgreementProcessClient =
@@ -373,6 +376,137 @@ describe("importEService", () => {
       ).rejects.toThrowError(
         invalidZipStructure(`Not allowed files found: ${secondFilename}`)
       );
+      fs.unlinkSync(zipPath);
+    });
+    it("should delete created eservice and re-throw error when createRiskAnalysis fails", async () => {
+      const configurationWithRiskAnalysis = {
+        ...configuration,
+        riskAnalysis: [
+          {
+            name: "expired risk analysis",
+            riskAnalysisForm: {
+              version: "1.0",
+              singleAnswers: [
+                { key: "purpose", value: "INSTITUTIONAL" },
+                {
+                  key: "institutionalPurpose",
+                  value: "MyPurpose",
+                },
+                {
+                  key: "personalDataTypes",
+                  value: "OTHER",
+                },
+                {
+                  key: "otherPersonalDataTypes",
+                  value: "MyData",
+                },
+                { key: "legalBasis", value: "LEGAL_OBLIGATION" },
+                {
+                  key: "legalObligationReference",
+                  value: "MyReference",
+                },
+                { key: "knowsDataQuantity", value: "NO" },
+                {
+                  key: "deliveryMethod",
+                  value: "CLEARTEXT",
+                },
+                {
+                  key: "doneDpia",
+                  value: "NO",
+                },
+                {
+                  key: "ppiIsTenantManager",
+                  value: "YES",
+                },
+                {
+                  key: "doesUseThirdPartyData",
+                  value: "NO",
+                },
+                {
+                  key: "usesThirdPartyData",
+                  value: "NO",
+                },
+              ],
+              multiAnswers: [],
+            },
+          },
+        ],
+      };
+
+      const zipWithRa = new AdmZip();
+      zipWithRa.addFile(
+        jsonFilename,
+        Buffer.from(JSON.stringify(configurationWithRiskAnalysis))
+      );
+
+      const zipPath = path.join(__dirname, "test_ra.zip");
+      zipWithRa.writeZip(zipPath);
+
+      const zipContent = fs.readFileSync(zipPath);
+
+      const raFileResource: bffApi.FileResource = {
+        filename: "test_ra.zip",
+        url: "/import/folder",
+      };
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${raFileResource.filename}`,
+          content: zipContent,
+        },
+        genericLogger
+      );
+
+      const riskAnalysisError = new AxiosError(
+        "Risk analysis validation failed",
+        "400",
+        undefined,
+        undefined,
+        {
+          status: 400,
+          data: {
+            type: "about:blank",
+            title: "Risk analysis validation failed",
+            status: 400,
+            detail:
+              "Risk analysis validation failed. Reasons: [Ruleset version 1.0 for tenant kind GSP has expired]",
+            correlationId: "test-correlation-id",
+            errors: [
+              {
+                code: "001-0019",
+                detail:
+                  "Risk analysis validation failed. Reasons: [Ruleset version 1.0 for tenant kind GSP has expired]",
+              },
+            ],
+          },
+          statusText: "Bad Request",
+          config: {} as InternalAxiosRequestConfig,
+          headers: {},
+        }
+      );
+
+      const mockCreateRiskAnalysis = vi
+        .fn()
+        .mockRejectedValue(riskAnalysisError);
+      const mockDeleteEService = vi.fn().mockResolvedValue(undefined);
+
+      mockCatalogProcessClient.createRiskAnalysis = mockCreateRiskAnalysis;
+      mockCatalogProcessClient.deleteEService = mockDeleteEService;
+
+      await expect(
+        catalogService.importEService(raFileResource, bffMockContext)
+      ).rejects.toThrowError(riskAnalysisError);
+
+      expect(mockDeleteEService).toHaveBeenCalledWith(undefined, {
+        headers: bffMockContext.headers,
+        params: {
+          eServiceId: baseEService.id,
+        },
+      });
+
       fs.unlinkSync(zipPath);
     });
   });

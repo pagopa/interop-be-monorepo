@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiEserviceDoc,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -39,7 +40,8 @@ describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents rou
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/documents`
       )
       .query(query)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,

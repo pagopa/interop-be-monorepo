@@ -9,12 +9,10 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources' && pnpm cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
     "check": "tsc --project tsconfig.check.json",
     "test": "vitest",
     "test:it": "vitest integration"
@@ -23,12 +21,12 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@pagopa/eslint-config": "catalog:",
     "@types/node": "catalog:",
     "cpx2": "catalog:",
     "date-fns": "catalog:",
+    "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
-    "puppeteer": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -45,6 +43,7 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "puppeteer": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

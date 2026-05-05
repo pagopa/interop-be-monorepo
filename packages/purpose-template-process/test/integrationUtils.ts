@@ -221,3 +221,33 @@ export class PurposeTemplateSeedApiBuilder {
     return this.seed;
   }
 }
+
+/**
+ * Recursively removes keys with `undefined` values from an object.
+ * This is necessary to deeply compare mock objects against decoded Protobuf payloads,
+ * which naturally omit undefined fields during serialization.
+ * It safely preserves primitives, Dates, arrays, and Uint8Arrays (Buffers).
+ */
+export const protobufCleanUndefined = <T>(obj: T): T => {
+  if (obj === null || obj === undefined || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (obj instanceof Date || obj instanceof Uint8Array) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => protobufCleanUndefined(item)) as unknown as T;
+  }
+
+  const cleaned: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    if (value !== undefined) {
+      cleaned[key] = protobufCleanUndefined(value);
+    }
+  }
+
+  return cleaned as T;
+};

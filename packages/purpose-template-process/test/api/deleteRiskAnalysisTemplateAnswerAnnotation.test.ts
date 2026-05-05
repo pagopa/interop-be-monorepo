@@ -24,7 +24,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation", () => {
@@ -113,10 +112,6 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
         serviceResponse.data.id
       ),
       expectedStatus: 404,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

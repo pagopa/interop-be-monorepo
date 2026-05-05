@@ -141,7 +141,9 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceSignalHubEnabled",
                   "EServiceSignalHubDisabled",
                   "EServicePersonalDataFlagUpdatedAfterPublication",
-                  "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+                  "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+                  "EServiceInstanceLabelUpdated",
+                  "MaintenanceEServicePersonalDataFlagReset"
                 ),
                 async () => [
                   {
@@ -276,9 +278,10 @@ describe("handleEServiceEvent test", async () => {
                 descriptors
               );
 
-              const descriptorId = affectedDescriptor
-                ? eservice.descriptors.at(affectedDescriptor)!.id
-                : undefined;
+              const descriptorId =
+                affectedDescriptor !== undefined
+                  ? eservice.descriptors.at(affectedDescriptor)!.id
+                  : undefined;
 
               const message = {
                 ...getMockEventEnvelopeCommons(),

@@ -47,7 +47,7 @@ describe("getProducerKeychainEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetProducerKeychainM2MEvents,
         queries: {

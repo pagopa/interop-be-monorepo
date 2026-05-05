@@ -60,9 +60,8 @@ describe("verifyVerifiedAttribute", async () => {
   const tenantAttributeSeedId = generateId<AttributeId>();
 
   const attribute: Attribute = {
-    ...getMockAttribute(),
+    ...getMockAttribute(attributeKind.verified),
     id: unsafeBrandId(tenantAttributeSeedId),
-    kind: attributeKind.verified,
   };
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),

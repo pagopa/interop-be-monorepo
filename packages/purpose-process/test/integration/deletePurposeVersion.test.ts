@@ -102,7 +102,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });
@@ -173,7 +176,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });
@@ -291,7 +297,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });

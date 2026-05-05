@@ -118,6 +118,7 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
   assertTenantHasSelfcareId,
+  assertMembersAreUnique,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -191,9 +192,8 @@ const retrieveProducerKeychain = async (
   producerKeychainId: ProducerKeychainId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<ProducerKeychain>> => {
-  const producerKeychain = await readModelService.getProducerKeychainById(
-    producerKeychainId
-  );
+  const producerKeychain =
+    await readModelService.getProducerKeychainById(producerKeychainId);
   if (!producerKeychain) {
     throw producerKeychainNotFound(producerKeychainId);
   }
@@ -257,11 +257,18 @@ export function authorizationServiceBuilder(
       }: {
         clientSeed: authorizationApi.ClientSeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Client> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -274,11 +281,16 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientAdded(client, correlationId)
       );
 
-      return client;
+      return {
+        data: client,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async createApiClient(
       {
@@ -291,6 +303,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -378,7 +393,11 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
@@ -444,8 +463,12 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
@@ -480,7 +503,7 @@ export function authorizationServiceBuilder(
         keys: client.data.keys.filter((key) => key.kid !== keyIdToRemove),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventClientKeyDeleted(
           updatedClient,
           keyIdToRemove,
@@ -488,6 +511,12 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removeClientPurpose(
       {
@@ -549,9 +578,8 @@ export function authorizationServiceBuilder(
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
-      const clients = await readModelService.getClientsRelatedToPurpose(
-        purposeIdToRemove
-      );
+      const clients =
+        await readModelService.getClientsRelatedToPurpose(purposeIdToRemove);
       for (const client of clients) {
         const updatedClient: Client = {
           ...client.data,
@@ -844,8 +872,12 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Key> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
@@ -853,12 +885,17 @@ export function authorizationServiceBuilder(
         clientId,
         client.data.keys.length + 1
       );
+
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
+
       if (!client.data.users.includes(authData.userId)) {
-        throw userNotFound(authData.userId, authData.selfcareId);
+        throw userNotFound(authData.userId, selfcareId);
       }
 
       await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
+        selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
@@ -884,7 +921,7 @@ export function authorizationServiceBuilder(
         ...client.data,
         keys: [...client.data.keys, newKey],
       };
-      await repository.createEvent(
+      const createEvent = await repository.createEvent(
         toCreateEventKeyAdded(
           newKey.kid,
           updatedClient,
@@ -893,7 +930,12 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return newKey;
+      return {
+        data: newKey,
+        metadata: {
+          version: createEvent.newVersion,
+        },
+      };
     },
     async getClientKeyById(
       {
@@ -903,7 +945,10 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         kid: string;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Key> {
       logger.info(`Retrieving key ${kid} in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -956,11 +1001,17 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(producerKeychainSeed.members);
 
       const producerKeychain: ProducerKeychain = {
         id: generateId(),
@@ -973,11 +1024,16 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventProducerKeychainAdded(producerKeychain, correlationId)
       );
 
-      return producerKeychain;
+      return {
+        data: producerKeychain,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async getProducerKeychains(
       {
@@ -1063,7 +1119,11 @@ export function authorizationServiceBuilder(
       }: {
         producerKeychainId: ProducerKeychainId;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting producer keychain ${producerKeychainId}`);
 
@@ -1249,8 +1309,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keySeed: authorizationApi.KeySeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Key> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -1265,12 +1329,16 @@ export function authorizationServiceBuilder(
         producerKeychain.data.keys.length + 1
       );
 
+      const selfcareId = isUiAuthData(authData)
+        ? authData.selfcareId
+        : await getSelfcareIdFromAuthData(authData, readModelService);
+
       if (!producerKeychain.data.users.includes(authData.userId)) {
-        throw userNotFound(authData.userId, authData.selfcareId);
+        throw userNotFound(authData.userId, selfcareId);
       }
 
       await assertUserSelfcareSecurityPrivileges({
-        selfcareId: authData.selfcareId,
+        selfcareId,
         requesterUserId: authData.userId,
         consumerId: authData.organizationId,
         selfcareV2InstitutionClient,
@@ -1297,7 +1365,7 @@ export function authorizationServiceBuilder(
         keys: [...producerKeychain.data.keys, newKey],
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainKeyAdded(
           newKey.kid,
           updatedProducerKeychain,
@@ -1306,7 +1374,12 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return newKey;
+      return {
+        data: newKey,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removeProducerKeychainKeyById(
       {
@@ -1316,8 +1389,12 @@ export function authorizationServiceBuilder(
         producerKeychainId: ProducerKeychainId;
         keyIdToRemove: string;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
       logger.info(
         `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1368,7 +1445,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventProducerKeychainKeyDeleted(
           updatedProducerKeychain,
           keyIdToRemove,
@@ -1376,6 +1453,12 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async getProducerKeychainKeys(
       {

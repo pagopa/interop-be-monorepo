@@ -50,9 +50,8 @@ const selfcareRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const products = await selfcareService.getSelfcareInstitutionsProducts(
-          ctx
-        );
+        const products =
+          await selfcareService.getSelfcareInstitutionsProducts(ctx);
 
         return res
           .status(200)

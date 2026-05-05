@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 
-export type KafkaProducer = Awaited<ReturnType<typeof initProducer>>;
+type KafkaProducer = Awaited<ReturnType<typeof initProducer>>;
 
 export type EmailProducerService = {
   sendDigestEmail: (

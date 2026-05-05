@@ -24,6 +24,7 @@ describe("API POST /selfcare/tenants test", () => {
     selfcareId,
     onboardedAt: tenant.onboardedAt.toISOString(),
     subUnitType: tenant.subUnitType,
+    selfcareInstitutionType: tenant.selfcareInstitutionType,
   };
 
   const apiResponse = tenantApi.ResourceId.parse({ id: tenant.id });

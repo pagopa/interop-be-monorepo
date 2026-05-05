@@ -1,6 +1,5 @@
 import {
   eq,
-  ne,
   desc,
   asc,
   and,
@@ -48,6 +47,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantFeatureInReadmodelTenant,
   attributeInReadmodelAttribute,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -64,7 +64,7 @@ export type DigestUser = {
   userRoles: UserRole[];
 };
 
-export type TenantData = {
+type TenantData = {
   name: string;
   selfcareId: string | null;
 };
@@ -103,10 +103,12 @@ export type VerifiedRevokedAttribute = AttributeBase & {
 
 export type CertifiedAssignedAttribute = AttributeBase & {
   state: "assigned";
+  certifierName: string;
 };
 
 export type CertifiedRevokedAttribute = AttributeBase & {
   state: "revoked";
+  certifierName: string;
 };
 
 // Base type for agreement data shared between sent and received agreements
@@ -295,7 +297,7 @@ async function getCachedEntities<K, V>(
  */
 function groupAndMapPurposeResults<
   TInput extends BasePurposeQueryResult,
-  TOutput
+  TOutput,
 >(
   results: TInput[],
   mapRow: (row: TInput, state: string, totalCount: number) => TOutput
@@ -1252,10 +1254,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieving certified assigned attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
       );
 
+      const certifierTenant = alias(
+        tenantInReadmodelTenant,
+        "certifier_tenant"
+      );
+
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            certifierName:
+              sql<string>`COALESCE(${certifierTenant.name}, ${attributeInReadmodelAttribute.origin})`.as(
+                "certifier_name"
+              ),
           })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
@@ -1265,6 +1276,20 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
             attributeInReadmodelAttribute.id
           )
+        )
+        .leftJoin(
+          tenantFeatureInReadmodelTenant,
+          and(
+            eq(
+              tenantFeatureInReadmodelTenant.certifierId,
+              attributeInReadmodelAttribute.origin
+            ),
+            eq(tenantFeatureInReadmodelTenant.kind, "PersistentCertifier")
+          )
+        )
+        .leftJoin(
+          certifierTenant,
+          eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
           and(
@@ -1286,6 +1311,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        certifierName: row.certifierName,
         state: "assigned" as const,
         totalCount: row.totalCount,
       }));
@@ -1302,10 +1328,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieving certified revoked attributes for tenant ${tenantId} since ${dateThreshold.toISOString()}`
       );
 
+      const certifierTenant = alias(
+        tenantInReadmodelTenant,
+        "certifier_tenant"
+      );
+
       const results = await db
         .select(
           withTotalCount({
             attributeName: attributeInReadmodelAttribute.name,
+            certifierName:
+              sql<string>`COALESCE(${certifierTenant.name}, ${attributeInReadmodelAttribute.origin})`.as(
+                "certifier_name"
+              ),
           })
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
@@ -1315,6 +1350,20 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             tenantCertifiedAttributeInReadmodelTenant.attributeId,
             attributeInReadmodelAttribute.id
           )
+        )
+        .leftJoin(
+          tenantFeatureInReadmodelTenant,
+          and(
+            eq(
+              tenantFeatureInReadmodelTenant.certifierId,
+              attributeInReadmodelAttribute.origin
+            ),
+            eq(tenantFeatureInReadmodelTenant.kind, "PersistentCertifier")
+          )
+        )
+        .leftJoin(
+          certifierTenant,
+          eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
           and(
@@ -1333,6 +1382,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
 
       return results.map((row) => ({
         attributeName: row.attributeName,
+        certifierName: row.certifierName,
         state: "revoked" as const,
         totalCount: row.totalCount,
       }));
@@ -1435,7 +1485,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
-          desc(
+          asc(
             sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
           )
         );
@@ -1452,7 +1502,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     /**
      * Returns purposes received by the producer tenant (via e-service ownership)
      * that are in Active or WaitingForApproval state.
-     * Excludes purposes where the tenant is also the consumer (to avoid duplicates).
+     * Includes self-consumption (autofruizione) purposes where the tenant is both producer and consumer.
      * Includes consumer name via join with tenant table.
      * Limited to 5 per state.
      */
@@ -1501,8 +1551,6 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(eserviceInReadmodelCatalog.producerId, producerId),
-            // Exclude purposes where tenant is also the consumer (avoid duplicates)
-            ne(purposeInReadmodelPurpose.consumerId, producerId),
             or(
               gte(
                 purposeVersionInReadmodelPurpose.updatedAt,
@@ -1530,7 +1578,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .orderBy(
           purposeInReadmodelPurpose.id,
-          desc(
+          asc(
             sql`COALESCE(${purposeVersionInReadmodelPurpose.updatedAt}, ${purposeVersionInReadmodelPurpose.createdAt})`
           )
         );
@@ -1607,7 +1655,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
           eq(
-            userNotificationConfigInReadmodelNotificationConfig.emailNotificationPreference,
+            userNotificationConfigInReadmodelNotificationConfig.emailDigestPreference,
             true
           )
         );

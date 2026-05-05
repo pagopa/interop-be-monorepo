@@ -67,7 +67,7 @@ describe("suspendPurposeTemplate", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MPurposeTemplate);
+    expect(result).toStrictEqual(expectedM2MPurposeTemplate);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeTemplateProcessClient

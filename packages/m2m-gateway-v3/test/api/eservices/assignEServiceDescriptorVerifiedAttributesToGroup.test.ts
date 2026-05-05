@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiEservice,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -69,12 +70,13 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttrib
       .post(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/verifiedAttributes/groups/${groupIndex}/attributes`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and assign verified attributes group for user with role %s",
+    "Should return 200 and assign verified attributes group for user with role %s",
     async (role) => {
       mockEserviceService.assignEServiceDescriptorVerifiedAttributesToGroup = vi
         .fn()
@@ -89,7 +91,8 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttrib
         mockAttributeSeed
       );
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEserviceService.assignEServiceDescriptorVerifiedAttributesToGroup
       ).toHaveBeenCalledWith(
@@ -172,7 +175,8 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttrib
       .post(
         `${appBasePath}/eservices/${mockEService.id}/descriptors/${mockDescriptor.id}/verifiedAttributes/groups/0/attributes`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send({ invalid: "body" });
 
     expect(res.status).toBe(400);

@@ -3,6 +3,7 @@ import {
   catalogApi,
   eserviceTemplateApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -15,7 +16,6 @@ import {
   CatalogProcessClientWithMetadata,
   EServiceTemplateProcessClientWithMetadata,
 } from "../clients/clientsProvider.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { Headers } from "./context.js";
 

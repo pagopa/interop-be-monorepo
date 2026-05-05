@@ -88,7 +88,7 @@ describe("createEServiceTemplate", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceResponse);
+    expect(result).toStrictEqual(m2mEserviceResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

@@ -5,7 +5,7 @@ import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
-import { config } from "../config/config.js";
+import type { OpenDataConfig } from "../config/openDataConfig.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
@@ -74,8 +74,10 @@ function isCategoryField(field: string): field is CategoriesFields {
   return (categoriesFields as readonly string[]).includes(field);
 }
 
-export async function getAllCategories(): Promise<Category[]> {
-  const response = await axios.get(config.institutionsCategoriesUrl);
+export async function getAllCategories(
+  openDataConfig: OpenDataConfig
+): Promise<Category[]> {
+  const response = await axios.get(openDataConfig.institutionsCategoriesUrl);
   const responseFields = response.data.fields as Array<{ id: string }>;
   const responseRecords = response.data.records as Array<any>;
 
@@ -123,12 +125,13 @@ function isInstitutionsField(field: string): field is InstitutionsFields {
 
 export async function getAllInstitutions(
   institutionKind: InstitutionKind,
-  institutionsDetails: Map<string, { category: string; kind: string }>
+  institutionsDetails: Map<string, { category: string; kind: string }>,
+  openDataConfig: OpenDataConfig
 ): Promise<Institution[]> {
   const url = match(institutionKind)
-    .with("Agency", () => config.institutionsUrl)
-    .with("AOO", () => config.aooUrl)
-    .with("UO", () => config.uoUrl)
+    .with("Agency", () => openDataConfig.institutionsUrl)
+    .with("AOO", () => openDataConfig.aooUrl)
+    .with("UO", () => openDataConfig.uoUrl)
     .exhaustive();
 
   const response = await axios.get(url);

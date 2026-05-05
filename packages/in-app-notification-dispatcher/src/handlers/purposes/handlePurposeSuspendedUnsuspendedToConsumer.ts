@@ -26,7 +26,7 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeSuspendedUnsuspendedToConsumer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeSuspendedUnsuspendedToConsumer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const usersWithNotifications = await getNotificationRecipients(
@@ -37,7 +37,7 @@ export async function handlePurposeSuspendedUnsuspendedToConsumer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeSuspendedUnsuspendedToConsumer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }

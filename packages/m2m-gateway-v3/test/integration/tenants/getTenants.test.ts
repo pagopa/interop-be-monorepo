@@ -89,7 +89,7 @@ describe("getTenants", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
       queries: {

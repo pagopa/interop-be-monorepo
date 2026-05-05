@@ -20,7 +20,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
@@ -83,7 +82,6 @@ describe("API POST /purposeTemplates/{id}/publish", () => {
       ),
       expectedStatus: 409,
     },
-    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,

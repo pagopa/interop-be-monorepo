@@ -70,10 +70,7 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import {
-  getAllAgreements,
-  getLatestAgreementsOnDescriptor,
-} from "./agreementService.js";
+import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   getAllDelegations,
@@ -166,12 +163,12 @@ const checkNewTemplateVersionAvailable = (
 
   return Boolean(
     eserviceTemplateVersion &&
-      eserviceTemplate?.versions.some(
-        (v) =>
-          v.version > eserviceTemplateVersion?.version &&
-          v.state ===
-            eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
-      )
+    eserviceTemplate?.versions.some(
+      (v) =>
+        v.version > eserviceTemplateVersion?.version &&
+        v.state ===
+          eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+    )
   );
 };
 
@@ -416,9 +413,9 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
-      const eserviceTemplateInterface = eserviceTemplate?.versions.find(
+      const eserviceTemplateVersion = eserviceTemplate?.versions.find(
         (v) => v.id === descriptor.templateVersionRef?.id
-      )?.interface;
+      );
 
       const delegation = (
         await delegationProcessClient.delegation.getDelegations({
@@ -472,13 +469,16 @@ export function catalogServiceBuilder(
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
           templateVersionId: descriptor.templateVersionRef?.id,
-          templateInterface: eserviceTemplateInterface
-            ? toBffCatalogApiDescriptorDoc(eserviceTemplateInterface)
+          templateInterface: eserviceTemplateVersion?.interface
+            ? toBffCatalogApiDescriptorDoc(eserviceTemplateVersion.interface)
             : undefined,
           interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
           isNewTemplateVersionAvailable:
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
+          templateDailyCallsPerConsumer:
+            eserviceTemplateVersion?.dailyCallsPerConsumer,
+          templateDailyCallsTotal: eserviceTemplateVersion?.dailyCallsTotal,
         },
         delegation:
           delegation !== undefined && delegate !== undefined
@@ -786,104 +786,62 @@ export function catalogServiceBuilder(
         )}`
       );
       const requesterId = authData.organizationId;
-      const res: {
-        results: catalogApi.EService[];
-        totalCount: number;
-      } = {
-        results: [],
-        totalCount: 0,
-      };
 
-      if (consumersIds.length === 0) {
-        const { results, totalCount } = await catalogProcessClient.getEServices(
-          {
-            headers,
-            queries: {
-              name: eserviceName,
-              producersIds: requesterId,
-              delegated,
-              personalData,
-              offset,
-              limit,
-            },
-          }
-        );
-
-        res.results = results;
-        res.totalCount = totalCount;
-      } else {
-        const eserviceIds = (
-          await getAllAgreements(agreementProcessClient, headers, {
-            consumersIds,
-            producersIds: [requesterId],
-            eservicesIds: [],
-            states: [],
-          })
-        ).map((agreement) => agreement.eserviceId);
-
-        const { results, totalCount } = await catalogProcessClient.getEServices(
-          {
-            headers,
-            queries: {
-              name: eserviceName,
-              eservicesIds: eserviceIds,
-              producersIds: requesterId,
-              delegated,
-              offset,
-              limit,
-            },
-          }
-        );
-
-        res.results = results;
-        res.totalCount = totalCount;
-      }
-
-      const notificationsPromise = filterUnreadNotifications(
-        inAppNotificationManagerClient,
-        res.results.map((a) => a.id),
-        ctx
-      );
-
-      const delegations = await getAllDelegations(
-        delegationProcessClient,
+      const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
-        {
-          delegateIds: [],
-          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
-          kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
-          eserviceIds: res.results.map((r) => r.id),
-        }
+        queries: {
+          name: eserviceName,
+          producersIds: requesterId,
+          consumersIds,
+          delegated,
+          personalData,
+          offset,
+          limit,
+        },
+      });
+
+      const eserviceIds = results.map((r) => r.id);
+      const eserviceTemplatesIds = Array.from(
+        new Set(
+          results.map((r) => r.templateId).filter((id): id is string => !!id)
+        )
       );
+
+      const [notifications, delegations, eserviceTemplates] = await Promise.all(
+        [
+          filterUnreadNotifications(
+            inAppNotificationManagerClient,
+            eserviceIds,
+            ctx
+          ),
+          getAllDelegations(delegationProcessClient, headers, {
+            delegateIds: [],
+            delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+            kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+            eserviceIds,
+          }),
+          getAllFromPaginated(
+            async (offset, limit) =>
+              await eserviceTemplateProcessClient.getEServiceTemplates({
+                headers,
+                queries: {
+                  eserviceTemplatesIds,
+                  offset,
+                  limit,
+                },
+              })
+          ),
+        ]
+      );
+
       const delegationTenants = await getTenantsFromDelegation(
         tenantProcessClient,
         delegations,
         headers
       );
 
-      const eserviceTemplatesIds = Array.from(
-        new Set(
-          res.results
-            .map((r) => r.templateId)
-            .filter((id): id is string => !!id)
-        )
-      );
-
-      const eserviceTemplates = await getAllFromPaginated(
-        async (offset, limit) =>
-          await eserviceTemplateProcessClient.getEServiceTemplates({
-            headers,
-            queries: {
-              eserviceTemplatesIds,
-              offset,
-              limit,
-            },
-          })
-      );
-      const notifications = await notificationsPromise;
-
       return {
-        results: res.results.map((result) =>
+        results: results.map((result) =>
           enhanceProducerEService(
             result,
             requesterId,
@@ -896,7 +854,7 @@ export function catalogServiceBuilder(
         pagination: {
           offset,
           limit,
-          totalCount: res.totalCount,
+          totalCount,
         },
       };
     },
@@ -1645,6 +1603,7 @@ export function catalogServiceBuilder(
               eServiceId: eservice.id,
             },
           });
+          throw error;
         }
         await pollEServiceById({
           condition: (result) => result.riskAnalysis.length > 0,
@@ -1849,7 +1808,18 @@ export function catalogServiceBuilder(
         : [];
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
-      const tentantsIds = Array.from(tenantsMap.keys());
+      const tenantsIds = Array.from(tenantsMap.keys());
+
+      if (producerName && tenantsIds.length === 0) {
+        return {
+          results: [],
+          pagination: {
+            offset,
+            limit,
+            totalCount: 0,
+          },
+        };
+      }
 
       const defaultStates: catalogApi.EServiceDescriptorState[] = [
         catalogApi.EServiceDescriptorState.Values.PUBLISHED,
@@ -1861,7 +1831,7 @@ export function catalogServiceBuilder(
       const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
         queries: {
-          producersIds: tentantsIds,
+          producersIds: tenantsIds,
           templatesIds: [eServiceTemplateId],
           states: states.length === 0 ? defaultStates : states,
           offset,
@@ -1888,6 +1858,63 @@ export function catalogServiceBuilder(
 
       return {
         results: await Promise.all(results.map(enhanceTemplateInstance)),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+      };
+    },
+    getMyEServiceTemplateInstances: async (
+      eServiceTemplateId: EServiceTemplateId,
+      offset: number,
+      limit: number,
+      { logger, headers, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateInstances> => {
+      logger.info(
+        `Retrieving EService template ${eServiceTemplateId} instances for the producer, with offset=${offset} limit=${limit}`
+      );
+
+      // This assures that the template exists
+      await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        eserviceTemplateProcessClient,
+        headers
+      );
+
+      const { results, totalCount } = await catalogProcessClient.getEServices({
+        headers,
+        queries: {
+          producersIds: [authData.organizationId],
+          templatesIds: [eServiceTemplateId],
+          offset,
+          limit,
+        },
+      });
+
+      const tenantsMap = new Map<string, tenantApi.Tenant>();
+
+      const enhanceTemplateInstanceForProducer = async (
+        eservice: catalogApi.EService
+      ): Promise<bffApi.EServiceTemplateInstance> => {
+        const producer =
+          tenantsMap.get(eservice.producerId) ??
+          (await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: {
+              id: eservice.producerId,
+            },
+          }));
+
+        tenantsMap.set(eservice.producerId, producer);
+
+        return toBffEServiceTemplateInstance(eservice, producer, true);
+      };
+
+      return {
+        results: await Promise.all(
+          results.map(enhanceTemplateInstanceForProducer)
+        ),
         pagination: {
           offset,
           limit,
@@ -1984,6 +2011,26 @@ export function catalogServiceBuilder(
           descriptorId,
         },
       });
+    },
+    updateEServiceInstanceLabel: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      seed: bffApi.EServiceInstanceLabelUpdateSeed
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Update instance label for E-Service with id = ${eServiceId} to ${seed.instanceLabel}`
+      );
+      const eservice =
+        await catalogProcessClient.updateEServiceInstanceLabelAfterPublication(
+          seed,
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id: eservice.id };
     },
   };
 }

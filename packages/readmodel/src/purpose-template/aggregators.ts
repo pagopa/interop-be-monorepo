@@ -95,7 +95,7 @@ const createPurposeTemplateSQLPropertyMap = <
     | PurposeTemplateRiskAnalysisFormSQL
     | PurposeTemplateRiskAnalysisAnswerSQL
     | PurposeTemplateRiskAnalysisAnswerAnnotationSQL
-    | PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL
+    | PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
 >(
   items: T[]
 ): Map<PurposeTemplateId, T[]> =>

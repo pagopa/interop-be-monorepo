@@ -26,6 +26,9 @@ interface RequestWithMaybeContext extends Request {
  * This middleware uses the "json replacer" and "json spaces" options from the response object to ensure
  * that the body is converted to a canonical JSON representation.
  *
+ * Also note that, to have the Digest and Agid-JWT-Signature headers set on the response even if the
+ * authorisation is not successful, this middleware needs to be _before_ the authentication middleware.
+ *
  * @param config - The token generation configuration.
  * @param kmsClient - The KMS client.
  * @returns The middleware function.
@@ -34,47 +37,63 @@ export function integrityRest02Middleware(
   config: IntegrityRest02SignatureConfig,
   kmsClient: KMSClient
 ) {
+  const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return (req: RequestWithMaybeContext, res: Response, next: NextFunction) => {
     // Keep original res.send
     const originalSend = res.send.bind(res);
-
     // eslint-disable-next-line functional/immutable-data
     res.send = (body?: unknown): Response => {
-      const correlationId = res.getHeader("x-correlation-id") as
-        | string
-        | undefined;
-      const clientId = req.ctx?.authData?.clientId ?? correlationId;
+      if (res.statusCode === 204 || res.statusCode === 304) {
+        next(
+          new Error(
+            `Integrity REST 02 middleware should not be used for responses with status code ${res.statusCode} as they must not have a body`
+          )
+        );
+        return res;
+      }
+      void (async (): Promise<void> => {
+        try {
+          const correlationId = res.getHeader("x-correlation-id") as
+            | string
+            | undefined;
+          if (!correlationId) {
+            throw new Error(
+              "Integrity REST 02 middleware should not be used for responses without a correlation id"
+            );
+          }
+          const clientId = req.ctx?.authData?.clientId;
 
-      const replacer =
-        (res.app.get("json replacer") as JsonReplacer) ?? undefined;
-      const spaces = (res.app.get("json spaces") as JsonSpaces) ?? undefined;
-      const digest = calculateIntegrityRest02DigestFromBody({
-        body,
-        replacer,
-        spaces,
-      });
-      const signedHeaders = buildIntegrityRest02SignedHeaders({
-        res,
-        digest,
-      });
+          const replacer =
+            (res.app.get("json replacer") as JsonReplacer) ?? undefined;
+          const spaces =
+            (res.app.get("json spaces") as JsonSpaces) ?? undefined;
+          const digest = calculateIntegrityRest02DigestFromBody({
+            body,
+            replacer,
+            spaces,
+          });
+          const contentType = res.getHeader("Content-Type")?.toString();
+          const contentEncoding = res.getHeader("Content-Encoding")?.toString();
+          const signedHeaders = buildIntegrityRest02SignedHeaders({
+            digest,
+            contentType,
+            contentEncoding,
+            correlationId,
+          });
 
-      const tokenGenerator = new InteropTokenGenerator(config, kmsClient);
-
-      tokenGenerator
-        .generateAgidIntegrityRest02Token({
-          signedHeaders,
-          aud: clientId,
-          sub: correlationId,
-        })
-        .then((agidSignature) => {
+          const agidSignature =
+            await tokenGenerator.generateAgidIntegrityRest02Token({
+              signedHeaders,
+              clientId,
+            });
           res.setHeader("Digest", `SHA-256=${digest}`);
           res.setHeader("Agid-JWT-Signature", agidSignature);
           originalSend(body);
-        })
-        .catch((err) => {
+        } catch (err) {
           next(err);
-        });
+        }
+      })();
 
       return res;
     };

@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiAgreement,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -31,7 +32,8 @@ describe("POST /agreements router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/agreements`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

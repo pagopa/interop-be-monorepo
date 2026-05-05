@@ -1207,9 +1207,8 @@ describe("utils", () => {
       logger: genericLogger,
     });
 
-    const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-      dynamoDBClient
-    );
+    const retrievedTokenGenStatesEntries =
+      await readAllTokenGenStatesItems(dynamoDBClient);
     const expectedTokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...tokenConsumerClient,
       purposeState: itemState.inactive,

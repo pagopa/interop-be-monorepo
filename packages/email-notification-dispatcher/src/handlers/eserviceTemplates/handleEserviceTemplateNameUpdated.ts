@@ -72,7 +72,7 @@ export async function handleEServiceTemplateNameUpdated(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for instantiator tenants. EService template ${eserviceTemplate.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEServiceTemplateNameUpdated - entityId: ${eserviceTemplate.id}, eventType: ${notificationType}`
     );
     return [];
   }

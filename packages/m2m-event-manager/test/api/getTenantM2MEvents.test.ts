@@ -24,7 +24,7 @@ describe("API /events/tenants test", () => {
           eventTimestamp: e.eventTimestamp.toJSON(),
           eventType: toApiTenantM2MEventType(e.eventType),
           tenantId: e.tenantId,
-        } as m2mEventApi.TenantM2MEvent)
+        }) as m2mEventApi.TenantM2MEvent
     ),
   };
 

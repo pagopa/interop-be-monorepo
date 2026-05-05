@@ -8,6 +8,6 @@ export function unsafeBrandDelegationIdParam(
   return delegationId
     ? unsafeBrandId<DelegationId>(delegationId)
     : delegationId === null
-    ? null
-    : undefined;
+      ? null
+      : undefined;
 }

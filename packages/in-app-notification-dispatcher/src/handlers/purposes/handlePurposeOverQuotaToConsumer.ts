@@ -27,7 +27,7 @@ export async function handlePurposeOverQuotaToConsumer(
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeOverQuotaToConsumer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeOverQuotaToConsumer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
@@ -41,7 +41,7 @@ export async function handlePurposeOverQuotaToConsumer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeOverQuotaToConsumer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }

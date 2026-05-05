@@ -37,7 +37,7 @@ describe("API /events/purposes test", () => {
           purposeVersionId: e.purposeVersionId,
           consumerDelegationId: e.consumerDelegationId,
           producerDelegationId: e.producerDelegationId,
-        } as m2mEventApi.PurposeM2MEvent)
+        }) as m2mEventApi.PurposeM2MEvent
     ),
   };
 

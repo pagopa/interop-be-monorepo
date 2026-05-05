@@ -28,7 +28,6 @@ import {
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
@@ -168,10 +167,6 @@ describe("API POST /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annota
         answerId
       ),
       expectedStatus: HTTP_STATUS_NOT_FOUND,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
   ])(
     "Should return $expectedStatus for $error.code",

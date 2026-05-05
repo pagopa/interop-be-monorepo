@@ -11,7 +11,6 @@ import {
 } from "pagopa-interop-models";
 import {
   generateToken,
-  randomArrayItem,
   getMockDescriptor,
   getMockEService,
   getMockWithMetadata,
@@ -23,13 +22,13 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
-  invalidEServiceFlags,
+  invalidDelegationFlags,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/delegationFlags/update authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
-    state: descriptorState.draft,
+    state: descriptorState.published,
   };
 
   const mockEService: EService = {
@@ -42,12 +41,9 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
     eServiceToApiEService(mockEService)
   );
 
-  const isClientAccessDelegable = randomArrayItem([false, true]);
-  const isConsumerDelegable = randomArrayItem([false, true]);
-
   const eserviceSeed: catalogApi.EServiceDelegationFlagsUpdateSeed = {
-    isConsumerDelegable,
-    isClientAccessDelegable,
+    isConsumerDelegable: true,
+    isClientAccessDelegable: false,
   };
 
   catalogService.updateEServiceDelegationFlags = vi
@@ -106,7 +102,7 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       expectedStatus: 403,
     },
     {
-      error: invalidEServiceFlags(mockEService.id),
+      error: invalidDelegationFlags(false, true),
       expectedStatus: 400,
     },
   ])(
@@ -132,7 +128,6 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
       mockEService.id,
     ],
     [{ ...eserviceSeed }, "invalidId"],
-    [{ ...eserviceSeed }, mockEService.id],
   ])(
     "Should return 400 if passed invalid delegation flags update params: %s (eServiceId: %s)",
     async (body, eServiceId) => {

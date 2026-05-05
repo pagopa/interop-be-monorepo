@@ -42,16 +42,17 @@ export function errorsToApiProblemsMiddleware(
   req: WithZodiosContext<express.Request, ExpressContext>,
   res: Response,
   next: NextFunction
-): Response | void {
+): void {
   if (res.headersSent) {
-    return next(error);
+    next(error);
+    return;
   }
 
   const ctx = fromAppContext(req.ctx);
   ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
 
   if (error instanceof SyntaxError) {
-    return res
+    res
       .status(constants.HTTP_STATUS_BAD_REQUEST)
       .send(
         makeApiProblem(
@@ -60,9 +61,10 @@ export function errorsToApiProblemsMiddleware(
           ctx
         )
       );
+    return;
   }
 
-  return res
+  res
     .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .send(
       makeApiProblem(

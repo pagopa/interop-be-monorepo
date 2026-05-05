@@ -146,9 +146,8 @@ describe("V1 events", async () => {
         expect(retrievedEntry).toEqual(expectedEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-          dynamoDBClient
-        );
+        const retrievedTokenGenStatesEntries =
+          await readAllTokenGenStatesItems(dynamoDBClient);
         const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
@@ -383,9 +382,8 @@ describe("V1 events", async () => {
         expect(retrievedCatalogEntry).toEqual(previousCatalogStateEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-          dynamoDBClient
-        );
+        const retrievedTokenGenStatesEntries =
+          await readAllTokenGenStatesItems(dynamoDBClient);
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
             tokenGenStatesConsumerClient1,
@@ -747,9 +745,8 @@ describe("V1 events", async () => {
       expect(retrievedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

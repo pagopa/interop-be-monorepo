@@ -65,7 +65,7 @@ describe("downloadEServiceDescriptorDocument", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockDocument.path);
+    ).toStrictEqual(mockDocument.path);
 
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();

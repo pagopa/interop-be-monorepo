@@ -1053,6 +1053,31 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/templates/:templateId/myInstances", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { templateId } = req.params;
+      const { offset, limit } = req.query;
+
+      try {
+        const result = await catalogService.getMyEServiceTemplateInstances(
+          unsafeBrandId(templateId),
+          offset,
+          limit,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.EServiceTemplateInstances.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getEServiceTemplateInstancesErrorMapper,
+          ctx,
+          `Error retrieving eservice template ${templateId} instances`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices/names/availability", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { name } = req.query;
@@ -1092,6 +1117,28 @@ const catalogRouter = (
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body
             )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/instanceLabel/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const result = await catalogService.updateEServiceInstanceLabel(
+            ctx,
+            unsafeBrandId(req.params.eServiceId),
+            req.body
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

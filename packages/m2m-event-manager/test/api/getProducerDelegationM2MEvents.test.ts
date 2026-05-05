@@ -31,7 +31,7 @@ describe("API /events/producerDelegations test", () => {
             eventType: toApiProducerDelegationM2MEventType(e.eventType),
             eventTimestamp: e.eventTimestamp.toJSON(),
             delegationId: e.delegationId,
-          } as m2mEventApi.ProducerDelegationM2MEvent)
+          }) as m2mEventApi.ProducerDelegationM2MEvent
       ),
     };
 

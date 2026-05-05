@@ -25,7 +25,7 @@ export type AuthRole = z.infer<typeof AuthRole>;
 
 type ContainsAuthRole<
   Arr extends AuthRole[],
-  V extends AuthRole
+  V extends AuthRole,
 > = Arr extends [infer Head, ...infer Tail extends AuthRole[]]
   ? Head extends V
     ? true
@@ -79,7 +79,7 @@ type AllowedAuthData<AdmittedRoles extends NonEmptyArray<AuthRole>> =
   -------------------------------------------------------
  */
 export function validateAuthorization<
-  AdmittedRoles extends NonEmptyArray<AuthRole>
+  AdmittedRoles extends NonEmptyArray<AuthRole>,
 >(
   ctx: AppContext,
   admittedAuthRoles: AdmittedRoles

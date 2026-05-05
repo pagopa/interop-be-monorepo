@@ -94,12 +94,12 @@ import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
-import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
-import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "./client-jwk-key/splitters.js";
+import { splitClientIntoObjectsSQL } from "./client/splitters.js";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
-import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
-import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
+import { splitProducerJWKKeyIntoObjectsSQL } from "./producer-jwk-key/splitters.js";
+import { splitProducerKeychainIntoObjectsSQL } from "./producer-keychain/splitters.js";
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {

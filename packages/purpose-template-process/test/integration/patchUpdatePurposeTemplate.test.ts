@@ -28,7 +28,6 @@ import {
   purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("patch update purpose template", () => {
@@ -158,9 +157,9 @@ describe("patch update purpose template", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.purposeTemplate).toEqual(
-        toPurposeTemplateV2(expectedPurposeTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      });
       expect(updatePurposeTemplateReturn).toEqual({
         data: expectedPurposeTemplate,
         metadata: { version: 1 },
@@ -183,7 +182,7 @@ describe("patch update purpose template", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [
@@ -468,7 +467,7 @@ describe("patch update purpose template", () => {
       Pick<
         PurposeTemplate,
         "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
-      >
+      >,
     ]
   > = [
     [
@@ -545,7 +544,7 @@ describe("patch update purpose template", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(mockPurposeTemplate);
@@ -555,7 +554,7 @@ describe("patch update purpose template", () => {
         {},
         getMockContextM2MAdmin({ organizationId: requesterId })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
   });
 
   it("should throw purposeTemplateTitleConflict if the updated title is already in use", async () => {

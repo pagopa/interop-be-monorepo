@@ -205,7 +205,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   return new Kafka({
     ...kafkaConfig,
     logCreator:
-      (_logLevel) =>
+      () =>
       ({ level, log }) => {
         const { message, error } = log;
 

@@ -266,9 +266,8 @@ describe("Events V1", async () => {
 
     await handleMessageV1(message, clientWriterService);
 
-    const retrievedClient = await clientReadModelService.getClientById(
-      clientId
-    );
+    const retrievedClient =
+      await clientReadModelService.getClientById(clientId);
 
     expect(retrievedClient).toBeUndefined();
   });

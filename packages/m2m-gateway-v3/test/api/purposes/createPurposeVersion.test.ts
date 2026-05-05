@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -37,7 +38,8 @@ describe("POST /purposes/:purposeId/versions router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/purposes/${purposeId}/versions`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

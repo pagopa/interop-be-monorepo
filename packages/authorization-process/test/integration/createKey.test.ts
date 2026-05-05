@@ -113,7 +113,7 @@ describe("createKey", () => {
       getMockContext({ authData: mockAuthData })
     );
 
-    const client: Client = { ...mockClient, keys: [key] };
+    const client: Client = { ...mockClient, keys: [key.data] };
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
@@ -148,7 +148,10 @@ describe("createKey", () => {
         },
       ],
     };
-    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(writtenPayload).toEqual({
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
+      client: toClientV2(expectedClient),
+    });
   });
   it("should throw clientNotFound if the client doesn't exist ", async () => {
     await addOneClient(getMockClient());

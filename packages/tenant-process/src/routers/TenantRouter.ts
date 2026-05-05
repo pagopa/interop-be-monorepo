@@ -649,7 +649,9 @@ const tenantsRouter = (
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-        const tenant = await tenantService.internalUpsertTenant(req.body, ctx);
+        const { data: tenant, metadata } =
+          await tenantService.internalUpsertTenant(req.body, ctx);
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -671,7 +673,7 @@ const tenantsRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
-          await tenantService.internalAssignCertifiedAttribute(
+          const metadata = await tenantService.internalAssignCertifiedAttribute(
             {
               tenantOrigin: tOrigin,
               tenantExternalId: tExternalId,
@@ -680,6 +682,7 @@ const tenantsRouter = (
             },
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -700,7 +703,7 @@ const tenantsRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
-          await tenantService.internalRevokeCertifiedAttribute(
+          const metadata = await tenantService.internalRevokeCertifiedAttribute(
             {
               tenantOrigin: tOrigin,
               tenantExternalId: tExternalId,
@@ -709,6 +712,7 @@ const tenantsRouter = (
             },
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(

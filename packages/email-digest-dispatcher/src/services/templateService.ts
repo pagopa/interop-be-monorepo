@@ -8,7 +8,7 @@ import {
 } from "../utils/digestAdmittedRoles.js";
 import { TenantDigestData } from "./digestDataService.js";
 
-export type DigestTemplateService = {
+type DigestTemplateService = {
   compileDigestEmail: (
     data: TenantDigestData,
     visibility: Record<DigestSection, boolean>

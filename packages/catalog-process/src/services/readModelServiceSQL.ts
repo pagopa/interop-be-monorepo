@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -81,7 +82,6 @@ import {
   desc,
   eq,
   exists,
-  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -92,10 +92,8 @@ import {
 import { match } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import {
-  activeDescriptorStates,
-  hasRoleToAccessInactiveDescriptors,
-} from "./validators.js";
+import { activeDescriptorStates } from "./descriptorStates.js";
+import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleTransactionType
@@ -136,6 +134,7 @@ export function readModelServiceBuilderSQL(
       const {
         eservicesIds,
         producersIds,
+        consumersIds,
         states,
         agreementStates,
         name,
@@ -149,6 +148,9 @@ export function readModelServiceBuilderSQL(
         templatesIds,
         personalData,
       } = filters;
+
+      const requiresAgreementJoin =
+        agreementStates.length > 0 || consumersIds.length > 0;
 
       return await readmodelDB.transaction(async (tx) => {
         const totalCountQuery = tx
@@ -176,9 +178,9 @@ export function readModelServiceBuilderSQL(
               and(
                 // name filter
                 name
-                  ? ilike(
+                  ? ilikeEscaped(
                       eserviceInReadmodelCatalog.name,
-                      `%${escapeRegExp(name)}%`
+                      `%${escapeSqlLike(name)}%`
                     )
                   : undefined,
                 // ids filter
@@ -260,38 +262,37 @@ export function readModelServiceBuilderSQL(
             eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
           );
 
+          const agreementStateClause =
+            agreementStates.length > 0
+              ? inArray(agreementInReadmodelAgreement.state, agreementStates)
+              : undefined;
+
+          const agreementConsumerClause =
+            consumersIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.consumerId, consumersIds)
+              : eq(
+                  agreementInReadmodelAgreement.consumerId,
+                  authData.organizationId
+                );
+
           const agreementSubquery = tx
             .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
               eserviceId: agreementInReadmodelAgreement.eserviceId,
             })
             .from(agreementInReadmodelAgreement)
             .where(
-              //  agreement states filter
-              agreementStates.length > 0
-                ? and(
-                    inArray(
-                      agreementInReadmodelAgreement.state,
-                      agreementStates
-                    ),
-                    eq(
-                      agreementInReadmodelAgreement.consumerId,
-                      authData.organizationId
-                    )
-                  )
+              requiresAgreementJoin
+                ? and(agreementStateClause, agreementConsumerClause)
                 : undefined
             )
             .as("agreementSubquery");
 
-          const queryAfterAgreementFilter =
-            agreementStates.length > 0
-              ? queryAfterEserviceFilters.innerJoin(
-                  agreementSubquery,
-                  eq(
-                    eserviceInReadmodelCatalog.id,
-                    agreementSubquery.eserviceId
-                  )
-                )
-              : queryAfterEserviceFilters;
+          const queryAfterAgreementFilter = requiresAgreementJoin
+            ? queryAfterEserviceFilters.innerJoin(
+                agreementSubquery,
+                eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+              )
+            : queryAfterEserviceFilters;
 
           return queryAfterAgreementFilter
             .leftJoin(
@@ -544,7 +545,7 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .where(
           and(
-            ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
+            ilikeEscaped(eserviceInReadmodelCatalog.name, escapeSqlLike(name)),
             eq(eserviceInReadmodelCatalog.producerId, producerId)
           )
         )
@@ -561,9 +562,9 @@ export function readModelServiceBuilderSQL(
         .select({ count: count() })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);
@@ -859,12 +860,10 @@ export function readModelServiceBuilderSQL(
               contentType: doc.contentType,
               checksum: doc.checksum,
               uploadDate: stringToDate(doc.uploadDate),
-            } satisfies Document)
+            }) satisfies Document
         ),
         resultsSet[0]?.totalCount
       );
     },
   };
 }
-
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

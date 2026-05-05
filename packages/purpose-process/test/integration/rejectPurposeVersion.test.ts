@@ -92,7 +92,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -160,7 +163,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -227,7 +233,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -308,7 +317,10 @@ describe("rejectPurposeVersion", () => {
       delegationId: mockPurpose.delegationId,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });

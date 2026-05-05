@@ -559,11 +559,11 @@ describe("ReadModelService - getReceivedPurposes", async () => {
   });
 
   describe("Consumer exclusion", () => {
-    it("should not return purposes where producer is also the consumer", async () => {
+    it("should return purposes where producer is also the consumer (autofruizione)", async () => {
       const tenant = getMockTenant();
       await addOneTenant(tenant);
 
-      // Tenant is both producer and consumer
+      // Tenant is both producer and consumer (autofruizione)
       const eservice = createMockEServiceWithDescriptor(tenant.id);
       await addOneEService(eservice);
 
@@ -577,7 +577,8 @@ describe("ReadModelService - getReceivedPurposes", async () => {
 
       const results = await readModelService.getReceivedPurposes(tenant.id);
 
-      expect(results).toEqual([]);
+      expect(results.length).toBe(1);
+      expect(results[0].consumerId).toBe(tenant.id);
     });
 
     it("should return purposes from different consumers", async () => {

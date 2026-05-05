@@ -99,9 +99,9 @@ describe("addAgreementConsumerDocument", () => {
         config.agreementConsumerDocumentsContainer,
         genericLogger
       )
-    ).toEqual([matchExpectedPath]);
+    ).toStrictEqual([matchExpectedPath]);
 
-    expect(result).toEqual(m2mAgreementDocumentResponse);
+    expect(result).toStrictEqual(m2mAgreementDocumentResponse);
 
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:

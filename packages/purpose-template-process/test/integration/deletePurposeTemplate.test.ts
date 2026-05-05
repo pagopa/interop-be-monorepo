@@ -31,7 +31,6 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("deletePurposeTemplate", () => {
@@ -130,9 +129,9 @@ describe("deletePurposeTemplate", () => {
       payload: purposeTemplateDeletionEvent.data,
     });
 
-    expect(purposeDeletionPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
+    expect(purposeDeletionPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -162,7 +161,7 @@ describe("deletePurposeTemplate", () => {
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
 
     await addOnePurposeTemplate(purposeTemplate);
@@ -171,7 +170,7 @@ describe("deletePurposeTemplate", () => {
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
-    ).rejects.toThrowError(tenantNotAllowed(requesterId));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw purposeTemplateRiskAnalysisFormNotFound if the purpose template doesn't have a risk analysis form", async () => {

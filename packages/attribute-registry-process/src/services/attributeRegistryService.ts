@@ -27,10 +27,10 @@ import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   tenantIsNotACertifier,
   attributeDuplicateByName,
-  attributeDuplicateByNameAndCode,
   attributeNotFound,
   originNotCompliant,
   tenantNotFound,
+  attributeDuplicateByCodeOriginOrName,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -262,24 +262,22 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
-      const certifierPromise = getCertifierId(
+      const certifierId = await getCertifierId(
         authData.organizationId,
         readModelService
       );
-      const attributePromise = readModelService.getAttributeByCodeAndName(
-        apiCertifiedAttributeSeed.code,
-        apiCertifiedAttributeSeed.name
-      );
-
-      const [certifier, attributeWithSameName] = await Promise.all([
-        certifierPromise,
-        attributePromise,
-      ]);
-
-      if (attributeWithSameName) {
-        throw attributeDuplicateByNameAndCode(
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiCertifiedAttributeSeed.code,
           apiCertifiedAttributeSeed.name,
-          apiCertifiedAttributeSeed.code
+          certifierId
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiCertifiedAttributeSeed.name,
+          apiCertifiedAttributeSeed.code,
+          certifierId
         );
       }
 
@@ -290,7 +288,7 @@ export function attributeRegistryServiceBuilder(
         description: apiCertifiedAttributeSeed.description,
         creationTime: new Date(),
         code: apiCertifiedAttributeSeed.code,
-        origin: certifier,
+        origin: certifierId,
       };
 
       logger.info(
@@ -317,15 +315,17 @@ export function attributeRegistryServiceBuilder(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
       );
 
-      const attributeWithSameNameAndCode =
-        await readModelService.getAttributeByCodeAndName(
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
           apiInternalCertifiedAttributeSeed.code,
-          apiInternalCertifiedAttributeSeed.name
-        );
-      if (attributeWithSameNameAndCode) {
-        throw attributeDuplicateByNameAndCode(
           apiInternalCertifiedAttributeSeed.name,
-          apiInternalCertifiedAttributeSeed.code
+          apiInternalCertifiedAttributeSeed.origin
+        );
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiInternalCertifiedAttributeSeed.name,
+          apiInternalCertifiedAttributeSeed.code,
+          apiInternalCertifiedAttributeSeed.origin
         );
       }
 

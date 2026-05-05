@@ -2,6 +2,7 @@
 import {
   generateToken,
   getMockedApiEservice,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -27,7 +28,8 @@ describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/purposeTemplates/${purposeTemplateId}/eservices`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .query(query)
       .send();
 

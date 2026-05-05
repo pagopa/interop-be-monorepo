@@ -1,6 +1,6 @@
 import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { UserId } from "pagopa-interop-models";
+import { TenantId, UserId } from "pagopa-interop-models";
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -28,6 +28,32 @@ export async function getSelfcareUserById(
       "X-Correlation-Id": correlationId,
     },
   });
+
+  return toM2MGatewayApiUser(user);
+}
+
+export async function getInstitutionUser(
+  clients: PagoPAInteropBeClients,
+  userId: UserId,
+  selfcareId: string,
+  organizationId: TenantId,
+  headers: M2MGatewayAppContext["headers"]
+): Promise<m2mGatewayApiV3.User> {
+  const users =
+    await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
+      {
+        params: { institutionId: selfcareId },
+        queries: {
+          userId,
+        },
+        headers,
+      }
+    );
+
+  const user = users[0];
+  if (users.length !== 1 || !user || user.id !== userId) {
+    throw userNotFound(userId, organizationId);
+  }
 
   return toM2MGatewayApiUser(user);
 }
@@ -111,23 +137,13 @@ export function userServiceBuilder(clients: PagoPAInteropBeClients) {
       const selfcareId = tenant.selfcareId;
 
       // Fetch users from SelfCare (API already returns only active users)
-      const users =
-        await clients.selfcareClient.institution.getInstitutionUsersByProductUsingGET(
-          {
-            params: { institutionId: selfcareId },
-            queries: {
-              userId,
-            },
-            headers,
-          }
-        );
-
-      const user = users[0];
-      if (users.length !== 1 || !user || user.id !== userId) {
-        throw userNotFound(userId, authData.organizationId);
-      }
-
-      return toM2MGatewayApiUser(user);
+      return await getInstitutionUser(
+        clients,
+        userId,
+        selfcareId,
+        authData.organizationId,
+        headers
+      );
     },
   };
 }
