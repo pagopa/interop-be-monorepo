@@ -52,7 +52,6 @@ import {
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
-  archivableOnIsNotExpiredYet,
   descriptorAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";

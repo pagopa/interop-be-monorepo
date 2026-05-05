@@ -199,8 +199,6 @@ import {
   assertDescriptorInRequiredStates,
   assertDescriptorIsNotLatestVersion,
   assertDescriptorIsAlreadyArchived,
-  assertGracePeriodExpired,
-  assertHasNoAgreement,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -2043,13 +2041,6 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertDescriptorIsAlreadyArchived(descriptor);
-
-      await validateArchivingPreconditions(
-        eservice.data.id,
-        descriptor,
-        archivingKind,
-        readModelService
-      );
 
       const updatedDescriptor = updateDescriptorState(
         { ...descriptor, archivingSchedule: undefined },
@@ -4566,27 +4557,4 @@ const buildInstanceName = ({
     : templateName;
   return { parsedInstanceLabel, instanceName };
 };
-
-async function validateArchivingPreconditions(
-  eserviceId: EServiceId,
-  descriptor: Descriptor,
-  archivingKind: catalogApi.ArchivingKind,
-  readModelService: ReadModelServiceSQL
-): Promise<void> {
-  if (archivingKind.kind === "MANUAL") {
-    return assertGracePeriodExpired(descriptor);
-  }
-
-  const agreements = await readModelService.listAgreements({
-    eservicesIds: [eserviceId],
-    descriptorId: descriptor.id,
-    states: [agreementState.active, agreementState.suspended],
-    limit: 1,
-    consumersIds: [],
-    producersIds: [],
-  });
-
-  assertHasNoAgreement(descriptor.id, agreements);
-}
-
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
