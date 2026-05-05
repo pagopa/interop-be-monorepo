@@ -39,6 +39,11 @@ export const errorCodes = {
   invalidInteractionIdClaimFormat: "0036",
   invalidUrlCallbackClaimFormat: "0037",
   invalidEntityNumberClaimFormat: "0038",
+  asyncExchangeNotAllowed: "0039",
+  urlCallbackNotProvided: "0040",
+  interactionIdNotProvided: "0041",
+  entityNumberNotProvided: "0042",
+  invalidEntityNumber: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -264,6 +269,15 @@ export function invalidDigestClaim(message: string): ApiError<ErrorCodes> {
   });
 }
 
+export function asyncExchangeNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Async exchange clients cannot use the standard authorization server",
+    code: "asyncExchangeNotAllowed",
+    title: "Async exchange not allowed",
+  });
+}
+
 export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid hash length for algorithm ${alg}`,
@@ -296,11 +310,57 @@ export function algorithmNotAllowed(algorithm: string): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeIdNotProvided(): ApiError<ErrorCodes> {
+export function purposeIdNotProvided(
+  clientId?: string | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Claim purposeId does not exist in this assertion",
+    detail:
+      clientId === undefined
+        ? "Claim purposeId does not exist in this assertion"
+        : `purposeId not provided in client assertion for client ${clientId}`,
     code: "purposeIdNotProvided",
     title: "Purpose Id not provided",
+  });
+}
+
+export function urlCallbackNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `urlCallback not provided in client assertion for client ${clientId}`,
+    code: "urlCallbackNotProvided",
+    title: "urlCallback not provided",
+  });
+}
+
+export function interactionIdNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `interactionId not provided in client assertion for client ${clientId}`,
+    code: "interactionIdNotProvided",
+    title: "interactionId not provided",
+  });
+}
+
+export function entityNumberNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber not provided in client assertion for client ${clientId}`,
+    code: "entityNumberNotProvided",
+    title: "entityNumber not provided",
+  });
+}
+
+export function invalidEntityNumber(
+  clientId: string | undefined,
+  entityNumber: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
+    code: "invalidEntityNumber",
+    title: "Invalid entityNumber",
   });
 }
 
@@ -373,7 +433,7 @@ export function invalidEntityNumberClaimFormat(
   entityNumber: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `entityNumber claim ${entityNumber} is not a valid positive number`,
+    detail: `entityNumber claim ${entityNumber} is not a valid non-negative integer`,
     code: "invalidEntityNumberClaimFormat",
     title: "Invalid entityNumber claim format",
   });

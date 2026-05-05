@@ -30,7 +30,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   }
 
   logger.info(
-    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers ${decodedMessage.data.producerKeychain.id} eventType ${decodedMessage.type}`
+    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${decodedMessage.data.producerKeychain.id}, eventType: ${decodedMessage.type}`
   );
 
   const producerKeychain = fromProducerKeychainV2(
@@ -44,7 +44,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for producerKeychainKeyAddedDeletedToClientUsers message`
+      `No users with notifications enabled for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${producerKeychain.id}, eventType: ${decodedMessage.type}`
     );
     return [];
   }

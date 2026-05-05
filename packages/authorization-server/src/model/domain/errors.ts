@@ -1,10 +1,12 @@
 import {
   ApiError,
   ClientId,
+  EServiceId,
   InteractionId,
   InteractionState,
   makeApiProblemBuilder,
-  ProducerKeychainPlatformStatesPK,
+  ProducerKeychainId,
+  PurposeId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
@@ -25,19 +27,19 @@ const errorCodes = {
   asyncScopeNotYetImplemented: "0014",
   asyncRequestValidationFailed: "0015",
   asyncClientAssertionClaimsValidationFailed: "0016",
-  urlCallbackNotProvided: "0017",
-  purposeIdNotProvided: "0018",
-  asyncExchangeNotEnabled: "0019",
-  interactionIdNotProvided: "0020",
-  entityNumberNotProvided: "0021",
-  invalidEntityNumber: "0022",
-  interactionNotFound: "0023",
-  interactionStateNotAllowed: "0024",
-  producerKeychainEntryNotFound: "0025",
-  catalogEntryNotFound: "0026",
-  callbackInvocationTokenIssuedAtMissing: "0027",
-  resourceAvailableTimeExpired: "0028",
-  asyncExchangeConfirmationNotEnabled: "0029",
+  asyncExchangeNotEnabled: "0017",
+  interactionNotFound: "0018",
+  interactionStateNotAllowed: "0019",
+  producerKeychainEntryNotFound: "0020",
+  catalogEntryNotFound: "0021",
+  asyncExchangeResponseTimeExceeded: "0022",
+  entityNumberExceedsMaxResultSet: "0023",
+  tokenGenerationStatesEntriesByPurposeIdNotFound: "0024",
+  asyncExchangePropertiesNotFound: "0025",
+  callbackInvocationTokenIssuedAtMissing: "0026",
+  resourceAvailableTimeExpired: "0027",
+  asyncExchangeConfirmationNotEnabled: "0028",
+  interactionClientMismatch: "0029",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -147,9 +149,9 @@ export function dpopProofSignatureValidationFailed(
 
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof JTI ${jti} already in cache`,
+    detail: `DPoP proof JTI ${jti} already used`,
     code: "dpopProofJtiAlreadyUsed",
-    title: "DPoP proof JTI already in cache",
+    title: "DPoP proof JTI already used",
   });
 }
 
@@ -193,26 +195,6 @@ export function asyncClientAssertionClaimsValidationFailed(
   });
 }
 
-export function urlCallbackNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `urlCallback not provided in client assertion for client ${clientId}`,
-    code: "urlCallbackNotProvided",
-    title: "urlCallback not provided",
-  });
-}
-
-export function purposeIdNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `purposeId not provided in client assertion for client ${clientId}`,
-    code: "purposeIdNotProvided",
-    title: "purposeId not provided",
-  });
-}
-
 export function asyncExchangeNotEnabled(
   clientId: string
 ): ApiError<ErrorCodes> {
@@ -220,37 +202,6 @@ export function asyncExchangeNotEnabled(
     detail: `Async exchange is not enabled for the eService associated with client ${clientId}`,
     code: "asyncExchangeNotEnabled",
     title: "Async exchange not enabled",
-  });
-}
-
-export function interactionIdNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `interactionId not provided in client assertion for client ${clientId}`,
-    code: "interactionIdNotProvided",
-    title: "interactionId not provided",
-  });
-}
-
-export function entityNumberNotProvided(
-  clientId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `entityNumber not provided in client assertion for client ${clientId}`,
-    code: "entityNumberNotProvided",
-    title: "entityNumber not provided",
-  });
-}
-
-export function invalidEntityNumber(
-  clientId: string | undefined,
-  entityNumber: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
-    code: "invalidEntityNumber",
-    title: "Invalid entityNumber",
   });
 }
 
@@ -277,10 +228,12 @@ export function interactionStateNotAllowed(
 }
 
 export function producerKeychainEntryNotFound(
-  pk: ProducerKeychainPlatformStatesPK
+  producerKeychainId: ProducerKeychainId,
+  kid: string,
+  eServiceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Entry with PK ${pk} not found in producer-keychain-platform-states table`,
+    detail: `Producer keychain entry not found for producerKeychainId ${producerKeychainId}, kid ${kid}, eServiceId ${eServiceId}`,
     code: "producerKeychainEntryNotFound",
     title: "Producer keychain entry not found",
   });
@@ -297,13 +250,70 @@ export function catalogEntryNotFound(
   });
 }
 
+export function asyncExchangePropertiesNotFound(
+  eserviceId: EServiceId,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Platform-states catalog entry for eService ${eserviceId}, descriptor ${descriptorId} is missing asyncExchangeProperties`,
+    code: "asyncExchangePropertiesNotFound",
+    title: "Async exchange properties not found",
+  });
+}
+
+export function asyncExchangeResponseTimeExceeded(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  responseTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange response time exceeded for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${responseTime}ms`,
+    code: "asyncExchangeResponseTimeExceeded",
+    title: "Async exchange response time exceeded",
+  });
+}
+
+export function entityNumberExceedsMaxResultSet(
+  clientId: string | undefined,
+  entityNumber: number,
+  maxResultSet: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} exceeds maxResultSet ${maxResultSet} for client ${clientId}`,
+    code: "entityNumberExceedsMaxResultSet",
+    title: "entityNumber exceeds maxResultSet",
+  });
+}
+
+export function tokenGenerationStatesEntriesByPurposeIdNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No token-generation-states entries found for purposeId ${purposeId}`,
+    code: "tokenGenerationStatesEntriesByPurposeIdNotFound",
+    title: "Token-generation-states entries not found for purposeId",
+  });
+}
+
 export function callbackInvocationTokenIssuedAtMissing(
   interactionId: InteractionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt timestamp`,
+    detail: `Interaction ${interactionId} is missing callbackInvocationTokenIssuedAt`,
     code: "callbackInvocationTokenIssuedAtMissing",
-    title: "Callback invocation token issued at missing",
+    title: "callbackInvocationTokenIssuedAt missing",
+  });
+}
+
+export function resourceAvailableTimeExpired(
+  interactionId: InteractionId,
+  elapsedMs: number,
+  resourceAvailableTime: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Resource available time expired for interaction ${interactionId} - elapsed ${elapsedMs}ms, limit ${resourceAvailableTime}ms`,
+    code: "resourceAvailableTimeExpired",
+    title: "Resource available time expired",
   });
 }
 
@@ -317,14 +327,12 @@ export function asyncExchangeConfirmationNotEnabled(
   });
 }
 
-export function resourceAvailableTimeExpired(
-  interactionId: InteractionId,
-  elapsedSeconds: number,
-  resourceAvailableTime: number
+export function interactionClientMismatch(
+  interactionId: InteractionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Resource available time expired for interaction ${interactionId}: elapsed ${elapsedSeconds}s exceeds limit of ${resourceAvailableTime}s`,
-    code: "resourceAvailableTimeExpired",
-    title: "Resource available time expired",
+    detail: `Interaction ${interactionId} was not started by the requesting client`,
+    code: "interactionClientMismatch",
+    title: "Interaction client mismatch",
   });
 }

@@ -31,10 +31,10 @@ import {
 } from "pagopa-interop-models";
 import { config } from "../../src/config/config.js";
 import {
-  catalogEntryNotFound,
   purposeIdNotProvided,
   urlCallbackNotProvided,
-} from "../../src/model/domain/errors.js";
+} from "pagopa-interop-client-assertion-validation";
+import { catalogEntryNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import { deconstructGSIPK_eserviceId_descriptorId } from "../../src/utilities/tokenServiceHelpers.js";
 import {
@@ -210,11 +210,13 @@ describe("async token service - start_interaction", () => {
       fail();
     }
 
-    // Verify the token has async-specific claims
+    // Narrow to async consumer token (the only type returned by start_interaction)
     const token = result.token;
+    expect("interactionId" in token.payload).toBe(true);
     if (!("interactionId" in token.payload)) {
-      fail("Expected async consumer token with interactionId");
+      fail("Expected InteropAsyncConsumerToken with interactionId claim");
     }
+
     expect(token.payload.scope).toBe(interactionState.startInteraction);
     expect(token.payload.urlCallback).toBe("https://callback.example.com");
     expect(token.payload.interactionId).toBeDefined();
@@ -243,13 +245,35 @@ describe("async token service - start_interaction", () => {
     expect(interaction.descriptorId).toBe(descriptorId);
   });
 
+  it("should include digest in token when client assertion has digest", async () => {
+    mockProducer.send.mockImplementationOnce(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const digest = { alg: "SHA256", value: "a".repeat(64) };
+    const { jws, clientId } = await setupConsumerClient({ digest });
+    const result = await callAsyncTokenService(jws, clientId);
+
+    expect(result.limitReached).toBe(false);
+    if (result.limitReached || !result.tokenGenerated) {
+      fail();
+    }
+
+    const token = result.token;
+    if (!("interactionId" in token.payload)) {
+      fail("Expected InteropAsyncConsumerToken");
+    }
+
+    expect(token.payload.digest).toEqual(digest);
+  });
+
   it("should throw urlCallbackNotProvided when urlCallback is missing", async () => {
     const { jws, clientId } = await setupConsumerClient({
       urlCallback: undefined,
     });
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
-      urlCallbackNotProvided(clientId)
+      new RegExp(urlCallbackNotProvided(clientId).detail)
     );
   });
 
@@ -265,7 +289,7 @@ describe("async token service - start_interaction", () => {
     });
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
-      purposeIdNotProvided(clientId)
+      new RegExp(purposeIdNotProvided(clientId).detail)
     );
   });
 

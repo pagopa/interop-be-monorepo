@@ -6,9 +6,11 @@ import {
   itemState,
   PurposeId,
   TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIPurpose,
   unsafeBrandId,
   ClientAssertionDigest,
   algorithm,
+  UrlCallback,
 } from "pagopa-interop-models";
 import {
   FailedValidation,
@@ -42,6 +44,7 @@ import {
   invalidInteractionIdClaimFormat,
   invalidUrlCallbackClaimFormat,
   invalidEntityNumberClaimFormat,
+  scopeNotProvided,
 } from "./errors.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
@@ -123,16 +126,15 @@ export const validatePurposeId = (
 
 export const validateScope = (
   scope?: unknown
-): ValidationResult<InteractionState | undefined> => {
-  const scopeParseResult = InteractionState.safeParse(scope);
-  if (scope && !scopeParseResult.success) {
-    return failedValidation([
-      invalidScopeClaimFormat(typeof scope === "string" ? scope : ""),
-    ]);
+): ValidationResult<InteractionState> => {
+  if (scope === undefined || scope === null) {
+    return failedValidation([scopeNotProvided()]);
   }
-  return successfulValidation(
-    scopeParseResult.success ? scopeParseResult.data : undefined
-  );
+  const scopeParseResult = InteractionState.safeParse(scope);
+  if (!scopeParseResult.success) {
+    return failedValidation([invalidScopeClaimFormat(JSON.stringify(scope))]);
+  }
+  return successfulValidation(scopeParseResult.data);
 };
 
 export const validateInteractionId = (
@@ -141,14 +143,10 @@ export const validateInteractionId = (
   const interactionIdParseResult = InteractionId.safeParse(interactionId);
   if (interactionId && !interactionIdParseResult.success) {
     return failedValidation([
-      invalidInteractionIdClaimFormat(
-        typeof interactionId === "string" ? interactionId : ""
-      ),
+      invalidInteractionIdClaimFormat(JSON.stringify(interactionId)),
     ]);
   }
-  return successfulValidation(
-    interactionIdParseResult.success ? interactionIdParseResult.data : undefined
-  );
+  return successfulValidation(interactionIdParseResult.data);
 };
 
 export const validateUrlCallback = (
@@ -157,17 +155,13 @@ export const validateUrlCallback = (
   if (urlCallback === undefined || urlCallback === null) {
     return successfulValidation(undefined);
   }
-  if (typeof urlCallback !== "string" || urlCallback.length === 0) {
+  const parseResult = UrlCallback.safeParse(urlCallback);
+  if (!parseResult.success) {
     return failedValidation([
       invalidUrlCallbackClaimFormat(String(urlCallback)),
     ]);
   }
-  try {
-    new URL(urlCallback);
-  } catch {
-    return failedValidation([invalidUrlCallbackClaimFormat(urlCallback)]);
-  }
-  return successfulValidation(urlCallback);
+  return successfulValidation(parseResult.data);
 };
 
 export const validateEntityNumber = (
@@ -176,7 +170,11 @@ export const validateEntityNumber = (
   if (entityNumber === undefined || entityNumber === null) {
     return successfulValidation(undefined);
   }
-  if (typeof entityNumber !== "number" || entityNumber < 0) {
+  if (
+    typeof entityNumber !== "number" ||
+    !Number.isInteger(entityNumber) ||
+    entityNumber < 0
+  ) {
     return failedValidation([
       invalidEntityNumberClaimFormat(String(entityNumber)),
     ]);
@@ -253,9 +251,13 @@ export const validateDigest = (
   return failedValidation([digestLengthError, digestAlgError]);
 };
 
-export const validatePlatformState = (
-  key: TokenGenerationStatesConsumerClient
-): ValidationResult<TokenGenerationStatesConsumerClient> => {
+export const validatePlatformState = <
+  T extends
+    | TokenGenerationStatesConsumerClient
+    | TokenGenStatesConsumerClientGSIPurpose,
+>(
+  key: T
+): ValidationResult<T> => {
   const agreementError =
     key.agreementState !== itemState.active
       ? invalidAgreementState(key.agreementState)

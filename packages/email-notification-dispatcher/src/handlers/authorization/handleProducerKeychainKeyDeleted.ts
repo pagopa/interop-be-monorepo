@@ -54,16 +54,16 @@ export async function handleProducerKeychainKeyDeleted(
       notificationType,
       readModelService,
       logger,
-      includeTenantContactEmails: false,
+      includeTenantContactEmails: true,
     })
   ).filter(
     (target) =>
-      target.type !== "User" || producerKeychain.users.includes(target.userId)
+      target.type === "Tenant" || producerKeychain.users.includes(target.userId)
   );
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. ProducerKeychain ${producerKeychain.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainKeyDeleted - entityId: ${producerKeychain.id}, eventType: ${notificationType}`
     );
     return [];
   }

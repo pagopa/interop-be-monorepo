@@ -84,12 +84,15 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
           "EServiceTemplateVersionActivated",
-          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

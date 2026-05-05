@@ -120,7 +120,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,

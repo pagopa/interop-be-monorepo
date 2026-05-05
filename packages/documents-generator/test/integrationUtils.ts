@@ -13,7 +13,7 @@ import {
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+} from "../src/pdf-generator/pdfGenerator.js";
 import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,

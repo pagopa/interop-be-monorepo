@@ -1,11 +1,13 @@
 import { z } from "zod";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   GSIPKInteractionId,
   InteractionId,
   InteractionsPK,
   PurposeId,
+  TenantId,
 } from "../brandedIds.js";
 
 export const interactionState = {
@@ -25,7 +27,9 @@ export const Interaction = z.object({
   PK: InteractionsPK,
   GSIPK_interactionId: GSIPKInteractionId.optional(),
   interactionId: InteractionId,
+  clientId: ClientId,
   purposeId: PurposeId,
+  consumerId: TenantId,
   eServiceId: EServiceId,
   descriptorId: DescriptorId,
   state: InteractionState,

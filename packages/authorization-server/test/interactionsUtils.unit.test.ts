@@ -6,12 +6,15 @@ import {
 import { marshall } from "@aws-sdk/util-dynamodb";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   generateId,
   PurposeId,
   InteractionId,
+  TenantId,
 } from "pagopa-interop-models";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   createInteraction,
   isInteractionStateAllowedForScope,
@@ -37,6 +40,7 @@ describe("interactions utils", () => {
   it("should create and read an interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -47,7 +51,9 @@ describe("interactions utils", () => {
       dynamoDBClient: dynamoDBClient as never,
       interactionsTable,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
+      consumerId,
       eServiceId,
       descriptorId,
       issuedAt,
@@ -68,14 +74,13 @@ describe("interactions utils", () => {
     );
 
     expect(retrieved).toEqual(created);
-    expect(created.ttl).toBe(
-      Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds
-    );
+    expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
   it("should not create duplicated interaction", async () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
+    const consumerId = generateId<TenantId>();
     const eServiceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const issuedAt = new Date().toISOString();
@@ -88,7 +93,9 @@ describe("interactions utils", () => {
         dynamoDBClient: dynamoDBClient as never,
         interactionsTable,
         interactionId,
+        clientId: generateId<ClientId>(),
         purposeId,
+        consumerId,
         eServiceId,
         descriptorId,
         issuedAt,
@@ -104,13 +111,15 @@ describe("interactions utils", () => {
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "start_interaction",
       startInteractionTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + ttlSeconds,
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
@@ -143,13 +152,15 @@ describe("interactions utils", () => {
     const currentInteraction = {
       PK: `INTERACTION#${interactionId}`,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
+      consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
       state: "callback_invocation",
       callbackInvocationTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + ttlSeconds,
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
 
     mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  eserviceTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEserviceDoc,
   getMockedApiEServiceTemplate,
@@ -13,7 +17,6 @@ import {
   mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 

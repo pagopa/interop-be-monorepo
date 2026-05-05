@@ -1,0 +1,31 @@
+meta {
+  name: Create a new client
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/clients
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "name": "asfdsfdsafdsgfasgda",
+    "members": [
+      "5b9be123-3c6e-7629-5e0a-a5e41ab83d0b",
+      "f6585bfa-7574-3e4d-01ee-555ed53c7cd4"
+    ],
+    "description": "sdgfdfsg fdag g sag "
+  }
+}
+
+docs {
+  Create a new consumer client
+}

@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -55,7 +56,6 @@ import {
 import {
   and,
   eq,
-  ilike,
   inArray,
   isNotNull,
   ne,
@@ -157,7 +157,7 @@ const getPurposesFilters = (
 ): Array<SQL | undefined> => {
   const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter = title
-    ? ilike(purposeInReadmodelPurpose.title, `%${escapeRegExp(title)}%`)
+    ? ilikeEscaped(purposeInReadmodelPurpose.title, `%${escapeSqlLike(title)}%`)
     : undefined;
 
   const eservicesIdsFilter =
@@ -246,7 +246,7 @@ export function readModelServiceBuilderSQL({
         and(
           eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
           eq(purposeInReadmodelPurpose.consumerId, consumerId),
-          ilike(purposeInReadmodelPurpose.title, escapeRegExp(title))
+          ilikeEscaped(purposeInReadmodelPurpose.title, escapeSqlLike(title))
         )
       );
     },

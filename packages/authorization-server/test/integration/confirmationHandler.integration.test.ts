@@ -13,11 +13,8 @@ import {
   getMockContext,
   writeTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
-  generateKeySet,
-  signJWT,
 } from "pagopa-interop-commons-test";
 import {
-  algorithm,
   ClientId,
   CorrelationId,
   DescriptorId,
@@ -25,37 +22,28 @@ import {
   generateId,
   InteractionId,
   interactionState,
+  ItemState,
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
   makeInteractionPK,
   makePlatformStatesEServiceDescriptorPK,
-  makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
   PlatformStatesCatalogEntry,
-  ProducerKeychainId,
-  ProducerKeychainPlatformStatesPK,
   Purpose,
   PurposeId,
   purposeVersionState,
+  TenantId,
   TokenGenerationStatesConsumerClient,
-  unsafeBrandId,
 } from "pagopa-interop-models";
-import { dateToSeconds } from "pagopa-interop-commons";
 import {
+  DeleteItemCommand,
   DynamoDBClient,
-  PutItemCommand,
-  PutItemInput,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { config } from "../../src/config/config.js";
-import {
-  asyncExchangeConfirmationNotEnabled,
-  callbackInvocationTokenIssuedAtMissing,
-  interactionIdNotProvided,
-  interactionNotFound,
-  interactionStateNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { interactionIdNotProvided } from "pagopa-interop-client-assertion-validation";
+import { interactionNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
   asyncTokenService,
@@ -64,46 +52,83 @@ import {
 } from "../integrationUtils.js";
 import { mockKMSClient, mockProducer } from "../mockUtils.js";
 
-const writeProducerKeychainEntry = async (
-  entry: {
-    PK: ProducerKeychainPlatformStatesPK;
-    publicKey: string;
-    producerKeychainId: ProducerKeychainId;
-    kid: string;
-    eServiceId: EServiceId;
-    version: number;
-    updatedAt: string;
-  },
-  client: DynamoDBClient
+const forceInteractionState = async (
+  client: DynamoDBClient,
+  interactionId: InteractionId,
+  newState: (typeof interactionState)[keyof typeof interactionState],
+  options?: { callbackInvocationIssuedAt?: Date; clearIssuedAt?: boolean }
 ): Promise<void> => {
-  const input: PutItemInput = {
-    TableName: "producer-keychain-platform-states",
-    Item: {
-      PK: { S: entry.PK },
-      publicKey: { S: entry.publicKey },
-      producerKeychainId: { S: entry.producerKeychainId },
-      kid: { S: entry.kid },
-      eServiceId: { S: entry.eServiceId },
-      version: { N: entry.version.toString() },
-      updatedAt: { S: entry.updatedAt },
-    },
+  const issuedAtIso = (
+    options?.callbackInvocationIssuedAt ?? new Date()
+  ).toISOString();
+  const setExpressions: string[] = [
+    "#state = :state",
+    "updatedAt = :updatedAt",
+  ];
+  const attributeValues: Record<string, { S: string }> = {
+    ":state": { S: newState },
+    ":updatedAt": { S: issuedAtIso },
   };
-  await client.send(new PutItemCommand(input));
+  if (options?.clearIssuedAt !== true) {
+    setExpressions.push(
+      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt"
+    );
+    attributeValues[":callbackInvocationTokenIssuedAt"] = { S: issuedAtIso };
+  }
+
+  await client.send(
+    new UpdateItemCommand({
+      TableName: config.interactionsTable,
+      Key: { PK: { S: makeInteractionPK(interactionId) } },
+      UpdateExpression: `SET ${setExpressions.join(", ")}`,
+      ExpressionAttributeNames: { "#state": "state" },
+      ExpressionAttributeValues: attributeValues,
+    })
+  );
+};
+
+const overrideTokenGenStatesFields = async (
+  pk: string,
+  overrides: Record<string, { S: string }>
+): Promise<void> => {
+  const keys = Object.keys(overrides);
+  if (keys.length === 0) {
+    return;
+  }
+  const setExpressions = keys.map((k) => `${k} = :${k}`);
+  const attributeValues: Record<string, { S: string }> = {};
+  for (const k of keys) {
+    attributeValues[`:${k}`] = overrides[k];
+  }
+  await dynamoDBClient.send(
+    new UpdateItemCommand({
+      TableName: config.tokenGenerationStatesTable,
+      Key: { PK: { S: pk } },
+      UpdateExpression: `SET ${setExpressions.join(", ")}`,
+      ExpressionAttributeValues: attributeValues,
+    })
+  );
 };
 
 /**
- * Sets up the full confirmation scenario:
- * 1. Creates a consumer client + start_interaction to get an interaction
- * 2. Creates a producer keychain entry + catalog entry
- * 3. Calls callback_invocation to transition interaction to callback_invocation state
- * 4. Calls get_resource to transition interaction to get_resource state
- * 5. Creates a consumer assertion with scope=confirmation
+ * Full confirmation scenario: start_interaction, force interaction into
+ * `get_resource` (the only valid predecessor) with callback_invocation
+ * timestamp set, update catalog entry `confirmation` flag as requested,
+ * then issue a fresh consumer JWS for scope=confirmation and align the
+ * consumer token-gen-states publicKey.
  */
 const setupConfirmationScenario = async (overrides?: {
   consumerCustomClaims?: Record<string, unknown>;
-  skipCallbackInvocation?: boolean;
-  skipGetResource?: boolean;
-  differentConsumerForConfirmation?: boolean;
+  confirmationEnabled?: boolean;
+  skipCatalogEntry?: boolean;
+  skipTokenGenStatesEntry?: boolean;
+  clearCallbackInvocationIssuedAt?: boolean;
+  callbackInvocationIssuedAtOverride?: Date;
+  tokenGenStatesAgreementStateOverride?: ItemState;
+  tokenGenStatesPurposeStateOverride?: ItemState;
+  tokenGenStatesDescriptorStateOverride?: ItemState;
+  catalogEntryStateOverride?: ItemState;
+  interactionStateOverride?: (typeof interactionState)[keyof typeof interactionState];
 }): Promise<{
   consumerJws: string;
   consumerClientId: ClientId;
@@ -111,8 +136,11 @@ const setupConfirmationScenario = async (overrides?: {
   eServiceId: EServiceId;
   descriptorId: DescriptorId;
   purposeId: PurposeId;
+  consumerId: TenantId;
+  producerId: TenantId;
+  descriptorAudience: string[];
+  descriptorVoucherLifespan: number;
 }> => {
-  // Step 1: Create consumer client and start_interaction
   const purpose: Purpose = {
     ...getMockPurpose(),
     versions: [getMockPurposeVersion(purposeVersionState.active)],
@@ -121,37 +149,27 @@ const setupConfirmationScenario = async (overrides?: {
   const eServiceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
 
-  const { keySet: consumerKeySet, publicKeyEncodedPem: consumerPublicKey } =
-    generateKeySet();
-  const consumerKid = "kid";
-
-  const threeHourLaterStart = new Date();
-  threeHourLaterStart.setHours(threeHourLaterStart.getHours() + 3);
-
-  const consumerStartJws = await signJWT({
-    payload: {
-      iss: consumerClientId,
-      sub: consumerClientId,
-      aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-      exp: dateToSeconds(threeHourLaterStart),
-      jti: generateId(),
-      iat: dateToSeconds(new Date()),
+  const {
+    jws: startInteractionJws,
+    clientAssertion: startAssertion,
+    publicKeyEncodedPem: startPublicKey,
+  } = await getMockClientAssertion({
+    standardClaimsOverride: { sub: consumerClientId },
+    customClaims: {
       purposeId: purpose.id,
       urlCallback: "https://callback.example.com",
       scope: interactionState.startInteraction,
     },
-    headers: {
-      alg: algorithm.RS256,
-      kid: consumerKid,
-    },
-    keySet: consumerKeySet,
   });
 
   const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK({
     clientId: consumerClientId,
-    kid: consumerKid,
+    kid: startAssertion.header.kid!,
     purposeId: purpose.id,
   });
+
+  const descriptorAudience = ["https://eservice.example.com"];
+  const descriptorVoucherLifespan = 3600;
 
   const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
     ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
@@ -161,17 +179,19 @@ const setupConfirmationScenario = async (overrides?: {
     purposeVersionId: purpose.versions[0].id,
     agreementState: itemState.active,
     descriptorState: itemState.active,
+    descriptorAudience,
+    descriptorVoucherLifespan,
     asyncExchange: true,
     GSIPK_clientId: consumerClientId,
     GSIPK_clientId_kid: makeGSIPKClientIdKid({
       clientId: consumerClientId,
-      kid: consumerKid,
+      kid: startAssertion.header.kid!,
     }),
     GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
       eserviceId: eServiceId,
       descriptorId,
     }),
-    publicKey: consumerPublicKey,
+    publicKey: startPublicKey,
   };
 
   await writeTokenGenStatesConsumerClient(
@@ -179,44 +199,41 @@ const setupConfirmationScenario = async (overrides?: {
     dynamoDBClient
   );
 
-  // Create platform-states catalog entry BEFORE start_interaction
-  // (start_interaction reads it for asyncExchangeProperties and TTL)
   const catalogPK = makePlatformStatesEServiceDescriptorPK({
     eserviceId: eServiceId,
     descriptorId,
   });
 
+  const confirmationEnabled = overrides?.confirmationEnabled ?? true;
   const catalogEntry: PlatformStatesCatalogEntry = {
     PK: catalogPK,
     state: itemState.active,
-    descriptorAudience: ["https://eservice.example.com"],
-    descriptorVoucherLifespan: 3600,
+    descriptorAudience,
+    descriptorVoucherLifespan,
     asyncExchange: true,
     asyncExchangeProperties: {
       responseTime: 30,
       resourceAvailableTime: 60,
-      confirmation: true,
+      confirmation: confirmationEnabled,
       bulk: false,
       maxResultSet: 100,
     },
     version: 1,
     updatedAt: new Date().toISOString(),
   };
-
   await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
   mockProducer.send.mockImplementationOnce(async () => [
     { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
   ]);
 
-  // Call start_interaction to create an interaction
   const startResult = await asyncTokenService.generateAsyncToken(
     {},
     {
       client_id: consumerClientId,
       client_assertion_type:
         "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      client_assertion: consumerStartJws,
+      client_assertion: startInteractionJws,
       grant_type: "client_credentials",
     },
     () => getMockContext({ correlationId: generateId<CorrelationId>() }),
@@ -224,7 +241,6 @@ const setupConfirmationScenario = async (overrides?: {
     () => {},
     () => {}
   );
-
   if (startResult.limitReached || !startResult.tokenGenerated) {
     fail("start_interaction should succeed");
   }
@@ -232,152 +248,93 @@ const setupConfirmationScenario = async (overrides?: {
   const interactionId = (startResult.token.payload as { interactionId: string })
     .interactionId as InteractionId;
 
-  if (!overrides?.skipCallbackInvocation) {
-    // Step 2: Create producer keychain entry + catalog entry
-    const producerKeychainId = generateId<ProducerKeychainId>();
-
-    const {
-      jws: producerJws,
-      clientAssertion: producerAssertion,
-      publicKeyEncodedPem: producerPublicKey,
-    } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: producerKeychainId },
-      customClaims: {
-        scope: interactionState.callbackInvocation,
-        interactionId,
-        entityNumber: 1,
-        urlCallback: "https://callback.example.com",
-      },
-    });
-
-    const producerKeyPK = makeProducerKeychainPlatformStatesPK({
-      producerKeychainId: unsafeBrandId<ProducerKeychainId>(producerKeychainId),
-      kid: producerAssertion.header.kid!,
-      eServiceId,
-    });
-
-    await writeProducerKeychainEntry(
-      {
-        PK: producerKeyPK,
-        publicKey: producerPublicKey,
-        producerKeychainId:
-          unsafeBrandId<ProducerKeychainId>(producerKeychainId),
-        kid: producerAssertion.header.kid!,
-        eServiceId,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      },
-      dynamoDBClient
-    );
-
-    // Step 3: Call callback_invocation to transition interaction
-    mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const callbackResult = await asyncTokenService.generateAsyncToken(
-      {},
-      {
-        client_id: unsafeBrandId<ClientId>(producerKeychainId),
-        client_assertion_type:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        client_assertion: producerJws,
-        grant_type: "client_credentials",
-      },
-      () => getMockContext({ correlationId: generateId<CorrelationId>() }),
-      () => {},
-      () => {},
-      () => {}
-    );
-
-    if (callbackResult.limitReached || !callbackResult.tokenGenerated) {
-      fail("callback_invocation should succeed");
-    }
-
-    if (!overrides?.skipGetResource) {
-      // Step 4: Call get_resource to transition interaction to get_resource state
-      const threeHourLaterGetResource = new Date();
-      threeHourLaterGetResource.setHours(
-        threeHourLaterGetResource.getHours() + 3
-      );
-
-      const consumerGetResourceJws = await signJWT({
-        payload: {
-          iss: consumerClientId,
-          sub: consumerClientId,
-          aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-          exp: dateToSeconds(threeHourLaterGetResource),
-          jti: generateId(),
-          iat: dateToSeconds(new Date()),
-          scope: interactionState.getResource,
-          interactionId,
-        },
-        headers: {
-          alg: algorithm.RS256,
-          kid: consumerKid,
-        },
-        keySet: consumerKeySet,
-      });
-
-      mockProducer.send.mockImplementationOnce(async () => [
-        { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-      ]);
-
-      const getResourceResult = await asyncTokenService.generateAsyncToken(
-        {},
-        {
-          client_id: consumerClientId,
-          client_assertion_type:
-            "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-          client_assertion: consumerGetResourceJws,
-          grant_type: "client_credentials",
-        },
-        () => getMockContext({ correlationId: generateId<CorrelationId>() }),
-        () => {},
-        () => {},
-        () => {}
-      );
-
-      if (getResourceResult.limitReached || !getResourceResult.tokenGenerated) {
-        fail("get_resource should succeed");
-      }
-    }
-  }
-
-  // Step 5: Create consumer assertion with scope=confirmation
-  const confirmationClientId = overrides?.differentConsumerForConfirmation
-    ? generateId<ClientId>()
-    : consumerClientId;
-
-  const threeHourLater = new Date();
-  threeHourLater.setHours(threeHourLater.getHours() + 3);
-
-  const consumerConfirmationJws = await signJWT({
-    payload: {
-      iss: confirmationClientId,
-      sub: confirmationClientId,
-      aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
-      exp: dateToSeconds(threeHourLater),
-      jti: generateId(),
-      iat: dateToSeconds(new Date()),
-      scope: interactionState.confirmation,
-      interactionId,
-      ...overrides?.consumerCustomClaims,
-    },
-    headers: {
-      alg: algorithm.RS256,
-      kid: consumerKid,
-    },
-    keySet: consumerKeySet,
+  // Confirmation can only be reached from get_resource; put interaction there.
+  const targetState =
+    overrides?.interactionStateOverride ?? interactionState.getResource;
+  await forceInteractionState(dynamoDBClient, interactionId, targetState, {
+    callbackInvocationIssuedAt: overrides?.callbackInvocationIssuedAtOverride,
+    clearIssuedAt: overrides?.clearCallbackInvocationIssuedAt,
   });
 
+  if (overrides?.skipCatalogEntry) {
+    await dynamoDBClient.send(
+      new DeleteItemCommand({
+        TableName: config.platformStatesTable,
+        Key: { PK: { S: catalogPK } },
+      })
+    );
+  }
+  if (overrides?.skipTokenGenStatesEntry) {
+    await dynamoDBClient.send(
+      new DeleteItemCommand({
+        TableName: config.tokenGenerationStatesTable,
+        Key: { PK: { S: tokenClientKidPurposePK } },
+      })
+    );
+  }
+
+  const stateOverrides: Record<string, { S: string }> = {};
+  if (overrides?.tokenGenStatesAgreementStateOverride) {
+    stateOverrides.agreementState = {
+      S: overrides.tokenGenStatesAgreementStateOverride,
+    };
+  }
+  if (overrides?.tokenGenStatesPurposeStateOverride) {
+    stateOverrides.purposeState = {
+      S: overrides.tokenGenStatesPurposeStateOverride,
+    };
+  }
+  if (overrides?.tokenGenStatesDescriptorStateOverride) {
+    stateOverrides.descriptorState = {
+      S: overrides.tokenGenStatesDescriptorStateOverride,
+    };
+  }
+  await overrideTokenGenStatesFields(tokenClientKidPurposePK, stateOverrides);
+
+  // The catalog entry state must be overridden after start_interaction —
+  // setting it before would make start_interaction itself fail on the same
+  // pinned-descriptor check.
+  if (overrides?.catalogEntryStateOverride) {
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.platformStatesTable,
+        Key: { PK: { S: catalogPK } },
+        UpdateExpression: "SET #state = :state",
+        ExpressionAttributeNames: { "#state": "state" },
+        ExpressionAttributeValues: {
+          ":state": { S: overrides.catalogEntryStateOverride },
+        },
+      })
+    );
+  }
+
+  const { jws: confirmationJws, publicKeyEncodedPem: confirmationPublicKey } =
+    await getMockClientAssertion({
+      standardClaimsOverride: { sub: consumerClientId },
+      customClaims: {
+        scope: interactionState.confirmation,
+        interactionId,
+        ...overrides?.consumerCustomClaims,
+      },
+    });
+
+  if (!overrides?.skipTokenGenStatesEntry) {
+    await overrideTokenGenStatesFields(tokenClientKidPurposePK, {
+      publicKey: { S: confirmationPublicKey },
+    });
+  }
+
   return {
-    consumerJws: consumerConfirmationJws,
-    consumerClientId: confirmationClientId,
+    consumerJws: confirmationJws,
+    consumerClientId,
     interactionId,
     eServiceId,
     descriptorId,
     purposeId: purpose.id,
+    consumerId: purpose.consumerId,
+    producerId: tokenClientPurposeEntry.producerId!,
+    descriptorAudience: catalogEntry.descriptorAudience,
+    descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
   };
 };
 
@@ -420,7 +377,7 @@ describe("async token service - confirmation", () => {
     vi.restoreAllMocks();
   });
 
-  it("should generate token for confirmation scope", async () => {
+  it("should generate token for confirmation scope from get_resource", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
@@ -429,41 +386,88 @@ describe("async token service - confirmation", () => {
     const result = await callAsyncTokenService(consumerJws, consumerClientId);
 
     expect(result.limitReached).toBe(false);
-    if (result.limitReached) {
+    if (result.limitReached || !result.tokenGenerated) {
       fail();
     }
-    expect(result.tokenGenerated).toBe(true);
-    if (!result.tokenGenerated) {
-      fail();
-    }
-    expect(result.token).toBeDefined();
     expect(result.token.serialized).toBeDefined();
     expect(result.isDPoP).toBe(false);
   });
 
-  it("should verify token claims contain scope=confirmation and no urlCallback", async () => {
+  it("should allow confirmation self-loop", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
-    const { consumerJws, consumerClientId, interactionId, purposeId } =
+    const { consumerJws, consumerClientId, interactionId } =
       await setupConfirmationScenario();
+
+    const r1 = await callAsyncTokenService(consumerJws, consumerClientId);
+    if (r1.limitReached || !r1.tokenGenerated) {
+      fail();
+    }
+    const r2 = await callAsyncTokenService(consumerJws, consumerClientId);
+    if (r2.limitReached || !r2.tokenGenerated) {
+      fail();
+    }
+
+    const interaction = await readInteraction(
+      dynamoDBClient,
+      interactionId,
+      config.interactionsTable
+    );
+    expect(interaction!.state).toBe(interactionState.confirmation);
+    expect(interaction!.confirmationTokenIssuedAt).toBeDefined();
+  });
+
+  it("should generate a token with all expected claims (scope=confirmation)", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const {
+      consumerJws,
+      consumerClientId,
+      interactionId,
+      eServiceId,
+      descriptorId,
+      purposeId,
+      consumerId,
+      producerId,
+      descriptorAudience,
+      descriptorVoucherLifespan,
+    } = await setupConfirmationScenario();
+
+    const beforeMs = Date.now();
     const result = await callAsyncTokenService(consumerJws, consumerClientId);
+    const afterMs = Date.now();
 
     if (result.limitReached || !result.tokenGenerated) {
       fail();
     }
 
-    const payload = result.token.payload as {
-      scope: string;
-      interactionId: string;
-      purposeId: string;
-      urlCallback?: string;
-    };
-    expect(payload.scope).toBe(interactionState.confirmation);
-    expect(payload.interactionId).toBe(interactionId);
-    expect(payload.purposeId).toBe(purposeId);
-    expect(payload.urlCallback).toBeUndefined();
+    expect(result.token.payload).toEqual({
+      jti: expect.any(String),
+      iss: config.generatedInteropTokenIssuer,
+      aud: descriptorAudience,
+      client_id: consumerClientId,
+      sub: consumerClientId,
+      iat: expect.any(Number),
+      nbf: expect.any(Number),
+      exp: expect.any(Number),
+      purposeId,
+      producerId,
+      consumerId,
+      eserviceId: eServiceId,
+      descriptorId,
+      interactionId,
+      scope: interactionState.confirmation,
+    });
+
+    const { iat, nbf, exp } = result.token.payload;
+    expect(iat).toBeGreaterThanOrEqual(Math.floor(beforeMs / 1000));
+    expect(iat).toBeLessThanOrEqual(Math.ceil(afterMs / 1000));
+    expect(nbf).toBe(iat);
+    expect(exp).toBe(iat + descriptorVoucherLifespan);
   });
 
   it("should update interaction state to confirmation", async () => {
@@ -480,48 +484,27 @@ describe("async token service - confirmation", () => {
       interactionId,
       config.interactionsTable
     );
-
-    expect(interaction).toBeDefined();
     expect(interaction!.state).toBe(interactionState.confirmation);
     expect(interaction!.confirmationTokenIssuedAt).toBeDefined();
   });
 
-  it("should allow two calls with confirmation scope (self-loop)", async () => {
+  it("should throw asyncExchangeConfirmationNotEnabled when confirmation flag is false", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
-    const { consumerJws, consumerClientId, interactionId } =
-      await setupConfirmationScenario();
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      confirmationEnabled: false,
+    });
 
-    // First call
-    const result1 = await callAsyncTokenService(consumerJws, consumerClientId);
-    expect(result1.limitReached).toBe(false);
-    if (result1.limitReached || !result1.tokenGenerated) {
-      fail();
-    }
-
-    // Second call (confirmation → confirmation allowed)
-    const result2 = await callAsyncTokenService(consumerJws, consumerClientId);
-    expect(result2.limitReached).toBe(false);
-    if (result2.limitReached || !result2.tokenGenerated) {
-      fail();
-    }
-
-    // Verify interaction still in confirmation state
-    const interaction = await readInteraction(
-      dynamoDBClient,
-      interactionId,
-      config.interactionsTable
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(
+      /Async exchange confirmation is not enabled for the eService/
     );
-    expect(interaction!.state).toBe(interactionState.confirmation);
   });
 
-  it("should throw interactionIdNotProvided when interactionId is missing", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
+  it("should throw interactionIdNotProvided when interactionId claim is missing", async () => {
     const consumerClientId = generateId<ClientId>();
     const { jws } = await getMockClientAssertion({
       standardClaimsOverride: { sub: consumerClientId },
@@ -532,7 +515,9 @@ describe("async token service - confirmation", () => {
 
     await expect(
       callAsyncTokenService(jws, consumerClientId)
-    ).rejects.toThrowError(interactionIdNotProvided(consumerClientId));
+    ).rejects.toThrowError(
+      new RegExp(interactionIdNotProvided(consumerClientId).detail)
+    );
   });
 
   it("should throw interactionNotFound when interaction does not exist", async () => {
@@ -551,185 +536,157 @@ describe("async token service - confirmation", () => {
     ).rejects.toThrowError(interactionNotFound(interactionId));
   });
 
-  it("should throw interactionStateNotAllowed when interaction is in start_interaction state", async () => {
+  it("should throw interactionClientMismatch when clientId on the interaction differs", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId, interactionId } =
-      await setupConfirmationScenario({ skipCallbackInvocation: true });
+      await setupConfirmationScenario();
+
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET clientId = :c",
+        ExpressionAttributeValues: {
+          ":c": { S: generateId<ClientId>() },
+        },
+      })
+    );
 
     await expect(
       callAsyncTokenService(consumerJws, consumerClientId)
-    ).rejects.toThrowError(
-      interactionStateNotAllowed(
-        interactionId,
-        interactionState.startInteraction,
-        interactionState.confirmation
-      )
-    );
+    ).rejects.toThrowError(/was not started by the requesting client/);
   });
 
-  it("should throw interactionStateNotAllowed when interaction is in callback_invocation state", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { consumerJws, consumerClientId, interactionId } =
-      await setupConfirmationScenario({ skipGetResource: true });
-
-    await expect(
-      callAsyncTokenService(consumerJws, consumerClientId)
-    ).rejects.toThrowError(
-      interactionStateNotAllowed(
-        interactionId,
-        interactionState.callbackInvocation,
-        interactionState.confirmation
-      )
-    );
-  });
-
-  it("should throw tokenGenerationStatesEntryNotFound when consumer is not authorized for interaction's purpose", async () => {
+  it("should throw interactionStateNotAllowed when interaction is still in callback_invocation", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupConfirmationScenario({
-      differentConsumerForConfirmation: true,
+      interactionStateOverride: interactionState.callbackInvocation,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(
+      /Interaction .* in state callback_invocation does not allow scope confirmation/
+    );
+  });
+
+  it("should throw callbackInvocationTokenIssuedAtMissing when the timestamp is absent", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      clearCallbackInvocationIssuedAt: true,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/missing callbackInvocationTokenIssuedAt/);
+  });
+
+  it("should throw resourceAvailableTimeExpired when the window elapsed", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      callbackInvocationIssuedAtOverride: new Date(Date.now() - 61_000),
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/Resource available time expired/);
+  });
+
+  it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/Agreement state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      tokenGenStatesPurposeStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/Purpose state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      tokenGenStatesDescriptorStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/E-Service state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when pinned descriptor catalog state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      catalogEntryStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(
+      /E-Service state for pinned descriptor .* is: INACTIVE/
+    );
+  });
+
+  it("should throw catalogEntryNotFound when catalog entry is absent", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      skipCatalogEntry: true,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(/catalog entry not found/i);
+  });
+
+  it("should throw tokenGenerationStatesEntryNotFound when consumer entry is absent", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupConfirmationScenario({
+      skipTokenGenStatesEntry: true,
     });
 
     await expect(
       callAsyncTokenService(consumerJws, consumerClientId)
     ).rejects.toThrowError(/not found in token-generation-states/);
-  });
-
-  it("should throw callbackInvocationTokenIssuedAtMissing when timestamp is missing", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    // Set up with start_interaction only (skip callback_invocation)
-    // Then manually update the interaction state to get_resource without setting callbackInvocationTokenIssuedAt
-    const { interactionId, consumerClientId } = await setupConfirmationScenario(
-      {
-        skipCallbackInvocation: true,
-      }
-    );
-
-    // Manually force interaction to get_resource state WITHOUT setting callbackInvocationTokenIssuedAt
-    await dynamoDBClient.send(
-      new UpdateItemCommand({
-        TableName: config.interactionsTable,
-        Key: { PK: { S: makeInteractionPK(interactionId) } },
-        UpdateExpression: "SET #state = :state, updatedAt = :updatedAt",
-        ExpressionAttributeNames: { "#state": "state" },
-        ExpressionAttributeValues: {
-          ":state": { S: interactionState.getResource },
-          ":updatedAt": { S: new Date().toISOString() },
-        },
-      })
-    );
-
-    const { jws } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: consumerClientId },
-      customClaims: {
-        scope: interactionState.confirmation,
-        interactionId,
-      },
-    });
-
-    await expect(
-      callAsyncTokenService(jws, consumerClientId)
-    ).rejects.toThrowError(
-      callbackInvocationTokenIssuedAtMissing(interactionId)
-    );
-  });
-
-  it("should throw asyncExchangeConfirmationNotEnabled when confirmation is false", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { interactionId, consumerClientId, eServiceId, descriptorId } =
-      await setupConfirmationScenario();
-
-    // Update existing catalog entry to set confirmation=false
-    const catalogPK = makePlatformStatesEServiceDescriptorPK({
-      eserviceId: eServiceId,
-      descriptorId,
-    });
-    await dynamoDBClient.send(
-      new UpdateItemCommand({
-        TableName: "platform-states",
-        Key: { PK: { S: catalogPK } },
-        UpdateExpression: "SET asyncExchangeProperties.confirmation = :conf",
-        ExpressionAttributeValues: {
-          ":conf": { BOOL: false },
-        },
-      })
-    );
-
-    const { jws } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: consumerClientId },
-      customClaims: {
-        scope: interactionState.confirmation,
-        interactionId,
-      },
-    });
-
-    await expect(
-      callAsyncTokenService(jws, consumerClientId)
-    ).rejects.toThrowError(asyncExchangeConfirmationNotEnabled(interactionId));
-  });
-
-  it("should throw resourceAvailableTimeExpired when resourceAvailableTime window has elapsed", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { interactionId, consumerClientId } =
-      await setupConfirmationScenario();
-
-    // Backdate callbackInvocationTokenIssuedAt by more than resourceAvailableTime (60s)
-    await dynamoDBClient.send(
-      new UpdateItemCommand({
-        TableName: config.interactionsTable,
-        Key: { PK: { S: makeInteractionPK(interactionId) } },
-        UpdateExpression: "SET callbackInvocationTokenIssuedAt = :ts",
-        ExpressionAttributeValues: {
-          ":ts": { S: new Date(Date.now() - 61_000).toISOString() },
-        },
-      })
-    );
-
-    const { jws } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: consumerClientId },
-      customClaims: {
-        scope: interactionState.confirmation,
-        interactionId,
-      },
-    });
-
-    await expect(
-      callAsyncTokenService(jws, consumerClientId)
-    ).rejects.toThrowError(/Resource available time expired/);
-  });
-
-  it("should verify generated token has correct audience and lifespan from consumer key", async () => {
-    mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-
-    const { consumerJws, consumerClientId } = await setupConfirmationScenario();
-    const result = await callAsyncTokenService(consumerJws, consumerClientId);
-
-    if (result.limitReached || !result.tokenGenerated) {
-      fail();
-    }
-
-    // The token should have the audience and lifespan from the consumer key in token-generation-states
-    expect(result.token.payload.aud).toBeDefined();
-    expect(result.token.payload.exp).toBeDefined();
-    expect(result.token.payload.sub).toBe(consumerClientId);
   });
 });

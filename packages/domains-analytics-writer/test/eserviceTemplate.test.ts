@@ -22,7 +22,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import { EserviceTemplateDbTable } from "../src/model/db/index.js";
@@ -55,7 +55,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     };
     const doc = getMockDocument();
     version.docs = [doc];
-    const attr = getMockEServiceAttribute();
+    const attr = getMockEServiceTemplateAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
     const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
     template.riskAnalysis = [risk];
@@ -250,7 +250,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     };
     const doc = getMockDocument();
     version.docs = [doc];
-    const attr = getMockEServiceAttribute();
+    const attr = getMockEServiceTemplateAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
     const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
 
@@ -359,7 +359,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     const mockEServiceTemplate = getMockEServiceTemplate();
     const document = getMockDocument();
     const draftInterface = getMockDocument();
-    const attribute = getMockEServiceAttribute();
+    const attribute = getMockEServiceTemplateAttribute();
     const draftEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {

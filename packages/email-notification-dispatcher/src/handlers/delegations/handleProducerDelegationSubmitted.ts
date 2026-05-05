@@ -60,7 +60,7 @@ export async function handleProducerDelegationSubmitted(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Delegation ${delegation.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerDelegationSubmitted - entityId: ${delegation.id}, eventType: ${notificationType}`
     );
     return [];
   }

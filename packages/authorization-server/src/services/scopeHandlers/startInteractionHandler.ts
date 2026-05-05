@@ -1,5 +1,6 @@
 import {
-  validateClientKindAndPlatformState,
+  validateAsyncClaimsForScope,
+  validatePlatformState,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
 import {
@@ -7,20 +8,20 @@ import {
   generateId,
   genericInternalError,
   InteractionId,
+  interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
+  asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
   clientAssertionSignatureValidationFailed,
   platformStateValidationFailed,
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
 } from "../../model/domain/errors.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
   publishAudit,
-  retrieveCatalogEntry,
+  retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
 import { createInteraction } from "../../utilities/interactionsUtils.js";
@@ -30,7 +31,6 @@ import type {
 } from "../asyncTokenService.js";
 
 export const handleStartInteraction = async (
-  scope: "start_interaction",
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> => {
   const {
@@ -51,16 +51,26 @@ export const handleStartInteraction = async (
     interactionTtlEpsilonSeconds,
   } = ctx;
 
-  // 1. Validate start_interaction-specific claims
-  const urlCallback = clientAssertionJWT.payload.urlCallback;
-  if (!urlCallback) {
-    throw urlCallbackNotProvided(clientAssertionJWT.payload.sub);
-  }
-
+  // 1. Validate start_interaction-specific claims (aggregates all missing/invalid
+  //    claims into a single asyncClientAssertionClaimsValidationFailed error).
   const clientId = clientAssertionJWT.payload.sub;
-  const purposeId = clientAssertionJWT.payload.purposeId;
-  if (!purposeId) {
-    throw purposeIdNotProvided(clientId);
+  const { errors: claimErrors } = validateAsyncClaimsForScope(
+    clientAssertionJWT.payload,
+    interactionState.startInteraction
+  );
+  if (claimErrors) {
+    throw asyncClientAssertionClaimsValidationFailed(
+      clientId,
+      claimErrors.map((error) => error.detail).join(", ")
+    );
+  }
+  // validateAsyncClaimsForScope guarantees these are defined for this scope,
+  // but the Zod schema keeps them optional; re-check as a type guard.
+  const { urlCallback, purposeId } = clientAssertionJWT.payload;
+  if (!urlCallback || !purposeId) {
+    throw genericInternalError(
+      "urlCallback or purposeId missing after async claim validation"
+    );
   }
 
   // 2. Retrieve key from token-generation-states (consumer key with purposeId)
@@ -72,7 +82,6 @@ export const handleStartInteraction = async (
   });
   const key = await retrieveKey(dynamoDBClient, pk);
 
-  // start_interaction always uses a consumer key (purposeId PK guarantees this)
   if (key.clientKind !== clientKindTokenGenStates.consumer) {
     throw genericInternalError(
       `Expected consumer client kind for start_interaction, got ${key.clientKind}`
@@ -82,7 +91,12 @@ export const handleStartInteraction = async (
   setCtxOrganizationId(key.consumerId);
   setCtxClientKind(key.clientKind);
 
-  // 3. Verify client assertion signature
+  // 3. Validate that the eService supports async exchange (cheap check before crypto)
+  if (key.asyncExchange !== true) {
+    throw asyncExchangeNotEnabled(clientId);
+  }
+
+  // 4. Verify client assertion signature
   const { errors: clientAssertionSignatureErrors } =
     await verifyClientAssertionSignature(
       clientAssertionJWS,
@@ -97,20 +111,12 @@ export const handleStartInteraction = async (
     );
   }
 
-  // 4. Validate platform state
-  const { errors: platformStateErrors } = validateClientKindAndPlatformState(
-    key,
-    clientAssertionJWT
-  );
+  // 5. Validate platform state
+  const { errors: platformStateErrors } = validatePlatformState(key);
   if (platformStateErrors) {
     throw platformStateValidationFailed(
       platformStateErrors.map((error) => error.detail).join(", ")
     );
-  }
-
-  // 5. Validate that the eService supports async exchange
-  if (key.asyncExchange !== true) {
-    throw asyncExchangeNotEnabled(clientId);
   }
 
   // 6. Rate limiting (before catalog fetch to short-circuit early)
@@ -129,7 +135,7 @@ export const handleStartInteraction = async (
     key.GSIPK_eserviceId_descriptorId
   );
 
-  const catalogEntry = await retrieveCatalogEntry(
+  const catalogEntry = await retrieveAsyncCatalogEntry(
     dynamoDBClient,
     eserviceId,
     descriptorId,
@@ -137,15 +143,9 @@ export const handleStartInteraction = async (
   );
 
   const { asyncExchangeProperties } = catalogEntry;
-  if (!asyncExchangeProperties) {
-    throw genericInternalError(
-      `Catalog entry for eService ${eserviceId} descriptor ${descriptorId} has asyncExchange enabled but no asyncExchangeProperties`
-    );
-  }
 
   // 8. Generate token first, then persist interaction to avoid orphaned rows
   const interactionId = generateId<InteractionId>();
-  const issuedAt = new Date().toISOString();
 
   const ttlSeconds =
     asyncExchangeProperties.responseTime +
@@ -157,18 +157,28 @@ export const handleStartInteraction = async (
     audience: key.descriptorAudience,
     purposeId,
     tokenDurationInSeconds: key.descriptorVoucherLifespan,
+    digest: clientAssertionJWT.payload.digest || undefined,
+    producerId: key.producerId,
+    consumerId: key.consumerId,
+    eserviceId,
+    descriptorId,
     interactionId,
     urlCallback,
-    scope,
+    scope: interactionState.startInteraction,
     dpopJWK: dpopProofJWT?.header.jwk,
   });
+
+  // Use the token's iat so interaction and token share the same timestamp
+  const issuedAt = new Date(token.payload.iat * 1000).toISOString();
 
   // 9. Persist interaction only after successful token generation
   await createInteraction({
     dynamoDBClient,
     interactionsTable,
     interactionId,
+    clientId,
     purposeId,
+    consumerId: key.consumerId,
     eServiceId: eserviceId,
     descriptorId,
     issuedAt,
@@ -180,6 +190,8 @@ export const handleStartInteraction = async (
     producer,
     generatedToken: token,
     key,
+    eserviceId,
+    descriptorId,
     clientAssertion: clientAssertionJWT,
     dpop: dpopProofJWT,
     correlationId,

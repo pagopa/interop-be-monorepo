@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockValidEServiceTemplateRiskAnalysis,
@@ -20,6 +20,7 @@ import {
   EServiceTemplateSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
@@ -27,7 +28,7 @@ import { generateEServiceTemplateRiskAnalysisAnswersSQL } from "./eserviceTempla
 
 describe("E-service template splitter", () => {
   it("should convert a complete e-service template into e-service template SQL objects", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
@@ -160,12 +161,13 @@ describe("E-service template splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceTemplateVersionDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceTemplateVersionInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceTemplateId: eserviceTemplate.id,
       versionId: version.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     expect(eserviceTemplateSQL).toStrictEqual(expectedEServiceTemplateSQL);

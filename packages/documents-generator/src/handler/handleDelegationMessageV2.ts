@@ -13,10 +13,10 @@ import { match, P } from "ts-pattern";
 import {
   FileManager,
   Logger,
-  PDFGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
 } from "pagopa-interop-commons";
+import { PDFGenerator } from "../pdf-generator/pdfGenerator.js";
 import { delegationApi } from "pagopa-interop-api-clients";
 import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import { config } from "../config/config.js";

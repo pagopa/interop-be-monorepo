@@ -26,7 +26,7 @@ type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
+export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(TokenGenerationConfig)
@@ -41,6 +41,8 @@ const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
         INSTITUTIONS_CATEGORIES_URL: APIEndpoint,
         ATTRIBUTE_CREATION_WAIT_TIME: z.coerce.number(),
         ECONOMIC_ACCOUNT_COMPANIES_ALLOWLIST: z.string(),
+        DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
+        DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
         institutionsUrl: c.INSTITUTIONS_URL,
@@ -52,12 +54,16 @@ const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
           c.ECONOMIC_ACCOUNT_COMPANIES_ALLOWLIST.split(",").map((originId) =>
             originId.trim()
           ),
+        defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
+        defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))
   );
 
-type IPACertifiedAttributesImporterConfig = z.infer<
+export type IPACertifiedAttributesImporterConfig = z.infer<
   typeof IPACertifiedAttributesImporterConfig
 >;
 
-export const config: IPACertifiedAttributesImporterConfig =
-  IPACertifiedAttributesImporterConfig.parse(process.env);
+export const parseIPACertifiedAttributesImporterConfig = (
+  env: NodeJS.ProcessEnv
+): IPACertifiedAttributesImporterConfig =>
+  IPACertifiedAttributesImporterConfig.parse(env);

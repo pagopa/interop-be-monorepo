@@ -96,7 +96,7 @@ export async function handleAgreementEvent(
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

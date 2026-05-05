@@ -39,7 +39,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
   // Only send notification if there is only one version (version count = 1)
   if (purpose.versions.length !== 1) {
     logger.info(
-      `Purpose ${purpose.id} has more than one version, skipping purposeVersionRejectedFirstVersion notification`
+      `Skipping email notification for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has more than one version`
     );
     return [];
   }
@@ -64,7 +64,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

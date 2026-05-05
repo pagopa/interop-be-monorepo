@@ -26,6 +26,7 @@ import {
   itemState,
   makeGSIPKClientIdKid,
   makeGSIPKEServiceIdDescriptorId,
+  makeInteractionPK,
   makePlatformStatesEServiceDescriptorPK,
   makeProducerKeychainPlatformStatesPK,
   makeTokenGenerationStatesClientKidPurposePK,
@@ -35,6 +36,7 @@ import {
   Purpose,
   PurposeId,
   purposeVersionState,
+  TenantId,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -43,14 +45,15 @@ import {
   DynamoDBClient,
   PutItemCommand,
   PutItemInput,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { config } from "../../src/config/config.js";
 import {
   entityNumberNotProvided,
   interactionIdNotProvided,
-  interactionNotFound,
   invalidEntityNumber,
-} from "../../src/model/domain/errors.js";
+} from "pagopa-interop-client-assertion-validation";
+import { interactionNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {
   asyncTokenService,
@@ -64,6 +67,7 @@ const writeProducerKeychainEntry = async (
     PK: ProducerKeychainPlatformStatesPK;
     publicKey: string;
     producerKeychainId: ProducerKeychainId;
+    producerId: TenantId;
     kid: string;
     eServiceId: EServiceId;
     version: number;
@@ -72,11 +76,12 @@ const writeProducerKeychainEntry = async (
   client: DynamoDBClient
 ): Promise<void> => {
   const input: PutItemInput = {
-    TableName: "producer-keychain-platform-states",
+    TableName: config.producerKeychainPlatformStatesTable,
     Item: {
       PK: { S: entry.PK },
       publicKey: { S: entry.publicKey },
       producerKeychainId: { S: entry.producerKeychainId },
+      producerId: { S: entry.producerId },
       kid: { S: entry.kid },
       eServiceId: { S: entry.eServiceId },
       version: { N: entry.version.toString() },
@@ -94,11 +99,11 @@ const writeProducerKeychainEntry = async (
  */
 const setupCallbackScenario = async (overrides?: {
   producerCustomClaims?: Record<string, unknown>;
-  skipInteraction?: boolean;
   skipProducerKey?: boolean;
   skipCatalogEntry?: boolean;
-  interactionStateOverride?: string;
-  catalogEntryStateOverride?: ItemState;
+  tokenGenStatesAgreementStateOverride?: ItemState;
+  tokenGenStatesPurposeStateOverride?: ItemState;
+  tokenGenStatesDescriptorStateOverride?: ItemState;
 }): Promise<{
   producerJws: string;
   producerClientId: ClientId;
@@ -107,6 +112,10 @@ const setupCallbackScenario = async (overrides?: {
   descriptorId: DescriptorId;
   purposeId: PurposeId;
   producerKeychainId: ProducerKeychainId;
+  producerId: TenantId;
+  consumerId: TenantId;
+  descriptorAudience: string[];
+  descriptorVoucherLifespan: number;
 }> => {
   // Step 1: Create consumer client and start_interaction to create an interaction
   const purpose: Purpose = {
@@ -161,6 +170,20 @@ const setupCallbackScenario = async (overrides?: {
     tokenClientPurposeEntry,
     dynamoDBClient
   );
+
+  // Override token-generation-states state fields BEFORE callback_invocation
+  // (start_interaction needs them ACTIVE; callback_invocation reads them via GSI Purpose)
+  const tokenGenStatesStateOverrides = {
+    ...(overrides?.tokenGenStatesAgreementStateOverride && {
+      agreementState: { S: overrides.tokenGenStatesAgreementStateOverride },
+    }),
+    ...(overrides?.tokenGenStatesPurposeStateOverride && {
+      purposeState: { S: overrides.tokenGenStatesPurposeStateOverride },
+    }),
+    ...(overrides?.tokenGenStatesDescriptorStateOverride && {
+      descriptorState: { S: overrides.tokenGenStatesDescriptorStateOverride },
+    }),
+  };
 
   // Create platform-states catalog entry BEFORE start_interaction
   // (start_interaction reads it for asyncExchangeProperties and TTL)
@@ -219,31 +242,42 @@ const setupCallbackScenario = async (overrides?: {
   if (overrides?.skipCatalogEntry) {
     await dynamoDBClient.send(
       new DeleteItemCommand({
-        TableName: "platform-states",
+        TableName: config.platformStatesTable,
         Key: { PK: { S: catalogPK } },
       })
     );
-  } else if (overrides?.catalogEntryStateOverride) {
-    // Overwrite catalog entry with new state (writePlatformCatalogEntry has ConditionExpression)
+  }
+
+  // Apply token-generation-states state overrides AFTER start_interaction
+  // (start_interaction requires them ACTIVE; callback_invocation may need them inactive)
+  if (Object.keys(tokenGenStatesStateOverrides).length > 0) {
+    const setExpressions: string[] = [];
+    const attributeValues: Record<string, { S: string }> = {};
+    if (tokenGenStatesStateOverrides.agreementState) {
+      setExpressions.push("agreementState = :as");
+      attributeValues[":as"] = tokenGenStatesStateOverrides.agreementState;
+    }
+    if (tokenGenStatesStateOverrides.purposeState) {
+      setExpressions.push("purposeState = :ps");
+      attributeValues[":ps"] = tokenGenStatesStateOverrides.purposeState;
+    }
+    if (tokenGenStatesStateOverrides.descriptorState) {
+      setExpressions.push("descriptorState = :ds");
+      attributeValues[":ds"] = tokenGenStatesStateOverrides.descriptorState;
+    }
     await dynamoDBClient.send(
-      new PutItemCommand({
-        TableName: "platform-states",
-        Item: {
-          PK: { S: catalogPK },
-          state: { S: overrides.catalogEntryStateOverride },
-          descriptorAudience: {
-            L: [{ S: "https://eservice.example.com" }],
-          },
-          descriptorVoucherLifespan: { N: "3600" },
-          version: { N: "2" },
-          updatedAt: { S: new Date().toISOString() },
-        },
+      new UpdateItemCommand({
+        TableName: config.tokenGenerationStatesTable,
+        Key: { PK: { S: tokenClientKidPurposePK } },
+        UpdateExpression: `SET ${setExpressions.join(", ")}`,
+        ExpressionAttributeValues: attributeValues,
       })
     );
   }
 
   // Step 2: Create a producer keychain entry
   const producerKeychainId = generateId<ProducerKeychainId>();
+  const producerId = generateId<TenantId>();
 
   const {
     jws: producerJws,
@@ -272,6 +306,7 @@ const setupCallbackScenario = async (overrides?: {
         publicKey: producerPublicKey,
         producerKeychainId:
           unsafeBrandId<ProducerKeychainId>(producerKeychainId),
+        producerId,
         kid: producerAssertion.header.kid!,
         eServiceId,
         version: 1,
@@ -289,6 +324,10 @@ const setupCallbackScenario = async (overrides?: {
     descriptorId,
     purposeId: purpose.id,
     producerKeychainId: unsafeBrandId<ProducerKeychainId>(producerKeychainId),
+    producerId,
+    consumerId: purpose.consumerId,
+    descriptorAudience: catalogEntry.descriptorAudience,
+    descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
   };
 };
 
@@ -367,6 +406,68 @@ describe("async token service - callback_invocation", () => {
       fail();
     }
     expect(result.token.serialized).toBeDefined();
+  });
+
+  it("should generate a token with all expected header and payload claims", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const {
+      producerJws,
+      producerClientId,
+      interactionId,
+      eServiceId,
+      descriptorId,
+      purposeId,
+      producerId,
+      consumerId,
+      descriptorAudience,
+      descriptorVoucherLifespan,
+    } = await setupCallbackScenario();
+
+    const beforeMs = Date.now();
+    const result = await callAsyncTokenService(producerJws, producerClientId);
+    const afterMs = Date.now();
+
+    if (result.limitReached || !result.tokenGenerated) {
+      fail();
+    }
+
+    expect(result.token.serialized).toBeDefined();
+    expect(result.isDPoP).toBe(false);
+
+    expect(result.token.header).toEqual({
+      alg: "RS256",
+      use: "sig",
+      typ: "at+jwt",
+      kid: config.generatedInteropTokenKid,
+    });
+
+    expect(result.token.payload).toEqual({
+      jti: expect.any(String),
+      iss: config.generatedInteropTokenIssuer,
+      aud: descriptorAudience,
+      client_id: producerClientId,
+      sub: producerClientId,
+      iat: expect.any(Number),
+      nbf: expect.any(Number),
+      exp: expect.any(Number),
+      purposeId,
+      producerId,
+      consumerId,
+      eserviceId: eServiceId,
+      descriptorId,
+      interactionId,
+      scope: interactionState.callbackInvocation,
+    });
+
+    const { iat, nbf, exp } = result.token.payload;
+    // iat is in seconds (truncated), so compare using the second-precision window.
+    expect(iat).toBeGreaterThanOrEqual(Math.floor(beforeMs / 1000));
+    expect(iat).toBeLessThanOrEqual(Math.ceil(afterMs / 1000));
+    expect(nbf).toBe(iat);
+    expect(exp).toBe(iat + descriptorVoucherLifespan);
   });
 
   it("should verify token claims contain scope=callback_invocation", async () => {
@@ -457,7 +558,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(interactionIdNotProvided(producerKeychainId));
+    ).rejects.toThrowError(
+      new RegExp(interactionIdNotProvided(producerKeychainId).detail)
+    );
   });
 
   it("should throw entityNumberNotProvided when entityNumber is missing", async () => {
@@ -477,7 +580,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(entityNumberNotProvided(producerKeychainId));
+    ).rejects.toThrowError(
+      new RegExp(entityNumberNotProvided(producerKeychainId).detail)
+    );
   });
 
   it("should throw invalidEntityNumber when entityNumber is 0", async () => {
@@ -498,7 +603,9 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(jws, unsafeBrandId<ClientId>(producerKeychainId))
-    ).rejects.toThrowError(invalidEntityNumber(producerKeychainId, 0));
+    ).rejects.toThrowError(
+      new RegExp(invalidEntityNumber(producerKeychainId, 0).detail)
+    );
   });
 
   it("should throw interactionNotFound when interaction does not exist", async () => {
@@ -529,7 +636,7 @@ describe("async token service - callback_invocation", () => {
 
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/not found in producer-keychain-platform-states/);
+    ).rejects.toThrowError(/Producer keychain entry not found/);
   });
 
   it("should throw catalogEntryNotFound when catalog entry does not exist", async () => {
@@ -546,17 +653,100 @@ describe("async token service - callback_invocation", () => {
     ).rejects.toThrowError(/catalog entry not found/);
   });
 
-  it("should throw platformStateValidationFailed when catalog entry state is INACTIVE", async () => {
+  it("should throw asyncExchangeResponseTimeExceeded when response time is exceeded", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId, interactionId } =
+      await setupCallbackScenario();
+
+    // Set startInteractionTokenIssuedAt to 31 seconds ago, exceeding the 30s responseTime
+    const pastTime = new Date(Date.now() - 31_000).toISOString();
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.interactionsTable,
+        Key: { PK: { S: makeInteractionPK(interactionId) } },
+        UpdateExpression: "SET startInteractionTokenIssuedAt = :t",
+        ExpressionAttributeValues: { ":t": { S: pastTime } },
+      })
+    );
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Async exchange response time exceeded/);
+  });
+
+  it("should throw entityNumberExceedsMaxResultSet when entityNumber exceeds maxResultSet", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
-      catalogEntryStateOverride: itemState.inactive,
+      producerCustomClaims: { entityNumber: 101 },
     });
 
     await expect(
       callAsyncTokenService(producerJws, producerClientId)
-    ).rejects.toThrowError(/Platform state validation failed/);
+    ).rejects.toThrowError(/entityNumber 101 exceeds maxResultSet 100/);
+  });
+
+  it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Agreement state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      tokenGenStatesPurposeStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/Purpose state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      tokenGenStatesDescriptorStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(/E-Service state is: INACTIVE/);
+  });
+
+  it("should aggregate multiple inactive state errors in platformStateValidationFailed", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { producerJws, producerClientId } = await setupCallbackScenario({
+      tokenGenStatesAgreementStateOverride: itemState.inactive,
+      tokenGenStatesPurposeStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(producerJws, producerClientId)
+    ).rejects.toThrowError(
+      /Agreement state is: INACTIVE.*Purpose state is: INACTIVE/
+    );
   });
 });

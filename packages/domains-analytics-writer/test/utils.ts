@@ -58,6 +58,7 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_descriptor_attribute,
   CatalogDbTable.eservice_risk_analysis,
   CatalogDbTable.eservice_risk_analysis_answer,
+  CatalogDbTable.eservice_descriptor_async_exchange_properties,
 ];
 
 export const agreementTables: AgreementDbTable[] = [

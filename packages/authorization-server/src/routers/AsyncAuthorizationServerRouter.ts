@@ -10,8 +10,8 @@ import { ZodiosRouter } from "@zodios/express";
 import { AsyncTokenService } from "../services/asyncTokenService.js";
 import {
   buildCtxHelpers,
+  handleAsyncTokenError,
   handleRateLimitResponse,
-  handleTokenError,
 } from "../utilities/routerUtils.js";
 
 const asyncAuthorizationServerRouter = (
@@ -58,8 +58,8 @@ const asyncAuthorizationServerRouter = (
       // Fallthrough for unimplemented scopes
       return res.status(501).send();
     } catch (err) {
-      const { status, body } = handleTokenError(err, getCtx());
-      return res.status(status).send(body);
+      const problem = handleAsyncTokenError(err, getCtx());
+      return res.status(problem.status).send(problem);
     }
   });
 

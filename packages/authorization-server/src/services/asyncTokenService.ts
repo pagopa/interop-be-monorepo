@@ -21,9 +21,7 @@ import {
   FileManager,
   InteropAsyncConsumerToken,
   InteropApiToken,
-  InteropConsumerToken,
   InteropTokenGenerator,
-  isFeatureFlagEnabled,
   Logger,
   RateLimiter,
   RateLimiterStatus,
@@ -63,6 +61,7 @@ export type ScopeHandlerContext = {
   setCtxClientKind: (tokenGenClientKind: ClientKindTokenGenStates) => void;
   tokenGenerator: InteropTokenGenerator;
   platformStatesTable: string;
+  tokenGenerationStatesTable: string;
   interactionsTable: string;
   interactionTtlEpsilonSeconds: number;
   producerKeychainPlatformStatesTable: string;
@@ -83,7 +82,7 @@ export type AsyncGeneratedTokenData =
       limitReached: false;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
       tokenGenerated: true;
-      token: InteropConsumerToken | InteropAsyncConsumerToken;
+      token: InteropAsyncConsumerToken;
       key: FullTokenGenerationStatesConsumerClient;
       isDPoP: boolean;
     }
@@ -159,11 +158,7 @@ export function asyncTokenServiceBuilder({
           body.client_assertion,
           body.client_id,
           config.clientAssertionAudience,
-          getCtx().logger,
-          isFeatureFlagEnabled(
-            config,
-            "featureFlagClientAssertionStrictClaimsValidation"
-          )
+          getCtx().logger
         );
 
       if (clientAssertionErrors) {
@@ -204,7 +199,7 @@ export function asyncTokenServiceBuilder({
       // Key retrieval, signature verification, platform state validation,
       // rate limiting, token generation, and audit are scope-dependent
       // (e.g. callback_invocation uses producer keychain, not token-generation-states).
-      return await generateTokenByScope(scope, {
+      return await generateAsyncTokenByScope(scope, {
         dynamoDBClient,
         redisRateLimiter,
         producer,
@@ -218,6 +213,7 @@ export function asyncTokenServiceBuilder({
         setCtxClientKind,
         tokenGenerator,
         platformStatesTable: config.platformStatesTable,
+        tokenGenerationStatesTable: config.tokenGenerationStatesTable,
         interactionsTable: config.interactionsTable,
         interactionTtlEpsilonSeconds: config.interactionTtlEpsilonSeconds,
         producerKeychainPlatformStatesTable:
@@ -229,21 +225,17 @@ export function asyncTokenServiceBuilder({
 
 export type AsyncTokenService = ReturnType<typeof asyncTokenServiceBuilder>;
 
-const generateTokenByScope = async (
+const generateAsyncTokenByScope = async (
   scope: InteractionState,
   ctx: ScopeHandlerContext
 ): Promise<AsyncGeneratedTokenData> =>
   match(scope)
-    .with(interactionState.startInteraction, async (scope) =>
-      handleStartInteraction(scope, ctx)
+    .with(interactionState.startInteraction, async () =>
+      handleStartInteraction(ctx)
     )
-    .with(interactionState.callbackInvocation, async (scope) =>
-      handleCallbackInvocation(scope, ctx)
+    .with(interactionState.callbackInvocation, async () =>
+      handleCallbackInvocation(ctx)
     )
-    .with(interactionState.getResource, async (scope) =>
-      handleGetResource(scope, ctx)
-    )
-    .with(interactionState.confirmation, async (scope) =>
-      handleConfirmation(scope, ctx)
-    )
+    .with(interactionState.getResource, async () => handleGetResource(ctx))
+    .with(interactionState.confirmation, async () => handleConfirmation(ctx))
     .exhaustive();

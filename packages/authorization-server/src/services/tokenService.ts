@@ -253,6 +253,8 @@ export function tokenServiceBuilder({
               producer,
               generatedToken: token,
               key,
+              eserviceId,
+              descriptorId,
               clientAssertion: clientAssertionJWT,
               dpop: dpopProofJWT,
               correlationId: getCtx().correlationId,
@@ -307,8 +309,3 @@ export function tokenServiceBuilder({
 }
 
 export type TokenService = ReturnType<typeof tokenServiceBuilder>;
-
-export {
-  fallbackAudit,
-  retrieveKey,
-} from "../utilities/tokenServiceHelpers.js";

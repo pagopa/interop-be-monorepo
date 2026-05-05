@@ -212,6 +212,7 @@ export const initMockTenant = ({
     updatedAt: new Date(),
     onboardedAt: new Date(),
     subUnitType: tenantUnitType.AOO,
+    selfcareInstitutionType: "SCP",
   };
   const tenantFeatures = [
     tenantFeatureDelegatedProducer,

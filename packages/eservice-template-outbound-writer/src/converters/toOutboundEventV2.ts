@@ -30,6 +30,7 @@ function toOutboundEServiceTemplateVersionV2(
     docs: template.docs.map(toOuboundEServiceDocumentV2),
     interface:
       template.interface && toOuboundEServiceDocumentV2(template.interface),
+    asyncExchangeCallbackInterface: undefined,
   };
 }
 
@@ -132,6 +133,9 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       () => undefined
     )
     .exhaustive();

@@ -83,7 +83,8 @@ export async function handleCatalogMessageV2(
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         (msg) => {
@@ -108,6 +109,8 @@ export async function handleCatalogMessageV2(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

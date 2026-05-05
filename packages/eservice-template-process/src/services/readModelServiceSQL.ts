@@ -1,7 +1,8 @@
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -48,7 +49,6 @@ import {
   count,
   eq,
   exists,
-  ilike,
   inArray,
   isNotNull,
   ne,
@@ -91,9 +91,9 @@ export function readModelServiceBuilderSQL({
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);
@@ -143,9 +143,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -313,7 +313,7 @@ export function readModelServiceBuilderSQL({
         "template_instances"
       );
 
-      const escapedNewName = escapeRegExp(newName);
+      const escapedNewName = escapeSqlLike(newName);
 
       const queryResult = await readModelDB
         .select({ count: count() })
@@ -336,7 +336,7 @@ export function readModelServiceBuilderSQL({
                       WHEN ${templateInstances.instanceLabel} IS NOT NULL
                         THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
                       ELSE ${escapedNewName}
-                    END`
+                    END ESCAPE '\\'`
                   )
                 )
             )
@@ -381,7 +381,10 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined
           )
         )

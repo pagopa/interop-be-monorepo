@@ -6,14 +6,21 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  ApiError,
   ClientId,
   ClientKindTokenGenStates,
+  CommonErrorCodes,
   Problem,
   TenantId,
   tooManyRequestsError,
 } from "pagopa-interop-models";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { ErrorCodes, makeApiProblem } from "../model/domain/errors.js";
+import { asyncAuthorizationServerErrorMapper } from "./asyncErrorMappers.js";
 import { authorizationServerErrorMapper } from "./errorMappers.js";
+
+type TokenErrorMapper = (
+  error: ApiError<ErrorCodes | CommonErrorCodes>
+) => number;
 
 export function buildCtxHelpers(reqCtx: AuthServerAppContext): {
   getCtx: () => WithLogger<AuthServerAppContext>;
@@ -46,16 +53,14 @@ export function buildCtxHelpers(reqCtx: AuthServerAppContext): {
   return { getCtx, setCtxClientId, setCtxOrganizationId, setCtxClientKind };
 }
 
-export function handleTokenError(
-  err: unknown,
-  ctx: WithLogger<AuthServerAppContext>
-): { status: number; body: Problem } {
-  const errorRes = makeApiProblem(err, authorizationServerErrorMapper, ctx);
+function buildTokenErrorHandler(
+  errorMapper: TokenErrorMapper
+): (err: unknown, ctx: WithLogger<AuthServerAppContext>) => Problem {
+  return (err, ctx) => {
+    const errorRes = makeApiProblem(err, errorMapper, ctx);
 
-  if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
-    return {
-      status: constants.HTTP_STATUS_BAD_REQUEST,
-      body: {
+    if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
+      return {
         title: "The request contains bad syntax or cannot be fulfilled.",
         type: "about:blank",
         status: constants.HTTP_STATUS_BAD_REQUEST,
@@ -67,13 +72,10 @@ export function handleTokenError(
           },
         ],
         correlationId: ctx.correlationId,
-      },
-    };
-  }
+      };
+    }
 
-  return {
-    status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-    body: {
+    return {
       title: "The request couldn't be fulfilled due to an internal error",
       type: "internalServerError",
       status: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -86,9 +88,17 @@ export function handleTokenError(
         },
       ],
       correlationId: ctx.correlationId,
-    },
+    };
   };
 }
+
+export const handleTokenError = buildTokenErrorHandler(
+  authorizationServerErrorMapper
+);
+
+export const handleAsyncTokenError = buildTokenErrorHandler(
+  asyncAuthorizationServerErrorMapper
+);
 
 export function handleRateLimitResponse(
   res: Response,

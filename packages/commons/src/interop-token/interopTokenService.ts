@@ -329,19 +329,35 @@ export class InteropTokenGenerator {
     audience,
     purposeId,
     tokenDurationInSeconds,
+    digest,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
     interactionId,
     urlCallback,
     scope,
     dpopJWK,
+    now,
   }: {
     sub: ClientId;
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
     interactionId: InteractionId;
     urlCallback?: string;
     scope: InteractionState;
     dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+    // Optional reference instant for iat/nbf/exp. When the caller has already
+    // captured `now` (e.g. to validate a time window that must match the
+    // token's iat), it can pass it here to avoid the sub-second drift that
+    // would otherwise occur by calling `new Date()` again inside this method.
+    now?: Date;
   }): Promise<InteropAsyncConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -352,7 +368,7 @@ export class InteropTokenGenerator {
       );
     }
 
-    const currentTimestamp = dateToSeconds(new Date());
+    const currentTimestamp = dateToSeconds(now ?? new Date());
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,
@@ -371,6 +387,11 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
+      ...(digest ? { digest } : {}),
+      producerId,
+      consumerId,
+      eserviceId,
+      descriptorId,
       interactionId,
       ...(urlCallback ? { urlCallback } : {}),
       scope,

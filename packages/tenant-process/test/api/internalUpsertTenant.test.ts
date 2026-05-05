@@ -27,7 +27,10 @@ describe("API POST /internal/tenants test", () => {
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
   beforeEach(() => {
-    tenantService.internalUpsertTenant = vi.fn().mockResolvedValue(tenant);
+    tenantService.internalUpsertTenant = vi.fn().mockResolvedValue({
+      data: tenant,
+      metadata: { version: 1 },
+    });
   });
 
   const makeRequest = async (
@@ -45,6 +48,7 @@ describe("API POST /internal/tenants test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(apiResponse);
+    expect(res.headers["x-metadata-version"]).toBe("1");
   });
 
   it.each(

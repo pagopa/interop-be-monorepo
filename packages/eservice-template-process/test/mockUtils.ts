@@ -108,6 +108,18 @@ export const buildInterfaceSeed =
     checksum: "checksum",
   });
 
+export const buildAsyncExchangeCallbackInterfaceSeed =
+  (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
 export const buildDocumentSeed =
   (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
     contentType: "json",

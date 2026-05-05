@@ -30,7 +30,7 @@ export async function handleDelegationSubmittedRevokedToDelegate(
     throw missingKafkaMessageDataError("delegation", eventType);
   }
   logger.info(
-    `Handle delegation submitted/revoked in-app notification for delegation ${delegationV2Msg.id}`
+    `Sending in-app notification for handleDelegationSubmittedRevokedToDelegate - entityId: ${delegationV2Msg.id}, eventType: ${eventType}`
   );
 
   const delegation = fromDelegationV2(delegationV2Msg);
@@ -44,7 +44,7 @@ export async function handleDelegationSubmittedRevokedToDelegate(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for delegation ${delegationV2Msg.id}`
+      `No users with notifications enabled for handleDelegationSubmittedRevokedToDelegate - entityId: ${delegation.id}, eventType: ${eventType}`
     );
     return [];
   }

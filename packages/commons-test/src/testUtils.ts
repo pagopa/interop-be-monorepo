@@ -80,6 +80,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  EServiceTemplateAttribute,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -216,6 +217,14 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
+  dailyCallsPerConsumer: undefined,
+});
+
+export const getMockEServiceTemplateAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttribute => ({
+  ...generateMock(EServiceTemplateAttribute),
+  id: attributeId,
 });
 
 export const getMockAgreementAttribute = (
@@ -331,9 +340,27 @@ export const getMockAgreement = (
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
   id: AttributeId = generateId()
+): Attribute => {
+  if (kind === attributeKind.certified) {
+    return getMockCertifiedAttribute(kind, id);
+  }
+  return {
+    id,
+    name: generateMock(z.string()),
+    kind,
+    description: "attribute description",
+    creationTime: new Date(),
+  };
+};
+
+export const getMockCertifiedAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: "attribute name",
+  name: `${generateMock(z.string())}-${generateId()}`,
+  code: generateId(),
+  origin: generateId(),
   kind,
   description: "attribute description",
   creationTime: new Date(),

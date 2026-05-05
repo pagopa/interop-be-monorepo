@@ -9,7 +9,9 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   genericInternalError,
@@ -17,9 +19,9 @@ import {
   InteractionId,
   interactionState,
   InteractionState,
-  makeGSIPKInteractionId,
   makeInteractionPK,
   PurposeId,
+  TenantId,
 } from "pagopa-interop-models";
 
 const interactionStateAllowedByScope: Record<
@@ -45,7 +47,9 @@ export const createInteraction = async ({
   dynamoDBClient,
   interactionsTable,
   interactionId,
+  clientId,
   purposeId,
+  consumerId,
   eServiceId,
   descriptorId,
   issuedAt,
@@ -54,20 +58,22 @@ export const createInteraction = async ({
   dynamoDBClient: DynamoDBClient;
   interactionsTable: string;
   interactionId: InteractionId;
+  clientId: ClientId;
   purposeId: PurposeId;
+  consumerId: TenantId;
   eServiceId: EServiceId;
   descriptorId: DescriptorId;
   issuedAt: string;
   ttlSeconds: number;
 }): Promise<Interaction> => {
   const PK = makeInteractionPK(interactionId);
-  const GSIPK_interactionId = makeGSIPKInteractionId(interactionId);
-  const ttl = Math.floor(Date.parse(issuedAt) / 1000) + ttlSeconds;
+  const ttl = dateToSeconds(new Date(issuedAt)) + ttlSeconds;
   const interaction: Interaction = {
     PK,
-    GSIPK_interactionId,
     interactionId,
+    clientId,
     purposeId,
+    consumerId,
     eServiceId,
     descriptorId,
     state: interactionState.startInteraction,
@@ -81,9 +87,10 @@ export const createInteraction = async ({
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: { S: interaction.PK },
-      GSIPK_interactionId: { S: GSIPK_interactionId },
       interactionId: { S: interaction.interactionId },
+      clientId: { S: interaction.clientId },
       purposeId: { S: interaction.purposeId },
+      consumerId: { S: interaction.consumerId },
       eServiceId: { S: interaction.eServiceId },
       descriptorId: { S: interaction.descriptorId },
       state: { S: interaction.state },

@@ -8,24 +8,24 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare per quale finalità si intende accedere ai dati messi a disposizione con la fruizione del presente E-service",
-        en: "",
+        en: "Indicare per quale finalità si intende accedere ai dati messi a disposizione con la fruizione del presente E-service",
       },
       infoLabel: {
         it: "NB: Si ricorda ai sensi dell’art. 5, paragrafo 1, lett. b), del GDPR (principio della limitazione delle finalità), le finalità devono essere determinate, esplicite e legittime, e che i dati ottenuti possono essere successivamente trattati solo in modo compatibile con le predette finalità. Si ricorda, altresì, che qualora sussista più di una finalità, il Fruitore DEVE effettuare un’analisi del rischio per ognuna delle finalità individuate",
-        en: "",
+        en: "NB: Si ricorda ai sensi dell’art. 5, paragrafo 1, lett. b), del GDPR (principio della limitazione delle finalità), le finalità devono essere determinate, esplicite e legittime, e che i dati ottenuti possono essere successivamente trattati solo in modo compatibile con le predette finalità. Si ricorda, altresì, che qualora sussista più di una finalità, il Fruitore DEVE effettuare un’analisi del rischio per ognuna delle finalità individuate",
       },
       options: [
         {
           label: {
             it: "Per fini istituzionali che non richiedano prestazioni di elaborazioni aggiuntive",
-            en: "",
+            en: "Per fini istituzionali che non richiedano prestazioni di elaborazioni aggiuntive",
           },
           value: "INSTITUTIONAL",
         },
         {
           label: {
             it: "Altro",
-            en: "",
+            en: "Altro",
           },
           value: "OTHER",
         },
@@ -40,7 +40,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Specificare il fine perseguito per fini istituzionali che non richiedano prestazioni di elaborazioni aggiuntive",
-        en: "",
+        en: "Specificare il fine perseguito per fini istituzionali che non richiedano prestazioni di elaborazioni aggiuntive",
       },
       validation: {
         maxLength: 2000,
@@ -60,7 +60,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Specificare il fine perseguito",
-        en: "",
+        en: "Specificare il fine perseguito",
       },
       validation: {
         maxLength: 2000,
@@ -80,11 +80,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se si accede a dati personali",
-        en: "",
+        en: "Indicare se si accede a dati personali",
       },
       infoLabel: {
         it: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo).",
-        en: "",
+        en: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo).",
       },
       options: [
         {
@@ -112,7 +112,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se si accede a dati non personali di terzi (quindi a dati non personali che non sono riferibili al Fruitore stesso)",
-        en: "",
+        en: "Indicare se si accede a dati non personali di terzi (quindi a dati non personali che non sono riferibili al Fruitore stesso)",
       },
       options: [
         {
@@ -145,48 +145,48 @@ export const private1 = {
       dataType: "multi",
       label: {
         it: "Indicare la tipologia di dati personali cui si avrà accesso attraverso la fruizione del presente E-service, tenuto conto delle definizioni contenute nell’art. 4, nn. 1, 13, 14 e 15 del GDPR",
-        en: "",
+        en: "Indicare la tipologia di dati personali cui si avrà accesso attraverso la fruizione del presente E-service, tenuto conto delle definizioni contenute nell’art. 4, nn. 1, 13, 14 e 15 del GDPR",
       },
       options: [
         {
           label: {
             it: "Dati personali comuni non identificativi (es. numero di targa)",
-            en: "",
+            en: "Dati personali comuni non identificativi (es. numero di targa)",
           },
           value: "WITH_NON_IDENTIFYING_DATA",
         },
         {
           label: {
             it: "Dati personali comuni identificativi (es. codice fiscale)",
-            en: "",
+            en: "Dati personali comuni identificativi (es. codice fiscale)",
           },
           value: "WITH_IDENTIFYING_DATA",
         },
         {
           label: {
             it: "Dati di minori ex art. 8 del GDPR (es. nome e cognome di un minore)",
-            en: "",
+            en: "Dati di minori ex art. 8 del GDPR (es. nome e cognome di un minore)",
           },
           value: "GDPR_ART_8",
         },
         {
           label: {
             it: "Dati particolari ex art. 9 del GDPR (es. origine razziale o etnica, opinioni politiche, convinzioni religiose o filosofiche, appartenenza sindacale, nonché dati genetici, biometrici intesi a identificare in modo univoco una persona fisica, dati relativi alla salute o alla vita sessuale o all'orientamento sessuale della persona)",
-            en: "",
+            en: "Dati particolari ex art. 9 del GDPR (es. origine razziale o etnica, opinioni politiche, convinzioni religiose o filosofiche, appartenenza sindacale, nonché dati genetici, biometrici intesi a identificare in modo univoco una persona fisica, dati relativi alla salute o alla vita sessuale o all'orientamento sessuale della persona)",
           },
           value: "GDPR_ART_9",
         },
         {
           label: {
             it: "Dati giudiziari ex art. 10 del GDPR",
-            en: "",
+            en: "Dati giudiziari ex art. 10 del GDPR",
           },
           value: "GDPR_ART_10",
         },
         {
           label: {
             it: "Altro",
-            en: "",
+            en: "Altro",
           },
           value: "OTHER",
         },
@@ -206,7 +206,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Specificare la tipologia di dati personali",
-        en: "",
+        en: "Specificare la tipologia di dati personali",
       },
       validation: {
         maxLength: 2000,
@@ -230,48 +230,48 @@ export const private1 = {
       dataType: "multi",
       label: {
         it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
-        en: "",
+        en: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
       },
       options: [
         {
           label: {
             it: "Consenso dell’interessato al trattamento dei dati personali per una o più specifiche finalità",
-            en: "",
+            en: "Consenso dell’interessato al trattamento dei dati personali per una o più specifiche finalità",
           },
           value: "CONSENT",
         },
         {
           label: {
             it: "Esecuzione di un contratto di cui l'interessato è parte o di misure precontrattuali adottate su richiesta dello stesso",
-            en: "",
+            en: "Esecuzione di un contratto di cui l'interessato è parte o di misure precontrattuali adottate su richiesta dello stesso",
           },
           value: "CONTRACT",
         },
         {
           label: {
             it: "Adempimento di un obbligo legale",
-            en: "",
+            en: "Adempimento di un obbligo legale",
           },
           value: "LEGAL_OBLIGATION",
         },
         {
           label: {
             it: "Salvaguardia degli interessi vitali di una persona fisica",
-            en: "",
+            en: "Salvaguardia degli interessi vitali di una persona fisica",
           },
           value: "SAFEGUARD",
         },
         {
           label: {
             it: "Esecuzione di un compito di interesse pubblico o connesso all'esercizio di pubblici poteri di cui sei investito",
-            en: "",
+            en: "Esecuzione di un compito di interesse pubblico o connesso all'esercizio di pubblici poteri di cui sei investito",
           },
           value: "PUBLIC_INTEREST",
         },
         {
           label: {
             it: "Perseguimento del legittimo interesse del titolare del trattamento o di terzi, a condizione che non prevalgano gli interessi o i diritti e le libertà fondamentali dell'interessato che richiedono la protezione dei dati personali, in particolare se l'interessato è un minore (NB: ai sensi dell’art. 6 lettera f) primo comma, questa opzione non può essere selezionata in caso di trattamento di dati effettuato dalle autorità pubbliche nell’esecuzione dei propri compiti)",
-            en: "",
+            en: "Perseguimento del legittimo interesse del titolare del trattamento o di terzi, a condizione che non prevalgano gli interessi o i diritti e le libertà fondamentali dell'interessato che richiedono la protezione dei dati personali, in particolare se l'interessato è un minore (NB: ai sensi dell’art. 6 lettera f) primo comma, questa opzione non può essere selezionata in caso di trattamento di dati effettuato dalle autorità pubbliche nell’esecuzione dei propri compiti)",
           },
           value: "LEGITIMATE_INTEREST",
         },
@@ -291,7 +291,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Specificare l’obbligo legale e, laddove possibile, la normativa di riferimento",
-        en: "",
+        en: "Specificare l’obbligo legale e, laddove possibile, la normativa di riferimento",
       },
       infoLabel: {
         it: "",
@@ -319,7 +319,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire I) l’interesse legittimo perseguito II) l’analisi sulla non prevalenza degli interessi, diritti e libertà degli Interessati che richiedono la protezione dei dati personali, in particolare se l’interessato è un minore",
-        en: "",
+        en: "Inserire I) l’interesse legittimo perseguito II) l’analisi sulla non prevalenza degli interessi, diritti e libertà degli Interessati che richiedono la protezione dei dati personali, in particolare se l’interessato è un minore",
       },
       infoLabel: {
         it: "",
@@ -347,27 +347,27 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Specificare le motivazioni di esecuzione di un compito di interesse pubblico o connesso all'esercizio di pubblici poteri di cui sei investito",
-        en: "",
+        en: "Specificare le motivazioni di esecuzione di un compito di interesse pubblico o connesso all'esercizio di pubblici poteri di cui sei investito",
       },
       options: [
         {
           label: {
             it: "Norma di legge o di regolamento ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2- sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
-            en: "",
+            en: "Norma di legge o di regolamento ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2- sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
           },
           value: "RULE_OF_LAW",
         },
         {
           label: {
             it: "Atto amministrativo generale ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2-sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
-            en: "",
+            en: "Atto amministrativo generale ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2-sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
           },
           value: "ADMINISTRATIVE_ACT",
         },
         {
           label: {
             it: "Adempimento di un compito svolto nel pubblico interesse o per l’esecuzione di pubblici poteri attribuiti al Fruitore ai sensi dell’art. 2-ter, comma 1 bis, del Codice Privacy",
-            en: "",
+            en: "Adempimento di un compito svolto nel pubblico interesse o per l’esecuzione di pubblici poteri attribuiti al Fruitore ai sensi dell’art. 2-ter, comma 1 bis, del Codice Privacy",
           },
           value: "PUBLIC_INTEREST_TASK",
         },
@@ -399,11 +399,11 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire norma di legge o regolamento applicabile",
-        en: "",
+        en: "Inserire norma di legge o regolamento applicabile",
       },
       infoLabel: {
         it: "È previsto sia inserita la norma di legge o di regolamento ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2- sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
-        en: "",
+        en: "È previsto sia inserita la norma di legge o di regolamento ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2- sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
       },
       validation: {
         maxLength: 2000,
@@ -431,7 +431,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire il riferimento dell’atto amministrativo generale applicabile",
-        en: "",
+        en: "Inserire il riferimento dell’atto amministrativo generale applicabile",
       },
       infoLabel: {
         it: "È previsto sia inserito l'atto amministrativo generale ai sensi dell’art. 2-ter, comma 1, del Codice Privacy per quanto attiene ai dati personali comuni e ai sensi dell’art. 2-sexies, comma 1 del Codice Privacy per quanto attiene alle categorie particolari di dati",
@@ -463,11 +463,11 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire il compito svolto o il pubblico il riferimento dell’atto amministrativo generale applicabile",
-        en: "",
+        en: "Inserire il compito svolto o il pubblico il riferimento dell’atto amministrativo generale applicabile",
       },
       infoLabel: {
         it: "È previsto sia inserito il riferimento all'adempimento di un compito svolto nel pubblico interesse o per l’esecuzione di pubblici poteri attribuiti al Fruitore ai sensi dell’art. 2-ter, comma 1 bis, del Codice Privacy",
-        en: "",
+        en: "È previsto sia inserito il riferimento all'adempimento di un compito svolto nel pubblico interesse o per l’esecuzione di pubblici poteri attribuiti al Fruitore ai sensi dell’art. 2-ter, comma 1 bis, del Codice Privacy",
       },
       validation: {
         maxLength: 2000,
@@ -487,7 +487,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
-        en: "",
+        en: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
       },
       options: [
         {
@@ -520,11 +520,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Fascia di riferimento",
-        en: "",
+        en: "Fascia di riferimento",
       },
       infoLabel: {
         it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
-        en: "",
+        en: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
       },
       options: [
         {
@@ -582,11 +582,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Modalità di erogazione",
-        en: "",
+        en: "Modalità di erogazione",
       },
       infoLabel: {
         it: "Indicare con quali modalità il Fruitore intende ricevere le informazioni dall’Erogatore, d’accordo con quelle già previste dall’Erogatore stesso. NB: si ricorda che ai sensi dell’art. 5, paragrafo 1, lett. c), del GDPR (principio di minimizzazione) il trattamento di dati personali deve essere sempre proporzionale e limitato a quanto strettamente necessario alla finalità perseguita, e possono essere acceduti tramite l’e-service unicamente i dati adeguati, pertinenti e limitati a quanto necessario per il fine perseguito. Pertanto: (i) solo qualora non sia possibile perseguire le finalità dichiarate nel punto 1 sopra sulla base di dati aggregati o anonimi è possibile barrare le opzioni di dati in chiaro e pseudonimizzati e (ii) solo qualora non sia possibile perseguire le predette finalità con dati pseudonimizzati è possibile barrare l’opzione di dati in chiaro",
-        en: "",
+        en: "Indicare con quali modalità il Fruitore intende ricevere le informazioni dall’Erogatore, d’accordo con quelle già previste dall’Erogatore stesso. NB: si ricorda che ai sensi dell’art. 5, paragrafo 1, lett. c), del GDPR (principio di minimizzazione) il trattamento di dati personali deve essere sempre proporzionale e limitato a quanto strettamente necessario alla finalità perseguita, e possono essere acceduti tramite l’e-service unicamente i dati adeguati, pertinenti e limitati a quanto necessario per il fine perseguito. Pertanto: (i) solo qualora non sia possibile perseguire le finalità dichiarate nel punto 1 sopra sulla base di dati aggregati o anonimi è possibile barrare le opzioni di dati in chiaro e pseudonimizzati e (ii) solo qualora non sia possibile perseguire le predette finalità con dati pseudonimizzati è possibile barrare l’opzione di dati in chiaro",
       },
       options: [
         {
@@ -633,7 +633,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se è stata fornita un’informativa all’interessato circa l’accesso ai dati cui si intende accedere/che si intende ricevere tramite la fruizione dell’E-Service e le relative attività di trattamento effettuate dal Fruitore",
-        en: "",
+        en: "Indicare se è stata fornita un’informativa all’interessato circa l’accesso ai dati cui si intende accedere/che si intende ricevere tramite la fruizione dell’E-Service e le relative attività di trattamento effettuate dal Fruitore",
       },
       options: [
         {
@@ -666,7 +666,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire le ragioni per cui non è stata fornita informativa specifica ai sensi dell’art. 14, paragrafo 5, del GDPR",
-        en: "",
+        en: "Inserire le ragioni per cui non è stata fornita informativa specifica ai sensi dell’art. 14, paragrafo 5, del GDPR",
       },
       infoLabel: {
         it: "È previsto sia fornita un’informativa all’interessato circa l’accesso ai dati cui si intende accedere/che si intende ricevere tramite la fruizione dell’E-Service e le relative attività di trattamento effettuate dal Fruitore",
@@ -694,20 +694,20 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare la modalità attraverso la quale è stata fornita l'informativa",
-        en: "",
+        en: "Indicare la modalità attraverso la quale è stata fornita l'informativa",
       },
       options: [
         {
           label: {
             it: "Cartacea",
-            en: "",
+            en: "Cartacea",
           },
           value: "PRINT",
         },
         {
           label: {
             it: "Online",
-            en: "",
+            en: "Online",
           },
           value: "ONLINE",
         },
@@ -731,7 +731,7 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Inserire il link all'informativa",
-        en: "",
+        en: "Inserire il link all'informativa",
       },
       validation: {
         maxLength: 2000,
@@ -759,7 +759,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Confermare se - in linea con il principio di integrità e riservatezza di cui all’art. 5, paragrafo 1, lett. f), del GDPR - sono state adottate tutte le misure tecniche e organizzative necessarie a garantire un’adeguata sicurezza dei dati personali cui si avrà accesso in sede di fruizione del presente E-service, compresa la protezione da trattamenti non autorizzati o illeciti e dalla perdita, dalla distruzione o dal danno accidentali",
-        en: "",
+        en: "Confermare se - in linea con il principio di integrità e riservatezza di cui all’art. 5, paragrafo 1, lett. f), del GDPR - sono state adottate tutte le misure tecniche e organizzative necessarie a garantire un’adeguata sicurezza dei dati personali cui si avrà accesso in sede di fruizione del presente E-service, compresa la protezione da trattamenti non autorizzati o illeciti e dalla perdita, dalla distruzione o dal danno accidentali",
       },
       options: [
         {
@@ -785,11 +785,11 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Misure tecniche e organizzative adottate",
-        en: "",
+        en: "Misure tecniche e organizzative adottate",
       },
       infoLabel: {
         it: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
-        en: "",
+        en: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
       },
       validation: {
         maxLength: 2000,
@@ -817,11 +817,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se è stata fatta un’apposita Valutazione di Impatto (c.d. DPIA) relativamente alle attività di trattamento dei dati personali che saranno effettuate attraverso la fruizione del presente E-service",
-        en: "",
+        en: "Indicare se è stata fatta un’apposita Valutazione di Impatto (c.d. DPIA) relativamente alle attività di trattamento dei dati personali che saranno effettuate attraverso la fruizione del presente E-service",
       },
       infoLabel: {
         it: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 35 del GDPR",
-        en: "",
+        en: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 35 del GDPR",
       },
       options: [
         {
@@ -854,11 +854,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se si è proceduto alla consultazione preventiva al Garante per la protezione dei dati personali",
-        en: "",
+        en: "Indicare se si è proceduto alla consultazione preventiva al Garante per la protezione dei dati personali",
       },
       infoLabel: {
         it: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 36 del GDPR",
-        en: "",
+        en: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 36 del GDPR",
       },
       options: [
         {
@@ -895,11 +895,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "In caso di download dei dati cui si avrà accesso attraverso il presente E-service, dichiarare se è stato individuato un periodo di conservazione dei dati",
-        en: "",
+        en: "In caso di download dei dati cui si avrà accesso attraverso il presente E-service, dichiarare se è stato individuato un periodo di conservazione dei dati",
       },
       infoLabel: {
         it: "NB: si ricorda che il download del dato non consente di disporre di un dato aggiornato, e quindi di agire nel rispetto del principio di esattezza dei dati di cui all’art. 5, paragrafo 1, lettera d), del GDPR. Pertanto, si invita a limitare i casi di download del dato alle ipotesi in cui tale download è strettamente necessario e giustificato dalla finalità del trattamento. Si ricorda, altresì, che, ai sensi dell’art. 5, paragrafo 1, lett. b) ed e) del GDPR (principio della limitazione della finalità e della conservazione) , i dati possono essere conservati unicamente per il tempo strettamente necessario al perseguimento delle finalità per cui sono stati raccolti, e che le stesse siano determinate, esplicite e legittime.",
-        en: "",
+        en: "NB: si ricorda che il download del dato non consente di disporre di un dato aggiornato, e quindi di agire nel rispetto del principio di esattezza dei dati di cui all’art. 5, paragrafo 1, lettera d), del GDPR. Pertanto, si invita a limitare i casi di download del dato alle ipotesi in cui tale download è strettamente necessario e giustificato dalla finalità del trattamento. Si ricorda, altresì, che, ai sensi dell’art. 5, paragrafo 1, lett. b) ed e) del GDPR (principio della limitazione della finalità e della conservazione) , i dati possono essere conservati unicamente per il tempo strettamente necessario al perseguimento delle finalità per cui sono stati raccolti, e che le stesse siano determinate, esplicite e legittime.",
       },
       options: [
         {
@@ -932,11 +932,11 @@ export const private1 = {
       dataType: "freeText",
       label: {
         it: "Indicare il periodo di conservazione dei dati individuato",
-        en: "",
+        en: "Indicare il periodo di conservazione dei dati individuato",
       },
       infoLabel: {
         it: "La cifra seguita da ora, giorno, mese, anno. Ad es. 1 ora oppure 10 giorni oppure 3 mesi oppure 2 anni",
-        en: "",
+        en: "La cifra seguita da ora, giorno, mese, anno. Ad es. 1 ora oppure 10 giorni oppure 3 mesi oppure 2 anni",
       },
       validation: {
         maxLength: 2000,
@@ -960,20 +960,20 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Ai sensi del principio di minimizzazione di cui all’art. 5, paragrafo 1, let. c) del GDPR, per perseguire la finalità di cui al punto 1, indicare se",
-        en: "",
+        en: "Ai sensi del principio di minimizzazione di cui all’art. 5, paragrafo 1, let. c) del GDPR, per perseguire la finalità di cui al punto 1, indicare se",
       },
       options: [
         {
           label: {
             it: "È sufficiente che l’Erogatore verifichi la mera correttezza di una/o determinata/o informazione/dato personale già in suo possesso",
-            en: "",
+            en: "È sufficiente che l’Erogatore verifichi la mera correttezza di una/o determinata/o informazione/dato personale già in suo possesso",
           },
           value: "MERE_CORRECTNESS",
         },
         {
           label: {
             it: "È necessario ricevere ex novo una/o determinata/o informazione/dato personale",
-            en: "",
+            en: "È necessario ricevere ex novo una/o determinata/o informazione/dato personale",
           },
           value: "NEW_PERSONAL_DATA",
         },
@@ -993,7 +993,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Confermare se è stato verificato se sul Catalogo API è presente un altro E-Service in grado di svolgere questa attività di mera verifica (che non preveda ex novo la comunicazione di altri informazioni/dati personali)",
-        en: "",
+        en: "Confermare se è stato verificato se sul Catalogo API è presente un altro E-Service in grado di svolgere questa attività di mera verifica (che non preveda ex novo la comunicazione di altri informazioni/dati personali)",
       },
       options: [
         {
@@ -1023,11 +1023,11 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Indicare se è stato verificato se occorrono necessariamente tutte le informazioni e i dati personali messi a disposizione con il presente E-service",
-        en: "",
+        en: "Indicare se è stato verificato se occorrono necessariamente tutte le informazioni e i dati personali messi a disposizione con il presente E-service",
       },
       infoLabel: {
         it: "NB: in caso nel Catalogo non sia presente un E-Service che consenta di accedere alle sole informazioni/dati personali di cui si necessita, per evitare comunicazioni di informazioni/dati personali non necessarie, si invita a sollecitare un Erogatore ad attivare un E-service che consenta di accedere ai soli dati personali di cui si necessita e, una volta attivato, si invita a inviare una richiesta di accesso per quell’E-Service",
-        en: "",
+        en: "NB: in caso nel Catalogo non sia presente un E-Service che consenta di accedere alle sole informazioni/dati personali di cui si necessita, per evitare comunicazioni di informazioni/dati personali non necessarie, si invita a sollecitare un Erogatore ad attivare un E-service che consenta di accedere ai soli dati personali di cui si necessita e, una volta attivato, si invita a inviare una richiesta di accesso per quell’E-Service",
       },
       options: [
         {
@@ -1057,7 +1057,7 @@ export const private1 = {
       dataType: "single",
       label: {
         it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
-        en: "",
+        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
       },
       options: [
         {

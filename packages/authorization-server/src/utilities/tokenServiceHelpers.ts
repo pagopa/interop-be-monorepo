@@ -1,5 +1,7 @@
 import {
+  AgreementId,
   AsyncClientAssertion,
+  AsyncPlatformStatesCatalogEntry,
   clientKindTokenGenStates,
   ClientAssertion,
   ClientKindTokenGenStates,
@@ -12,13 +14,19 @@ import {
   generateId,
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
+  itemState,
   makePlatformStatesEServiceDescriptorPK,
+  makeProducerKeychainPlatformStatesPK,
   PlatformStatesCatalogEntry,
   ProducerKeychainId,
-  ProducerKeychainPlatformStatesPK,
+  ProducerKeychainPlatformStateEntry,
+  PurposeId,
+  PurposeVersionId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  TokenGenStatesConsumerClientGSIPurpose,
+  TenantId,
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -27,6 +35,9 @@ import {
   GetItemCommand,
   GetItemCommandOutput,
   GetItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
@@ -46,14 +57,17 @@ import {
 } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
+  asyncExchangePropertiesNotFound,
   catalogEntryNotFound,
   dpopProofSignatureValidationFailed,
   dpopProofValidationFailed,
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   kafkaAuditingFailed,
+  platformStateValidationFailed,
   producerKeychainEntryNotFound,
   tokenGenerationStatesEntryNotFound,
+  tokenGenerationStatesEntriesByPurposeIdNotFound,
 } from "../model/domain/errors.js";
 
 const EXPECTED_HTM = "POST";
@@ -104,7 +118,7 @@ export const retrieveKey = async (
   }
 };
 
-export const retrieveCatalogEntry = async (
+const retrieveCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
@@ -143,7 +157,70 @@ export const retrieveCatalogEntry = async (
   return catalogEntry.data;
 };
 
-const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+export const retrieveAsyncCatalogEntry = async (
+  dynamoDBClient: DynamoDBClient,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  platformStatesTable: string
+): Promise<AsyncPlatformStatesCatalogEntry> => {
+  const catalogEntry = await retrieveCatalogEntry(
+    dynamoDBClient,
+    eserviceId,
+    descriptorId,
+    platformStatesTable
+  );
+  const asyncCatalogEntry =
+    AsyncPlatformStatesCatalogEntry.safeParse(catalogEntry);
+  if (!asyncCatalogEntry.success) {
+    throw asyncExchangePropertiesNotFound(eserviceId, descriptorId);
+  }
+  // The descriptor is pinned on the Interaction at start_interaction; the
+  // token-generation-states row may have been rewritten to point at a
+  // different descriptor, so validatePlatformState(key) would not catch a
+  // pinned descriptor that has since become INACTIVE.
+  if (asyncCatalogEntry.data.state !== itemState.active) {
+    throw platformStateValidationFailed(
+      `E-Service state for pinned descriptor ${descriptorId} is: ${asyncCatalogEntry.data.state}`
+    );
+  }
+  return asyncCatalogEntry.data;
+};
+
+export const retrieveTokenGenStatesEntryByPurposeId = async (
+  dynamoDBClient: DynamoDBClient,
+  purposeId: PurposeId,
+  tokenGenerationStatesTable: string
+): Promise<TokenGenStatesConsumerClientGSIPurpose> => {
+  const input: QueryInput = {
+    TableName: tokenGenerationStatesTable,
+    IndexName: "Purpose",
+    KeyConditionExpression: "GSIPK_purposeId = :purposeId",
+    ExpressionAttributeValues: {
+      ":purposeId": { S: purposeId },
+    },
+    Limit: 1,
+  };
+
+  const command = new QueryCommand(input);
+  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+
+  if (!data.Items || data.Items.length === 0) {
+    throw tokenGenerationStatesEntriesByPurposeIdNotFound(purposeId);
+  }
+
+  const unmarshalled = unmarshall(data.Items[0]);
+  const entry = TokenGenStatesConsumerClientGSIPurpose.safeParse(unmarshalled);
+
+  if (!entry.success) {
+    throw genericInternalError(
+      `Unable to parse token-generation-states entry from Purpose GSI: result ${JSON.stringify(
+        entry
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return entry.data;
+};
 
 const buildAuditMessageBody = ({
   generatedToken,
@@ -234,7 +311,11 @@ const sendAuditMessage = async ({
       throw kafkaAuditingFailed();
     }
   } catch (e) {
-    logger.error("Main auditing flow failed, going through fallback");
+    logger.error(
+      `Main auditing flow failed, going through fallback. Error: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     await fallbackAudit(messageBody, fileManager, logger);
   }
 };
@@ -243,6 +324,8 @@ export const publishAudit = async ({
   producer,
   generatedToken,
   key,
+  eserviceId,
+  descriptorId,
   clientAssertion,
   dpop,
   correlationId,
@@ -252,15 +335,17 @@ export const publishAudit = async ({
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
+  // Explicit eserviceId/descriptorId: for async flows they are pinned on the
+  // Interaction at start_interaction and do NOT follow rewrites of the
+  // token-generation-states row; passing them here keeps the audit coherent.
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
   clientAssertion: ClientAssertion | AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
-  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
-  );
   const messageBody = buildAuditMessageBody({
     generatedToken,
     clientAssertion,
@@ -309,10 +394,12 @@ export const fallbackAudit = async (
 export const publishProducerAudit = async ({
   producer,
   generatedToken,
-  producerKeychainId,
+  organizationId,
+  agreementId,
   eserviceId,
   descriptorId,
   purposeId,
+  purposeVersionId,
   clientAssertion,
   dpop,
   correlationId,
@@ -321,29 +408,29 @@ export const publishProducerAudit = async ({
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropAsyncConsumerToken;
-  producerKeychainId: ProducerKeychainId;
+  organizationId: TenantId;
+  agreementId: AgreementId;
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   purposeId: string;
+  purposeVersionId: PurposeVersionId;
   clientAssertion: AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
-  // Producer callback audit uses producerKeychainId as organizationId
-  // and placeholder values for consumer-specific fields (agreementId, purposeVersionId)
   const messageBody = buildAuditMessageBody({
     generatedToken,
     clientAssertion,
     dpop,
     correlationId,
-    organizationId: producerKeychainId,
-    agreementId: NIL_UUID,
+    organizationId,
+    agreementId,
     eserviceId,
     descriptorId,
     purposeId,
-    purposeVersionId: NIL_UUID,
+    purposeVersionId,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });
@@ -398,21 +485,24 @@ export const logTokenGenerationInfo = ({
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };
 
-type ProducerKeychainPlatformStateEntry = {
-  PK: ProducerKeychainPlatformStatesPK;
-  publicKey: string;
-  producerKeychainId: ProducerKeychainId;
-  kid: string;
-  eServiceId: EServiceId;
-  version: number;
-  updatedAt: string;
-};
-
 export const retrieveProducerKey = async (
   dynamoDBClient: DynamoDBClient,
   tableName: string,
-  pk: ProducerKeychainPlatformStatesPK
+  {
+    producerKeychainId,
+    kid,
+    eServiceId,
+  }: {
+    producerKeychainId: ProducerKeychainId;
+    kid: string;
+    eServiceId: EServiceId;
+  }
 ): Promise<ProducerKeychainPlatformStateEntry> => {
+  const pk = makeProducerKeychainPlatformStatesPK({
+    producerKeychainId,
+    kid,
+    eServiceId,
+  });
   const input: GetItemInput = {
     Key: {
       PK: { S: pk },
@@ -426,27 +516,21 @@ export const retrieveProducerKey = async (
   );
 
   if (!data.Item) {
-    throw producerKeychainEntryNotFound(pk);
+    throw producerKeychainEntryNotFound(producerKeychainId, kid, eServiceId);
   }
 
   const unmarshalled = unmarshall(data.Item);
+  const entry = ProducerKeychainPlatformStateEntry.safeParse(unmarshalled);
 
-  if (
-    typeof unmarshalled.PK !== "string" ||
-    typeof unmarshalled.publicKey !== "string" ||
-    typeof unmarshalled.producerKeychainId !== "string" ||
-    typeof unmarshalled.kid !== "string" ||
-    typeof unmarshalled.eServiceId !== "string" ||
-    typeof unmarshalled.version !== "number"
-  ) {
+  if (!entry.success) {
     throw genericInternalError(
-      `Unable to parse producer-keychain-platform-states entry: ${JSON.stringify(
-        data.Item
-      )}`
+      `Unable to parse producer-keychain-platform-states entry: result ${JSON.stringify(
+        entry
+      )} - data ${JSON.stringify(data)} `
     );
   }
 
-  return unmarshalled as ProducerKeychainPlatformStateEntry;
+  return entry.data;
 };
 
 export const validateDPoPProof = async (

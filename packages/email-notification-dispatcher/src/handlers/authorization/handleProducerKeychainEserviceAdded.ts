@@ -67,7 +67,7 @@ export async function handleProducerKeychainEserviceAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainEserviceAdded - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
