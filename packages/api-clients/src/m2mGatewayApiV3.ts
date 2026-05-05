@@ -213,6 +213,11 @@ export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
   "getPurposeEvents"
 >;
 
+export type GetEventManagerPurposeTemplatesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeTemplateEvents"
+>;
+
 export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getTenantEvents"

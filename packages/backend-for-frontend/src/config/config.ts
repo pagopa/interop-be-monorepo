@@ -5,6 +5,8 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagAsyncExchangeConfig,
+  FeatureFlagDpopClientAssertionDebuggerConfig,
+  FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
@@ -325,9 +327,20 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagDpopClientAssertionDebuggerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagAsyncExchangeConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
+  .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagDelegationConstraintSkipConfig)
+  .and(
+    z
+      .object({
+        DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string().uuid(),
+      })
+      .transform((c) => ({
+        delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
+      }))
+  );
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

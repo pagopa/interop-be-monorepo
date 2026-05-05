@@ -78,6 +78,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "EServiceInstanceLabelUpdated" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {
