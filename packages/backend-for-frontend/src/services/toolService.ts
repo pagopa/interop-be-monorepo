@@ -86,9 +86,22 @@ export function toolsServiceBuilder(
       clientAssertion: string,
       clientAssertionType: string,
       grantType: string,
+      isAsync: boolean,
       dpopProofJWS: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
+      if (isAsync) {
+        return validateAsyncTokenGeneration(
+          clients,
+          storage,
+          clientId,
+          clientAssertion,
+          clientAssertionType,
+          grantType,
+          ctx
+        );
+      }
+
       ctx.logger.info(`Validating token generation for client ${clientId}`);
 
       const dpopValidationSteps = await validateDPoPProofForTokenGeneration(
@@ -184,97 +197,93 @@ export function toolsServiceBuilder(
         dpopValidationSteps
       );
     },
-
-    async validateAsyncTokenGeneration(
-      clientId: string | undefined,
-      clientAssertion: string,
-      clientAssertionType: string,
-      grantType: string,
-      ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.TokenGenerationValidationResult> {
-      if (!storage) {
-        throw new Error("Async token validation storage is not configured");
-      }
-
-      ctx.logger.info(
-        `Validating async token generation for client ${clientId}`
-      );
-
-      const { errors: parametersErrors } = validateRequestParameters({
-        client_assertion: clientAssertion,
-        client_assertion_type: clientAssertionType,
-        grant_type: grantType,
-        client_id: clientId,
-      });
-
-      const { data: jwt, errors: clientAssertionErrors } =
-        verifyAsyncClientAssertion(
-          clientAssertion,
-          clientId,
-          config.clientAssertionAudience,
-          ctx.logger,
-          isFeatureFlagEnabled(
-            config,
-            "featureFlagClientAssertionStrictClaimsValidation"
-          )
-        );
-
-      const asyncClaimErrors = jwt ? validateAsyncScopeClaims(jwt) : undefined;
-
-      if (parametersErrors || clientAssertionErrors || asyncClaimErrors) {
-        return handleValidationResults({
-          clientAssertionErrors: [
-            ...(parametersErrors ?? []),
-            ...(clientAssertionErrors ?? []),
-            ...(asyncClaimErrors ?? []),
-          ],
-        });
-      }
-
-      const { data, errors: keyRetrieveErrors } =
-        await retrieveAsyncValidationContext(clients, storage, jwt, ctx);
-      if (keyRetrieveErrors) {
-        return handleValidationResults({ keyRetrieveErrors });
-      }
-
-      const { errors: clientAssertionSignatureErrors } =
-        await verifyClientAssertionSignature(
-          clientAssertion,
-          data.verificationKey,
-          jwt.header.alg
-        );
-      if (clientAssertionSignatureErrors) {
-        return handleValidationResults(
-          { clientAssertionSignatureErrors },
-          data.clientKind,
-          data.eservice
-        );
-      }
-
-      const platformStateErrors = [
-        ...(data.platformStateErrors ?? []),
-        ...((data.platformValidationKey && data.platformValidationJwt
-          ? validateClientKindAndPlatformState(
-              data.platformValidationKey,
-              data.platformValidationJwt
-            ).errors
-          : undefined) ?? []),
-      ];
-
-      if (platformStateErrors.length > 0) {
-        return handleValidationResults(
-          { platformStateErrors },
-          data.clientKind,
-          data.eservice
-        );
-      }
-
-      return handleValidationResults({}, data.clientKind, data.eservice);
-    },
   };
 }
 
 export type ToolsService = ReturnType<typeof toolsServiceBuilder>;
+
+async function validateAsyncTokenGeneration(
+  clients: PagoPAInteropBeClients,
+  storage: ToolServiceStorage | undefined,
+  clientId: string | undefined,
+  clientAssertion: string,
+  clientAssertionType: string,
+  grantType: string,
+  ctx: WithLogger<BffAppContext>
+): Promise<bffApi.TokenGenerationValidationResult> {
+  if (!storage) {
+    throw new Error("Async token validation storage is not configured");
+  }
+
+  ctx.logger.info(`Validating async token generation for client ${clientId}`);
+
+  const { errors: parametersErrors } = validateRequestParameters({
+    client_assertion: clientAssertion,
+    client_assertion_type: clientAssertionType,
+    grant_type: grantType,
+    client_id: clientId,
+  });
+
+  const { data: jwt, errors: clientAssertionErrors } =
+    verifyAsyncClientAssertion(
+      clientAssertion,
+      clientId,
+      config.clientAssertionAudience,
+      ctx.logger
+    );
+
+  const asyncClaimErrors = jwt ? validateAsyncScopeClaims(jwt) : undefined;
+
+  if (parametersErrors || clientAssertionErrors || asyncClaimErrors) {
+    return handleValidationResults({
+      clientAssertionErrors: [
+        ...(parametersErrors ?? []),
+        ...(clientAssertionErrors ?? []),
+        ...(asyncClaimErrors ?? []),
+      ],
+    });
+  }
+
+  const { data, errors: keyRetrieveErrors } =
+    await retrieveAsyncValidationContext(clients, storage, jwt, ctx);
+  if (keyRetrieveErrors) {
+    return handleValidationResults({ keyRetrieveErrors });
+  }
+
+  const { errors: clientAssertionSignatureErrors } =
+    await verifyClientAssertionSignature(
+      clientAssertion,
+      data.verificationKey,
+      jwt.header.alg
+    );
+  if (clientAssertionSignatureErrors) {
+    return handleValidationResults(
+      { clientAssertionSignatureErrors },
+      data.clientKind,
+      data.eservice
+    );
+  }
+
+  const platformStateErrors = [
+    ...(data.platformStateErrors ?? []),
+    ...((data.platformValidationKey && data.platformValidationJwt
+      ? validateClientKindAndPlatformState(
+          data.platformValidationKey,
+          data.platformValidationJwt
+        ).errors
+      : undefined) ?? []),
+  ];
+
+  if (platformStateErrors.length > 0) {
+    return handleValidationResults(
+      { platformStateErrors },
+      data.clientKind,
+      data.eservice
+    );
+  }
+
+  return handleValidationResults({}, data.clientKind, data.eservice);
+}
 
 function handleValidationResults(
   errs: {

@@ -19,11 +19,14 @@ body:form-urlencoded {
   client_assertion_type: <string>
   grant_type: <string>
   client_id: <string>
+  is_async: false
   dpop_proof: <optional dpop proof>
 }
 
 docs {
-  Provides additional details about token generation request failure.
+  Provides additional details about token generation request failure, including async token generation requests.
+
+  Set `is_async` to `true` to validate async token generation assertions.
 
   Optionally you can send `dpop_proof` to validate the proof used for token generation in the same response.
   The expected target method is `POST`, and the target URL is inferred from the platform configuration.

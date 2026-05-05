@@ -19,14 +19,16 @@ import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";
 import { getBffMockContext } from "./utils.js";
 
-describe("validateAsyncTokenGeneration", () => {
+describe("validateTokenGeneration async validations", () => {
   const mockClientId = generateId<ClientId>();
   const mockPurposeId = generateId<PurposeId>();
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId();
   const mockInteractionId = generateId<InteractionId>();
   const mockKid = "kid-1";
-  const mockClientAssertion = "client-assertion";
+  const mockClientAssertion = `header.${Buffer.from(
+    JSON.stringify({ scope: interactionState.startInteraction })
+  ).toString("base64url")}.signature`;
   const mockClientAssertionType =
     "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
   const mockGrantType = "client_credentials";
@@ -180,11 +182,13 @@ describe("validateAsyncTokenGeneration", () => {
       },
     });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       mockClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -195,6 +199,35 @@ describe("validateAsyncTokenGeneration", () => {
       "PASSED"
     );
     expect(result.steps.platformStatesVerification.result).toBe("PASSED");
+  });
+
+  it("should fail with async-specific errors when isAsync is true and scope is missing", async () => {
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: [clientAssertionValidation.scopeNotProvided()],
+      data: undefined,
+    });
+
+    const result = await service.validateTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.clientAssertionValidation.result).toBe("FAILED");
+    expect(result.steps.clientAssertionValidation.failures).toEqual([
+      {
+        code: "scopeNotProvided",
+        reason: "Claim scope does not exist in this assertion",
+      },
+    ]);
+    expect(result.steps.publicKeyRetrieve.result).toBe("SKIPPED");
   });
 
   it("should fail on missing interaction for get_resource", async () => {
@@ -220,11 +253,13 @@ describe("validateAsyncTokenGeneration", () => {
 
     dynamoDBClient.send = vi.fn().mockResolvedValue({ Items: [] });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       mockClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -296,11 +331,13 @@ describe("validateAsyncTokenGeneration", () => {
         keys: [],
       });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       producerClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -337,11 +374,13 @@ describe("validateAsyncTokenGeneration", () => {
       },
     });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       producerClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -394,11 +433,13 @@ describe("validateAsyncTokenGeneration", () => {
         }),
       });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       mockClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -469,11 +510,13 @@ describe("validateAsyncTokenGeneration", () => {
         ],
       });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       mockClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 
@@ -525,11 +568,13 @@ describe("validateAsyncTokenGeneration", () => {
         ],
       });
 
-    const result = await service.validateAsyncTokenGeneration(
+    const result = await service.validateTokenGeneration(
       mockClientId,
       mockClientAssertion,
       mockClientAssertionType,
       mockGrantType,
+      true,
+      undefined,
       ctx
     );
 

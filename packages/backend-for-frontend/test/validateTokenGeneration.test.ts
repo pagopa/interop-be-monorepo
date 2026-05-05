@@ -118,6 +118,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -187,6 +188,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -267,6 +269,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -336,6 +339,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -391,6 +395,7 @@ describe("validateTokenGeneration", () => {
           MOCK_CLIENT_ASSERTION,
           MOCK_CLIENT_ASSERTION_TYPE,
           MOCK_GRANT_TYPE,
+          false,
           undefined,
           bffMockContext
         );
@@ -449,6 +454,7 @@ describe("validateTokenGeneration", () => {
         "RS256",
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -499,6 +505,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         undefined,
         bffMockContext
       );
@@ -558,6 +565,7 @@ describe("validateTokenGeneration", () => {
           MOCK_CLIENT_ASSERTION,
           MOCK_CLIENT_ASSERTION_TYPE,
           MOCK_GRANT_TYPE,
+          false,
           MOCK_DPOP_PROOF,
           bffMockContext
         )
@@ -599,6 +607,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         MOCK_DPOP_PROOF,
         bffMockContext
       );
@@ -671,6 +680,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         MOCK_DPOP_PROOF,
         bffMockContext
       );
@@ -715,6 +725,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         MOCK_DPOP_PROOF,
         bffMockContext
       );
@@ -765,6 +776,7 @@ describe("validateTokenGeneration", () => {
         MOCK_CLIENT_ASSERTION,
         MOCK_CLIENT_ASSERTION_TYPE,
         MOCK_GRANT_TYPE,
+        false,
         MOCK_DPOP_PROOF,
         bffMockContext
       );

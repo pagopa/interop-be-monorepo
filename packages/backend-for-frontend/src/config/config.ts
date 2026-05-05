@@ -5,7 +5,6 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagAsyncExchangeConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
-  FeatureFlagNotificationConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagPurposeTemplateConfig,
@@ -331,7 +330,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FeatureFlagDpopClientAssertionDebuggerConfig)
-  .and(FeatureFlagNotificationConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagAsyncExchangeConfig)
   .and(FeatureFlagPurposeTemplateConfig)

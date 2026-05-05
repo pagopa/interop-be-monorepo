@@ -24,23 +24,6 @@ export const authorizationServerErrorMapper = (
       "dpopProofValidationFailed",
       "dpopProofSignatureValidationFailed",
       "dpopProofJtiAlreadyUsed",
-      "invalidAsyncScope",
-      "asyncScopeNotYetImplemented",
-      "asyncRequestValidationFailed",
-      "asyncClientAssertionClaimsValidationFailed",
-      "urlCallbackNotProvided",
-      "purposeIdNotProvided",
-      "asyncExchangeNotEnabled",
-      "interactionIdNotProvided",
-      "entityNumberNotProvided",
-      "invalidEntityNumber",
-      "interactionNotFound",
-      "interactionStateNotAllowed",
-      "producerKeychainEntryNotFound",
-      "catalogEntryNotFound",
-      "callbackInvocationTokenIssuedAtMissing",
-      "resourceAvailableTimeExpired",
-      "asyncExchangeConfirmationNotEnabled",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
