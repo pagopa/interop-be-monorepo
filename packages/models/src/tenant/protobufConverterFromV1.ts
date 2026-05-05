@@ -106,7 +106,7 @@ export const fromTenantAttributesV1 = (
   const { sealedValue } = input;
 
   switch (sealedValue.oneofKind) {
-    case "certifiedAttribute":
+    case "certifiedAttribute": {
       const { certifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(certifiedAttribute.id),
@@ -118,7 +118,8 @@ export const fromTenantAttributesV1 = (
         ),
         type: tenantAttributeType.CERTIFIED,
       };
-    case "verifiedAttribute":
+    }
+    case "verifiedAttribute": {
       const { verifiedAttribute } = sealedValue;
       return {
         id: unsafeBrandId(verifiedAttribute.id),
@@ -129,7 +130,8 @@ export const fromTenantAttributesV1 = (
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
         type: tenantAttributeType.VERIFIED,
       };
-    case "declaredAttribute":
+    }
+    case "declaredAttribute": {
       const { declaredAttribute } = sealedValue;
       return {
         id: unsafeBrandId(declaredAttribute.id),
@@ -141,6 +143,7 @@ export const fromTenantAttributesV1 = (
         ),
         type: tenantAttributeType.DECLARED,
       };
+    }
     case undefined:
       throw genericError("Undefined attribute kind");
   }

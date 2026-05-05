@@ -1,0 +1,21 @@
+meta {
+  name: Remove producer keychain eservice
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/producerKeychains/:keychainId/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  keychainId: {{keychainId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

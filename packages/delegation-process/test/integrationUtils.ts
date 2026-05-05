@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 import {
   ReadEvent,
-  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   setupTestContainersVitest,
   StoredEvent,
@@ -56,7 +55,7 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilderSQL({
+const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -88,7 +87,7 @@ export const delegationService = delegationServiceBuilder(
   fileManager
 );
 
-export const writeSubmitDelegationInEventstore = async (
+const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
 ): Promise<void> => {
   const createProducerDelegationEvent: DelegationEvent = {
@@ -112,17 +111,6 @@ export const readLastDelegationEvent = async (
   delegationId: DelegationId
 ): Promise<ReadEvent<DelegationEvent>> =>
   await readLastEventByStreamId(delegationId, "delegation", postgresDB);
-
-export const readDelegationEventByVersion = async (
-  delegationId: DelegationId,
-  version: number
-): Promise<ReadEvent<DelegationEvent>> =>
-  await readEventByStreamIdAndVersion(
-    delegationId,
-    version,
-    "delegation",
-    postgresDB
-  );
 
 export const addOneDelegation = async (
   delegation: Delegation

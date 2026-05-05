@@ -24,9 +24,17 @@ export async function handlePurposeActivatedRejectedToConsumer(
     throw missingKafkaMessageDataError("purpose", type);
   }
   logger.info(
-    `Sending in-app notification for handlePurposeActivatedRejectedToConsumer ${purposeV2Msg.id}`
+    `Sending in-app notification for handlePurposeActivatedRejectedToConsumer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
   const purpose = fromPurposeV2(purposeV2Msg);
+
+  // Only send notification if there is only one version (version count = 1)
+  if (purpose.versions.length !== 1) {
+    logger.info(
+      `Skipping in-app notification for handlePurposeActivatedRejectedToConsumer - entityId: ${purpose.id}, eventType: ${type}, reason: multiple versions`
+    );
+    return [];
+  }
 
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
@@ -36,7 +44,7 @@ export async function handlePurposeActivatedRejectedToConsumer(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${type} purpose ${purpose.id}`
+      `No users with notifications enabled for handlePurposeActivatedRejectedToConsumer - entityId: ${purpose.id}, eventType: ${type}`
     );
     return [];
   }

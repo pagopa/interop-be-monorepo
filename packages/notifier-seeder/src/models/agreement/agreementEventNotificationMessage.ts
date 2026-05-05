@@ -4,7 +4,7 @@ import { match } from "ts-pattern";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { AgreementEventNotification } from "./agreementEventNotification.js";
 
-export const eventV2TypeMapper = (
+const eventV2TypeMapper = (
   eventType: AgreementEventEnvelopeV2["type"]
 ): string =>
   match(eventType)

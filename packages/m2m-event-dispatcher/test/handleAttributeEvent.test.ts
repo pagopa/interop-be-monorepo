@@ -45,7 +45,6 @@ describe("handleAttributeEvent test", async () => {
           resourceVersion: message.version,
           attributeId: attribute.id,
         }))
-        .with("MaintenanceAttributeDeleted", () => undefined)
         .exhaustive();
 
       await handleAttributeEvent(
@@ -55,17 +54,11 @@ describe("handleAttributeEvent test", async () => {
         testM2mEventWriterService
       );
 
-      if (!expectedM2MEvent) {
-        expect(
-          testM2mEventWriterService.insertAttributeM2MEvent
-        ).not.toHaveBeenCalled();
-      } else {
-        expect(
-          testM2mEventWriterService.insertAttributeM2MEvent
-        ).toHaveBeenCalledTimes(1);
-        const actualM2MEvent = await retrieveLastAttributeM2MEvent();
-        expect(actualM2MEvent).toEqual(expectedM2MEvent);
-      }
+      expect(
+        testM2mEventWriterService.insertAttributeM2MEvent
+      ).toHaveBeenCalledTimes(1);
+      const actualM2MEvent = await retrieveLastAttributeM2MEvent();
+      expect(actualM2MEvent).toEqual(expectedM2MEvent);
     }
   );
 

@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceNewVersionSubmittedToDelegator";
@@ -62,7 +63,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEserviceDescriptorSubmittedByDelegate - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -79,6 +80,8 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
         delegateName: delegate.name,
         eserviceName: eservice.name,
         ctaLabel: "Valuta la richiesta",
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

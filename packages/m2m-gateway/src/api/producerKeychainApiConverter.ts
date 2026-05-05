@@ -14,7 +14,7 @@ export function toGetProducerKeychainsApiQueryParams(
   };
 }
 
-export function toM2MGatewayApiFullProducerKeychain(
+function toM2MGatewayApiFullProducerKeychain(
   producerKeychain: authorizationApi.FullProducerKeychain
 ): m2mGatewayApi.FullProducerKeychain {
   return {
@@ -38,7 +38,7 @@ export function toM2MGatewayApiProducerKeychain(
         ({
           id: producerKeychain.id,
           producerId: producerKeychain.producerId,
-        } satisfies m2mGatewayApi.PartialProducerKeychain)
+        }) satisfies m2mGatewayApi.PartialProducerKeychain
     )
     .with(
       {

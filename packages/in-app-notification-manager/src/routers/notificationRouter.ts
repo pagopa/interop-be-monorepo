@@ -33,14 +33,19 @@ export const notificationRouter = (
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     }
   );
-  const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE } = authRole;
+  const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE } = authRole;
 
   notificationRouter
     .get("/filterUnreadNotifications", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       const { entityIds } = req.query;
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+        ]);
 
         const filterUnreadNotifications: string[] =
           await service.hasUnreadNotifications(entityIds, ctx);

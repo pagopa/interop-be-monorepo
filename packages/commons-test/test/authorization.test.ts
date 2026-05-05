@@ -27,6 +27,8 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<M2MAuthData> = {
         ...mockContext,
         authData: {
+          clientId: generateId(),
+          jti: generateId(),
           systemRole: "m2m",
           organizationId: generateId(),
         },
@@ -91,6 +93,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<InternalAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "internal",
         },
       };
@@ -112,6 +115,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<MaintenanceAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "maintenance",
         },
       };
@@ -132,6 +136,8 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<M2MAuthData> = {
         ...mockContext,
         authData: {
+          clientId: generateId(),
+          jti: generateId(),
           systemRole: "m2m",
           organizationId: generateId(),
         },
@@ -199,6 +205,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<InternalAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "internal",
         },
       };
@@ -221,6 +228,7 @@ describe("validateAuthorization", () => {
       const ctx: AppContext<MaintenanceAuthData> = {
         ...mockContext,
         authData: {
+          jti: generateId(),
           systemRole: "maintenance",
         },
       };
@@ -230,4 +238,21 @@ describe("validateAuthorization", () => {
       );
     }
   );
+  it("should throw a meaningful error when m2m token is used but m2m-admin is required", () => {
+    const ctx: AppContext<M2MAuthData> = {
+      ...mockContext,
+      authData: {
+        clientId: generateId(),
+        jti: generateId(),
+        systemRole: "m2m",
+        organizationId: generateId(),
+      },
+    };
+
+    expect(() => validateAuthorization(ctx, ["m2m-admin"])).toThrowError(
+      unauthorizedError(
+        `Admin user not set for Client ${ctx.authData.clientId} with M2M role. In case it is already set, regenerate the m2m token.`
+      )
+    );
+  });
 });

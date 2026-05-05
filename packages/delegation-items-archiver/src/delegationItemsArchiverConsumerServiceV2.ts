@@ -12,10 +12,7 @@ import {
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  PurposeProcessClient,
-} from "./clients/clientsProvider.js";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   processAgreement,
   processPurposes,
@@ -40,8 +37,8 @@ export async function handleMessageV2({
   correlationId: CorrelationId;
   logger: Logger;
   readModelService: ReadModelServiceSQL;
-  agreementProcessClient: AgreementProcessClient;
-  purposeProcessClient: PurposeProcessClient;
+  agreementProcessClient: agreementApi.AgreementProcessClient;
+  purposeProcessClient: purposeApi.PurposeProcessClient;
 }): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ConsumerDelegationRevoked" }, async (delegationMsg) => {

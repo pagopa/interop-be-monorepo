@@ -110,7 +110,8 @@ describe("internalUpsertTenant", async () => {
     };
 
     expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    expect(returnedTenant.data).toEqual(expectedTenant);
+    expect(returnedTenant.metadata.version).toBe(1);
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
@@ -208,7 +209,8 @@ describe("internalUpsertTenant", async () => {
       ...tenantV2,
       attributes: expect.arrayContaining(tenantV2.attributes),
     });
-    expect(sortTenant(returnedTenant)).toEqual(sortTenant(expectedTenant));
+    expect(sortTenant(returnedTenant.data)).toEqual(sortTenant(expectedTenant));
+    expect(returnedTenant.metadata.version).toBe(2);
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {

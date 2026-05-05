@@ -33,7 +33,7 @@ const DtdCatalogExporterConfig = ReadModelSQLDbConfig.and(FileManagerConfig)
       }))
   );
 
-export type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;
+type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;
 export const config: DtdCatalogExporterConfig = DtdCatalogExporterConfig.parse(
   process.env
 );

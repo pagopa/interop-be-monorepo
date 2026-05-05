@@ -267,5 +267,3 @@ export function agreementServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type AgreementService = ReturnType<typeof agreementServiceBuilder>;

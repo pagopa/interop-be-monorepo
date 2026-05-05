@@ -1268,7 +1268,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:

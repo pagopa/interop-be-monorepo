@@ -1,0 +1,24 @@
+meta {
+  name: Get certified attribute
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/certifiedAttributes/:attributeId
+  body: none
+  auth: none
+}
+
+params:path {
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+docs {
+  Retrieves a certified attribute by its ID.
+}

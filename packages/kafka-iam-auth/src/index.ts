@@ -141,14 +141,14 @@ async function oauthBearerTokenProvider(
   region: string,
   logger: Logger
 ): Promise<OauthbearerProviderResponse> {
-  logger.debug("Fetching token from AWS");
+  logger.info("Requesting AWS authentication token");
 
   const authTokenResponse = await generateAuthToken({
     region,
   });
 
-  logger.debug(
-    `Token fetched from AWS expires at ${authTokenResponse.expiryTime}`
+  logger.info(
+    `AWS authentication token obtained, expires at ${authTokenResponse.expiryTime}`
   );
 
   return {
@@ -205,7 +205,7 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   return new Kafka({
     ...kafkaConfig,
     logCreator:
-      (_logLevel) =>
+      () =>
       ({ level, log }) => {
         const { message, error } = log;
 

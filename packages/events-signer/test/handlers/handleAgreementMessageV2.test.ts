@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
@@ -8,7 +9,11 @@ import {
   AgreementEventEnvelopeV2,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { FileManager, initFileManager } from "pagopa-interop-commons";
+import {
+  FileManager,
+  genericLogger,
+  initFileManager,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -39,8 +44,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     uploadPreparedFileToS3: vi.fn(() => ({
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
-      correlationId: "correlation-id",
-      filename: "filename.gz",
+      path: "path/to",
     })),
   }));
 
@@ -88,7 +92,8 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     );
 
     const retrievedReference = await signatureService.readSignatureReference(
-      mockSafeStorageId
+      mockSafeStorageId,
+      genericLogger
     );
 
     expect(retrievedReference).toEqual({
@@ -97,6 +102,7 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
       fileName: expect.stringMatching(/.ndjson.gz$/),
       correlationId: expect.any(String),
       creationTimestamp: expect.any(Number),
+      path: "path/to",
     });
   });
   it("should not process an AgreementAdded event", async () => {
@@ -135,7 +141,8 @@ describe("handleAgreementMessageV2 - Integration Test", () => {
     expect(safeStorageUploadFileSpy).not.toHaveBeenCalled();
 
     const retrievedReference = await signatureService.readSignatureReference(
-      generateId()
+      generateId(),
+      genericLogger
     );
     expect(retrievedReference).toBeUndefined();
   });

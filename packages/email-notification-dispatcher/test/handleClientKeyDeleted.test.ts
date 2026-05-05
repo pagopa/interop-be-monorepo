@@ -23,7 +23,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleClientKeyDeleted } from "../src/handlers/authorization/handleClientKeyDeleted.js";
-import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
+import { tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
   getMockUser,
@@ -50,11 +50,17 @@ describe("handleClientKeyDeleted", async () => {
     kid: "key2-kid",
   };
 
+  const key3: Key = {
+    ...getMockKey(),
+    userId: userId3,
+    kid: "key3-kid",
+  };
+
   const client: Client = {
     ...getMockClient({
       consumerId,
       users: [userId1, userId2, userId3],
-      keys: [key1, key2],
+      keys: [key1, key2, key3],
     }),
     id: clientId,
     name: "Test Client",
@@ -135,24 +141,16 @@ describe("handleClientKeyDeleted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw clientKeyNotFound when key is not found", async () => {
-    const unknownKid = "unknown";
+  it("should send notifications to remaining client users when a key is deleted", async () => {
+    // key1 has been deleted, so client only has key2 and key3
+    const clientAfterDeletion: Client = {
+      ...client,
+      users: [userId2, userId3],
+      keys: [key2, key3],
+    };
 
-    await expect(() =>
-      handleClientKeyDeleted({
-        clientV2Msg: toClientV2(client),
-        kid: unknownKid,
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      })
-    ).rejects.toThrow(clientKeyNotFound(clientId, unknownKid));
-  });
-
-  it("should generate one message per user of the tenant except the user that deleted the key", async () => {
     const messages = await handleClientKeyDeleted({
-      clientV2Msg: toClientV2(client),
+      clientV2Msg: toClientV2(clientAfterDeletion),
       kid: key1.kid,
       logger,
       templateService,
@@ -160,6 +158,7 @@ describe("handleClientKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    // Should send to userId2 and userId3 (remaining client users), not userId1
     expect(messages.length).toEqual(2);
     expect(
       messages.some(
@@ -179,6 +178,12 @@ describe("handleClientKeyDeleted", async () => {
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
+    // key1 has been deleted, so client only has key2 and key3
+    const clientAfterDeletion: Client = {
+      ...client,
+      keys: [key2, key3],
+    };
+
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([
@@ -191,7 +196,7 @@ describe("handleClientKeyDeleted", async () => {
       ]);
 
     const messages = await handleClientKeyDeleted({
-      clientV2Msg: toClientV2(client),
+      clientV2Msg: toClientV2(clientAfterDeletion),
       kid: key1.kid,
       logger,
       templateService,
@@ -199,6 +204,7 @@ describe("handleClientKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
+    // Only userId3 has notifications enabled and still is part of client users
     expect(messages.length).toEqual(1);
     expect(
       messages.some(
@@ -218,8 +224,15 @@ describe("handleClientKeyDeleted", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
+    // key1 has been deleted, so client only has key2 and key3
+    const clientAfterDeletion: Client = {
+      ...client,
+      users: [userId2, userId3],
+      keys: [key2, key3],
+    };
+
     const messages = await handleClientKeyDeleted({
-      clientV2Msg: toClientV2(client),
+      clientV2Msg: toClientV2(clientAfterDeletion),
       kid: key1.kid,
       logger,
       templateService,
@@ -242,7 +255,7 @@ describe("handleClientKeyDeleted", async () => {
           expect(message.email.body).toContain(consumerTenant.name);
         })
         .exhaustive();
-      expect(message.email.body).toContain(key1.userId);
+      expect(message.email.body).toContain(key1.kid);
       expect(message.email.body).toContain(client.name);
     });
   });

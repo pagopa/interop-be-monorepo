@@ -28,7 +28,7 @@ export const retrieveTenant = async (
 export const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
-): Promise<WithMetadata<EService> | undefined> => {
+): Promise<WithMetadata<EService>> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
@@ -43,10 +43,9 @@ export const retrievePurposeDelegation = async (
   if (!purpose.delegationId) {
     return undefined;
   }
-  const delegation =
-    await readModelService.getActiveConsumerDelegationByDelegationId(
-      purpose.delegationId
-    );
+  const delegation = await readModelService.getConsumerDelegationByDelegationId(
+    purpose.delegationId
+  );
   if (!delegation) {
     throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }

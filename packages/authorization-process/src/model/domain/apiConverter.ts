@@ -19,7 +19,7 @@ import {
 import { match } from "ts-pattern";
 import { assertJwkKtyIsDefined } from "../../services/validators.js";
 
-export const clientKindToApiClientKind = (
+const clientKindToApiClientKind = (
   kind: ClientKind
 ): authorizationApi.ClientKind =>
   match<ClientKind, authorizationApi.ClientKind>(kind)
@@ -35,7 +35,7 @@ export const apiClientKindToClientKind = (
     .with("API", () => clientKind.api)
     .exhaustive();
 
-export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
+const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
   match<KeyUse, authorizationApi.KeyUse>(kid)
     .with(keyUse.enc, () => "ENC")
     .with(keyUse.sig, () => "SIG")
@@ -115,7 +115,7 @@ export function producerKeychainToApiProducerKeychain(
   return producerKeychainToApiFullVisibilityProducerKeychain(producerKeychain);
 }
 
-export function jsonWebKeyToApiJWKKey(
+function jsonWebKeyToApiJWKKey(
   jwk: JsonWebKey,
   kid: string
 ): authorizationApi.JWKKey {

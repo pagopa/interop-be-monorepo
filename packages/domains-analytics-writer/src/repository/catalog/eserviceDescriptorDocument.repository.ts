@@ -117,7 +117,3 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorDocumentRepository = ReturnType<
-  typeof eserviceDescriptorDocumentRepository
->;

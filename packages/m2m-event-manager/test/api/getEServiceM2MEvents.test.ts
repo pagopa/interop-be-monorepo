@@ -36,7 +36,7 @@ describe("API /events/eservices test", () => {
           eserviceId: e.eserviceId,
           descriptorId: e.descriptorId,
           producerDelegationId: e.producerDelegationId,
-        } as m2mEventApi.EServiceM2MEvent)
+        }) as m2mEventApi.EServiceM2MEvent
     ),
   };
 
@@ -91,7 +91,7 @@ describe("API /events/eservices test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([generateId(), null, undefined])(
+  it.each([generateId(), "null", undefined])(
     "Should accept delegationId query param as %s",
     async (delegationId) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -112,6 +112,7 @@ describe("API /events/eservices test", () => {
     { ...mockQueryParams, lastEventId: -1 },
     { ...mockQueryParams, lastEventId: "invalidLastEventId" },
     { ...mockQueryParams, delegationId: 1 },
+    { ...mockQueryParams, delegationId: "invalidDelegationId" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

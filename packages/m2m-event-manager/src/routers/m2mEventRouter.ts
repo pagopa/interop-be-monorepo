@@ -34,7 +34,7 @@ import { toApiPurposeM2MEvents } from "../model/purposeM2MEventApiConverter.js";
 import {
   toApiConsumerDelegationM2MEvents,
   toApiProducerDelegationM2MEvents,
-} from "../model/delegationM2MEventConverter.js";
+} from "../model/delegationM2MEventApiConverter.js";
 import {
   toApiClientM2MEvents,
   toApiKeyM2MEvents,

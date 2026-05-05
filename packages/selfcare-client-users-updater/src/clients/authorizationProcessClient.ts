@@ -1,11 +1,7 @@
 import { authorizationApi } from "pagopa-interop-api-clients";
 
-export type AuthorizationProcessClient = {
-  client: ReturnType<typeof authorizationApi.createClientApiClient>;
-};
-
 export const authorizationProcessClientBuilder = (
   url: string
-): AuthorizationProcessClient => ({
+): Pick<authorizationApi.AuthorizationProcessClient, "client"> => ({
   client: authorizationApi.createClientApiClient(url),
 });

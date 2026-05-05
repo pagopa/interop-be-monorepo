@@ -1,8 +1,6 @@
-import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import { WithLogger } from "pagopa-interop-commons";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
-import { InAppNotificationManagerClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
 import {
   Category,
   categoryToNotificationTypes,
@@ -10,17 +8,18 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
-  inAppNotificationManagerClient: InAppNotificationManagerClient
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient
 ) {
   return {
+    // eslint-disable-next-line max-params
     getNotifications: (
       q: string | undefined,
+      unread: boolean | undefined,
       category: Category | undefined,
       offset: number,
       limit: number,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<inAppNotificationApi.Notifications> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Getting notifications");
       const notificationTypes = category
         ? categoryToNotificationTypes[category]
@@ -30,6 +29,7 @@ export function inAppNotificationServiceBuilder(
         headers,
         queries: {
           q,
+          unread,
           notificationTypes,
           offset,
           limit,
@@ -40,7 +40,6 @@ export function inAppNotificationServiceBuilder(
       headers,
       logger,
     }: WithLogger<BffAppContext>): Promise<inAppNotificationApi.NotificationsByType> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Getting notifications by type");
       return inAppNotificationManagerClient.getNotificationsByType({
         headers,
@@ -50,7 +49,6 @@ export function inAppNotificationServiceBuilder(
       ids: string[],
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Marking notifications as read");
       return inAppNotificationManagerClient.markNotificationsAsRead(
         { ids },
@@ -61,7 +59,6 @@ export function inAppNotificationServiceBuilder(
       notificationId: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info(`Marking notification ${notificationId} as read`);
       return inAppNotificationManagerClient.markNotificationAsRead(undefined, {
         params: { notificationId },
@@ -72,7 +69,6 @@ export function inAppNotificationServiceBuilder(
       notificationId: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info(`Marking notification ${notificationId} as unread`);
       return inAppNotificationManagerClient.markNotificationAsUnread(
         undefined,
@@ -86,7 +82,6 @@ export function inAppNotificationServiceBuilder(
       ids: string[],
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Marking notifications as unread");
       return inAppNotificationManagerClient.markNotificationsAsUnread(
         { ids },
@@ -97,14 +92,16 @@ export function inAppNotificationServiceBuilder(
       entityId: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
-      logger.info("Marking in-app notifications as read by entity id");
+      logger.info(
+        `Marking in-app notifications as read by entity id ${entityId}`
+      );
+
       return inAppNotificationManagerClient.markNotificationsAsReadByEntityId(
         undefined,
         {
           headers,
           params: {
-            entityId,
+            entityId: encodeURIComponent(entityId),
           },
         }
       );
@@ -113,7 +110,6 @@ export function inAppNotificationServiceBuilder(
       ids: string[],
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info("Deleting notifications");
       return inAppNotificationManagerClient.deleteNotifications(
         { ids },
@@ -124,7 +120,6 @@ export function inAppNotificationServiceBuilder(
       notificationId: string,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      assertFeatureFlagEnabled(config, "featureFlagNotificationConfig");
       logger.info(`Deleting notification ${notificationId}`);
       return inAppNotificationManagerClient.deleteNotification(undefined, {
         params: { notificationId },

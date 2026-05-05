@@ -665,4 +665,155 @@ describe("get agreements", () => {
     );
     expectSinglePageListResult(agreements, [agreement5]);
   });
+
+  describe("custom tests for the exactConsumerIdMatch parameter", () => {
+    const tenantA = getMockTenant();
+    const tenantB = getMockTenant();
+
+    const eserviceA: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+
+    const agreement11: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eserviceA.id,
+      descriptorId: eserviceA.descriptors[0].id,
+      producerId: eserviceA.producerId,
+      consumerId: tenantA.id,
+    };
+
+    const agreement12: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: eserviceA.id,
+      descriptorId: eserviceA.descriptors[0].id,
+      producerId: eserviceA.producerId,
+      consumerId: tenantB.id,
+    };
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegateId: tenantA.id,
+      delegatorId: tenantB.id,
+      eserviceId: eserviceA.id,
+      state: delegationState.active,
+    });
+
+    beforeEach(async () => {
+      await addOneTenant(tenantA);
+      await addOneTenant(tenantB);
+      await addOneEService(eserviceA);
+      await addOneAgreement(agreement11);
+      await addOneAgreement(agreement12);
+      await addOneDelegation(consumerDelegation);
+    });
+
+    describe("the requester is tenantA", () => {
+      it("should return agreements for which tenantA is the exact consumer (exactConsumerIdMatch: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            exactConsumerIdMatch: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement11]);
+      });
+
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            exactConsumerIdMatch: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement11, agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer (exactConsumerIdMatch: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            exactConsumerIdMatch: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            exactConsumerIdMatch: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantA.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+    });
+
+    describe("the requester is tenantB", () => {
+      it("should return agreements for which tenantA is the exact consumer (exactConsumerIdMatch: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            exactConsumerIdMatch: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, []);
+      });
+
+      it("should return agreements for which tenantA is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantA.id],
+            exactConsumerIdMatch: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer (exactConsumerIdMatch: true)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            exactConsumerIdMatch: true,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+
+      it("should return agreements for which tenantB is the exact consumer or delegated consumer (exactConsumerIdMatch: false)", async () => {
+        const agreements = await agreementService.getAgreements(
+          {
+            consumerId: [tenantB.id],
+            exactConsumerIdMatch: false,
+          },
+          10,
+          0,
+          getMockContext({ authData: getMockAuthData(tenantB.id) })
+        );
+        expectSinglePageListResult(agreements, [agreement12]);
+      });
+    });
+  });
 });

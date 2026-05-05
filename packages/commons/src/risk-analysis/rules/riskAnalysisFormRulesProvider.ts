@@ -45,11 +45,25 @@ function getFormRules(ruleset: FormRules): RiskAnalysisFormRules {
       .with(formRules.PA_1_0, () => pa1)
       .with(formRules.PA_2_0, () => pa2)
       .with(formRules.PA_3_0, () => pa3)
-      .with(formRules.PA_3_1, () => pa31) // TODO replace with pa31
+      .with(formRules.PA_3_1, () => pa31)
       .with(formRules.PRIVATE_1_0, () => private1)
       .with(formRules.PRIVATE_2_0, () => private2)
       .exhaustive()
   );
+}
+
+export function getRulesetExpiration(
+  kind: TenantKind | undefined,
+  version: string
+): Date | undefined {
+  if (!kind) {
+    return undefined;
+  }
+
+  const rulesetLabel = buildLabel(kind, version);
+
+  const ruleset = getFormRules(rulesetLabel);
+  return ruleset.expiration;
 }
 
 export const riskAnalysisFormRules: Record<

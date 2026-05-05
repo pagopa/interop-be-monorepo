@@ -62,5 +62,3 @@ export function agreementStampRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementStampRepo = ReturnType<typeof agreementStampRepo>;

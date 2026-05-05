@@ -13,7 +13,7 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
 } from "../handlerCommons.js";
 
 export async function handleEserviceTemplateNameChangedToInstantiator(
@@ -30,7 +30,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleEserviceTemplateNameChangedToInstantiator - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateNameUpdated`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -58,7 +58,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateNameChangedToInstantiator ${eserviceTemplate.id}`
+      `No users with notifications enabled for handleEserviceTemplateNameChangedToInstantiator - entityId: ${eserviceTemplate.id}, eventType: EServiceTemplateNameUpdated`
     );
     return [];
   }
@@ -67,7 +67,7 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
     const tenantEservices = instantiatorEserviceMap[tenantId] || [];
     return tenantEservices.map((eservice) => {
       const entityId = EServiceIdDescriptorId.parse(
-        `${eservice.id}/${retrieveLatestPublishedDescriptor(eservice).id}`
+        `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
       );
       return {
         userId,

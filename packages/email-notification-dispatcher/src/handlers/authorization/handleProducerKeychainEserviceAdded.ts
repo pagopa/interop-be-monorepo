@@ -7,7 +7,7 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-  retrieveLatestPublishedDescriptor,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "../../services/utils.js";
 import {
@@ -16,6 +16,7 @@ import {
   ProducerKeychainEServiceHandlerParams,
 } from "../handlerCommons.js";
 import { eServiceNotFound } from "../../models/errors.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -41,7 +42,7 @@ export async function handleProducerKeychainEserviceAdded(
       eventMailTemplateType.producerKeychainEserviceAddedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
-    retrieveLatestPublishedDescriptor(eservice),
+    retrieveLatestDescriptor(eservice),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
 
@@ -66,7 +67,7 @@ export async function handleProducerKeychainEserviceAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainEserviceAdded - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -84,9 +85,11 @@ export async function handleProducerKeychainEserviceAdded(
         producerName: producer.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza chiavi`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
-    tenantId: producer.id,
+    tenantId: t.tenantId,
     ...mapRecipientToEmailPayload(t),
   }));
 }

@@ -1,0 +1,25 @@
+meta {
+  name: Revoke tenant verified attribute
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId={{agreementId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  agreementId: {{agreementId}}
+}
+
+params:path {
+  tenantId: {{tenantId2}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

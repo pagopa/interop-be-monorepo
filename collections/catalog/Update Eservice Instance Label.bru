@@ -1,0 +1,26 @@
+meta {
+  name: Update Eservice Instance Label
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eServiceId/instanceLabel/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "instanceLabel": "new label"
+  }
+}

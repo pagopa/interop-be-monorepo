@@ -29,7 +29,7 @@ export function afterEventIdFilter<
     | typeof clientInM2MEvent
     | typeof producerKeychainInM2MEvent
     | typeof tenantInM2MEvent
-    | typeof eserviceTemplateInM2MEvent
+    | typeof eserviceTemplateInM2MEvent,
 >(table: T, lastEventId: string | undefined): SQL | undefined {
   return lastEventId ? gt(table.id, lastEventId) : undefined;
   // ^ event ID is a UUIDv7, lexicographical order is the same as chronological order
@@ -42,7 +42,7 @@ export function visibilityFilter<
     | typeof agreementInM2MEvent
     | typeof purposeInM2MEvent
     | typeof clientInM2MEvent
-    | typeof producerKeychainInM2MEvent
+    | typeof producerKeychainInM2MEvent,
 >(
   table: T,
   {
@@ -77,7 +77,7 @@ export function delegationIdFilter<
   T extends
     | typeof eserviceInM2MEvent
     | typeof agreementInM2MEvent
-    | typeof purposeInM2MEvent
+    | typeof purposeInM2MEvent,
 >(
   table: T,
   delegationId: DelegationIdParam,
@@ -95,6 +95,6 @@ export function delegationIdFilter<
           : undefined
       )
     : delegationId === null
-    ? nullFilter
-    : undefined;
+      ? nullFilter
+      : undefined;
 }

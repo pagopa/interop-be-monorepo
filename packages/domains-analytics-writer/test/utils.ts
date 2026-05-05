@@ -28,11 +28,9 @@ import {
   PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "../src/model/db/index.js";
-import { catalogServiceBuilder } from "../src/service/catalogService.js";
-import { attributeServiceBuilder } from "../src/service/attributeService.js";
 import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
-export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
+const { analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
@@ -235,9 +233,6 @@ export async function resetTargetTables(
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
-export const attributeService = attributeServiceBuilder(dbContext);
-export const catalogService = catalogServiceBuilder(dbContext);
-export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,

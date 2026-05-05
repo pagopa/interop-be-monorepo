@@ -3,7 +3,6 @@ import {
   AttributeEventEnvelope,
   fromAttributeV1,
   missingKafkaMessageDataError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { AttributeWriterService } from "./attributeWriterService.js";
 
@@ -19,12 +18,6 @@ export async function handleMessage(
 
       await attributeWriterService.upsertAttribute(
         fromAttributeV1(msg.data.attribute),
-        msg.version
-      );
-    })
-    .with({ type: "MaintenanceAttributeDeleted" }, async (msg) => {
-      await attributeWriterService.deleteAttributeById(
-        unsafeBrandId(msg.stream_id),
         msg.version
       );
     })

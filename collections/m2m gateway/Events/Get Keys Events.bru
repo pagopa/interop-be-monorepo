@@ -1,0 +1,19 @@
+meta {
+  name: Get Keys Events
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{host-m2m-gw}}/keyEvents/?limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

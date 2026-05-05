@@ -269,7 +269,7 @@ export const archiveRelatedToAgreements = async (
   );
 };
 
-export function maybeCreateSuspensionByPlatformEvents(
+function maybeCreateSuspensionByPlatformEvents(
   updatedAgreement: Agreement,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,

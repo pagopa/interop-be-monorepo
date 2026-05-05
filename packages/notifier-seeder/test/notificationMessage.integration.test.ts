@@ -170,7 +170,8 @@ describe("Notification tests", async () => {
 
       const purposeMessage = buildPurposeMessage(
         purposeEventEnvelope,
-        purposeEventNotification
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        purposeEventNotification!
       );
 
       await queueWriter.send(purposeMessage, genericLogger);
@@ -206,7 +207,8 @@ describe("Notification tests", async () => {
 
       const agreementMessage = buildAgreementMessage(
         agreementEventEnvelope,
-        agreementEventNotification
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        agreementEventNotification!
       );
 
       await queueWriter.send(agreementMessage, genericLogger);

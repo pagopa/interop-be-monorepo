@@ -10,14 +10,3 @@ export const TenantVerifiedAttributeRevokerSchema = createSelectSchema(
 export type TenantVerifiedAttributeRevokerSchema = z.infer<
   typeof TenantVerifiedAttributeRevokerSchema
 >;
-
-export const TenantVerifiedAttributeRevokerDeletingSchema =
-  TenantVerifiedAttributeRevokerSchema.pick({
-    tenantId: true,
-    tenantVerifiedAttributeId: true,
-    tenantRevokerId: true,
-    deleted: true,
-  });
-export type TenantVerifiedAttributeRevokerDeletingSchema = z.infer<
-  typeof TenantVerifiedAttributeRevokerDeletingSchema
->;

@@ -1,6 +1,7 @@
 import {
   getFormRulesByVersion,
   getLatestVersionFormRules,
+  getRulesetExpiration,
   pa1,
   pa31,
   private1,
@@ -24,6 +25,7 @@ describe("Form rules retrieve", () => {
       expect(getFormRulesByVersion(tenantKind.PA, "0.0")).toBeUndefined();
     });
   });
+
   describe("getLatestVersionFormRules", () => {
     it.each(Object.values(tenantKind))(
       "should retrieve latest form rules for kind %s",
@@ -32,5 +34,24 @@ describe("Form rules retrieve", () => {
         expect(getLatestVersionFormRules(kind)).toEqual(riskAnalysisFormConfig);
       }
     );
+  });
+
+  describe("getRulesetExpiration", () => {
+    it("should return undefined if kind is undefined", () => {
+      const expiration = getRulesetExpiration(undefined, "2.0");
+      expect(expiration).toBeUndefined();
+    });
+    it("should return undefined for 3.1 PA version", () => {
+      const expiration = getRulesetExpiration(tenantKind.PA, "3.1");
+      expect(expiration).toBeUndefined();
+    });
+    it("should return undefined for 2.0 Private version", () => {
+      const expiration = getRulesetExpiration(tenantKind.PRIVATE, "2.0");
+      expect(expiration).toBeUndefined();
+    });
+    it("should return the expiration for 3.0 PA version", () => {
+      const expiration = getRulesetExpiration(tenantKind.PA, "3.0");
+      expect(expiration).toEqual(new Date("2026-02-15T23:59:59"));
+    });
   });
 });

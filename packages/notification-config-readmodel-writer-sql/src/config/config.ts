@@ -4,10 +4,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const NotificationConfigReadModelWriterConfig =
-  ReadModelWriterConfigSQL.and(NotificationConfigTopicConfig);
+const NotificationConfigReadModelWriterConfig = ReadModelWriterConfigSQL.and(
+  NotificationConfigTopicConfig
+);
 
-export type NotificationConfigReadModelWriterConfig = z.infer<
+type NotificationConfigReadModelWriterConfig = z.infer<
   typeof NotificationConfigReadModelWriterConfig
 >;
 

@@ -1,5 +1,10 @@
-import { and, eq, ilike, inArray } from "drizzle-orm";
-import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
+import { and, eq, inArray } from "drizzle-orm";
+import {
+  ascLower,
+  escapeSqlLike,
+  ilikeEscaped,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -27,6 +32,7 @@ import {
   genericInternalError,
   ClientJWKKey,
   ProducerJWKKey,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
@@ -39,6 +45,7 @@ import {
   ProducerJWKKeyReadModelService,
   ProducerKeychainReadModelService,
   PurposeReadModelService,
+  TenantReadModelService,
   toClientAggregatorArray,
   toProducerKeychainAggregatorArray,
 } from "pagopa-interop-readmodel";
@@ -84,6 +91,7 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   clientReadModelServiceSQL: ClientReadModelService;
@@ -94,6 +102,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   clientJWKKeyReadModelServiceSQL: ClientJWKKeyReadModelService;
   producerJWKKeyReadModelServiceSQL: ProducerJWKKeyReadModelService;
+  tenantReadModelServiceSQL: TenantReadModelService;
 }) {
   return {
     async getClientById(
@@ -129,7 +138,10 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  clientInReadmodelClient.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined,
             // USERS FILTER
             userIds.length > 0
@@ -319,9 +331,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   producerKeychainInReadmodelProducerKeychain.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // USERS FILTER
@@ -489,6 +501,9 @@ export function readModelServiceBuilderSQL({
       }
 
       return parseResult.data;
+    },
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
+      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
   };
 }

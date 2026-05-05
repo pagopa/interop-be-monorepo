@@ -1,4 +1,5 @@
 import {
+  CertifiedTenantAttribute,
   Delegation,
   delegationKind,
   DelegationKind,
@@ -9,11 +10,13 @@ import {
   EServiceId,
   operationForbidden,
   Tenant,
+  tenantAttributeType,
   tenantFeatureType,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -28,7 +31,7 @@ import {
   incorrectState,
   operationRestrictedToDelegate,
   operationRestrictedToDelegator,
-  originNotCompliant,
+  delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
@@ -63,20 +66,28 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertDelegatorAndDelegateAllowedOrigins = async (
+const hasDelegationAllowedAttribute = (tenant: Tenant): boolean =>
+  tenant.attributes.some(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED &&
+      attr.id === config.delegationsAllowedAttributeId &&
+      !attr.revocationTimestamp
+  );
+
+export const assertDelegatorAndDelegateAllowedForDelegation = (
   delegator: Tenant,
   delegate: Tenant
-): Promise<void> => {
-  if (
-    !config.delegationsAllowedOrigins.includes(delegator?.externalId?.origin)
-  ) {
-    throw originNotCompliant(delegator, "Delegator");
+): void => {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return;
   }
 
-  if (
-    !config.delegationsAllowedOrigins.includes(delegate?.externalId?.origin)
-  ) {
-    throw originNotCompliant(delegate, "Delegate");
+  if (!hasDelegationAllowedAttribute(delegator)) {
+    throw delegationNotAllowedForTenant(delegator, "Delegator");
+  }
+
+  if (!hasDelegationAllowedAttribute(delegate)) {
+    throw delegationNotAllowedForTenant(delegate, "Delegate");
   }
 };
 
@@ -172,9 +183,7 @@ export const assertRequesterIsDelegateOrDelegator = (
 export function assertStampExists<S extends keyof Delegation["stamps"]>(
   stamps: Delegation["stamps"],
   stamp: S
-): asserts stamps is Delegation["stamps"] & {
-  [key in S]: DelegationStamp;
-} {
+): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
   if (!stamps[stamp]) {
     throw delegationStampNotFound(stamp);
   }

@@ -125,6 +125,30 @@ describe("handleAgreementActivated", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
+  it("should throw tenantNotFound when consumer is not found", async () => {
+    const unknownConsumerId = generateId<TenantId>();
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: unknownConsumerId,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleAgreementActivatedToProducer({
+        agreementV2Msg: toAgreementV2(agreement),
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(tenantNotFound(unknownConsumerId));
+  });
+
   it("should throw eServiceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const agreement: Agreement = {
@@ -249,15 +273,14 @@ describe("handleAgreementActivated", async () => {
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
-      expect(message.email.body).toContain(
-        `Richiesta di fruizione accettata automaticamente`
-      );
+      expect(message.email.body).toContain(`Richiesta di fruizione accettata`);
       expect(message.email.body).toContain(
         match(message.type)
           .with("User", () => "{{ recipientName }}")
           .with("Tenant", () => producerTenant.name)
           .exhaustive()
       );
+      expect(message.email.body).toContain(consumerTenant.name);
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });

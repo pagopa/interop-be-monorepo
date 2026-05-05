@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "delegationSubmittedRevokedToDelegate";
@@ -59,7 +60,7 @@ export async function handleProducerDelegationSubmitted(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Delegation ${delegation.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerDelegationSubmitted - entityId: ${delegation.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -76,6 +77,8 @@ export async function handleProducerDelegationSubmitted(
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta di delega`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

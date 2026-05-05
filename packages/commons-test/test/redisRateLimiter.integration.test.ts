@@ -9,9 +9,8 @@ const waitCounterReset = async (
   delayMs: number,
   organizationId: TenantId
 ): Promise<void> => {
-  const currentCount = await redisRateLimiter.getCountByOrganization(
-    organizationId
-  );
+  const currentCount =
+    await redisRateLimiter.getCountByOrganization(organizationId);
 
   if (currentCount === 0) {
     return Promise.resolve();
@@ -34,6 +33,8 @@ describe("Redis rate limiter tests", () => {
 
   it("should rate limit requests by organizationId", async () => {
     const organizationId: TenantId = generateId();
+    // wait 500 ms to ensure the redis is connected
+    await delay(500);
 
     expect(await redisRateLimiter.getCountByOrganization(organizationId)).toBe(
       0
@@ -172,9 +173,8 @@ describe("Redis rate limiter tests", () => {
     expect(newResult.maxRequests).toBe(2);
     expect(newResult.rateInterval).toBe(1000);
 
-    const finalCount = await redisRateLimiter.getCountByOrganization(
-      organizationId
-    );
+    const finalCount =
+      await redisRateLimiter.getCountByOrganization(organizationId);
     expect(finalCount).toBeLessThanOrEqual(2);
   });
 });

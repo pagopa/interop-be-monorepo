@@ -10,22 +10,17 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getAttributeEvents integration", () => {
-  const mockAttributeEvent1: m2mEventApi.AttributeM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
-    attributeId: generateId(),
-  };
-
-  const mockAttributeEvent2: m2mEventApi.AttributeM2MEvent = {
-    id: generateId(),
-    eventTimestamp: new Date().toJSON(),
-    eventType: "ATTRIBUTE_ADDED",
-    attributeId: generateId(),
-  };
+  const events: m2mEventApi.AttributeM2MEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ATTRIBUTE_ADDED",
+      attributeId: generateId(),
+    },
+  ];
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {
-    events: [mockAttributeEvent1, mockAttributeEvent2],
+    events,
   };
 
   const mockGetAttributeM2MEvents = vi
@@ -41,10 +36,10 @@ describe("getAttributeEvents integration", () => {
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls",
+    "Should succeed and perform API clients calls with lastEventId: %s",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApi.AttributeEvents = {
-        events: [mockAttributeEvent1, mockAttributeEvent2],
+        events,
       };
       const result = await eventService.getAttributeEvents(
         {
@@ -53,7 +48,7 @@ describe("getAttributeEvents integration", () => {
         },
         getMockM2MAdminAppContext()
       );
-      expect(result).toEqual(expectedResponse);
+      expect(result).toStrictEqual(expectedResponse);
       expectApiClientGetToHaveBeenCalledWith({
         mockGet: mockGetAttributeM2MEvents,
         queries: {

@@ -114,6 +114,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
   it.each([
     eserviceTemplateVersionState.published,
     eserviceTemplateVersionState.suspended,
+    eserviceTemplateVersionState.deprecated,
   ])(
     "should write on event-store for the attributes update of a eservice template version with state %s",
     async (eserviceTemplateVersionState) => {
@@ -317,46 +318,40 @@ describe("updateEServiceTemplateVersionAttributes", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it.each([
-    eserviceTemplateVersionState.draft,
-    eserviceTemplateVersionState.deprecated,
-  ])(
-    "should throw notValidDescriptorState if the eservice template version is in %s state",
-    async (eserviceTemplateVersionState) => {
-      const mockEServiceTemplateVersion: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(),
-        state: eserviceTemplateVersionState,
-        attributes: {
-          certified: validMockVersionCertifiedAttributes,
-          verified: validMockVersionVerifiedAttributes,
-          declared: [],
-        },
-      };
+  it("should throw notValidDescriptorState if the eservice template version is in Draft state", async () => {
+    const mockEServiceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+      attributes: {
+        certified: validMockVersionCertifiedAttributes,
+        verified: validMockVersionVerifiedAttributes,
+        declared: [],
+      },
+    };
 
-      const mockEServiceTemplate: EServiceTemplate = {
-        ...getMockEServiceTemplate(),
-        versions: [mockEServiceTemplateVersion],
-      };
+    const mockEServiceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [mockEServiceTemplateVersion],
+    };
 
-      await addOneEServiceTemplate(mockEServiceTemplate);
+    await addOneEServiceTemplate(mockEServiceTemplate);
 
-      expect(
-        eserviceTemplateService.updateEServiceTemplateVersionAttributes(
-          mockEServiceTemplate.id,
-          mockEServiceTemplateVersion.id,
-          validMockVersionAttributeSeed,
-          getMockContext({
-            authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          })
-        )
-      ).rejects.toThrowError(
-        notValidEServiceTemplateVersionState(
-          mockEServiceTemplateVersion.id,
-          eserviceTemplateVersionState
-        )
-      );
-    }
-  );
+    expect(
+      eserviceTemplateService.updateEServiceTemplateVersionAttributes(
+        mockEServiceTemplate.id,
+        mockEServiceTemplateVersion.id,
+        validMockVersionAttributeSeed,
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      notValidEServiceTemplateVersionState(
+        mockEServiceTemplateVersion.id,
+        eserviceTemplateVersionState.draft
+      )
+    );
+  });
 
   it("should throw unchangedAttributes if the passed seed does not differ from the actual eservice template version attributes", async () => {
     const mockEServiceTemplateVersion: EServiceTemplateVersion = {

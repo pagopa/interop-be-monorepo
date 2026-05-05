@@ -73,8 +73,8 @@ describe("interpolateTemplateRestApiSpec", async () => {
     const yamlFileBuffer = await yamlFile.arrayBuffer();
     const yamlString = new TextDecoder().decode(yamlFileBuffer);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const parsedYaml = require("yaml").parse(yamlString);
+    const { parse } = await import("yaml");
+    const parsedYaml = parse(yamlString);
 
     expect(parsedYaml.info).toMatchObject({
       termsOfService: eserviceInstanceInterfaceData.termsAndConditionsUrl,

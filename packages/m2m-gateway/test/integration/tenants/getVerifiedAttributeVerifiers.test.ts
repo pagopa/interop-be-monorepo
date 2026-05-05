@@ -75,7 +75,7 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
       headers: expect.any(Object),
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       results: expectedTransformedResults,
       pagination: {
         limit,

@@ -260,7 +260,7 @@ export function producerKeychainServiceBuilder(
         `Deleting key ${keyId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.deleteProducerKeyById(
+      await authorizationClient.producerKeychain.deleteProducerKeyById(
         undefined,
         {
           params: { producerKeychainId, keyId },
@@ -323,7 +323,7 @@ export function producerKeychainServiceBuilder(
         `Removing user ${userId} from producer keychain ${producerKeychainId}`
       );
 
-      return authorizationClient.producerKeychain.removeProducerKeychainUser(
+      await authorizationClient.producerKeychain.removeProducerKeychainUser(
         undefined,
         {
           params: { producerKeychainId, userId },

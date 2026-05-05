@@ -10,17 +10,18 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
-  AgreementEventV2,
+  AgreementEvent,
+  AuthorizationEvent,
   CorrelationId,
-  EServiceEventV2,
   DelegationEventV2,
+  EServiceEvent,
+  EServiceTemplateEventV2,
+  EmailNotificationMessagePayload,
+  PurposeEvent,
+  TenantEvent,
   generateId,
   genericInternalError,
-  PurposeEventV2,
   unsafeBrandId,
-  AuthorizationEventV2,
-  EmailNotificationMessagePayload,
-  TenantEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -44,6 +45,7 @@ import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
 import { HandlerParams } from "./models/handlerParams.js";
 import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
 import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -52,6 +54,7 @@ interface TopicNames {
   delegationTopic: string;
   authorizationTopic: string;
   tenantTopic: string;
+  eserviceTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -108,6 +111,7 @@ function processMessage(topicHandlers: TopicNames) {
       delegationTopic,
       authorizationTopic,
       tenantTopic,
+      eserviceTemplateTopic,
     } = topicHandlers;
 
     const handleWith = <T extends z.ZodType>(
@@ -147,22 +151,23 @@ function processMessage(topicHandlers: TopicNames) {
 
     const emailNotificationPayloads = await match(messagePayload.topic)
       .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
+        handleWith(EServiceEvent, handleEServiceEvent)
       )
       .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
+        handleWith(AgreementEvent, handleAgreementEvent)
       )
       .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
+        handleWith(PurposeEvent, handlePurposeEvent)
       )
       .with(delegationTopic, async () =>
         handleWith(DelegationEventV2, handleDelegationEvent)
       )
       .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+        handleWith(AuthorizationEvent, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
+      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
+      .with(eserviceTemplateTopic, async () =>
+        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -183,6 +188,7 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.tenantTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -191,5 +197,6 @@ await runConsumer(
     delegationTopic: config.delegationTopic,
     authorizationTopic: config.authorizationTopic,
     tenantTopic: config.tenantTopic,
+    eserviceTemplateTopic: config.eserviceTemplateTopic,
   })
 );

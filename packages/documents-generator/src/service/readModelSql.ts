@@ -117,14 +117,13 @@ export function readModelServiceBuilderSQL({
         );
       return delegation?.data;
     },
-    async getActiveConsumerDelegationByDelegationId(
+    async getConsumerDelegationByDelegationId(
       delegationId: DelegationId
     ): Promise<Delegation | undefined> {
       return (
         await delegationReadModelServiceSQL.getDelegationByFilter(
           and(
             eq(delegationInReadmodelDelegation.id, delegationId),
-            eq(delegationInReadmodelDelegation.state, delegationState.active),
             eq(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer

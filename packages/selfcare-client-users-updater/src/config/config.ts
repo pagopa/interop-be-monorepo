@@ -6,7 +6,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 
-export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
+const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig
 )
   .and(ReadModelSQLDbConfig)
@@ -21,7 +21,7 @@ export const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
       }))
   );
 
-export type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
+type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
   typeof SelfcareClientUsersUpdaterConsumerConfig
 >;
 

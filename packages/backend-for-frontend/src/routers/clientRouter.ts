@@ -112,7 +112,6 @@ const clientRouter = (
         const key = await clientService.getClientKeyById(
           req.params.clientId,
           req.params.keyId,
-          ctx.authData.selfcareId,
           ctx
         );
 
@@ -243,7 +242,6 @@ const clientRouter = (
       try {
         const users = await clientService.getClientUsers(
           req.params.clientId,
-          ctx.authData.selfcareId,
           ctx
         );
 

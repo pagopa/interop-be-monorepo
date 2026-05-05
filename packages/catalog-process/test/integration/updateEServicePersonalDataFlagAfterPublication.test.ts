@@ -68,7 +68,9 @@ describe("update E-service personalData flag for an already created E-service", 
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload.eservice).toEqual(
+      toEServiceV2(returnedEService.data)
+    );
   });
 
   it.each([

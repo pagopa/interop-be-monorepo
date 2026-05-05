@@ -3,7 +3,6 @@ import {
   EventStoreConfig,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagNotificationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -11,10 +10,9 @@ const NotificationConfigProcessConfig = CommonHTTPServiceConfig.and(
   EventStoreConfig
 )
   .and(ApplicationAuditProducerConfig)
-  .and(ReadModelSQLDbConfig)
-  .and(FeatureFlagNotificationConfig);
+  .and(ReadModelSQLDbConfig);
 
-export type NotificationConfigProcessConfig = z.infer<
+type NotificationConfigProcessConfig = z.infer<
   typeof NotificationConfigProcessConfig
 >;
 

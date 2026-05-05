@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "eserviceNewVersionApprovedRejectedToDelegate";
@@ -62,7 +63,7 @@ export async function handleEserviceDescriptorRejectedByDelegator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEserviceDescriptorRejectedByDelegator - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -78,6 +79,8 @@ export async function handleEserviceDescriptorRejectedByDelegator(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

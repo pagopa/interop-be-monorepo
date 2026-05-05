@@ -62,5 +62,3 @@ export function agreementAttributeRepo(conn: DBConnection) {
     },
   };
 }
-
-export type AgreementAttributeRepo = ReturnType<typeof agreementAttributeRepo>;

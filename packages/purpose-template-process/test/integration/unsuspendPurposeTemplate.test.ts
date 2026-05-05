@@ -14,7 +14,7 @@ import {
   purposeTemplateState,
   PurposeTemplateUnsuspendedV2,
   toPurposeTemplateV2,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -28,11 +28,11 @@ import {
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
 import {
+  purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("unsuspendPurposeTemplate", () => {
@@ -101,7 +101,7 @@ describe("unsuspendPurposeTemplate", () => {
     });
   });
 
-  it("should throw tenantNotAllowed if the caller is not the creator of the purpose template", async () => {
+  it("should throw purposeTemplateNotFound if the caller is not the creator of the purpose template", async () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const otherTenantId = generateId<TenantId>();
@@ -111,7 +111,7 @@ describe("unsuspendPurposeTemplate", () => {
         purposeTemplate.id,
         getMockContext({ authData: getMockAuthData(otherTenantId) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(otherTenantId));
+    }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw missingRiskAnalysisFormTemplate if the purpose template has no risk analysis template", async () => {
@@ -139,7 +139,7 @@ describe("unsuspendPurposeTemplate", () => {
       ...purposeTemplate,
       purposeRiskAnalysisForm: {
         id: generateId(),
-        version: getLatestVersionFormRules(tenantKind.PA)!.version,
+        version: getLatestVersionFormRules(targetTenantKind.PA)!.version,
         singleAnswers: [
           {
             id: generateId(),

@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package purpose.template.v2;
 
-import "v2/tenant/tenant.proto";
-
 enum PurposeTemplateStateV2 {
   DRAFT = 0;
   PUBLISHED = 1;
@@ -11,10 +9,17 @@ enum PurposeTemplateStateV2 {
   ARCHIVED = 3;
 }
 
+// Number 1 is skipped because targetTenantKind used to be associated to the enum TenantKindV2.
+// There are already some events in the event-store, so the numbers must match.
+enum TargetTenantKindV2 {
+  PA = 0;
+  PRIVATE = 2;
+}
+
 message PurposeTemplateV2 {
   string id = 1;
   string targetDescription = 2;
-  tenant.v2.TenantKindV2 targetTenantKind = 3;
+  TargetTenantKindV2 targetTenantKind = 3;
   string creatorId = 4;
   PurposeTemplateStateV2 state = 5;
   int64 createdAt = 6;
@@ -33,6 +38,8 @@ message RiskAnalysisFormTemplateV2 {
   string version = 2;
   repeated RiskAnalysisTemplateSingleAnswerV2 singleAnswers = 3;
   repeated RiskAnalysisTemplateMultiAnswerV2 multiAnswers = 4;
+  optional RiskAnalysisTemplateDocumentV2 document = 5;
+  optional RiskAnalysisTemplateSignedDocumentV2 signedDocument = 6;
 }
 
 message RiskAnalysisTemplateSingleAnswerV2 {
@@ -50,6 +57,25 @@ message RiskAnalysisTemplateMultiAnswerV2 {
   repeated string values = 3;
   bool editable = 4;
   optional RiskAnalysisTemplateAnswerAnnotationV2 annotation = 5;
+}
+
+message RiskAnalysisTemplateDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+}
+
+message RiskAnalysisTemplateSignedDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+  int64 signedAt = 7;
 }
 
 message RiskAnalysisTemplateAnswerAnnotationV2 {

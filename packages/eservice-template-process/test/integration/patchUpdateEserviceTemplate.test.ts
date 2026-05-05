@@ -21,8 +21,10 @@ import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../../src/model/domain/apiConverter.js";
-import { eServiceTemplateNotFound } from "../../../catalog-process/src/model/domain/errors.js";
-import { eserviceTemplateDuplicate } from "../../src/model/domain/errors.js";
+import {
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("update eserviceTemplate", () => {
   const mockEServiceTemplate = {
@@ -144,7 +146,7 @@ describe("update eserviceTemplate", () => {
           organizationId: mockEServiceTemplate.creatorId,
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {

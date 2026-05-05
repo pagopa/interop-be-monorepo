@@ -296,5 +296,3 @@ export function purposeServiceBuilder(db: DBContext) {
     },
   };
 }
-
-export type PurposeService = ReturnType<typeof purposeServiceBuilder>;

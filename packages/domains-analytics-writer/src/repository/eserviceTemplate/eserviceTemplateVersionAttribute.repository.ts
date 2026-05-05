@@ -71,7 +71,3 @@ export function eserviceTemplateVersionAttributeRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceTemplateVersionAttributeRepository = ReturnType<
-  typeof eserviceTemplateVersionAttributeRepository
->;

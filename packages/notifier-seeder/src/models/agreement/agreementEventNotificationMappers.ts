@@ -14,7 +14,7 @@ import {
   AgreementV1Notification,
 } from "./agreementEventNotification.js";
 
-export const toAgreementStateV1Notification = (input: AgreementState): string =>
+const toAgreementStateV1Notification = (input: AgreementState): string =>
   match(input)
     .with(agreementState.draft, () => "Draft")
     .with(agreementState.suspended, () => "Suspended")
@@ -28,14 +28,14 @@ export const toAgreementStateV1Notification = (input: AgreementState): string =>
     .with(agreementState.rejected, () => "Rejected")
     .exhaustive();
 
-export const toAgreementDocumentV1Notification = (
+const toAgreementDocumentV1Notification = (
   input: AgreementDocument
 ): AgreementDocumentV1Notification => ({
   ...input,
   createdAt: input.createdAt.toISOString(),
 });
 
-export const toAgreementStampsV1Notification = (
+const toAgreementStampsV1Notification = (
   input: AgreementStamps
 ): AgreementStampsV1Notification => ({
   submission: input.submission
@@ -61,7 +61,7 @@ export const toAgreementStampsV1Notification = (
     : undefined,
 });
 
-export const toAgreementStampV1Notification = (
+const toAgreementStampV1Notification = (
   input: AgreementStamp
 ): AgreementStampV1Notification => ({
   ...input,

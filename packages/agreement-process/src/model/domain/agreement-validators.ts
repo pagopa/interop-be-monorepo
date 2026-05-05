@@ -80,9 +80,6 @@ export const agreementArchivableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
-export const agreementSubmittableStates: AgreementState[] = [
-  agreementState.draft,
-];
 
 export const agreementUpdatableStates: AgreementState[] = [
   agreementState.draft,
@@ -106,7 +103,7 @@ export const agreementClonableStates: AgreementState[] = [
   agreementState.rejected,
 ];
 
-export const agreementActivationFailureStates: AgreementState[] = [
+const agreementActivationFailureStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
   agreementState.missingCertifiedAttributes,
@@ -462,11 +459,15 @@ export const validateSubmitOnDescriptor = async (
   return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
-export const validateActiveOrPendingAgreement = (
+export const validateActiveSuspendedOrPendingAgreement = (
   agreementId: AgreementId,
   state: AgreementState
 ): void => {
-  if (agreementState.active !== state && agreementState.pending !== state) {
+  if (
+    agreementState.active !== state &&
+    agreementState.pending !== state &&
+    agreementState.suspended !== state
+  ) {
     throw agreementSubmissionFailed(agreementId);
   }
 };
@@ -537,7 +538,7 @@ export const matchingCertifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.certified,
     certifiedAttributes
-  ).map((id) => ({ id } as CertifiedAgreementAttribute));
+  ).map((id) => ({ id }) as CertifiedAgreementAttribute);
 };
 
 export const matchingDeclaredAttributes = (
@@ -551,7 +552,7 @@ export const matchingDeclaredAttributes = (
   return matchingAttributes(
     descriptor.attributes.declared,
     declaredAttributes
-  ).map((id) => ({ id } as DeclaredAgreementAttribute));
+  ).map((id) => ({ id }) as DeclaredAgreementAttribute);
 };
 
 export const matchingVerifiedAttributes = (
@@ -567,15 +568,13 @@ export const matchingVerifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.verified,
     verifiedAttributes
-  ).map((id) => ({ id } as VerifiedAgreementAttribute));
+  ).map((id) => ({ id }) as VerifiedAgreementAttribute);
 };
 
 export function assertStampExists<S extends keyof AgreementStamps>(
   stamps: AgreementStamps,
   stamp: S
-): asserts stamps is AgreementStamps & {
-  [key in S]: AgreementStamp;
-} {
+): asserts stamps is AgreementStamps & Record<S, AgreementStamp> {
   if (!stamps[stamp]) {
     throw agreementStampNotFound(stamp);
   }

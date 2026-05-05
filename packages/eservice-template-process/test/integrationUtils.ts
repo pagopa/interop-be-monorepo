@@ -60,7 +60,7 @@ export const eserviceTemplateService = eserviceTemplateServiceBuilder(
   fileManager
 );
 
-export const writeEServiceTemplateInEventstore = async (
+const writeEServiceTemplateInEventstore = async (
   eserviceTemplate: EServiceTemplate
 ): Promise<void> => {
   const eserviceTemplateEvent: EServiceTemplateEvent = {

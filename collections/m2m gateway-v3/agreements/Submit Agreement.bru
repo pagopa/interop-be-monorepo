@@ -1,0 +1,20 @@
+meta {
+  name: Submit agreement
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/agreements/:agreementId/submit
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

@@ -66,16 +66,20 @@ export function getMockedApiPurpose({
   };
 }
 
-export function getMockedApiPurposeTemplate(): purposeTemplateApi.PurposeTemplate {
+export function getMockedApiPurposeTemplate(
+  state: purposeTemplateApi.PurposeTemplateState = generateMock(
+    purposeTemplateApi.PurposeTemplateState
+  )
+): purposeTemplateApi.PurposeTemplate {
   return {
     id: generateId(),
-    targetDescription: generateMock(z.string()),
-    targetTenantKind: generateMock(purposeTemplateApi.TenantKind),
+    targetDescription: generateMock(z.string().min(10).max(250)),
+    targetTenantKind: generateMock(purposeTemplateApi.TargetTenantKind),
     creatorId: generateId(),
-    state: generateMock(purposeTemplateApi.PurposeTemplateState),
+    state,
     createdAt: new Date().toISOString(),
-    purposeTitle: generateMock(z.string()),
-    purposeDescription: generateMock(z.string()),
+    purposeTitle: generateMock(z.string().min(5).max(60)),
+    purposeDescription: generateMock(z.string().min(10).max(250)),
     purposeRiskAnalysisForm: generateMock(
       purposeTemplateApi.RiskAnalysisFormTemplate
     ),

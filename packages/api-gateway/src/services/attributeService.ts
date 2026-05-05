@@ -3,14 +3,13 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { AttributeProcessClient } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { attributeAlreadyExists, attributeNotFound } from "../models/errors.js";
 
 export async function getAllBulkAttributes(
-  attributeProcessClient: AttributeProcessClient,
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
   attributeIds: Array<attributeRegistryApi.Attribute["id"]>
 ): Promise<attributeRegistryApi.Attribute[]> {
@@ -28,7 +27,7 @@ export async function getAllBulkAttributes(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(
-  attributeProcessClient: AttributeProcessClient
+  attributeProcessClient: attributeRegistryApi.AttributeProcessClient
 ) {
   return {
     getAttribute: async (

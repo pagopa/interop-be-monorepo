@@ -115,5 +115,3 @@ export function eserviceRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceRepository = ReturnType<typeof eserviceRepository>;

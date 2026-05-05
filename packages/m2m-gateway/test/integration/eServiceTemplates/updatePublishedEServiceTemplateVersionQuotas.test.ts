@@ -77,7 +77,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
     const expectedM2MEServiceTemplateVersion: m2mGatewayApi.EServiceTemplateVersion =
       toM2MGatewayEServiceTemplateVersion(mockVersion);
 
-    expect(result).toEqual(expectedM2MEServiceTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MEServiceTemplateVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient
@@ -153,7 +153,7 @@ describe("updatePublishedEServiceTemplateVersionQuotas", () => {
       deprecatedAt: mockVersion.deprecatedAt,
     };
 
-    expect(result).toEqual(expectedM2MDVersion);
+    expect(result).toStrictEqual(expectedM2MDVersion);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

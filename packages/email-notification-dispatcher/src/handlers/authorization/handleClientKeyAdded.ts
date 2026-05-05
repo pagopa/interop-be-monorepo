@@ -4,7 +4,9 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   fromClientV2,
+  clientKind,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -16,8 +18,7 @@ import {
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
 import { clientKeyNotFound } from "../../models/errors.js";
-
-const notificationType: NotificationType = "clientKeyAddedDeletedToClientUsers";
+import { config } from "../../config/config.js";
 
 export async function handleClientKeyAdded(
   data: ClientKeyHandlerParams
@@ -36,6 +37,13 @@ export async function handleClientKeyAdded(
   }
 
   const client = fromClientV2(clientV2Msg);
+  const notificationType: NotificationType = match(client.kind)
+    .with(
+      clientKind.consumer,
+      () => "clientKeyConsumerAddedDeletedToClientUsers" as const
+    )
+    .with(clientKind.api, () => "clientKeyAddedDeletedToClientUsers" as const)
+    .exhaustive();
   const key = client.keys.find((key) => key.kid === kid);
 
   if (!key) {
@@ -59,7 +67,7 @@ export async function handleClientKeyAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Client ${client.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientKeyAdded - entityId: ${client.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -74,6 +82,8 @@ export async function handleClientKeyAdded(
         entityId: client.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         clientName: client.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

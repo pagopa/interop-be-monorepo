@@ -2,6 +2,7 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -11,7 +12,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import express from "express";
-import healthRouter from "./routers/HealthRouter.js";
+import { agreementApi } from "pagopa-interop-api-clients";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
 import { AgreementService } from "./services/agreementService.js";
@@ -31,7 +32,7 @@ export async function createApp(service: AgreementService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
+  app.use(healthRouter(agreementApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));

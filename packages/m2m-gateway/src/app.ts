@@ -3,6 +3,7 @@ import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   fromFilesToBodyMiddleware,
+  healthRouter,
   loggerMiddleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
@@ -13,8 +14,9 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import express from "express";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
-import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
@@ -39,8 +41,8 @@ import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 import { KeyService } from "./services/keyService.js";
 import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import keyRouter from "./routers/keyRouter.js";
-import eventRouter from "./routers/eventRouter.js";
 import { EventService } from "./services/eventService.js";
+import eventRouter from "./routers/eventRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -83,6 +85,9 @@ export async function createApp(
   } = services;
 
   const app = zodiosCtx.app();
+  app.use(
+    express.json({ type: ["application/json", "application/merge-patch+json"] })
+  );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
@@ -98,7 +103,7 @@ export async function createApp(
 
   app.use(
     appBasePath,
-    healthRouter,
+    healthRouter(m2mGatewayApi.healthApi.api),
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),

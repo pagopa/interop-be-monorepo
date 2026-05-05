@@ -7,7 +7,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   attributeNotFound: "0001",
   invalidAttributeStructure: "0002",
   tenantDuplicate: "0003",
@@ -38,6 +38,7 @@ export const errorCodes = {
   descriptorNotFoundInEservice: "0028",
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
+  invalidTenantFeature: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -65,22 +66,6 @@ export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
     detail: `Attribute ${identifier} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
-  });
-}
-
-export function invalidAttributeStructure(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Invalid attribute structure`,
-    code: "invalidAttributeStructure",
-    title: "Invalid attribute structure",
-  });
-}
-
-export function tenantDuplicate(teanantName: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${teanantName} already exists`,
-    code: "tenantDuplicate",
-    title: "Duplicated tenant name",
   });
 }
 
@@ -338,5 +323,13 @@ export function operationRestrictedToDelegate(): ApiError<ErrorCodes> {
     detail: "Not allowed to add declared attribute",
     code: "operationRestrictedToDelegate",
     title: "Not allowed to add declared attribute",
+  });
+}
+
+export function invalidTenantFeature(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Tenant feature variant could not be determined",
+    code: "invalidTenantFeature",
+    title: "Invalid tenant feature",
   });
 }

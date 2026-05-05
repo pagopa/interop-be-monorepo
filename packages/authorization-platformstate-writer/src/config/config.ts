@@ -4,10 +4,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const AuthorizationPlatformStateWriterConfig =
-  PlatformStateWriterConfig.and(AuthorizationTopicConfig);
+const AuthorizationPlatformStateWriterConfig = PlatformStateWriterConfig.and(
+  AuthorizationTopicConfig
+);
 
-export type AuthorizationPlatformStateWriterConfig = z.infer<
+type AuthorizationPlatformStateWriterConfig = z.infer<
   typeof AuthorizationPlatformStateWriterConfig
 >;
 

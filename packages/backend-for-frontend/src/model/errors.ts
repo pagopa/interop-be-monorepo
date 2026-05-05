@@ -5,7 +5,7 @@ import {
   parseErrorMessage,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
@@ -306,9 +306,9 @@ export function contractNotFound(agreementId: string): ApiError<ErrorCodes> {
 
 export function contractException(agreementId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Contract exception for agreement ${agreementId}`,
+    detail: `There is no contract to download for agreement ${agreementId}`,
     code: "contractException",
-    title: "Contract exception",
+    title: "Contract not available",
   });
 }
 

@@ -259,3 +259,41 @@ export function toCreateEventPurposeTemplateAnswerAnnotationDocumentUpdated(
     },
   };
 }
+
+export function toCreateEventRiskAnalysisTemplateDocumentGenerated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "RiskAnalysisTemplateDocumentGenerated",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      },
+    },
+  };
+}
+
+export function toCreateEventRiskAnalysisTemplateSignedDocumentGenerated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "RiskAnalysisTemplateSignedDocumentGenerated",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      },
+    },
+  };
+}

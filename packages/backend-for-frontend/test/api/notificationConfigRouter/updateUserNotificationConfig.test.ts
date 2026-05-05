@@ -21,13 +21,16 @@ describe("API POST /userNotificationConfigs", () => {
   const {
     clientKeyAddedDeletedToClientUsers: mockClientKeyAddedDeletedToClientUsers,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    clientKeyConsumerAddedDeletedToClientUsers: _c,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     producerKeychainKeyAddedDeletedToClientUsers: _,
     ...restConfigMock
   } = getMockNotificationConfig();
 
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
     inAppNotificationPreference: true,
-    emailNotificationPreference: "ENABLED",
+    emailNotificationPreference: true,
+    emailDigestPreference: false,
     inAppConfig: {
       ...restConfigMock,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
@@ -77,9 +80,12 @@ describe("API POST /userNotificationConfigs", () => {
           notificationConfigSeed.inAppNotificationPreference,
         emailNotificationPreference:
           notificationConfigSeed.emailNotificationPreference,
+        emailDigestPreference: notificationConfigSeed.emailDigestPreference,
         inAppConfig: {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
@@ -87,6 +93,8 @@ describe("API POST /userNotificationConfigs", () => {
         emailConfig: {
           ...restConfigMock,
           clientKeyAddedDeletedToClientUsers:
+            mockClientKeyAddedDeletedToClientUsers,
+          clientKeyConsumerAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
           producerKeychainKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,

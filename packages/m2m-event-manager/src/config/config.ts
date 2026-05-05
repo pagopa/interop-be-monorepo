@@ -9,7 +9,7 @@ const M2MEventsManagerConfig = CommonHTTPServiceConfig.and(
   ApplicationAuditProducerConfig
 ).and(M2MEventSQLDbConfig);
 
-export type M2MEventsManagerConfig = z.infer<typeof M2MEventsManagerConfig>;
+type M2MEventsManagerConfig = z.infer<typeof M2MEventsManagerConfig>;
 
 export const config: M2MEventsManagerConfig = M2MEventsManagerConfig.parse(
   process.env

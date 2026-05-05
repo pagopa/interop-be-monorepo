@@ -80,6 +80,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  EServiceTemplateAttribute,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -120,10 +121,10 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
-  EmailNotificationPreference,
   AgreementSignedContract,
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
+  SelfcareId,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -148,9 +149,7 @@ import * as jose from "jose";
 import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
-  return (
-    new Date(Number(timestamp)) && new Date(Number(timestamp)) <= new Date()
-  );
+  return new Date(Number(timestamp)) <= new Date();
 }
 
 export function randomSubArray<T>(array: T[]): T[] {
@@ -218,6 +217,14 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
+  dailyCallsPerConsumer: undefined,
+});
+
+export const getMockEServiceTemplateAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttribute => ({
+  ...generateMock(EServiceTemplateAttribute),
+  id: attributeId,
 });
 
 export const getMockAgreementAttribute = (
@@ -248,6 +255,7 @@ export const getMockEService = (
   riskAnalysis: [],
   mode: "Deliver",
   ...(templateId && { templateId }),
+  ...(templateId && { instanceLabel: "instance 001" }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -332,9 +340,27 @@ export const getMockAgreement = (
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
   id: AttributeId = generateId()
+): Attribute => {
+  if (kind === attributeKind.certified) {
+    return getMockCertifiedAttribute(kind, id);
+  }
+  return {
+    id,
+    name: generateMock(z.string()),
+    kind,
+    description: "attribute description",
+    creationTime: new Date(),
+  };
+};
+
+export const getMockCertifiedAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: "attribute name",
+  name: `${generateMock(z.string())}-${generateId()}`,
+  code: generateId(),
+  origin: generateId(),
   kind,
   description: "attribute description",
   creationTime: new Date(),
@@ -566,6 +592,7 @@ export const getMockAuthData = (
     origin: "IPA",
   },
   selfcareId: generateId(),
+  jti: generateId(),
 });
 
 export const getMockDelegation = ({
@@ -772,8 +799,8 @@ export const getMockPlatformStatesClientEntry = (
 
 export const getMockClientAssertion = async (props?: {
   standardClaimsOverride?: Partial<jose.JWTPayload>;
-  customClaims?: { [k: string]: unknown };
-  customHeader?: { [k: string]: unknown };
+  customClaims?: Record<string, unknown>;
+  customHeader?: Record<string, unknown>;
 }): Promise<{
   jws: string;
   clientAssertion: {
@@ -827,8 +854,8 @@ export const getMockClientAssertion = async (props?: {
 
 export const getMockDPoPProof = async (
   props?: {
-    customPayload?: { [k: string]: unknown };
-    customHeader?: { [k: string]: unknown };
+    customPayload?: Record<string, unknown>;
+    customHeader?: Record<string, unknown>;
   },
   alg: Algorithm = algorithm.ES256
 ): Promise<{
@@ -937,7 +964,7 @@ export const signJWT = async ({
 };
 
 export const addSomeRandomDelegations = async <
-  T extends { eserviceId: EServiceId }
+  T extends { eserviceId: EServiceId },
 >(
   domainObject: T,
   addOneDelegation: (delegation: Delegation) => Promise<void>
@@ -1050,7 +1077,7 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
 };
 
 export const sortAgreement = <
-  T extends Agreement | WithMetadata<Agreement> | undefined
+  T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
   agreement: T
 ): T => {
@@ -1089,7 +1116,7 @@ export const sortAgreement = <
 };
 
 export const sortPurpose = <
-  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined
+  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined,
 >(
   purpose: T
 ): T => {
@@ -1126,7 +1153,7 @@ const sortRiskAnalysisTemplateAnswers = <
     | RiskAnalysisTemplateSingleAnswer
     | RiskAnalysisTemplateSingleAnswerV2
     | RiskAnalysisTemplateMultiAnswer
-    | RiskAnalysisTemplateMultiAnswerV2
+    | RiskAnalysisTemplateMultiAnswerV2,
 >(
   answers: T[]
 ): T[] =>
@@ -1151,7 +1178,7 @@ export const sortPurposeTemplate = <
     | PurposeTemplate
     | PurposeTemplateV2
     | WithMetadata<PurposeTemplate>
-    | undefined
+    | undefined,
 >(
   purposeTemplate: T
 ): T => {
@@ -1211,7 +1238,7 @@ export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
 };
 
 export const sortProducerKeychain = <
-  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined,
 >(
   producerKeychain: T
 ): T => {
@@ -1261,7 +1288,7 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
 });
 
 export const sortAgreements = <
-  T extends Agreement | WithMetadata<Agreement> | undefined
+  T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
   agreements: T[]
 ): T[] => agreements.map(sortAgreement);
@@ -1287,7 +1314,7 @@ export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
 });
 
 export const sortEService = <
-  T extends EService | WithMetadata<EService> | undefined
+  T extends EService | WithMetadata<EService> | undefined,
 >(
   eservice: T
 ): T => {
@@ -1316,6 +1343,7 @@ export const getMockContextInternal = ({
 }): WithLogger<AppContext<InternalAuthData>> => ({
   authData: {
     systemRole: systemRole.INTERNAL_ROLE,
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1331,6 +1359,7 @@ export const getMockContextMaintenance = ({
 }): WithLogger<AppContext<MaintenanceAuthData>> => ({
   authData: {
     systemRole: systemRole.MAINTENANCE_ROLE,
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1349,6 +1378,8 @@ export const getMockContextM2M = ({
   authData: {
     systemRole: systemRole.M2M_ROLE,
     organizationId: organizationId || generateId(),
+    clientId: generateId(),
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1369,6 +1400,7 @@ export const getMockContextM2MAdmin = ({
     organizationId: organizationId || generateId(),
     clientId: generateId(),
     userId: generateId(),
+    jti: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -1378,11 +1410,12 @@ export const getMockContextM2MAdmin = ({
 });
 
 export const getMockSessionClaims = (
-  roles: UserRole[] = [userRole.ADMIN_ROLE]
+  roles: UserRole[] = [userRole.ADMIN_ROLE],
+  organizationId: SelfcareId = generateId()
 ): UIClaims => ({
   uid: generateId(),
   organization: {
-    id: generateId(),
+    id: organizationId,
     name: "My Org",
     roles: roles.map((r) => ({ role: r })),
   },
@@ -1440,7 +1473,8 @@ export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
   userId: generateId(),
   tenantId: generateId(),
   inAppNotificationPreference: generateMock(z.boolean()),
-  emailNotificationPreference: generateMock(EmailNotificationPreference),
+  emailNotificationPreference: generateMock(z.boolean()),
+  emailDigestPreference: generateMock(z.boolean()),
   inAppConfig: getMockNotificationConfig(),
   emailConfig: getMockNotificationConfig(),
   userRoles: [userRole.ADMIN_ROLE],

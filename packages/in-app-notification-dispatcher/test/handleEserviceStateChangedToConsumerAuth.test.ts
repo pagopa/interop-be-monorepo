@@ -203,7 +203,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
           tenantId: consumerId,
           body,
           notificationType: "eserviceStateChangedToConsumer",
-          entityId: testEservice.id,
+          entityId: `${testEservice.id}/${testEservice.descriptors[0].id}`,
         }));
         expect(notifications).toEqual(
           expect.arrayContaining(expectedNotifications)
@@ -278,7 +278,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       tenantId: user.tenantId,
       body,
       notificationType: "eserviceStateChangedToConsumer",
-      entityId: testEservice.id,
+      entityId: `${testEservice.id}/${testEservice.descriptors[0].id}`,
     }));
 
     expect(notifications).toEqual(
@@ -401,7 +401,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       tenantId: user.tenantId,
       body,
       notificationType: "eserviceStateChangedToConsumer",
-      entityId: testEservice.id,
+      entityId: `${testEservice.id}/${testEservice.descriptors[0].id}`,
     }));
 
     expect(notifications).toEqual(
@@ -464,6 +464,8 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     expect(notifications[0].notificationType).toBe(
       "eserviceStateChangedToConsumer"
     );
-    expect(notifications[0].entityId).toBe(testEservice.id);
+    expect(notifications[0].entityId).toBe(
+      `${testEservice.id}/${testEservice.descriptors[0].id}`
+    );
   });
 });

@@ -6,11 +6,10 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
-  FeatureFlagEServicePersonalDataConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EServiceTemplateS3Config = z
+const EServiceTemplateS3Config = z
   .object({
     ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
@@ -19,7 +18,7 @@ export const EServiceTemplateS3Config = z
     eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
     eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
-export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
 
 const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
@@ -40,10 +39,9 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
-  .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagEServicePersonalDataConfig);
+  .and(ApplicationAuditProducerConfig);
 
-export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
+type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
 export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
   process.env

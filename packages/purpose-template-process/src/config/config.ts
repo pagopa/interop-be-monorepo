@@ -29,7 +29,7 @@ const PurposeTemplateProcessConfig = CommonHTTPServiceConfig.and(
   )
   .and(FeatureFlagPurposeTemplateConfig);
 
-export type PurposeTemplateProcessConfig = z.infer<
+type PurposeTemplateProcessConfig = z.infer<
   typeof PurposeTemplateProcessConfig
 >;
 

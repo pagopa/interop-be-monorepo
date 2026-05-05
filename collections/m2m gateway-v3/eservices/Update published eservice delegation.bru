@@ -1,0 +1,28 @@
+meta {
+  name: Update published eservice delegation configurations
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/delegation
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+  {
+    "isConsumerDelegable": true
+  //   "isClientAccessDelegable": false
+  }
+}

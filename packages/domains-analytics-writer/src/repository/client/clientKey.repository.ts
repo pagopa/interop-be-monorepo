@@ -165,5 +165,3 @@ export function clientKeyRepository(conn: DBConnection) {
     },
   };
 }
-
-export type ClientKeyRepository = ReturnType<typeof clientKeyRepository>;

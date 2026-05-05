@@ -26,6 +26,7 @@ import {
   eServiceNotFound,
   eserviceNotInDraftState,
   eserviceTemplateNameConflict,
+  invalidDelegationFlags,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -126,6 +127,10 @@ describe("PUT /eservices/{eServiceId} router test", () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidDelegationFlags(false, true),
       expectedStatus: 400,
     },
   ])(

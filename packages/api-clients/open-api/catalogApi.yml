@@ -501,6 +501,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/instanceLabel/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update eservice instanceLabel
+      operationId: updateEServiceInstanceLabelAfterPublication
+      description: Update instanceLabel of an eservice template instance after publication
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the new instance label
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceLabelUpdateSeed"
+      responses:
+        "200":
+          description: EService instanceLabel updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -942,12 +999,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: E-Service Descriptor activated
@@ -966,6 +1025,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1935,6 +2000,7 @@ paths:
       tags:
         - process
       summary: Enable/disable SignalHub for an e-service
+      description: Enable or disable SignalHub for an e-service
       operationId: updateEServiceSignalHubFlag
       parameters:
         - name: eServiceId
@@ -1948,15 +2014,15 @@ paths:
         description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "200":
           description: EService SignalHub flag updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1964,25 +2030,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/personalDataFlag:
@@ -2021,25 +2087,25 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
@@ -2663,6 +2729,45 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reset personalData flag for an eservice
+      operationId: maintenanceResetEServicePersonalDataFlag
+      description: Resets the personalData flag to undefined for the specified eservice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceResetEServicePersonalDataFlagPayload"
+        required: true
+      responses:
+        "204":
+          description: EService personalData flag reset
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -2789,6 +2894,10 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -3021,6 +3130,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3040,6 +3151,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -3058,6 +3171,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3166,6 +3281,11 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - id
         - explicitAttributeVerification
@@ -3227,6 +3347,8 @@ components:
           type: string
           format: uuid
         name:
+          type: string
+        instanceLabel:
           type: string
         description:
           type: string
@@ -3631,6 +3753,10 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
       required:
         - id
         - explicitAttributeVerification
@@ -3754,6 +3880,18 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+    EServiceInstanceLabelUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
     Problem:
       properties:
         type:
@@ -3794,7 +3932,6 @@ components:
         - type
         - status
         - title
-        - errors
     ProblemError:
       properties:
         code:
@@ -3813,6 +3950,21 @@ components:
       required:
         - code
         - detail
+    MaintenanceResetEServicePersonalDataFlagPayload:
+      description: Maintenance payload to reset personalData flag
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - currentVersion
+        - reason
   securitySchemes:
     bearerAuth:
       type: http

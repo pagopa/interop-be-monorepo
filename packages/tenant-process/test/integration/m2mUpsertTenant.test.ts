@@ -62,13 +62,17 @@ describe("m2mUpsertTenant", async () => {
     vi.useRealTimers();
   });
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
+    const tenantSeed2 = {
+      ...tenantSeed,
+      certifiedAttributes: [{ code: "CODE" }, { code: "CODE2" }],
+    };
     const attribute2: Attribute = {
       name: "an Attribute2",
       id: generateId(),
       kind: "Certified",
       description: "",
       origin: certifierId,
-      code: "CODE",
+      code: "CODE2",
       creationTime: new Date(),
     };
     const mockTenant: Tenant = {
@@ -91,7 +95,7 @@ describe("m2mUpsertTenant", async () => {
 
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.m2mUpsertTenant(
-      tenantSeed,
+      tenantSeed2,
       getMockContextM2M({
         organizationId: mockTenant.id,
       })

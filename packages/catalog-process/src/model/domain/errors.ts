@@ -14,7 +14,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   eServiceDescriptorNotFound: "0001",
   eServiceDescriptorWithoutInterface: "0002",
   notValidDescriptor: "0003",
@@ -39,7 +39,7 @@ export const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
-  invalidEServiceFlags: "0025",
+  invalidDelegationFlags: "0025",
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
@@ -61,6 +61,9 @@ export const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  eserviceInDraftState: "0047",
+  attributeDailyCallsNotAllowed: "0048",
+  certifiedAttributeGroupNotFoundInSeed: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -215,6 +218,16 @@ export function eserviceNotInDraftState(
   });
 }
 
+export function eserviceInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in draft state`,
+    code: "eserviceInDraftState",
+    title: "EService is in draft state",
+  });
+}
+
 export function eserviceNotInReceiveMode(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -357,13 +370,14 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
-export function invalidEServiceFlags(
-  eserviceId: EServiceId
+export function invalidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} flags are not valid`,
-    code: "invalidEServiceFlags",
-    title: "Invalid EService flags",
+    detail: `Invalid delegation flags: isClientAccessDelegable cannot be true when isConsumerDelegable is false (isConsumerDelegable=${isConsumerDelegable}, isClientAccessDelegable=${isClientAccessDelegable})`,
+    code: "invalidDelegationFlags",
+    title: "Invalid delegation flags",
   });
 }
 
@@ -532,5 +546,26 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
   });
 }

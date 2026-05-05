@@ -19,7 +19,9 @@ export const getDelegationsErrorMapper = (
 ): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const getConsumerDelegatorsErrorMapper = getDelegationsErrorMapper;
+/** @alias */
 export const getConsumerDelegatorsWithAgreementsErrorMapper =
   getConsumerDelegatorsErrorMapper;
 export const getConsumerEservicesErrorMapper = (
@@ -45,7 +47,7 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN
@@ -65,7 +67,7 @@ export const createConsumerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -94,6 +96,7 @@ export const approveDelegationErrorMapper = (
     .with("incorrectState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const rejectDelegationErrorMapper = approveDelegationErrorMapper;
 
 export const getDelegationContractErrorMapper = (

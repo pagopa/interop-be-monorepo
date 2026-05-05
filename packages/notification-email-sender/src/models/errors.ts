@@ -50,28 +50,10 @@ export function eServiceNotFound(
   });
 }
 
-export function eserviceAgreementsNotFound(
-  eserviceId: EServiceId
-): NotificationEmailSenderError {
-  return new InternalError({
-    detail: `Agreements not found for eservice ${eserviceId}`,
-    code: "eserviceAgreementsNotFound",
-  });
-}
-
 export function tenantNotFound(tenantId: string): NotificationEmailSenderError {
   return new InternalError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
-  });
-}
-
-export function tenantDigitalAddressNotFound(
-  tenantId: string
-): NotificationEmailSenderError {
-  return new InternalError({
-    detail: `Digital address not found for tenant ${tenantId}`,
-    code: "tenantDigitalAddressNotFound",
   });
 }
 

@@ -21,6 +21,7 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
+  invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
 import {
@@ -146,7 +147,10 @@ describe("create eservice", () => {
       false,
       undefined,
     ]);
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
     const expectedIsClientAccessDelegable = match(isConsumerDelegable)
       .with(false, () => false)
       .with(undefined, () => undefined)
@@ -232,6 +236,28 @@ describe("create eservice", () => {
     expect(descriptorCreationPayload.eservice).toEqual(
       toEServiceV2(expectedEserviceWithDescriptor)
     );
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+
+    await expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+          isSignalHubEnabled,
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: invalidDelegationFlags(false, true).code,
+    });
   });
 
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {

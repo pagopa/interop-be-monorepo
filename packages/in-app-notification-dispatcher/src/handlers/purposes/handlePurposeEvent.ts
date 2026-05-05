@@ -1,17 +1,24 @@
-import { PurposeEventEnvelopeV2, NewNotification } from "pagopa-interop-models";
+import { PurposeEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
+import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
+import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
+import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
-  decodedMessage: PurposeEventEnvelopeV2,
+  decodedMessage: PurposeEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union(
@@ -47,19 +54,46 @@ export async function handlePurposeEvent(
       {
         type: P.union("PurposeVersionActivated", "PurposeVersionRejected"),
       },
-      ({ data: { purpose }, type }) =>
-        handlePurposeActivatedRejectedToConsumer(
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeActivatedRejectedToConsumer(
           purpose,
           logger,
           readModelService,
           type
-        )
+        )),
+        ...(await handlePurposeQuotaAdjustmentResponseToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
     )
     .with(
       {
         type: P.union(
           "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
+          "PurposeWaitingForApproval"
+        ),
+      },
+      async ({ data: { purpose }, type }) => [
+        ...(await handlePurposeQuotaAdjustmentRequestToProducer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+        ...(await handlePurposeOverQuotaToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
+    )
+    .with(
+      {
+        type: P.union(
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
@@ -77,7 +111,7 @@ export async function handlePurposeEvent(
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

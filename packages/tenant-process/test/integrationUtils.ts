@@ -74,9 +74,7 @@ export const readModelService = readModelServiceBuilderSQL(
 
 export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
 
-export const writeTenantInEventstore = async (
-  tenant: Tenant
-): Promise<void> => {
+const writeTenantInEventstore = async (tenant: Tenant): Promise<void> => {
   const tenantEvent: TenantEvent = {
     type: "TenantOnboarded",
     event_version: 2,

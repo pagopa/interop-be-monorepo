@@ -31,6 +31,7 @@ import {
   eserviceNotFound,
   tenantNotFound,
   tenantKindNotFound,
+  purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -128,8 +129,8 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(
         generateId(),
@@ -140,6 +141,10 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
       error: duplicatedPurposeTitle(mockPurpose.title),
+      expectedStatus: 409,
+    },
+    {
+      error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },

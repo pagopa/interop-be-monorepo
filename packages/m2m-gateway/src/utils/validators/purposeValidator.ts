@@ -1,7 +1,8 @@
-import { purposeApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   missingPurposeVersionWithState,
   missingPurposeCurrentVersion,
+  invalidSeedForPurposeFromTemplate,
 } from "../../model/errors.js";
 
 export function assertPurposeVersionExistsWithState(
@@ -20,5 +21,18 @@ export function assertPurposeCurrentVersionExists(
 ): asserts purposeVersion is NonNullable<purposeApi.PurposeVersion> {
   if (!purposeVersion) {
     throw missingPurposeCurrentVersion(purposeId);
+  }
+}
+export function assertSeedPatchPurposeUpdateFromTemplateContent(
+  updateSeed:
+    | m2mGatewayApi.PurposeDraftUpdateSeed
+    | m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed
+): asserts updateSeed is m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed {
+  const result =
+    m2mGatewayApi.PurposeDraftFromTemplateUpdateSeed.safeParse(updateSeed);
+  if (!result.success) {
+    throw invalidSeedForPurposeFromTemplate(
+      result.error.issues.map((i) => i.message)
+    );
   }
 }

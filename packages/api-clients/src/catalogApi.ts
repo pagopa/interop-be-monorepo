@@ -3,6 +3,10 @@ import { QueryParametersByAlias } from "./utils.js";
 
 type CatalogApi = typeof catalogApi.processApi.api;
 
+export type CatalogProcessClient = ReturnType<
+  typeof catalogApi.createProcessApiClient
+>;
+
 export type GetEServicesQueryParams = QueryParametersByAlias<
   CatalogApi,
   "getEServices"

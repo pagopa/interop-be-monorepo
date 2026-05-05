@@ -4,10 +4,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ESErviceTemplateReadModelWriterConfig =
-  ReadModelWriterConfigSQL.and(EServiceTemplateTopicConfig);
+const ESErviceTemplateReadModelWriterConfig = ReadModelWriterConfigSQL.and(
+  EServiceTemplateTopicConfig
+);
 
-export type ESErviceTemplateReadModelWriterConfig = z.infer<
+type ESErviceTemplateReadModelWriterConfig = z.infer<
   typeof ESErviceTemplateReadModelWriterConfig
 >;
 

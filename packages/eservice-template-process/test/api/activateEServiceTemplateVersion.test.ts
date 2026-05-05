@@ -87,7 +87,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/activate",
         mockEserviceTemplate.versions[0].id,
         eserviceTemplateVersionState.draft
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

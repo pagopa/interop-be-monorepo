@@ -63,7 +63,3 @@ export function purposeVersionDocumentRepo(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeVersionDocumentRepo = ReturnType<
-  typeof purposeVersionDocumentRepo
->;

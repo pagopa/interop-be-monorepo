@@ -64,7 +64,3 @@ export function producerKeychainKeyRepository(conn: DBConnection) {
     },
   };
 }
-
-export type ProducerKeychainKeyRepository = ReturnType<
-  typeof producerKeychainKeyRepository
->;

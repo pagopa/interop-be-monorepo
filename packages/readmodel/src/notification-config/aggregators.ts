@@ -1,5 +1,4 @@
 import {
-  EmailNotificationPreference,
   NotificationConfig,
   NotificationType,
   stringToDate,
@@ -56,6 +55,7 @@ export const aggregateUserNotificationConfig = ({
     userRoles: userRolesSQL,
     inAppNotificationPreference,
     emailNotificationPreference,
+    emailDigestPreference,
     createdAt,
     updatedAt,
     ...rest
@@ -133,10 +133,20 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledInAppNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
     producerKeychainKeyAddedDeletedToClientUsers:
       enabledInAppNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
       ),
+    purposeQuotaAdjustmentRequestToProducer: enabledInAppNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
+    ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -201,10 +211,20 @@ export const aggregateUserNotificationConfig = ({
     clientKeyAddedDeletedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyAddedDeletedToClientUsers"
     ),
+    clientKeyConsumerAddedDeletedToClientUsers:
+      enabledEmailNotifications.includes(
+        "clientKeyConsumerAddedDeletedToClientUsers"
+      ),
     producerKeychainKeyAddedDeletedToClientUsers:
       enabledEmailNotifications.includes(
         "producerKeychainKeyAddedDeletedToClientUsers"
       ),
+    purposeQuotaAdjustmentRequestToProducer: enabledEmailNotifications.includes(
+      "purposeQuotaAdjustmentRequestToProducer"
+    ),
+    purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
+      "purposeOverQuotaStateToConsumer"
+    ),
   };
 
   return {
@@ -214,9 +234,8 @@ export const aggregateUserNotificationConfig = ({
       tenantId: unsafeBrandId(tenantId),
       userRoles,
       inAppNotificationPreference,
-      emailNotificationPreference: EmailNotificationPreference.parse(
-        emailNotificationPreference
-      ),
+      emailNotificationPreference,
+      emailDigestPreference,
       inAppConfig,
       emailConfig,
       createdAt: stringToDate(createdAt),

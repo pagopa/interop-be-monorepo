@@ -46,7 +46,7 @@ export const PartialDbTable = {
   ...CatalogDbPartialTableConfig,
   ...ClientDbTablePartialTableConfig,
 } as const;
-export type PartialDbTableSchemas = typeof PartialDbTable;
+type PartialDbTableSchemas = typeof PartialDbTable;
 export type PartialDbTable = keyof PartialDbTableSchemas;
 
 export const DomainDbTable = {
@@ -69,10 +69,10 @@ export const DbTable = {
   ...PartialDbTable,
   ...DeletingDbTableConfig,
 } as const;
-export type DbTableSchemas = typeof DbTable;
+type DbTableSchemas = typeof DbTable;
 export type DbTable = keyof DbTableSchemas;
 
-export const DomainDbTableReadModels = {
+const DomainDbTableReadModels = {
   ...AttributeDbTableReadModel,
   ...CatalogDbTableReadModel,
   ...AgreementDbTableReadModel,
@@ -84,14 +84,14 @@ export const DomainDbTableReadModels = {
   ...EserviceTemplateDbTableReadModel,
   ...PurposeTemplateDbTableReadModel,
 } as const;
-export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
+type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
-export const PartialDbTableReadModels = {
+const PartialDbTableReadModels = {
   ...TenantDbPartialTableReadModel,
   ...CatalogDbPartialTableReadModel,
   ...ClientDbTablePartialTableReadModel,
 } as const;
-export type PartialDbTableReadModels = typeof PartialDbTableReadModels;
+type PartialDbTableReadModels = typeof PartialDbTableReadModels;
 
 export const DbTableReadModels = {
   ...DomainDbTableReadModels,

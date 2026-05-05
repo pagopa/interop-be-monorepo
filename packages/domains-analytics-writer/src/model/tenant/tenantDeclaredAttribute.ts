@@ -10,13 +10,3 @@ export const TenantDeclaredAttributeSchema = createSelectSchema(
 export type TenantDeclaredAttributeSchema = z.infer<
   typeof TenantDeclaredAttributeSchema
 >;
-
-export const TenantDeclaredAttributeDeletingSchema =
-  TenantDeclaredAttributeSchema.pick({
-    attributeId: true,
-    tenantId: true,
-    deleted: true,
-  });
-export type TenantDeclaredAttributeDeletingSchema = z.infer<
-  typeof TenantDeclaredAttributeDeletingSchema
->;

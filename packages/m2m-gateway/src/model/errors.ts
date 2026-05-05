@@ -19,7 +19,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   clientAdminIdNotFound: "0004",
@@ -56,6 +56,9 @@ export const errorCodes = {
   eserviceDescriptorAttributeGroupNotFound: "0036",
   eserviceTemplateVersionAttributeGroupNotFound: "0037",
   purposeTemplateRiskAnalysisFormNotFound: "0038",
+  invalidSeedForPurposeFromTemplate: "0039",
+  purposeVersionDocumentNotReady: "0040",
+  clientNotFound: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -237,6 +240,17 @@ export function purposeVersionDocumentNotFound(
   });
 }
 
+export function purposeVersionDocumentNotReady(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} is not ready yet`,
+    code: "purposeVersionDocumentNotReady",
+    title: "Purpose version document not ready",
+  });
+}
+
 export function unexpectedClientKind(
   client: authorizationApi.Client
 ): ApiError<ErrorCodes> {
@@ -244,6 +258,15 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+export function clientNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
 
@@ -422,5 +445,17 @@ export function purposeTemplateRiskAnalysisFormNotFound(
     detail: `No Risk Analysis Template Form found for Purpose Template ${purposeTemplateId}`,
     code: "purposeTemplateRiskAnalysisFormNotFound",
     title: "Purpose Template Risk Analysis Form Not Found",
+  });
+}
+
+export function invalidSeedForPurposeFromTemplate(
+  parsingErrors: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid seed to update Purpose created from Purpose Template: ${parsingErrors.join(
+      ", "
+    )}`,
+    code: "invalidSeedForPurposeFromTemplate",
+    title: "Invalid seed for purpose from template",
   });
 }

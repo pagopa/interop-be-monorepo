@@ -31,6 +31,7 @@ import {
   producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
@@ -57,22 +58,20 @@ export const { cleanup, postgresDB, readModelDB } =
 
 afterEach(cleanup);
 
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
-export const catalogReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
-export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
-export const producerKeychainReadModelServiceSQL =
+const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
-export const delegationReadModelServiceSQL =
+const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-export const clientJWKKeyReadModelServiceSQL =
+const clientJWKKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
-export const producerJWKKeyReadModelServiceSQL =
+const producerJWKKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -84,6 +83,7 @@ export const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   clientJWKKeyReadModelServiceSQL,
   producerJWKKeyReadModelServiceSQL,
+  tenantReadModelServiceSQL,
 });
 
 export const selfcareV2Client: SelfcareV2InstitutionClient =
@@ -95,9 +95,7 @@ export const authorizationService = authorizationServiceBuilder(
   selfcareV2Client
 );
 
-export const writeClientInEventstore = async (
-  client: Client
-): Promise<void> => {
+const writeClientInEventstore = async (client: Client): Promise<void> => {
   const authorizationEvent: AuthorizationEvent = {
     type: "ClientAdded",
     event_version: 2,
@@ -138,7 +136,7 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await upsertAgreement(readModelDB, agreement, 0);
 };
 
-export const writeProducerKeychainInEventstore = async (
+const writeProducerKeychainInEventstore = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
   const authorizationEvent: AuthorizationEvent = {

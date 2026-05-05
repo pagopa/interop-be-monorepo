@@ -42,13 +42,13 @@ import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
 import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
 
-export type DBConnection = IConnected<unknown, IClient>;
+type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
   conn: DBConnection;
   pgp: IMain;
 };
 
-export async function getManyFromDb<T extends DomainDbTable>(
+async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T
   // where: Partial<z.infer<DomainDbTableSchemas[T]>>

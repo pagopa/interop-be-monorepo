@@ -66,18 +66,21 @@ describe("fromApiCompactTenant API converter", () => {
                 apiCompactTenant.attributes[2].verified!.verifiedBy[0].id
               ),
               verificationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.verifiedBy[0].verificationDate
+                apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                  .verificationDate
               ),
               expirationDate: apiCompactTenant.attributes[2].verified!
                 .verifiedBy[0].expirationDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.verifiedBy[0].expirationDate
+                    apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                      .expirationDate
                   )
                 : undefined,
               extensionDate: apiCompactTenant.attributes[2].verified!
                 .verifiedBy[0].extensionDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.verifiedBy[0].extensionDate
+                    apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                      .extensionDate
                   )
                 : undefined,
             },
@@ -88,21 +91,25 @@ describe("fromApiCompactTenant API converter", () => {
                 apiCompactTenant.attributes[2].verified!.revokedBy[0].id
               ),
               verificationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.revokedBy[0].verificationDate
+                apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                  .verificationDate
               ),
               revocationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.revokedBy[0].revocationDate
+                apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                  .revocationDate
               ),
               expirationDate: apiCompactTenant.attributes[2].verified!
                 .revokedBy[0].expirationDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.revokedBy[0].expirationDate
+                    apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                      .expirationDate
                   )
                 : undefined,
               extensionDate: apiCompactTenant.attributes[2].verified!
                 .revokedBy[0].extensionDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.revokedBy[0].extensionDate
+                    apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                      .extensionDate
                   )
                 : undefined,
             },

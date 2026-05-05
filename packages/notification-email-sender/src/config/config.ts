@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const SESEmailSenderConfig = z
+const SESEmailSenderConfig = z
   .object({
     INTEROP_FE_BASE_URL: z.string(),
     SENDER_MAIL: z.string().email(),
@@ -19,9 +19,9 @@ export const SESEmailSenderConfig = z
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
   }));
-export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
+type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
-export const NotificationEmailSenderRedisConfig = z
+const NotificationEmailSenderRedisConfig = z
   .object({
     REDIS_NOTIFICATION_EMAIL_SENDER_HOST: z.string(),
     REDIS_NOTIFICATION_EMAIL_SENDER_PORT: z.coerce.number().min(1001),
@@ -34,7 +34,7 @@ export const NotificationEmailSenderRedisConfig = z
       c.REDIS_NOTIFICATION_EMAIL_SENDER_TTL_SECONDS,
   }));
 
-export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
+const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(AgreementTopicConfig)
@@ -44,7 +44,7 @@ export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   .and(CatalogTopicConfig)
   .and(NotificationEmailSenderRedisConfig);
 
-export type NotificationEmailSenderConfig = z.infer<
+type NotificationEmailSenderConfig = z.infer<
   typeof NotificationEmailSenderConfig
 >;
 

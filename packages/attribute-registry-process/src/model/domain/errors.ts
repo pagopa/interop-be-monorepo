@@ -4,7 +4,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   attributeNotFound: "0001",
   attributeDuplicate: "0002",
   originNotCompliant: "0003",
@@ -34,14 +34,15 @@ export function attributeDuplicateByName(
   });
 }
 
-export function attributeDuplicateByNameAndCode(
+export function attributeDuplicateByCodeOriginOrName(
   attributeName: string,
-  attributeCode: string
+  attributeCode: string,
+  attributeOrigin: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An attribute with name ${attributeName} and code ${attributeCode} already exists`,
+    detail: `An attribute with name ${attributeName} or code ${attributeCode} and origin ${attributeOrigin} already exists`,
     code: "attributeDuplicate",
-    title: "Duplicate attribute name and code",
+    title: "Duplicate attribute name or code",
   });
 }
 

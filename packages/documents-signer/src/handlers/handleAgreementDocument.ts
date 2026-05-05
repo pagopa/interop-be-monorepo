@@ -28,6 +28,9 @@ export async function handleAgreementDocument(
       }
       if (msg.data.agreement.contract) {
         const s3Key = msg.data.agreement.contract.path;
+
+        logger.info(`Processing and signing agreement file with key: ${s3Key}`);
+
         const file: Uint8Array = await fileManager.get(
           config.s3Bucket,
           s3Key,
@@ -36,39 +39,47 @@ export async function handleAgreementDocument(
 
         const fileName = path.basename(s3Key);
         const checksum = await calculateSha256Base64(Buffer.from(file));
+        const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
-          contentType: "application/pdf",
+          contentType,
           documentType: config.safeStorageDocType,
           status: config.safeStorageDocStatus,
           checksumValue: checksum,
         };
 
         const { uploadUrl, secret, key } = await safeStorageService.createFile(
-          safeStorageRequest
+          safeStorageRequest,
+          logger
         );
+
+        logger.info(`Created file on safe storage with key: ${key}`);
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
           Buffer.from(file),
-          "application/pdf",
+          contentType,
           secret,
-          checksum
+          checksum,
+          logger
         );
 
-        await signatureService.saveDocumentSignatureReference({
-          safeStorageId: key,
-          fileKind: "AGREEMENT_CONTRACT",
-          streamId: msg.data.agreement.id,
-          subObjectId: "",
-          contentType: "application/pdf",
-          path: msg.data.agreement.contract.path,
-          prettyname: msg.data.agreement.contract.prettyName,
-          fileName,
-          version: msg.event_version,
-          correlationId: msg.correlation_id ?? "",
-          createdAt: msg.data.agreement.createdAt,
-        });
+        await signatureService.saveDocumentSignatureReference(
+          {
+            safeStorageId: key,
+            fileKind: "AGREEMENT_CONTRACT",
+            streamId: msg.data.agreement.id,
+            subObjectId: "",
+            contentType,
+            path: msg.data.agreement.contract.path,
+            prettyname: msg.data.agreement.contract.prettyName,
+            fileName,
+            version: msg.event_version,
+            correlationId: msg.correlation_id ?? "",
+            createdAt: msg.data.agreement.createdAt,
+          },
+          logger
+        );
       }
     })
     .with(

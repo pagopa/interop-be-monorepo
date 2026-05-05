@@ -8,7 +8,7 @@ import { z } from "zod";
 const KpiDomainsReadModelCheckerConfig =
   LoggerConfig.and(ReadModelSQLDbConfig).and(AnalyticsSQLDbConfig);
 
-export type KpiDomainsReadModelCheckerConfig = z.infer<
+type KpiDomainsReadModelCheckerConfig = z.infer<
   typeof KpiDomainsReadModelCheckerConfig
 >;
 

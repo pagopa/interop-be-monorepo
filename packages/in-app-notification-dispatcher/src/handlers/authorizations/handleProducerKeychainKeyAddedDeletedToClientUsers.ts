@@ -7,7 +7,6 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { getNotificationRecipients } from "../handlerCommons.js";
 
@@ -31,7 +30,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   }
 
   logger.info(
-    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers ${decodedMessage.data.producerKeychain.id} eventType ${decodedMessage.type}`
+    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${decodedMessage.data.producerKeychain.id}, eventType: ${decodedMessage.type}`
   );
 
   const producerKeychain = fromProducerKeychainV2(
@@ -45,32 +44,27 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for producerKeychainKeyAddedDeletedToClientUsers message`
+      `No users with notifications enabled for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${producerKeychain.id}, eventType: ${decodedMessage.type}`
     );
     return [];
   }
 
   return match(decodedMessage)
-    .with({ type: "ProducerKeychainKeyDeleted" }, ({ data: { kid } }) => {
-      const key = producerKeychain.keys.find((key) => key.kid === kid);
-      if (!key) {
-        throw producerKeychainKeyNotFound(producerKeychain.id, kid);
-      }
-
-      return usersWithNotifications
-        .filter(({ userId }) => userId !== key.userId) // Send to all other users
+    .with({ type: "ProducerKeychainKeyDeleted" }, ({ data: { kid } }) =>
+      usersWithNotifications
+        .filter(({ userId }) => producerKeychain.users.includes(userId)) // Send to remaining users
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,
           body: inAppTemplates.producerKeychainKeyDeletedToClientUsers(
             producerKeychain.name,
-            key.userId
+            kid
           ),
           notificationType:
             "producerKeychainKeyAddedDeletedToClientUsers" as const,
           entityId: producerKeychain.id,
-        }));
-    })
+        }))
+    )
     .with({ type: "ProducerKeychainKeyAdded" }, () =>
       usersWithNotifications.map(({ userId, tenantId }) => ({
         userId,

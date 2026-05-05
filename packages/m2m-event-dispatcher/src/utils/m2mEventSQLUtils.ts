@@ -30,7 +30,7 @@ export async function isResourceVersionPresent<
     | typeof producerKeychainInM2MEvent
     | typeof producerKeyInM2MEvent
     | typeof keyInM2MEvent
-    | typeof tenantInM2MEvent
+    | typeof tenantInM2MEvent,
 >(
   tx: DrizzleTransactionType,
   resourceVersion: number,

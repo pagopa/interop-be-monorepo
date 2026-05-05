@@ -11,7 +11,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { unexpectedClientKind } from "../../../src/model/errors.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
 describe("GET /clients/:clientId route test", () => {
@@ -105,15 +105,13 @@ describe("GET /clients/:clientId route test", () => {
     }
   );
 
-  it("Should return 500 in case of unexpectedClientKind error", async () => {
+  it("Should return 404 in case of clientNotFound error", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockRejectedValue(
-        unexpectedClientKind(getMockedApiConsumerFullClient())
-      );
+      .mockRejectedValue(clientNotFound(getMockedApiConsumerFullClient()));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(404);
   });
 });

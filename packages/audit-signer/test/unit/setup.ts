@@ -54,9 +54,8 @@ vi.mock("pagopa-interop-models", async (importOriginal) => {
 });
 
 vi.mock("pagopa-interop-commons", async (importOriginal) => {
-  const actual = await importOriginal<
-    typeof import("pagopa-interop-commons")
-  >();
+  const actual =
+    await importOriginal<typeof import("pagopa-interop-commons")>();
   return { ...actual, logger: vi.fn(() => mockLoggerInstance) };
 });
 

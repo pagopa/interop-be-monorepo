@@ -4,7 +4,6 @@ import {
   Attribute,
   AttributeAddedV1,
   AttributeEventEnvelope,
-  MaintenanceAttributeDeletedV1,
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
@@ -15,9 +14,7 @@ describe("database test", async () => {
   describe("Events V1", () => {
     it("AttributeAdded - certified", async () => {
       const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.certified,
-        code: "123456",
+        ...getMockAttribute(attributeKind.certified),
         origin: "certifier-id",
       };
       const payload: AttributeAddedV1 = {
@@ -43,10 +40,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - declared", async () => {
-      const declaredAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.declared,
-      };
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(declaredAttribute),
       };
@@ -69,10 +63,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - verified", async () => {
-      const verifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.verified,
-      };
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(verifiedAttribute),
       };
@@ -92,33 +83,6 @@ describe("database test", async () => {
 
       expect(retrievedAttribute?.data).toStrictEqual(verifiedAttribute);
       expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
-    });
-
-    it("AttributeDeleted", async () => {
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.verified,
-      };
-      await attributeWriterService.upsertAttribute(certifiedAttribute, 0);
-
-      const payload: MaintenanceAttributeDeletedV1 = {
-        id: certifiedAttribute.id,
-      };
-      const message: AttributeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: certifiedAttribute.id,
-        version: 1,
-        type: "MaintenanceAttributeDeleted",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessage(message, attributeWriterService);
-
-      const retrievedAttribute =
-        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
-
-      expect(retrievedAttribute).toBeUndefined();
     });
   });
 });

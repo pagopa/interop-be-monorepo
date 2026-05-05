@@ -34,7 +34,3 @@ export function emailNotificationDispatcherServiceBuilder() {
     },
   };
 }
-
-export type NotificationEmailSenderService = ReturnType<
-  typeof emailNotificationDispatcherServiceBuilder
->;

@@ -105,7 +105,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 export function generateMergeDeleteQuery<
   TargetTable extends DomainDbTable,
   StagingTable extends DeletingDbTable,
-  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>,
 >(
   schemaName: string,
   targetTableName: TargetTable,
@@ -163,7 +163,7 @@ export function generateMergeDeleteQuery<
 export async function mergeDeletingCascadeById<
   TargetTable extends ReadonlyArray<DomainDbTable>,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
 >(
   t: ITask<unknown>,
   id: DeleteKey,
@@ -186,7 +186,6 @@ export async function mergeDeletingCascadeById<
   }
 }
 
-export type ColumnValue = string | number | Date | undefined | null | boolean;
 const sanitizeColumnValue = (s: string): string => s.replace(/\\$/, "\\\\");
 
 /**
@@ -241,7 +240,7 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
-  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>,
 >(
   tableName: T,
   keyConditions: ColumnKeys[],
@@ -304,7 +303,7 @@ export function generateStagingDeleteQuery<
 export async function cleaningTargetTables<
   TargetTable extends ReadonlyArray<DomainDbTable>,
   StagingTable extends DomainDbTable | DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
 >(
   t: ITask<unknown>,
   id: DeleteKey,

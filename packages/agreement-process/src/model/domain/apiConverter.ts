@@ -19,7 +19,7 @@ import {
 import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 
-export function agreementStateToApiAgreementState(
+function agreementStateToApiAgreementState(
   input: AgreementState
 ): agreementApi.AgreementState {
   return match<AgreementState, agreementApi.AgreementState>(input)
@@ -64,6 +64,21 @@ export const agreementDocumentToApiAgreementDocument = (
   createdAt: input.createdAt?.toJSON(),
 });
 
+<<<<<<< fix/revert-wrong-changes-api-converters
+=======
+const agreementSignedDocumentToApiAgreementSignedDocument = (
+  input: AgreementSignedContract
+): agreementApi.SignedDocument => ({
+  id: input.id,
+  name: input.name,
+  prettyName: input.prettyName,
+  contentType: input.contentType,
+  path: input.path,
+  createdAt: input.createdAt?.toJSON(),
+  signedAt: input.signedAt?.toJSON(),
+});
+
+>>>>>>> main
 export const agreementToApiAgreement = (
   agreement: Agreement
 ): agreementApi.Agreement => ({
@@ -147,7 +162,7 @@ function fromApiTenantRevoker(
   };
 }
 
-export const fromApiTenantAttribute = (
+const fromApiTenantAttribute = (
   input: agreementApi.TenantAttribute
 ): TenantAttribute =>
   match(input)
@@ -211,7 +226,7 @@ export const fromApiCompactTenant = (
   attributes: input.attributes.map(fromApiTenantAttribute),
 });
 
-export const agreementStampToApiAgreementStamp = (
+const agreementStampToApiAgreementStamp = (
   input: AgreementStamp
 ): agreementApi.AgreementStamp => ({
   who: input.who,
@@ -219,7 +234,7 @@ export const agreementStampToApiAgreementStamp = (
   when: input.when.toJSON(),
 });
 
-export const agreementStampsToApiAgreementStamps = (
+const agreementStampsToApiAgreementStamps = (
   input: AgreementStamps
 ): agreementApi.AgreementStamps => ({
   submission: input.submission

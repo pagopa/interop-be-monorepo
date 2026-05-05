@@ -811,6 +811,28 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEService(polledResource.data);
     },
 
+    async updateEServicePersonalDataFlag(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApi.EServicePersonalDataFlagUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EService> {
+      logger.info(
+        `Setting personalData flag for E-Service with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServicePersonalDataFlagAfterPublication(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

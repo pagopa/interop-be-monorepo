@@ -121,7 +121,11 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
   });
 
   it("should generate no messages when attribute has no origin", async () => {
-    const attributeWithNoOrigin: Attribute = getMockAttribute("Certified");
+    const attributeWithNoOrigin: Attribute = {
+      ...getMockAttribute("Certified"),
+      origin: undefined,
+      code: undefined,
+    };
     await addOneAttribute(attributeWithNoOrigin);
 
     const messages = await handleTenantCertifiedAttributeAssigned({

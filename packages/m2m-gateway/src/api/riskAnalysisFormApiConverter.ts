@@ -17,7 +17,7 @@ export function toM2MGatewayApiRiskAnalysisForm(
   };
 }
 
-export function toM2MGatewayApiRiskAnalysisAnswers(
+function toM2MGatewayApiRiskAnalysisAnswers(
   singleAnswers: eserviceTemplateApi.EServiceRiskAnalysisSingleAnswer[],
   multiAnswers: eserviceTemplateApi.EServiceRiskAnalysisMultiAnswer[]
 ): Record<string, string[]> {

@@ -414,18 +414,28 @@ export function agreementServiceBuilder(
         path: storagePath,
       };
 
-      const { data: document, metadata } =
-        await clients.agreementProcessClient.addAgreementConsumerDocument(
-          documentSeed,
-          {
-            params: { agreementId },
-            headers,
-          }
+      // eslint-disable-next-line functional/no-let
+      let result;
+
+      try {
+        result =
+          await clients.agreementProcessClient.addAgreementConsumerDocument(
+            documentSeed,
+            {
+              params: { agreementId },
+              headers,
+            }
+          );
+      } catch (error) {
+        await fileManager.delete(
+          config.agreementConsumerDocumentsContainer,
+          storagePath,
+          logger
         );
-
-      await pollAgreementById(agreementId, metadata, headers);
-
-      return toM2MGatewayApiDocument(document);
+        throw error;
+      }
+      await pollAgreementById(agreementId, result.metadata, headers);
+      return toM2MGatewayApiDocument(result.data);
     },
     async downloadAgreementConsumerDocument(
       agreementId: AgreementId,

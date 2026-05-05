@@ -17,6 +17,7 @@ import {
   TenantHandlerParams,
 } from "../handlerCommons.js";
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";
@@ -66,7 +67,7 @@ export async function handleTenantCertifiedAttributeRevoked(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Tenant ${tenant.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleTenantCertifiedAttributeRevoked - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -87,6 +88,8 @@ export async function handleTenantCertifiedAttributeRevoked(
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
         certifierName,
         attributeName: attribute.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

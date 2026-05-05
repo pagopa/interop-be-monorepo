@@ -52,7 +52,7 @@ export const attributeRegistryService = attributeRegistryServiceBuilder(
   readModelService
 );
 
-export const writeAttributeInEventstore = async (
+const writeAttributeInEventstore = async (
   attribute: Attribute
 ): Promise<void> => {
   const attributeEvent: AttributeEvent = {

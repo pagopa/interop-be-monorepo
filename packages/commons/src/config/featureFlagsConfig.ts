@@ -63,21 +63,6 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
-export const FeatureFlagNotificationConfig = z
-  .object({
-    FEATURE_FLAG_NOTIFICATION_CONFIG: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagNotificationConfig: c.FEATURE_FLAG_NOTIFICATION_CONFIG ?? false,
-  }));
-export type FeatureFlagNotificationConfig = z.infer<
-  typeof FeatureFlagNotificationConfig
->;
-
 export const FeatureFlagPurposeTemplateConfig = z
   .object({
     FEATURE_FLAG_PURPOSE_TEMPLATE: z
@@ -93,27 +78,11 @@ export type FeatureFlagPurposeTemplateConfig = z.infer<
   typeof FeatureFlagPurposeTemplateConfig
 >;
 
-export const FeatureFlagEServicePersonalDataConfig = z
-  .object({
-    FEATURE_FLAG_ESERVICE_PERSONAL_DATA: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagEservicePersonalData:
-      c.FEATURE_FLAG_ESERVICE_PERSONAL_DATA ?? false,
-  }));
-export type FeatureFlagEServicePersonalDataConfig = z.infer<
-  typeof FeatureFlagEServicePersonalDataConfig
->;
-
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -129,7 +98,7 @@ export const FeatureFlagAgreementsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_AGREEMENTS_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -145,7 +114,7 @@ export const FeatureFlagPurposesProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_PURPOSES_CONTRACT_BUILDER: z
       .enum(["true", "false"])
-      .default("false")
+      .default("true")
       .transform((value) => value === "true")
       .optional(),
   })
@@ -157,16 +126,47 @@ export type FeatureFlagPurposesProcessContractBuilderConfig = z.infer<
   typeof FeatureFlagPurposesProcessContractBuilderConfig
 >;
 
+export const FeatureFlagDelegationConstraintSkipConfig = z
+  .object({
+    FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagDelegationConstraintSkip:
+      c.FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP ?? false,
+  }));
+export type FeatureFlagDelegationConstraintSkipConfig = z.infer<
+  typeof FeatureFlagDelegationConstraintSkipConfig
+>;
+
+export const FeatureFlagUseSignedDocumentConfig = z
+  .object({
+    FEATURE_FLAG_USE_SIGNED_DOCUMENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagUseSignedDocument: c.FEATURE_FLAG_USE_SIGNED_DOCUMENT ?? false,
+  }));
+export type FeatureFlagUseSignedDocumentConfig = z.infer<
+  typeof FeatureFlagUseSignedDocumentConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagNotificationConfig &
   FeatureFlagPurposeTemplateConfig &
-  FeatureFlagEServicePersonalDataConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
-  FeatureFlagPurposesProcessContractBuilderConfig;
+  FeatureFlagPurposesProcessContractBuilderConfig &
+  FeatureFlagUseSignedDocumentConfig &
+  FeatureFlagDelegationConstraintSkipConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

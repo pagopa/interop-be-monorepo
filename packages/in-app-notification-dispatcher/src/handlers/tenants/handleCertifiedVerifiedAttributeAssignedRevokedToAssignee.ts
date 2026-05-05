@@ -41,7 +41,7 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
     throw missingKafkaMessageDataError("tenant", eventType);
   }
   logger.info(
-    `Handle certified/verified attribute assigned/revoked in-app notification for ${eventType} tenant ${tenantV2Msg.id}`
+    `Sending in-app notification for handleCertifiedVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenantV2Msg.id}, eventType: ${eventType}`
   );
 
   const tenant = fromTenantV2(tenantV2Msg);
@@ -55,7 +55,7 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${eventType} tenant ${tenant.id}`
+      `No users with notifications enabled for handleCertifiedVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenant.id}, eventType: ${eventType}`
     );
     return [];
   }

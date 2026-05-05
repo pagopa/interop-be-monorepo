@@ -53,7 +53,7 @@ export function generateM2MEventId<
     | ClientM2MEventId
     | ProducerKeychainM2MEventId
     | TenantM2MEventId
-    | EServiceTemplateM2MEventId
+    | EServiceTemplateM2MEventId,
 >(): ID {
   return unsafeBrandId<ID>(uuidv7());
 }

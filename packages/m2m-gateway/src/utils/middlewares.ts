@@ -15,7 +15,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
-export async function validateM2MAdminUserId(
+async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
   clientService: M2MGatewayServices["clientService"],
   headers: M2MGatewayAppContext["headers"],

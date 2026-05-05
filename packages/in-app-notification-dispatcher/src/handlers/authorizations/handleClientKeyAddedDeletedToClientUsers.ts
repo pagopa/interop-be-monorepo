@@ -2,12 +2,13 @@ import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   missingKafkaMessageDataError,
+  clientKind,
+  NotificationType,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { clientKeyNotFound } from "../../models/errors.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import { getNotificationRecipients } from "../handlerCommons.js";
 
@@ -31,50 +32,49 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   }
 
   logger.info(
-    `Sending in-app notification for handleClientKeyAddedDeletedToClientUsers ${decodedMessage.data.client.id} eventType ${decodedMessage.type}`
+    `Sending in-app notification for handleClientKeyAddedDeletedToClientUsers - entityId: ${decodedMessage.data.client.id}, eventType: ${decodedMessage.type}`
   );
 
   const client = fromClientV2(decodedMessage.data.client);
+  const notificationType: NotificationType = match(client.kind)
+    .with(
+      clientKind.consumer,
+      () => "clientKeyConsumerAddedDeletedToClientUsers" as const
+    )
+    .with(clientKind.api, () => "clientKeyAddedDeletedToClientUsers" as const)
+    .exhaustive();
 
   const usersWithNotifications = await getNotificationRecipients(
     [client.consumerId],
-    "clientKeyAddedDeletedToClientUsers",
+    notificationType,
     readModelService,
     logger
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for clientKeyAddedDeletedToClientUsers message`
+      `No users with notifications enabled for handleClientKeyAddedDeletedToClientUsers - entityId: ${client.id}, eventType: ${decodedMessage.type}`
     );
     return [];
   }
 
   return match(decodedMessage)
-    .with({ type: "ClientKeyDeleted" }, ({ data: { kid } }) => {
-      const key = client.keys.find((key) => key.kid === kid);
-      if (!key) {
-        throw clientKeyNotFound(client.id, kid);
-      }
-
-      return usersWithNotifications
-        .filter(({ userId }) => userId !== key.userId) // Send to all other users
+    .with({ type: "ClientKeyDeleted" }, ({ data: { kid } }) =>
+      usersWithNotifications
+        .filter(({ userId }) => client.users.includes(userId)) // Send to all other users
         .map(({ userId, tenantId }) => ({
           userId,
           tenantId,
-          body: inAppTemplates.clientKeyDeletedToClientUsers(
-            client.name,
-            key.userId
-          ),
-          notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+          body: inAppTemplates.clientKeyDeletedToClientUsers(client.name, kid),
+          notificationType,
           entityId: client.id,
-        }));
-    })
+        }))
+    )
     .with({ type: "ClientKeyAdded" }, () =>
       usersWithNotifications.map(({ userId, tenantId }) => ({
         userId,
         tenantId,
         body: inAppTemplates.clientKeyAddedToClientUsers(client.name),
-        notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+        notificationType,
         entityId: client.id,
       }))
     )
@@ -85,7 +85,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
           userId,
           tenantId,
           body: inAppTemplates.clientUserDeletedToClientUsers(client.name),
-          notificationType: "clientKeyAddedDeletedToClientUsers" as const,
+          notificationType,
           entityId: client.id,
         }))
     )

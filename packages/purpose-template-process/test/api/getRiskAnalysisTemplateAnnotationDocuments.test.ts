@@ -13,10 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import { annotationDocumentToApiAnnotationDocumentWithAnswerId } from "../../src/model/domain/apiConverter.js";
-import {
-  purposeTemplateNotFound,
-  tenantNotAllowed,
-} from "../../src/model/domain/errors.js";
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", () => {
   const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();
@@ -112,23 +109,15 @@ describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", 
     expect(res.status).toBe(403);
   });
 
-  it.each([
-    { error: purposeTemplateNotFound(generateId()), expectedStatus: 404 },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
-    },
-  ])(
-    "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
-      purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ROLE);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(expectedStatus);
-    }
-  );
+  it("Should return 404 when purpose template is not found", async () => {
+    const error = purposeTemplateNotFound(generateId());
+    purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
 
   it.each([
     {

@@ -15,7 +15,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -40,11 +40,6 @@ export async function handleProducerKeychainKeyDeleted(
   }
 
   const producerKeychain = fromProducerKeychainV2(producerKeychainV2Msg);
-  const key = producerKeychain.keys.find((key) => key.kid === kid);
-
-  if (!key) {
-    throw producerKeychainKeyNotFound(producerKeychain.id, kid);
-  }
 
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
@@ -61,11 +56,14 @@ export async function handleProducerKeychainKeyDeleted(
       logger,
       includeTenantContactEmails: false,
     })
-  ).filter((target) => target.type !== "User" || target.userId !== key.userId);
+  ).filter(
+    (target) =>
+      target.type !== "User" || producerKeychain.users.includes(target.userId)
+  );
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. ProducerKeychain ${producerKeychain.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainKeyDeleted - entityId: ${producerKeychain.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -79,8 +77,10 @@ export async function handleProducerKeychainKeyDeleted(
         notificationType,
         entityId: producerKeychain.id,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        userName: key.userId,
+        keyId: kid,
         producerKeychainName: producerKeychain.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

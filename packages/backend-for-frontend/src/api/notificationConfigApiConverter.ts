@@ -16,6 +16,7 @@ export function toBffApiUserNotificationConfig(
   ): bffApi.NotificationConfig => {
     const {
       clientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers,
       ...rest
     } = config;
@@ -24,6 +25,7 @@ export function toBffApiUserNotificationConfig(
       ...rest,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         clientKeyAddedDeletedToClientUsers ||
+        clientKeyConsumerAddedDeletedToClientUsers ||
         producerKeychainKeyAddedDeletedToClientUsers,
     };
   };
@@ -33,6 +35,7 @@ export function toBffApiUserNotificationConfig(
       userNotificationConfig.inAppNotificationPreference,
     emailNotificationPreference:
       userNotificationConfig.emailNotificationPreference,
+    emailDigestPreference: userNotificationConfig.emailDigestPreference,
     inAppConfig: mapNotificationConfig(userNotificationConfig.inAppConfig),
     emailConfig: mapNotificationConfig(userNotificationConfig.emailConfig),
   };

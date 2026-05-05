@@ -14,9 +14,7 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantCertifiedAttributeRevokedV2,
-  Attribute,
   tenantAttributeType,
-  attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
@@ -57,12 +55,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
   });
 
   it("should revoke the certified attribute if it exists", async () => {
-    const mockAttribute: Attribute = {
-      ...getMockAttribute(),
-      kind: attributeKind.certified,
-      origin: "certifier-id",
-      code: "0001",
-    };
+    const mockAttribute = getMockAttribute();
     const tenantWithCertifiedAttribute: Tenant = {
       ...requesterTenant,
       attributes: [
@@ -159,11 +152,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
     );
   });
   it("should throw attributeNotFoundInTenant if the target tenant doesn't have that attribute", async () => {
-    const mockAttribute: Attribute = {
-      ...getMockAttribute(),
-      code: "123456",
-      origin: generateId(),
-    };
+    const mockAttribute = getMockAttribute();
     const targetTenant: Tenant = {
       ...getMockTenant(),
       attributes: [],

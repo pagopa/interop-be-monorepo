@@ -34,7 +34,7 @@ message PurposeVersionV2 {
   optional int64 suspendedAt = 8;
   optional string rejectionReason = 9;
   optional PurposeVersionStampsV2 stamps = 10;
-  optional string signedContract = 11;
+  optional PurposeVersionSignedDocumentV2 signedContract = 11;
 }
 
 enum PurposeStateV2 {

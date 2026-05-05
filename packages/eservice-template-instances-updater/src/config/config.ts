@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const CatalogProcessServerConfig = z
+const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
     ESERVICE_DOCUMENTS_CONTAINER: z.string(),
@@ -21,9 +21,7 @@ export const CatalogProcessServerConfig = z
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 
-export type CatalogProcessServerConfig = z.infer<
-  typeof CatalogProcessServerConfig
->;
+type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
 
 const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
   EServiceTemplateTopicConfig
@@ -34,7 +32,7 @@ const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
   .and(KafkaConsumerConfig)
   .and(ReadModelSQLDbConfig);
 
-export type EServiceTemplateUpdaterConfig = z.infer<
+type EServiceTemplateUpdaterConfig = z.infer<
   typeof EServiceTemplateUpdaterConfig
 >;
 export const config: EServiceTemplateUpdaterConfig =

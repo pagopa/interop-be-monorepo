@@ -6,17 +6,18 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi, delegationApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  attributeRegistryApi,
+  catalogApi,
+  delegationApi,
+  eserviceTemplateApi,
+  inAppNotificationApi,
+} from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
+import type {
   DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  InAppNotificationManagerClient,
-  PurposeProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -38,14 +39,15 @@ describe("exportEServiceDescriptor", () => {
   const mockDate = "2023-01-01T12:00:00Z";
 
   const mockTenantProcessClient = {} as unknown as TenantProcessClient;
-  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
-  const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
+  const mockAgreementProcessClient =
+    {} as unknown as agreementApi.AgreementProcessClient;
+  const mockAttributeProcessClient =
+    {} as unknown as attributeRegistryApi.AttributeProcessClient;
   const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
   const mockInAppNotificationManagerClient =
-    {} as unknown as InAppNotificationManagerClient;
+    {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
   const mockEServiceTemplateProcessClient =
-    {} as unknown as EServiceTemplateProcessClient;
-  const mockPurposeProcessClient = {} as unknown as PurposeProcessClient;
+    {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
 
   const authData: AuthData = {
     ...getMockAuthData(),
@@ -93,7 +95,7 @@ describe("exportEServiceDescriptor", () => {
 
   interface TestCatalogService {
     service: ReturnType<typeof catalogServiceBuilder>;
-    catalogProcessClient: CatalogProcessClient;
+    catalogProcessClient: catalogApi.CatalogProcessClient;
   }
 
   const createTestCatalogService = (
@@ -102,7 +104,7 @@ describe("exportEServiceDescriptor", () => {
   ): TestCatalogService => {
     const mockCatalogProcessClient = {
       getEServiceById: vi.fn().mockResolvedValue(eService),
-    } as unknown as CatalogProcessClient;
+    } as unknown as catalogApi.CatalogProcessClient;
 
     vi.spyOn(delegationService, "getAllDelegations").mockResolvedValue(
       delegations
@@ -117,7 +119,6 @@ describe("exportEServiceDescriptor", () => {
         mockDelegationProcessClient,
         mockEServiceTemplateProcessClient,
         mockInAppNotificationManagerClient,
-        mockPurposeProcessClient,
         fileManager,
         config
       ),

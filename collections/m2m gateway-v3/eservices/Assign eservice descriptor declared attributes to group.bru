@@ -1,0 +1,30 @@
+meta {
+  name: Assign eservice descriptor declared attributes to group
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes/groups/:groupIndex/attributes
+  body: json
+  auth: none
+}
+
+params:path {
+  groupIndex: 0
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "attributeIds": [
+      "4ad74602-a28d-4fc1-928d-0a5fc004091b"
+    ]
+  }
+}

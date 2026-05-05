@@ -1,0 +1,21 @@
+meta {
+  name: Unlink Eservice from Purpose Template
+  type: http
+  seq: 17
+}
+
+delete {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+

@@ -14,7 +14,7 @@ export const correctTenantEventPayload: EmailNotificationMessagePayload = {
   address: "address@mail.com",
 };
 
-export const correctUserEventPayload: EmailNotificationMessagePayload = {
+const correctUserEventPayload: EmailNotificationMessagePayload = {
   correlationId: generateId(),
   email: {
     subject: "Subject",
@@ -61,16 +61,6 @@ export const kafkaMessagePayloadWithValueTenant = (
   ...kafkaMessagePayloadTenant,
   message: {
     ...kafkaMessagePayloadTenant.message,
-    value: Buffer.from(JSON.stringify(value)),
-  },
-});
-
-export const kafkaMessagePayloadWithValueUser = (
-  value: unknown
-): EachMessagePayload => ({
-  ...kafkaMessagePayloadUser,
-  message: {
-    ...kafkaMessagePayloadUser.message,
     value: Buffer.from(JSON.stringify(value)),
   },
 });

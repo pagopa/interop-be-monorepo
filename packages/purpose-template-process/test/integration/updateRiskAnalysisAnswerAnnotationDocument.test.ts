@@ -21,7 +21,7 @@ import {
   fromPurposeTemplateV2,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -37,7 +37,6 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
@@ -61,7 +60,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
     };
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const subjectSingleAnswer =
     mockValidRiskAnalysisTemplateForm.singleAnswers.find(
@@ -187,9 +186,9 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
       expect(actualPurposeTemplate.purposeRiskAnalysisForm).toBeDefined();
 
       const actualDocument = actualPurposeTemplate
-        .purposeRiskAnalysisForm![formAnswer].find(
-          (a) => a.id === subjectAnswerId
-        )
+        .purposeRiskAnalysisForm![
+          formAnswer
+        ].find((a) => a.id === subjectAnswerId)
         ?.annotation?.docs.find((d) => d.id === subjectDocumentId);
       expect(actualDocument).toEqual(expectedAnnotationDocument);
     }
@@ -474,7 +473,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
     }
   );
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     await addOnePurposeTemplate(existentPurposeTemplate);
 
     const differentCreatorId = generateId<TenantId>();
@@ -489,6 +488,6 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(existentPurposeTemplate.id));
   });
 });

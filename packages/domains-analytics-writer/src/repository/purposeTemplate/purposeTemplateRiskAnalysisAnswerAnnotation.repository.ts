@@ -67,7 +67,3 @@ export function purposeTemplateRiskAnalysisAnswerAnnotationRepository(
     },
   };
 }
-
-export type PurposeTemplateRiskAnalysisAnswerAnnotationRepository = ReturnType<
-  typeof purposeTemplateRiskAnalysisAnswerAnnotationRepository
->;

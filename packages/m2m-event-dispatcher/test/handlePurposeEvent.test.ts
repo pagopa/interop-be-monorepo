@@ -5,6 +5,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   randomArrayItem,
+  toPurposeV1,
 } from "pagopa-interop-commons-test";
 import {
   toPurposeV2,
@@ -20,6 +21,8 @@ import {
   purposeVersionState,
   PurposeVersion,
   PurposeM2MEvent,
+  PurposeEventEnvelopeV1,
+  PurposeEventV1,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -291,6 +294,37 @@ describe("handlePurposeEvent test", async () => {
             }
           })
       )
+  );
+
+  it.each(PurposeEventV1.options.map((o) => o.shape.type.value))(
+    "should ignore purpose %s v1 event",
+    async (eventType: PurposeEventV1["type"]) => {
+      const purpose = getMockPurpose();
+
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: purpose.id,
+        type: eventType,
+        event_version: 1,
+        data: {
+          purpose: toPurposeV1(purpose),
+        },
+      } as PurposeEventEnvelopeV1;
+
+      const eventTimestamp = new Date();
+
+      await handlePurposeEvent(
+        message,
+        eventTimestamp,
+        genericLogger,
+        testM2mEventWriterService,
+        testReadModelService
+      );
+
+      expect(
+        testM2mEventWriterService.insertPurposeM2MEvent
+      ).not.toHaveBeenCalled();
+    }
   );
 
   it("should not write the event if the same resource version is already present", async () => {

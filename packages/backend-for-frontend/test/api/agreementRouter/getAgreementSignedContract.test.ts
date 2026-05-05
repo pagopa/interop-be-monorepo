@@ -39,7 +39,7 @@ describe("API GET /agreements/:agreementId/signedContract", () => {
 
   it.each([
     { error: contractNotFound(generateId()), expectedStatus: 404 },
-    { error: contractException(generateId()), expectedStatus: 500 },
+    { error: contractException(generateId()), expectedStatus: 503 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

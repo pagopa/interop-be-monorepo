@@ -1,0 +1,20 @@
+meta {
+  name: Notification mark as read by entity id
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host-bff}}/inAppNotifications/markAsReadByEntityId/:entityId
+  body: none
+  auth: none
+}
+
+params:path {
+  entityId: 8619e7a2-a647-4c58-92ae-5236d412e5da%2F711c78d6-a6ee-4226-9488-3f10c392dbfd
+}
+
+headers {
+  x-correlation-id: {{correlation-id}}
+  Authorization: {{JWT}}
+}

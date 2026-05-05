@@ -46,7 +46,9 @@ export async function handlePurposeTemplateMessageV2(
             "PurposeTemplateSuspended",
             "PurposeTemplateArchived",
             "PurposeTemplateAnnotationDocumentDeleted",
-            "PurposeTemplateAnnotationDocumentUpdated"
+            "PurposeTemplateAnnotationDocumentUpdated",
+            "RiskAnalysisTemplateDocumentGenerated",
+            "RiskAnalysisTemplateSignedDocumentGenerated"
           ),
         },
         (msg) => {
@@ -121,7 +123,9 @@ export async function handlePurposeTemplateMessageV2(
             eserviceId: msg.data.eservice.id,
             descriptorId: msg.data.descriptorId,
             deleted: true,
-          } satisfies z.input<typeof PurposeTemplateEServiceDescriptorDeletingSchema>)
+          } satisfies z.input<
+            typeof PurposeTemplateEServiceDescriptorDeletingSchema
+          >)
         );
       })
       .exhaustive();

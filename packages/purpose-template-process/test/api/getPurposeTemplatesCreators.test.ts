@@ -24,7 +24,7 @@ describe("API GET /creators test", () => {
       name: "Tenant 3",
     });
 
-  const defaultQuery = { offset: 0, limit: 10, name: "Tenant" };
+  type DefaultQuery = { offset: number; limit: number; name: string };
 
   const mockResponse = {
     results: [tenant1, tenant2, tenant3],
@@ -89,7 +89,7 @@ describe("API GET /creators test", () => {
     { query: { offset: "invalid", limit: 10 } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query as typeof defaultQuery);
+    const res = await makeRequest(token, query as DefaultQuery);
     expect(res.status).toBe(400);
   });
 });

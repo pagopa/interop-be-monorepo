@@ -8,7 +8,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateSingleAnswer,
-  tenantKind,
+  targetTenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -22,14 +22,14 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
+  riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(
-    tenantKind.PA
+    targetTenantKind.PA
   );
   const serviceResponse: WithMetadata<RiskAnalysisTemplateSingleAnswer> =
     getMockWithMetadata({
@@ -107,8 +107,11 @@ describe("API /purposeTemplates/{id}/riskAnalysis/answers/{answerId}/annotation"
       expectedStatus: 404,
     },
     {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: 403,
+      error: riskAnalysisTemplateAnswerAnnotationNotFound(
+        purposeTemplateId,
+        serviceResponse.data.id
+      ),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",

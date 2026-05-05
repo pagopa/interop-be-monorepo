@@ -24,7 +24,7 @@ const getPurpose = (event: PurposeEventEnvelopeV2): PurposeV1Notification => {
 
 export const toPurposeEventNotification = (
   event: PurposeEventEnvelopeV2
-): PurposeEventNotification =>
+): PurposeEventNotification | undefined =>
   match(event)
     .with(
       { type: "PurposeAdded" },
@@ -42,8 +42,6 @@ export const toPurposeEventNotification = (
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeVersionOverQuotaUnsuspended" },
       { type: "PurposeVersionArchivedByRevokedDelegation" },
-      { type: "RiskAnalysisDocumentGenerated" },
-      { type: "RiskAnalysisSignedDocumentGenerated" },
       (event): PurposeNotification => ({
         purpose: getPurpose(event),
       })
@@ -69,5 +67,10 @@ export const toPurposeEventNotification = (
         purposeId: getPurpose(event).id,
         versionId: event.data.versionId,
       })
+    )
+    .with(
+      { type: "RiskAnalysisDocumentGenerated" },
+      { type: "RiskAnalysisSignedDocumentGenerated" },
+      () => undefined
     )
     .exhaustive();

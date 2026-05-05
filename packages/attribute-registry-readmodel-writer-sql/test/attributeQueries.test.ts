@@ -14,7 +14,6 @@ describe("Attribute queries", () => {
     it("should add a complete (*all* fields) attribute", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
-        code: "test code",
         origin: "test origin",
       };
 
@@ -34,9 +33,7 @@ describe("Attribute queries", () => {
     });
 
     it("should add an incomplete (*only* mandatory fields) attribute", async () => {
-      const attribute: Attribute = {
-        ...getMockAttribute(),
-      };
+      const attribute = getMockAttribute();
 
       await attributeWriterService.upsertAttribute(attribute, 1);
 
@@ -56,7 +53,6 @@ describe("Attribute queries", () => {
     it("should update an attribute", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
-        code: "test code",
         origin: "test origin",
       };
       await attributeWriterService.upsertAttribute(attribute, 1);
@@ -89,7 +85,6 @@ describe("Attribute queries", () => {
     it("delete one attribute", async () => {
       const attribute1: Attribute = {
         ...getMockAttribute(),
-        code: "test code 1",
         origin: "test origin 1",
       };
       await attributeWriterService.upsertAttribute(attribute1, 1);
@@ -99,7 +94,6 @@ describe("Attribute queries", () => {
 
       const attribute2: Attribute = {
         ...getMockAttribute(),
-        code: "test code 2",
         origin: "test origin 2",
       };
       await attributeWriterService.upsertAttribute(attribute2, 1);

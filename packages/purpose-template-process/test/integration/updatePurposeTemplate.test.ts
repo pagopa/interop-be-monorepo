@@ -28,17 +28,25 @@ import {
   RiskAnalysisTemplateSingleAnswer,
   Tenant,
   TenantId,
-  tenantKind,
+  targetTenantKind,
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { config } from "../../src/config/config.js";
 import {
+  invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import * as validators from "../../src/services/validators.js";
 import {
@@ -65,18 +73,21 @@ describe("updatePurposeTemplate", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+  afterEach(async () => {
+    vi.restoreAllMocks();
+  });
 
   const riskAnalysisPAVersion = getLatestVersionFormRules(
-    tenantKind.PA
+    targetTenantKind.PA
   )!.version;
   const riskAnalysisPrivateVersion = getLatestVersionFormRules(
-    tenantKind.PRIVATE
+    targetTenantKind.PRIVATE
   )!.version;
   const creatorId = generateId<TenantId>();
   const creator: Tenant = getMockTenant(creatorId);
 
   const mockValidRiskAnalysisTemplateForm =
-    getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
+    getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
 
   const purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed =
     getMockPurposeTemplateSeed(
@@ -89,21 +100,21 @@ describe("updatePurposeTemplate", () => {
   };
 
   it.each([
-    { kind: tenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
+    { kind: targetTenantKind.PA, riskAnalysisVersion: riskAnalysisPAVersion },
     {
-      kind: tenantKind.PRIVATE,
+      kind: targetTenantKind.PRIVATE,
       riskAnalysisVersion: riskAnalysisPrivateVersion,
     },
   ])(
     "should successfully update a purpose template in draft state with valid data and targetTenantKind %s",
-    async ({ kind: tenantKind, riskAnalysisVersion }) => {
+    async ({ kind: targetTenantKind, riskAnalysisVersion }) => {
       const spy = vi.spyOn(
         validators,
         "validateAndTransformRiskAnalysisTemplate"
       );
 
       const mockValidRiskAnalysisTemplateForm =
-        getMockValidRiskAnalysisFormTemplate(tenantKind);
+        getMockValidRiskAnalysisFormTemplate(targetTenantKind);
 
       const riskAnalysisFormTemplateSeed = {
         ...buildRiskAnalysisFormTemplateSeed(mockValidRiskAnalysisTemplateForm),
@@ -142,7 +153,7 @@ describe("updatePurposeTemplate", () => {
 
       const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
         ...getMockPurposeTemplateSeed(),
-        targetTenantKind: tenantKind,
+        targetTenantKind,
         purposeTitle: "Updated Purpose Template title", // updated field
         purposeRiskAnalysisForm: {
           ...riskAnalysisFormTemplateSeed,
@@ -152,7 +163,7 @@ describe("updatePurposeTemplate", () => {
 
       const existingPurposeTemplate: PurposeTemplate = {
         ...getMockPurposeTemplate(creatorId),
-        targetTenantKind: tenantKind,
+        targetTenantKind,
         purposeRiskAnalysisForm: {
           ...mockValidRiskAnalysisTemplateForm,
           version: riskAnalysisVersion,
@@ -184,7 +195,7 @@ describe("updatePurposeTemplate", () => {
         purposeDailyCalls: validPurposeTemplateSeed.purposeDailyCalls,
         purposeIsFreeOfCharge: validPurposeTemplateSeed.purposeIsFreeOfCharge,
         purposeFreeOfChargeReason:
-          validPurposeTemplateSeed.purposeFreeOfChargeReason,
+          validPurposeTemplateSeed.purposeFreeOfChargeReason || undefined,
         purposeRiskAnalysisForm: {
           id: expect.anything(),
           version: riskAnalysisVersion,
@@ -260,7 +271,7 @@ describe("updatePurposeTemplate", () => {
           ...riskAnalysisFormTemplateSeed,
           answers: updatedAnswers,
         },
-        tenantKind,
+        targetTenantKind,
         existingPurposeTemplate.handlesPersonalData
       );
     }
@@ -304,7 +315,7 @@ describe("updatePurposeTemplate", () => {
     );
   });
 
-  it("Should throw a tenantNotAllowed error if the creator tenant is not template creator", async () => {
+  it("Should throw a purposeTemplateNotFound error if the creator tenant is not template creator", async () => {
     await addOneTenant(creator);
     await addOnePurposeTemplate({
       ...existingPurposeTemplate,
@@ -319,7 +330,7 @@ describe("updatePurposeTemplate", () => {
           authData: getMockAuthData(creatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(creatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
   });
 
   it("Should throw a missingFreeOfChargeReason error if purposeIsFreeOfCharge is false and purposeFreeOfChargeReason is not provided", async () => {
@@ -592,4 +603,215 @@ describe("updatePurposeTemplate", () => {
     // Expect that remains only valid annotation documents in S3
     expect(filePaths.length).toBe(annotationDocsNotAffectedNum);
   });
+
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: "" },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: true, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update purposeIsFreeOfCharge and purposeFreeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
+          ...purposeTemplateSeed,
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeTemplateApi.PurposeTemplateSeed;
+
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      const updatePurposeTemplateResult =
+        await purposeTemplateService.updatePurposeTemplate(
+          existingPurposeTemplate.id,
+          cleanedSeed,
+          getMockContext({
+            authData: getMockAuthData(creatorId),
+          })
+        );
+
+      expect(updatePurposeTemplateResult).toEqual({
+        data: expect.objectContaining({
+          purposeIsFreeOfCharge: expected.purposeIsFreeOfCharge,
+          purposeFreeOfChargeReason: expected.purposeFreeOfChargeReason,
+        }),
+        metadata: { version: 1 },
+      });
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        purposeTemplateApi.PurposeTemplateSeed,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+      Pick<
+        PurposeTemplate,
+        "purposeIsFreeOfCharge" | "purposeFreeOfChargeReason"
+      >,
+    ]
+  > = [
+    [
+      {
+        purposeIsFreeOfCharge: true,
+        purposeFreeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      const purposeTemplate: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeIsFreeOfCharge: initData.purposeIsFreeOfCharge,
+        purposeFreeOfChargeReason: initData.purposeFreeOfChargeReason,
+      };
+
+      await addOnePurposeTemplate(purposeTemplate);
+
+      expect(
+        purposeTemplateService.updatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            ...purposeTemplateSeed,
+            ...seed,
+          },
+          getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.purposeIsFreeOfCharge,
+          wrongUpdatedData.purposeFreeOfChargeReason
+        )
+      );
+    }
+  );
 });

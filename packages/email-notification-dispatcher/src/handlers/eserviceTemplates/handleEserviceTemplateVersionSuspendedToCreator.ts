@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
 
@@ -57,7 +58,7 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService template ${eserviceTemplate.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEServiceTemplateVersionSuspendedToCreator - entityId: ${eserviceTemplate.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -75,6 +76,8 @@ export async function handleEServiceTemplateVersionSuspendedToCreator(
         ...(t.type === "Tenant" ? { recipientName: creator.name } : {}),
         templateName: eserviceTemplate.name,
         ctaLabel: `Visualizza template`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

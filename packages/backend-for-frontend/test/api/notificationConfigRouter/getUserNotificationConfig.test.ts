@@ -20,9 +20,12 @@ describe("API GET /userNotificationConfigs", () => {
   const {
     inAppNotificationPreference,
     emailNotificationPreference,
+    emailDigestPreference,
     inAppConfig: {
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
       ...inAppConfig
@@ -30,6 +33,8 @@ describe("API GET /userNotificationConfigs", () => {
     emailConfig: {
       clientKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         emailProducerKeychainKeyAddedDeletedToClientUsers,
       ...emailConfig
@@ -40,10 +45,13 @@ describe("API GET /userNotificationConfigs", () => {
   const clientResponse = {
     inAppNotificationPreference,
     emailNotificationPreference,
+    emailDigestPreference,
     inAppConfig: {
       ...inAppConfig,
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
     },
@@ -51,6 +59,8 @@ describe("API GET /userNotificationConfigs", () => {
       ...emailConfig,
       clientKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers,
+      clientKeyConsumerAddedDeletedToClientUsers:
+        emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         emailProducerKeychainKeyAddedDeletedToClientUsers,
     },
@@ -58,16 +68,19 @@ describe("API GET /userNotificationConfigs", () => {
   const apiResponse: bffApi.UserNotificationConfig = {
     inAppNotificationPreference,
     emailNotificationPreference,
+    emailDigestPreference,
     inAppConfig: {
       ...inAppConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers ||
+        inAppClientKeyConsumerAddedDeletedToClientUsers ||
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
     },
     emailConfig: {
       ...emailConfig,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers ||
+        emailClientKeyConsumerAddedDeletedToClientUsers ||
         emailProducerKeychainKeyAddedDeletedToClientUsers,
     },
   };

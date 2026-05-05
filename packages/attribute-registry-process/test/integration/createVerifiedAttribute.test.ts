@@ -28,7 +28,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("verified attribute creation", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = getMockAttribute(attributeKind.verified);
   const mockTenant = getMockTenant();
 
   it.each([

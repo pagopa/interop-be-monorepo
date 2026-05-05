@@ -1,5 +1,8 @@
 import {
+  InteropJwtApiDPoPPayload,
+  InteropJwtApiM2MAdminDPoPPayload,
   InteropJwtApiM2MAdminPayload,
+  InteropJwtApiM2MDPoPPayload,
   InteropJwtApiM2MPayload,
   InteropJwtApiPayload,
   InteropJwtConsumerPayload,
@@ -24,6 +27,7 @@ import {
 export type SerializedAuthTokenPayload =
   | SerializedInteropJwtInternalPayload
   | SerializedInteropJwtApiPayload
+  | SerializedInteropJwtApiDPoPPayload
   | SerializedInteropJwtConsumerPayload
   | SerializedInteropJwtUIPayload;
 
@@ -60,6 +64,7 @@ export function toSerializedInteropJwtPayload(
     | InteropJwtInternalPayload
     | InteropJwtConsumerPayload
     | InteropJwtApiPayload
+    | InteropJwtApiDPoPPayload
 ): Exclude<SerializedAuthTokenPayload, SerializedInteropJwtUIPayload> {
   return {
     ...tokenPayload,
@@ -89,6 +94,10 @@ export type SerializedInteropJwtInternalPayload = Omit<
 export type SerializedInteropJwtApiPayload =
   | (Omit<InteropJwtApiM2MAdminPayload, "aud"> & SerializedAudience)
   | (Omit<InteropJwtApiM2MPayload, "aud"> & SerializedAudience);
+
+export type SerializedInteropJwtApiDPoPPayload =
+  | (Omit<InteropJwtApiM2MAdminDPoPPayload, "aud"> & SerializedAudience)
+  | (Omit<InteropJwtApiM2MDPoPPayload, "aud"> & SerializedAudience);
 
 export type SerializedInteropJwtConsumerPayload = Omit<
   InteropJwtConsumerPayload,

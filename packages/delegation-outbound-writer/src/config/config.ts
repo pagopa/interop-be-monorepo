@@ -19,7 +19,7 @@ const DelegationOutboundWriterConfig = KafkaConsumerConfig.and(
     delegationOutboundTopic: c.DELEGATION_OUTBOUND_TOPIC,
   }));
 
-export type DelegationOutboundWriterConfig = z.infer<
+type DelegationOutboundWriterConfig = z.infer<
   typeof DelegationOutboundWriterConfig
 >;
 

@@ -19,7 +19,7 @@ const AgreementOutboundWriterConfig = KafkaConsumerConfig.and(
     agreementOutboundTopic: c.AGREEMENT_OUTBOUND_TOPIC,
   }));
 
-export type AgreementOutboundWriterConfig = z.infer<
+type AgreementOutboundWriterConfig = z.infer<
   typeof AgreementOutboundWriterConfig
 >;
 

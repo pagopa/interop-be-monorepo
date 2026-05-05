@@ -6,15 +6,15 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   errorsToApiProblemsMiddleware,
+  healthRouter,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
-import healthRouter from "./routers/healthRouter.js";
 import { notificationRouter } from "./routers/notificationRouter.js";
 import { InAppNotificationService } from "./services/inAppNotificationService.js";
-import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: InAppNotificationService) {
@@ -27,8 +27,7 @@ export async function createApp(service: InAppNotificationService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
-  app.use(notificationConfigFeatureFlagMiddleware());
+  app.use(healthRouter(inAppNotificationApi.healthApi.api));
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));

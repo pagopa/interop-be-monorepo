@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const APIProcessServerConfig = z
+const APIProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
     PURPOSE_PROCESS_URL: APIEndpoint,
@@ -24,7 +24,7 @@ const DelegationItemsArchiverConfig = APIProcessServerConfig.and(
   .and(KafkaConsumerConfig)
   .and(ReadModelSQLDbConfig);
 
-export type DelegationItemsArchiverConfig = z.infer<
+type DelegationItemsArchiverConfig = z.infer<
   typeof DelegationItemsArchiverConfig
 >;
 export const config: DelegationItemsArchiverConfig =

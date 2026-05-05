@@ -4,10 +4,10 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const CatalogPlatformStateWriterConfig =
+const CatalogPlatformStateWriterConfig =
   PlatformStateWriterConfig.and(CatalogTopicConfig);
 
-export type CatalogPlatformStateWriterConfig = z.infer<
+type CatalogPlatformStateWriterConfig = z.infer<
   typeof CatalogPlatformStateWriterConfig
 >;
 

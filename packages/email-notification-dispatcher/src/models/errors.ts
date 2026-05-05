@@ -3,8 +3,6 @@ import {
   EServiceId,
   TenantId,
   InternalError,
-  AgreementId,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 type EmailNotificationDispatcherErrorCode =
@@ -16,6 +14,7 @@ type EmailNotificationDispatcherErrorCode =
   | "descriptorNotFound"
   | "activeProducerDelegationNotFound"
   | "eserviceAgreementsNotFound"
+  | "eserviceWithoutDescriptors"
   | "descriptorPublishedNotFound"
   | "certifierTenantNotFound"
   | "clientKeyNotFound"
@@ -44,31 +43,12 @@ export function htmlTemplateNotFound(
   });
 }
 
-export function agreementStampDateNotFound(
-  stamp: string,
-  agreementId: AgreementId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `${stamp} date not found for agreement ${agreementId}`,
-    code: "agreementStampDateNotFound",
-  });
-}
-
 export function eServiceNotFound(
   eserviceId: EServiceId
 ): EmailNotificationDispatcherError {
   return new InternalError({
     detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
-  });
-}
-
-export function eserviceAgreementsNotFound(
-  eserviceId: EServiceId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `Agreements not found for eservice ${eserviceId}`,
-    code: "eserviceAgreementsNotFound",
   });
 }
 
@@ -100,12 +80,12 @@ export function descriptorNotFound(
   });
 }
 
-export function descriptorPublishedNotFound(
-  eServiceId: EServiceId | EServiceTemplateId
+export function eserviceWithoutDescriptors(
+  eServiceId: EServiceId
 ): EmailNotificationDispatcherError {
   return new InternalError({
-    detail: `Published descriptor not found in EService ${eServiceId}`,
-    code: "descriptorPublishedNotFound",
+    detail: `EService ${eServiceId} does not have any descriptor`,
+    code: "eserviceWithoutDescriptors",
   });
 }
 

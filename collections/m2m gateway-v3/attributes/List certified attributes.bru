@@ -1,0 +1,21 @@
+meta {
+  name: List certified attributes
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/certifiedAttributes?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}

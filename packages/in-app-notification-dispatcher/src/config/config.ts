@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
+const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   AgreementTopicConfig
 )
   .and(PurposeTopicConfig)
@@ -26,7 +26,7 @@ export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(ReadModelSQLDbConfig)
   .and(NotificationTypeBlocklistConfig);
 
-export type InAppNotificationDispatcherConfig = z.infer<
+type InAppNotificationDispatcherConfig = z.infer<
   typeof InAppNotificationDispatcherConfig
 >;
 

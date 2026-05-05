@@ -15,6 +15,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -59,7 +60,7 @@ export async function handleProducerKeychainUserDeleted(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. ProducerKeychain ${producerKeychain.id}, user ${userId}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainUserDeleted - entityId: ${producerKeychain.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -75,6 +76,8 @@ export async function handleProducerKeychainUserDeleted(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         producerKeychainName: producerKeychain.name,
         ctaLabel: `Gestisci chiavi`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

@@ -115,7 +115,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
@@ -123,7 +123,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     {
       error: interfaceAlreadyExists(descriptor.id),

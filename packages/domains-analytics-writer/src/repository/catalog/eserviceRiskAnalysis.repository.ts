@@ -62,7 +62,3 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceRiskAnalysisRepository = ReturnType<
-  typeof eserviceRiskAnalysisRepository
->;

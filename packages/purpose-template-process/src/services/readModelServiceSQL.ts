@@ -2,7 +2,6 @@ import {
   and,
   eq,
   getTableColumns,
-  ilike,
   inArray,
   isNull,
   ne,
@@ -14,8 +13,9 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
   getValidFormRulesVersions,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -37,7 +37,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
-  TenantKind,
+  TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -59,6 +59,8 @@ import {
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+  purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
@@ -68,7 +70,7 @@ import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
-  targetTenantKind?: TenantKind;
+  targetTenantKind?: TargetTenantKind;
   creatorIds: TenantId[];
   eserviceIds: EServiceId[];
   states: PurposeTemplateState[];
@@ -97,9 +99,9 @@ const getPurposeTemplatesFilters = (
   } = filters;
 
   const purposeTitleFilter = purposeTitle
-    ? ilike(
+    ? ilikeEscaped(
         purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-        `%${escapeRegExp(purposeTitle)}%`
+        `%${escapeSqlLike(purposeTitle)}%`
       )
     : undefined;
 
@@ -132,11 +134,11 @@ const getPurposeTemplatesFilters = (
   const excludeExpiredRiskAnalysisFilters = excludeExpiredRiskAnalysis
     ? or(
         ...Array.from(validFormRulesByTenantKind.entries()).map(
-          ([tenantKind, versions]) =>
+          ([targetTenantKind, versions]) =>
             and(
               eq(
                 purposeTemplateInReadmodelPurposeTemplate.targetTenantKind,
-                tenantKind
+                targetTenantKind
               ),
               inArray(
                 purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.version,
@@ -200,13 +202,13 @@ export function readModelServiceBuilderSQL({
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
-    async getPurposeTemplate(
+    async getPurposeTemplatesByTitle(
       title: string
-    ): Promise<WithMetadata<PurposeTemplate> | undefined> {
-      return await purposeTemplateReadModelServiceSQL.getPurposeTemplateByFilter(
-        ilike(
+    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+      return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
+        ilikeEscaped(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-          escapeRegExp(title)
+          escapeSqlLike(title)
         )
       );
     },
@@ -256,6 +258,10 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
           purposeRiskAnalysisTemplateAnswerAnnotationDocument:
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateDocument:
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          purposeRiskAnalysisTemplateSignedDocument:
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
           totalCount: subquery.totalCount,
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
@@ -292,6 +298,20 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate.annotationId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.id,
+            purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate.riskAnalysisFormId
           )
         )
         .orderBy(
@@ -502,9 +522,9 @@ export function readModelServiceBuilderSQL({
               ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
               : undefined,
             eserviceName
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(eserviceName)}%`
+                  `%${escapeSqlLike(eserviceName)}%`
                 )
               : undefined
           )
@@ -601,9 +621,9 @@ export function readModelServiceBuilderSQL({
               purposeTemplateState.published
             ),
             creatorName
-              ? ilike(
+              ? ilikeEscaped(
                   tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(creatorName)}%`
+                  `%${escapeSqlLike(creatorName)}%`
                 )
               : undefined
           )

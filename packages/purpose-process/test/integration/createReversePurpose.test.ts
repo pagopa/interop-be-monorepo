@@ -13,6 +13,7 @@ import {
   getMockValidRiskAnalysis,
   getMockAuthData,
   sortPurpose,
+  getMockExpiredRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -20,7 +21,6 @@ import {
   EService,
   Purpose,
   PurposeAddedV2,
-  RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   agreementState,
@@ -35,7 +35,6 @@ import {
   delegationState,
   TenantId,
 } from "pagopa-interop-models";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   agreementNotFound,
@@ -44,8 +43,6 @@ import {
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   tenantIsNotTheConsumer,
-  riskAnalysisValidationFailed,
-  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -622,56 +619,6 @@ describe("createReversePurpose", () => {
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
-  it("should throw tenantKindNotFound if the tenant kind doesn't exist", async () => {
-    const consumer = getMockTenant();
-    const producer: Tenant = { ...getMockTenant(), kind: undefined };
-
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      publishedAt: new Date(),
-      interface: getMockDocument(),
-    };
-
-    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-    const mockEService: EService = {
-      ...getMockEService(),
-      producerId: producer.id,
-      riskAnalysis: [mockRiskAnalysis],
-      descriptors: [mockDescriptor],
-      mode: eserviceMode.receive,
-    };
-
-    const mockAgreement: Agreement = {
-      ...getMockAgreement(),
-      eserviceId: mockEService.id,
-      consumerId: consumer.id,
-      state: agreementState.active,
-    };
-
-    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
-      eserviceId: mockEService.id,
-      consumerId: consumer.id,
-      riskAnalysisId: mockRiskAnalysis.id,
-      title: "test purpose title",
-      description: "test purpose description",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "test",
-      dailyCalls: 1,
-    };
-
-    await addOneEService(mockEService);
-    await addOneTenant(producer);
-    await addOneTenant(consumer);
-    await addOneAgreement(mockAgreement);
-
-    expect(
-      purposeService.createReversePurpose(
-        reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
-      )
-    ).rejects.toThrowError(tenantKindNotFound(producer.id));
-  });
   it("should throw agreementNotFound if the requester doesn't have an agreement for the selected eservice", async () => {
     const consumer = getMockTenant();
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
@@ -773,7 +720,7 @@ describe("createReversePurpose", () => {
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
   });
-  it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+  it("should succeed if the risk analysis is expired", async () => {
     const consumer = getMockTenant();
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
@@ -784,15 +731,8 @@ describe("createReversePurpose", () => {
       interface: getMockDocument(),
     };
 
-    const validRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+    const mockRiskAnalysis = getMockExpiredRiskAnalysis(tenantKind.PA);
 
-    const mockRiskAnalysis: RiskAnalysis = {
-      ...validRiskAnalysis,
-      riskAnalysisForm: {
-        ...validRiskAnalysis.riskAnalysisForm,
-        version: "7",
-      },
-    };
     const mockEService: EService = {
       ...getMockEService(),
       producerId: producer.id,
@@ -829,13 +769,17 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       )
-    ).rejects.toThrowError(
-      riskAnalysisValidationFailed([
-        rulesVersionNotFoundError(
-          tenantKind.PA,
-          mockRiskAnalysis.riskAnalysisForm.version
-        ),
-      ])
-    );
+    ).resolves.toMatchObject({
+      data: {
+        purpose: expect.objectContaining({
+          eserviceId: mockEService.id,
+          consumerId: consumer.id,
+          riskAnalysisForm: expect.objectContaining({
+            riskAnalysisId: mockRiskAnalysis.id,
+          }),
+        }),
+        isRiskAnalysisValid: true,
+      },
+    });
   });
 });

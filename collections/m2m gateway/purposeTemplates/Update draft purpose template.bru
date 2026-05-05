@@ -1,0 +1,32 @@
+meta {
+  name: Update draft purpose template
+  type: http
+  seq: 12
+}
+
+patch {
+  url: {{host-m2m-gw}}/purposeTemplates/:purposeTemplateId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: application/merge-patch+json
+}
+
+body:json {
+    {
+      "targetDescription": "updated target description",
+      "targetTenantKind": "PRIVATE",
+      "purposeTitle": "updated purpose title",
+      "purposeDescription": "updated purpose description",
+      "purposeIsFreeOfCharge": false,
+      "purposeDailyCalls": 10,
+      "handlesPersonalData": true
+    }
+}

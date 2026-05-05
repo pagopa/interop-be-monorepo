@@ -3,18 +3,18 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
 import {
-  AgreementEventV2,
+  AgreementEvent,
   AttributeEvent,
-  AuthorizationEventV2,
+  AuthorizationEvent,
   CorrelationId,
-  DelegationEventV2,
-  EServiceEventV2,
-  EServiceTemplateEventV2,
+  DelegationEvent,
+  EServiceEvent,
+  EServiceTemplateEvent,
   EventEnvelope,
   generateId,
   genericInternalError,
-  PurposeEventV2,
-  TenantEventV2,
+  PurposeEvent,
+  TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -93,7 +93,7 @@ function processMessage(topicNames: TopicNames) {
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
-      eventType: T,
+      decodedMessage: EventEnvelope<z.infer<T>>,
       handler: (
         decodedMessage: EventEnvelope<z.infer<T>>,
         eventTimestamp: Date,
@@ -102,10 +102,6 @@ function processMessage(topicNames: TopicNames) {
         readModelService: ReadModelServiceSQL
       ) => Promise<void>
     ): Promise<void> => {
-      const decodedMessage = decodeKafkaMessage(
-        messagePayload.message,
-        eventType
-      );
       const loggerInstance = logger({
         serviceName: "m2m-event-dispatcher",
         eventType: decodedMessage.type,
@@ -130,30 +126,62 @@ function processMessage(topicNames: TopicNames) {
     };
 
     await match(messagePayload.topic)
-      .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
-      )
-      .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
-      )
-      .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
-      )
-      .with(delegationTopic, async () =>
-        handleWith(DelegationEventV2, handleDelegationEvent)
-      )
-      .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
-      )
-      .with(attributeTopic, async () =>
-        handleWith(AttributeEvent, handleAttributeEvent)
-      )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
-      )
-      .with(eserviceTemplateTopic, async () =>
-        handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
-      )
+      .with(catalogTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          EServiceEvent
+        );
+        await handleWith(decodedMessage, handleEServiceEvent);
+      })
+      .with(agreementTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          AgreementEvent
+        );
+        await handleWith(decodedMessage, handleAgreementEvent);
+      })
+      .with(purposeTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          PurposeEvent
+        );
+        await handleWith(decodedMessage, handlePurposeEvent);
+      })
+      .with(delegationTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          DelegationEvent
+        );
+        await handleWith(decodedMessage, handleDelegationEvent);
+      })
+      .with(authorizationTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          AuthorizationEvent
+        );
+        await handleWith(decodedMessage, handleAuthorizationEvent);
+      })
+      .with(attributeTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          AttributeEvent
+        );
+        await handleWith(decodedMessage, handleAttributeEvent);
+      })
+      .with(tenantTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          TenantEvent
+        );
+        await handleWith(decodedMessage, handleTenantEvent);
+      })
+      .with(eserviceTemplateTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          EServiceTemplateEvent
+        );
+        await handleWith(decodedMessage, handleEServiceTemplateEvent);
+      })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -169,6 +197,8 @@ await runConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.attributeTopic,
+    config.tenantTopic,
+    config.eserviceTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,

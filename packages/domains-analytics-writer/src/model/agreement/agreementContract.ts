@@ -8,12 +8,3 @@ export const AgreementContractSchema = createSelectSchema(
   deleted: z.boolean().default(false).optional(),
 });
 export type AgreementContractSchema = z.infer<typeof AgreementContractSchema>;
-
-export const AgreementContractDeletingSchema = AgreementContractSchema.pick({
-  id: true,
-  agreementId: true,
-  deleted: true,
-});
-export type AgreementContractDeletingSchema = z.infer<
-  typeof AgreementContractDeletingSchema
->;

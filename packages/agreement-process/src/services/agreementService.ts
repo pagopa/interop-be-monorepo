@@ -39,6 +39,7 @@ import {
   descriptorState,
   generateId,
   CompactTenant,
+  CompactOrganization,
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
@@ -70,7 +71,6 @@ import {
 import {
   ActiveDelegations,
   CompactEService,
-  CompactOrganization,
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
@@ -111,7 +111,7 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateActivationOnDescriptor,
-  validateActiveOrPendingAgreement,
+  validateActiveSuspendedOrPendingAgreement,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
@@ -151,7 +151,7 @@ import {
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
-  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
 } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -166,7 +166,7 @@ export const retrieveEService = async (
   return eservice;
 };
 
-export const retrieveAgreement = async (
+const retrieveAgreement = async (
   agreementId: AgreementId,
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Agreement>> => {
@@ -216,7 +216,7 @@ function retrieveAgreementDocument(
   return document;
 }
 
-export const getActiveConsumerAndProducerDelegations = async (
+const getActiveConsumerAndProducerDelegations = async (
   agreement: Agreement,
   readModelService: ReadModelServiceSQL,
   cachedActiveDelegations?: ActiveDelegations
@@ -241,7 +241,7 @@ export function agreementServiceBuilder(
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number,
       {
@@ -553,6 +553,20 @@ export function agreementServiceBuilder(
         nextStateByAttributes
       );
 
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.producerDelegation?.delegateId
+      );
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.consumerDelegation?.delegateId
+      );
+
       const setToMissingCertifiedAttributesByPlatformEvent =
         maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
           agreement,
@@ -574,15 +588,12 @@ export function agreementServiceBuilder(
 
       const newState = agreementStateByFlags(
         nextStateByAttributes,
-        // TODO this should actually recalculate flags and consider them
-        // in the calculation of the new state, otherwise a suspended agreement
-        // that was upgraded will become active - https://pagopa.atlassian.net/browse/IMN-626
-        undefined,
-        undefined,
+        suspendedByProducer,
+        suspendedByConsumer,
         suspendedByPlatform
       );
 
-      validateActiveOrPendingAgreement(agreement.data.id, newState);
+      validateActiveSuspendedOrPendingAgreement(agreement.data.id, newState);
 
       const updateSeed = createSubmissionUpdateAgreementSeed(
         descriptor,
@@ -629,7 +640,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreement,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const agreementEvent =
@@ -646,15 +658,6 @@ export function agreementServiceBuilder(
             );
 
       const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        /*
-          This condition can only check if state is ACTIVE
-          at this point the SUSPENDED state is not available
-          after validateActiveOrPendingAgreement validation.
-
-          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
-          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
-          Remove the comment at that point.
-        */
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
@@ -671,15 +674,11 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: submittedAgreement,
         metadata: {
-          version: newVersion,
+          version:
+            createdEvents.latestNewVersions.get(submittedAgreement.id) ?? 0,
         },
       };
     },
@@ -807,17 +806,10 @@ export function agreementServiceBuilder(
 
       const createdEvents = await repository.createEvents(events);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents
-          .filter((e) => e.streamId === agreement.id)
-          .map((event) => event.newVersion)
-      );
-
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: createdEvents.latestNewVersions.get(agreement.id) ?? 0,
         },
       };
     },
@@ -1392,7 +1384,8 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         updatedAgreementWithoutContract,
-        activeDelegations
+        activeDelegations,
+        logger
       );
 
       const suspendedByPlatformChanged =
@@ -1422,14 +1415,12 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
-
       return {
         data: updatedAgreement,
-        metadata: { version: newVersion },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
+        },
       };
     },
     async archiveAgreement(
@@ -1573,21 +1564,17 @@ export function agreementServiceBuilder(
       agreementDocument: AgreementDocument,
       { logger, correlationId }: WithLogger<AppContext<AuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Adding agreement contract to agreement ${agreementId}`);
+      logger.info(
+        `Adding agreement contract to agreement ${agreementId} - document id ${agreementDocument.id}`
+      );
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
       );
 
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
-      );
-
-      const agreementWithDocument = {
+      const agreementWithDocument: Agreement = {
         ...agreement,
-        agreementDocument,
+        contract: agreementDocument,
       };
       const event = await repository.createEvent(
         toCreateEventAgreementDocumentGenerated(
@@ -1611,12 +1598,6 @@ export function agreementServiceBuilder(
       const { data: agreement, metadata } = await retrieveAgreement(
         agreementId,
         readModelService
-      );
-
-      assertExpectedState(
-        agreementId,
-        agreement.state,
-        agreementUpgradableStates
       );
 
       const agreementWithDocument: Agreement = {
@@ -1783,12 +1764,16 @@ async function addContractOnFirstActivation(
   consumer: Tenant,
   producer: Tenant,
   agreement: Agreement,
-  activeDelegations: ActiveDelegations
+  activeDelegations: ActiveDelegations,
+  logger: Logger
 ): Promise<Agreement> {
   if (
     isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
     isFirstActivation
   ) {
+    logger.info(
+      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
+    );
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
@@ -1802,7 +1787,9 @@ async function addContractOnFirstActivation(
       contract,
     };
   }
-
+  logger.info(
+    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
+  );
   return agreement;
 }
 

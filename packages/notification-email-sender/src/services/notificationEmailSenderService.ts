@@ -101,7 +101,7 @@ function retrieveAgreementDescriptor(
   return descriptor;
 }
 
-export const retrieveEService = async (
+const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
 ): Promise<EService> => {

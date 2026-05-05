@@ -188,7 +188,7 @@ export async function handleMessageV1(
     .exhaustive();
 }
 
-export const parseDescriptor = (
+const parseDescriptor = (
   descriptorV1: EServiceDescriptorV1 | undefined,
   eventType: string
 ): Descriptor => {

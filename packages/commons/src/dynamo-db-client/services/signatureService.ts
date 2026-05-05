@@ -19,6 +19,7 @@ import {
   DocumentSignatureReference,
   DocumentSignatureReferenceSchema,
 } from "../models/documentSignatureReference.js";
+import { Logger } from "../../logging/index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function signatureServiceBuilder(
@@ -27,7 +28,8 @@ export function signatureServiceBuilder(
 ) {
   return {
     saveSignatureReference: async (
-      reference: SignatureReference
+      reference: SignatureReference,
+      logger: Logger
     ): Promise<void> => {
       const input: PutItemInput = {
         TableName: config.signatureReferencesTableName,
@@ -36,11 +38,15 @@ export function signatureServiceBuilder(
           correlationId: { S: reference.correlationId },
           fileKind: { S: reference.fileKind },
           fileName: { S: reference.fileName },
+          path: { S: reference.path },
           creationTimestamp: { N: getUnixTime(new Date()).toString() },
         },
       };
 
       try {
+        logger.info(
+          `Inserting signature reference for safe storage id: ${reference.safeStorageId}`
+        );
         await dynamoDBClient.send(new PutItemCommand(input));
       } catch (error) {
         throw genericInternalError(
@@ -52,7 +58,8 @@ export function signatureServiceBuilder(
     },
 
     saveDocumentSignatureReference: async (
-      reference: DocumentSignatureReference
+      reference: DocumentSignatureReference,
+      logger: Logger
     ): Promise<void> => {
       const input: PutItemInput = {
         TableName: config.signatureReferencesTableName,
@@ -73,6 +80,9 @@ export function signatureServiceBuilder(
       };
 
       try {
+        logger.info(
+          `Saving signature reference for safe storage id: ${reference.safeStorageId}`
+        );
         await dynamoDBClient.send(new PutItemCommand(input));
       } catch (error) {
         throw genericInternalError(
@@ -86,7 +96,8 @@ export function signatureServiceBuilder(
     },
 
     readSignatureReference: async (
-      id: string
+      id: string,
+      logger: Logger
     ): Promise<SignatureReference | undefined> => {
       const input: GetItemInput = {
         TableName: config.signatureReferencesTableName,
@@ -95,6 +106,7 @@ export function signatureServiceBuilder(
       };
 
       try {
+        logger.info(`Reading signature reference for safe storage id: ${id}`);
         const data = await dynamoDBClient.send(new GetItemCommand(input));
         if (!data.Item) {
           return undefined;
@@ -117,7 +129,10 @@ export function signatureServiceBuilder(
       }
     },
 
-    deleteSignatureReference: async (id: string): Promise<void> => {
+    deleteSignatureReference: async (
+      id: string,
+      logger: Logger
+    ): Promise<void> => {
       const FIFTEEN_DAYS = 15 * 24 * 60 * 60;
       const ttl = getUnixTime(new Date()) + FIFTEEN_DAYS;
 
@@ -133,6 +148,7 @@ export function signatureServiceBuilder(
       });
 
       try {
+        logger.info(`Deleting signature reference for safe storage id: ${id}`);
         await dynamoDBClient.send(command);
       } catch (error) {
         throw genericInternalError(
@@ -144,8 +160,12 @@ export function signatureServiceBuilder(
     },
 
     readDocumentSignatureReference: async (
-      id: string
+      id: string,
+      logger: Logger
     ): Promise<DocumentSignatureReference | undefined> => {
+      logger.info(
+        `Reading document signature reference for safe storage id: ${id}`
+      );
       const input: GetItemInput = {
         TableName: config.signatureReferencesTableName,
         Key: { safeStorageId: { S: id } },
@@ -176,8 +196,12 @@ export function signatureServiceBuilder(
     },
 
     readSignatureReferenceById: async (
-      id: string
+      id: string,
+      logger: Logger
     ): Promise<SignatureReference | DocumentSignatureReference | undefined> => {
+      logger.info(
+        `Reading document signature reference by id for safe storage id: ${id}`
+      );
       const input: GetItemInput = {
         TableName: config.signatureReferencesTableName,
         Key: { safeStorageId: { S: id } },

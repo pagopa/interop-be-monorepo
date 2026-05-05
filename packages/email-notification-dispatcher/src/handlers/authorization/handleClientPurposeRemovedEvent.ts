@@ -15,6 +15,7 @@ import {
   retrievePurpose,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
 
@@ -51,7 +52,7 @@ export async function handleClientPurposeRemoved(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientPurposeRemoved - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -68,6 +69,8 @@ export async function handleClientPurposeRemoved(
         ...(t.type === "Tenant" ? { producerName: producer.name } : {}),
         eserviceName: eservice.name,
         purposeTitle: purpose.title,
+        selfcareId: producer.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: producer.id,

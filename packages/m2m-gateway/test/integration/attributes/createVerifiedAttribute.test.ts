@@ -68,7 +68,7 @@ describe("createVerifiedAttribute", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAttributeResponse);
+    expect(result).toStrictEqual(m2mAttributeResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.attributeProcessClient.createVerifiedAttribute,

@@ -66,7 +66,3 @@ export function purposeTemplateRiskAnalysisFormRepository(conn: DBConnection) {
     },
   };
 }
-
-export type PurposeTemplateRiskAnalysisFormRepository = ReturnType<
-  typeof purposeTemplateRiskAnalysisFormRepository
->;

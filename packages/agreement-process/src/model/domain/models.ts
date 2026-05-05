@@ -42,12 +42,6 @@ export type UpdateAgreementSeed = {
   suspendedAt?: Date;
 };
 
-export const CompactOrganization = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-});
-export type CompactOrganization = z.infer<typeof CompactOrganization>;
-
 export const CompactEService = z.object({
   id: z.string().uuid(),
   name: z.string(),

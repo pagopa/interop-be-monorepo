@@ -16,6 +16,7 @@ import {
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";
@@ -58,7 +59,7 @@ export async function handleAgreementSuspendedByPlatformToConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Agreement ${agreement.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleAgreementSuspendedByPlatformToConsumer - entityId: ${agreement.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -74,6 +75,8 @@ export async function handleAgreementSuspendedByPlatformToConsumer(
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
         eserviceName: eservice.name,
         ctaLabel: `Visualizza richiesta`,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

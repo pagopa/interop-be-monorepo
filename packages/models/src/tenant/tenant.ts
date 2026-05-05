@@ -175,6 +175,7 @@ export const Tenant = z.object({
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
+  selfcareInstitutionType: z.string().optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;
@@ -184,3 +185,9 @@ export const CompactTenant = z.object({
   attributes: z.array(TenantAttribute),
 });
 export type CompactTenant = z.infer<typeof CompactTenant>;
+
+export const CompactOrganization = z.object({
+  id: TenantId,
+  name: z.string(),
+});
+export type CompactOrganization = z.infer<typeof CompactOrganization>;

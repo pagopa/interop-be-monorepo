@@ -11,7 +11,7 @@ import {
   PurposeTemplate,
   generateId,
   purposeTemplateState,
-  tenantKind,
+  targetTenantKind,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -19,13 +19,13 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   missingFreeOfChargeReason,
-  purposeTemplateNameConflict,
+  purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
-  const OVER_251_CHAR = "Over".repeat(251);
+  const OVER_251_CHAR = "O".repeat(251);
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.M2M_ADMIN_ROLE,
@@ -34,7 +34,7 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
   const mockPurposeTemplate: PurposeTemplate = getMockPurposeTemplate();
   const validPurposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed = {
     targetDescription: "Target description",
-    targetTenantKind: tenantKind.PA,
+    targetTenantKind: targetTenantKind.PA,
     purposeTitle: "Purpose Template title",
     purposeDescription: "Purpose Template description",
     purposeIsFreeOfCharge: false,
@@ -187,8 +187,8 @@ describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
     purposeTemplateService.updatePurposeTemplate = vi
       .fn()
       .mockRejectedValue(
-        purposeTemplateNameConflict(
-          mockPurposeTemplate.id,
+        purposeTemplateTitleConflict(
+          [mockPurposeTemplate.id],
           validPurposeTemplateSeed.purposeTitle
         )
       );

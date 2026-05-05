@@ -21,7 +21,7 @@ import {
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
 
-export const toCatalogItemTechnologyV1 = (input: Technology): string => {
+const toCatalogItemTechnologyV1 = (input: Technology): string => {
   switch (input) {
     case technology.rest:
       return "Rest";
@@ -30,7 +30,7 @@ export const toCatalogItemTechnologyV1 = (input: Technology): string => {
   }
 };
 
-export const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
+const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
   switch (input) {
     case descriptorState.draft:
       return "Draft";
@@ -47,7 +47,7 @@ export const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
   }
 };
 
-export const toAgreementApprovalPolicyV1 = (
+const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy
 ): string => {
   switch (input) {
@@ -58,7 +58,7 @@ export const toAgreementApprovalPolicyV1 = (
   }
 };
 
-export const toCatalogItemModeV1 = (input: EServiceMode): string => {
+const toCatalogItemModeV1 = (input: EServiceMode): string => {
   switch (input) {
     case eserviceMode.receive:
       return "Receive";
@@ -67,7 +67,7 @@ export const toCatalogItemModeV1 = (input: EServiceMode): string => {
   }
 };
 
-export const toCatalogAttributeValueV1 = (
+const toCatalogAttributeValueV1 = (
   input: EServiceAttribute[][] | undefined
 ): CatalogAttributeValueV1[][] => {
   const toCatalogAttributeValue = (
@@ -80,9 +80,7 @@ export const toCatalogAttributeValueV1 = (
   return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];
 };
 
-export const toCatalogDocumentV1 = (
-  doc: Document
-): CatalogDocumentV1Notification => ({
+const toCatalogDocumentV1 = (doc: Document): CatalogDocumentV1Notification => ({
   id: doc.id,
   name: doc.name,
   contentType: doc.contentType,
@@ -92,7 +90,7 @@ export const toCatalogDocumentV1 = (
   prettyName: doc.prettyName,
 });
 
-export const toCatalogDescriptorV1 = (
+const toCatalogDescriptorV1 = (
   descriptors: Descriptor[]
 ): CatalogDescriptorV1Notification[] =>
   descriptors.map((d) => ({
@@ -122,7 +120,7 @@ export const toCatalogDescriptorV1 = (
     },
   }));
 
-export const toCatalogItemRiskAnalysisV1 = (
+const toCatalogItemRiskAnalysisV1 = (
   riskAnalysis: RiskAnalysis[]
 ): CatalogItemRiskAnalysisV1Notification[] =>
   riskAnalysis.map((riskAnalysis) => ({

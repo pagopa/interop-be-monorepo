@@ -1,0 +1,25 @@
+meta {
+  name: List tenant verified attributes
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/verifiedAttributes?offset=0&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}

@@ -8,5 +8,6 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     reporters: ["verbose"],
+    include: ["test/**/*.test.ts"],
   },
 });

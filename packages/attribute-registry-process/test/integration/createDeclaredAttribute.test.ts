@@ -29,7 +29,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("declared attribute creation", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = getMockAttribute(attributeKind.declared);
   const mockTenant = getMockTenant();
 
   it.each([

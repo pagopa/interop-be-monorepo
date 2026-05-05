@@ -16,6 +16,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "../handlerCommons.js";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "delegationApprovedRejectedToDelegator";
@@ -59,7 +60,7 @@ export async function handleConsumerDelegationApproved(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Delegation ${delegation.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleConsumerDelegationApproved - entityId: ${delegation.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -75,6 +76,8 @@ export async function handleConsumerDelegationApproved(
         ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
+        selfcareId: t.selfcareId,
+        bffUrl: config.bffUrl,
       }),
     },
     tenantId: t.tenantId,

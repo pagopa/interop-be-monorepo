@@ -1,0 +1,20 @@
+meta {
+  name: Archive purpose
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/archive
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}

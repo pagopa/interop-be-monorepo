@@ -15,7 +15,7 @@ message TenantV2 {
   optional TenantKindV2 kind = 10;
   int64 onboardedAt = 11;
   optional TenantUnitTypeV2 subUnitType = 12;
-
+  optional string selfcareInstitutionType = 13;
 }
 
 enum TenantKindV2 {

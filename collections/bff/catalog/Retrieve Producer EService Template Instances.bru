@@ -1,0 +1,28 @@
+meta {
+  name: Retrieve Producer EService Template Instances
+  type: http
+  seq: 42
+}
+
+get {
+  url: {{host-bff}}/templates/:templateId/myInstances
+  body: none
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+params:query {
+  offset: 0
+  limit: 50
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the producer's own e-service instances created from a specific template
+}

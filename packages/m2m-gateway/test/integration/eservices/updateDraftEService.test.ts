@@ -19,7 +19,10 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("updateDraftEService", () => {
   const mockEService = getMockedApiEservice();
@@ -59,23 +62,10 @@ describe("updateDraftEService", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEService: m2mGatewayApi.EService = {
-      id: mockEServiceProcessGetResponse.data.id,
-      name: mockEServiceProcessGetResponse.data.name,
-      producerId: mockEServiceProcessGetResponse.data.producerId,
-      description: mockEServiceProcessGetResponse.data.description,
-      technology: mockEServiceProcessGetResponse.data.technology,
-      mode: mockEServiceProcessGetResponse.data.mode,
-      isSignalHubEnabled:
-        mockEServiceProcessGetResponse.data.isSignalHubEnabled,
-      isClientAccessDelegable:
-        mockEServiceProcessGetResponse.data.isClientAccessDelegable,
-      isConsumerDelegable:
-        mockEServiceProcessGetResponse.data.isConsumerDelegable,
-      templateId: mockEServiceProcessGetResponse.data.templateId,
-    };
+    const expectedM2MEService: m2mGatewayApi.EService =
+      testToM2mGatewayApiEService(mockEServiceProcessGetResponse.data);
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.patchUpdateDraftEServiceById,

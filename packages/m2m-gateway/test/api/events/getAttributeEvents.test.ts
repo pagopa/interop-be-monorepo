@@ -7,22 +7,18 @@ import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 
-describe("GET /events/attributes router test", () => {
+describe("GET /attributeEvents router test", () => {
+  const events: m2mGatewayApi.AttributeEvent[] = [
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ATTRIBUTE_ADDED",
+      attributeId: generateId(),
+    },
+  ];
+
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
-    events: [
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ATTRIBUTE_ADDED",
-        attributeId: generateId(),
-      },
-      {
-        id: generateId(),
-        eventTimestamp: new Date().toJSON(),
-        eventType: "ATTRIBUTE_ADDED",
-        attributeId: generateId(),
-      },
-    ],
+    events,
   };
 
   const mockQueryParams: m2mGatewayApi.GetEventManagerAttributesQueryParams = {
@@ -35,7 +31,7 @@ describe("GET /events/attributes router test", () => {
     query: m2mGatewayApi.GetEventManagerAttributesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/events/attributes`)
+      .get(`${appBasePath}/attributeEvents`)
       .set("Authorization", `Bearer ${token}`)
       .query(query)
       .send();

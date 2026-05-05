@@ -152,7 +152,7 @@ export const updateAgreementStateInPlatformStatesEntry = async (
 export const agreementStateToItemState = (state: AgreementState): ItemState =>
   state === agreementState.active ? itemState.active : itemState.inactive;
 
-export const updateAgreementStateOnTokenGenStatesEntries = async ({
+const updateAgreementStateOnTokenGenStatesEntries = async ({
   entriesToUpdate,
   agreementItemState,
   dynamoDBClient,
@@ -196,98 +196,97 @@ export const updateAgreementStateOnTokenGenStatesEntries = async ({
   }
 };
 
-export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
-  async ({
-    entriesToUpdate,
-    agreementId,
-    agreementState,
-    producerId,
-    dynamoDBClient,
-    GSIPK_eserviceId_descriptorId,
-    catalogEntry,
-    logger,
-  }: {
-    entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
-    agreementId: AgreementId;
-    agreementState: AgreementState;
-    producerId: TenantId;
-    dynamoDBClient: DynamoDBClient;
-    GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
-    catalogEntry: PlatformStatesCatalogEntry | undefined;
-    logger: Logger;
-  }): Promise<void> => {
-    for (const entry of entriesToUpdate) {
-      // Descriptor info should be filled when the fields are missing or outdated
-      const additionalDescriptorInfo =
-        catalogEntry &&
-        (entry.descriptorState !== catalogEntry.state ||
-          entry.descriptorAudience !== catalogEntry.descriptorAudience ||
-          entry.descriptorVoucherLifespan !==
-            catalogEntry.descriptorVoucherLifespan);
+const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries = async ({
+  entriesToUpdate,
+  agreementId,
+  agreementState,
+  producerId,
+  dynamoDBClient,
+  GSIPK_eserviceId_descriptorId,
+  catalogEntry,
+  logger,
+}: {
+  entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
+  agreementId: AgreementId;
+  agreementState: AgreementState;
+  producerId: TenantId;
+  dynamoDBClient: DynamoDBClient;
+  GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
+  catalogEntry: PlatformStatesCatalogEntry | undefined;
+  logger: Logger;
+}): Promise<void> => {
+  for (const entry of entriesToUpdate) {
+    // Descriptor info should be filled when the fields are missing or outdated
+    const additionalDescriptorInfo =
+      catalogEntry &&
+      (entry.descriptorState !== catalogEntry.state ||
+        entry.descriptorAudience !== catalogEntry.descriptorAudience ||
+        entry.descriptorVoucherLifespan !==
+          catalogEntry.descriptorVoucherLifespan);
 
-      if (additionalDescriptorInfo) {
-        logger.info(
-          `Adding descriptor info to token-generation-states entry with PK ${entry.PK} and GSIPK_eserviceId_descriptorId ${GSIPK_eserviceId_descriptorId}`
-        );
-      }
-      const additionalAttributesToSet: Record<string, AttributeValue> =
-        additionalDescriptorInfo
-          ? {
-              ":descriptorState": {
-                S: catalogEntry.state,
-              },
-              ":descriptorAudience": {
-                L: catalogEntry.descriptorAudience.map((item) => ({
-                  S: item,
-                })),
-              },
-              ":descriptorVoucherLifespan": {
-                N: catalogEntry.descriptorVoucherLifespan.toString(),
-              },
-            }
-          : {};
-      const input: UpdateItemInput = {
-        // ConditionExpression to avoid upsert
-        ConditionExpression: "attribute_exists(PK)",
-        Key: {
-          PK: {
-            S: entry.PK,
-          },
-        },
-        ExpressionAttributeValues: {
-          ":agreementId": {
-            S: agreementId,
-          },
-          ":gsiEServiceIdDescriptorId": {
-            S: GSIPK_eserviceId_descriptorId,
-          },
-          ":newState": {
-            S: agreementStateToItemState(agreementState),
-          },
-          ":producerId": {
-            S: producerId,
-          },
-          ":newUpdatedAt": {
-            S: new Date().toISOString(),
-          },
-          ...additionalAttributesToSet,
-        },
-        UpdateExpression:
-          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, producerId = :producerId, updatedAt = :newUpdatedAt".concat(
-            additionalDescriptorInfo
-              ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
-              : ""
-          ),
-        TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
-        ReturnValues: "NONE",
-      };
-      const command = new UpdateItemCommand(input);
-      await dynamoDBClient.send(command);
+    if (additionalDescriptorInfo) {
       logger.info(
-        `Token-generation-states. Updated agreement state and descriptor info in entry ${entry.PK}`
+        `Adding descriptor info to token-generation-states entry with PK ${entry.PK} and GSIPK_eserviceId_descriptorId ${GSIPK_eserviceId_descriptorId}`
       );
     }
-  };
+    const additionalAttributesToSet: Record<string, AttributeValue> =
+      additionalDescriptorInfo
+        ? {
+            ":descriptorState": {
+              S: catalogEntry.state,
+            },
+            ":descriptorAudience": {
+              L: catalogEntry.descriptorAudience.map((item) => ({
+                S: item,
+              })),
+            },
+            ":descriptorVoucherLifespan": {
+              N: catalogEntry.descriptorVoucherLifespan.toString(),
+            },
+          }
+        : {};
+    const input: UpdateItemInput = {
+      // ConditionExpression to avoid upsert
+      ConditionExpression: "attribute_exists(PK)",
+      Key: {
+        PK: {
+          S: entry.PK,
+        },
+      },
+      ExpressionAttributeValues: {
+        ":agreementId": {
+          S: agreementId,
+        },
+        ":gsiEServiceIdDescriptorId": {
+          S: GSIPK_eserviceId_descriptorId,
+        },
+        ":newState": {
+          S: agreementStateToItemState(agreementState),
+        },
+        ":producerId": {
+          S: producerId,
+        },
+        ":newUpdatedAt": {
+          S: new Date().toISOString(),
+        },
+        ...additionalAttributesToSet,
+      },
+      UpdateExpression:
+        "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, producerId = :producerId, updatedAt = :newUpdatedAt".concat(
+          additionalDescriptorInfo
+            ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
+            : ""
+        ),
+      TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+      ReturnValues: "NONE",
+    };
+    const command = new UpdateItemCommand(input);
+    await dynamoDBClient.send(command);
+    logger.info(
+      `Token-generation-states. Updated agreement state and descriptor info in entry ${entry.PK}`
+    );
+  }
+};
 
 export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
@@ -361,23 +360,6 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   } while (exclusiveStartKey);
 };
 
-export const extractAgreementIdFromAgreementPK = (
-  pk: PlatformStatesAgreementPK
-): AgreementId => {
-  const substrings = pk.split("#");
-  const agreementId = substrings[1];
-  const result = AgreementId.safeParse(agreementId);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse agreement PK: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(agreementId)} `
-    );
-  }
-  return result.data;
-};
-
 export const updateAgreementStateOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementState,
@@ -438,7 +420,7 @@ export const updateAgreementStateOnTokenGenStates = async ({
   } while (exclusiveStartKey);
 };
 
-export const readCatalogEntry = async (
+const readCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
 ): Promise<PlatformStatesCatalogEntry | undefined> => {

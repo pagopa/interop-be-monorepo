@@ -174,7 +174,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
 
       expect(notifications).toHaveLength(producerUsers.length);
 
-      const expectedBody = inAppTemplates.purposeStatusChangedToConsumer(
+      const expectedBody = inAppTemplates.purposeStatusChangedToProducer(
         purpose.title,
         consumerTenant.name,
         eservice.name,

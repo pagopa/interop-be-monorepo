@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const config = inject("tokenGenerationReadModelConfig");
+const config = inject("tokenGenerationReadModelConfig");
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,

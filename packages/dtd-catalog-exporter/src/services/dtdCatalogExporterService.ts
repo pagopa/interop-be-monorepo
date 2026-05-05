@@ -92,17 +92,15 @@ export function dtdCatalogExporterServiceBuilder({
       "Getting e-service's tenants and attributes data from database..."
     );
     const eservicesTenantsIds = getAllTenantsIds(eservices);
-    const eservicesTenants = await readModelService.getTenantsByIds(
-      eservicesTenantsIds
-    );
+    const eservicesTenants =
+      await readModelService.getTenantsByIds(eservicesTenantsIds);
     const eservicesTenantsMap = new Map(
       eservicesTenants.map((ten) => [ten.id, ten])
     );
 
     const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
-    const eserviceAttributes = await readModelService.getAttributes(
-      eserviceAttributeIds
-    );
+    const eserviceAttributes =
+      await readModelService.getAttributes(eserviceAttributeIds);
     const eserviceAttributesMap = new Map(
       eserviceAttributes.map((attr) => [attr.id, attr])
     );
@@ -121,9 +119,8 @@ export function dtdCatalogExporterServiceBuilder({
 
     loggerInstance.info("Getting tenants' attributes data from database...");
     const tenantAttributesIds = getAllTenantsAttributesIds(tenants);
-    const tenantAttributes = await readModelService.getAttributes(
-      tenantAttributesIds
-    );
+    const tenantAttributes =
+      await readModelService.getAttributes(tenantAttributesIds);
     const tenantAttributesMap = new Map(
       tenantAttributes.map((attr) => [attr.id, attr])
     );
