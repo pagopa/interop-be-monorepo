@@ -1486,7 +1486,9 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidScopeClaimFormat(invalidScope));
+      expect(errors![0]).toEqual(
+        invalidScopeClaimFormat(JSON.stringify(invalidScope))
+      );
     });
 
     it("invalidInteractionIdClaimFormat", async () => {
@@ -1505,7 +1507,9 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidInteractionIdClaimFormat(invalidId));
+      expect(errors![0]).toEqual(
+        invalidInteractionIdClaimFormat(JSON.stringify(invalidId))
+      );
     });
 
     it("invalidUrlCallbackClaimFormat", async () => {
