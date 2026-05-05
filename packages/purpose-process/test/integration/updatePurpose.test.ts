@@ -813,7 +813,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeApi.PurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [
@@ -946,7 +946,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeApi.PurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [

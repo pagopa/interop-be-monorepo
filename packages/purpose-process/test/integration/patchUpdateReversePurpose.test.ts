@@ -447,7 +447,7 @@ describe("patchUpdateReversePurpose", () => {
         purposeApi.PatchReversePurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [
@@ -726,7 +726,7 @@ describe("patchUpdateReversePurpose", () => {
         purposeApi.PatchPurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [

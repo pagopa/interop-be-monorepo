@@ -312,7 +312,7 @@ describe("patchUpdatePurpose", () => {
         freeOfChargeReason:
           seed.freeOfChargeReason === null
             ? undefined
-            : seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason,
+            : (seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason),
         riskAnalysisForm: seed.riskAnalysisForm
           ? createUpdatedRiskAnalysisForm(
               draftPurpose.riskAnalysisForm!,
@@ -465,7 +465,7 @@ describe("patchUpdatePurpose", () => {
         purposeApi.PatchPurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [
@@ -743,7 +743,7 @@ describe("patchUpdatePurpose", () => {
         purposeApi.PatchPurposeUpdateContent,
         "isFreeOfCharge" | "freeOfChargeReason"
       >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
     ]
   > = [
     [
