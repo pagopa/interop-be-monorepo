@@ -202,10 +202,8 @@ export const getMockDescriptorArchiving = (
   archivingSchedule: {
     scope: archivingScope.descriptor,
     startedAt: new Date(),
-    archivableOn: new Date(
-      new Date().setUTCDate(new Date().getUTCDate() + 30)
-    ),
-  },      
+    archivableOn: new Date(new Date().setUTCDate(new Date().getUTCDate() + 30)),
+  },
 });
 
 export const getMockDescriptorPublished = (

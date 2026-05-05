@@ -5,7 +5,6 @@ import {
   ArchivingScope,
   Descriptor,
   DescriptorId,
-  descriptorState,
   EService,
   EServiceId,
   generateId,
@@ -13,7 +12,7 @@ import {
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockDescriptor,
+  getMockDescriptorArchiving,
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
@@ -33,7 +32,7 @@ import {
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive authorization test", () => {
   const descriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptorArchiving(),
     version: "1",
   };
 
