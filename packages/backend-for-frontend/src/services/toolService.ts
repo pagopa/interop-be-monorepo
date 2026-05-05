@@ -98,6 +98,7 @@ export function toolsServiceBuilder(
           clientAssertion,
           clientAssertionType,
           grantType,
+          dpopProofJWS,
           ctx
         );
       }
@@ -209,6 +210,7 @@ async function validateAsyncTokenGeneration(
   clientAssertion: string,
   clientAssertionType: string,
   grantType: string,
+  dpopProofJWS: string | undefined,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.TokenGenerationValidationResult> {
   if (!storage) {
@@ -216,6 +218,11 @@ async function validateAsyncTokenGeneration(
   }
 
   ctx.logger.info(`Validating async token generation for client ${clientId}`);
+
+  const dpopValidationSteps = await validateDPoPProofForTokenGeneration(
+    dpopProofJWS,
+    ctx
+  );
 
   const { errors: parametersErrors } = validateRequestParameters({
     client_assertion: clientAssertion,
@@ -235,19 +242,29 @@ async function validateAsyncTokenGeneration(
   const asyncClaimErrors = jwt ? validateAsyncScopeClaims(jwt) : undefined;
 
   if (parametersErrors || clientAssertionErrors || asyncClaimErrors) {
-    return handleValidationResults({
-      clientAssertionErrors: [
-        ...(parametersErrors ?? []),
-        ...(clientAssertionErrors ?? []),
-        ...(asyncClaimErrors ?? []),
-      ],
-    });
+    return handleValidationResults(
+      {
+        clientAssertionErrors: [
+          ...(parametersErrors ?? []),
+          ...(clientAssertionErrors ?? []),
+          ...(asyncClaimErrors ?? []),
+        ],
+      },
+      undefined,
+      undefined,
+      dpopValidationSteps
+    );
   }
 
   const { data, errors: keyRetrieveErrors } =
     await retrieveAsyncValidationContext(clients, storage, jwt, ctx);
   if (keyRetrieveErrors) {
-    return handleValidationResults({ keyRetrieveErrors });
+    return handleValidationResults(
+      { keyRetrieveErrors },
+      undefined,
+      undefined,
+      dpopValidationSteps
+    );
   }
 
   const { errors: clientAssertionSignatureErrors } =
@@ -260,7 +277,8 @@ async function validateAsyncTokenGeneration(
     return handleValidationResults(
       { clientAssertionSignatureErrors },
       data.clientKind,
-      data.eservice
+      data.eservice,
+      dpopValidationSteps
     );
   }
 
@@ -278,11 +296,17 @@ async function validateAsyncTokenGeneration(
     return handleValidationResults(
       { platformStateErrors },
       data.clientKind,
-      data.eservice
+      data.eservice,
+      dpopValidationSteps
     );
   }
 
-  return handleValidationResults({}, data.clientKind, data.eservice);
+  return handleValidationResults(
+    {},
+    data.clientKind,
+    data.eservice,
+    dpopValidationSteps
+  );
 }
 
 function handleValidationResults(

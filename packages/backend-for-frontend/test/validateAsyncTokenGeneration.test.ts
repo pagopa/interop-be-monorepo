@@ -4,6 +4,7 @@ import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { bffApi, authorizationApi } from "pagopa-interop-api-clients";
 import * as clientAssertionValidation from "pagopa-interop-client-assertion-validation";
+import * as dpopValidation from "pagopa-interop-dpop-validation";
 import {
   ClientId,
   EServiceId,
@@ -16,6 +17,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";
 import { getBffMockContext } from "./utils.js";
 
@@ -32,6 +34,10 @@ describe("validateTokenGeneration async validations", () => {
   const mockClientAssertionType =
     "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
   const mockGrantType = "client_credentials";
+  const mockDpopProof = "test_dpop_proof_jws";
+  const mockDpopHtuBase = "test/authorization-server/token.oauth2";
+  const mockDpopIatToleranceSeconds = 60;
+  const mockDpopDurationSeconds = 60;
 
   const mockAuthData: AuthData = {
     ...getMockAuthData(),
@@ -140,6 +146,7 @@ describe("validateTokenGeneration async validations", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     dynamoDBClient.send = vi.fn();
+    config.featureFlagDpopClientAssertionDebugger = false;
 
     vi.spyOn(
       clientAssertionValidation,
@@ -158,6 +165,81 @@ describe("validateTokenGeneration async validations", () => {
       clientAssertionValidation,
       "verifyClientAssertionSignature"
     ).mockResolvedValue({ errors: undefined, data: {} });
+  });
+
+  it("should include DPoP validation when validating async token generation", async () => {
+    Object.assign(config, {
+      featureFlagDpopClientAssertionDebugger: true,
+      dpopHtuBase: mockDpopHtuBase,
+      dpopIatToleranceSeconds: mockDpopIatToleranceSeconds,
+      dpopDurationSeconds: mockDpopDurationSeconds,
+    });
+
+    vi.spyOn(dpopValidation, "verifyDPoPProof").mockReturnValue({
+      errors: undefined,
+      data: {
+        dpopProofJWT: {
+          header: {
+            alg: "RS256",
+            typ: "dpop+jwt",
+            jwk: { kty: "RSA", n: "...", e: "..." },
+          },
+          payload: {
+            jti: "123",
+            iat: 123,
+            htu: mockDpopHtuBase,
+            htm: "POST",
+          },
+        },
+        dpopProofJWS: mockDpopProof,
+      },
+    });
+    vi.spyOn(dpopValidation, "verifyDPoPProofSignature").mockResolvedValue({
+      errors: undefined,
+      data: {},
+    });
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          purposeId: mockPurposeId,
+          scope: interactionState.startInteraction,
+          urlCallback: "https://example.com/callback",
+        },
+      },
+    });
+
+    const result = await service.validateTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      mockDpopProof,
+      ctx
+    );
+
+    expect(result.steps.dpopValidation).toEqual({
+      result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
+      failures: [],
+    });
+    expect(dpopValidation.verifyDPoPProof).toHaveBeenCalledWith({
+      dpopProofJWS: mockDpopProof,
+      expectedDPoPProofHtu: mockDpopHtuBase,
+      expectedDPoPProofHtm: "POST",
+      dpopProofIatToleranceSeconds: mockDpopIatToleranceSeconds,
+      dpopProofDurationSeconds: mockDpopDurationSeconds,
+    });
   });
 
   it("should validate start_interaction successfully", async () => {
@@ -306,6 +388,8 @@ describe("validateTokenGeneration async validations", () => {
           PK: `INTERACTION#${mockInteractionId}`,
           GSIPK_interactionId: makeGSIPKInteractionId(mockInteractionId),
           interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
           purposeId: mockPurposeId,
           eServiceId: mockEServiceId,
           descriptorId: mockDescriptorId,
@@ -423,6 +507,8 @@ describe("validateTokenGeneration async validations", () => {
           PK: `INTERACTION#${mockInteractionId}`,
           GSIPK_interactionId: makeGSIPKInteractionId(mockInteractionId),
           interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
           purposeId: mockPurposeId,
           eServiceId: mockEServiceId,
           descriptorId: mockDescriptorId,
@@ -475,6 +561,8 @@ describe("validateTokenGeneration async validations", () => {
           PK: `INTERACTION#${mockInteractionId}`,
           GSIPK_interactionId: makeGSIPKInteractionId(mockInteractionId),
           interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
           purposeId: mockPurposeId,
           eServiceId: mockEServiceId,
           descriptorId: mockDescriptorId,
