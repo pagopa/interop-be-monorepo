@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   AgreementId,
   DelegationId,
+  WithMetadata,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
@@ -25,11 +26,15 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
   );
+  const serviceResponse: WithMetadata<typeof mockAgreement> = {
+    data: mockAgreement,
+    metadata: { version: 1 },
+  };
 
   beforeEach(() => {
     agreementService.archiveAgreement = vi
       .fn()
-      .mockResolvedValue(mockAgreement);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -46,6 +51,7 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(apiResponse);
+    expect(res.headers["x-metadata-version"]).toBe("1");
   });
 
   it.each(

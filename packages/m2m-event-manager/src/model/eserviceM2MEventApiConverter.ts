@@ -136,6 +136,10 @@ function toApiEServiceM2MEventType(
       "EServiceInstanceLabelUpdated",
       () => "ESERVICE_INSTANCE_LABEL_UPDATED"
     )
+    .with(
+      "MaintenanceEServicePersonalDataFlagReset",
+      () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
+    )
     .exhaustive();
 }
 

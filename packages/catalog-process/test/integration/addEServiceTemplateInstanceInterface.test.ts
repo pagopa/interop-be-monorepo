@@ -548,27 +548,31 @@ describe("addEServiceTemplateInstanceInterface", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
-        expectedServerUrls
-      );
-      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
-        name: interfaceDocumentFile.name,
-        prettyName: interfaceDocumentFile.prettyName,
-        contentType: "yaml",
-        uploadDate: new Date().toISOString(),
-      });
-      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
-        templateVersionRef: {
-          id: template.versions[0].id,
-          interfaceMetadata: {
-            contactEmail,
-            contactName,
-            contactUrl,
-            termsAndConditionsUrl,
-          },
-        },
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expect.any(String),
+        eservice: expect.objectContaining({
+          descriptors: [
+            expect.objectContaining({
+              serverUrls: expectedServerUrls,
+              interface: expect.objectContaining({
+                name: interfaceDocumentFile.name,
+                prettyName: interfaceDocumentFile.prettyName,
+                contentType: "yaml",
+                uploadDate: new Date().toISOString(),
+              }),
+              templateVersionRef: expect.objectContaining({
+                id: template.versions[0].id,
+                interfaceMetadata: expect.objectContaining({
+                  contactEmail,
+                  contactName,
+                  contactUrl,
+                  termsAndConditionsUrl,
+                }),
+              }),
+            }),
+          ],
+        }),
       });
     });
 
@@ -635,25 +639,29 @@ describe("addEServiceTemplateInstanceInterface", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
-        expectedServerUrls
-      );
-      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
-        name: interfaceDocumentFile.name,
-        prettyName: interfaceDocumentFile.prettyName,
-        contentType: "yaml",
-        uploadDate: new Date().toISOString(),
-      });
-      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
-        templateVersionRef: {
-          id: template.versions[0].id,
-          interfaceMetadata: {
-            contactEmail,
-            contactName,
-          },
-        },
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expect.any(String),
+        eservice: expect.objectContaining({
+          descriptors: [
+            expect.objectContaining({
+              serverUrls: expectedServerUrls,
+              interface: expect.objectContaining({
+                name: interfaceDocumentFile.name,
+                prettyName: interfaceDocumentFile.prettyName,
+                contentType: "yaml",
+                uploadDate: new Date().toISOString(),
+              }),
+              templateVersionRef: expect.objectContaining({
+                id: template.versions[0].id,
+                interfaceMetadata: expect.objectContaining({
+                  contactEmail,
+                  contactName,
+                }),
+              }),
+            }),
+          ],
+        }),
       });
       const templateVerRef =
         writtenPayload.eservice?.descriptors[0].templateVersionRef;
@@ -719,26 +727,30 @@ describe("addEServiceTemplateInstanceInterface", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.descriptorId).toBe(descriptor.id);
-      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
-        expectedServerUrls
-      );
-      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
-        name: interfaceDocumentFile.name,
-        prettyName: interfaceDocumentFile.prettyName,
-        contentType: "wsdl",
-        uploadDate: new Date().toISOString(),
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expect.any(String),
+        eservice: expect.objectContaining({
+          descriptors: [
+            expect.objectContaining({
+              serverUrls: expectedServerUrls,
+              interface: expect.objectContaining({
+                name: interfaceDocumentFile.name,
+                prettyName: interfaceDocumentFile.prettyName,
+                contentType: "wsdl",
+                uploadDate: new Date().toISOString(),
+              }),
+              templateVersionRef: expect.objectContaining({
+                id: template.versions[0].id,
+              }),
+            }),
+          ],
+        }),
       });
       expect(
         writtenPayload.eservice?.descriptors[0].templateVersionRef
           ?.interfaceMetadata
       ).toBeUndefined();
-      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
-        templateVersionRef: {
-          id: template.versions[0].id,
-        },
-      });
     });
   });
 });

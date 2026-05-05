@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources' && pnpm cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
     "check": "tsc --project tsconfig.check.json",
     "test": "vitest",
     "test:it": "vitest integration"
@@ -27,7 +27,6 @@
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
-    "puppeteer": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -44,6 +43,7 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "puppeteer": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

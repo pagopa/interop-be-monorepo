@@ -64,6 +64,7 @@ describe("API /eservices authorization test", () => {
     producersIds: [producerId],
     attributesIds: [],
     states: [],
+    consumersIds: [],
     agreementStates: [],
     mode: eServiceModeToApiEServiceMode(eserviceMode.deliver),
     isConsumerDelegable: false,

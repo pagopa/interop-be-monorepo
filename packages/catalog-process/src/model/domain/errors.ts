@@ -61,8 +61,9 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  attributeDailyCallsNotAllowed: "0047",
-  certifiedAttributeGroupNotFoundInSeed: "0048",
+  eserviceInDraftState: "0047",
+  attributeDailyCallsNotAllowed: "0048",
+  certifiedAttributeGroupNotFoundInSeed: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -193,7 +194,7 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
 
 export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    detail: `dailyCallsPerConsumer can't be greater than or equal to dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
   });
@@ -214,6 +215,16 @@ export function eserviceNotInDraftState(
     detail: `EService ${eserviceId} is not in draft state`,
     code: "eserviceNotInDraftState",
     title: "EService is not in draft state",
+  });
+}
+
+export function eserviceInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in draft state`,
+    code: "eserviceInDraftState",
+    title: "EService is in draft state",
   });
 }
 

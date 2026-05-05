@@ -2,8 +2,6 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import path from "path";
-import { fileURLToPath } from "url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readLastEventByStreamId,
@@ -42,11 +40,9 @@ import {
   DelegationId,
   UserId,
 } from "pagopa-interop-models";
-import { genericLogger, getIpaCode } from "pagopa-interop-commons";
 import {
   agreementNotFound,
   eserviceNotFound,
-  missingRiskAnalysis,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
@@ -55,16 +51,12 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
-import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  fileManager,
-  pdfGenerator,
   postgresDB,
   purposeService,
 } from "../integrationUtils.js";
@@ -134,8 +126,6 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold)", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -157,41 +147,7 @@ describe("createPurposeVersion", () => {
         (v) => v.id === purposeVersionResponse.data.createdVersionId
       )!;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: "24",
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(createdPurposeVersion.riskAnalysis!.path);
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -212,7 +168,6 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: createdPurposeVersion.riskAnalysis,
       stamps: createdPurposeVersion.stamps,
     };
 
@@ -235,9 +190,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -255,8 +214,6 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold) (with producer delegation)", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const delegate = getMockTenant();
 
     const producerDelegation = getMockDelegation({
@@ -290,41 +247,7 @@ describe("createPurposeVersion", () => {
         (v) => v.id === purposeVersionResponse.data.createdVersionId
       )!;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: "24",
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: producerDelegation.id,
-      producerDelegateName: delegate.name,
-      producerDelegateIpaCode: delegate.externalId.value,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(createdPurposeVersion.riskAnalysis!.path);
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -345,7 +268,6 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: createdPurposeVersion.riskAnalysis,
       stamps: createdPurposeVersion.stamps,
     };
 
@@ -368,9 +290,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -388,8 +314,6 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls decreased and <= threshold)", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -411,41 +335,7 @@ describe("createPurposeVersion", () => {
         (v) => v.id === purposeVersionResponse.data.createdVersionId
       )!;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: "4",
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: undefined,
-      consumerDelegateName: undefined,
-      consumerDelegateIpaCode: undefined,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(createdPurposeVersion.riskAnalysis!.path);
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -466,7 +356,6 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 4,
-      riskAnalysis: createdPurposeVersion.riskAnalysis,
       stamps: createdPurposeVersion.stamps,
     };
 
@@ -489,9 +378,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -565,9 +458,13 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
@@ -589,7 +486,6 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
-    vi.spyOn(pdfGenerator, "generate");
     const consumerDelegate = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -634,41 +530,7 @@ describe("createPurposeVersion", () => {
         (v) => v.id === purposeVersionResponse.data.createdVersionId
       )!;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: createdPurposeVersion.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: mockEService.name,
-      producerName: mockProducer.name,
-      producerIpaCode: getIpaCode(mockProducer),
-      consumerName: mockConsumer.name,
-      consumerIpaCode: getIpaCode(mockConsumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: undefined,
-      producerDelegateName: undefined,
-      producerDelegateIpaCode: undefined,
-      consumerDelegationId: delegation.id,
-      consumerDelegateName: consumerDelegate.name,
-      consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId,
-      consumerId: mockPurpose.consumerId,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(createdPurposeVersion.riskAnalysis!.path);
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
 
     const writtenEvent = await readLastEventByStreamId(
       purpose.id,
@@ -689,7 +551,6 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: createdPurposeVersion.riskAnalysis,
       stamps: createdPurposeVersion.stamps,
     };
 
@@ -712,9 +573,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -732,8 +597,6 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
-    vi.spyOn(pdfGenerator, "generate");
-
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
@@ -818,41 +681,7 @@ describe("createPurposeVersion", () => {
         (v) => v.id === purposeVersionResponse.data.createdVersionId
       )!;
 
-    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: createdPurposeVersion.dailyCalls.toString(),
-      answers: expect.any(String),
-      eServiceName: eservice.name,
-      producerName: producer.name,
-      producerIpaCode: getIpaCode(producer),
-      consumerName: consumer.name,
-      consumerIpaCode: getIpaCode(consumer),
-      freeOfCharge: expect.any(String),
-      freeOfChargeReason: expect.any(String),
-      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-      eServiceMode: "Eroga",
-      producerDelegationId: producerDelegation.id,
-      producerDelegateName: producerDelegate.name,
-      producerDelegateIpaCode: producerDelegate.externalId.value,
-      consumerDelegationId: consumerDelegation.id,
-      consumerDelegateName: consumerDelegate.name,
-      consumerDelegateIpaCode: consumerDelegate.externalId.value,
-      userId,
-      consumerId: consumer.id,
-    };
-
-    expect(pdfGenerator.generate).toBeCalledWith(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../src",
-        "resources/templates/documents",
-        "riskAnalysisTemplate.html"
-      ),
-      expectedPdfPayload
-    );
-
-    expect(
-      await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(createdPurposeVersion.riskAnalysis!.path);
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -873,7 +702,6 @@ describe("createPurposeVersion", () => {
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: createdPurposeVersion.riskAnalysis,
       stamps: createdPurposeVersion.stamps,
     };
 
@@ -896,9 +724,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -1062,21 +894,27 @@ describe("createPurposeVersion", () => {
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
 
-  it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
+  it("should succeed even if the purpose producer is not found in the readmodel (no document generation needed)", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
 
-    expect(async () => {
-      await purposeService.createPurposeVersion(
-        mockPurpose.id,
-        {
-          dailyCalls: 20,
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-    }).rejects.toThrowError(tenantNotFound(mockProducer.id));
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
+        dailyCalls: 20,
+      },
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
+
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
+    expect(purposeVersionResponse.data.purpose.id).toEqual(mockPurpose.id);
   });
 
   it("should throw tenantKindNotFound if e-service mode is DELIVER and the tenant consumer has no kind", async () => {
@@ -1103,7 +941,7 @@ describe("createPurposeVersion", () => {
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
-  it("should throw tenantKindNotFound if e-service mode is RECEIVE and the tenant producer has no kind", async () => {
+  it("should succeed even if e-service mode is RECEIVE and the tenant producer has no kind (no document generation needed)", async () => {
     const producer: Tenant = { ...mockProducer, kind: undefined };
     const eservice: EService = {
       ...mockEService,
@@ -1116,18 +954,24 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(producer);
 
-    expect(async () => {
-      await purposeService.createPurposeVersion(
-        mockPurpose.id,
-        {
-          dailyCalls: 20,
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-    }).rejects.toThrowError(tenantKindNotFound(producer.id));
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
+        dailyCalls: 20,
+      },
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
+
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
+    expect(purposeVersionResponse.data.purpose.id).toEqual(mockPurpose.id);
   });
 
-  it("should throw missingRiskAnalysis if there is no risk-analysis version and the passed daily calls does not surpass the descriptor limits", async () => {
+  it("should succeed even if there is no risk-analysis version (not needed without document generation)", async () => {
     const purpose: Purpose = {
       ...mockPurpose,
       riskAnalysisForm: undefined,
@@ -1139,15 +983,21 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    expect(async () => {
-      await purposeService.createPurposeVersion(
-        purpose.id,
-        {
-          dailyCalls: 20,
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-    }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
+      purpose.id,
+      {
+        dailyCalls: 20,
+      },
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
+
+    expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
+    expect(purposeVersionResponse.data.purpose.id).toEqual(purpose.id);
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
     const authData = getMockAuthData();
