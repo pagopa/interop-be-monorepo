@@ -191,8 +191,8 @@ import {
   assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
-  assertDescriptorInRequiredStates,
-  assertDescriptorIsNotLatestVersion,
+  assertDescriptorArchivable,
+  assertDescriptorCancelArchivable,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -389,15 +389,6 @@ const updateDescriptorState = (
           ),
           scope: scope ?? archivingScope.descriptor,
         },
-      })
-    )
-    .with(
-      [descriptorState.archiving, descriptorState.deprecated],
-      [descriptorState.archivingSuspended, descriptorState.suspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivingSchedule: undefined,
       })
     )
     .otherwise(() => ({
@@ -2173,11 +2164,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorInRequiredStates(descriptor, [
-        descriptorState.deprecated,
-        descriptorState.suspended,
-      ]);
-      assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+      assertDescriptorArchivable(descriptor, eservice.data);
 
       const newState =
         descriptor.state === descriptorState.suspended
@@ -3835,25 +3822,29 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorInRequiredStates(descriptor, [
-        descriptorState.archiving,
-        descriptorState.archivingSuspended,
-      ]);
-      assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+      assertDescriptorCancelArchivable(descriptor);
 
       const newState =
         descriptor.state === descriptorState.archivingSuspended
           ? descriptorState.suspended
           : descriptorState.deprecated;
 
-      const updatedEService =
-        await transitionEServiceDescriptorArchivingStateLogic(
-          eservice.data,
-          descriptor,
-          newState,
-          authData,
-          readModelService
-        );
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const updatedDescriptor: Descriptor = {
+        ...updateDescriptorState(descriptor, newState),
+        archivingSchedule: undefined,
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
 
       const event = toCreateEventEServiceDescriptorArchivingDeleted(
         eservice.metadata.version,
