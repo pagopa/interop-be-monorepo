@@ -23,6 +23,7 @@ import {
   eServiceDescriptorNotFound,
   descriptorAlreadyArchived,
 } from "../../src/model/domain/errors.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
   const descriptor: Descriptor = {
@@ -41,7 +42,8 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archiv
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
+    body: catalogApi.ArchivingKind = { kind: "AUTOMATIC" }
   ) =>
     request(api)
       .post(
@@ -49,7 +51,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archiv
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(body);
 
   it("Should return 200 for user with role internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -96,17 +98,19 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archiv
   );
 
   it.each([
-    {},
-    { eServiceId: "invalidId", descriptorId: descriptor.id },
-    { eServiceId: mockEService.id, descriptorId: "invalidId" },
+    [{}, mockEService.id, descriptor.id],
+    [{ kind: "AUTOMATIC" }, "invalidId", descriptor.id],
+    [{ kind: "AUTOMATIC" }, mockEService.id, "invalidId"],
+    [{ kind: "INVALID_KIND" }, mockEService.id, descriptor.id],
   ])(
     "Should return 400 if passed invalid params: %s",
-    async ({ eServiceId, descriptorId }) => {
+    async (body, eServiceId, descriptorId) => {
       const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        descriptorId as DescriptorId
+        descriptorId as DescriptorId,
+        body as catalogApi.ArchivingKind
       );
 
       expect(res.status).toBe(400);

@@ -3881,12 +3881,19 @@ components:
       enum:
         - ESERVICE
         - DESCRIPTOR
+        
     ArchivingKind:
-      type: string
+      type: object
+      additionalProperties: false
       description: Archiving Kind
-      enum:
-        - AUTOMATIC
-        - MANUAL
+      properties:
+        kind:
+          type: string
+          enum:
+            - AUTOMATIC
+            - MANUAL
+      required:
+        - kind
     Attribute:
       type: object
       additionalProperties: false

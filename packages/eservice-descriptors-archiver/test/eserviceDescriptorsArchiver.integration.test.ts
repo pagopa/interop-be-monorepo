@@ -117,7 +117,7 @@ describe("EService Descriptors Archiver", async () => {
       );
 
       expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-        "AUTOMATIC",
+        { kind: "AUTOMATIC" },
         {
           params: {
             eServiceId: eservice.id,
@@ -192,7 +192,7 @@ describe("EService Descriptors Archiver", async () => {
       );
 
       expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-        "AUTOMATIC",
+        { kind: "AUTOMATIC" },
         {
           params: {
             eServiceId: eservice.id,

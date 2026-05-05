@@ -64,13 +64,16 @@ export async function archiveDescriptorForArchivedAgreement(
     .with({ state: descriptorState.deprecated }, async () => {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await catalogProcessClient.archiveDescriptor("AUTOMATIC", {
-        params: {
-          eServiceId: archivedAgreement.eserviceId,
-          descriptorId: archivedAgreement.descriptorId,
-        },
-        headers,
-      });
+      await catalogProcessClient.archiveDescriptor(
+        { kind: "AUTOMATIC" },
+        {
+          params: {
+            eServiceId: archivedAgreement.eserviceId,
+            descriptorId: archivedAgreement.descriptorId,
+          },
+          headers,
+        }
+      );
 
       logger.info(
         `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
@@ -86,13 +89,16 @@ export async function archiveDescriptorForArchivedAgreement(
       if (newerDescriptorExists) {
         const token = (await refreshableToken.get()).serialized;
         const headers = getHeaders(correlationId, token);
-        await catalogProcessClient.archiveDescriptor("AUTOMATIC", {
-          params: {
-            eServiceId: archivedAgreement.eserviceId,
-            descriptorId: archivedAgreement.descriptorId,
-          },
-          headers,
-        });
+        await catalogProcessClient.archiveDescriptor(
+          { kind: "AUTOMATIC" },
+          {
+            params: {
+              eServiceId: archivedAgreement.eserviceId,
+              descriptorId: archivedAgreement.descriptorId,
+            },
+            headers,
+          }
+        );
         logger.info(
           `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
         );

@@ -45,7 +45,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
-      "AUTOMATIC",
+      { kind: "AUTOMATIC" },
       getMockContextInternal({})
     );
 
@@ -97,7 +97,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
-      "MANUAL",
+      { kind: "MANUAL" },
       getMockContextInternal({})
     );
 
@@ -137,7 +137,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        "AUTOMATIC",
+        { kind: "AUTOMATIC" },
         getMockContextInternal({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -154,7 +154,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         eservice.id,
         mockDescriptor.id,
-        "AUTOMATIC",
+        { kind: "AUTOMATIC" },
         getMockContextInternal({})
       )
     ).rejects.toThrowError(

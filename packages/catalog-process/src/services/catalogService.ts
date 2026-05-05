@@ -2059,7 +2059,7 @@ export function catalogServiceBuilder(
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
       const event =
-        archivingKind === catalogApi.ArchivingKind.Enum.AUTOMATIC
+        archivingKind.kind === "AUTOMATIC"
           ? toCreateEventEServiceDescriptorArchived(
               eserviceId,
               eservice.metadata.version,
@@ -4570,10 +4570,10 @@ const buildInstanceName = ({
 async function validateArchivingPreconditions(
   eserviceId: EServiceId,
   descriptor: Descriptor,
-  kind: catalogApi.ArchivingKind,
+  archivingKind: catalogApi.ArchivingKind,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
-  if (kind === catalogApi.ArchivingKind.Enum.MANUAL) {
+  if (archivingKind.kind === "MANUAL") {
     return assertGracePeriodExpired(descriptor);
   }
 
