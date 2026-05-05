@@ -193,6 +193,21 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
+export const getMockDescriptorArchiving = (
+  descriptorId: DescriptorId = generateId<DescriptorId>()
+): Descriptor => ({
+  ...getMockDescriptor(descriptorState.archiving),
+  id: descriptorId,
+  state: descriptorState.archiving,
+  archivingSchedule: {
+    scope: archivingScope.descriptor,
+    startedAt: new Date(),
+    archivableOn: new Date(
+      new Date().setUTCDate(new Date().getUTCDate() + 30)
+    ),
+  },      
+});
+
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
@@ -457,18 +472,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-  ...(state === descriptorState.archiving ||
-  state === descriptorState.archivingSuspended
-    ? {
-        archivingSchedule: {
-          scope: archivingScope.descriptor,
-          startedAt: new Date(),
-          archivableOn: new Date(
-            new Date().setUTCDate(new Date().getUTCDate() + 30)
-          ),
-        },
-      }
-    : {}),
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {

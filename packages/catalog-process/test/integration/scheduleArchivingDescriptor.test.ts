@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  getMockDescriptorArchiving,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -120,7 +121,7 @@ describe("schedule archiving of a descriptor", () => {
 
   it("should not update a descriptor that is in a EService in Archiving state", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.archiving),
+      ...getMockDescriptorArchiving(),
       interface: mockDocument,
       version: "1",
     };
