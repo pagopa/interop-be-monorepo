@@ -224,7 +224,6 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
-      { type: "EServiceInstanceLabelUpdated" },
       () => undefined
     )
     .exhaustive();
