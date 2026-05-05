@@ -26,7 +26,8 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
-  DescriptorState,
+  DescriptorId,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -120,6 +121,44 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       () => false
     )
     .exhaustive();
+}
+
+function isDescriptorArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): boolean {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  const isLatest = latestDescriptor?.id === descriptor.id;
+
+  return match(descriptor.state)
+    .with(descriptorState.deprecated, () => true)
+    .with(descriptorState.suspended, () => !isLatest)
+    .with(
+      descriptorState.draft,
+      descriptorState.published,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export async function hasActiveSubscription(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  readModelService: ReadModelServiceSQL
+): Promise<boolean> {
+  const activeSubscriptions = await readModelService.listAgreements({
+    eservicesIds: [eserviceId],
+    consumersIds: [],
+    producersIds: [],
+    states: [agreementState.active, agreementState.suspended],
+    limit: 1,
+    descriptorId: descriptorId,
+  });
+  return activeSubscriptions.length > 0;
 }
 
 export async function assertRequesterIsDelegateProducerOrProducer(
@@ -458,21 +497,11 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-export function assertDescriptorInRequiredStates(
-  descriptor: Descriptor,
-  states: DescriptorState[]
-): void {
-  if (!states.includes(descriptor.state)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-  }
-}
-
-export function assertDescriptorIsNotLatestVersion(
+export function assertDescriptorArchivable(
   descriptor: Descriptor,
   eservice: EService
 ): void {
-  const latestDescriptorVersion = getLatestDescriptor(eservice);
-  if (latestDescriptorVersion && descriptor.id === latestDescriptorVersion.id) {
+  if (!isDescriptorArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }

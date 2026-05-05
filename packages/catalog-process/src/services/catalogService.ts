@@ -62,7 +62,6 @@ import {
   AttributeKind,
   attributeKind,
   archivingScope,
-  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -192,7 +191,7 @@ import {
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
   assertDescriptorArchivable,
-  assertDescriptorCancelArchivable,
+  hasActiveSubscription,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -328,8 +327,7 @@ const getTemplateDataFromEservice = (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  newState: DescriptorState,
-  scope?: ArchivingScope
+  newState: DescriptorState
 ): Descriptor => {
   const descriptorStateChange = [descriptor.state, newState];
 
@@ -365,32 +363,20 @@ const updateDescriptorState = (
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
-    .with([descriptorState.published, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      archivedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.archived],
+      [descriptorState.deprecated, descriptorState.archived],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
       deprecatedAt: new Date(),
     }))
-    .with(
-      [descriptorState.deprecated, descriptorState.archiving],
-      [descriptorState.published, descriptorState.archiving],
-      [descriptorState.suspended, descriptorState.archivingSuspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivingSchedule: {
-          ...calculateArchivableOn(
-            new Date(),
-            config.gracePeriodArchivingEService
-          ),
-          scope: scope ?? archivingScope.descriptor,
-        },
-      })
-    )
     .otherwise(() => ({
       ...descriptor,
       state: newState,
@@ -2164,15 +2150,27 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      // const producerDelegation = await retrieveActiveProducerDelegation(
+      //   eservice.data,
+      //   readModelService
+      // );
+      // assertRequesterCanPublish(producerDelegation, eservice.data, authData);
+
       assertDescriptorArchivable(descriptor, eservice.data);
 
-      const newState =
-        descriptor.state === descriptorState.suspended
-          ? descriptorState.archivingSuspended
-          : descriptorState.archiving;
+      if (
+        await hasActiveSubscription(
+          eservice.data.id,
+          descriptorId,
+          readModelService
+        )
+      ) {
+        const newState =
+          descriptor.state === descriptorState.suspended
+            ? descriptorState.archivingSuspended
+            : descriptorState.archiving;
 
-      const updatedEService =
-        await transitionEServiceDescriptorArchivingStateLogic(
+        const updatedEService = await processDescriptorArchiving(
           eservice.data,
           descriptor,
           newState,
@@ -2180,18 +2178,40 @@ export function catalogServiceBuilder(
           readModelService
         );
 
-      const event = toCreateEventEServiceDescriptorArchivingScheduled(
-        eservice.metadata.version,
-        updatedEService,
-        descriptorId,
-        correlationId
-      );
+        const event = toCreateEventEServiceDescriptorArchivingScheduled(
+          eservice.metadata.version,
+          updatedEService,
+          descriptorId,
+          correlationId
+        );
 
-      const createdEvent = await repository.createEvent(event);
-      return {
-        data: updatedEService,
-        metadata: { version: createdEvent.newVersion },
-      };
+        const createdEvent = await repository.createEvent(event);
+        return {
+          data: updatedEService,
+          metadata: { version: createdEvent.newVersion },
+        };
+      } else {
+        const updatedDescriptor = updateDescriptorState(
+          descriptor,
+          descriptorState.archived
+        );
+
+        const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+        const event = toCreateEventEServiceDescriptorArchived(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          newEservice,
+          correlationId
+        );
+
+        const createdEvent = await repository.createEvent(event);
+        return {
+          data: newEservice,
+          metadata: { version: createdEvent.newVersion },
+        };
+      }
     },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
@@ -3890,7 +3910,7 @@ export function catalogServiceBuilder(
   };
 }
 
-async function transitionEServiceDescriptorArchivingStateLogic(
+async function processDescriptorArchiving(
   eservice: EService,
   descriptor: Descriptor,
   newState: DescriptorState,
@@ -3904,10 +3924,14 @@ async function transitionEServiceDescriptorArchivingStateLogic(
     readModelService
   );
 
+  const archivingSchedule = {
+    ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
+    scope: archivingScope.descriptor,
+  };
+
   const updatedDescriptor: Descriptor = updateDescriptorState(
-    descriptor,
-    newState,
-    archivingScope.descriptor
+    { ...descriptor, archivingSchedule },
+    newState
   );
 
   const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
