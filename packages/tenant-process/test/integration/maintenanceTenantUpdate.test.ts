@@ -70,7 +70,9 @@ describe("maintenanceTenantUpdate", async () => {
       selfcareInstitutionType: tenantUpdate.selfcareInstitutionType,
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedMockTenant));
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(updatedMockTenant),
+    });
   });
   it("Should throw tenantNotFound when the tenant doesn't exists", async () => {
     const mockTenant = getMockTenant();

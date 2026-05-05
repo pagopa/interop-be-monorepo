@@ -4,12 +4,11 @@ import { fileURLToPath } from "url";
 import {
   FileManager,
   Logger,
-  PDFGenerator,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
-  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import {
   Agreement,
   AgreementDocumentId,

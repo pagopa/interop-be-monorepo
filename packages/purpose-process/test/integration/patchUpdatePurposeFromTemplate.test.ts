@@ -103,12 +103,14 @@ describe("patchUpdatePurposeFromTemplate", () => {
     expectedPurpose: Purpose
   ): Promise<void> {
     const sortedExpectedPurpose = sortPurpose(expectedPurpose);
-    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
     const sortedUpdatePurpose = sortPurpose(updatePurpose);
 
-    expect(sortedWrittenPayloadPurpose).toEqual(
-      sortPurpose(toPurposeV2(sortedExpectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(sortedExpectedPurpose)),
+    });
     expect(sortedUpdatePurpose).toEqual(sortedExpectedPurpose);
   }
 

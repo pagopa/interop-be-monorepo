@@ -108,7 +108,10 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: mockAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
     const mockAttribute = getMockAttribute();

@@ -1,9 +1,4 @@
-import {
-  initDB,
-  initFileManager,
-  initPDFGenerator,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, startServer } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -42,9 +37,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   clientReadModelServiceSQL,
 });
 
-const fileManager = initFileManager(config);
-const pdfGenerator = await initPDFGenerator();
-
 const service = purposeServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -55,9 +47,7 @@ const service = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL,
-  fileManager,
-  pdfGenerator
+  readModelServiceSQL
 );
 
 startServer(await createApp(service), config);
