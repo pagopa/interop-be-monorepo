@@ -506,37 +506,6 @@ export function assertDescriptorArchivable(
   }
 }
 
-function isDescriptorArchivable(
-  descriptor: Descriptor,
-  eservice: EService
-): boolean {
-  const latestDescriptor = getLatestDescriptor(eservice);
-  const isLatest = latestDescriptor?.id === descriptor.id;
-
-  return match(descriptor.state)
-    .with(descriptorState.deprecated, () => true)
-    .with(descriptorState.suspended, () => !isLatest)
-    .with(
-      descriptorState.draft,
-      descriptorState.published,
-      descriptorState.waitingForApproval,
-      descriptorState.archived,
-      descriptorState.archiving,
-      descriptorState.archivingSuspended,
-      () => false
-    )
-    .exhaustive();
-}
-
-export function assertDescriptorArchivable(
-  descriptor: Descriptor,
-  eservice: EService
-): void {
-  if (!isDescriptorArchivable(descriptor, eservice)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
-  }
-}
-
 function isDescriptorCancelArchivable(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(
