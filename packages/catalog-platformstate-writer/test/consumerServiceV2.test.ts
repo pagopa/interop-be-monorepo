@@ -647,9 +647,8 @@ describe("integration tests V2 events", async () => {
       expect(retrievedArchivedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
           tokenGenStatesConsumerClient1,
