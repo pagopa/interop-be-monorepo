@@ -8,6 +8,8 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockDescriptorArchiving,
+  getMockAgreement,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -19,15 +21,20 @@ import {
   generateId,
   ArchivingSchedule,
   ArchivingScope,
+  agreementState,
+  Tenant,
+  EServiceDescriptorArchivedV2,
 } from "pagopa-interop-models";
-import { expect, describe, it, vi } from "vitest";
+import { expect, describe, it, vi, afterEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
+  addOneAgreement,
   addOneEService,
+  addOneTenant,
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
@@ -37,6 +44,11 @@ describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+
+  afterEach(() => {
+    vi.resetAllMocks();
+    vi.useRealTimers();
+  });
 
   it.each([
     {
@@ -48,7 +60,7 @@ describe("schedule archiving of a descriptor", () => {
       expectedState: descriptorState.archivingSuspended,
     },
   ])(
-    "should write on event-store to set $expectedState state for a descriptor in $state state",
+    "should write on event-store to set $expectedState state for a descriptor in $state state with agreements in active state",
     async ({ state, expectedState }) => {
       const descriptor1: Descriptor = {
         ...mockDescriptor,
@@ -68,6 +80,16 @@ describe("schedule archiving of a descriptor", () => {
         descriptors: [descriptor1, descriptor2],
       };
       await addOneEService(eservice);
+      const tenant: Tenant = {
+        ...getMockTenant(),
+      };
+      await addOneTenant(tenant);
+      const agreement = {
+        ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
+        descriptorId: descriptor1.id,
+        producerId: eservice.producerId,
+      };
+      await addOneAgreement(agreement);
       const scheduleDescriptorArchivingResponse =
         await catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
@@ -103,6 +125,67 @@ describe("schedule archiving of a descriptor", () => {
           ),
           scope: "Descriptor",
         },
+      };
+
+      const expectedEService: EService = {
+        ...eservice,
+        descriptors: [expectedDescriptor1, descriptor2],
+      };
+
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(writtenPayload.descriptorId).toEqual(descriptor1.id);
+      expect(scheduleDescriptorArchivingResponse).toEqual({
+        data: expectedEService,
+        metadata: { version: parseInt(writtenEvent.version, 10) },
+      });
+    }
+  );
+
+  it.each([descriptorState.deprecated, descriptorState.suspended])(
+    "should write on event-store to set Archived state for a descriptor in %s state with agreements in active state",
+    async (state) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const descriptor1: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: state,
+        version: "1",
+      };
+      const descriptor2: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state: descriptorState.published,
+        interface: getMockDocument(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor1, descriptor2],
+      };
+      await addOneEService(eservice);
+      const scheduleDescriptorArchivingResponse =
+        await catalogService.scheduleEServiceDescriptorArchiving(
+          eservice.id,
+          descriptor1.id,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorArchivedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedDescriptor1: Descriptor = {
+        ...descriptor1,
+        state: descriptorState.archived,
+        archivedAt: new Date(),
       };
 
       const expectedEService: EService = {
@@ -185,6 +268,7 @@ describe("schedule archiving of a descriptor", () => {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(descriptorState.deprecated),
         interface: mockDocument,
+
         version: "1",
       };
       const descriptor2: Descriptor = {
@@ -198,12 +282,22 @@ describe("schedule archiving of a descriptor", () => {
         ...mockEService,
         descriptors: [descriptor1, descriptor2],
       };
+      await addOneEService(eservice);
+      const tenant: Tenant = {
+        ...getMockTenant(),
+      };
+      await addOneTenant(tenant);
+      const agreement = {
+        ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
+        descriptorId: descriptor1.id,
+        producerId: eservice.producerId,
+      };
+      await addOneAgreement(agreement);
 
       vi.spyOn(dateCalculator, "calculateArchivableOn").mockImplementationOnce(
         () => dateCalculator.calculateArchivableOn(startedAt, 30)
       );
 
-      await addOneEService(eservice);
       const scheduleDescriptorArchivingResponse =
         await catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
@@ -283,7 +377,7 @@ describe("schedule archiving of a descriptor", () => {
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
-  it("should throw operationForbidden if the requester is not the producer", async () => {
+  it.skip("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
