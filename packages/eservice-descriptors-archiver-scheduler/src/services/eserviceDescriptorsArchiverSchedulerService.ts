@@ -49,5 +49,49 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
         })
       );
     },
+    async archiveEServices(): Promise<void> {
+      loggerInstance.info("Archiving e-services from read-model...");
+      loggerInstance.info(
+        "Getting expired archivable e-services references from read-model...\n"
+      );
+      const eserviceIds =
+        await readModelService.getExpiredArchivableEserviceRefs();
+      const wrongEservices =
+        await readModelService.getWrongEservices(eserviceIds);
+
+      if (wrongEservices.length > 0) {
+        loggerInstance.warn(
+          `Found ${wrongEservices.length} e-services with wrong descriptors to be archived...`
+        );
+        wrongEservices.forEach((wrongEservice) => {
+          loggerInstance.warn(
+            `e-service with id ${wrongEservice.eserviceId} has wrong descriptors: ${JSON.stringify(
+              wrongEservice.wrongDescriptors
+            )}`
+          );
+        });
+      }
+
+      const wrongEservicesIds = wrongEservices.map(
+        (wrongEservice) => wrongEservice.eserviceId
+      );
+
+      Promise.all(
+        eserviceIds
+          .filter((eserviceId) => !wrongEservicesIds.includes(eserviceId))
+          .map(async (eserviceId) => {
+            loggerInstance.info(`Archiving e-service with id ${eserviceId}...`);
+            // const token = (await refreshableToken.get()).serialized;
+            // const correlationId: CorrelationId = generateId();
+            // const headers = getHeaders(correlationId, token);
+            // catalogProcessClient.archiveEService(undefined, {
+            //   params: {
+            //     eServiceId,
+            //   },
+            //   headers,
+            // });
+          })
+      );
+    },
   };
 }
