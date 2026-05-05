@@ -571,9 +571,7 @@ function isDescriptorCancelArchivable(descriptor: Descriptor): boolean {
     .exhaustive();
 }
 
-export function assertDescriptorCancelArchivable(
-  descriptor: Descriptor
-): void {
+export function assertDescriptorCancelArchivable(descriptor: Descriptor): void {
   if (!isDescriptorCancelArchivable(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
