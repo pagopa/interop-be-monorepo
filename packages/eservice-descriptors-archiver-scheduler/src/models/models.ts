@@ -1,4 +1,9 @@
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import {
+  ArchivingScope,
+  DescriptorId,
+  DescriptorState,
+  EServiceId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 const RefsToBeArchived = z.object({
@@ -7,12 +12,20 @@ const RefsToBeArchived = z.object({
 });
 export type RefsToBeArchived = z.infer<typeof RefsToBeArchived>;
 
-export const TestQueryModel = z.object({
-  eserviceId: z.string(),
-  wrongDescriptorIds: z.array(z.string()),
-  scope: z.string().optional(),
-  archivableOnMax: z.coerce.date(),
-  wrongStates: z.number(),
-})
+const WrongDescriptor = z.object({
+  id: DescriptorId,
+  state: DescriptorState,
+  scope: ArchivingScope.nullable(),
+});
+type WrongDescriptor = z.infer<typeof WrongDescriptor>;
 
-export type TestQueryModel = z.infer<typeof TestQueryModel>;
+const WrongEService = z.object({
+  eserviceId: EServiceId,
+  wrongDescriptors: z.array(WrongDescriptor),
+});
+
+export type WrongEService = z.infer<typeof WrongEService>;
+
+export const WrongEServices = z.array(WrongEService);
+
+export type WrongEServices = z.infer<typeof WrongEServices>;

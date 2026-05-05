@@ -20,7 +20,6 @@ import {
 import {
   CorrelationId,
   Descriptor,
-  EService,
   TenantId,
   descriptorState,
   generateId,
@@ -368,75 +367,6 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
       expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(
         numberOfArchivableDescriptors
-      );
-    });
-
-    it.only("test query", async () => {
-      const producerId: TenantId = generateId();
-
-      const numberOfArchivableDescriptors = 5;
-      const numberOfNonArchivableDescriptors = 5;
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [],
-      };
-
-      let i = 0;
-
-      await Promise.all(
-        Array.from(
-          { length: numberOfArchivableDescriptors },
-          async () => {
-            i++;
-            const descriptor: Descriptor = {
-              ...getMockDescriptor(),
-              state: descriptorState.archiving,
-              version: i.toString(),
-              archivingSchedule: {
-                archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                startedAt: new Date(toUTCMidnight(new Date(), -30)),
-                scope: "EService"
-              },
-            };
-
-            eservice.descriptors.push(descriptor)
-
-          }
-        )
-      );
-
-      await Promise.all(
-        Array.from(
-          { length: numberOfNonArchivableDescriptors },
-          async () => {
-            i++;
-            const descriptor: Descriptor = {
-              ...getMockDescriptor(),
-              state: descriptorState.published,
-              version: i.toString(),
-            };
-
-            eservice.descriptors.push(descriptor)
-          }
-        )
-      );
-
-      await addOneEService(eservice);
-
-      const archiverService =
-        eserviceDescriptorsArchiverSchedulerServiceBuilder({
-          readModelService,
-          catalogProcessClient: catalogProcessClient,
-          loggerInstance: genericLogger,
-          refreshableToken: mockRefreshableToken,
-        });
-
-      const testQuery = await archiverService.testQuery(eservice.id);
-
-      expect(testQuery).toEqual(
-        0
       );
     });
   });

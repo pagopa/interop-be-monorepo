@@ -4,8 +4,7 @@ import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
-import { CorrelationId, EServiceId, generateId } from "pagopa-interop-models";
-import { TestQueryModel } from "../models/models.js";
+import { CorrelationId, generateId } from "pagopa-interop-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const getHeaders = (correlationId: CorrelationId, token: string) => ({
@@ -49,16 +48,6 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
           });
         })
       );
-    },
-    async testQuery(eserviceId: EServiceId): Promise<TestQueryModel[]> {
-      loggerInstance.info("Archiving descriptors from read-model...");
-      loggerInstance.info(
-        "Getting expired archivable descriptors references from read-model...\n"
-      );
-
-      return await readModelService.getEserviceArchivabilityReport(eserviceId);
-
-
     },
   };
 }
