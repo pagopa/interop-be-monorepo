@@ -9,6 +9,7 @@ type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_NOT_IMPLEMENTED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
@@ -159,6 +160,7 @@ export const getProducerKeychainUsersErrorMapper = (
 export const toolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceDocumentErrorMapper = (

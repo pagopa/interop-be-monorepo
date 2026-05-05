@@ -92,6 +92,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: consumersIds
+          description: comma separated sequence of consumer IDs; restricts the result to e-services that have at least one agreement with one of the listed consumers
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: mode
           description: mode
           schema:
