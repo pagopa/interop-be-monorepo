@@ -62,7 +62,6 @@ import {
   AttributeKind,
   attributeKind,
   archivingScope,
-  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -329,8 +328,7 @@ const getTemplateDataFromEservice = (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  newState: DescriptorState,
-  scope?: ArchivingScope
+  newState: DescriptorState
 ): Descriptor => {
   const descriptorStateChange = [descriptor.state, newState];
 
@@ -380,22 +378,6 @@ const updateDescriptorState = (
       state: newState,
       deprecatedAt: new Date(),
     }))
-    .with(
-      [descriptorState.deprecated, descriptorState.archiving],
-      [descriptorState.published, descriptorState.archiving],
-      [descriptorState.suspended, descriptorState.archivingSuspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivingSchedule: {
-          ...calculateArchivableOn(
-            new Date(),
-            config.gracePeriodArchivingEService
-          ),
-          scope: scope ?? archivingScope.descriptor,
-        },
-      })
-    )
     .otherwise(() => ({
       ...descriptor,
       state: newState,
@@ -2182,14 +2164,13 @@ export function catalogServiceBuilder(
           ? descriptorState.archivingSuspended
           : descriptorState.archiving;
 
-      const updatedEService =
-        await transitionEServiceDescriptorArchivingStateLogic(
-          eservice.data,
-          descriptor,
-          newState,
-          authData,
-          readModelService
-        );
+      const updatedEService = await processDescriptorArchiving(
+        eservice.data,
+        descriptor,
+        newState,
+        authData,
+        readModelService
+      );
 
       const event = toCreateEventEServiceDescriptorArchivingScheduled(
         eservice.metadata.version,
@@ -3853,7 +3834,7 @@ export function catalogServiceBuilder(
   };
 }
 
-async function transitionEServiceDescriptorArchivingStateLogic(
+async function processDescriptorArchiving(
   eservice: EService,
   descriptor: Descriptor,
   newState: DescriptorState,
@@ -3867,10 +3848,14 @@ async function transitionEServiceDescriptorArchivingStateLogic(
     readModelService
   );
 
+  const archivingSchedule = {
+    ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
+    scope: archivingScope.descriptor,
+  };
+
   const updatedDescriptor: Descriptor = updateDescriptorState(
-    descriptor,
-    newState,
-    archivingScope.descriptor
+    { ...descriptor, archivingSchedule },
+    newState
   );
 
   const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
