@@ -27,7 +27,7 @@ const WrongEService = z.object({
     .transform((value): WrongDescriptor[] => value ?? []),
 });
 
-export type WrongEService = z.infer<typeof WrongEService>;
+type WrongEService = z.infer<typeof WrongEService>;
 
 export const WrongEServices = z.array(WrongEService);
 

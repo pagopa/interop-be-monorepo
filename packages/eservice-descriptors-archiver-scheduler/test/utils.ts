@@ -4,15 +4,14 @@ import { EService } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, readModelDB } =
-  await setupTestContainersVitest(
-    inject("eventStoreConfig"),
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  inject("eventStoreConfig"),
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
