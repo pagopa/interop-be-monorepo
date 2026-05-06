@@ -72,7 +72,7 @@ export const fromEServiceDescriptorStateV2 = (
   }
 };
 
-export const fromEServiceDescriptorScopeV2 = (
+export const fromEServiceDescriptorArchivingScopeV2 = (
   input: ArchivingScopeV2
 ): ArchivingScope => {
   switch (input) {
@@ -171,7 +171,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     ? {
         archivableOn: bigIntToDate(input.archivingSchedule.archivableOn),
         startedAt: bigIntToDate(input.archivingSchedule.startedAt),
-        scope: fromEServiceDescriptorScopeV2(input.archivingSchedule.scope),
+        scope: fromEServiceDescriptorArchivingScopeV2(
+          input.archivingSchedule.scope
+        ),
       }
     : undefined,
 });
