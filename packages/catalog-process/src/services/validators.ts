@@ -28,6 +28,7 @@ import {
   type EserviceAttributes,
   DescriptorId,
   agreementState,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {

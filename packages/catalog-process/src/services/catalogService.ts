@@ -190,8 +190,6 @@ import {
   assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
-  assertDescriptorInRequiredStates,
-  assertDescriptorIsNotLatestVersion,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
   hasActiveSubscription,
