@@ -28,6 +28,7 @@ import {
   type EserviceAttributes,
   DescriptorId,
   agreementState,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -502,6 +503,15 @@ export function assertDescriptorArchivable(
   eservice: EService
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertDescriptorInRequiredStates(
+  descriptor: Descriptor,
+  states: DescriptorState[]
+): void {
+  if (!states.includes(descriptor.state)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
