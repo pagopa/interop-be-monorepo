@@ -106,11 +106,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplates"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
     post:
       security:
         - bearerAuth: []
@@ -137,23 +133,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "409":
-          description: Name Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -180,23 +164,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
     post:
       security:
         - bearerAuth: []
@@ -220,23 +192,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
     patch:
       security:
         - bearerAuth: []
@@ -262,29 +222,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: E-Service Template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     delete:
       security:
         - bearerAuth: []
@@ -297,17 +241,9 @@ paths:
         "204":
           description: EService Template deleted
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /templates/{templateId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -345,23 +281,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceTemplateVersion"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -395,23 +319,11 @@ paths:
               $ref: "#/components/headers/MetadataVersionHeader"
           description: The E-Service template version deleted
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -450,23 +362,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
     patch:
       security:
         - bearerAuth: []
@@ -505,23 +405,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}/publish:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -555,29 +443,13 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /templates/{templateId}/versions/{templateVersionId}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -611,23 +483,11 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}/activate:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -661,23 +521,11 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}/quotas/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -722,23 +570,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -783,29 +619,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -847,23 +667,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
-          description: EService template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
     delete:
       security:
         - bearerAuth: []
@@ -905,23 +713,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "404":
-          description: E-Service template document not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -970,23 +766,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
-          description: EService not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /templates/{templateId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1024,23 +808,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceTemplateRiskAnalysis"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/{templateId}/riskAnalysis/{riskAnalysisId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1078,23 +850,11 @@ paths:
         "204":
           description: EService Template Risk Analysis updated.
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService Template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
     delete:
       security:
         - bearerAuth: []
@@ -1125,23 +885,11 @@ paths:
               $ref: "#/components/headers/MetadataVersionHeader"
           description: EService Template Risk Analysis deleted.
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/{templateId}/intendedTarget/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1179,23 +927,11 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/{templateId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1233,23 +969,11 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/{templateId}/name/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1287,23 +1011,11 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService Template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /templates/{templateId}/versions/{templateVersionId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1348,29 +1060,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: E-Service template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /templates/{templateId}/personalDataFlag:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1405,29 +1101,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceTemplate"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService template not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   "/creators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1466,11 +1146,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CompactOrganizations"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /status:
     get:
       security: []
@@ -1487,6 +1163,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
