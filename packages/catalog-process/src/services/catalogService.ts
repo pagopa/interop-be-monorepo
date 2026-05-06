@@ -3906,6 +3906,10 @@ async function createOpenApiInterfaceByTemplate(
         },
         ctx
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     ctx.logger
   );
 }

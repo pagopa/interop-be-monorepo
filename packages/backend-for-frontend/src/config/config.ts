@@ -239,6 +239,17 @@ const ImportFileConfig = z
   }));
 type ImportFileConfig = z.infer<typeof ImportFileConfig>;
 
+const FileSizeLimitConfig = z
+  .object({
+    MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+    MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce.number().default(3 * 1024 * 1024),
+  })
+  .transform((c) => ({
+    maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
+    maxInterfaceFileSizeBytes: c.MAX_INTERFACE_FILE_SIZE_BYTES,
+  }));
+type FileSizeLimitConfig = z.infer<typeof FileSizeLimitConfig>;
+
 const InterfaceVersion = z
   .object({
     BACKEND_FOR_FRONTEND_INTERFACE_VERSION: z.string(),
@@ -316,6 +327,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
+  .and(FileSizeLimitConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
   .and(NotificationConfigProcessServerConfig)
