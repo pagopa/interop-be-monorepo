@@ -207,6 +207,6 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   // createdAt is required in EService definition but not in protobuf
   // tracked in https://pagopa.atlassian.net/browse/IMN-171
   createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
-  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
+  riskAnalysisIds: [],
   mode: fromEServiceModeV1(input.mode),
 });

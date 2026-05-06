@@ -30,6 +30,8 @@ export * from "./eservice/protobufConverterToV2.js";
 export * from "./institution/institution.js";
 
 export * from "./risk-analysis/riskAnalysis.js";
+export * from "./risk-analysis/riskAnalysisEvents.js";
+export * from "./risk-analysis/protobufConverterToV2.js";
 export * from "./risk-analysis-template/riskAnalysisTemplate.js";
 
 export * from "./tenant/tenant.js";
@@ -121,6 +123,11 @@ export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
 export * from "./gen/v2/purpose/riskAnalysis.js";
+export {
+  RiskAnalysisContextV2,
+  RiskAnalysisFormV2,
+  RiskAnalysisV2,
+} from "./gen/v2/risk-analysis/risk-analysis.js";
 export * from "./gen/v2/purpose-template/events.js";
 export * from "./gen/v2/purpose-template/purpose-template.js";
 export * from "./gen/v2/authorization/client.js";
@@ -135,6 +142,7 @@ export * from "./gen/v2/eservice-template/eservice-template.js";
 export * from "./gen/v2/eservice-template/events.js";
 export * from "./gen/v2/notification-config/notification-config.js";
 export * from "./gen/v2/notification-config/events.js";
+export * from "./gen/v2/risk-analysis/events.js";
 
 // Selfcare User model
 export * from "./user/user.js";

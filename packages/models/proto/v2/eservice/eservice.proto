@@ -10,7 +10,8 @@ message EServiceV2 {
   EServiceTechnologyV2 technology = 5;
   repeated EServiceDescriptorV2 descriptors = 6;
   int64 createdAt = 7;
-  repeated EServiceRiskAnalysisV2 riskAnalysis = 8;
+  // References to standalone RiskAnalysis aggregates (managed by risk-analysis-process)
+  repeated string riskAnalysisIds = 8;
   EServiceModeV2 mode = 9;
   optional bool isSignalHubEnabled = 10;
   optional bool isConsumerDelegable = 11;

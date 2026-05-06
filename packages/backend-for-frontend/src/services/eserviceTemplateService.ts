@@ -6,6 +6,7 @@ import {
   attributeRegistryApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  riskAnalysisApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -50,7 +51,8 @@ export function eserviceTemplateServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
-  fileManager: FileManager
+  fileManager: FileManager,
+  riskAnalysisProcessClient: riskAnalysisApi.RiskAnalysisProcessClient
 ) {
   return {
     createEServiceTemplate: async (
@@ -445,12 +447,16 @@ export function eserviceTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Creating EService template ${templateId} risk analysis`);
-      await eserviceTemplateClient.createEServiceTemplateRiskAnalysis(seed, {
-        headers,
-        params: {
+      await riskAnalysisProcessClient.createRiskAnalysis(
+        {
+          name: seed.name,
+          context: "ESERVICE_TEMPLATE",
           templateId,
+          tenantKind: seed.tenantKind,
+          riskAnalysisForm: seed.riskAnalysisForm,
         },
-      });
+        { headers }
+      );
     },
     updateEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
@@ -461,13 +467,19 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating EService template ${templateId} risk analysis ${riskAnalysisId}`
       );
-      await eserviceTemplateClient.updateEServiceTemplateRiskAnalysis(seed, {
-        headers,
-        params: {
+      await riskAnalysisProcessClient.updateRiskAnalysis(
+        {
+          name: seed.name,
+          context: "ESERVICE_TEMPLATE",
           templateId,
-          riskAnalysisId,
+          tenantKind: seed.tenantKind,
+          riskAnalysisForm: seed.riskAnalysisForm,
         },
-      });
+        {
+          headers,
+          params: { riskAnalysisId },
+        }
+      );
     },
     deleteEServiceTemplateEServiceRiskAnalysis: async (
       templateId: EServiceTemplateId,
@@ -477,16 +489,10 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Deleting EService template ${templateId} risk analysis ${riskAnalysisId}`
       );
-      await eserviceTemplateClient.deleteEServiceTemplateRiskAnalysis(
-        undefined,
-        {
-          headers,
-          params: {
-            templateId,
-            riskAnalysisId,
-          },
-        }
-      );
+      await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
+        headers,
+        params: { riskAnalysisId },
+      });
     },
     createEServiceTemplateVersion: async (
       templateId: EServiceTemplateId,

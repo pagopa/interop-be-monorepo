@@ -175,7 +175,8 @@ export async function createServices(
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
       fileManager,
-      config
+      config,
+      clients.riskAnalysisProcessClient
     ),
     clientService: clientServiceBuilder(clients),
     delegationService: delegationServiceBuilder(
@@ -190,7 +191,8 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.attributeProcessClient,
       clients.inAppNotificationManagerClient,
-      fileManager
+      fileManager,
+      clients.riskAnalysisProcessClient
     ),
     notificationConfigService: notificationConfigServiceBuilder(
       clients.notificationConfigProcessClient

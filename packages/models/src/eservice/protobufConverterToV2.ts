@@ -135,5 +135,4 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   descriptors: eservice.descriptors.map(toDescriptorV2),
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
-  riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
 });

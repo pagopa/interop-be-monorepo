@@ -3,6 +3,7 @@ import {
   AttributeId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
+  RiskAnalysisId,
   TenantId,
 } from "../brandedIds.js";
 import {
@@ -85,7 +86,8 @@ export const EServiceTemplate = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  riskAnalysis: z.array(EServiceTemplateRiskAnalysis),
+  // IDs of StandaloneRiskAnalysis aggregates managed by risk-analysis-process
+  riskAnalysisIds: z.array(RiskAnalysisId),
   mode: EServiceMode,
   personalData: z.boolean().optional(),
 

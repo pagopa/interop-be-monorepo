@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
-import { purposeApi } from "pagopa-interop-api-clients";
+import { purposeApi, riskAnalysisApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
@@ -111,6 +111,10 @@ import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
   ReadModelServiceSQL,
 } from "./readModelServiceSQL.js";
+
+const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
+  config.riskAnalysisProcessUrl
+);
 
 type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
@@ -253,19 +257,42 @@ export const retrieveActiveAgreement = async (
   return activeAgreement;
 };
 
-const retrieveRiskAnalysis = (
+const retrieveRiskAnalysis = async (
   riskAnalysisId: RiskAnalysisId,
-  eservice: EService
-): RiskAnalysis => {
-  const riskAnalysis = eservice.riskAnalysis.find(
-    (ra: RiskAnalysis) => ra.id === riskAnalysisId
-  );
-
-  if (riskAnalysis === undefined) {
+  eservice: EService,
+  correlationId: CorrelationId
+): Promise<RiskAnalysis> => {
+  // Verify the RA belongs to this eservice (via riskAnalysisIds)
+  if (!eservice.riskAnalysisIds.includes(riskAnalysisId)) {
     throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
   }
-
-  return riskAnalysis;
+  try {
+    const ra = await riskAnalysisProcessClient.getRiskAnalysisById({
+      params: { riskAnalysisId },
+      headers: { "X-Correlation-Id": correlationId },
+    });
+    return {
+      id: unsafeBrandId(ra.id),
+      name: ra.name,
+      createdAt: new Date(ra.createdAt),
+      riskAnalysisForm: {
+        id: unsafeBrandId(ra.riskAnalysisForm.id),
+        version: ra.riskAnalysisForm.version,
+        singleAnswers: ra.riskAnalysisForm.singleAnswers.map((a) => ({
+          id: unsafeBrandId(a.id),
+          key: a.key,
+          value: a.value,
+        })),
+        multiAnswers: ra.riskAnalysisForm.multiAnswers.map((a) => ({
+          id: unsafeBrandId(a.id),
+          key: a.key,
+          values: a.values,
+        })),
+      },
+    };
+  } catch {
+    throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
+  }
 };
 
 async function retrieveTenantKind(
@@ -1406,7 +1433,11 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertEserviceMode(eservice, eserviceMode.receive);
 
-      const riskAnalysis = retrieveRiskAnalysis(riskAnalysisId, eservice);
+      const riskAnalysis = await retrieveRiskAnalysis(
+        riskAnalysisId,
+        eservice,
+        correlationId
+      );
 
       assertConsistentFreeOfCharge(
         seed.isFreeOfCharge,

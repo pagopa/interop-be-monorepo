@@ -11,6 +11,7 @@ import {
   delegationApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  riskAnalysisApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -309,7 +310,8 @@ export function catalogServiceBuilder(
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager,
-  bffConfig: BffProcessConfig
+  bffConfig: BffProcessConfig,
+  riskAnalysisProcessClient: riskAnalysisApi.RiskAnalysisProcessClient
 ) {
   return {
     getCatalog: async (
@@ -1011,13 +1013,18 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating risk analysis ${riskAnalysisId} of EService ${eserviceId}`
       );
-      await catalogProcessClient.updateRiskAnalysis(riskAnalysisSeed, {
-        headers,
-        params: {
-          eServiceId: eserviceId,
-          riskAnalysisId,
+      await riskAnalysisProcessClient.updateRiskAnalysis(
+        {
+          name: riskAnalysisSeed.name,
+          context: "ESERVICE",
+          eserviceId,
+          riskAnalysisForm: riskAnalysisSeed.riskAnalysisForm,
         },
-      });
+        {
+          headers,
+          params: { riskAnalysisId },
+        }
+      );
     },
     deleteEServiceRiskAnalysis: async (
       eserviceId: EServiceId,
@@ -1027,12 +1034,9 @@ export function catalogServiceBuilder(
       logger.info(
         `Deleting risk analysis ${riskAnalysisId} of EService ${eserviceId}`
       );
-      await catalogProcessClient.deleteRiskAnalysis(undefined, {
+      await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
         headers,
-        params: {
-          eServiceId: eserviceId,
-          riskAnalysisId,
-        },
+        params: { riskAnalysisId },
       });
     },
     addRiskAnalysisToEService: async (
@@ -1041,17 +1045,14 @@ export function catalogServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Adding risk analysis to EService ${eserviceId}`);
-      await catalogProcessClient.createRiskAnalysis(
+      await riskAnalysisProcessClient.createRiskAnalysis(
         {
           name: riskAnalysisSeed.name,
+          context: "ESERVICE",
+          eserviceId,
           riskAnalysisForm: riskAnalysisSeed.riskAnalysisForm,
         },
-        {
-          headers,
-          params: {
-            eServiceId: eserviceId,
-          },
-        }
+        { headers }
       );
     },
     getEServiceRiskAnalysis: async (
@@ -1062,28 +1063,38 @@ export function catalogServiceBuilder(
       logger.info(
         `Retrieving risk analysis ${riskAnalysisId} of EService ${eserviceId}`
       );
-      const eservice: catalogApi.EService =
-        await catalogProcessClient.getEServiceById({
-          params: {
-            eServiceId: eserviceId,
-          },
-          headers,
-        });
-
       const producer = await tenantProcessClient.tenant.getTenant({
         headers,
         params: {
-          id: eservice.producerId,
+          id: (
+            await catalogProcessClient.getEServiceById({
+              params: { eServiceId: eserviceId },
+              headers,
+            })
+          ).producerId,
         },
       });
 
-      const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
+      const ra = await riskAnalysisProcessClient.getRiskAnalysisById({
+        params: { riskAnalysisId },
+        headers,
+      });
 
       return toBffCatalogApiEserviceRiskAnalysis(
-        riskAnalysis,
+        {
+          id: ra.id,
+          name: ra.name,
+          createdAt: ra.createdAt,
+          riskAnalysisForm: {
+            id: ra.riskAnalysisForm.id,
+            version: ra.riskAnalysisForm.version,
+            singleAnswers: ra.riskAnalysisForm.singleAnswers,
+            multiAnswers: ra.riskAnalysisForm.multiAnswers,
+          },
+        },
         getRulesetExpiration(
           producer.kind,
-          riskAnalysis.riskAnalysisForm.version
+          ra.riskAnalysisForm.version
         )?.toJSON()
       );
     },

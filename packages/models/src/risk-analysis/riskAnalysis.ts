@@ -5,6 +5,18 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
+import { EServiceId, EServiceTemplateId } from "../brandedIds.js";
+import { TenantKind } from "../tenant/tenant.js";
+
+export const riskAnalysisContext = {
+  eservice:         "ESERVICE",
+  eserviceTemplate: "ESERVICE_TEMPLATE",
+} as const;
+export const RiskAnalysisContext = z.enum([
+  riskAnalysisContext.eservice,
+  riskAnalysisContext.eserviceTemplate,
+]);
+export type RiskAnalysisContext = z.infer<typeof RiskAnalysisContext>;
 
 export const riskAnalysisAnswerKind = {
   single: "SINGLE",
@@ -52,3 +64,19 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
+
+/**
+ * Standalone RiskAnalysis aggregate — owned by risk-analysis-process.
+ * Replaces the embedded EServiceRiskAnalysisV2 / EServiceTemplateRiskAnalysisV2 types.
+ */
+export const StandaloneRiskAnalysis = RiskAnalysis.and(
+  z.object({
+    context: RiskAnalysisContext,
+    // Exactly one of these will be set depending on context
+    eserviceId: EServiceId.optional(),
+    templateId: EServiceTemplateId.optional(),
+    // Required only when context = ESERVICE_TEMPLATE
+    tenantKind: TenantKind.optional(),
+  })
+);
+export type StandaloneRiskAnalysis = z.infer<typeof StandaloneRiskAnalysis>;
