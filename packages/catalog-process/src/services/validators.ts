@@ -27,6 +27,7 @@ import {
   EServiceTemplateId,
   RiskAnalysisId,
   type EserviceAttributes,
+  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -231,7 +232,8 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService
+  eservice: EService,
+  tenantKind: TenantKind
 ): void {
   if (eservice.riskAnalysis.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
