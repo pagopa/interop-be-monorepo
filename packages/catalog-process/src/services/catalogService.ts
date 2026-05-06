@@ -1661,7 +1661,7 @@ export function catalogServiceBuilder(
           readModelService
         );
         assertTenantKindExists(tenant);
-        assertRiskAnalysisIsValidForPublication(eservice.data);
+        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
       }
 
       if (descriptor.audience.length === 0) {

@@ -63,6 +63,7 @@ const errorCodes = {
   eServiceUpdateSameNameConflict: "0046",
   attributeDailyCallsNotAllowed: "0047",
   certifiedAttributeGroupNotFoundInSeed: "0048",
+  riskAnalysisTenantKindMismatch: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -503,6 +504,19 @@ export function missingPersonalDataFlag(
     detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
     code: "missingPersonalDataFlag",
     title: "EService personalData flag must be set before publication",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  expectedKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${expectedKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 

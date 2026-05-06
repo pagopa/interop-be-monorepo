@@ -41,6 +41,7 @@ import {
   riskAnalysisNotValid,
   audienceCannotBeEmpty,
   missingPersonalDataFlag,
+  riskAnalysisTenantKindMismatch,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -704,6 +705,47 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(riskAnalysisNotValid());
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the eService has mode Receive and a risk analysis has a mismatching tenantKind", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        eservice.id,
+        riskAnalysis.id
+      )
+    );
   });
 
   it("should throw audienceCannotBeEmpty if the descriptor audience is an empty array", async () => {
