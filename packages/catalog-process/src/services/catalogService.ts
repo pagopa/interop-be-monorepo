@@ -193,6 +193,8 @@ import {
   assertDescriptorInRequiredStates,
   assertDescriptorIsNotLatestVersion,
   assertEserviceIsNotInArchivingOrArchivedState,
+  assertDescriptorArchivable,
+  hasActiveSubscription,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -365,8 +367,8 @@ const updateDescriptorState = (
       archivedAt: new Date(),
     }))
     .with(
-      [descriptorState.deprecated, descriptorState.archived],
       [descriptorState.published, descriptorState.archived],
+      [descriptorState.deprecated, descriptorState.archived],
       () => ({
         ...descriptor,
         state: newState,
@@ -2153,37 +2155,68 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorInRequiredStates(descriptor, [
-        descriptorState.deprecated,
-        descriptorState.suspended,
-      ]);
-      assertDescriptorIsNotLatestVersion(descriptor, eservice.data);
+      // const producerDelegation = await retrieveActiveProducerDelegation(
+      //   eservice.data,
+      //   readModelService
+      // );
+      // assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
-      const newState =
-        descriptor.state === descriptorState.suspended
-          ? descriptorState.archivingSuspended
-          : descriptorState.archiving;
+      assertDescriptorArchivable(descriptor, eservice.data);
 
-      const updatedEService = await processDescriptorArchiving(
-        eservice.data,
-        descriptor,
-        newState,
-        authData,
-        readModelService
-      );
+      if (
+        await hasActiveSubscription(
+          eservice.data.id,
+          descriptorId,
+          readModelService
+        )
+      ) {
+        const newState =
+          descriptor.state === descriptorState.suspended
+            ? descriptorState.archivingSuspended
+            : descriptorState.archiving;
 
-      const event = toCreateEventEServiceDescriptorArchivingScheduled(
-        eservice.metadata.version,
-        updatedEService,
-        descriptorId,
-        correlationId
-      );
+        const updatedEService = await processDescriptorArchiving(
+          eservice.data,
+          descriptor,
+          newState,
+          authData,
+          readModelService
+        );
 
-      const createdEvent = await repository.createEvent(event);
-      return {
-        data: updatedEService,
-        metadata: { version: createdEvent.newVersion },
-      };
+        const event = toCreateEventEServiceDescriptorArchivingScheduled(
+          eservice.metadata.version,
+          updatedEService,
+          descriptorId,
+          correlationId
+        );
+
+        const createdEvent = await repository.createEvent(event);
+        return {
+          data: updatedEService,
+          metadata: { version: createdEvent.newVersion },
+        };
+      } else {
+        const updatedDescriptor = updateDescriptorState(
+          descriptor,
+          descriptorState.archived
+        );
+
+        const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+        const event = toCreateEventEServiceDescriptorArchived(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          newEservice,
+          correlationId
+        );
+
+        const createdEvent = await repository.createEvent(event);
+        return {
+          data: newEservice,
+          metadata: { version: createdEvent.newVersion },
+        };
+      }
     },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
