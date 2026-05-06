@@ -521,12 +521,18 @@ export function assertEserviceIsNotInArchivingOrArchivedState(
   }
 }
 
-function isDescriptorCancelArchivable(descriptor: Descriptor): boolean {
+function isDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): boolean {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  const isLatest = latestDescriptor?.id === descriptor.id;
+
   return match(descriptor.state)
     .with(
       descriptorState.archiving,
       descriptorState.archivingSuspended,
-      () => true
+      () => !isLatest
     )
     .with(
       descriptorState.draft,
@@ -540,8 +546,11 @@ function isDescriptorCancelArchivable(descriptor: Descriptor): boolean {
     .exhaustive();
 }
 
-export function assertDescriptorCancelArchivable(descriptor: Descriptor): void {
-  if (!isDescriptorCancelArchivable(descriptor)) {
+export function assertDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  if (!isDescriptorCancelArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -154,8 +153,8 @@ describe("cancel archiving of a descriptor", () => {
     });
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.cancelEServiceDescriptorArchiving(
         mockEService.id,
         mockDescriptor.id,
@@ -184,7 +183,7 @@ describe("cancel archiving of a descriptor", () => {
       descriptors: [descriptor1, descriptor2],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         descriptor1.id,
@@ -200,7 +199,7 @@ describe("cancel archiving of a descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         mockDescriptor.id,
@@ -239,7 +238,7 @@ describe("cancel archiving of a descriptor", () => {
         descriptors: [descriptor1, descriptor2],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.cancelEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
@@ -262,7 +261,7 @@ describe("cancel archiving of a descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         descriptor.id,

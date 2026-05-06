@@ -3827,7 +3827,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorCancelArchivable(descriptor);
+      assertDescriptorCancelArchivable(descriptor, eservice.data);
 
       const newState =
         descriptor.state === descriptorState.archivingSuspended
