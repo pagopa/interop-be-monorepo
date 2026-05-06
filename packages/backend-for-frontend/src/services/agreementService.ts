@@ -18,6 +18,7 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+import { agreementState } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
@@ -35,6 +36,7 @@ import {
   toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
 import {
+  toApiAgreementState,
   toBffAgreementConsumerDocument,
   toBffAttribute,
   toBffCompactOrganization,
@@ -496,6 +498,13 @@ export function agreementServiceBuilder(
           limit,
           eServiceName,
           producersIds: [authData.organizationId],
+          agreementStates: [
+            agreementState.active,
+            agreementState.archived,
+            agreementState.pending,
+            agreementState.suspended,
+            agreementState.rejected,
+          ].map(toApiAgreementState),
         },
         headers,
       });
