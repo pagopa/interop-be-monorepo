@@ -191,6 +191,7 @@ import {
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
   assertDescriptorArchivable,
+  assertDescriptorCancelArchivable,
   hasActiveSubscription,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
