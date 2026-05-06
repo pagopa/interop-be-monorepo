@@ -44,6 +44,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceDescriptorAttributeInReadmodelCatalog,
       eserviceRiskAnalysisInReadmodelCatalog,
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
+      eserviceDescriptorArchivingScheduleInReadmodelCatalog,
     ];
 
     for (const table of catalogTables) {
