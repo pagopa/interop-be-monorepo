@@ -19,7 +19,6 @@ import {
   EServiceId,
   Tenant,
   TenantId,
-  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -28,6 +27,7 @@ import {
   EServiceTemplateId,
   RiskAnalysisId,
   type EserviceAttributes,
+  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
