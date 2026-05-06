@@ -108,7 +108,7 @@ export const isPurposeTemplateDraft = (
 
 export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
-  freeOfChargeReason: string | undefined | null
+  freeOfChargeReason: string | undefined
 ): void => {
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
