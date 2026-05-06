@@ -7,8 +7,8 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   TenantId,
+  RiskAnalysisId,
 } from "../brandedIds.js";
-import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
 export const Technology = z.enum([
@@ -137,7 +137,8 @@ export const EService = z.object({
   attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
-  riskAnalysis: z.array(RiskAnalysis),
+  // IDs of StandaloneRiskAnalysis aggregates managed by risk-analysis-process
+  riskAnalysisIds: z.array(RiskAnalysisId),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),

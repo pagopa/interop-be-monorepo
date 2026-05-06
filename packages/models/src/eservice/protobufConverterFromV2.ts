@@ -1,4 +1,4 @@
-import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { EServiceTemplateId, RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -192,7 +192,7 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   technology: fromEServiceTechnologyV2(input.technology),
   descriptors: input.descriptors.map(fromDescriptorV2),
   createdAt: bigIntToDate(input.createdAt),
-  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
+  riskAnalysisIds: input.riskAnalysisIds.map((id) => unsafeBrandId<RiskAnalysisId>(id)),
   mode: fromEServiceModeV2(input.mode),
   templateId:
     input.templateId != null

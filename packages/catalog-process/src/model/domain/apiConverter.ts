@@ -183,7 +183,8 @@ export const descriptorToApiDescriptor = (
 });
 
 export const eServiceToApiEService = (
-  eservice: EService
+  eservice: EService,
+  riskAnalysis: catalogApi.EServiceRiskAnalysis[] = []
 ): catalogApi.EService => ({
   id: eservice.id,
   producerId: eservice.producerId,
@@ -191,17 +192,7 @@ export const eServiceToApiEService = (
   description: eservice.description,
   technology: technologyToApiTechnology(eservice.technology),
   mode: eServiceModeToApiEServiceMode(eservice.mode),
-  riskAnalysis: eservice.riskAnalysis.map((riskAnalysis) => ({
-    id: riskAnalysis.id,
-    name: riskAnalysis.name,
-    createdAt: riskAnalysis.createdAt.toJSON(),
-    riskAnalysisForm: {
-      id: riskAnalysis.riskAnalysisForm.id,
-      version: riskAnalysis.riskAnalysisForm.version,
-      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
-      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
-    },
-  })),
+  riskAnalysis,
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
   isSignalHubEnabled: eservice.isSignalHubEnabled,
   isConsumerDelegable: eservice.isConsumerDelegable,

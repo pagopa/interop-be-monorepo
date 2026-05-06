@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, riskAnalysisApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -80,6 +80,25 @@ import {
   maintenanceResetEServicePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
+import { config } from "../config/config.js";
+
+const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
+  config.riskAnalysisProcessUrl
+);
+
+const toCatalogApiRiskAnalysis = (
+  riskAnalysis: riskAnalysisApi.RiskAnalysis
+): catalogApi.EServiceRiskAnalysis => ({
+  id: riskAnalysis.id,
+  name: riskAnalysis.name,
+  createdAt: riskAnalysis.createdAt,
+  riskAnalysisForm: {
+    id: riskAnalysis.riskAnalysisForm.id,
+    version: riskAnalysis.riskAnalysisForm.version,
+    singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+    multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+  },
+});
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -869,20 +888,47 @@ const eservicesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { eservice, createdRiskAnalysisId },
-          metadata,
-        } = await catalogService.createRiskAnalysis(
-          unsafeBrandId(req.params.eServiceId),
-          req.body,
+        const eServiceId = req.params.eServiceId;
+
+        const createdRiskAnalysis = await riskAnalysisProcessClient.createRiskAnalysis(
+          {
+            name: req.body.name,
+            context: "ESERVICE",
+            eserviceId: eServiceId,
+            riskAnalysisForm: req.body.riskAnalysisForm,
+          },
+          {
+            headers: {
+              "X-Correlation-Id": ctx.correlationId,
+            },
+          }
+        );
+
+        const { data: eservice, metadata } = await catalogService.getEServiceById(
+          unsafeBrandId(eServiceId),
           ctx
         );
+
+        const riskAnalyses = await riskAnalysisProcessClient.getRiskAnalyses({
+          queries: {
+            context: "ESERVICE",
+            eserviceId,
+            offset: 0,
+            limit: 100,
+          },
+          headers: {
+            "X-Correlation-Id": ctx.correlationId,
+          },
+        });
 
         setMetadataVersionHeader(res, metadata);
         return res.status(200).send(
           catalogApi.CreatedEServiceRiskAnalysis.parse({
-            eservice: eServiceToApiEService(eservice),
-            createdRiskAnalysisId,
+            eservice: eServiceToApiEService(
+              eservice,
+              riskAnalyses.results.map(toCatalogApiRiskAnalysis)
+            ),
+            createdRiskAnalysisId: createdRiskAnalysis.id,
           })
         );
       } catch (error) {
@@ -932,11 +978,21 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-          await catalogService.updateRiskAnalysis(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.riskAnalysisId),
-            req.body,
-            ctx
+          await riskAnalysisProcessClient.updateRiskAnalysis(
+            {
+              name: req.body.name,
+              context: "ESERVICE",
+              eserviceId: req.params.eServiceId,
+              riskAnalysisForm: req.body.riskAnalysisForm,
+            },
+            {
+              params: {
+                riskAnalysisId: req.params.riskAnalysisId,
+              },
+              headers: {
+                "X-Correlation-Id": ctx.correlationId,
+              },
+            }
           );
           return res.status(204).send();
         } catch (error) {
@@ -1068,9 +1124,17 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const { metadata } = await catalogService.deleteRiskAnalysis(
+          await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
+            params: {
+              riskAnalysisId: req.params.riskAnalysisId,
+            },
+            headers: {
+              "X-Correlation-Id": ctx.correlationId,
+            },
+          });
+
+          const { metadata } = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
 

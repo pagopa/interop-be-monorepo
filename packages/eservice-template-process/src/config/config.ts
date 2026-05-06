@@ -1,4 +1,5 @@
 import {
+  APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
   EventStoreConfig,
@@ -19,12 +20,14 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
       .object({
         PRODUCER_ALLOWED_ORIGINS: z.string(),
         ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
         eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
+        riskAnalysisProcessUrl: c.RISK_ANALYSIS_PROCESS_URL,
       }))
   )
   .and(ApplicationAuditProducerConfig);

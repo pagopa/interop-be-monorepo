@@ -1,4 +1,5 @@
 import {
+  APIEndpoint,
   CommonHTTPServiceConfig,
   EventStoreConfig,
   FileManagerConfig,
@@ -17,9 +18,11 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
     z
       .object({
         RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
+        RISK_ANALYSIS_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
+        riskAnalysisProcessUrl: c.RISK_ANALYSIS_PROCESS_URL,
       }))
   )
   .and(ApplicationAuditProducerConfig)

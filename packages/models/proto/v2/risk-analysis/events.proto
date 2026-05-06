@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package risk_analysis.v2;
+
+import "v2/risk-analysis/risk-analysis.proto";
+
+message RiskAnalysisCreatedV2 {
+  risk_analysis.v2.RiskAnalysisV2 riskAnalysis = 1;
+}
+
+message RiskAnalysisUpdatedV2 {
+  risk_analysis.v2.RiskAnalysisV2 riskAnalysis = 1;
+}
+
+message RiskAnalysisDeletedV2 {
+  string                          riskAnalysisId = 1;
+  risk_analysis.v2.RiskAnalysisV2 riskAnalysis   = 2;
+}

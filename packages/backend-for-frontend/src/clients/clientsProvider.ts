@@ -14,6 +14,7 @@ import {
   notificationConfigApi,
   inAppNotificationApi,
   purposeTemplateApi,
+  riskAnalysisApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -46,6 +47,7 @@ export type PagoPAInteropBeClients = {
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient;
   notificationConfigProcessClient: notificationConfigApi.NotificationConfigProcessClient;
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient;
+  riskAnalysisProcessClient: ReturnType<typeof riskAnalysisApi.createProcessApiClient>;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -104,5 +106,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       inAppNotificationApi.createNotificationApiClient(
         config.inAppNotificationManagerUrl
       ),
+    riskAnalysisProcessClient: riskAnalysisApi.createProcessApiClient(
+      config.riskAnalysisProcessUrl
+    ),
   };
 }

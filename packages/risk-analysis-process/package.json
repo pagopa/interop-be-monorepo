@@ -1,0 +1,35 @@
+{
+    "name": "pagopa-interop-risk-analysis-process",
+    "version": "1.0.0",
+    "license": "MPL-2.0",
+    "description": "PagoPA Interoperability service centralizing Risk Analysis logic",
+    "main": "dist",
+    "type": "module",
+    "scripts": {
+        "lint": "eslint .",
+        "lint:autofix": "eslint . --fix",
+        "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+        "build": "tsc",
+        "check": "tsc --project tsconfig.check.json"
+    },
+    "devDependencies": {
+        "@types/express": "catalog:",
+        "@types/node": "catalog:",
+        "eslint": "catalog:",
+        "pagopa-interop-eslint-config": "workspace:*",
+        "tsx": "catalog:",
+        "typescript": "catalog:"
+    },
+    "dependencies": {
+        "@zodios/core": "catalog:",
+        "@zodios/express": "catalog:",
+        "dotenv-flow": "catalog:",
+        "express": "catalog:",
+        "pagopa-interop-api-clients": "workspace:*",
+        "pagopa-interop-application-audit": "workspace:*",
+        "pagopa-interop-commons": "workspace:*",
+        "pagopa-interop-models": "workspace:*",
+        "ts-pattern": "catalog:",
+        "zod": "catalog:"
+    }
+}

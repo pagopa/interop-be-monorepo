@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package risk_analysis.v2;
+
+// Standalone RiskAnalysis aggregate — decoupled from EService and EServiceTemplate.
+// Replaces the embedded EServiceRiskAnalysisV2 / EServiceTemplateRiskAnalysisV2 types.
+
+enum RiskAnalysisContextV2 {
+  RISK_ANALYSIS_CONTEXT_UNSPECIFIED = 0;
+  ESERVICE                          = 1;
+  ESERVICE_TEMPLATE                 = 2;
+}
+
+message RiskAnalysisFormV2 {
+  string id      = 1;
+  string version = 2;
+  repeated RiskAnalysisSingleAnswerV2 singleAnswers = 3;
+  repeated RiskAnalysisMultiAnswerV2  multiAnswers  = 4;
+}
+
+message RiskAnalysisSingleAnswerV2 {
+  string          id    = 1;
+  string          key   = 2;
+  optional string value = 3;
+}
+
+message RiskAnalysisMultiAnswerV2 {
+  string          id     = 1;
+  string          key    = 2;
+  repeated string values = 3;
+}
+
+message RiskAnalysisV2 {
+  string                    id               = 1;
+  string                    name             = 2;
+  // Owning aggregate: exactly one of these will be set
+  optional string           eserviceId       = 3;
+  optional string           templateId       = 4;
+  // Required only when context = ESERVICE_TEMPLATE (identifies the target tenant kind)
+  optional string           tenantKind       = 5;
+  RiskAnalysisFormV2        riskAnalysisForm = 6;
+  int64                     createdAt        = 7;
+  RiskAnalysisContextV2     context          = 8;
+}
