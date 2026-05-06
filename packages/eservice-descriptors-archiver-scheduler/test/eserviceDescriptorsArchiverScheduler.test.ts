@@ -40,6 +40,9 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       "X-Correlation-Id": testCorrelationId,
       Authorization: `Bearer ${testToken}`,
     };
+    const manualPayload = {
+      kind: "MANUAL",
+    };
 
     let catalogProcessClient: CatalogProcessZodiosClient;
     let mockRefreshableToken: RefreshableInteropToken;
@@ -109,7 +112,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
         refs.forEach((ref) => {
           expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-            "MANUAL",
+            manualPayload,
             {
               params: {
                 eServiceId: ref.eserviceId,
@@ -182,7 +185,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         nonArchivableRefs.forEach((ref) => {
           expect(
             catalogProcessClient.archiveDescriptor
-          ).not.toHaveBeenCalledWith("MANUAL", {
+          ).not.toHaveBeenCalledWith(manualPayload, {
             params: {
               eServiceId: ref.eserviceId,
               descriptorId: ref.descriptorId,
@@ -247,7 +250,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         nonArchivableRefs.forEach((ref) => {
           expect(
             catalogProcessClient.archiveDescriptor
-          ).not.toHaveBeenCalledWith("MANUAL", {
+          ).not.toHaveBeenCalledWith(manualPayload, {
             params: {
               eServiceId: ref.eserviceId,
               descriptorId: ref.descriptorId,
@@ -335,7 +338,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
       archivableRefs.forEach((ref) => {
         expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
-          "MANUAL",
+          manualPayload,
           {
             params: {
               eServiceId: ref.eserviceId,
@@ -351,7 +354,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
       nonArchivableRefs.forEach((ref) => {
         expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalledWith(
-          "MANUAL",
+          manualPayload,
           {
             params: {
               eServiceId: ref.eserviceId,

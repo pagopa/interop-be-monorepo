@@ -39,13 +39,16 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
           const token = (await refreshableToken.get()).serialized;
           const correlationId: CorrelationId = generateId();
           const headers = getHeaders(correlationId, token);
-          catalogProcessClient.archiveDescriptor("MANUAL", {
-            params: {
-              eServiceId: ref.eserviceId,
-              descriptorId: ref.descriptorId,
-            },
-            headers,
-          });
+          catalogProcessClient.archiveDescriptor(
+            { kind: "MANUAL" },
+            {
+              params: {
+                eServiceId: ref.eserviceId,
+                descriptorId: ref.descriptorId,
+              },
+              headers,
+            }
+          );
         })
       );
     },
