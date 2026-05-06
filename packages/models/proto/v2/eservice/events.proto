@@ -222,3 +222,8 @@ message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
 message EServiceInstanceLabelUpdatedV2 {
   EServiceV2 eservice = 1;
 }
+
+message MaintenanceEServicePersonalDataFlagResetV2 {
+  EServiceV2 eservice = 1;
+  string reason = 2;
+}
