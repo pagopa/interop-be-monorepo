@@ -51,23 +51,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -95,23 +83,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -139,23 +115,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -180,23 +144,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -257,11 +209,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attributes"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   "/attributes/name/{name}":
     get:
       summary: Get Attribute by name
@@ -275,11 +223,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeByName
       description: "returns the attribute in the registry corresponding to name, if any."
     parameters:
@@ -317,11 +261,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeByOriginAndCode
       description: "returns the attribute in the registry corresponding to origin and code, if any."
   "/attributes/{attributeId}":
@@ -349,11 +289,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeById
       description: "returns the attribute in the registry corresponding to attributeId, if any."
   "/bulk/attributes":
@@ -381,11 +317,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attributes"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
       description: Returns the list of attributes indicated in the request
       parameters:
         - in: query
@@ -418,6 +350,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
