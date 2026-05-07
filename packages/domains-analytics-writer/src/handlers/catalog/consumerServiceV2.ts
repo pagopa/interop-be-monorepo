@@ -112,6 +112,7 @@ export async function handleCatalogMessageV2(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

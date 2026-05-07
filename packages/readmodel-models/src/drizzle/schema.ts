@@ -408,6 +408,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    archivingReason: varchar("archiving_reason"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -469,6 +470,49 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
     }),
   ]
 );
+
+export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_archiving_schedule",
+    {
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      scope: varchar().notNull(),
+      archivableOn: timestamp("archivable_on", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      startedAt: timestamp("started_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_schedule_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_schedule_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_archiving_eservice_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.eserviceId, table.descriptorId],
+        name: "eservice_descriptor_archiving_schedule_pkey",
+      }),
+    ]
+  );
 
 export const eserviceDescriptorRejectionReasonInReadmodelCatalog =
   readmodelCatalog.table(

@@ -36,6 +36,7 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEserviceArray,
@@ -71,6 +72,8 @@ export function readModelServiceBuilderSQL(
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(
@@ -139,6 +142,13 @@ export function readModelServiceBuilderSQL(
               eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
               eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         );
 
