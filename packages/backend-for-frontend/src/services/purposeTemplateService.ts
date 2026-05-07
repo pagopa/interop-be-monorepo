@@ -545,6 +545,12 @@ export function purposeTemplateServiceBuilder(
         `Retrieving suggested e-services (concrete + templates) for purpose template ${purposeTemplateId} with q ${q}, publisherIds ${publisherIds.toString()}, offset ${offset}, limit ${limit}`
       );
 
+      // Multi round-trip pagination is not snapshot-isolated: concurrent
+      // writes during the iteration may cause individual links to be skipped
+      // (a delete shifts subsequent items into offsets we already fetched)
+      // or missed (an insert lands past the loop's bound). Accepted at the
+      // target dimension (<200 links per purpose template, ~100ms total);
+      // subsequent client calls converge.
       const [concreteLinks, templateLinks] = await Promise.all([
         fetchAllConcreteLinks(purposeTemplateId, publisherIds, q, headers),
         fetchAllTemplateLinks(purposeTemplateId, publisherIds, q, headers),
