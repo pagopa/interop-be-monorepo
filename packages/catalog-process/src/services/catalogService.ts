@@ -62,6 +62,7 @@ import {
   AttributeKind,
   attributeKind,
   archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -2148,11 +2149,12 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      // const producerDelegation = await retrieveActiveProducerDelegation(
-      //   eservice.data,
-      //   readModelService
-      // );
-      // assertRequesterCanPublish(producerDelegation, eservice.data, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
@@ -2161,12 +2163,14 @@ export function catalogServiceBuilder(
           ? descriptorState.archivingSuspended
           : descriptorState.archiving;
 
-      const updatedEService = await processDescriptorArchiving(
-        eservice.data,
+      const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState,
-        authData,
-        readModelService
+        newState
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
       );
 
       const event = toCreateEventEServiceDescriptorArchivingScheduled(
@@ -3832,32 +3836,16 @@ export function catalogServiceBuilder(
 }
 
 async function processDescriptorArchiving(
-  eservice: EService,
   descriptor: Descriptor,
   newState: DescriptorState,
-  authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelServiceSQL
-): Promise<EService> {
-  await assertRequesterIsDelegateProducerOrProducer(
-    eservice.producerId,
-    eservice.id,
-    authData,
-    readModelService
-  );
-
+  scope: ArchivingScope = archivingScope.descriptor
+): Promise<Descriptor> {
   const archivingSchedule = {
     ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
-    scope: archivingScope.descriptor,
+    scope,
   };
 
-  const updatedDescriptor: Descriptor = updateDescriptorState(
-    { ...descriptor, archivingSchedule },
-    newState
-  );
-
-  const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
-
-  return updatedEService;
+  return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
 }
 
 async function createOpenApiInterfaceByTemplate(
