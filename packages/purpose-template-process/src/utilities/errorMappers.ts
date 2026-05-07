@@ -102,6 +102,24 @@ export const linkEServiceTemplatesToPurposeTemplateErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const unlinkEServiceTemplatesFromPurposeTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "disassociationEServiceTemplatesFromPurposeTemplateFailed",
+      "tooManyEServiceTemplatesForPurposeTemplate",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("purposeTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist",
+      "purposeTemplateNotInExpectedStates",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const unlinkEServicesFromPurposeTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
