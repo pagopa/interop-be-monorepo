@@ -998,6 +998,7 @@ export function catalogServiceBuilder(
           requesterTenant,
           consumerDelegators
         ),
+        archivingSchedule: descriptor.archivingSchedule,
       };
     },
     getEServiceConsumers: async (

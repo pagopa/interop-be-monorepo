@@ -64,6 +64,7 @@ const errorCodes = {
   eserviceInDraftState: "0047",
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
+  eserviceInArchivingOrArchivedState: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -567,5 +568,15 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function eserviceInArchivingOrArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
+    code: "eserviceInArchivingOrArchivedState",
+    title: "EService in archiving or archived state",
   });
 }

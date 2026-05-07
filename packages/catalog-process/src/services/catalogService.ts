@@ -62,6 +62,7 @@ import {
   AttributeKind,
   attributeKind,
   archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -89,7 +90,6 @@ import {
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
-  eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
   notValidDescriptorState,
@@ -158,6 +158,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
+  getPreviousDescriptorByStates,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -190,6 +191,7 @@ import {
   assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
   assertDescriptorCancelArchivable,
 } from "./validators.js";
@@ -363,11 +365,15 @@ const updateDescriptorState = (
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
-    .with([descriptorState.published, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      archivedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.archived],
+      [descriptorState.deprecated, descriptorState.archived],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
@@ -1348,6 +1354,8 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      assertEserviceIsNotInArchivingOrArchivedState(eservice.data);
+
       assertEServiceNotTemplateInstance(
         eservice.data.id,
         eservice.data.templateId
@@ -2146,11 +2154,12 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      // const producerDelegation = await retrieveActiveProducerDelegation(
-      //   eservice.data,
-      //   readModelService
-      // );
-      // assertRequesterCanPublish(producerDelegation, eservice.data, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
@@ -2159,12 +2168,14 @@ export function catalogServiceBuilder(
           ? descriptorState.archivingSuspended
           : descriptorState.archiving;
 
-      const updatedEService = await processDescriptorArchiving(
-        eservice.data,
+      const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState,
-        authData,
-        readModelService
+        newState
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
       );
 
       const event = toCreateEventEServiceDescriptorArchivingScheduled(
@@ -3587,10 +3598,6 @@ export function catalogServiceBuilder(
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
-      if (!latestDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
-
       const templateVersion = template.versions.find(
         (v) => v.id === latestDescriptor.templateVersionRef?.id
       );
@@ -3878,32 +3885,16 @@ export function catalogServiceBuilder(
 }
 
 async function processDescriptorArchiving(
-  eservice: EService,
   descriptor: Descriptor,
   newState: DescriptorState,
-  authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelServiceSQL
-): Promise<EService> {
-  await assertRequesterIsDelegateProducerOrProducer(
-    eservice.producerId,
-    eservice.id,
-    authData,
-    readModelService
-  );
-
+  scope: ArchivingScope = archivingScope.descriptor
+): Promise<Descriptor> {
   const archivingSchedule = {
     ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
-    scope: archivingScope.descriptor,
+    scope,
   };
 
-  const updatedDescriptor: Descriptor = updateDescriptorState(
-    { ...descriptor, archivingSchedule },
-    newState
-  );
-
-  const updatedEService = replaceDescriptor(eservice, updatedDescriptor);
-
-  return updatedEService;
+  return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
 }
 
 async function createOpenApiInterfaceByTemplate(
@@ -4052,8 +4043,13 @@ const processDescriptorPublication = async (
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
-  const currentActiveDescriptor = eservice.descriptors.find(
-    (d: Descriptor) => d.state === descriptorState.published
+  const currentActiveDescriptor = getPreviousDescriptorByStates(
+    eservice,
+    descriptor.version,
+    [
+      descriptorState.published,
+      descriptorState.suspended, // The last active descriptor could be suspended
+    ]
   );
 
   const publishedDescriptor = updateDescriptorState(
@@ -4070,20 +4066,31 @@ const processDescriptorPublication = async (
     return eserviceWithPublishedDescriptor;
   }
 
-  const currentEServiceAgreements = await readModelService.listAgreements({
-    eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
-    states: [agreementState.active, agreementState.suspended],
-    limit: 1,
-    descriptorId: currentActiveDescriptor.id,
-  });
+  const hasAgreements =
+    (
+      await readModelService.listAgreements({
+        eservicesIds: [eservice.id],
+        consumersIds: [],
+        producersIds: [],
+        states: [agreementState.active, agreementState.suspended],
+        limit: 1,
+        descriptorId: currentActiveDescriptor.id,
+      })
+    ).length > 0;
+
+  if (
+    currentActiveDescriptor.state === descriptorState.suspended &&
+    hasAgreements
+  ) {
+    // The previous active descriptor state was suspended, no state change is needed
+    return eserviceWithPublishedDescriptor;
+  }
 
   return replaceDescriptor(
     eserviceWithPublishedDescriptor,
-    currentEServiceAgreements.length === 0
-      ? archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
-      : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+    hasAgreements
+      ? deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
   );
 };
 

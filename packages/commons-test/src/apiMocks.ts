@@ -395,6 +395,7 @@ export function getMockedApiEservice({
     isConsumerDelegable: generateMock(z.boolean()),
     isClientAccessDelegable: generateMock(z.boolean()),
     templateId: generateId(),
+    archivingReason: generateMock(z.string().optional()),
   };
 }
 
@@ -402,10 +403,12 @@ export function getMockedApiEserviceDescriptor({
   state,
   interfaceDoc,
   attributes,
+  archivingSchedule,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
   attributes?: catalogApi.Attributes;
+  archivingSchedule?: catalogApi.ArchivingSchedule;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -427,6 +430,9 @@ export function getMockedApiEserviceDescriptor({
     attributes: attributes ?? generateMock(catalogApi.Attributes),
     rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
     templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
+    ...(archivingSchedule
+      ? { archivingSchedule: generateMock(catalogApi.ArchivingSchedule) }
+      : {}),
   };
 }
 

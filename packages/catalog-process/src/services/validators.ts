@@ -26,6 +26,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -49,6 +50,7 @@ import {
   eServiceUpdateSameNameConflict,
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
+  eserviceInArchivingOrArchivedState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -126,7 +128,7 @@ function isDescriptorArchivable(
   eservice: EService
 ): boolean {
   const latestDescriptor = getLatestDescriptor(eservice);
-  const isLatest = latestDescriptor?.id === descriptor.id;
+  const isLatest = latestDescriptor.id === descriptor.id;
 
   return match(descriptor.state)
     .with(descriptorState.deprecated, () => true)
@@ -519,5 +521,25 @@ export function assertDescriptorCancelArchivable(
 ): void {
   if (!isDescriptorCancelArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
+  const latestActiveDescriptor = eservice.descriptors
+    .filter(isActiveDescriptor)
+    .at(-1);
+  if (
+    latestActiveDescriptor &&
+    (
+      [
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ] as DescriptorState[]
+    ).includes(latestActiveDescriptor.state)
+  ) {
+    throw eserviceInArchivingOrArchivedState(eservice.id);
   }
 }
