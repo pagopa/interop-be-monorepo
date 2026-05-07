@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { bffApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import { authRole } from "pagopa-interop-commons";
@@ -154,5 +155,57 @@ describe("API POST /purposeTemplates/:purposeTemplateId/linkSuggestedEService", 
       "invalid-uuid"
     );
     expect(res.status).toBe(400);
+  });
+
+  it.each([
+    { upstreamStatus: 404, description: "purpose template not found" },
+    { upstreamStatus: 409, description: "association already exists" },
+  ])(
+    "Should propagate $upstreamStatus when the process rejects with that status ($description)",
+    async ({ upstreamStatus }) => {
+      const upstreamError = new AxiosError(
+        "upstream error",
+        String(upstreamStatus),
+        undefined,
+        undefined,
+        {
+          status: upstreamStatus,
+          data: {
+            type: "about:blank",
+            title: "upstream error",
+            status: upstreamStatus,
+            detail: "upstream error detail",
+            correlationId: "test-correlation-id",
+            errors: [{ code: "001-9999", detail: "upstream error detail" }],
+          },
+          statusText: "",
+          config: {} as InternalAxiosRequestConfig,
+          headers: {},
+        }
+      );
+      clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate = vi
+        .fn()
+        .mockRejectedValue(upstreamError);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        resourceKind: "ESERVICE",
+        eserviceId: mockEServiceId,
+      });
+      expect(res.status).toBe(upstreamStatus);
+    }
+  );
+
+  it("Should return 500 if the process returns an empty link array (defensive)", async () => {
+    clients.purposeTemplateProcessClient.linkEServicesToPurposeTemplate = vi
+      .fn()
+      .mockResolvedValue([]);
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      resourceKind: "ESERVICE",
+      eserviceId: mockEServiceId,
+    });
+    expect(res.status).toBe(500);
   });
 });
