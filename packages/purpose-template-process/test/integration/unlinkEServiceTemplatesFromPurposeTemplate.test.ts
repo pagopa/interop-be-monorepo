@@ -149,6 +149,67 @@ describe("unlinkEServiceTemplatesFromPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
+  it("should deduplicate repeated eserviceTemplateIds and emit a single unlink event", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const template = makeTemplate();
+
+    const pt: PurposeTemplate = {
+      ...purposeTemplate,
+      id: generateId<PurposeTemplateId>(),
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(pt);
+    await addOneEServiceTemplate(template);
+    await addOneEServiceTemplateVersionPurposeTemplate({
+      purposeTemplateId: pt.id,
+      eserviceTemplateId: template.id,
+      eserviceTemplateVersionId: template.versions[0].id,
+      createdAt: new Date(),
+    });
+
+    const unlinkResponse =
+      await purposeTemplateService.unlinkEServiceTemplatesFromPurposeTemplate(
+        pt.id,
+        [template.id, template.id, template.id],
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
+
+    expect(unlinkResponse).toHaveLength(1);
+    expect(unlinkResponse[0]).toMatchObject({
+      data: {
+        purposeTemplateId: pt.id,
+        eserviceTemplateId: template.id,
+        eserviceTemplateVersionId: template.versions[0].id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
+    });
+
+    const lastEvent = await readLastPurposeTemplateEvent(pt.id);
+    expect(lastEvent.type).toBe("PurposeTemplateEServiceTemplateUnlinked");
+    expect(lastEvent).toMatchObject({
+      stream_id: pt.id,
+      version: "1",
+      event_version: 2,
+    });
+
+    const eventPayload = decodeProtobufPayload({
+      messageType: PurposeTemplateEServiceTemplateUnlinkedV2,
+      payload: lastEvent.data,
+    });
+    expect(eventPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(template)
+    );
+    expect(eventPayload.eserviceTemplateVersionId).toBe(
+      template.versions[0].id
+    );
+
+    vi.useRealTimers();
+  });
+
   it("should throw purposeTemplateNotFound if the purpose template does not exist", async () => {
     const notExistingId = generateId<PurposeTemplateId>();
     const template = makeTemplate();

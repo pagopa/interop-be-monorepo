@@ -1283,12 +1283,16 @@ export function purposeTemplateServiceBuilder(
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+      const dedupedEServiceTemplateIds = Array.from(
+        new Set(eserviceTemplateIds)
+      );
+
       logger.info(
-        `Unlinking e-service templates ${eserviceTemplateIds} from purpose template ${purposeTemplateId}`
+        `Unlinking e-service templates ${dedupedEServiceTemplateIds} from purpose template ${purposeTemplateId}`
       );
 
       assertEServiceTemplateIdsCountIsBelowThreshold(
-        eserviceTemplateIds.length
+        dedupedEServiceTemplateIds.length
       );
 
       const purposeTemplate = await retrievePurposeTemplate(
@@ -1308,7 +1312,7 @@ export function purposeTemplateServiceBuilder(
       );
 
       const validationResult = await validateEServiceTemplatesDisassociations(
-        eserviceTemplateIds,
+        dedupedEServiceTemplateIds,
         purposeTemplate.data,
         readModelService
       );
@@ -1316,7 +1320,7 @@ export function purposeTemplateServiceBuilder(
       if (validationResult.type === "invalid") {
         throw disassociationEServiceTemplatesFromPurposeTemplateFailed(
           validationResult.issues,
-          eserviceTemplateIds,
+          dedupedEServiceTemplateIds,
           purposeTemplateId
         );
       }
