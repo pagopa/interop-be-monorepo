@@ -337,6 +337,13 @@ export function purposeTemplateServiceBuilder(
           headers,
         });
 
+      if (processResults.length === 0) {
+        return {
+          results: [],
+          pagination: { limit, offset, totalCount },
+        };
+      }
+
       const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
       const eservices = await clients.catalogProcessClient
         .getEServices({
@@ -662,6 +669,13 @@ export function purposeTemplateServiceBuilder(
             headers,
           }
         );
+
+      if (processResults.length === 0) {
+        return {
+          results: [],
+          pagination: { limit, offset, totalCount },
+        };
+      }
 
       const eserviceTemplateIds = processResults.map(
         ({ eserviceTemplateId }) => eserviceTemplateId

@@ -159,14 +159,11 @@ describe("getPurposeTemplateEServiceTemplates", () => {
     expect(result.pagination.totalCount).not.toBe(result.results.length);
   });
 
-  it("Should always invoke the enrichment client even when there are no links (locked: no empty short-circuit)", async () => {
+  it("Should short-circuit and not invoke the enrichment client when there are no links (PIN-10004)", async () => {
     const purposeTemplateId = generateId<PurposeTemplateId>();
     mockGetPurposeTemplateEServiceTemplates.mockResolvedValueOnce({
       data: { results: [], totalCount: 0 },
       metadata: undefined,
-    });
-    mockGetEServiceTemplates.mockResolvedValueOnce({
-      data: { results: [] },
     });
 
     const result =
@@ -184,13 +181,6 @@ describe("getPurposeTemplateEServiceTemplates", () => {
       },
       results: [],
     });
-    expect(mockGetEServiceTemplates).toHaveBeenCalledTimes(1);
-    expect(mockGetEServiceTemplates).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queries: expect.objectContaining({
-          eserviceTemplatesIds: [],
-        }),
-      })
-    );
+    expect(mockGetEServiceTemplates).toHaveBeenCalledTimes(0);
   });
 });
