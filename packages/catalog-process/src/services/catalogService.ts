@@ -1572,7 +1572,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} template instance`
@@ -2148,7 +2152,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId} template instance`

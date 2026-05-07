@@ -4,7 +4,24 @@ import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
-type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
+type CatalogProcessErrorCodes =
+  | "eServiceNotFound"
+  | "eServiceDescriptorNotFound"
+  | "attributeNotFound"
+  | "inconsistentAttributesSeedGroupsCount"
+  | "descriptorAttributeGroupSupersetMissingInAttributesSeed"
+  | "attributeDuplicatedInGroup"
+  | "notValidDescriptor"
+  | "attributeDailyCallsNotAllowed"
+  | "templateInstanceNotAllowed"
+  | "inconsistentDailyCalls"
+  | "unchangedAttributes"
+  | "eServiceNotAnInstance";
+
+type ErrorCodes =
+  | M2MGatewayErrorCodes
+  | CommonErrorCodes
+  | CatalogProcessErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -289,6 +306,78 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
       "eserviceTemplateVersionAttributeGroupNotFound",
       "eserviceTemplateVersionAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceDescriptorAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "inconsistentAttributesSeedGroupsCount",
+      "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+      "attributeDuplicatedInGroup",
+      "notValidDescriptor",
+      "attributeDailyCallsNotAllowed",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDraftEServiceDescriptorTemplateInstanceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      "attributeNotFound",
+      "eServiceNotAnInstance",
+      "attributeDailyCallsNotAllowed",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceTemplateInstanceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      "attributeNotFound",
+      "attributeDailyCallsNotAllowed",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eServiceNotAnInstance",
+      "operationForbidden",
+      () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

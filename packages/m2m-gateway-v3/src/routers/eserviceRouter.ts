@@ -24,6 +24,9 @@ import {
   createEServiceDescriptorAttributeGroupsErrorMapper,
   deleteEServiceDescriptorAttributeFromGroupErrorMapper,
   assignEServiceDescriptorAttributesErrorMapper,
+  updateDraftEServiceDescriptorTemplateInstanceErrorMapper,
+  updateEServiceDescriptorAttributesErrorMapper,
+  updateEServiceTemplateInstanceDescriptorErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -416,6 +419,93 @@ const eserviceRouter = (
             emptyErrorMapper,
             ctx,
             `Error updating quotas for eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/attributes/update",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.updateEServiceDescriptorAttributes(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error bulk updating attributes for eservice descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eserviceId/descriptors/:descriptorId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const createdResource =
+            await eserviceService.updateDraftEServiceDescriptorTemplateInstance(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.CreatedResource.parse(createdResource));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftEServiceDescriptorTemplateInstanceErrorMapper,
+            ctx,
+            `Error updating draft template instance descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eserviceId/descriptors/:descriptorId/update",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const createdResource =
+            await eserviceService.updateEServiceTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.CreatedResource.parse(createdResource));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceTemplateInstanceDescriptorErrorMapper,
+            ctx,
+            `Error updating template instance descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
