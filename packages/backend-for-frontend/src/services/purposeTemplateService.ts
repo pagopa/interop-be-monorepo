@@ -37,6 +37,7 @@ import {
 } from "../api/purposeTemplateApiConverter.js";
 import {
   eserviceDescriptorNotFound,
+  eServiceNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   tenantNotFound,
@@ -213,7 +214,7 @@ export function purposeTemplateServiceBuilder(
         .with({ kind: "ESERVICE" }, ({ link }) => {
           const eservice = eserviceById.get(link.eserviceId);
           if (!eservice) {
-            throw eserviceDescriptorNotFound(link.eserviceId, link.descriptorId);
+            throw eServiceNotFound(link.eserviceId);
           }
           const descriptor = eservice.descriptors.find(
             (d) => d.id === link.descriptorId
