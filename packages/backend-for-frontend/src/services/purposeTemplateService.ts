@@ -558,12 +558,10 @@ export function purposeTemplateServiceBuilder(
 
       const merged: SuggestedLink[] = [
         ...concreteLinks.map(
-          (link) =>
-            ({ kind: "ESERVICE", link } as const) satisfies SuggestedLink
+          (link): SuggestedLink => ({ kind: "ESERVICE", link })
         ),
         ...templateLinks.map(
-          (link) =>
-            ({ kind: "ESERVICE_TEMPLATE", link } as const) satisfies SuggestedLink
+          (link): SuggestedLink => ({ kind: "ESERVICE_TEMPLATE", link })
         ),
       ];
 
