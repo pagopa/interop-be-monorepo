@@ -225,6 +225,16 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         metadata: { version: row.metadataVersion },
       }));
     },
+    async getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+      purposeTemplateId: PurposeTemplateId
+    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+      return await this.getEServiceTemplateVersionPurposeTemplatesByFilter(
+        eq(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+          purposeTemplateId
+        )
+      );
+    },
     async getEServiceTemplateVersionPurposeTemplatesByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
