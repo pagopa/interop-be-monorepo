@@ -28,7 +28,9 @@ type PurposeTemplateValidationIssueCode =
   | "eserviceTemplateAlreadyAssociated"
   | "missingEServiceTemplateVersion"
   | "invalidEServiceTemplateVersionState"
-  | "purposeTemplateEServiceTemplatePersonalDataFlagMismatch";
+  | "purposeTemplateEServiceTemplatePersonalDataFlagMismatch"
+  | "eserviceTemplateNotAssociated"
+  | "unexpectedUnassociationEServiceTemplateError";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -239,6 +241,26 @@ export function purposeTemplateEServiceTemplatePersonalDataFlagMismatch(
   return new PurposeTemplateValidationIssue({
     code: "purposeTemplateEServiceTemplatePersonalDataFlagMismatch",
     detail: `E-service template ${eserviceTemplate.id} personal data flag (${eserviceTemplate.personalData}) does not match purpose template ${purposeTemplate.id} personal data flag (${purposeTemplate.handlesPersonalData}).`,
+  });
+}
+
+export function eserviceTemplateNotAssociatedError(
+  eserviceTemplateId: EServiceTemplateId,
+  purposeTemplateId: PurposeTemplateId
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "eserviceTemplateNotAssociated",
+    detail: `E-service template ${eserviceTemplateId} is not associated with purpose template ${purposeTemplateId}`,
+  });
+}
+
+export function unexpectedUnassociationEServiceTemplateError(
+  reason: string,
+  eserviceTemplateId: EServiceTemplateId
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "unexpectedUnassociationEServiceTemplateError",
+    detail: `Unexpected error: ${reason} for e-service template ${eserviceTemplateId}`,
   });
 }
 
