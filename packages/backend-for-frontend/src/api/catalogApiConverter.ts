@@ -139,6 +139,7 @@ export async function toBffCatalogDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    archivingReason: eservice.archivingReason,
   };
 }
 
