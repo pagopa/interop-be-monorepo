@@ -11,10 +11,11 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiDescriptorAttributesSeed } from "../../mockUtils.js";
+import { getMockBffApiEServiceTemplateAttributesSeed } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/attributes/update", () => {
-  const mockDescriptorAttributesSeed = getMockBffApiDescriptorAttributesSeed();
+  const mockEServiceTemplateAttributesSeed =
+    getMockBffApiEServiceTemplateAttributesSeed();
 
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes = vi
@@ -26,7 +27,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     token: string,
     eServiceTemplateId: EServiceTemplateId = generateId(),
     eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
-    body: bffApi.DescriptorAttributesSeed = mockDescriptorAttributesSeed
+    body: bffApi.EServiceTemplateAttributesSeed = mockEServiceTemplateAttributesSeed
   ) =>
     request(api)
       .post(
@@ -48,25 +49,39 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     { body: {} },
     {
       body: {
-        ...mockDescriptorAttributesSeed,
+        ...mockEServiceTemplateAttributesSeed,
         extraField: 1,
       },
     },
     {
       body: {
-        ...mockDescriptorAttributesSeed,
+        ...mockEServiceTemplateAttributesSeed,
         certified: "invalid",
       },
     },
     {
       body: {
-        ...mockDescriptorAttributesSeed,
+        ...mockEServiceTemplateAttributesSeed,
+        certified: [
+          [
+            {
+              id: generateId(),
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateAttributesSeed,
         declared: "invalid",
       },
     },
     {
       body: {
-        ...mockDescriptorAttributesSeed,
+        ...mockEServiceTemplateAttributesSeed,
         verified: "invalid",
       },
     },
@@ -78,7 +93,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         token,
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        body as bffApi.DescriptorAttributesSeed
+        body as bffApi.EServiceTemplateAttributesSeed
       );
       expect(res.status).toBe(400);
     }

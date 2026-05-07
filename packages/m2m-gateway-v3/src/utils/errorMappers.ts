@@ -4,24 +4,7 @@ import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
-type CatalogProcessErrorCodes =
-  | "eServiceNotFound"
-  | "eServiceDescriptorNotFound"
-  | "attributeNotFound"
-  | "inconsistentAttributesSeedGroupsCount"
-  | "descriptorAttributeGroupSupersetMissingInAttributesSeed"
-  | "attributeDuplicatedInGroup"
-  | "notValidDescriptor"
-  | "attributeDailyCallsNotAllowed"
-  | "templateInstanceNotAllowed"
-  | "inconsistentDailyCalls"
-  | "unchangedAttributes"
-  | "eServiceNotAnInstance";
-
-type ErrorCodes =
-  | M2MGatewayErrorCodes
-  | CommonErrorCodes
-  | CatalogProcessErrorCodes;
+type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,

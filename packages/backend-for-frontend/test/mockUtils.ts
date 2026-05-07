@@ -390,9 +390,24 @@ export const getMockCatalogApiUpdateEServiceDescriptorQuotasSeed =
 
 export const getMockBffApiDescriptorAttributesSeed =
   (): bffApi.DescriptorAttributesSeed => ({
-    certified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+    certified: generateMock(
+      z.array(z.array(bffApi.CertifiedDescriptorAttributeSeed))
+    ),
     declared: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
     verified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+  });
+
+export const getMockBffApiEServiceTemplateAttributesSeed =
+  (): bffApi.EServiceTemplateAttributesSeed => ({
+    certified: generateMock(
+      z.array(z.array(bffApi.EServiceTemplateVersionAttributeSeed))
+    ),
+    declared: generateMock(
+      z.array(z.array(bffApi.EServiceTemplateVersionAttributeSeed))
+    ),
+    verified: generateMock(
+      z.array(z.array(bffApi.EServiceTemplateVersionAttributeSeed))
+    ),
   });
 
 export const getMockBffApiUpdateEServiceDescriptorSeed =

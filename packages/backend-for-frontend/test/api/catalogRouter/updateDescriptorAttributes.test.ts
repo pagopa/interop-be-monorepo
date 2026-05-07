@@ -47,8 +47,36 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/attributes/u
     { body: { ...mockDescriptorAttributesSeed, certified: ["invalid"] } },
     { body: { ...mockDescriptorAttributesSeed, declared: "invalid" } },
     { body: { ...mockDescriptorAttributesSeed, declared: ["invalid"] } },
+    {
+      body: {
+        ...mockDescriptorAttributesSeed,
+        declared: [
+          [
+            {
+              id: generateId(),
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+      },
+    },
     { body: { ...mockDescriptorAttributesSeed, verified: "invalid" } },
     { body: { ...mockDescriptorAttributesSeed, verified: ["invalid"] } },
+    {
+      body: {
+        ...mockDescriptorAttributesSeed,
+        verified: [
+          [
+            {
+              id: generateId(),
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter",
     async ({ eServiceId, descriptorId, body }) => {

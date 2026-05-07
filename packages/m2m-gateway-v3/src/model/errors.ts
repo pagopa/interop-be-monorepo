@@ -67,6 +67,17 @@ const errorCodes = {
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
   clientNotFound: "0047",
+  eServiceNotFound: "0048",
+  eServiceDescriptorNotFound: "0049",
+  inconsistentAttributesSeedGroupsCount: "0050",
+  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0051",
+  attributeDuplicatedInGroup: "0052",
+  notValidDescriptor: "0053",
+  attributeDailyCallsNotAllowed: "0054",
+  templateInstanceNotAllowed: "0055",
+  inconsistentDailyCalls: "0056",
+  unchangedAttributes: "0057",
+  eServiceNotAnInstance: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
