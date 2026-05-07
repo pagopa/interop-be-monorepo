@@ -323,6 +323,77 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
+    async linkSuggestedEServiceToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.SuggestedEServiceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.LinkedSuggestedEService> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      return await match(body)
+        .with(
+          { resourceKind: "ESERVICE" },
+          async ({ eserviceId }): Promise<bffApi.LinkedSuggestedEService> => {
+            logger.info(
+              `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServicesToPurposeTemplate(
+                { eserviceIds: [eserviceId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            return { resourceKind: "ESERVICE", ...result[0] };
+          }
+        )
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({
+            eserviceTemplateId,
+          }): Promise<bffApi.LinkedSuggestedEService> => {
+            logger.info(
+              `Linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServiceTemplatesToPurposeTemplate(
+                { eserviceTemplateIds: [eserviceTemplateId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            return { resourceKind: "ESERVICE_TEMPLATE", ...result[0] };
+          }
+        )
+        .exhaustive();
+    },
+    async unlinkSuggestedEServiceFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.SuggestedEServiceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      await match(body)
+        .with({ resourceKind: "ESERVICE" }, async ({ eserviceId }) => {
+          logger.info(
+            `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+          );
+          await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+            { eserviceIds: [eserviceId] },
+            { params: { id: purposeTemplateId }, headers }
+          );
+        })
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({ eserviceTemplateId }) => {
+            logger.info(
+              `Unlinking e-service template ${eserviceTemplateId} from purpose template ${purposeTemplateId}`
+            );
+            await purposeTemplateClient.unlinkEServiceTemplatesFromPurposeTemplate(
+              { eserviceTemplateIds: [eserviceTemplateId] },
+              { params: { id: purposeTemplateId }, headers }
+            );
+          }
+        )
+        .exhaustive();
+    },
     async getCreatorPurposeTemplates({
       purposeTitle,
       states,
