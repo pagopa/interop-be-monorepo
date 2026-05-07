@@ -1109,7 +1109,7 @@ export function eserviceServiceBuilder(
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Bulk updating attributes for E-Service Descriptor with id ${descriptorId} for E-Service ${eserviceId}`
+        `Updating attributes for E-Service Descriptor with id ${descriptorId} for E-Service ${eserviceId}`
       );
 
       const eservice = await retrieveEServiceById(headers, eserviceId);

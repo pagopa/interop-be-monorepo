@@ -3275,8 +3275,8 @@ paths:
     post:
       tags:
         - eservices
-      summary: Bulk update E-Service Descriptor Attributes
-      description: Bulk update the Descriptor Attributes, including differentiated thresholds on Certified Attributes. The response contains an empty object so Integrity REST 02 response headers can be generated.
+      summary: Update E-Service Descriptor Attributes
+      description: Update the Descriptor Attributes, including differentiated thresholds on Certified Attributes.
       operationId: updateEServiceDescriptorAttributes
       requestBody:
         required: true
