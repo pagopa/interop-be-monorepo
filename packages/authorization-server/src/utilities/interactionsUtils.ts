@@ -23,6 +23,7 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 const interactionStateAllowedByScope: Record<
   InteractionState,
@@ -182,31 +183,26 @@ export const updateInteractionState = async ({
 
   const updateExpressions = ["#state = :state", "updatedAt = :updatedAt"];
 
-  if (state === interactionState.startInteraction) {
-    expressionAttributeValues[":startInteractionTokenIssuedAt"] = {
-      S: updatedAt,
-    };
-    updateExpressions.push(
-      "startInteractionTokenIssuedAt = :startInteractionTokenIssuedAt"
-    );
-  }
+  const transitionTimestampField = match(state)
+    .with(
+      interactionState.startInteraction,
+      () => "startInteractionTokenIssuedAt" as const
+    )
+    .with(
+      interactionState.callbackInvocation,
+      () => "callbackInvocationTokenIssuedAt" as const
+    )
+    .with(
+      interactionState.confirmation,
+      () => "confirmationTokenIssuedAt" as const
+    )
+    .with(interactionState.getResource, () => undefined)
+    .exhaustive();
 
-  if (state === interactionState.callbackInvocation) {
-    expressionAttributeValues[":callbackInvocationTokenIssuedAt"] = {
-      S: updatedAt,
-    };
-    updateExpressions.push(
-      "callbackInvocationTokenIssuedAt = :callbackInvocationTokenIssuedAt"
-    );
-  }
-
-  if (state === interactionState.confirmation) {
-    expressionAttributeValues[":confirmationTokenIssuedAt"] = {
-      S: updatedAt,
-    };
-    updateExpressions.push(
-      "confirmationTokenIssuedAt = :confirmationTokenIssuedAt"
-    );
+  if (transitionTimestampField) {
+    const placeholder = `:${transitionTimestampField}`;
+    expressionAttributeValues[placeholder] = { S: updatedAt };
+    updateExpressions.push(`${transitionTimestampField} = ${placeholder}`);
   }
 
   const input: UpdateItemInput = {
