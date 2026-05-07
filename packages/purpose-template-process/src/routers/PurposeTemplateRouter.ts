@@ -49,6 +49,7 @@ import {
   updateRiskAnalysisTemplateAnswerAnnotationDocumentErrorMapper,
   updatePurposeTemplateRiskAnalysisErrorMapper,
   getPurposeTemplateEServiceDescriptorErrorMapper,
+  getPurposeTemplateEServiceTemplateErrorMapper,
   addRiskAnalysisTemplateDocumentErrorMapper,
   getRiskAnalysisTemplateSignedDocumentErrorMapper,
   getRiskAnalysisTemplateDocumentErrorMapper,
@@ -430,6 +431,46 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/purposeTemplates/:id/eserviceTemplates/:eserviceTemplateId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+            SECURITY_ROLE,
+            SUPPORT_ROLE,
+          ]);
+
+          const link =
+            await purposeTemplateService.getPurposeTemplateEServiceTemplate(
+              unsafeBrandId(req.params.id),
+              unsafeBrandId(req.params.eserviceTemplateId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              purposeTemplateApi.EServiceTemplateVersionPurposeTemplate.parse(
+                eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate(
+                  link
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeTemplateEServiceTemplateErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/purposeTemplates/:id/linkEservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
