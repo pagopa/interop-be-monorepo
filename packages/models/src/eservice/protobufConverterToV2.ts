@@ -106,7 +106,7 @@ export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   uploadDate: input.uploadDate.toISOString(),
 });
 
-export const toEServiceDescriptorScopeV2 = (
+export const toEServiceDescriptorArchivingScopeV2 = (
   input: ArchivingScope
 ): ArchivingScopeV2 =>
   match(input)
@@ -140,7 +140,9 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
     ? {
         archivableOn: dateToBigInt(input.archivingSchedule.archivableOn),
         startedAt: dateToBigInt(input.archivingSchedule.startedAt),
-        scope: toEServiceDescriptorScopeV2(input.archivingSchedule.scope),
+        scope: toEServiceDescriptorArchivingScopeV2(
+          input.archivingSchedule.scope
+        ),
       }
     : undefined,
 });

@@ -84,6 +84,7 @@ describe("updateDraftEService", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);

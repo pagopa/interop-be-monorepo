@@ -127,7 +127,7 @@ function isDescriptorArchivable(
   eservice: EService
 ): boolean {
   const latestDescriptor = getLatestDescriptor(eservice);
-  const isLatest = latestDescriptor?.id === descriptor.id;
+  const isLatest = latestDescriptor.id === descriptor.id;
 
   return match(descriptor.state)
     .with(descriptorState.deprecated, () => true)
