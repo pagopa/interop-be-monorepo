@@ -26,8 +26,6 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
-  DescriptorId,
-  agreementState,
   DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -144,22 +142,6 @@ function isDescriptorArchivable(
       () => false
     )
     .exhaustive();
-}
-
-export async function hasActiveSubscription(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  readModelService: ReadModelServiceSQL
-): Promise<boolean> {
-  const activeSubscriptions = await readModelService.listAgreements({
-    eservicesIds: [eserviceId],
-    consumersIds: [],
-    producersIds: [],
-    states: [agreementState.active, agreementState.suspended],
-    limit: 1,
-    descriptorId: descriptorId,
-  });
-  return activeSubscriptions.length > 0;
 }
 
 export async function assertRequesterIsDelegateProducerOrProducer(
