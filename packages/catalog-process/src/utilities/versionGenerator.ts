@@ -1,4 +1,4 @@
-import { Descriptor, EService } from "pagopa-interop-models";
+import { Descriptor, DescriptorState, EService } from "pagopa-interop-models";
 import { z } from "zod";
 import { isActiveDescriptor } from "../services/validators.js";
 import {
@@ -53,3 +53,13 @@ export function isLatestActiveDescriptorVersion(
   const maxVersion = Math.max(...versions);
   return parseInt(target.version, 10) === maxVersion;
 }
+export const getPreviousDescriptorByStates = (
+  eservice: EService,
+  newVersion: string,
+  states: DescriptorState[]
+): Descriptor | undefined =>
+  eservice.descriptors.find(
+    (d) =>
+      d.version === (parseVersionNumber(newVersion) - 1).toString() &&
+      states.includes(d.state)
+  );

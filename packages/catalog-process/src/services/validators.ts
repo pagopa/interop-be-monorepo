@@ -50,6 +50,7 @@ import {
   eServiceUpdateSameNameConflict,
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
+  eserviceInArchivingOrArchivedState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -495,5 +496,59 @@ export function assertDescriptorInRequiredStates(
 ): void {
   if (!states.includes(descriptor.state)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+function isDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): boolean {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  const isLatest = latestDescriptor?.id === descriptor.id;
+
+  return match(descriptor.state)
+    .with(
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      () => !isLatest
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.published,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function assertDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  if (!isDescriptorCancelArchivable(descriptor, eservice)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
+  const latestActiveDescriptor = eservice.descriptors
+    .filter(isActiveDescriptor)
+    .at(-1);
+  if (
+    latestActiveDescriptor &&
+    (
+      [
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ] as DescriptorState[]
+    ).includes(latestActiveDescriptor.state)
+  ) {
+    throw eserviceInArchivingOrArchivedState(eservice.id);
   }
 }
