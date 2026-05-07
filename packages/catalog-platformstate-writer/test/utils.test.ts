@@ -258,7 +258,7 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("descriptorStateToClientState", async () => {
+  describe("should convert descriptor states to token-generation-readmodel states", async () => {
     it.each([
       descriptorState.published,
       descriptorState.deprecated,

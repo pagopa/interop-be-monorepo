@@ -387,7 +387,7 @@ describe("integration tests V2 events", async () => {
   describe.each([
     "EServiceDescriptorArchived",
     "EServiceDescriptorArchivingCompleted",
-  ])("%s", (eventName) => {
+  ] as const)("%s", (eventName) => {
     it("should delete the entry from platform states and update token generation states", async () => {
       const archivedDescriptor: Descriptor = {
         ...getMockDescriptor(),
