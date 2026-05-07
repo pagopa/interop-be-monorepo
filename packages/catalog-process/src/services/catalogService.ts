@@ -90,7 +90,6 @@ import {
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
-  eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
   notValidDescriptorState,
@@ -3596,10 +3595,6 @@ export function catalogServiceBuilder(
       );
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
-
-      if (!latestDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
 
       const templateVersion = template.versions.find(
         (v) => v.id === latestDescriptor.templateVersionRef?.id
