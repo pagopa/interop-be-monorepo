@@ -197,7 +197,6 @@ import {
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
   assertDescriptorInRequiredStates,
-  assertDescriptorIsNotLatestVersion,
   assertDescriptorIsAlreadyArchived,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
