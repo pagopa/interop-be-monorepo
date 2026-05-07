@@ -192,7 +192,6 @@ import {
   assertAttributeDailyCallsConsistentWithTotal,
   assertDescriptorArchivable,
   assertDescriptorCancelArchivable,
-  hasActiveSubscription,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
