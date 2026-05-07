@@ -185,30 +185,63 @@ export async function handleMessageV2(
         }
       }
     )
-    .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
-      const { eservice, descriptor } = parseEServiceAndDescriptor(
+    .with(
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      async (msg) => {
+        const { eservice, descriptor } = parseEServiceAndDescriptor(
+          msg.data.eservice,
+          unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          msg.type
+        );
+
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        });
+        await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+
+        // token-generation-states
+        const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorStateToItemState(descriptor.state),
+          dynamoDBClient,
+          logger
+        );
+      }
+    )
+    .with({ type: "EServiceArchivingCompleted" }, async (msg) => {
+      const eservice = parseEServiceWithoutDescriptor(
         msg.data.eservice,
-        unsafeBrandId<DescriptorId>(msg.data.descriptorId),
         msg.type
       );
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-      });
-      await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+      await Promise.all(
+        eservice.descriptors.map(async (descriptor) => {
+          const primaryKey = makePlatformStatesEServiceDescriptorPK({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
-      // token-generation-states
-      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
-      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: eservice.id,
-        descriptorId,
-      });
-      await updateDescriptorStateInTokenGenerationStatesTable(
-        eserviceId_descriptorId,
-        descriptorStateToItemState(descriptor.state),
-        dynamoDBClient,
-        logger
+          // token-generation-states
+          const descriptorId = descriptor.id;
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptorStateToItemState(descriptor.state),
+            dynamoDBClient,
+            logger
+          );
+        })
       );
     })
     .with(
@@ -312,9 +345,7 @@ export async function handleMessageV2(
           "EServiceArchivingCanceled",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingCanceled",
-          "MaintenanceEServicePersonalDataFlagReset",
-          "EServiceDescriptorArchivingCompleted",
-          "EServiceArchivingCompleted"
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => Promise.resolve()
@@ -338,4 +369,14 @@ const parseEServiceAndDescriptor = (
     throw missingKafkaMessageDataError("descriptor", eventType);
   }
   return { eservice, descriptor };
+};
+
+const parseEServiceWithoutDescriptor = (
+  eserviceV2: EServiceV2 | undefined,
+  eventType: string
+): EService => {
+  if (!eserviceV2) {
+    throw missingKafkaMessageDataError("eservice", eventType);
+  }
+  return fromEServiceV2(eserviceV2);
 };
