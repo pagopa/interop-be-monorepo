@@ -50,6 +50,13 @@ describe("interpolateTemplateRestApiSpec", async () => {
       eserviceInstanceInterfaceData.serverUrls.length
     );
 
+    const inputJson = JSON.parse(file);
+    expect(parsedJson.components.schemas).toBeDefined();
+    expect(Object.keys(parsedJson.components.schemas)).toEqual(
+      Object.keys(inputJson.components.schemas)
+    );
+    expect(jsonString).toContain('"$ref"');
+
     const yamlFileString: string = await readFileContent(
       "test.openapi.3.0.2.yaml"
     );
@@ -88,6 +95,9 @@ describe("interpolateTemplateRestApiSpec", async () => {
     expect(parsedYaml.servers).toHaveLength(
       eserviceInstanceInterfaceData.serverUrls.length
     );
+
+    expect(yamlString).not.toMatch(/&a\d+/);
+    expect(yamlString).not.toMatch(/\*a\d+/);
   });
 
   it("should throw invalidInterfaceFileDetected error for unsupported file type", async () => {
