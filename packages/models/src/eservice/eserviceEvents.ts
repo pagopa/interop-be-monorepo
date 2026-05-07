@@ -63,6 +63,12 @@ import {
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
   EServiceInstanceLabelUpdatedV2,
+  EServiceArchivingScheduledV2,
+  EServiceArchivingCanceledV2,
+  EServiceArchivingCompletedV2,
+  EServiceDescriptorArchivingScheduledV2,
+  EServiceDescriptorArchivingCanceledV2,
+  EServiceDescriptorArchivingCompletedV2,
   MaintenanceEServicePersonalDataFlagResetV2,
 } from "../gen/v2/eservice/events.js";
 
@@ -269,6 +275,24 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceInstanceLabelUpdated" }, ({ data }) =>
       EServiceInstanceLabelUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingScheduled" }, ({ data }) =>
+      EServiceArchivingScheduledV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingCanceled" }, ({ data }) =>
+      EServiceArchivingCanceledV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingCompleted" }, ({ data }) =>
+      EServiceArchivingCompletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorArchivingScheduled" }, ({ data }) =>
+      EServiceDescriptorArchivingScheduledV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorArchivingCanceled" }, ({ data }) =>
+      EServiceDescriptorArchivingCanceledV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptorArchivingCompleted" }, ({ data }) =>
+      EServiceDescriptorArchivingCompletedV2.toBinary(data)
     )
     .with({ type: "MaintenanceEServicePersonalDataFlagReset" }, ({ data }) =>
       MaintenanceEServicePersonalDataFlagResetV2.toBinary(data)
@@ -572,6 +596,36 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceInstanceLabelUpdated"),
     data: protobufDecoder(EServiceInstanceLabelUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingScheduled"),
+    data: protobufDecoder(EServiceArchivingScheduledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingCanceled"),
+    data: protobufDecoder(EServiceArchivingCanceledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingCompleted"),
+    data: protobufDecoder(EServiceArchivingCompletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingScheduled"),
+    data: protobufDecoder(EServiceDescriptorArchivingScheduledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingCanceled"),
+    data: protobufDecoder(EServiceDescriptorArchivingCanceledV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingCompleted"),
+    data: protobufDecoder(EServiceDescriptorArchivingCompletedV2),
   }),
   z.object({
     event_version: z.literal(2),

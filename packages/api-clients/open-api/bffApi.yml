@@ -26172,6 +26172,8 @@ components:
         archivedAt:
           type: string
           format: date-time
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
     Client:
       description: Models Client details
       type: object
@@ -26294,6 +26296,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        archivingReason:
+          type: string
     ProducerEServiceDetails:
       type: object
       additionalProperties: false
@@ -26328,6 +26332,24 @@ components:
           type: boolean
         personalData:
           type: boolean
+    ArchivingSchedule:
+      type: object
+      additionalProperties: false
+      properties:
+        archivableOn:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        scope:
+          $ref: "#/components/schemas/ArchivingScope"      
+    ArchivingScope:
+      type: string
+      description: Archiving Scope
+      enum:
+        - ESERVICE
+        - DESCRIPTOR
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -28438,6 +28460,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceTechnology:
       type: string
       description: EService Descriptor State

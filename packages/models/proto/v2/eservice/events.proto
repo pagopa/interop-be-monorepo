@@ -23,6 +23,18 @@ message EServiceClonedV2 {
   EServiceV2 eservice = 3;
 }
 
+message EServiceArchivingScheduledV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingCanceledV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingCompletedV2 {
+  EServiceV2 eservice = 1;
+}
+
 message EServiceDescriptorAddedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
@@ -102,6 +114,21 @@ message EServiceDescriptorDocumentDeletedV2 {
   string descriptorId = 1;
   string documentId = 2;
   EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorArchivingScheduledV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingCanceledV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingCompletedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
 }
 
 message EServiceRiskAnalysisAddedV2 {

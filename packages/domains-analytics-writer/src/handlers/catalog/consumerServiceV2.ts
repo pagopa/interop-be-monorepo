@@ -81,6 +81,12 @@ export async function handleCatalogMessageV2(
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
             "MaintenanceEServicePersonalDataFlagReset"
           ),
         },

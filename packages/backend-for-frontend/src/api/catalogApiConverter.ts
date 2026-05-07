@@ -139,6 +139,7 @@ export async function toBffCatalogDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    archivingReason: eservice.archivingReason,
   };
 }
 
@@ -470,5 +471,7 @@ export function apiDescriptorStateToDescriptorState(
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .with("ARCHIVING", () => descriptorState.archiving)
+    .with("ARCHIVING_SUSPENDED", () => descriptorState.archivingSuspended)
     .exhaustive();
 }
