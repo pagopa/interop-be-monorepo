@@ -4,11 +4,7 @@ import {
   eserviceTemplateApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import {
-  generateId,
-  PurposeTemplateId,
-  TenantId,
-} from "pagopa-interop-models";
+import { generateId, PurposeTemplateId, TenantId } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
   getMockAuthData,
@@ -85,7 +81,8 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         getPurposeTemplateEServiceTemplates:
           purposeTemplateClient.getPurposeTemplateEServiceTemplates,
         getEServices: catalogProcessClient.getEServices,
-        getEServiceTemplates: eserviceTemplateProcessClient.getEServiceTemplates,
+        getEServiceTemplates:
+          eserviceTemplateProcessClient.getEServiceTemplates,
         getTenant: tenantProcessClient.tenant.getTenant,
       },
     };
@@ -133,21 +130,23 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         results: [templateMid.link],
         totalCount: 1,
       }),
-      getEServices: vi
-        .fn()
-        .mockResolvedValue({
-          results: [concreteOldest.eservice, concreteNewest.eservice],
-        }),
+      getEServices: vi.fn().mockResolvedValue({
+        results: [concreteOldest.eservice, concreteNewest.eservice],
+      }),
       getEServiceTemplates: vi
         .fn()
         .mockResolvedValue({ results: [templateMid.eserviceTemplate] }),
-      getTenant: vi.fn().mockImplementation(({ params: { id } }) =>
-        Promise.resolve(
-          [concreteOldest.tenant, concreteNewest.tenant, templateMid.tenant].find(
-            (t) => t.id === id
+      getTenant: vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(
+            [
+              concreteOldest.tenant,
+              concreteNewest.tenant,
+              templateMid.tenant,
+            ].find((t) => t.id === id)
           )
-        )
-      ),
+        ),
     });
 
     const result = await service.getPurposeTemplateSuggestedEServices({
@@ -196,9 +195,11 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
       getEServices: vi
         .fn()
         .mockResolvedValue({ results: allConcrete.map((f) => f.eservice) }),
-      getTenant: vi.fn().mockImplementation(({ params: { id } }) =>
-        Promise.resolve(allConcrete.find((f) => f.tenant.id === id)?.tenant)
-      ),
+      getTenant: vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(allConcrete.find((f) => f.tenant.id === id)?.tenant)
+        ),
     });
 
     const result = await service.getPurposeTemplateSuggestedEServices({
@@ -226,6 +227,93 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     expect(result.results).toHaveLength(50);
   });
 
+  it("performs multi round-trip on the template upstream until exhausted", async () => {
+    const fullPage = Array.from({ length: 50 }, (_, i) =>
+      buildTemplateFixture(
+        `2026-01-${String((i % 28) + 1).padStart(2, "0")}T00:00:00.000Z`
+      )
+    );
+    const tail = [buildTemplateFixture("2026-05-01T00:00:00.000Z")];
+    const allTemplates = [...fullPage, ...tail];
+
+    const getPurposeTemplateEServiceTemplates = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          results: fullPage.map((f) => f.link),
+          totalCount: 51,
+        })
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({ results: tail.map((f) => f.link), totalCount: 51 })
+      );
+
+    const { service, mocks } = buildService({
+      getPurposeTemplateEServiceTemplates,
+      getEServiceTemplates: vi.fn().mockResolvedValue({
+        results: allTemplates.map((f) => f.eserviceTemplate),
+      }),
+      getTenant: vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(allTemplates.find((f) => f.tenant.id === id)?.tenant)
+        ),
+    });
+
+    const result = await service.getPurposeTemplateSuggestedEServices({
+      purposeTemplateId,
+      publisherIds: [],
+      offset: 0,
+      limit: 50,
+      ctx,
+    });
+
+    expect(mocks.getPurposeTemplateEServiceTemplates).toHaveBeenCalledTimes(2);
+    expect(mocks.getPurposeTemplateEServiceTemplates).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        queries: expect.objectContaining({ offset: 0, limit: 50 }),
+      })
+    );
+    expect(mocks.getPurposeTemplateEServiceTemplates).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        queries: expect.objectContaining({ offset: 50, limit: 50 }),
+      })
+    );
+    expect(result.pagination.totalCount).toBe(51);
+    expect(result.results).toHaveLength(50);
+  });
+
+  it("returns empty results without invoking enrichment when offset is past the merged list size", async () => {
+    const fixtures = [1, 2, 3].map((i) =>
+      buildConcreteFixture(`2026-0${i}-01T00:00:00.000Z`)
+    );
+
+    const { service, mocks } = buildService({
+      getPurposeTemplateEServices: vi.fn().mockResolvedValue({
+        results: fixtures.map((f) => f.link),
+        totalCount: fixtures.length,
+      }),
+    });
+
+    const result = await service.getPurposeTemplateSuggestedEServices({
+      purposeTemplateId,
+      publisherIds: [],
+      offset: 10,
+      limit: 10,
+      ctx,
+    });
+
+    expect(result).toEqual({
+      results: [],
+      pagination: { offset: 10, limit: 10, totalCount: 3 },
+    });
+    expect(mocks.getEServices).toHaveBeenCalledTimes(0);
+    expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(0);
+    expect(mocks.getTenant).toHaveBeenCalledTimes(0);
+  });
+
   it("applies offset/limit on the merged list", async () => {
     const fixtures = [1, 2, 3, 4, 5].map((i) =>
       buildConcreteFixture(`2026-0${i}-01T00:00:00.000Z`)
@@ -239,9 +327,11 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
       getEServices: vi
         .fn()
         .mockResolvedValue({ results: fixtures.map((f) => f.eservice) }),
-      getTenant: vi.fn().mockImplementation(({ params: { id } }) =>
-        Promise.resolve(fixtures.find((f) => f.tenant.id === id)?.tenant)
-      ),
+      getTenant: vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(fixtures.find((f) => f.tenant.id === id)?.tenant)
+        ),
     });
 
     const result = await service.getPurposeTemplateSuggestedEServices({
@@ -476,9 +566,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         results: [concrete.link],
         totalCount: 1,
       }),
-      getEServices: vi
-        .fn()
-        .mockResolvedValue({ results: [concrete.eservice] }),
+      getEServices: vi.fn().mockResolvedValue({ results: [concrete.eservice] }),
       getTenant: vi.fn().mockResolvedValue(decoyTenant),
     });
 

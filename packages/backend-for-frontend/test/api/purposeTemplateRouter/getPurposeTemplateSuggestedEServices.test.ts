@@ -21,14 +21,18 @@ import {
 
 describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () => {
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const concrete1 =
-    getMockBffApiSuggestedEServiceConcrete(mockPurposeTemplateId);
-  const concrete2 =
-    getMockBffApiSuggestedEServiceConcrete(mockPurposeTemplateId);
-  const template1 =
-    getMockBffApiSuggestedEServiceTemplate(mockPurposeTemplateId);
-  const template2 =
-    getMockBffApiSuggestedEServiceTemplate(mockPurposeTemplateId);
+  const concrete1 = getMockBffApiSuggestedEServiceConcrete(
+    mockPurposeTemplateId
+  );
+  const concrete2 = getMockBffApiSuggestedEServiceConcrete(
+    mockPurposeTemplateId
+  );
+  const template1 = getMockBffApiSuggestedEServiceTemplate(
+    mockPurposeTemplateId
+  );
+  const template2 = getMockBffApiSuggestedEServiceTemplate(
+    mockPurposeTemplateId
+  );
 
   const defaultQuery = {
     q: "test",
@@ -66,7 +70,9 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockResponse);
-    expect(res.body.results.map((r: { resourceKind: string }) => r.resourceKind)).toEqual([
+    expect(
+      res.body.results.map((r: { resourceKind: string }) => r.resourceKind)
+    ).toEqual([
       "ESERVICE",
       "ESERVICE_TEMPLATE",
       "ESERVICE",
