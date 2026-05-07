@@ -33,24 +33,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      */
     async getExpiredArchivableDescriptorRefs(): Promise<RefsToBeArchived[]> {
       const queryResult: {
-        eservice: EServiceSQL;
         descriptor: EServiceDescriptorSQL;
         archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
       }[] = await readModelDB
         .select({
-          eservice: eserviceInReadmodelCatalog,
           descriptor: eserviceDescriptorInReadmodelCatalog,
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
         })
         .from(eserviceDescriptorInReadmodelCatalog)
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
         .leftJoin(
           eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           eq(
@@ -126,6 +117,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     async getWrongEservices(
       eserviceIds: EServiceId[]
     ): Promise<WrongEServices> {
+      if (eserviceIds.length === 0) {
+        return [];
+      }
       const queryResult = await readModelDB
         .select({
           eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,

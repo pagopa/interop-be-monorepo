@@ -28,6 +28,7 @@ try {
     refreshableToken,
   });
   await archiverService.archiveDescriptors();
+  await archiverService.archiveEServices();
   process.exit(0);
 } catch (error) {
   loggerInstance.error(
