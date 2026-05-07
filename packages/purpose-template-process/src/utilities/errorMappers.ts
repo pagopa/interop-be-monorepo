@@ -62,6 +62,18 @@ export const getPurposeTemplateEServiceDescriptorErrorMapper = (
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeTemplateEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeTemplateNotFound",
+      "eServiceTemplateVersionPurposeTemplateNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getRiskAnalysisTemplateAnnotationDocumentsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => commonPurposeTemplatesErrorMapper(error);
