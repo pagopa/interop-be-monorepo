@@ -24,7 +24,6 @@ const eventV2TypeMapper = (
       "EServicePersonalDataFlagUpdatedAfterPublication",
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       "EServiceInstanceLabelUpdated",
-      // FIXME these events will be managed with "WORK ITEM 10"
       "EServiceArchivingScheduled",
       "EServiceArchivingCanceled",
       "EServiceArchivingCompleted",
@@ -55,7 +54,6 @@ const eventV2TypeMapper = (
       "EServiceDescriptorAttributesUpdated",
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-      // FIXME these events will be managed with "WORK ITEM 10"
       "EServiceDescriptorArchivingScheduled",
       "EServiceDescriptorArchivingCanceled",
       "EServiceDescriptorArchivingCompleted",
