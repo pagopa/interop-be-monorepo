@@ -12,6 +12,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -87,6 +88,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -129,6 +132,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         )
         .where(

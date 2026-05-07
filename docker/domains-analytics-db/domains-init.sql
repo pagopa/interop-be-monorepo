@@ -28,6 +28,7 @@ CREATE TABLE domains.eservice (
   template_id VARCHAR(36),
   personal_data BOOLEAN,
   instance_label VARCHAR(2048),
+  archiving_reason VARCHAR(2048),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -741,4 +742,15 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   deleted BOOLEAN,
   checksum VARCHAR NOT NULL,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
+  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id) ON DELETE CASCADE,
+  scope VARCHAR(2048) NOT NULL,
+  archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (eservice_id, descriptor_id)
 );

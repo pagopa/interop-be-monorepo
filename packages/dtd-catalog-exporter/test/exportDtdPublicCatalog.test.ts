@@ -98,19 +98,19 @@ describe("exportDtdPublicCatalog", () => {
           {
             group: [
               {
-                description: attribute1Mock.description,
-                name: attribute1Mock.name,
+                name: attribute2Mock.name,
+                description: attribute2Mock.description,
               },
               {
-                description: attribute2Mock.description,
-                name: attribute2Mock.name,
+                name: attribute1Mock.name,
+                description: attribute1Mock.description,
               },
             ],
           },
           {
             single: {
-              description: attribute3Mock.description,
               name: attribute3Mock.name,
+              description: attribute3Mock.description,
             },
           },
         ],
