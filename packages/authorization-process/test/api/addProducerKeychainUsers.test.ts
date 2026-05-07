@@ -68,6 +68,22 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     }
   );
 
+  it("Should return 404 when the requester tenant is not allowed on the producer keychain", async () => {
+    authorizationService.addProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotAllowedOnProducerKeychain(
+          generateId(),
+          mockProducerKeychain.data.id
+        )
+      );
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockProducerKeychain.data.id);
+
+    expect(res.status).toBe(404);
+  });
+
   it.each([
     {
       error: producerKeychainNotFound(mockProducerKeychain.data.id),
