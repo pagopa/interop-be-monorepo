@@ -342,7 +342,13 @@ export function purposeTemplateServiceBuilder(
                 { eserviceIds: [eserviceId] },
                 { params: { id: purposeTemplateId }, headers }
               );
-            return { resourceKind: "ESERVICE", ...result[0] };
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE", ...link };
           }
         )
         .with(
@@ -358,7 +364,13 @@ export function purposeTemplateServiceBuilder(
                 { eserviceTemplateIds: [eserviceTemplateId] },
                 { params: { id: purposeTemplateId }, headers }
               );
-            return { resourceKind: "ESERVICE_TEMPLATE", ...result[0] };
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE_TEMPLATE", ...link };
           }
         )
         .exhaustive();
