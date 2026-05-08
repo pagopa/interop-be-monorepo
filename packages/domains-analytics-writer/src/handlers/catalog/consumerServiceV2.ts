@@ -91,7 +91,8 @@ export async function handleCatalogMessageV2(
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
             "EServiceArchivingCompleted",
-            "MaintenanceEServicePersonalDataFlagReset"
+            "MaintenanceEServicePersonalDataFlagReset",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         (msg) => {

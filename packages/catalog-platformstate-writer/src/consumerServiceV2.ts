@@ -361,7 +361,10 @@ export async function handleMessageV2(
           "EServiceArchivingCanceled",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingCanceled",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingCompleted",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => Promise.resolve()

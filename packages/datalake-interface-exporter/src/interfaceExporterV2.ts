@@ -90,6 +90,7 @@ export async function exportInterfaceV2(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => undefined

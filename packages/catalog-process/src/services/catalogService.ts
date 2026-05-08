@@ -172,6 +172,7 @@ import {
   toCreateEventEServiceDescriptorArchivingCompleted,
   toCreateEventEServiceArchivingCanceled,
   toCreateEventEServiceArchivingCompleted,
+  toCreateEventMaintenanceEServiceDescriptorUnarchived,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2272,6 +2273,48 @@ export function catalogServiceBuilder(
         updatedEservice,
         correlationId
       );
+      await repository.createEvent(event);
+    },
+
+    async unarchiveDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      payload: catalogApi.ForceTargetState,
+      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Unarchiving Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorInRequiredStates(descriptor, [descriptorState.archived]);
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+      const isLatestDescriptor = latestDescriptor.id === descriptor.id;
+
+      const restoredState =
+        payload.forceTargetState === "SUSPENDED"
+          ? descriptorState.suspended
+          : isLatestDescriptor
+            ? descriptorState.published
+            : descriptorState.deprecated;
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        restoredState
+      );
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+      const event = toCreateEventMaintenanceEServiceDescriptorUnarchived(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        newEservice,
+        correlationId
+      );
+
       await repository.createEvent(event);
     },
 

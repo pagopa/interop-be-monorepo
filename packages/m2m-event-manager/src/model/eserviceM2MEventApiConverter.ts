@@ -167,6 +167,10 @@ function toApiEServiceM2MEventType(
       "MaintenanceEServicePersonalDataFlagReset",
       () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
     )
+    .with(
+      "MaintenanceEServiceDescriptorUnarchived",
+      () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
+    )
     .exhaustive();
 }
 

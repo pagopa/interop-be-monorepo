@@ -1323,6 +1323,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/eservices/{eServiceId}/descriptors/{descriptorId}/unarchive:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Unarchive the selected descriptor.
+      operationId: unarchiveDescriptor
+      description: Restores a descriptor from the Archived state to its previous operational state.
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForceTargetState"
+      responses:
+        "204":
+          description: Descriptor successfully restored
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service or Descriptor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4164,6 +4221,15 @@ components:
           maxLength: 250
       required:
         - archivingReason
+    ForceTargetState:
+      type: object
+      additionalProperties: false
+      description: Force Target State
+      properties:
+        forceTargetState:
+          type: string
+          enum:
+            - SUSPENDED
     Attribute:
       type: object
       additionalProperties: false

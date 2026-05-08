@@ -83,6 +83,7 @@ import {
   updateEServiceArchivingStatusErrorMapper,
   cancelEServiceArchivingErrorMapper,
   archiveEServiceErrorMapper,
+  unarchiveDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -877,6 +878,32 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/maintenance/eservices/:eServiceId/descriptors/:descriptorId/unarchive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await catalogService.unarchiveDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            unarchiveDescriptorErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       async (req, res) => {

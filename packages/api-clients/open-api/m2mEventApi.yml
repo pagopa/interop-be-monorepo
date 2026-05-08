@@ -642,6 +642,7 @@ components:
             - ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED
             - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
+            - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
         eventTimestamp:
           type: string
           format: date-time
