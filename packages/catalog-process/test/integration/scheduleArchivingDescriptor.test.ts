@@ -288,7 +288,7 @@ describe("schedule archiving of a descriptor", () => {
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
-  it.skip("should throw operationForbidden if the requester is not the producer", async () => {
+  it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
