@@ -170,13 +170,18 @@ describe("schedule archiving of a descriptor", () => {
 
   it.each([
     {
+      startedAt: new Date("2026-10-20T14:30:15.000Z"),
+      expectedArchivableOn: new Date("2026-11-20T00:00:00.000Z"),
+      testCase: "base case",
+    },
+    {
       startedAt: new Date("2025-12-15T09:15:00Z"),
-      expectedArchivableOn: new Date("2026-01-14T09:15:00Z"),
+      expectedArchivableOn: new Date("2026-01-15T00:00:00Z"),
       testCase: "turn of the year",
     },
     {
       startedAt: new Date("2028-02-10T11:00:00Z"),
-      expectedArchivableOn: new Date("2028-03-11T11:00:00Z"),
+      expectedArchivableOn: new Date("2028-03-12T00:00:00Z"),
       testCase: "leap year",
     },
   ])(
@@ -283,7 +288,7 @@ describe("schedule archiving of a descriptor", () => {
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
-  it.skip("should throw operationForbidden if the requester is not the producer", async () => {
+  it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,

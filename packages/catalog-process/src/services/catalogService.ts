@@ -2152,12 +2152,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
+      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
