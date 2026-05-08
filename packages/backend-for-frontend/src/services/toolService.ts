@@ -51,6 +51,10 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
+import {
+  DPoPValidationSteps,
+  validateDPoPProofForTokenGeneration,
+} from "./dpopValidationService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
@@ -59,9 +63,15 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       clientAssertion: string,
       clientAssertionType: string,
       grantType: string,
+      dpopProofJWS: string | undefined,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.TokenGenerationValidationResult> {
       ctx.logger.info(`Validating token generation for client ${clientId}`);
+
+      const dpopValidationSteps = await validateDPoPProofForTokenGeneration(
+        dpopProofJWS,
+        ctx
+      );
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: clientAssertion,
@@ -83,12 +93,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       if (parametersErrors || clientAssertionErrors) {
-        return handleValidationResults({
-          clientAssertionErrors: [
-            ...(parametersErrors ?? []),
-            ...(clientAssertionErrors ?? []),
-          ],
-        });
+        return handleValidationResults(
+          {
+            clientAssertionErrors: [
+              ...(parametersErrors ?? []),
+              ...(clientAssertionErrors ?? []),
+            ],
+          },
+          undefined,
+          undefined,
+          dpopValidationSteps
+        );
       }
 
       const { data, errors: keyRetrieveErrors } = await retrieveKeyAndEservice(
@@ -97,9 +112,14 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
         ctx
       );
       if (keyRetrieveErrors) {
-        return handleValidationResults({
-          keyRetrieveErrors,
-        });
+        return handleValidationResults(
+          {
+            keyRetrieveErrors,
+          },
+          undefined,
+          undefined,
+          dpopValidationSteps
+        );
       }
 
       const { key, eservice: keyEservice, descriptor: keyDescriptor } = data;
@@ -120,7 +140,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
             clientAssertionSignatureErrors,
           },
           key.clientKind,
-          eservice
+          eservice,
+          dpopValidationSteps
         );
       }
 
@@ -132,11 +153,17 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
             platformStateErrors,
           },
           key.clientKind,
-          eservice
+          eservice,
+          dpopValidationSteps
         );
       }
 
-      return handleValidationResults({}, key.clientKind, eservice);
+      return handleValidationResults(
+        {},
+        key.clientKind,
+        eservice,
+        dpopValidationSteps
+      );
     },
   };
 }
@@ -151,7 +178,8 @@ function handleValidationResults(
     platformStateErrors?: Array<ApiError<string>>;
   },
   clientKind?: authorizationApi.ClientKind,
-  eservice?: bffApi.TokenGenerationValidationEService
+  eservice?: bffApi.TokenGenerationValidationEService,
+  dpopValidationSteps?: DPoPValidationSteps
 ): bffApi.TokenGenerationValidationResult {
   const clientAssertionErrors = errs.clientAssertionErrors ?? [];
   const keyRetrieveErrors = errs.keyRetrieveErrors ?? [];
@@ -189,6 +217,7 @@ function handleValidationResults(
         ),
         failures: apiErrorsToValidationFailures(platformStateErrors),
       },
+      ...(dpopValidationSteps ?? {}),
     },
   };
 }
