@@ -183,8 +183,7 @@ export const descriptorToApiDescriptor = (
 });
 
 export const eServiceToApiEService = (
-  eservice: EService,
-  riskAnalysis: catalogApi.EServiceRiskAnalysis[] = []
+  eservice: EService
 ): catalogApi.EService => ({
   id: eservice.id,
   producerId: eservice.producerId,
@@ -192,7 +191,7 @@ export const eServiceToApiEService = (
   description: eservice.description,
   technology: technologyToApiTechnology(eservice.technology),
   mode: eServiceModeToApiEServiceMode(eservice.mode),
-  riskAnalysis,
+  riskAnalysis: [], // RiskAnalysis objects are now managed in risk-analysis-process service
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
   isSignalHubEnabled: eservice.isSignalHubEnabled,
   isConsumerDelegable: eservice.isConsumerDelegable,

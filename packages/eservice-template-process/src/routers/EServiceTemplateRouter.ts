@@ -9,7 +9,7 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { eserviceTemplateApi, riskAnalysisApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   TenantId,
@@ -28,11 +28,6 @@ import {
   updateEServiceTemplateVersionAttributesErrorMapper,
   createEServiceTemplateVersionErrorMapper,
   getEServiceTemplateErrorMapper,
-  createRiskAnalysisErrorMapper,
-  deleteRiskAnalysisErrorMapper,
-  updateRiskAnalysisErrorMapper,
-  deleteEServiceTemplateVersionErrorMapper,
-  createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
@@ -51,25 +46,6 @@ import {
   documentToApiDocument,
 } from "../model/domain/apiConverter.js";
 import { config } from "../config/config.js";
-
-const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
-  config.riskAnalysisProcessUrl
-);
-
-const toTemplateApiRiskAnalysis = (
-  ra: riskAnalysisApi.RiskAnalysis
-): eserviceTemplateApi.EServiceTemplateRiskAnalysis => ({
-  id: ra.id,
-  name: ra.name,
-  createdAt: ra.createdAt,
-  riskAnalysisForm: {
-    id: ra.riskAnalysisForm.id,
-    version: ra.riskAnalysisForm.version,
-    singleAnswers: ra.riskAnalysisForm.singleAnswers,
-    multiAnswers: ra.riskAnalysisForm.multiAnswers,
-  },
-  tenantKind: (ra.tenantKind ?? "PA") as eserviceTemplateApi.TenantKind,
-});
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -651,125 +627,6 @@ const eserviceTemplatesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDocumentErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post("/templates/:templateId/riskAnalysis", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
-
-        const templateId = req.params.templateId;
-
-        const createdRiskAnalysis =
-          await riskAnalysisProcessClient.createRiskAnalysis(
-            {
-              name: req.body.name,
-              context: "ESERVICE_TEMPLATE",
-              templateId,
-              tenantKind: req.body.tenantKind,
-              riskAnalysisForm: req.body.riskAnalysisForm,
-            },
-            {
-              headers: { "X-Correlation-Id": ctx.correlationId },
-            }
-          );
-
-        const { data: eserviceTemplate, metadata } =
-          await eserviceTemplateService.getEServiceTemplateById(
-            unsafeBrandId(templateId),
-            ctx
-          );
-
-        const riskAnalyses = await riskAnalysisProcessClient.getRiskAnalyses({
-          queries: {
-            context: "ESERVICE_TEMPLATE",
-            templateId,
-            offset: 0,
-            limit: 100,
-          },
-          headers: { "X-Correlation-Id": ctx.correlationId },
-        });
-
-        setMetadataVersionHeader(res, metadata);
-        return res.status(200).send(
-          eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
-            eserviceTemplate: eserviceTemplateToApiEServiceTemplate(
-              eserviceTemplate,
-              riskAnalyses.results.map(toTemplateApiRiskAnalysis)
-            ),
-            createdRiskAnalysisId: createdRiskAnalysis.id,
-          })
-        );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          createRiskAnalysisErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .post(
-      "/templates/:templateId/riskAnalysis/:riskAnalysisId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
-
-          await riskAnalysisProcessClient.updateRiskAnalysis(
-            {
-              name: req.body.name,
-              context: "ESERVICE_TEMPLATE",
-              templateId: req.params.templateId,
-              tenantKind: req.body.tenantKind,
-              riskAnalysisForm: req.body.riskAnalysisForm,
-            },
-            {
-              params: { riskAnalysisId: req.params.riskAnalysisId },
-              headers: { "X-Correlation-Id": ctx.correlationId },
-            }
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateRiskAnalysisErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/templates/:templateId/riskAnalysis/:riskAnalysisId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
-
-          await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
-            params: { riskAnalysisId: req.params.riskAnalysisId },
-            headers: { "X-Correlation-Id": ctx.correlationId },
-          });
-
-          const { data: eserviceTemplate, metadata } =
-            await eserviceTemplateService.getEServiceTemplateById(
-              unsafeBrandId(req.params.templateId),
-              ctx
-            );
-          setMetadataVersionHeader(res, metadata);
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deleteRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -34,6 +34,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
           .number()
           .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
+        RISK_ANALYSIS_PROCESS_URL: z.string(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
@@ -42,6 +43,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
+        riskAnalysisProcessUrl: c.RISK_ANALYSIS_PROCESS_URL,
       }))
   )
   .and(EServiceTemplateS3Config)

@@ -5,6 +5,7 @@ import {
   tenantReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { riskAnalysisApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import { createApp } from "./app.js";
 import { catalogServiceBuilder } from "./services/catalogService.js";
@@ -23,6 +24,10 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   eserviceTemplateReadModelServiceSQL
 );
 
+const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
+  config.riskAnalysisProcessUrl
+);
+
 const catalogService = catalogServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -34,7 +39,8 @@ const catalogService = catalogServiceBuilder(
     useSSL: config.eventStoreDbUseSSL,
   }),
   readModelServiceSQL,
-  initFileManager(config)
+  initFileManager(config),
+  riskAnalysisProcessClient
 );
 
 startServer(await createApp(catalogService), config);

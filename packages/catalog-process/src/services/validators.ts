@@ -7,7 +7,6 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
   validateRiskAnalysis,
@@ -38,18 +37,17 @@ import {
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
   notValidDescriptorState,
-  riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   templateInstanceNotAllowed,
   eServiceNotAnInstance,
+  eserviceInDraftState,
+  eserviceTemplateNameConflict,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
-  eserviceTemplateNameConflict,
-  eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  eServiceUpdateSameDescriptionConflict,
   attributeDailyCallsNotAllowed,
-  eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -239,28 +237,14 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function assertRiskAnalysisIsValidForPublication(
-  eservice: EService,
-  tenantKind: TenantKind
+  eservice: EService
 ): void {
-  if (eservice.riskAnalysis.length === 0) {
+  // RiskAnalysis objects are now managed in risk-analysis-process service
+  // Just check that IDs exist; detailed validation is done in risk-analysis-process
+  if (eservice.riskAnalysisIds.length === 0) {
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
-
-  eservice.riskAnalysis.forEach((riskAnalysis) => {
-    const result = validateRiskAnalysis(
-      riskAnalysisFormToRiskAnalysisFormToValidate(
-        riskAnalysis.riskAnalysisForm
-      ),
-      false,
-      tenantKind,
-      new Date(),
-      eservice.personalData
-    );
-
-    if (result.type === "invalid") {
-      throw riskAnalysisNotValid();
-    }
-  });
+  // Full validation of RiskAnalysis forms is now delegated to risk-analysis-process service
 }
 
 export function assertInterfaceDeletableDescriptorState(

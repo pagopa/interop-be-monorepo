@@ -180,6 +180,7 @@ export const aggregateEServiceTemplate = ({
       riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
+  const riskAnalysisIds = riskAnalysis.map((ra) => ra.id);
   const eserviceTemplate: EServiceTemplate = {
     id: unsafeBrandId(eserviceTemplateSQL.id),
     name: eserviceTemplateSQL.name,
@@ -189,7 +190,7 @@ export const aggregateEServiceTemplate = ({
     description: eserviceTemplateSQL.description,
     technology: Technology.parse(eserviceTemplateSQL.technology),
     versions,
-    riskAnalysis,
+    riskAnalysisIds,
     mode: EServiceMode.parse(eserviceTemplateSQL.mode),
     ...(eserviceTemplateSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }

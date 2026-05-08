@@ -252,7 +252,7 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  riskAnalysis: [],
+  riskAnalysisIds: [],
   mode: "Deliver",
   ...(templateId && { templateId }),
   ...(templateId && { instanceLabel: "instance 001" }),
@@ -1020,7 +1020,7 @@ export const getMockEServiceTemplate = (
   createdAt: new Date(),
   technology: technology.rest,
   versions,
-  riskAnalysis: [],
+  riskAnalysisIds: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
 });

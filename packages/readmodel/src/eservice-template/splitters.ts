@@ -5,10 +5,8 @@ import {
   Document,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
-  riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
 import {
@@ -31,33 +29,10 @@ export const splitEServiceTemplateIntoObjectsSQL = (
     metadataVersion
   );
 
-  const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
-    eserviceTemplate.riskAnalysis.reduce(
-      (
-        acc: {
-          riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
-          riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
-        },
-        currentRiskAnalysis: EServiceTemplateRiskAnalysis
-      ) => {
-        const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
-          splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
-            currentRiskAnalysis,
-            eserviceTemplate.id,
-            metadataVersion
-          );
-        return {
-          riskAnalysesSQL: acc.riskAnalysesSQL.concat(riskAnalysisSQL),
-          riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
-            riskAnalysisAnswersSQL
-          ),
-        };
-      },
-      {
-        riskAnalysesSQL: [],
-        riskAnalysisAnswersSQL: [],
-      }
-    );
+  // RiskAnalysis objects are now managed in risk-analysis-process service
+  // We only store IDs, not full objects
+  const riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[] = [];
+  const riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] = [];
 
   const { versionsSQL, attributesSQL, interfacesSQL, documentsSQL } =
     eserviceTemplate.versions.reduce(
@@ -215,59 +190,6 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
     attributesSQL,
     interfaceSQL,
     documentsSQL,
-  };
-};
-
-const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: EServiceTemplateRiskAnalysis,
-  eserviceTemplateId: EServiceTemplateId,
-  metadataVersion: number
-): {
-  riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL;
-  riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
-} => {
-  const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
-    id: riskAnalysis.id,
-    metadataVersion,
-    eserviceTemplateId,
-    name: riskAnalysis.name,
-    createdAt: dateToString(riskAnalysis.createdAt),
-    riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
-    riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    tenantKind: riskAnalysis.tenantKind,
-  };
-
-  const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =
-    riskAnalysis.riskAnalysisForm.singleAnswers.map(
-      (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
-        id: a.id,
-        eserviceTemplateId,
-        metadataVersion,
-        key: a.key,
-        value: a.value ? [a.value] : [],
-        riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
-        kind: riskAnalysisAnswerKind.single,
-      })
-    );
-  const riskAnalysisMultiAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =
-    riskAnalysis.riskAnalysisForm.multiAnswers.map(
-      (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
-        id: a.id,
-        eserviceTemplateId,
-        metadataVersion,
-        key: a.key,
-        value: a.values,
-        riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
-        kind: riskAnalysisAnswerKind.multi,
-      })
-    );
-
-  return {
-    riskAnalysisSQL,
-    riskAnalysisAnswersSQL: [
-      ...riskAnalysisSingleAnswers,
-      ...riskAnalysisMultiAnswers,
-    ],
   };
 };
 

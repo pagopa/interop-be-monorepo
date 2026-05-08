@@ -1,6 +1,6 @@
 /* eslint-disable max-params */
 import { randomUUID } from "crypto";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, riskAnalysisApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   CreateEvent,
@@ -10,8 +10,8 @@ import {
   InternalAuthData,
   Logger,
   M2MAuthData,
-  riskAnalysisValidatedFormToNewRiskAnalysis,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  // riskAnalysisValidatedFormToNewRiskAnalysis,
+  // riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
   verifyAndCreateDocument,
   WithLogger,
@@ -52,12 +52,10 @@ import {
   generateId,
   ListResult,
   operationForbidden,
-  RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
   unsafeBrandId,
-  tenantKind,
   WithMetadata,
   AttributeKind,
   attributeKind,
@@ -84,7 +82,7 @@ import {
   eserviceInterfaceDataNotValid,
   eServiceNotAnInstance,
   eServiceNotFound,
-  eServiceRiskAnalysisNotFound,
+  // eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
@@ -93,7 +91,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptorState,
   originNotCompliant,
-  riskAnalysisDuplicated,
+  // riskAnalysisDuplicated,
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
@@ -172,7 +170,7 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  validateRiskAnalysisSchemaOrThrow,
+  // validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
@@ -250,20 +248,20 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveRiskAnalysis = (
-  riskAnalysisId: RiskAnalysisId,
-  eservice: WithMetadata<EService>
-): RiskAnalysis => {
-  const riskAnalysis = eservice.data.riskAnalysis.find(
-    (ra: RiskAnalysis) => ra.id === riskAnalysisId
-  );
+// const retrieveRiskAnalysis = (
+//   riskAnalysisId: RiskAnalysisId,
+//   eservice: WithMetadata<EService>
+// ): RiskAnalysis => {
+//   const riskAnalysis = eservice.data.riskAnalysis.find(
+//     (ra: RiskAnalysis) => ra.id === riskAnalysisId
+//   );
 
-  if (riskAnalysis === undefined) {
-    throw eServiceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
-  }
+//   if (riskAnalysis === undefined) {
+//     throw eServiceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+//   }
 
-  return riskAnalysis;
-};
+//   return riskAnalysis;
+// };
 
 const assertRequesterCanPublish = (
   producerDelegation: Delegation | undefined,
@@ -414,19 +412,19 @@ const replaceDescriptor = (
   };
 };
 
-const replaceRiskAnalysis = (
-  eservice: EService,
-  newRiskAnalysis: RiskAnalysis
-): EService => {
-  const updatedRiskAnalysis = eservice.riskAnalysis.map((ra: RiskAnalysis) =>
-    ra.id === newRiskAnalysis.id ? newRiskAnalysis : ra
-  );
+// const replaceRiskAnalysis = (
+//   eservice: EService,
+//   newRiskAnalysis: RiskAnalysis
+// ): EService => {
+//   const updatedRiskAnalysis = eservice.riskAnalysis.map((ra: RiskAnalysis) =>
+//     ra.id === newRiskAnalysis.id ? newRiskAnalysis : ra
+//   );
 
-  return {
-    ...eservice,
-    riskAnalysis: updatedRiskAnalysis,
-  };
-};
+//   return {
+//     ...eservice,
+//     riskAnalysis: updatedRiskAnalysis,
+//   };
+// };
 
 async function parseAndCheckAttributesOfKind(
   attributesSeedForKind: catalogApi.AttributeSeed[][],
@@ -510,7 +508,7 @@ async function innerCreateEService(
           id: EServiceTemplateId;
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
-          riskAnalysis: RiskAnalysis[] | undefined;
+          riskAnalysisIds: RiskAnalysisId[] | undefined;
         }
       | undefined;
     instanceLabel?: string | undefined;
@@ -551,7 +549,7 @@ async function innerCreateEService(
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
-    riskAnalysis: template?.riskAnalysis ?? [],
+    riskAnalysisIds: template?.riskAnalysisIds ?? [],
     isSignalHubEnabled: seed.isSignalHubEnabled,
     isConsumerDelegable: seed.isConsumerDelegable,
     isClientAccessDelegable: match(seed.isConsumerDelegable)
@@ -770,7 +768,8 @@ function createNextDescriptor(
 export function catalogServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelServiceSQL,
-  fileManager: FileManager
+  fileManager: FileManager,
+  riskAnalysisProcessClient: riskAnalysisApi.RiskAnalysisProcessClient
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
@@ -1688,7 +1687,7 @@ export function catalogServiceBuilder(
           readModelService
         );
         assertTenantKindExists(tenant);
-        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+        assertRiskAnalysisIsValidForPublication(eservice.data);
       }
 
       if (descriptor.audience.length === 0) {
@@ -2013,7 +2012,7 @@ export function catalogServiceBuilder(
         technology: eservice.data.technology,
         attributes: eservice.data.attributes,
         createdAt: new Date(),
-        riskAnalysis: eservice.data.riskAnalysis,
+        riskAnalysisIds: eservice.data.riskAnalysisIds,
         mode: eservice.data.mode,
         descriptors: [
           {
@@ -2302,40 +2301,30 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
-        (ra: RiskAnalysis) =>
-          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
-      );
-
-      if (isDuplicateRiskAnalysis) {
-        throw riskAnalysisDuplicated(
-          eserviceRiskAnalysisSeed.name,
-          eservice.data.id
-        );
-      }
-
-      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind,
-        new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
-        eservice.data.personalData
-      );
-
-      const newRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name
+      // Delegate to risk-analysis-process
+      const createdRiskAnalysis =
+        await riskAnalysisProcessClient.createRiskAnalysis(
+          {
+            name: eserviceRiskAnalysisSeed.name,
+            riskAnalysisForm: eserviceRiskAnalysisSeed.riskAnalysisForm,
+            context: "ESERVICE",
+            eserviceId: eserviceId,
+          },
+          { headers: { "X-Correlation-Id": correlationId } }
         );
 
       const newEservice: EService = {
         ...eservice.data,
-        riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
+        riskAnalysisIds: [
+          ...eservice.data.riskAnalysisIds,
+          unsafeBrandId<RiskAnalysisId>(createdRiskAnalysis.id),
+        ],
       };
 
       const event = toCreateEventEServiceRiskAnalysisAdded(
         eservice.data.id,
         eservice.metadata.version,
-        newRiskAnalysis.id,
+        unsafeBrandId<RiskAnalysisId>(createdRiskAnalysis.id),
         newEservice,
         correlationId
       );
@@ -2345,14 +2334,16 @@ export function catalogServiceBuilder(
       return {
         data: {
           eservice: newEservice,
-          createdRiskAnalysisId: newRiskAnalysis.id,
+          createdRiskAnalysisId: unsafeBrandId<RiskAnalysisId>(
+            createdRiskAnalysis.id
+          ),
         },
         metadata: { version: createdEvent.newVersion },
       };
     },
     async updateRiskAnalysis(
       eserviceId: EServiceId,
-      riskAnalysisId: RiskAnalysis["id"],
+      riskAnalysisId: RiskAnalysisId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
@@ -2376,55 +2367,33 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
-      const tenant = await retrieveTenant(
-        eservice.data.producerId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
-      const riskAnalysisToUpdate = retrieveRiskAnalysis(
-        riskAnalysisId,
-        eservice
-      );
-
-      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
-        (ra: RiskAnalysis) =>
-          ra.id !== riskAnalysisId &&
-          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
-      );
-
-      if (isDuplicateRiskAnalysis) {
-        throw riskAnalysisDuplicated(
-          eserviceRiskAnalysisSeed.name,
-          eservice.data.id
+      // Verify the risk analysis exists and is associated with this eservice
+      if (!eservice.data.riskAnalysisIds.includes(riskAnalysisId)) {
+        throw Error(
+          `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`
         );
       }
 
-      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenant.kind,
-        new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
-        eservice.data.personalData
+      // Delegate to risk-analysis-process
+      await riskAnalysisProcessClient.updateRiskAnalysis(
+        {
+          name: eserviceRiskAnalysisSeed.name,
+          riskAnalysisForm: eserviceRiskAnalysisSeed.riskAnalysisForm,
+          context: "ESERVICE",
+          eserviceId: eserviceId,
+        },
+        {
+          params: { riskAnalysisId },
+          headers: { "X-Correlation-Id": correlationId },
+        }
       );
 
-      const updatedRiskAnalysis: RiskAnalysis = {
-        ...riskAnalysisToUpdate,
-        name: eserviceRiskAnalysisSeed.name,
-        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
-        ),
-      };
-
-      const newEservice = replaceRiskAnalysis(
-        eservice.data,
-        updatedRiskAnalysis
-      );
-
+      // Create event to track the update in catalog-process
       const event = toCreateEventEServiceRiskAnalysisUpdated(
         eservice.data.id,
         eservice.metadata.version,
-        updatedRiskAnalysis.id,
-        newEservice,
+        riskAnalysisId,
+        eservice.data,
         correlationId
       );
 
@@ -2459,12 +2428,23 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
-      retrieveRiskAnalysis(riskAnalysisId, eservice);
+      // Verify the risk analysis exists and is associated with this eservice
+      if (!eservice.data.riskAnalysisIds.includes(riskAnalysisId)) {
+        throw Error(
+          `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`
+        );
+      }
+
+      // Delegate to risk-analysis-process
+      await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
+        params: { riskAnalysisId },
+        headers: { "X-Correlation-Id": correlationId },
+      });
 
       const eserviceWithRiskAnalysisDeleted: EService = {
         ...eservice.data,
-        riskAnalysis: eservice.data.riskAnalysis.filter(
-          (r) => r.id !== riskAnalysisId
+        riskAnalysisIds: eservice.data.riskAnalysisIds.filter(
+          (id) => id !== riskAnalysisId
         ),
       };
 
@@ -3390,7 +3370,7 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
-      const riskAnalysis = await match(template)
+      const riskAnalysisIds = await match(template)
         .with({ mode: eserviceMode.receive }, (template) =>
           extractEServiceRiskAnalysisFromTemplate(
             template,
@@ -3450,7 +3430,7 @@ export function catalogServiceBuilder(
             id: template.id,
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
-            riskAnalysis,
+            riskAnalysisIds,
           },
           instanceLabel: parsedInstanceLabel,
         },
@@ -4255,41 +4235,18 @@ async function extractEServiceRiskAnalysisFromTemplate(
   template: EServiceTemplate & { mode: typeof eserviceMode.receive },
   requester: TenantId,
   readModelService: ReadModelServiceSQL
-): Promise<RiskAnalysis[]> {
+): Promise<RiskAnalysisId[]> {
+  // RiskAnalysis objects are now managed in risk-analysis-process service
+  // We only have IDs, not the full objects
   const tenant = await retrieveTenant(requester, readModelService);
 
   assertTenantKindExists(tenant);
 
-  const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
-    .filter((r) =>
-      match(tenant.kind)
-        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
-        .with(
-          tenantKind.GSP,
-          tenantKind.PRIVATE,
-          tenantKind.SCP,
-          () =>
-            r.tenantKind === tenantKind.GSP ||
-            r.tenantKind === tenantKind.PRIVATE ||
-            r.tenantKind === tenantKind.SCP
-          /**
-           * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
-           * This may change in the future.
-           */
-        )
-        .exhaustive()
-    )
-    .map(
-      (r) =>
-        ({
-          id: r.id,
-          createdAt: r.createdAt,
-          name: r.name,
-          riskAnalysisForm: r.riskAnalysisForm,
-        }) satisfies RiskAnalysis
-    );
+  // Return IDs since RA details are now in risk-analysis-process service
+  // Filtering by tenant kind would need to be done in risk-analysis-process
+  const riskAnalysisIds: RiskAnalysisId[] = template.riskAnalysisIds;
 
-  if (riskAnalysis.length === 0) {
+  if (riskAnalysisIds.length === 0) {
     throw templateMissingRequiredRiskAnalysis(
       template.id,
       tenant.id,
@@ -4297,7 +4254,7 @@ async function extractEServiceRiskAnalysisFromTemplate(
     );
   }
 
-  return riskAnalysis;
+  return riskAnalysisIds;
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -4385,7 +4342,7 @@ async function updateDraftEService(
       eservice.data.personalData != null &&
       typeAndSeed.seed.personalData !== eservice.data.personalData)
       ? []
-      : eservice.data.riskAnalysis;
+      : eservice.data.riskAnalysisIds;
 
   const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
@@ -4429,7 +4386,7 @@ async function updateDraftEService(
     name: name ?? eservice.data.name,
     technology: updatedTechnology,
     mode: updatedMode,
-    riskAnalysis: checkedRiskAnalysis,
+    riskAnalysisIds: checkedRiskAnalysis,
     descriptors: interfaceHasToBeDeleted
       ? eservice.data.descriptors.map((d) => ({
           ...d,

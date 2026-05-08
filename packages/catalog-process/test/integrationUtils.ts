@@ -11,6 +11,7 @@ import {
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { riskAnalysisApi } from "pagopa-interop-api-clients";
 import {
   EService,
   EServiceEvent,
@@ -59,10 +60,16 @@ export const readModelService = readModelServiceBuilderSQL(
   eserviceTemplateReadModelServiceSQL
 );
 
+// Create a mock risk analysis process client for tests
+export const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
+  "http://localhost:3001" // Mock URL for tests
+);
+
 export const catalogService = catalogServiceBuilder(
   postgresDB,
   readModelService,
-  fileManager
+  fileManager,
+  riskAnalysisProcessClient
 );
 const writeEServiceInEventstore = async (eservice: EService): Promise<void> => {
   const eserviceEvent: EServiceEvent = {

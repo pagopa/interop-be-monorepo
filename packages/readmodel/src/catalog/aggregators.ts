@@ -258,6 +258,7 @@ export const aggregateEservice = ({
       riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
+  const riskAnalysisIds = riskAnalysis.map((ra) => ra.id);
 
   const eservice: EService = {
     id: unsafeBrandId(eserviceSQL.id),
@@ -267,7 +268,7 @@ export const aggregateEservice = ({
     description: eserviceSQL.description,
     technology: Technology.parse(eserviceSQL.technology),
     descriptors,
-    riskAnalysis,
+    riskAnalysisIds,
     mode: EServiceMode.parse(eserviceSQL.mode),
     ...(eserviceSQL.isClientAccessDelegable !== null
       ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }

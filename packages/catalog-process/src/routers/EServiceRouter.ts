@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { catalogApi, riskAnalysisApi } from "pagopa-interop-api-clients";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -39,11 +39,9 @@ import {
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
-  createRiskAnalysisErrorMapper,
   createTemplateInstanceDescriptorDocumentErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
-  deleteRiskAnalysisErrorMapper,
   deleteTemplateInstanceDescriptorDocumentErrorMapper,
   documentCreateErrorMapper,
   documentDeleteErrorMapper,
@@ -60,7 +58,6 @@ import {
   updateEServiceErrorMapper,
   updateEServiceFlagsErrorMapper,
   updateEServiceNameErrorMapper,
-  updateRiskAnalysisErrorMapper,
   updateTemplateInstanceDescriptionErrorMapper,
   updateTemplateInstanceDescriptorAttributesErrorMapper,
   updateTemplateInstanceDescriptorDocumentErrorMapper,
@@ -80,25 +77,6 @@ import {
   maintenanceResetEServicePersonalDataFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
-import { config } from "../config/config.js";
-
-const riskAnalysisProcessClient = riskAnalysisApi.createProcessApiClient(
-  config.riskAnalysisProcessUrl
-);
-
-const toCatalogApiRiskAnalysis = (
-  riskAnalysis: riskAnalysisApi.RiskAnalysis
-): catalogApi.EServiceRiskAnalysis => ({
-  id: riskAnalysis.id,
-  name: riskAnalysis.name,
-  createdAt: riskAnalysis.createdAt,
-  riskAnalysisForm: {
-    id: riskAnalysis.riskAnalysisForm.id,
-    version: riskAnalysis.riskAnalysisForm.version,
-    singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
-    multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
-  },
-});
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -882,64 +860,6 @@ const eservicesRouter = (
         }
       }
     )
-    .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
-
-        const eServiceId = req.params.eServiceId;
-
-        const createdRiskAnalysis = await riskAnalysisProcessClient.createRiskAnalysis(
-          {
-            name: req.body.name,
-            context: "ESERVICE",
-            eserviceId: eServiceId,
-            riskAnalysisForm: req.body.riskAnalysisForm,
-          },
-          {
-            headers: {
-              "X-Correlation-Id": ctx.correlationId,
-            },
-          }
-        );
-
-        const { data: eservice, metadata } = await catalogService.getEServiceById(
-          unsafeBrandId(eServiceId),
-          ctx
-        );
-
-        const riskAnalyses = await riskAnalysisProcessClient.getRiskAnalyses({
-          queries: {
-            context: "ESERVICE",
-            eserviceId,
-            offset: 0,
-            limit: 100,
-          },
-          headers: {
-            "X-Correlation-Id": ctx.correlationId,
-          },
-        });
-
-        setMetadataVersionHeader(res, metadata);
-        return res.status(200).send(
-          catalogApi.CreatedEServiceRiskAnalysis.parse({
-            eservice: eServiceToApiEService(
-              eservice,
-              riskAnalyses.results.map(toCatalogApiRiskAnalysis)
-            ),
-            createdRiskAnalysisId: createdRiskAnalysis.id,
-          })
-        );
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          createRiskAnalysisErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
@@ -964,41 +884,6 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateAgreementApprovalPolicyErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
-
-          await riskAnalysisProcessClient.updateRiskAnalysis(
-            {
-              name: req.body.name,
-              context: "ESERVICE",
-              eserviceId: req.params.eServiceId,
-              riskAnalysisForm: req.body.riskAnalysisForm,
-            },
-            {
-              params: {
-                riskAnalysisId: req.params.riskAnalysisId,
-              },
-              headers: {
-                "X-Correlation-Id": ctx.correlationId,
-              },
-            }
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -1116,40 +1001,6 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete(
-      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
-
-          await riskAnalysisProcessClient.deleteRiskAnalysis(undefined, {
-            params: {
-              riskAnalysisId: req.params.riskAnalysisId,
-            },
-            headers: {
-              "X-Correlation-Id": ctx.correlationId,
-            },
-          });
-
-          const { metadata } = await catalogService.getEServiceById(
-            unsafeBrandId(req.params.eServiceId),
-            ctx
-          );
-
-          setMetadataVersionHeader(res, metadata);
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deleteRiskAnalysisErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/approve",
       async (req, res) => {

@@ -31,33 +31,10 @@ export const splitEserviceIntoObjectsSQL = (
 ): EServiceItemsSQL => {
   const eserviceSQL = eserviceToEserviceSQL(eservice, version);
 
-  const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
-    eservice.riskAnalysis.reduce(
-      (
-        acc: {
-          riskAnalysesSQL: EServiceRiskAnalysisSQL[];
-          riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
-        },
-        currentRiskAnalysis: RiskAnalysis
-      ) => {
-        const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
-          splitRiskAnalysisIntoObjectsSQL(
-            currentRiskAnalysis,
-            eservice.id,
-            version
-          );
-        return {
-          riskAnalysesSQL: acc.riskAnalysesSQL.concat(riskAnalysisSQL),
-          riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
-            riskAnalysisAnswersSQL
-          ),
-        };
-      },
-      {
-        riskAnalysesSQL: [],
-        riskAnalysisAnswersSQL: [],
-      }
-    );
+  // RiskAnalysis objects are now managed in risk-analysis-process service
+  // We only store IDs, not full objects
+  const riskAnalysesSQL: EServiceRiskAnalysisSQL[] = [];
+  const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
 
   const {
     descriptorsSQL,

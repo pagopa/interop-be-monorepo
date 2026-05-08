@@ -112,5 +112,5 @@ export const toEServiceV1 = (eservice: EService): EServiceV1 => ({
   descriptors: eservice.descriptors.map(toDescriptorV1),
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV1(eservice.mode),
-  riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV1),
+  riskAnalysis: [], // V1 format doesn't have access to full RA objects, only IDs
 });
