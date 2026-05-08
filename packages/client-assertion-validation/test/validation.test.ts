@@ -1339,6 +1339,24 @@ describe("validation test", async () => {
       expect(data!.payload.entityNumber).toBe(0);
     });
 
+    it("invalidEntityNumberClaimFormat - non-integer", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: 1.5,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidEntityNumberClaimFormat("1.5"));
+    });
+
     it("invalidEntityNumberClaimFormat - negative", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {

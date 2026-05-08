@@ -18,6 +18,7 @@ import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
 import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
 import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEserviceAdded.js";
 import { handleProducerKeychainKeyAdded } from "./handleProducerKeychainKeyAdded.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
 
 export async function handleAuthorizationEvent(
   params: HandlerParams<typeof AuthorizationEvent>
@@ -136,6 +137,18 @@ export async function handleAuthorizationEvent(
       })
     )
     .with(
+      { type: "ProducerKeychainEServiceRemoved" },
+      ({ data: { eserviceId, producerKeychain } }) =>
+        handleAsyncEserviceWithoutKeychain({
+          eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+          producerKeychainV2Msg: producerKeychain,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "ClientAdded",
@@ -146,8 +159,7 @@ export async function handleAuthorizationEvent(
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
-          "ProducerKeychainUserAdded",
-          "ProducerKeychainEServiceRemoved"
+          "ProducerKeychainUserAdded"
         ),
       },
       () => {

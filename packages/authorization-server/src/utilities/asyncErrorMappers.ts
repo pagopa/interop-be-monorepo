@@ -20,10 +20,14 @@ export const asyncAuthorizationServerErrorMapper = (
       "asyncScopeNotYetImplemented",
       "asyncRequestValidationFailed",
       "asyncClientAssertionClaimsValidationFailed",
-      "urlCallbackNotProvided",
-      "purposeIdNotProvided",
       "asyncExchangeNotEnabled",
+      "interactionNotFound",
+      "interactionStateNotAllowed",
+      "producerKeychainEntryNotFound",
       "catalogEntryNotFound",
+      "asyncExchangeResponseTimeExceeded",
+      "entityNumberExceedsMaxResultSet",
+      "tokenGenerationStatesEntriesByPurposeIdNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

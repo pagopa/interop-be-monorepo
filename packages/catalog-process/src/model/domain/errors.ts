@@ -61,16 +61,17 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
-  attributeDailyCallsNotAllowed: "0047",
-  certifiedAttributeGroupNotFoundInSeed: "0048",
-  eServiceAsyncExchangeNotEnabled: "0049",
-  descriptorAsyncExchangeNotConfigured: "0050",
-  missingAsyncExchangeProperties: "0051",
-  asyncExchangeBulkNotAllowedForSoap: "0052",
-  asyncExchangeNotAllowedForReceiveMode: "0053",
-  missingAsyncExchangeCallbackInterface: "0054",
-  templateVersionMissingAsyncExchangeProperties: "0055",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0056",
+  eserviceInDraftState: "0047",
+  attributeDailyCallsNotAllowed: "0048",
+  certifiedAttributeGroupNotFoundInSeed: "0049",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0050",
+  eServiceAsyncExchangeNotEnabled: "0051",
+  descriptorAsyncExchangeNotConfigured: "0052",
+  missingAsyncExchangeProperties: "0053",
+  asyncExchangeBulkNotAllowedForSoap: "0054",
+  asyncExchangeNotAllowedForReceiveMode: "0055",
+  missingAsyncExchangeCallbackInterface: "0056",
+  templateVersionMissingAsyncExchangeProperties: "0057",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -201,7 +202,7 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
 
 export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    detail: `dailyCallsPerConsumer can't be greater than or equal to dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
   });
@@ -222,6 +223,16 @@ export function eserviceNotInDraftState(
     detail: `EService ${eserviceId} is not in draft state`,
     code: "eserviceNotInDraftState",
     title: "EService is not in draft state",
+  });
+}
+
+export function eserviceInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in draft state`,
+    code: "eserviceInDraftState",
+    title: "EService is in draft state",
   });
 }
 

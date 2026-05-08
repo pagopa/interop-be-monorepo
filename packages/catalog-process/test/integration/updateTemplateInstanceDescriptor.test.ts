@@ -8,6 +8,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -18,6 +19,7 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  attributeKind,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -27,10 +29,13 @@ import {
   notValidDescriptorState,
   inconsistentDailyCalls,
   eServiceNotAnInstance,
+  templateInstanceNotAllowed,
+  attributeDailyCallsNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
+  addOneAttribute,
   catalogService,
   readLastEserviceEvent,
   addOneDelegation,
@@ -96,8 +101,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 
@@ -162,8 +173,14 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorQuotasUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 
@@ -359,5 +376,459 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
+  });
+
+  it("should update dailyCallsPerConsumer on certified attributes of a published template instance descriptor", async () => {
+    const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
+    const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
+
+    await addOneAttribute(mockCertifiedAttribute1);
+    await addOneAttribute(mockCertifiedAttribute2);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+            {
+              id: mockCertifiedAttribute2.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const attributesSeed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 500,
+          },
+          {
+            id: mockCertifiedAttribute2.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 300,
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: attributesSeed,
+      };
+
+    const returnedEService =
+      await catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorQuotasUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorQuotasUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const updatedDescriptor = writtenPayload.eservice?.descriptors[0];
+    const certifiedGroup = updatedDescriptor?.attributes?.certified[0]?.values;
+
+    const attr1 = certifiedGroup?.find(
+      (attr) => attr.id === mockCertifiedAttribute1.id
+    );
+    expect(attr1?.dailyCallsPerConsumer).toBe(500);
+
+    const attr2 = certifiedGroup?.find(
+      (attr) => attr.id === mockCertifiedAttribute2.id
+    );
+    expect(attr2?.dailyCallsPerConsumer).toBe(300);
+
+    expect(returnedEService.descriptors[0].attributes.certified[0]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: mockCertifiedAttribute1.id,
+          dailyCallsPerConsumer: 500,
+        }),
+        expect.objectContaining({
+          id: mockCertifiedAttribute2.id,
+          dailyCallsPerConsumer: 300,
+        }),
+      ])
+    );
+  });
+
+  it("should clear existing certified attribute dailyCallsPerConsumer when seed.attributes omits them", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedAttribute.id,
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+    const returnedEService =
+      await catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorQuotasUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(returnedEService).toEqual(expectedEService);
+  });
+
+  it("should throw templateInstanceNotAllowed when seed.attributes changes attribute structure", async () => {
+    const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
+    const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
+
+    await addOneAttribute(mockCertifiedAttribute1);
+    await addOneAttribute(mockCertifiedAttribute2);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const seedWithExtraAttribute: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+          },
+          {
+            id: mockCertifiedAttribute2.id,
+            explicitAttributeVerification: false,
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: seedWithExtraAttribute,
+      };
+
+    expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, mockTemplate.id)
+    );
+  });
+
+  it("should throw inconsistentDailyCalls when attribute dailyCallsPerConsumer exceeds dailyCallsTotal", async () => {
+    const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
+
+    await addOneAttribute(mockCertifiedAttribute1);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const seedWithExcessiveDailyCalls: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 2000,
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: seedWithExcessiveDailyCalls,
+      };
+
+    expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should throw attributeDailyCallsNotAllowed when dailyCallsPerConsumer is set on a declared attribute", async () => {
+    const mockDeclaredAttribute = getMockAttribute(attributeKind.declared);
+
+    await addOneAttribute(mockDeclaredAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const seedWithDailyCallsOnDeclared: catalogApi.AttributesSeed = {
+      certified: [],
+      declared: [
+        [
+          {
+            id: mockDeclaredAttribute.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 100,
+          },
+        ],
+      ],
+      verified: [],
+    };
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: seedWithDailyCallsOnDeclared,
+      };
+
+    expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDailyCallsNotAllowed(mockDeclaredAttribute.id)
+    );
+  });
+
+  it("should throw inconsistentDailyCalls when lowering dailyCallsTotal below existing attribute dailyCallsPerConsumer without providing attributes", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 500,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 200,
+        dailyCallsTotal: 300,
+        // No attributes field — existing attributes must still be validated
+      };
+
+    await expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
   });
 });

@@ -40,6 +40,7 @@ export function toEserviceCatalogProcessQueryParams(
   return {
     ...queryParams,
     eservicesIds: [],
+    consumersIds: [],
     name: queryParams.q,
     templatesIds: [],
   };

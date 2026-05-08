@@ -1,4 +1,8 @@
-import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  delegationApi,
+  m2mGatewayApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
@@ -12,7 +16,6 @@ import {
   toM2MGatewayApiConsumerDelegation,
   toM2MGatewayApiProducerDelegation,
 } from "../api/delegationApiConverter.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
 

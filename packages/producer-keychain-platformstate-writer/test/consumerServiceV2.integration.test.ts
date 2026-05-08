@@ -22,6 +22,7 @@ import {
   ProducerKeychainId,
   ProducerKeychainKeyAddedV2,
   ProducerKeychainKeyDeletedV2,
+  TenantId,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import {
@@ -185,6 +186,7 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     await writeProducerKeychainPlatformStateEntry({
       PK: removedPk,
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       kid: removedKid,
       eServiceId,
       publicKey: base64Key,
@@ -238,6 +240,7 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     await writeProducerKeychainPlatformStateEntry({
       PK: removedPk,
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       kid: keyEntry.kid,
       eServiceId: removedEServiceId,
       publicKey: base64Key,
@@ -290,6 +293,7 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     await writeProducerKeychainPlatformStateEntry({
       PK: pk,
       producerKeychainId,
+      producerId: generateId<TenantId>(),
       kid: keyEntry.kid,
       eServiceId,
       publicKey: base64Key,

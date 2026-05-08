@@ -110,7 +110,8 @@ export const handleCatalogMessageV2 = async (
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         (event) => {
