@@ -61,6 +61,8 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -88,7 +90,6 @@ import {
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
-  eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
   notValidDescriptorState,
@@ -151,6 +152,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventEServiceDescriptorArchivingScheduled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
@@ -187,8 +189,10 @@ import {
   assertIsNotDraftEservice,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertDescriptorArchivable,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -2129,6 +2133,49 @@ export function catalogServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
+    async scheduleEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const updatedDescriptor = await processDescriptorArchiving(
+        descriptor,
+        newState
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceDescriptorArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        descriptorId,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3536,10 +3583,6 @@ export function catalogServiceBuilder(
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
-      if (!latestDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
-
       const templateVersion = template.versions.find(
         (v) => v.id === latestDescriptor.templateVersionRef?.id
       );
@@ -3776,6 +3819,19 @@ export function catalogServiceBuilder(
       );
     },
   };
+}
+
+async function processDescriptorArchiving(
+  descriptor: Descriptor,
+  newState: DescriptorState,
+  scope: ArchivingScope = archivingScope.descriptor
+): Promise<Descriptor> {
+  const archivingSchedule = {
+    ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
+    scope,
+  };
+
+  return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
 }
 
 async function createOpenApiInterfaceByTemplate(

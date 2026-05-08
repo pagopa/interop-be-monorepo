@@ -20777,6 +20777,8 @@ components:
           format: uuid
         personalData:
           type: boolean
+        archivingReason:
+          type: string
       required:
         - id
         - producerId
@@ -20864,6 +20866,8 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
       required:
         - id
         - version

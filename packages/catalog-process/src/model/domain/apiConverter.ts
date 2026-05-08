@@ -12,8 +12,8 @@ import {
   eserviceMode,
   Descriptor,
   Document,
-  ArchivingScope,
   archivingScope,
+  ArchivingScope,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -153,7 +153,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-const archivingScheduleScopeToApiArchivingScheduleScope = (
+export const archivingScheduleScopeToApiArchivingScheduleScope = (
   input: ArchivingScope
 ): catalogApi.ArchivingScope =>
   match<ArchivingScope, catalogApi.ArchivingScope>(input)

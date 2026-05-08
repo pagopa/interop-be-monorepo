@@ -350,6 +350,28 @@ const catalogRouter = (
       }
     )
     .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.scheduleArchiveEserviceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error archiving descriptor ${req.params.descriptorId} for eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
