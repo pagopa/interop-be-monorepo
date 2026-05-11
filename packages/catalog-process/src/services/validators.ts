@@ -508,10 +508,10 @@ function assertAttributeGroupsUnchanged(
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
           descriptorAttr.explicitAttributeVerification ||
+        seedAttr.certifiedDiscreteItems?.certifiedDiscreteThreshold !==
+          getCertifiedDiscreteThreshold(descriptorAttr) ||
         seedAttr.certifiedDiscreteItems?.certifiedDiscreteComparator !==
-          ("certifiedDiscreteItems" in descriptorAttr
-            ? descriptorAttr.certifiedDiscreteItems.certifiedDiscreteComparator
-            : undefined) ||
+          getCertifiedDiscreteComparator(descriptorAttr) ||
         Boolean(seedAttr.certifiedDiscreteItems) !==
           "certifiedDiscreteItems" in descriptorAttr
       ) {
@@ -519,6 +519,22 @@ function assertAttributeGroupsUnchanged(
       }
     }
   }
+}
+
+function getCertifiedDiscreteThreshold(
+  attribute: EServiceCertifiedAttribute
+): number | undefined {
+  return "certifiedDiscreteItems" in attribute
+    ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+    : undefined;
+}
+
+function getCertifiedDiscreteComparator(
+  attribute: EServiceCertifiedAttribute
+): string | undefined {
+  return "certifiedDiscreteItems" in attribute
+    ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+    : undefined;
 }
 
 export function assertAttributeDailyCallsConsistentWithTotal(

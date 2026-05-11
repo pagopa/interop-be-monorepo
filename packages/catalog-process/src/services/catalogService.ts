@@ -3113,7 +3113,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedAttributes = retainCurrentCertifiedAttributeThresholds(
+      const updatedAttributes = retainCurrentCertifiedDailyCalls(
         parsedAttributes,
         descriptor.attributes
       );
@@ -4026,12 +4026,12 @@ const processDescriptorPublication = async (
 };
 
 /**
- * Retains the existing configurable threshold values on certified attributes.
+ * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
  * Used with template instances. This ensures that when a template updates and
- * propagates its attributes to its instances, any custom threshold configured
- * on the instance is preserved instead of being cleared.
+ * propagates its attributes to its instances, any custom differentiated
+ * threshold configured on the instance is preserved instead of being cleared.
  */
-function retainCurrentCertifiedAttributeThresholds(
+function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
@@ -4076,7 +4076,7 @@ function retainCurrentCertifiedAttributeThresholds(
     );
   }
 
-  function retainCurrentThresholds(
+  function retainCurrentDailyCallsPerConsumer(
     incomingAttribute: EServiceCertifiedAttribute,
     currentAttribute: EServiceCertifiedAttribute | undefined
   ): EServiceCertifiedAttribute {
@@ -4084,36 +4084,18 @@ function retainCurrentCertifiedAttributeThresholds(
       currentAttribute && "dailyCallsPerConsumer" in currentAttribute
         ? currentAttribute.dailyCallsPerConsumer
         : undefined;
-    const currentCertifiedDiscreteThreshold =
-      currentAttribute && "certifiedDiscreteItems" in currentAttribute
-        ? currentAttribute.certifiedDiscreteItems.certifiedDiscreteThreshold
-        : undefined;
 
-    if (
-      currentDailyCalls === undefined &&
-      currentCertifiedDiscreteThreshold === undefined
-    ) {
+    if (currentDailyCalls === undefined) {
       return incomingAttribute;
     }
 
     return {
       ...incomingAttribute,
-      ...(currentDailyCalls !== undefined
-        ? { dailyCallsPerConsumer: currentDailyCalls }
-        : {}),
-      ...(currentCertifiedDiscreteThreshold !== undefined &&
-      "certifiedDiscreteItems" in incomingAttribute
-        ? {
-            certifiedDiscreteItems: {
-              ...incomingAttribute.certifiedDiscreteItems,
-              certifiedDiscreteThreshold: currentCertifiedDiscreteThreshold,
-            },
-          }
-        : {}),
+      dailyCallsPerConsumer: currentDailyCalls,
     };
   }
 
-  function retainCurrentThresholdsInCertifiedGroup(
+  function retainCurrentDailyCallsInCertifiedGroup(
     incomingGroup: EServiceCertifiedAttribute[],
     currentGroup: EServiceCertifiedAttribute[] | undefined
   ): EServiceCertifiedAttribute[] {
@@ -4123,7 +4105,10 @@ function retainCurrentCertifiedAttributeThresholds(
         currentGroup
       );
 
-      return retainCurrentThresholds(incomingAttribute, currentAttribute);
+      return retainCurrentDailyCallsPerConsumer(
+        incomingAttribute,
+        currentAttribute
+      );
     });
   }
 
@@ -4136,7 +4121,7 @@ function retainCurrentCertifiedAttributeThresholds(
         usedCurrentGroupIndexes
       );
 
-      return retainCurrentThresholdsInCertifiedGroup(
+      return retainCurrentDailyCallsInCertifiedGroup(
         incomingGroup,
         currentGroup
       );
