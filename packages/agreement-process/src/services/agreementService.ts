@@ -116,6 +116,8 @@ import {
   verifySubmissionConflictingAgreements,
   assertRequesterCanActAsConsumer,
   getOrganizationRole,
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
 } from "../model/domain/agreement-validators.js";
 import { config } from "../config/config.js";
 import {
@@ -232,6 +234,135 @@ export function agreementServiceBuilder(
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
+
+  const performAgreementActivation = async (
+    agreement: WithMetadata<Agreement>,
+    agreementOwnership: Ownership,
+    authData: UIAuthData | M2MAdminAuthData,
+    activeDelegations: ActiveDelegations,
+    correlationId: string & z.BRAND<"CorrelationId">,
+    isFirstActivation: boolean
+  ): Promise<WithMetadata<Agreement>> => {
+    const eservice = await retrieveEService(
+      agreement.data.eserviceId,
+      readModelService
+    );
+
+    const descriptor = validateActivationOnDescriptor(
+      eservice,
+      agreement.data.descriptorId
+    );
+
+    const consumer = await retrieveTenant(
+      agreement.data.consumerId,
+      readModelService
+    );
+
+    /* nextAttributesState VS targetDestinationState
+    -- targetDestinationState is the state where the caller wants to go (active, in this case)
+    -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+    */
+    const targetDestinationState = agreementState.active;
+    const nextStateByAttributes = nextStateByAttributesFSM(
+      agreement.data,
+      descriptor,
+      consumer
+    );
+
+    const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
+
+    const setToMissingCertifiedAttributesByPlatformEvent =
+      maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+        agreement,
+        nextStateByAttributes,
+        suspendedByPlatform,
+        correlationId
+      );
+    if (setToMissingCertifiedAttributesByPlatformEvent) {
+      /* In this case, it means that one of the certified attributes is not
+        valid anymore. We put the agreement in the missingCertifiedAttributes state
+        and fail the activation */
+      await repository.createEvent(
+        setToMissingCertifiedAttributesByPlatformEvent
+      );
+      throw agreementActivationFailed(agreement.data.id);
+    }
+
+    const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
+      agreementOwnership,
+      agreement.data,
+      authData,
+      targetDestinationState,
+      activeDelegations
+    );
+
+    const newState = agreementStateByFlags(
+      nextStateByAttributes,
+      suspendedByProducer,
+      suspendedByConsumer,
+      suspendedByPlatform
+    );
+
+    failOnActivationFailure(newState, agreement.data);
+
+    const updatedAgreementSeed: UpdateAgreementSeed =
+      createActivationUpdateAgreementSeed({
+        isFirstActivation,
+        newState,
+        descriptor,
+        consumer,
+        eservice,
+        authData,
+        agreement: agreement.data,
+        suspendedByConsumer,
+        suspendedByProducer,
+        suspendedByPlatform,
+        activeDelegations,
+        agreementOwnership,
+      });
+
+    const updatedAgreementWithoutContract: Agreement = {
+      ...agreement.data,
+      ...updatedAgreementSeed,
+    };
+
+    const suspendedByPlatformChanged =
+      agreement.data.suspendedByPlatform !==
+      updatedAgreementWithoutContract.suspendedByPlatform;
+
+    const activationEvents = await createActivationEvent(
+      isFirstActivation,
+      updatedAgreementWithoutContract,
+      agreement.data.suspendedByPlatform,
+      suspendedByPlatformChanged,
+      agreement.metadata.version,
+      agreementOwnership,
+      correlationId
+    );
+
+    const archiveEvents = await archiveRelatedToAgreements(
+      agreement.data,
+      authData,
+      activeDelegations,
+      readModelService,
+      correlationId
+    );
+
+    const createdEvents = await repository.createEvents([
+      ...activationEvents,
+      ...archiveEvents,
+    ]);
+
+    return {
+      data: updatedAgreementWithoutContract,
+      metadata: {
+        version:
+          createdEvents.latestNewVersions.get(
+            updatedAgreementWithoutContract.id
+          ) ?? 0,
+      },
+    };
+  };
   return {
     async getAgreements(
       filters: AgreementQueryFiltersWithExactConsumerIdMatch,
@@ -1176,7 +1307,7 @@ export function agreementServiceBuilder(
       );
       return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
-    async activateAgreement(
+    async approveAgreement(
       {
         agreementId,
         delegationId,
@@ -1198,6 +1329,8 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
+      assertAgreementIsPending(agreement.data);
+
       assertActivableState(agreement.data);
 
       const activeDelegations = await getActiveConsumerAndProducerDelegations(
@@ -1205,163 +1338,71 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (agreement.data.state === agreementState.pending) {
-        return activateFromPending();
-      } else {
-        return activateFromSuspended();
+      if (
+        delegationId &&
+        delegationId !== activeDelegations.producerDelegation?.id
+      ) {
+        throw tenantIsNotTheDelegate(authData.organizationId);
       }
+      assertRequesterCanActAsProducer(
+        agreement.data,
+        authData,
+        activeDelegations.producerDelegation
+      );
+      return performAgreementActivation(
+        agreement,
+        ownership.PRODUCER,
+        authData,
+        activeDelegations,
+        correlationId,
+        true
+      );
+    },
+    async unsuspendAgreement(
+      {
+        agreementId,
+        delegationId,
+      }: {
+        agreementId: AgreementId;
+        delegationId: DelegationId | undefined;
+      },
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
 
-      async function activateFromPending(): Promise<WithMetadata<Agreement>> {
-        if (
-          delegationId &&
-          delegationId !== activeDelegations.producerDelegation?.id
-        ) {
-          throw tenantIsNotTheDelegate(authData.organizationId);
-        }
-        assertRequesterCanActAsProducer(
-          agreement.data,
-          authData,
-          activeDelegations.producerDelegation
-        );
-        return performActivation(ownership.PRODUCER, true);
-      }
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertAgreementIsSuspended(agreement.data);
 
-      async function activateFromSuspended(): Promise<WithMetadata<Agreement>> {
-        const agreementOwnership = getOrganizationRole(
-          agreement.data,
-          delegationId,
-          activeDelegations,
-          authData
-        );
-        return performActivation(agreementOwnership, false);
-      }
+      assertActivableState(agreement.data);
 
-      async function performActivation(
-        agreementOwnership: Ownership,
-        isFirstActivation: boolean
-      ): Promise<WithMetadata<Agreement>> {
-        const eservice = await retrieveEService(
-          agreement.data.eserviceId,
-          readModelService
-        );
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
+        readModelService
+      );
 
-        const descriptor = validateActivationOnDescriptor(
-          eservice,
-          agreement.data.descriptorId
-        );
+      const agreementOwnership = getOrganizationRole(
+        agreement.data,
+        delegationId,
+        activeDelegations,
+        authData
+      );
 
-        const consumer = await retrieveTenant(
-          agreement.data.consumerId,
-          readModelService
-        );
-
-        /* nextAttributesState VS targetDestinationState
-        -- targetDestinationState is the state where the caller wants to go (active, in this case)
-        -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
-        */
-        const targetDestinationState = agreementState.active;
-        const nextStateByAttributes = nextStateByAttributesFSM(
-          agreement.data,
-          descriptor,
-          consumer
-        );
-
-        const suspendedByPlatform = suspendedByPlatformFlag(
-          nextStateByAttributes
-        );
-
-        const setToMissingCertifiedAttributesByPlatformEvent =
-          maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
-            agreement,
-            nextStateByAttributes,
-            suspendedByPlatform,
-            correlationId
-          );
-        if (setToMissingCertifiedAttributesByPlatformEvent) {
-          /* In this case, it means that one of the certified attributes is not
-            valid anymore. We put the agreement in the missingCertifiedAttributes state
-            and fail the activation */
-          await repository.createEvent(
-            setToMissingCertifiedAttributesByPlatformEvent
-          );
-          throw agreementActivationFailed(agreement.data.id);
-        }
-
-        const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
-          agreementOwnership,
-          agreement.data,
-          authData,
-          targetDestinationState,
-          activeDelegations
-        );
-
-        const newState = agreementStateByFlags(
-          nextStateByAttributes,
-          suspendedByProducer,
-          suspendedByConsumer,
-          suspendedByPlatform
-        );
-
-        failOnActivationFailure(newState, agreement.data);
-
-        const updatedAgreementSeed: UpdateAgreementSeed =
-          createActivationUpdateAgreementSeed({
-            isFirstActivation,
-            newState,
-            descriptor,
-            consumer,
-            eservice,
-            authData,
-            agreement: agreement.data,
-            suspendedByConsumer,
-            suspendedByProducer,
-            suspendedByPlatform,
-            activeDelegations,
-            agreementOwnership,
-          });
-
-        const updatedAgreementWithoutContract: Agreement = {
-          ...agreement.data,
-          ...updatedAgreementSeed,
-        };
-
-        const suspendedByPlatformChanged =
-          agreement.data.suspendedByPlatform !==
-          updatedAgreementWithoutContract.suspendedByPlatform;
-
-        const activationEvents = await createActivationEvent(
-          isFirstActivation,
-          updatedAgreementWithoutContract,
-          agreement.data.suspendedByPlatform,
-          suspendedByPlatformChanged,
-          agreement.metadata.version,
-          agreementOwnership,
-          correlationId
-        );
-
-        const archiveEvents = await archiveRelatedToAgreements(
-          agreement.data,
-          authData,
-          activeDelegations,
-          readModelService,
-          correlationId
-        );
-
-        const createdEvents = await repository.createEvents([
-          ...activationEvents,
-          ...archiveEvents,
-        ]);
-
-        return {
-          data: updatedAgreementWithoutContract,
-          metadata: {
-            version:
-              createdEvents.latestNewVersions.get(
-                updatedAgreementWithoutContract.id
-              ) ?? 0,
-          },
-        };
-      }
+      return performAgreementActivation(
+        agreement,
+        agreementOwnership,
+        authData,
+        activeDelegations,
+        correlationId,
+        false
+      );
     },
     async archiveAgreement(
       agreementId: AgreementId,
