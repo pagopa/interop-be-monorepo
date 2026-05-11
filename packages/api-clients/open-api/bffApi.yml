@@ -30070,6 +30070,8 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        certifiedDiscreteItems:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteItems"
       required:
         - id
         - explicitAttributeVerification

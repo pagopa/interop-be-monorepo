@@ -121,7 +121,7 @@ const toAttributeCertifiedDiscreteComparatorV2 = (
     )
     .exhaustive();
 
-const toCertifiedDiscreteItemsV2 = (
+export const toCertifiedDiscreteItemsV2 = (
   items: EServiceAttributeCertifiedDiscreteItems
 ) => ({
   certifiedDiscreteThreshold: items.certifiedDiscreteThreshold,

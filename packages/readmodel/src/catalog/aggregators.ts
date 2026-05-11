@@ -104,9 +104,9 @@ export const aggregateDescriptor = ({
           }))
           .exhaustive(),
       {
-        certified: [] as EServiceDescriptorAttributeSQL[],
-        declared: [] as EServiceDescriptorAttributeSQL[],
-        verified: [] as EServiceDescriptorAttributeSQL[],
+        certified: new Array<EServiceDescriptorAttributeSQL>(),
+        declared: new Array<EServiceDescriptorAttributeSQL>(),
+        verified: new Array<EServiceDescriptorAttributeSQL>(),
       }
     );
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
@@ -416,8 +416,8 @@ export const aggregateRiskAnalysisForm = (
         }))
         .exhaustive(),
     {
-      single: [] as RiskAnalysisSingleAnswer[],
-      multi: [] as RiskAnalysisMultiAnswer[],
+      single: Array<RiskAnalysisSingleAnswer>(),
+      multi: Array<RiskAnalysisMultiAnswer>(),
     }
   );
 

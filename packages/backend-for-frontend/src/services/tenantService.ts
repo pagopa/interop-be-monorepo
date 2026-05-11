@@ -499,10 +499,17 @@ export function enhanceTenantAttributes(
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
+  const certifiedDiscrete = tenantAttributes
+    .map((attr) =>
+      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
+    )
+    .filter(isDefined);
+
   return {
     certified,
     declared,
     verified,
+    certifiedDiscrete,
   };
 }
 
@@ -546,6 +553,30 @@ function getCertifiedTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.certified.assignmentTimestamp,
     revocationTimestamp: attribute.certified.revocationTimestamp,
+  };
+}
+
+function getCertifiedDiscreteTenantAttribute(
+  attribute: tenantApi.TenantAttribute,
+  registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
+): bffApi.CertifiedDiscreteTenantAttribute | undefined {
+  if (!attribute.certifiedDiscrete) {
+    return undefined;
+  }
+  const registryAttribute = registryAttributeMap.get(
+    attribute.certifiedDiscrete.id
+  );
+  if (!registryAttribute) {
+    return undefined;
+  }
+
+  return {
+    id: attribute.certifiedDiscrete.id,
+    name: registryAttribute.name,
+    description: registryAttribute.description,
+    assignmentTimestamp: attribute.certifiedDiscrete.assignmentTimestamp,
+    revocationTimestamp: attribute.certifiedDiscrete.revocationTimestamp,
+    certifiedDiscreteValue: attribute.certifiedDiscrete.certifiedDiscreteValue,
   };
 }
 

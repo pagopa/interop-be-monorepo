@@ -59,6 +59,14 @@ function convertAttribute(
           origin: attribute.origin,
         };
       })
+      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE, () => {
+        assertAttributeOriginAndCodeAreDefined(attribute);
+        return {
+          ...baseFields,
+          code: attribute.code,
+          origin: attribute.origin,
+        };
+      })
       .with(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,

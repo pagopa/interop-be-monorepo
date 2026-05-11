@@ -10,6 +10,8 @@ import {
   EServiceTemplateVersionId,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertified,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -117,7 +119,10 @@ const templateAttributeToTemplateAttributeSQL = ({
   eserviceTemplateId,
   metadataVersion,
 }: {
-  attribute: EServiceTemplateAttribute;
+  attribute:
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertified
+    | EServiceTemplateAttributeCertifiedDiscrete;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
   kind: AttributeKind;
@@ -129,13 +134,34 @@ const templateAttributeToTemplateAttributeSQL = ({
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind,
+  kind:
+    "certifiedDiscreteItems" in attribute
+      ? attributeKind.certifiedDiscrete
+      : kind,
   groupId,
+  dailyCallsPerConsumer:
+    "dailyCallsPerConsumer" in attribute
+      ? attribute.dailyCallsPerConsumer ?? null
+      : null,
+  certifiedDiscreteThreshold:
+    "certifiedDiscreteItems" in attribute
+      ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+      : null,
+  certifiedDiscreteComparator:
+    "certifiedDiscreteItems" in attribute
+      ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+      : null,
 });
 
 const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: EServiceTemplateAttribute[][],
+  attributes: Array<
+    Array<
+      | EServiceTemplateAttribute
+      | EServiceTemplateAttributeCertified
+      | EServiceTemplateAttributeCertifiedDiscrete
+    >
+  >,
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number

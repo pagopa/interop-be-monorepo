@@ -119,7 +119,7 @@ const fromAttributeCertifiedDiscreteComparatorV2 = (
   }
 };
 
-const fromCertifiedDiscreteItemsV2 = (
+export const fromCertifiedDiscreteItemsV2 = (
   input: EServiceAttributeCertifiedDiscreteItemsV2
 ): EServiceAttributeCertifiedDiscreteItems => ({
   certifiedDiscreteThreshold: input.certifiedDiscreteThreshold,

@@ -153,7 +153,10 @@ const attributeToAttributeSQL = ({
   attributeId: attribute.id,
   descriptorId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind,
+  kind:
+    "certifiedDiscreteItems" in attribute
+      ? attributeKind.certifiedDiscrete
+      : kind,
   groupId,
   dailyCallsPerConsumer:
     "dailyCallsPerConsumer" in attribute

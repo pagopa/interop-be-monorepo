@@ -40,7 +40,9 @@ import {
   Document,
   EService,
   EServiceAttribute,
+  EServiceAttributeCertified,
   EserviceAttributes,
+  EserviceAttributeCertifiedDiscrete,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -194,6 +196,11 @@ import {
   DEFAULT_DAILY_CALLS_PER_CONSUMER,
   DEFAULT_DAILY_CALLS_TOTAL,
 } from "../model/domain/constants.js";
+
+type EServiceCertifiedAttribute =
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EserviceAttributeCertifiedDiscrete;
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -3106,7 +3113,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const updatedAttributes = retainCurrentCertifiedDailyCalls(
+      const updatedAttributes = retainCurrentCertifiedAttributeThresholds(
         parsedAttributes,
         descriptor.attributes
       );
@@ -4019,18 +4026,18 @@ const processDescriptorPublication = async (
 };
 
 /**
- * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Retains the existing configurable threshold values on certified attributes.
  * Used with template instances. This ensures that when a template updates and
  * propagates its attributes to its instances, any custom threshold configured
  * on the instance is preserved instead of being cleared.
  */
-function retainCurrentCertifiedDailyCalls(
+function retainCurrentCertifiedAttributeThresholds(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
   function isMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[]
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[]
   ): boolean {
     return currentGroup.every((currentAttribute) =>
       incomingGroup.some(
@@ -4040,10 +4047,10 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroups: EServiceAttribute[][],
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroups: EServiceCertifiedAttribute[][],
     usedCurrentGroupIndexes: Set<number>
-  ): EServiceAttribute[] | undefined {
+  ): EServiceCertifiedAttribute[] | undefined {
     for (const [groupIndex, currentGroup] of currentGroups.entries()) {
       if (usedCurrentGroupIndexes.has(groupIndex)) {
         continue;
@@ -4061,43 +4068,62 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findCurrentCertifiedAttribute(
-    incomingAttribute: EServiceAttribute,
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute | undefined {
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute | undefined {
     return currentGroup?.find(
       (currentAttribute) => currentAttribute.id === incomingAttribute.id
     );
   }
 
-  function retainCurrentDailyCallsPerConsumer(
-    incomingAttribute: EServiceAttribute,
-    currentAttribute: EServiceAttribute | undefined
-  ): EServiceAttribute {
-    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
-    if (currentDailyCalls === undefined) {
+  function retainCurrentThresholds(
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentAttribute: EServiceCertifiedAttribute | undefined
+  ): EServiceCertifiedAttribute {
+    const currentDailyCalls =
+      currentAttribute && "dailyCallsPerConsumer" in currentAttribute
+        ? currentAttribute.dailyCallsPerConsumer
+        : undefined;
+    const currentCertifiedDiscreteThreshold =
+      currentAttribute && "certifiedDiscreteItems" in currentAttribute
+        ? currentAttribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+        : undefined;
+
+    if (
+      currentDailyCalls === undefined &&
+      currentCertifiedDiscreteThreshold === undefined
+    ) {
       return incomingAttribute;
     }
 
     return {
       ...incomingAttribute,
-      dailyCallsPerConsumer: currentDailyCalls,
+      ...(currentDailyCalls !== undefined
+        ? { dailyCallsPerConsumer: currentDailyCalls }
+        : {}),
+      ...(currentCertifiedDiscreteThreshold !== undefined &&
+      "certifiedDiscreteItems" in incomingAttribute
+        ? {
+            certifiedDiscreteItems: {
+              ...incomingAttribute.certifiedDiscreteItems,
+              certifiedDiscreteThreshold: currentCertifiedDiscreteThreshold,
+            },
+          }
+        : {}),
     };
   }
 
-  function retainCurrentDailyCallsInCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute[] {
+  function retainCurrentThresholdsInCertifiedGroup(
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute[] {
     return incomingGroup.map((incomingAttribute) => {
       const currentAttribute = findCurrentCertifiedAttribute(
         incomingAttribute,
         currentGroup
       );
 
-      return retainCurrentDailyCallsPerConsumer(
-        incomingAttribute,
-        currentAttribute
-      );
+      return retainCurrentThresholds(incomingAttribute, currentAttribute);
     });
   }
 
@@ -4110,7 +4136,7 @@ function retainCurrentCertifiedDailyCalls(
         usedCurrentGroupIndexes
       );
 
-      return retainCurrentDailyCallsInCertifiedGroup(
+      return retainCurrentThresholdsInCertifiedGroup(
         incomingGroup,
         currentGroup
       );

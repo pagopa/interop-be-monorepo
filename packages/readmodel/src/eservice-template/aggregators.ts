@@ -1,5 +1,7 @@
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
   AttributeKind,
   attributeKind,
   EServiceMode,
@@ -8,13 +10,13 @@ import {
   EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
-  genericInternalError,
   stringToDate,
   Technology,
   TenantKind,
   unsafeBrandId,
   WithMetadata,
   type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -70,11 +72,10 @@ export const aggregateEServiceTemplateVersion = ({
           ...acc,
           certified: [...acc.certified, attributeSQL],
         }))
-        .with(attributeKind.certifiedDiscrete, () => {
-          throw genericInternalError(
-            "Certified discrete attributes are not supported in e-service templates"
-          );
-        })
+        .with(attributeKind.certifiedDiscrete, () => ({
+          ...acc,
+          certified: [...acc.certified, attributeSQL],
+        }))
         .with(attributeKind.declared, () => ({
           ...acc,
           declared: [...acc.declared, attributeSQL],
@@ -442,12 +443,29 @@ export const toEServiceTemplateAggregatorArray = (
 
 export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[]
-): EServiceTemplateAttribute[][] => {
-  const attributesMap = new Map<number, EServiceTemplateAttribute[]>();
+): Array<
+  Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+  >();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceTemplateAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
+      ...(current.certifiedDiscreteThreshold != null &&
+      current.certifiedDiscreteComparator != null
+        ? {
+            certifiedDiscreteItems: {
+              certifiedDiscreteThreshold: current.certifiedDiscreteThreshold,
+              certifiedDiscreteComparator:
+                AttributeCertifiedDiscreteComparator.parse(
+                  current.certifiedDiscreteComparator
+                ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

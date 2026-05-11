@@ -106,6 +106,14 @@ function toApiTenantAttribute(
         delegationId: attribute.delegationId,
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attribute) => ({
+      certifiedDiscrete: {
+        id: attribute.id,
+        assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        certifiedDiscreteValue: attribute.certifiedDiscreteValue,
+      },
+    }))
     .exhaustive();
 }
 

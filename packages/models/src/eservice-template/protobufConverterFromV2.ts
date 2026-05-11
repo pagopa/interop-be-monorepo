@@ -2,6 +2,7 @@ import { unsafeBrandId } from "../brandedIds.js";
 import {
   fromAgreementApprovalPolicyV2,
   fromDocumentV2,
+  fromCertifiedDiscreteItemsV2,
   fromEServiceAttributeV2,
   fromEServiceModeV2,
   fromEServiceTechnologyV2,
@@ -21,7 +22,24 @@ import {
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
   EServiceTemplateRiskAnalysis,
+  EServiceTemplateAttribute,
+  EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
+
+const fromEServiceTemplateAttributeGroupV2 = (
+  input: { values: Array<{ id: string; explicitAttributeVerification: boolean; certifiedDiscreteItems?: { certifiedDiscreteThreshold: number; certifiedDiscreteComparator: number } | null }> }
+): Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete> =>
+  input.values.map((attribute) => ({
+    id: unsafeBrandId(attribute.id),
+    explicitAttributeVerification: attribute.explicitAttributeVerification,
+    ...(attribute.certifiedDiscreteItems != null
+      ? {
+          certifiedDiscreteItems: fromCertifiedDiscreteItemsV2(
+            attribute.certifiedDiscreteItems
+          ),
+        }
+      : undefined),
+  }));
 
 export const fromEServiceTemplateVersionStateV2 = (
   input: EServiceTemplateVersionStateV2
@@ -47,7 +65,9 @@ export const fromEServiceTemplateVersionV2 = (
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          certified: input.attributes.certified.map(
+            fromEServiceTemplateAttributeGroupV2
+          ),
           declared: input.attributes.declared.map(fromEServiceAttributeV2),
           verified: input.attributes.verified.map(fromEServiceAttributeV2),
         }

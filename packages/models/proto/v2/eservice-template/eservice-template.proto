@@ -12,9 +12,12 @@ enum EServiceTemplateVersionStateV2 {
   SUSPENDED = 3;
 }
 
+
+
 message EServiceTemplateAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
+  optional eservice.v2.EServiceAttributeCertifiedDiscreteItemsV2 certifiedDiscreteItems = 3;
 }
 
 message EServiceTemplateAttributeV2 {

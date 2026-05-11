@@ -26,6 +26,8 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EServiceAttribute,
+  type EServiceAttributeCertified,
+  type EserviceAttributeCertifiedDiscrete,
   type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -52,6 +54,11 @@ import {
   eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
+type EServiceCertifiedAttribute =
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EserviceAttributeCertifiedDiscrete;
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -430,7 +437,10 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if (attribute.dailyCallsPerConsumer !== undefined) {
+    if (
+      "dailyCallsPerConsumer" in attribute &&
+      attribute.dailyCallsPerConsumer !== undefined
+    ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
   }
@@ -469,7 +479,7 @@ export function assertTemplateInstanceAttributeStructureUnchanged(
 function assertAttributeGroupsUnchanged(
   eserviceId: EServiceId,
   templateId: EServiceTemplateId,
-  descriptorGroups: EServiceAttribute[][],
+  descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
@@ -497,7 +507,13 @@ function assertAttributeGroupsUnchanged(
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
+          descriptorAttr.explicitAttributeVerification ||
+        seedAttr.certifiedDiscreteItems?.certifiedDiscreteComparator !==
+          ("certifiedDiscreteItems" in descriptorAttr
+            ? descriptorAttr.certifiedDiscreteItems.certifiedDiscreteComparator
+            : undefined) ||
+        Boolean(seedAttr.certifiedDiscreteItems) !==
+          "certifiedDiscreteItems" in descriptorAttr
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }

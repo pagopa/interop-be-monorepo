@@ -1575,6 +1575,8 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      certifiedDiscreteThreshold: integer("certified_discrete_threshold"),
+      certifiedDiscreteComparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
