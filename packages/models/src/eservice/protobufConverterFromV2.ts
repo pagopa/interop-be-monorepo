@@ -1,6 +1,7 @@
 import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
+  AttributeCertifiedDiscreteComparatorV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
   EServiceDescriptorV2,
@@ -12,6 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
+  type EServiceAttributeCertifiedDiscreteItemsV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -21,6 +23,8 @@ import { bigIntToDate } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   agreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  attributeCertifiedDiscreteComparator,
   DescriptorState,
   descriptorState,
   Technology,
@@ -28,11 +32,14 @@ import {
   EServiceMode,
   eserviceMode,
   EServiceAttribute,
+  EServiceAttributeCertified,
+  EserviceAttributeCertifiedDiscrete,
   Descriptor,
   EService,
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
+  type EServiceAttributeCertifiedDiscreteItems,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -88,7 +95,58 @@ export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
 export const fromEServiceAttributeV2 = (
   input: EServiceAttributeV2
 ): EServiceAttribute[] =>
-  input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
+  input.values.map((a) => ({
+    id: unsafeBrandId(a.id),
+    explicitAttributeVerification: a.explicitAttributeVerification,
+  }));
+
+const fromAttributeCertifiedDiscreteComparatorV2 = (
+  input: AttributeCertifiedDiscreteComparatorV2
+): AttributeCertifiedDiscreteComparator => {
+  switch (input) {
+    case AttributeCertifiedDiscreteComparatorV2.GT:
+      return attributeCertifiedDiscreteComparator.GT;
+    case AttributeCertifiedDiscreteComparatorV2.LT:
+      return attributeCertifiedDiscreteComparator.LT;
+    case AttributeCertifiedDiscreteComparatorV2.EQ:
+      return attributeCertifiedDiscreteComparator.EQ;
+    case AttributeCertifiedDiscreteComparatorV2.GTE:
+      return attributeCertifiedDiscreteComparator.GTE;
+    case AttributeCertifiedDiscreteComparatorV2.LTE:
+      return attributeCertifiedDiscreteComparator.LTE;
+    case AttributeCertifiedDiscreteComparatorV2.NE:
+      return attributeCertifiedDiscreteComparator.NE;
+  }
+};
+
+const fromCertifiedDiscreteItemsV2 = (
+  input: EServiceAttributeCertifiedDiscreteItemsV2
+): EServiceAttributeCertifiedDiscreteItems => ({
+  certifiedDiscreteThreshold: input.certifiedDiscreteThreshold,
+  certifiedDiscreteComparator: fromAttributeCertifiedDiscreteComparatorV2(
+    input.certifiedDiscreteComparator
+  ),
+});
+
+export const fromEServiceAttributeCertifiedV2 = (
+  input: EServiceAttributeV2
+): (EserviceAttributeCertifiedDiscrete | EServiceAttributeCertified)[] =>
+  input.values.map((attribute) => {
+    const base: EServiceAttributeCertified = {
+      id: unsafeBrandId(attribute.id),
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+      dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+      ...(attribute.certifiedDiscreteItems != null
+        ? {
+            certifiedDiscreteItems: fromCertifiedDiscreteItemsV2(
+              attribute.certifiedDiscreteItems
+            ),
+          }
+        : undefined),
+    };
+
+    return base;
+  });
 
 export function fromDocumentV2(input: EServiceDocumentV2): Document {
   return {
@@ -119,7 +177,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          certified: input.attributes.certified.map(
+            fromEServiceAttributeCertifiedV2
+          ),
           declared: input.attributes.declared.map(fromEServiceAttributeV2),
           verified: input.attributes.verified.map(fromEServiceAttributeV2),
         }

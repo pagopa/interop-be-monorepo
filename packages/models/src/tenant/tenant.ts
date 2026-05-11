@@ -69,6 +69,7 @@ export const tenantAttributeType = {
   CERTIFIED: "PersistentCertifiedAttribute",
   DECLARED: "PersistentDeclaredAttribute",
   VERIFIED: "PersistentVerifiedAttribute",
+  CERTIFIED_DISCRETE: "PersistentCertifiedDiscreteAttribute",
 } as const;
 
 export const TenantAttributeType = z.enum([
@@ -123,10 +124,22 @@ export const DeclaredTenantAttribute = z.object({
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 
+export const CertifiedDiscreteTenantAttribute = z.object({
+  assignmentTimestamp: z.coerce.date(),
+  id: AttributeId,
+  type: z.literal(tenantAttributeType.CERTIFIED_DISCRETE),
+  revocationTimestamp: z.coerce.date().optional(),
+  certifiedDiscreteValue: z.number().int().min(1).max(1000000000),
+});
+export type CertifiedDiscreteTenantAttribute = z.infer<
+  typeof CertifiedDiscreteTenantAttribute
+>;
+
 export const TenantAttribute = z.discriminatedUnion("type", [
   CertifiedTenantAttribute,
   VerifiedTenantAttribute,
   DeclaredTenantAttribute,
+  CertifiedDiscreteTenantAttribute,
 ]);
 
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
@@ -162,6 +175,13 @@ export const TenantUnitType = z.enum([
 
 export type TenantUnitType = z.infer<typeof TenantUnitType>;
 
+export const TenantRemoteId = z.object({
+  origin: z.string(),
+  value: z.string(),
+  assignment_timestamp: z.coerce.date(),
+});
+export type TenantRemoteId = z.infer<typeof TenantRemoteId>;
+
 export const Tenant = z.object({
   id: TenantId,
   kind: TenantKind.optional(),
@@ -176,6 +196,7 @@ export const Tenant = z.object({
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
   selfcareInstitutionType: z.string().optional(),
+  remoteIds: z.array(TenantRemoteId).optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

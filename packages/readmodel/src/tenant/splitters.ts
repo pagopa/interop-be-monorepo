@@ -1,4 +1,5 @@
 import {
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   TenantAttribute,
@@ -6,6 +7,7 @@ import {
   tenantFeatureType,
   TenantId,
   TenantMail,
+  TenantRemoteId,
   Tenant,
   TenantRevoker,
   TenantVerifier,
@@ -15,10 +17,12 @@ import {
 import { match } from "ts-pattern";
 import {
   TenantCertifiedAttributeSQL,
+  TenantCertifiedDiscreteAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
   TenantItemsSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -40,6 +44,7 @@ export const splitTenantIntoObjectsSQL = (
     onboardedAt,
     subUnitType,
     selfcareInstitutionType,
+    remoteIds,
     ...rest
   }: Tenant,
   metadataVersion: number
@@ -67,11 +72,22 @@ export const splitTenantIntoObjectsSQL = (
 
   const {
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
   } = splitTenantAttributesIntoObjectsSQL(attributes, id, metadataVersion);
+
+  const remoteIdsSQL: TenantRemoteIdSQL[] = (remoteIds ?? []).map(
+    ({ origin, value, assignment_timestamp }: TenantRemoteId) => ({
+      tenantId: id,
+      metadataVersion,
+      origin,
+      value,
+      assignmentTimestamp: dateToString(assignment_timestamp),
+    })
+  );
 
   const featuresSQL: TenantFeatureSQL[] = features.map((feature) =>
     match(feature)
@@ -103,11 +119,13 @@ export const splitTenantIntoObjectsSQL = (
     tenantSQL,
     mailsSQL,
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   };
 };
 
@@ -134,12 +152,15 @@ const splitTenantAttributesIntoObjectsSQL = (
   metadataVersion: number
 ): {
   certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  certifiedDiscreteAttributesSQL: TenantCertifiedDiscreteAttributeSQL[];
   declaredAttributesSQL: TenantDeclaredAttributeSQL[];
   verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
 } => {
   const certifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
+  const certifiedDiscreteAttributesSQL: TenantCertifiedDiscreteAttributeSQL[] =
+    [];
   const declaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
   const verifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
   const verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
@@ -167,6 +188,30 @@ const splitTenantAttributesIntoObjectsSQL = (
           };
           // eslint-disable-next-line functional/immutable-data
           certifiedAttributesSQL.push(certifiedAttributeSQL);
+        }
+      )
+      .with(
+        { type: tenantAttributeType.CERTIFIED_DISCRETE },
+        ({
+          id,
+          assignmentTimestamp,
+          revocationTimestamp,
+          certifiedDiscreteValue,
+          ...rest
+        }: Omit<CertifiedDiscreteTenantAttribute, "type">) => {
+          void (rest satisfies Record<string, never>);
+
+          const certifiedDiscreteAttributeSQL: TenantCertifiedDiscreteAttributeSQL =
+            {
+              attributeId: id,
+              tenantId,
+              metadataVersion,
+              assignmentTimestamp: dateToString(assignmentTimestamp),
+              revocationTimestamp: dateToString(revocationTimestamp),
+              certifiedDiscreteValue,
+            };
+          // eslint-disable-next-line functional/immutable-data
+          certifiedDiscreteAttributesSQL.push(certifiedDiscreteAttributeSQL);
         }
       )
       .with(
@@ -276,6 +321,7 @@ const splitTenantAttributesIntoObjectsSQL = (
 
   return {
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,

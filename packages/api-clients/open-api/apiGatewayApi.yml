@@ -2905,11 +2905,40 @@ components:
         - CERTIFIED
         - DECLARED
         - VERIFIED
+        - CERTIFIED_DISCRETE
     AttributeSeed:
       type: object
       additionalProperties: false
       title: Attribute
       description: represents the details of a verified attribute bound to the agreement.
+      properties:
+        code:
+          type: string
+          description: source identifier
+          pattern: '^[a-zA-Z0-9\-_]+$'
+          minLength: 2
+          maxLength: 16
+        name:
+          type: string
+          description: human readable name
+          pattern: '^[a-zA-Z0-9\s\-_]+$'
+          minLength: 2
+          maxLength: 500
+        description:
+          type: string
+          description: human readable description
+          pattern: '^[a-zA-Z0-9\s\-_\.,;\:]+$'
+          minLength: 2
+          maxLength: 64
+      required:
+        - code
+        - name
+        - description
+    CertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      title: CertifiedDiscreteAttributeSeed
+      description: represents the details of a certified discrete attribute.
       properties:
         code:
           type: string

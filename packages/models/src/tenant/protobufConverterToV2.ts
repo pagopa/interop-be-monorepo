@@ -9,6 +9,7 @@ import {
   TenantUnitTypeV2,
   TenantV2,
   TenantVerifierV2,
+  type TenantRemoteIdV2,
 } from "../gen/v2/tenant/tenant.js";
 import { dateToBigInt } from "../utils.js";
 import {
@@ -25,7 +26,9 @@ import {
   tenantKind,
   tenantMailKind,
   tenantUnitType,
+  type TenantRemoteId,
 } from "./tenant.js";
+import { genericInternalError } from "../errors.js";
 
 export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
   return match<TenantFeature, TenantFeatureV2>(feature)
@@ -111,6 +114,11 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         },
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, () => {
+      throw genericInternalError(
+        "CertifiedDiscreteTenantAttribute protobuf serialization not yet supported"
+      );
+    })
     .exhaustive();
 }
 
@@ -153,6 +161,14 @@ function checkSelfcareId(selfcareId: string | undefined): string {
   return selfcareId;
 }
 
+export function toRemoteIdsV2(remoteId: TenantRemoteId): TenantRemoteIdV2 {
+  return {
+    origin: remoteId.origin,
+    value: remoteId.value,
+    assignmentTimestamp: dateToBigInt(remoteId.assignment_timestamp),
+  };
+}
+
 export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   ...tenant,
   selfcareId: checkSelfcareId(tenant.selfcareId),
@@ -168,4 +184,5 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
   selfcareInstitutionType: tenant.selfcareInstitutionType,
+  remoteIds: (tenant.remoteIds ?? []).map(toRemoteIdsV2),
 });

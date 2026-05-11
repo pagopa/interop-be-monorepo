@@ -1533,6 +1533,8 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
       dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
+      certifiedDiscreteThreshold: integer("certified_discrete_threshold"),
+      certifiedDiscreteComparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
@@ -2283,6 +2285,77 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
       primaryKey({
         columns: [table.purposeTemplateId, table.eserviceId],
         name: "purpose_template_eservice_descriptor_pkey",
+      }),
+    ]
+  );
+
+export const tenantRemoteIdInReadmodelTenant = readmodelTenant.table(
+  "tenant_remote_id",
+  {
+    tenantId: uuid("tenant_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    origin: varchar("origin").notNull(),
+    value: varchar("value").notNull(),
+    assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenantInReadmodelTenant.id],
+      name: "tenant_remote_id_tenant_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.metadataVersion],
+      foreignColumns: [
+        tenantInReadmodelTenant.id,
+        tenantInReadmodelTenant.metadataVersion,
+      ],
+      name: "tenant_remote_id_tenant_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.tenantId, table.origin],
+      name: "tenant_remote_id_pkey",
+    }),
+  ]
+);
+
+export const tenantCertifiedDiscreteAttributeInReadmodelTenant =
+  readmodelTenant.table(
+    "tenant_certified_discrete_attribute",
+    {
+      attributeId: uuid("attribute_id").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      assignmentTimestamp: timestamp("assignment_timestamp", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      revocationTimestamp: timestamp("revocation_timestamp", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      certifiedDiscreteValue: integer("certified_discrete_value").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.tenantId],
+        foreignColumns: [tenantInReadmodelTenant.id],
+        name: "tenant_certified_discrete_attribute_tenant_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.tenantId, table.metadataVersion],
+        foreignColumns: [
+          tenantInReadmodelTenant.id,
+          tenantInReadmodelTenant.metadataVersion,
+        ],
+        name: "tenant_certified_discrete_attri_tenant_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.attributeId, table.tenantId],
+        name: "tenant_certified_discrete_attribute_pkey",
       }),
     ]
   );

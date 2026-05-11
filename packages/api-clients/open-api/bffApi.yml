@@ -28564,6 +28564,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        certifiedDiscreteItems:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteItems"
       required:
         - id
         - name
@@ -28609,9 +28611,34 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        certifiedDiscreteItems:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteItems"
       required:
         - id
         - explicitAttributeVerification
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteItems:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteThreshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        certifiedDiscreteComparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - certifiedDiscreteThreshold
+        - certifiedDiscreteComparator
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
@@ -28807,6 +28834,7 @@ components:
         - CERTIFIED
         - DECLARED
         - VERIFIED
+        - CERTIFIED_DISCRETE
     Attributes:
       title: Attributes
       type: object
@@ -28976,6 +29004,10 @@ components:
           $ref: "#/components/schemas/TenantUnitType"
         selfcareInstitutionType:
           type: string
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - id
         - externalId
@@ -29004,10 +29036,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VerifiedTenantAttribute"
+        certifiedDiscrete:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
       required:
         - declared
         - certified
         - verified
+        - certifiedDiscrete
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false
@@ -29100,6 +29137,49 @@ components:
         - id
         - name
         - description
+        - assignmentTimestamp
+    CertifiedDiscreteTenantAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+        revocationTimestamp:
+          type: string
+          format: date-time
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - name
+        - description
+        - assignmentTimestamp
+        - certifiedDiscreteValue
+    TenantRemoteId:
+      type: object
+      additionalProperties: false
+      properties:
+        origin:
+          type: string
+        value:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+      required:
+        - origin
+        - value
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object

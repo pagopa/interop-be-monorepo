@@ -1,6 +1,7 @@
 import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicyV2,
+  AttributeCertifiedDiscreteComparatorV2,
   DescriptorRejectionReasonV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
@@ -15,18 +16,23 @@ import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
   Descriptor,
   DescriptorRejectionReason,
   DescriptorState,
   Document,
   EService,
   EServiceAttribute,
+  EServiceAttributeCertified,
   EServiceMode,
+  EserviceAttributeCertifiedDiscrete,
   Technology,
   agreementApprovalPolicy,
+  attributeCertifiedDiscreteComparator,
   descriptorState,
   eserviceMode,
   technology,
+  type EServiceAttributeCertifiedDiscreteItems,
 } from "./eservice.js";
 
 const toAgreementApprovalPolicyV2 = (
@@ -82,7 +88,62 @@ export const toEServiceAttributeV2 = (
   values: input.map((i) => ({
     id: i.id,
     explicitAttributeVerification: i.explicitAttributeVerification,
-    dailyCallsPerConsumer: i.dailyCallsPerConsumer,
+  })),
+});
+
+const toAttributeCertifiedDiscreteComparatorV2 = (
+  input: AttributeCertifiedDiscreteComparator
+): AttributeCertifiedDiscreteComparatorV2 =>
+  match(input)
+    .with(
+      attributeCertifiedDiscreteComparator.GT,
+      () => AttributeCertifiedDiscreteComparatorV2.GT
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.LT,
+      () => AttributeCertifiedDiscreteComparatorV2.LT
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.EQ,
+      () => AttributeCertifiedDiscreteComparatorV2.EQ
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.GTE,
+      () => AttributeCertifiedDiscreteComparatorV2.GTE
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.LTE,
+      () => AttributeCertifiedDiscreteComparatorV2.LTE
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.NE,
+      () => AttributeCertifiedDiscreteComparatorV2.NE
+    )
+    .exhaustive();
+
+const toCertifiedDiscreteItemsV2 = (
+  items: EServiceAttributeCertifiedDiscreteItems
+) => ({
+  certifiedDiscreteThreshold: items.certifiedDiscreteThreshold,
+  certifiedDiscreteComparator: toAttributeCertifiedDiscreteComparatorV2(
+    items.certifiedDiscreteComparator
+  ),
+});
+
+export const toEServiceAttributeCertifiedV2 = (
+  input: (EServiceAttributeCertified | EserviceAttributeCertifiedDiscrete)[]
+): EServiceAttributeV2 => ({
+  values: input.map((attribute) => ({
+    id: attribute.id,
+    explicitAttributeVerification: attribute.explicitAttributeVerification,
+    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    ...("certifiedDiscreteItems" in attribute
+      ? {
+          certifiedDiscreteItems: toCertifiedDiscreteItemsV2(
+            attribute.certifiedDiscreteItems
+          ),
+        }
+      : undefined),
   })),
 });
 
@@ -102,7 +163,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
   attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV2),
+    certified: input.attributes.certified.map(toEServiceAttributeCertifiedV2),
     declared: input.attributes.declared.map(toEServiceAttributeV2),
     verified: input.attributes.verified.map(toEServiceAttributeV2),
   },
