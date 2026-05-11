@@ -768,6 +768,10 @@ export function catalogServiceBuilder(
             }
           );
         },
+        {
+          maxFileSizeBytes: config.maxFileSizeBytes,
+          maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+        },
         ctx.logger
       );
 
@@ -1659,6 +1663,10 @@ export function catalogServiceBuilder(
           createEserviceDocumentRequest,
           config.eserviceDocumentsContainer,
           config.eserviceDocumentsPath,
+          {
+            maxFileSizeBytes: config.maxFileSizeBytes,
+            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+          },
           context.logger
         );
       }
@@ -1680,6 +1688,10 @@ export function catalogServiceBuilder(
           createEserviceDocumentRequest,
           config.eserviceDocumentsContainer,
           config.eserviceDocumentsPath,
+          {
+            maxFileSizeBytes: config.maxFileSizeBytes,
+            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+          },
           context.logger
         );
         await pollEServiceById({

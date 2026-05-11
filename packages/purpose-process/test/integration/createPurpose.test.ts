@@ -48,6 +48,7 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
   tenantIsNotTheConsumer,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -522,6 +523,28 @@ describe("createPurpose", () => {
     });
 
     vi.useRealTimers();
+  });
+  it("should throw invalidFreeOfChargeReason if isFreeOfCharge is false and freeOfChargeReason is defined (seed #%#)", async () => {
+    const isFreeOfCharge = false;
+    const freeOfChargeReason = "Some reason";
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      isFreeOfCharge,
+      freeOfChargeReason,
+    };
+
+    expect(
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
+    ).rejects.toThrowError(
+      invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
+    );
   });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
     const seed: purposeApi.PurposeSeed = {
