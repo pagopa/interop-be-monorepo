@@ -28,6 +28,10 @@ export const asyncAuthorizationServerErrorMapper = (
       "asyncExchangeResponseTimeExceeded",
       "entityNumberExceedsMaxResultSet",
       "tokenGenerationStatesEntriesByPurposeIdNotFound",
+      "tokenGenerationStatesEntryNotFound",
+      "resourceAvailableTimeExpired",
+      "asyncExchangeConfirmationNotEnabled",
+      "interactionClientMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

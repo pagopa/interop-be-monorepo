@@ -253,6 +253,8 @@ export function tokenServiceBuilder({
               producer,
               generatedToken: token,
               key,
+              eserviceId,
+              descriptorId,
               clientAssertion: clientAssertionJWT,
               dpop: dpopProofJWT,
               correlationId: getCtx().correlationId,

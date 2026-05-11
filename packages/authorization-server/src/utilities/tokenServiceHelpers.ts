@@ -313,6 +313,8 @@ export const publishAudit = async ({
   producer,
   generatedToken,
   key,
+  eserviceId,
+  descriptorId,
   clientAssertion,
   dpop,
   correlationId,
@@ -322,15 +324,17 @@ export const publishAudit = async ({
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
+  // Explicit eserviceId/descriptorId: for async flows they are pinned on the
+  // Interaction at start_interaction and do NOT follow rewrites of the
+  // token-generation-states row; passing them here keeps the audit coherent.
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
   clientAssertion: ClientAssertion | AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
-  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
-    key.GSIPK_eserviceId_descriptorId
-  );
   const messageBody = buildAuditMessageBody({
     generatedToken,
     clientAssertion,

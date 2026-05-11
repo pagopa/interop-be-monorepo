@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   InteractionId,
@@ -24,6 +25,7 @@ export type InteractionState = z.infer<typeof InteractionState>;
 export const Interaction = z.object({
   PK: InteractionsPK,
   interactionId: InteractionId,
+  clientId: ClientId,
   purposeId: PurposeId,
   consumerId: TenantId,
   eServiceId: EServiceId,
@@ -31,6 +33,7 @@ export const Interaction = z.object({
   state: InteractionState,
   startInteractionTokenIssuedAt: z.string().datetime().optional(),
   callbackInvocationTokenIssuedAt: z.string().datetime().optional(),
+  confirmationTokenIssuedAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime(),
   ttl: z.number(),
 });
