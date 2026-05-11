@@ -406,6 +406,7 @@ export function toCompactDescriptor(
     state: descriptor.state,
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 
