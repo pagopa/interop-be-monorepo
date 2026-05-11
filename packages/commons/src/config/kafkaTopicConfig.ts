@@ -116,6 +116,15 @@ export type PurposeTemplateTopicConfig = z.infer<
   typeof PurposeTemplateTopicConfig
 >;
 
+export const RiskAnalysisTopicConfig = z
+  .object({
+    RISK_ANALYSIS_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    riskAnalysisTopic: c.RISK_ANALYSIS_TOPIC,
+  }));
+export type RiskAnalysisTopicConfig = z.infer<typeof RiskAnalysisTopicConfig>;
+
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
   AgreementTopicConfig,

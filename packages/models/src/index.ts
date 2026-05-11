@@ -32,6 +32,7 @@ export * from "./institution/institution.js";
 export * from "./risk-analysis/riskAnalysis.js";
 export * from "./risk-analysis/riskAnalysisEvents.js";
 export * from "./risk-analysis/protobufConverterToV2.js";
+export * from "./risk-analysis/protobufConverterFromV2.js";
 export * from "./risk-analysis-template/riskAnalysisTemplate.js";
 
 export * from "./tenant/tenant.js";

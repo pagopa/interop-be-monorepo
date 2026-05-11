@@ -69,3 +69,7 @@ export * from "./notification-config/aggregators.js";
 export * from "./purpose-template/purposeTemplateReadModelService.js";
 export * from "./purpose-template/splitters.js";
 export * from "./purpose-template/aggregators.js";
+// RISK ANALYSIS
+export * from "./risk-analysis/riskAnalysisReadModelService.js";
+export * from "./risk-analysis/splitters.js";
+export * from "./risk-analysis/aggregators.js";

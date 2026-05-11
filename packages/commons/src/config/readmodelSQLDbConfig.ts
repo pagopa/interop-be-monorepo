@@ -41,6 +41,9 @@ export const ReadModelSQLDbConfig = z
     READMODEL_SQL_DB_SCHEMA_PURPOSE_TEMPLATE: z
       .string()
       .default("readmodel_purpose_template"),
+    READMODEL_SQL_DB_SCHEMA_RISK_ANALYSIS: z
+      .string()
+      .default("readmodel_risk_analysis"),
     READMODEL_SQL_DB_SCHEMA_TENANT: z.string().default("readmodel_tenant"),
   })
   .transform((c) => ({
@@ -67,6 +70,7 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbSchemaPurpose: c.READMODEL_SQL_DB_SCHEMA_PURPOSE,
     readModelSQLDbSchemaPurposeTemplate:
       c.READMODEL_SQL_DB_SCHEMA_PURPOSE_TEMPLATE,
+    readModelSQLDbSchemaRiskAnalysis: c.READMODEL_SQL_DB_SCHEMA_RISK_ANALYSIS,
     readModelSQLDbSchemaTenant: c.READMODEL_SQL_DB_SCHEMA_TENANT,
   }));
 

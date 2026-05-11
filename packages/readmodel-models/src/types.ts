@@ -65,6 +65,8 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  riskAnalysisInReadmodelRiskAnalysis,
+  riskAnalysisAnswerInReadmodelRiskAnalysis,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -365,4 +367,22 @@ export const purposeTemplateChildTables = [
 export const purposeTemplateTables = [
   purposeTemplateInReadmodelPurposeTemplate,
   ...purposeTemplateChildTables,
+];
+
+export type StandaloneRiskAnalysisSQL = InferSelectModel<
+  typeof riskAnalysisInReadmodelRiskAnalysis
+>;
+export type StandaloneRiskAnalysisAnswerSQL = InferSelectModel<
+  typeof riskAnalysisAnswerInReadmodelRiskAnalysis
+>;
+export type StandaloneRiskAnalysisItemsSQL = {
+  riskAnalysisSQL: StandaloneRiskAnalysisSQL;
+  riskAnalysisAnswersSQL: StandaloneRiskAnalysisAnswerSQL[];
+};
+export const standaloneRiskAnalysisChildTables = [
+  riskAnalysisAnswerInReadmodelRiskAnalysis,
+];
+export const standaloneRiskAnalysisTables = [
+  riskAnalysisInReadmodelRiskAnalysis,
+  ...standaloneRiskAnalysisChildTables,
 ];

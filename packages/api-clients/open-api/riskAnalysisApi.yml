@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: Risk Analysis Process Micro Service
+  description: This service is the risk analysis process
+  version: "{{version}}"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/"
+    description: This service is the risk analysis process
+security:
+  - bearerAuth: []
+tags:
+  - name: process
+    description: Implements risk analysis process
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - OK
+  /risk-analyses/validate:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Validate a risk analysis form
+      operationId: validateRiskAnalysis
+      description: Validates a risk analysis form against the schema for the given tenant kind
+      requestBody:
+        description: A risk analysis validation seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateRiskAnalysisSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisValidationResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /risk-analyses:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a list of risk analyses
+      operationId: getRiskAnalyses
+      description: Retrieves a list of risk analyses with optional filters
+      parameters:
+        - in: query
+          name: context
+          schema:
+            $ref: "#/components/schemas/RiskAnalysisContext"
+        - in: query
+          name: eserviceId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: templateId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: A list of risk analyses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalyses"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a new risk analysis
+      operationId: createRiskAnalysis
+      description: Creates a new standalone risk analysis
+      requestBody:
+        description: A risk analysis seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysis"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /risk-analyses/{riskAnalysisId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: riskAnalysisId
+        in: path
+        description: The risk analysis id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Get a risk analysis by id
+      operationId: getRiskAnalysisById
+      description: Retrieves a risk analysis by its ID
+      responses:
+        "200":
+          description: Risk analysis retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysis"
+        "404":
+          description: Risk analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update a risk analysis
+      operationId: updateRiskAnalysis
+      description: Updates an existing risk analysis
+      requestBody:
+        description: A risk analysis seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysis"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Delete a risk analysis
+      operationId: deleteRiskAnalysis
+      description: Deletes a risk analysis by its ID
+      responses:
+        "204":
+          description: Risk analysis deleted
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Risk analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  schemas:
+    RiskAnalysisContext:
+      type: string
+      enum:
+        - ESERVICE
+        - ESERVICE_TEMPLATE
+    RiskAnalysisFormSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+        - answers
+      properties:
+        version:
+          type: string
+        answers:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    RiskAnalysisSingleAnswer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - key
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        value:
+          type: string
+    RiskAnalysisMultiAnswer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - key
+        - values
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        values:
+          type: array
+          items:
+            type: string
+    RiskAnalysisForm:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - version
+        - singleAnswers
+        - multiAnswers
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        singleAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisSingleAnswer"
+        multiAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisMultiAnswer"
+    RiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - context
+        - riskAnalysisForm
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        context:
+          $ref: "#/components/schemas/RiskAnalysisContext"
+        eserviceId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        tenantKind:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisForm"
+        createdAt:
+          type: string
+          format: date-time
+    RiskAnalysisSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - context
+        - riskAnalysisForm
+      properties:
+        name:
+          type: string
+        context:
+          $ref: "#/components/schemas/RiskAnalysisContext"
+        eserviceId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        tenantKind:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        schemaOnlyValidation:
+          type: boolean
+        personalDataInEservice:
+          type: boolean
+    ValidateRiskAnalysisSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - context
+        - tenantKind
+        - riskAnalysisForm
+      properties:
+        context:
+          $ref: "#/components/schemas/RiskAnalysisContext"
+        tenantKind:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        schemaOnlyValidation:
+          type: boolean
+        personalDataInEservice:
+          type: boolean
+    RiskAnalysisValidationIssue:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - detail
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: number
+              - type: boolean
+    RiskAnalysisValidationResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - valid
+        - issues
+      properties:
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisValidationIssue"
+        normalizedForm:
+          $ref: "#/components/schemas/RiskAnalysisForm"
+    RiskAnalyses:
+      type: object
+      additionalProperties: false
+      required:
+        - results
+        - totalCount
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysis"
+        totalCount:
+          type: integer
+          format: int32
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: "123-4567"
+          maxLength: 8
+          minLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+      additionalProperties: false
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

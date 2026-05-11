@@ -23,6 +23,7 @@ import {
   readmodelProducerJwkKey,
   readmodelEserviceTemplate,
   readmodelNotificationConfig,
+  readmodelRiskAnalysis,
 } from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
@@ -2283,6 +2284,60 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
       primaryKey({
         columns: [table.purposeTemplateId, table.eserviceId],
         name: "purpose_template_eservice_descriptor_pkey",
+      }),
+    ]
+  );
+
+export const riskAnalysisInReadmodelRiskAnalysis = readmodelRiskAnalysis.table(
+  "risk_analysis",
+  {
+    id: uuid().primaryKey().notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    name: varchar().notNull(),
+    context: varchar().notNull(),
+    eserviceId: uuid("eservice_id"),
+    templateId: uuid("template_id"),
+    tenantKind: varchar("tenant_kind"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+    riskAnalysisFormVersion: varchar("risk_analysis_form_version").notNull(),
+  },
+  (table) => [
+    unique("risk_analysis_id_metadata_version_unique").on(
+      table.id,
+      table.metadataVersion
+    ),
+  ]
+);
+
+export const riskAnalysisAnswerInReadmodelRiskAnalysis =
+  readmodelRiskAnalysis.table(
+    "risk_analysis_answer",
+    {
+      id: uuid().primaryKey().notNull(),
+      riskAnalysisId: uuid("risk_analysis_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
+      kind: varchar().notNull(),
+      key: varchar().notNull(),
+      value: varchar().array().notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.riskAnalysisId],
+        foreignColumns: [riskAnalysisInReadmodelRiskAnalysis.id],
+        name: "risk_analysis_answer_risk_analysis_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.riskAnalysisId, table.metadataVersion],
+        foreignColumns: [
+          riskAnalysisInReadmodelRiskAnalysis.id,
+          riskAnalysisInReadmodelRiskAnalysis.metadataVersion,
+        ],
+        name: "risk_analysis_answer_risk_analysis_id_metadata_version_fkey",
       }),
     ]
   );

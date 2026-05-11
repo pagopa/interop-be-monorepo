@@ -34,3 +34,6 @@ export const readmodelNotificationConfig = pgSchema(
 export const readmodelPurposeTemplate = pgSchema(
   config.readModelSQLDbSchemaPurposeTemplate
 );
+export const readmodelRiskAnalysis = pgSchema(
+  config.readModelSQLDbSchemaRiskAnalysis
+);
