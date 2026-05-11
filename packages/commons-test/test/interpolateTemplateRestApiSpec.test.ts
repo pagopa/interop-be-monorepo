@@ -98,6 +98,7 @@ describe("interpolateTemplateRestApiSpec", async () => {
 
     expect(yamlString).not.toMatch(/&a\d+/);
     expect(yamlString).not.toMatch(/\*a\d+/);
+    expect(yamlString).toContain("$ref");
   });
 
   it("should throw invalidInterfaceFileDetected error for unsupported file type", async () => {
