@@ -28,6 +28,7 @@ import {
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -135,6 +136,10 @@ export type EServiceTemplateRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceTemplateVersionAttributeSQL = InferSelectModel<
   typeof eserviceTemplateVersionAttributeInReadmodelEserviceTemplate
 >;
+export type EServiceTemplateVersionAsyncExchangePropertiesSQL =
+  InferSelectModel<
+    typeof eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+  >;
 export type EServiceTemplateItemsSQL = {
   eserviceTemplateSQL: EServiceTemplateSQL;
   riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
@@ -143,6 +148,7 @@ export type EServiceTemplateItemsSQL = {
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
 };
 
 export type AttributeSQL = InferSelectModel<

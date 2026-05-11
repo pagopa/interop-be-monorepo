@@ -42,6 +42,8 @@ const errorCodes = {
   eServiceTemplateUpdateSameDescriptionConflict: "0032",
   eserviceTemplateAsyncExchangeNotEnabled: "0033",
   asyncExchangeCallbackInterfaceAlreadyExists: "0034",
+  missingAsyncExchangeProperties: "0035",
+  asyncExchangeBulkNotAllowedForSoap: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -373,5 +375,27 @@ export function asyncExchangeCallbackInterfaceAlreadyExists(
     detail: `Async exchange callback interface already exists in version ${eserviceTemplateVersionId}`,
     code: "asyncExchangeCallbackInterfaceAlreadyExists",
     title: "Async exchange callback interface already exists",
+  });
+}
+
+export function missingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "missingAsyncExchangeProperties",
+    title: "Missing async exchange properties",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange bulk is not allowed for SOAP technology in version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP",
   });
 }

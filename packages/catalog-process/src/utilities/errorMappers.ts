@@ -48,6 +48,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
       "eServiceTemplateWithoutPersonalDataFlag",
+      "templateVersionMissingAsyncExchangeProperties",
       "invalidDelegationFlags",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -129,6 +130,7 @@ export const documentCreateErrorMapper = (
     .with(
       "eServiceAsyncExchangeNotEnabled",
       "descriptorAsyncExchangeNotConfigured",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
