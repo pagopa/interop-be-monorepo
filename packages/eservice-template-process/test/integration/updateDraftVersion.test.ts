@@ -19,6 +19,7 @@ import {
   eserviceTemplateVersionState,
   operationForbidden,
   AttributeId,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,6 +28,7 @@ import {
   eserviceTemplateVersionNotFound,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -405,6 +407,44 @@ describe("update draft version", () => {
     });
     expect(writtenPayload.eserviceTemplate).toEqual(
       toEServiceTemplateV2(updatedEServiceTemplate)
+    );
+  });
+
+  it("should reject version update when technology is SOAP and async exchange bulk is true", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: descriptorState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      technology: technology.soap,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const versionSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed = {
+      ...buildUpdateVersionSeed(version),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    await expect(
+      eserviceTemplateService.updateDraftTemplateVersion(
+        eserviceTemplate.id,
+        version.id,
+        versionSeed,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eserviceTemplate.id, version.id)
     );
   });
 
