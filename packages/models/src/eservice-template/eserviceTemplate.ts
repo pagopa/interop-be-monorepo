@@ -30,7 +30,6 @@ export type EServiceTemplateVersionState = z.infer<
 
 export const EServiceTemplateAttribute = z.object({
   id: AttributeId,
-  explicitAttributeVerification: z.boolean(),
 });
 export type EServiceTemplateAttribute = z.infer<
   typeof EServiceTemplateAttribute

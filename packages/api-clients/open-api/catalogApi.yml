@@ -3289,8 +3289,6 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -3298,7 +3296,6 @@ components:
           maximum: 1000000000
       required:
         - id
-        - explicitAttributeVerification
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -3761,15 +3758,12 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 1
       required:
         - id
-        - explicitAttributeVerification
     Attributes:
       properties:
         certified:

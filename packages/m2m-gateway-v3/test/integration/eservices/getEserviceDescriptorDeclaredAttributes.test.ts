@@ -27,32 +27,26 @@ import { toM2MGatewayApiDeclaredAttribute } from "../../../src/api/attributeApiC
 describe("getEserviceDescriptorDeclaredAttributes", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute4: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute5: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute6: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const bulkAttribute1: attributeRegistryApi.Attribute = {
@@ -225,9 +219,7 @@ describe("getEserviceDescriptorDeclaredAttributes", () => {
     const descriptorWithMissingAttribute: catalogApi.EServiceDescriptor = {
       ...getMockedApiEserviceDescriptor(),
       attributes: {
-        declared: [
-          [{ id: MISSING_ATTRIBUTE_ID, explicitAttributeVerification: false }],
-        ],
+        declared: [[{ id: MISSING_ATTRIBUTE_ID }]],
         certified: [],
         verified: [],
       },

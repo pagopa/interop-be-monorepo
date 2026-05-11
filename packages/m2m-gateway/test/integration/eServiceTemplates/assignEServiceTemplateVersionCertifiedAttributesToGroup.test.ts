@@ -112,7 +112,6 @@ describe("assignEServiceTemplateVersionCertifiedAttributesToGroup", () => {
                   ...group,
                   ...seed.attributeIds.map((id) => ({
                     id,
-                    explicitAttributeVerification: false,
                   })),
                 ];
               }
