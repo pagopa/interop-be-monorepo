@@ -106,6 +106,8 @@ import {
   TenantVerifiedAttributeSQL,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   TenantVerifiedAttributeVerifierSQL,
+  tenantRemoteIdInReadmodelTenant,
+  TenantRemoteIdSQL,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -283,6 +285,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       ] = await Promise.all([
         readTenantsSQL(readModelDB),
         readTenantMailsSQL(readModelDB),
@@ -292,6 +295,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         readTenantVerifiedAttributeVerifiersSQL(readModelDB),
         readTenantVerifiedAttributeRevokersSQL(readModelDB),
         readTenantFeaturesSQL(readModelDB),
+        readTenantRemoteIdsSQL(readModelDB),
       ]);
 
       return aggregateTenantArray({
@@ -303,6 +307,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 
@@ -679,3 +684,8 @@ const readTenantFeaturesSQL = async (
   readModelDB: DrizzleReturnType
 ): Promise<TenantFeatureSQL[]> =>
   await readModelDB.select().from(tenantFeatureInReadmodelTenant);
+
+const readTenantRemoteIdsSQL = async (
+  readModelDB: DrizzleReturnType
+): Promise<TenantRemoteIdSQL[]> =>
+  await readModelDB.select().from(tenantRemoteIdInReadmodelTenant);

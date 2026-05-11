@@ -97,3 +97,13 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature (
   PRIMARY KEY (tenant_id, kind),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
+
+CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_remote_id (
+  tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  origin VARCHAR NOT NULL,
+  value VARCHAR NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (tenant_id, origin, value),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);

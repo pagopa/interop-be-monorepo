@@ -202,6 +202,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_feature
       );
+      const remoteIdsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_remote_id
+      );
+
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
@@ -211,6 +216,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 

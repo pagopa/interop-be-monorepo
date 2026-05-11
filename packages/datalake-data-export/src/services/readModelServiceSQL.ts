@@ -66,6 +66,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           verifier: sql<null>`NULL`,
           revoker: sql<null>`NULL`,
           feature: sql<null>`NULL`,
+          remoteId: sql<null>`NULL`,
         })
         .from(tenantInReadmodelTenant)
         .where(isNotNull(tenantInReadmodelTenant.selfcareId));

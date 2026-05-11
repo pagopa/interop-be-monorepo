@@ -12,6 +12,7 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -22,7 +23,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
   const updateTenantVersionInRelatedTable = async (
     tx: DrizzleTransactionType,
     tenantId: TenantId,
-    newVersion: number
+    newVersion: number,
   ): Promise<void> => {
     const tenantRelatedTables = [
       tenantMailInReadmodelTenant,
@@ -32,6 +33,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
       tenantVerifiedAttributeVerifierInReadmodelTenant,
       tenantVerifiedAttributeRevokerInReadmodelTenant,
       tenantFeatureInReadmodelTenant,
+      tenantRemoteIdInReadmodelTenant,
     ];
     await tx
       .update(tenantInReadmodelTenant)
@@ -39,8 +41,8 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
       .where(
         and(
           eq(tenantInReadmodelTenant.id, tenantId),
-          lte(tenantInReadmodelTenant.metadataVersion, newVersion)
-        )
+          lte(tenantInReadmodelTenant.metadataVersion, newVersion),
+        ),
       );
 
     for (const table of tenantRelatedTables) {
@@ -50,8 +52,8 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         .where(
           and(
             eq(table.tenantId, tenantId),
-            lte(table.metadataVersion, newVersion)
-          )
+            lte(table.metadataVersion, newVersion),
+          ),
         );
     }
   };
@@ -67,6 +69,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
@@ -74,7 +77,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
           tx,
           tenantInReadmodelTenant,
           metadataVersion,
-          tenant.id
+          tenant.id,
         );
 
         if (!shouldUpsert) {
@@ -124,6 +127,9 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         for (const featureSQL of featuresSQL) {
           await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
         }
+        for (const remoteIdSQL of remoteIdsSQL) {
+          await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
+        }
       });
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
@@ -132,14 +138,14 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         .where(
           and(
             eq(tenantInReadmodelTenant.id, tenantId),
-            lte(tenantInReadmodelTenant.metadataVersion, version)
-          )
+            lte(tenantInReadmodelTenant.metadataVersion, version),
+          ),
         );
     },
     async deleteTenantMailById(
       tenantId: TenantId,
       tenantMailId: string,
-      version: number
+      version: number,
     ): Promise<void> {
       await db.transaction(async (tx) => {
         await tx
@@ -148,8 +154,8 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
             and(
               eq(tenantMailInReadmodelTenant.id, tenantMailId),
               eq(tenantMailInReadmodelTenant.tenantId, tenantId),
-              lte(tenantMailInReadmodelTenant.metadataVersion, version)
-            )
+              lte(tenantMailInReadmodelTenant.metadataVersion, version),
+            ),
           );
 
         await updateTenantVersionInRelatedTable(tx, tenantId, version);
@@ -158,7 +164,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
     async setSelfcareId(
       tenantId: TenantId,
       selfcareId: string,
-      version: number
+      version: number,
     ): Promise<void> {
       await db.transaction(async (tx) => {
         await tx
@@ -167,8 +173,8 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
           .where(
             and(
               eq(tenantInReadmodelTenant.id, tenantId),
-              lte(tenantInReadmodelTenant.metadataVersion, version)
-            )
+              lte(tenantInReadmodelTenant.metadataVersion, version),
+            ),
           );
 
         await updateTenantVersionInRelatedTable(tx, tenantId, version);

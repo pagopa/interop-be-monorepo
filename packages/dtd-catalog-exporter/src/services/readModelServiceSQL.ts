@@ -36,6 +36,8 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
+  TenantRemoteIdSQL,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEserviceArray,
@@ -200,6 +202,7 @@ export function readModelServiceBuilderSQL(
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL,
         ] = await Promise.all([
           readAllTenantsSQL(tx),
           readAllTenantMailsSQL(tx),
@@ -209,6 +212,7 @@ export function readModelServiceBuilderSQL(
           readAllTenantVerifiedAttributeVerifiersSQL(tx),
           readAllTenantVerifiedAttributeRevokersSQL(tx),
           readAllTenantFeaturesSQL(tx),
+          readAllTenantRemoteIdsSQL(tx),
         ]);
 
         const tenantsWithMetadata = aggregateTenantArray({
@@ -220,6 +224,7 @@ export function readModelServiceBuilderSQL(
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL,
         });
 
         return tenantsWithMetadata.map((tenant) => tenant.data);
@@ -272,3 +277,8 @@ const readAllTenantFeaturesSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantFeatureSQL[]> =>
   await tx.select().from(tenantFeatureInReadmodelTenant);
+
+const readAllTenantRemoteIdsSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantRemoteIdSQL[]> =>
+  await tx.select().from(tenantRemoteIdInReadmodelTenant);

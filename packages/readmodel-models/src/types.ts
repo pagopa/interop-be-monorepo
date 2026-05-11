@@ -65,6 +65,7 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  tenantRemoteIdInReadmodelTenant,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -193,6 +194,10 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
+export type TenantRemoteIdSQL = InferSelectModel<
+  typeof tenantRemoteIdInReadmodelTenant
+>;
+
 export type TenantItemsSQL = {
   tenantSQL: TenantSQL;
   mailsSQL: TenantMailSQL[];
@@ -202,6 +207,7 @@ export type TenantItemsSQL = {
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
+  remoteIdsSQL: TenantRemoteIdSQL[];
 };
 
 export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;

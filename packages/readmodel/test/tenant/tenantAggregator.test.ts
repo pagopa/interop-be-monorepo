@@ -19,6 +19,7 @@ import {
   tenantFeatureType,
   tenantKind,
   TenantMail,
+  TenantRemoteId,
   TenantRevoker,
   tenantUnitType,
   TenantVerifier,
@@ -91,6 +92,11 @@ describe("Tenant aggregators", () => {
       origin: "IPA",
       value: generateId(),
     };
+    const remoteId: TenantRemoteId = {
+      origin: "ISTAT",
+      value: "ISTAT-VALUE",
+      assignment_timestamp: new Date(),
+    };
     const tenant: Tenant = {
       ...getMockTenant(),
       selfcareId,
@@ -110,6 +116,7 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedConsumer,
         TenantFeatureDelegatedProducer,
       ],
+      remoteId: [remoteId],
     };
 
     const {
@@ -121,6 +128,7 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -132,6 +140,7 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({
@@ -194,6 +203,12 @@ describe("Tenant aggregators", () => {
       origin: "IPA",
       value: generateId(),
     };
+
+    const remoteId: TenantRemoteId = {
+      origin: "ISTAT",
+      value: "ISTAT-VALUE",
+      assignment_timestamp: new Date(),
+    };
     const tenant: Tenant = {
       ...getMockTenant(),
       selfcareId,
@@ -210,6 +225,7 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedConsumer,
         TenantFeatureDelegatedProducer,
       ],
+      remoteId: [remoteId],
     };
 
     const {
@@ -221,6 +237,7 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -232,6 +249,7 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({

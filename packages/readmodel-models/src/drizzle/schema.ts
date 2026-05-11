@@ -1451,6 +1451,39 @@ export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
   ]
 );
 
+export const tenantRemoteIdInReadmodelTenant = readmodelTenant.table(
+  "tenant_remote_id",
+  {
+    tenantId: uuid("tenant_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    origin: varchar("origin").notNull(),
+    value: varchar("value").notNull(),
+    assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.tenantId, table.origin, table.value],
+      name: "tenant_remote_id_pkey",
+    }),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenantInReadmodelTenant.id],
+      name: "tenant_remote_id_tenant_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.metadataVersion],
+      foreignColumns: [
+        tenantInReadmodelTenant.id,
+        tenantInReadmodelTenant.metadataVersion,
+      ],
+      name: "tenant_remote_id_tenant_id_metadata_version_fkey",
+    }),
+  ]
+);
+
 export const agreementStampInReadmodelAgreement = readmodelAgreement.table(
   "agreement_stamp",
   {

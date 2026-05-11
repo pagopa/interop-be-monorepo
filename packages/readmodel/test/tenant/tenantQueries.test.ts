@@ -13,6 +13,7 @@ import {
   Tenant,
   tenantFeatureType,
   tenantKind,
+  TenantRemoteId,
   TenantRevoker,
   tenantUnitType,
   TenantVerifier,
@@ -46,6 +47,12 @@ describe("Tenant Queries", () => {
         expirationDate: new Date(),
         extensionDate: new Date(),
         delegationId,
+      };
+
+      const remoteId: TenantRemoteId = {
+        origin: "ISTAT",
+        value: "istat-value",
+        assignment_timestamp: new Date(),
       };
 
       const tenant: WithMetadata<Tenant> = {
@@ -90,6 +97,7 @@ describe("Tenant Queries", () => {
               assignmentTimestamp: new Date(),
             },
           ],
+          remoteId: [remoteId],
         },
         metadata: {
           version: 1,

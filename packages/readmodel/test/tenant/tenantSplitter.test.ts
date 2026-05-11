@@ -20,6 +20,7 @@ import {
   tenantFeatureType,
   tenantKind,
   TenantMail,
+  TenantRemoteId,
   TenantRevoker,
   tenantUnitType,
   TenantVerifier,
@@ -31,6 +32,7 @@ import {
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -102,6 +104,13 @@ describe("Tenant splitters", () => {
         origin: "IPA",
         value: generateId(),
       };
+
+      const remoteId: TenantRemoteId = {
+        origin: "ISTAT",
+        value: "istat-value",
+        assignment_timestamp: new Date(),
+      };
+
       const tenant: Tenant = {
         ...getMockTenant(),
         selfcareId,
@@ -120,6 +129,7 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedConsumer,
           tenantFeatureDelegatedProducer,
         ],
+        remoteId: [remoteId],
       };
 
       const {
@@ -131,6 +141,7 @@ describe("Tenant splitters", () => {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, 1);
 
       const expectedTenantSQL: TenantSQL = {
@@ -234,6 +245,14 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
 
+      const expectedTenantRemoteIdSQL: TenantRemoteIdSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        origin: remoteId.origin,
+        value: remoteId.value,
+        assignmentTimestamp: remoteId.assignment_timestamp.toISOString(),
+      };
+
       expect(tenantSQL).toStrictEqual(expectedTenantSQL);
       expect(mailsSQL).toStrictEqual([expectedTenantMailSQL]);
       expect(certifiedAttributesSQL).toStrictEqual([
@@ -258,6 +277,7 @@ describe("Tenant splitters", () => {
           expectedTenantFeatureDelegatedProducerSQL,
         ])
       );
+      expect(remoteIdsSQL).toStrictEqual([expectedTenantRemoteIdSQL]);
     });
     it("should convert undefined into null", () => {
       const tenantMail: TenantMail = {

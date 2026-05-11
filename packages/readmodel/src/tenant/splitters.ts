@@ -11,6 +11,7 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   dateToString,
+  TenantRemoteId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -19,6 +20,7 @@ import {
   TenantFeatureSQL,
   TenantItemsSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -40,6 +42,7 @@ export const splitTenantIntoObjectsSQL = (
     onboardedAt,
     subUnitType,
     selfcareInstitutionType,
+    remoteId,
     ...rest
   }: Tenant,
   metadataVersion: number
@@ -99,6 +102,11 @@ export const splitTenantIntoObjectsSQL = (
       .exhaustive()
   );
 
+  const remoteIdsSQL: TenantRemoteIdSQL[] =
+    remoteId?.map((rId) =>
+      tenantRemoteIdToTenantRemoteIdSQL(rId, id, metadataVersion)
+    ) ?? [];
+
   return {
     tenantSQL,
     mailsSQL,
@@ -108,6 +116,7 @@ export const splitTenantIntoObjectsSQL = (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   };
 };
 
@@ -125,6 +134,21 @@ const tenantMailToTenantMailSQL = (
     address,
     description: description || null,
     createdAt: dateToString(createdAt),
+  };
+};
+
+const tenantRemoteIdToTenantRemoteIdSQL = (
+  { origin, value, assignment_timestamp, ...rest }: TenantRemoteId,
+  tenantId: TenantId,
+  metadataVersion: number
+): TenantRemoteIdSQL => {
+  void (rest satisfies Record<string, never>);
+  return {
+    tenantId,
+    metadataVersion,
+    origin,
+    value,
+    assignmentTimestamp: dateToString(assignment_timestamp),
   };
 };
 

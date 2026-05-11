@@ -18,6 +18,7 @@ import {
   TenantKind,
   TenantMail,
   TenantMailKind,
+  TenantRemoteId,
   TenantRevoker,
   TenantUnitType,
   TenantVerifier,
@@ -32,6 +33,7 @@ import {
   TenantFeatureSQL,
   TenantItemsSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -48,6 +50,7 @@ export const aggregateTenant = ({
   verifiedAttributeVerifiersSQL,
   verifiedAttributeRevokersSQL,
   featuresSQL,
+  remoteIdsSQL,
 }: TenantItemsSQL): WithMetadata<Tenant> => {
   const mails = mailsSQL.map(tenantMailSQLToTenantMail);
 
@@ -97,6 +100,12 @@ export const aggregateTenant = ({
       .exhaustive()
   );
 
+  const remoteId: TenantRemoteId[] = remoteIdsSQL.map((r) => ({
+    origin: r.origin,
+    value: r.value,
+    assignment_timestamp: stringToDate(r.assignmentTimestamp),
+  }));
+
   const tenant: Tenant = {
     id: unsafeBrandId(tenantSQL.id),
     name: tenantSQL.name,
@@ -123,6 +132,7 @@ export const aggregateTenant = ({
     },
     features,
     mails,
+    remoteId,
   };
   return {
     data: tenant,
@@ -141,6 +151,7 @@ export const aggregateTenantArray = ({
   verifiedAttributeVerifiersSQL,
   verifiedAttributeRevokersSQL,
   featuresSQL,
+  remoteIdsSQL,
 }: {
   tenantsSQL: TenantSQL[];
   mailsSQL: TenantMailSQL[];
@@ -150,6 +161,7 @@ export const aggregateTenantArray = ({
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
+  remoteIdsSQL: TenantRemoteIdSQL[];
 }): Array<WithMetadata<Tenant>> => {
   const mailsSQLByTenantId = createTenantSQLPropertyMap(mailsSQL);
   const certifiedAttributesSQLByTenantId = createTenantSQLPropertyMap(
@@ -168,6 +180,7 @@ export const aggregateTenantArray = ({
     verifiedAttributeRevokersSQL
   );
   const featuresSQLByTenantId = createTenantSQLPropertyMap(featuresSQL);
+  const remoteIdsSQLByTenantId = createTenantSQLPropertyMap(remoteIdsSQL);
 
   return tenantsSQL.map((tenantSQL) => {
     const tenantId = unsafeBrandId<TenantId>(tenantSQL.id);
@@ -185,6 +198,7 @@ export const aggregateTenantArray = ({
       verifiedAttributeRevokersSQL:
         verifiedAttributeRevokersSQLByTenantId.get(tenantId) || [],
       featuresSQL: featuresSQLByTenantId.get(tenantId) || [],
+      remoteIdsSQL: remoteIdsSQLByTenantId.get(tenantId) || [],
     });
   });
 };
@@ -197,7 +211,8 @@ const createTenantSQLPropertyMap = <
     | TenantVerifiedAttributeSQL
     | TenantVerifiedAttributeVerifierSQL
     | TenantVerifiedAttributeRevokerSQL
-    | TenantFeatureSQL,
+    | TenantFeatureSQL
+    | TenantRemoteIdSQL,
 >(
   items: T[]
 ): Map<TenantId, T[]> =>
@@ -379,6 +394,7 @@ export const toTenantAggregator = (
     verifier: TenantVerifiedAttributeVerifierSQL | null;
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
+    remoteId: TenantRemoteIdSQL | null;
   }>
 ): TenantItemsSQL => {
   const {
@@ -390,6 +406,7 @@ export const toTenantAggregator = (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   } = toTenantAggregatorArray(queryRes);
 
   throwIfMultiple(tenantsSQL, "tenant");
@@ -403,6 +420,7 @@ export const toTenantAggregator = (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   };
 };
 
@@ -416,6 +434,7 @@ export const toTenantAggregatorArray = (
     verifier: TenantVerifiedAttributeVerifierSQL | null;
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
+    remoteId: TenantRemoteIdSQL | null;
   }>
 ): {
   tenantsSQL: TenantSQL[];
@@ -426,6 +445,7 @@ export const toTenantAggregatorArray = (
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
+  remoteIdsSQL: TenantRemoteIdSQL[];
 } => {
   const tenantIdSet = new Set<string>();
   const tenantsSQL: TenantSQL[] = [];
@@ -452,6 +472,8 @@ export const toTenantAggregatorArray = (
   const featureIdSet = new Set<string>();
   const featuresSQL: TenantFeatureSQL[] = [];
 
+  const remoteIdIdSet = new Set<string>();
+  const remoteIdsSQL: TenantRemoteIdSQL[] = [];
   // eslint-disable-next-line complexity, sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const tenantSQL = row.tenant;
@@ -564,6 +586,15 @@ export const toTenantAggregatorArray = (
       // eslint-disable-next-line functional/immutable-data
       featuresSQL.push(feature);
     }
+    const remoteId = row.remoteId;
+    const remoteIdPK = remoteId
+      ? makeUniqueKey([remoteId.tenantId, remoteId.origin, remoteId.value])
+      : undefined;
+    if (remoteId && remoteIdPK && !remoteIdIdSet.has(remoteIdPK)) {
+      remoteIdIdSet.add(remoteIdPK);
+      // eslint-disable-next-line functional/immutable-data
+      remoteIdsSQL.push(remoteId);
+    }
   });
 
   return {
@@ -575,5 +606,6 @@ export const toTenantAggregatorArray = (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   };
 };
