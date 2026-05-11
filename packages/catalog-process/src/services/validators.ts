@@ -27,6 +27,7 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
+  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -52,6 +53,7 @@ import {
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
+  notValidEServiceState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -122,6 +124,24 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       () => false
     )
     .exhaustive();
+}
+
+function isEserviceArchivable(eservice: EService): boolean {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  return latestDescriptor
+    ? match(latestDescriptor.state)
+        .with(descriptorState.published, descriptorState.suspended, () => true)
+        .with(
+          descriptorState.deprecated,
+          descriptorState.waitingForApproval,
+          descriptorState.archived,
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          descriptorState.draft,
+          () => false
+        )
+        .exhaustive()
+    : false;
 }
 
 function isDescriptorArchivable(
@@ -487,6 +507,21 @@ export function assertDescriptorArchivable(
   eservice: EService
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEServiceArchivable(eservice: EService): void {
+  if (!isEserviceArchivable(eservice)) {
+    throw notValidEServiceState(eservice.id);
+  }
+}
+
+export function assertDescriptorInRequiredStates(
+  descriptor: Descriptor,
+  states: DescriptorState[]
+): void {
+  if (!states.includes(descriptor.state)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }

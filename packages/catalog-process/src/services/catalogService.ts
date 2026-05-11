@@ -155,6 +155,7 @@ import {
   toCreateEventEServiceDescriptorArchivingScheduled,
   toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
+  toCreateEventEServiceArchivingScheduled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -195,6 +196,7 @@ import {
   assertDescriptorArchivable,
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
+  assertEServiceArchivable,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1103,6 +1105,40 @@ export function catalogServiceBuilder(
       }
     },
 
+    async scheduleEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.ArchivingReason,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(`Archiving EService ${eserviceId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertEServiceArchivable(eservice.data);
+
+      const updatedEService = await processEserviceArchiving(
+        eservice.data,
+        body,
+        fileManager,
+        logger
+      );
+
+      const event = toCreateEventEServiceArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -3865,6 +3901,53 @@ export function catalogServiceBuilder(
         )
       );
     },
+  };
+}
+
+async function processEserviceArchiving(
+  eservice: EService,
+  body: catalogApi.ArchivingReason,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  const descriptors = await Promise.all(
+    eservice.descriptors.map((descriptor) =>
+      match(descriptor.state)
+        .with(
+          descriptorState.archived,
+          descriptorState.archivingSuspended,
+          descriptorState.archiving,
+          () => Promise.resolve(descriptor)
+        )
+        .with(descriptorState.published, descriptorState.deprecated, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archiving,
+            archivingScope.eservice
+          )
+        )
+        .with(descriptorState.suspended, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archivingSuspended,
+            archivingScope.eservice
+          )
+        )
+        .with(
+          descriptorState.draft,
+          descriptorState.waitingForApproval,
+          () =>
+            deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger) ||
+            null
+        )
+        .exhaustive()
+    )
+  );
+
+  return {
+    ...eservice,
+    archivingReason: body.archivingReason,
+    descriptors: descriptors.filter((d): d is Descriptor => d !== null),
   };
 }
 
