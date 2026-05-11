@@ -550,15 +550,6 @@ export function eserviceTemplateServiceBuilder(
             eserviceTemplateVersionId
           );
         }
-        if (
-          eserviceTemplate.data.technology === technology.soap &&
-          eserviceTemplateVersion.asyncExchangeProperties.bulk === true
-        ) {
-          throw asyncExchangeBulkNotAllowedForSoap(
-            eserviceTemplateId,
-            eserviceTemplateVersionId
-          );
-        }
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -936,17 +927,7 @@ export function eserviceTemplateServiceBuilder(
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
 
-      if (version.interface) {
-        await fileManager.delete(
-          config.s3Bucket,
-          version.interface.path,
-          logger
-        );
-      }
-
-      for (const document of version.docs) {
-        await fileManager.delete(config.s3Bucket, document.path, logger);
-      }
+      await deleteVersionInterfaceAndDocs(version, fileManager, logger);
 
       if (isLastVersion) {
         await repository.createEvent(
@@ -1674,6 +1655,13 @@ export function eserviceTemplateServiceBuilder(
         if (eserviceTemplate.data.asyncExchange !== true) {
           throw eserviceTemplateAsyncExchangeNotEnabled(
             eserviceTemplate.data.id
+          );
+        }
+
+        if (version.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplate.data.id,
+            version.id
           );
         }
 
@@ -2445,6 +2433,17 @@ async function updateDraftEServiceTemplateVersion(
         )
         .exhaustive()
     : eserviceTemplateVersion.asyncExchangeProperties;
+
+  if (
+    asyncExchangeEnabled &&
+    eserviceTemplate.data.technology === technology.soap &&
+    updatedAsyncExchangeProperties?.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(
+      eserviceTemplate.data.id,
+      eserviceTemplateVersion.id
+    );
+  }
 
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,

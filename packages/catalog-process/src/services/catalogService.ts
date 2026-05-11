@@ -194,6 +194,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
@@ -1487,6 +1488,13 @@ export function catalogServiceBuilder(
             : undefined,
       });
 
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        eservice.data.technology,
+        newDescriptor.asyncExchangeProperties,
+        eservice.data.id,
+        newDescriptor.id
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
@@ -1822,7 +1830,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -2926,7 +2933,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -4793,6 +4799,13 @@ async function updateDraftDescriptor(
         : descriptor.asyncExchangeProperties
       : descriptor.asyncExchangeProperties,
   };
+
+  assertAsyncExchangeBulkAllowedForDescriptor(
+    eservice.data.technology,
+    updatedDescriptor.asyncExchangeProperties,
+    eservice.data.id,
+    descriptor.id
+  );
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 

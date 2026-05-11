@@ -24,6 +24,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
+  technology,
   attributeKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -819,6 +820,37 @@ describe("create descriptor", async () => {
     expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
     expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(true);
     expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
+  });
+
+  it("should reject descriptor creation when technology is SOAP and async exchange bulk is true", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: "asyncExchangeBulkNotAllowedForSoap",
+    });
   });
 
   it("should ignore async exchange descriptor fields when flag ON but asyncExchange false", async () => {
