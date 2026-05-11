@@ -11,6 +11,7 @@ packages/api-clients/open-api/m2mEventApi.yml @beetlecrunch @galales @Carminepo2
 packages/api-clients/open-api/m2mGatewayApi.yml @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/api-clients/open-api/m2mGatewayApiV3.yml @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/authorization-server/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
+packages/client-assertion-validation/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/commons/src/auth/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/commons/src/config/authorizationServerTokenGenerationConfig.ts @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/commons/src/config/dpopConfig.ts @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
@@ -20,4 +21,7 @@ packages/commons/src/interop-token/ @beetlecrunch @galales @Carminepo2 @taglioni
 packages/commons/src/rate-limiter/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/commons/src/utils/date.ts @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/dpop-validation/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
+packages/models/src/authorization/key.ts @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
+packages/models/src/client-assertion/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
+packages/models/src/token-generation-readmodel/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
 packages/token-details-persister/ @beetlecrunch @galales @Carminepo2 @taglioni-r @paolomanca-pagopa @shuyec
