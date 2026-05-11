@@ -2,6 +2,8 @@ import {
   attributeKind,
   EServiceId,
   EServiceAttribute,
+  EServiceAttributeCertified,
+  EserviceAttributeCertifiedDiscrete,
   DescriptorId,
   riskAnalysisAnswerKind,
   AttributeKind,
@@ -136,7 +138,10 @@ const attributeToAttributeSQL = ({
   eserviceId,
   version,
 }: {
-  attribute: EServiceAttribute;
+  attribute:
+    | EServiceAttribute
+    | EServiceAttributeCertified
+    | EserviceAttributeCertifiedDiscrete;
   descriptorId: DescriptorId;
   groupId: number;
   kind: AttributeKind;
@@ -150,12 +155,29 @@ const attributeToAttributeSQL = ({
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind,
   groupId,
-  dailyCallsPerConsumer: attribute.dailyCallsPerConsumer || null,
+  dailyCallsPerConsumer:
+    "dailyCallsPerConsumer" in attribute
+      ? attribute.dailyCallsPerConsumer ?? null
+      : null,
+  certifiedDiscreteThreshold:
+    "certifiedDiscreteItems" in attribute
+      ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+      : null,
+  certifiedDiscreteComparator:
+    "certifiedDiscreteItems" in attribute
+      ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+      : null,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (
   descriptorId: DescriptorId,
-  attributes: EServiceAttribute[][],
+  attributes: Array<
+    Array<
+      | EServiceAttribute
+      | EServiceAttributeCertified
+      | EserviceAttributeCertifiedDiscrete
+    >
+  >,
   kind: AttributeKind,
   eserviceId: EServiceId,
   version: number

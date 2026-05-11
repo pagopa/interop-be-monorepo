@@ -17,10 +17,12 @@ import {
   stringToDate,
   EServiceTemplateVersionRef,
   AttributeKind,
+  AttributeId,
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  AttributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -88,6 +90,10 @@ export const aggregateDescriptor = ({
             ...acc,
             certified: [...acc.certified, attributeSQL],
           }))
+          .with(attributeKind.certifiedDiscrete, () => ({
+            ...acc,
+            certified: [...acc.certified, attributeSQL],
+          }))
           .with(attributeKind.declared, () => ({
             ...acc,
             declared: [...acc.declared, attributeSQL],
@@ -98,9 +104,9 @@ export const aggregateDescriptor = ({
           }))
           .exhaustive(),
       {
-        certified: new Array<EServiceDescriptorAttributeSQL>(),
-        declared: new Array<EServiceDescriptorAttributeSQL>(),
-        verified: new Array<EServiceDescriptorAttributeSQL>(),
+        certified: [] as EServiceDescriptorAttributeSQL[],
+        declared: [] as EServiceDescriptorAttributeSQL[],
+        verified: [] as EServiceDescriptorAttributeSQL[],
       }
     );
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
@@ -410,8 +416,8 @@ export const aggregateRiskAnalysisForm = (
         }))
         .exhaustive(),
     {
-      single: Array<RiskAnalysisSingleAnswer>(),
-      multi: Array<RiskAnalysisMultiAnswer>(),
+      single: [] as RiskAnalysisSingleAnswer[],
+      multi: [] as RiskAnalysisMultiAnswer[],
     }
   );
 
@@ -440,10 +446,24 @@ export const attributesSQLtoAttributes = (
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
-      dailyCallsPerConsumer: current.dailyCallsPerConsumer ?? undefined,
+      ...(current.dailyCallsPerConsumer != null
+        ? { dailyCallsPerConsumer: current.dailyCallsPerConsumer }
+        : undefined),
+      ...(current.certifiedDiscreteThreshold != null &&
+      current.certifiedDiscreteComparator != null
+        ? {
+            certifiedDiscreteItems: {
+              certifiedDiscreteThreshold: current.certifiedDiscreteThreshold,
+              certifiedDiscreteComparator:
+                AttributeCertifiedDiscreteComparator.parse(
+                  current.certifiedDiscreteComparator
+                ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

@@ -118,6 +118,13 @@ export const aggregateAgreement = ({
               { id: unsafeBrandId<AttributeId>(a.attributeId) },
             ],
           }))
+          .with(attributeKind.certifiedDiscrete, () => ({
+            ...acc,
+            certifiedAttributes: [
+              ...acc.certifiedAttributes,
+              { id: unsafeBrandId<AttributeId>(a.attributeId) },
+            ],
+          }))
           .with(attributeKind.declared, () => ({
             ...acc,
             declaredAttributes: [

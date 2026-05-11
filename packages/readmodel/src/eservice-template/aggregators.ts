@@ -8,6 +8,7 @@ import {
   EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
+  genericInternalError,
   stringToDate,
   Technology,
   TenantKind,
@@ -69,6 +70,11 @@ export const aggregateEServiceTemplateVersion = ({
           ...acc,
           certified: [...acc.certified, attributeSQL],
         }))
+        .with(attributeKind.certifiedDiscrete, () => {
+          throw genericInternalError(
+            "Certified discrete attributes are not supported in e-service templates"
+          );
+        })
         .with(attributeKind.declared, () => ({
           ...acc,
           declared: [...acc.declared, attributeSQL],
