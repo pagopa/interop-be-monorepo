@@ -32,7 +32,6 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -434,7 +433,7 @@ describe("publish descriptor (after delegator's approval)", () => {
     );
   });
 
-  it("should throw asyncExchangeBulkNotAllowedForSoap when approving with SOAP and asyncExchange bulk", async () => {
+  it("should not throw async exchange bulk errors when approving with SOAP and bulk enabled", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
@@ -464,9 +463,7 @@ describe("publish descriptor (after delegator's approval)", () => {
         descriptor.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
-    );
+    ).resolves.toBeDefined();
   });
 
   it("should not throw async exchange errors when approving and all conditions are met", async () => {

@@ -33,6 +33,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptorState,
   templateInstanceNotAllowed,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents authorization test", () => {
@@ -142,6 +143,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     },
     {
       error: descriptorAsyncExchangeNotConfigured(descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
       expectedStatus: 400,
     },
     {

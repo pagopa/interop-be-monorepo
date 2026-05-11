@@ -26115,6 +26115,15 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     Mail:
       type: object
       additionalProperties: false
@@ -29677,6 +29686,10 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:
@@ -30009,6 +30022,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceTemplateAttributesSeed:
       properties:
         certified:
