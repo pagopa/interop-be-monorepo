@@ -18,11 +18,15 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  agreementNotInExpectedState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
 } from "../../mockUtils.js";
+import { BRAND } from "zod";
 
 describe("approveAgreement", () => {
   const mockAgreementProcessResponse = getMockWithMetadata(
@@ -34,7 +38,7 @@ describe("approveAgreement", () => {
   const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
-  const mockActivateAgreement = vi
+  const mockApproveAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
   const mockGetAgreement = vi.fn(
@@ -43,11 +47,11 @@ describe("approveAgreement", () => {
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreementById: mockGetAgreement,
-    activateAgreement: mockActivateAgreement,
+    approveAgreement: mockApproveAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockActivateAgreement.mockClear();
+    mockApproveAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
@@ -65,7 +69,7 @@ describe("approveAgreement", () => {
 
     expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.approveAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
@@ -80,7 +84,7 @@ describe("approveAgreement", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw agreementNotInPendingState in case of non-pending agreement", async () => {
+  it("Should throw agreementNotInExpectedState in case of non-pending agreement", async () => {
     const mockAgreementNotPending = getMockWithMetadata(
       getMockedApiAgreement({ state: "ACTIVE" })
     );
@@ -93,13 +97,154 @@ describe("approveAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      agreementNotInPendingState(mockAgreementNotPending.data.id)
+      agreementNotInExpectedState(
+        mockAgreementNotPending.data.id as string & BRAND<"AgreementId">,
+        mockAgreementNotPending.data.state
+      )
     );
   });
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
+    mockApproveAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      agreementService.approveAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
+    mockGetAgreement
+      .mockResolvedValueOnce(mockAgreementProcessResponse)
+      .mockResolvedValueOnce({
+        ...mockAgreementProcessResponse,
+        metadata: undefined,
+      });
+
+    await expect(
+      agreementService.approveAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+    // The activate will first get the agreement, then perform the polling
+    mockGetAgreement
+      .mockResolvedValueOnce(mockAgreementProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(
+          mockAgreementProcessResponse,
+          config.defaultPollingMaxRetries + 1
+        )
+      );
+
+    await expect(
+      agreementService.approveAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetAgreement).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries + 1
+    );
+  });
+});
+
+describe("unsuspendAgreement", () => {
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
+
+  const mockDelegationRef = { delegationId: generateId() };
+
+  const pollingTentatives = 2;
+  const mockUnsuspendAgreement = vi
+    .fn()
+    .mockResolvedValue(mockAgreementProcessResponse);
+  const mockGetAgreement = vi.fn(
+    mockPollingResponse(mockAgreementProcessResponse, pollingTentatives)
+  );
+
+  mockInteropBeClients.agreementProcessClient = {
+    getAgreementById: mockGetAgreement,
+    unsuspendAgreement: mockUnsuspendAgreement,
+  } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
+
+  beforeEach(() => {
+    mockUnsuspendAgreement.mockClear();
+    mockGetAgreement.mockClear();
+  });
+
+  it("Should succeed and perform API clients calls", async () => {
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
+
+    const m2mAgreementResponse: m2mGatewayApi.Agreement =
+      testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
+
+    const result = await agreementService.approveAgreement(
+      unsafeBrandId(mockAgreementProcessResponse.data.id),
+      mockDelegationRef,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toStrictEqual(m2mAgreementResponse);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockInteropBeClients.agreementProcessClient.unsuspendAgreement,
+      params: {
+        agreementId: mockAgreementProcessResponse.data.id,
+      },
+      body: mockDelegationRef,
+    });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
+      params: { agreementId: mockAgreementProcessResponse.data.id },
+    });
+    expect(
+      mockInteropBeClients.agreementProcessClient.getAgreementById
+    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+  });
+
+  it("Should throw agreementNotInExpectedState in case of non-pending agreement", async () => {
+    const mockAgreementNotPending = getMockWithMetadata(
+      getMockedApiAgreement({ state: "ACTIVE" })
+    );
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementNotPending);
+
+    await expect(
+      agreementService.approveAgreement(
+        unsafeBrandId(mockAgreementNotPending.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      agreementNotInExpectedState(
+        mockAgreementNotPending.data.id as string & BRAND<"AgreementId">,
+        mockAgreementNotPending.data.state
+      )
+    );
+  });
+
+  it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
+    mockUnsuspendAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
     });
