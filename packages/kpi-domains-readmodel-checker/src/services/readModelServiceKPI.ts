@@ -206,11 +206,13 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL: [],
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL: [],
       });
     },
 

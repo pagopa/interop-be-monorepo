@@ -10,7 +10,6 @@ import {
   EServiceTemplateVersionId,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
-  type EServiceTemplateAttributeCertified,
   type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
@@ -121,7 +120,6 @@ const templateAttributeToTemplateAttributeSQL = ({
 }: {
   attribute:
     | EServiceTemplateAttribute
-    | EServiceTemplateAttributeCertified
     | EServiceTemplateAttributeCertifiedDiscrete;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
@@ -139,10 +137,6 @@ const templateAttributeToTemplateAttributeSQL = ({
       ? attributeKind.certifiedDiscrete
       : kind,
   groupId,
-  dailyCallsPerConsumer:
-    "dailyCallsPerConsumer" in attribute
-      ? attribute.dailyCallsPerConsumer ?? null
-      : null,
   certifiedDiscreteThreshold:
     "certifiedDiscreteItems" in attribute
       ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
@@ -157,9 +151,7 @@ const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
   attributes: Array<
     Array<
-      | EServiceTemplateAttribute
-      | EServiceTemplateAttributeCertified
-      | EServiceTemplateAttributeCertifiedDiscrete
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
     >
   >,
   kind: AttributeKind,
@@ -328,7 +320,6 @@ const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
   createdAt: dateToString(eserviceTemplateVersion.createdAt),
   state: eserviceTemplateVersion.state,
   voucherLifespan: eserviceTemplateVersion.voucherLifespan,
-  dailyCallsPerConsumer: eserviceTemplateVersion.dailyCallsPerConsumer ?? null,
   dailyCallsTotal: eserviceTemplateVersion.dailyCallsTotal ?? null,
   agreementApprovalPolicy:
     eserviceTemplateVersion.agreementApprovalPolicy ?? null,

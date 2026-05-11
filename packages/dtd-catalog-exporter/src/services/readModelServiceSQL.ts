@@ -215,11 +215,13 @@ export function readModelServiceBuilderSQL(
           tenantsSQL,
           mailsSQL,
           certifiedAttributesSQL,
+          certifiedDiscreteAttributesSQL: [],
           declaredAttributesSQL,
           verifiedAttributesSQL,
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL: [],
         });
 
         return tenantsWithMetadata.map((tenant) => tenant.data);

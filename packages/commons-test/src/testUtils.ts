@@ -217,7 +217,6 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
-  dailyCallsPerConsumer: undefined,
 });
 
 export const getMockEServiceTemplateAttribute = (

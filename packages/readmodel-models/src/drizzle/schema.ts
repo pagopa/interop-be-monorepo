@@ -96,7 +96,6 @@ export const eserviceTemplateVersionInReadmodelEserviceTemplate =
       description: varchar(),
       state: varchar().notNull(),
       voucherLifespan: integer("voucher_lifespan").notNull(),
-      dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
       dailyCallsTotal: integer("daily_calls_total"),
       agreementApprovalPolicy: varchar("agreement_approval_policy"),
       createdAt: timestamp("created_at", {

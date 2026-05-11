@@ -106,6 +106,7 @@ const getAttributesData = async (
         tenantAttributeType.VERIFIED,
         () => agreement.verifiedAttributes || []
       )
+      .with(tenantAttributeType.CERTIFIED_DISCRETE, () => [])
       .exhaustive()
       .map((attribute) => attribute.id);
     const tenantAttributes = consumer.attributes.filter(

@@ -298,11 +298,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL: [],
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL: [],
       });
     },
 

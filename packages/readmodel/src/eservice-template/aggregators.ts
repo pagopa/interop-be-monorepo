@@ -107,12 +107,9 @@ export const aggregateEServiceTemplateVersion = ({
     docs: documentsSQL.map(documentSQLtoDocument),
     state: EServiceTemplateVersionState.parse(versionSQL.state),
     voucherLifespan: versionSQL.voucherLifespan,
-    ...(versionSQL.dailyCallsPerConsumer
-      ? { dailyCallsPerConsumer: versionSQL.dailyCallsPerConsumer }
-      : {}),
     ...(versionSQL.dailyCallsTotal
       ? { dailyCallsTotal: versionSQL.dailyCallsTotal }
-      : {}),
+      : undefined),
     createdAt: stringToDate(versionSQL.createdAt),
     attributes: {
       certified: certifiedAttributes,
@@ -448,7 +445,9 @@ export const templateAttributesSQLtoTemplateAttributes = (
 > => {
   const attributesMap = new Map<
     number,
-    Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+    Array<
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+    >
   >();
   attributesSQL.forEach((current) => {
     const currentAttribute = {
