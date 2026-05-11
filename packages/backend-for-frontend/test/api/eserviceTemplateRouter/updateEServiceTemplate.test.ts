@@ -66,7 +66,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId", () => {
     {
       body: {
         ...mockEServiceTemplateUpdateSeed,
-        description: "a".repeat(251),
+        description: "a".repeat(401),
       },
     },
     {

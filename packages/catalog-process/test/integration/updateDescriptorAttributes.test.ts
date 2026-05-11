@@ -170,10 +170,16 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorAttributesUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(
-        toEServiceV2(returnedEService.data)
-      );
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(returnedEService.data),
+      });
     }
   );
 
@@ -234,10 +240,16 @@ describe("update descriptor", () => {
         messageType: EServiceDescriptorAttributesUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(
-        toEServiceV2(returnedEService.data)
-      );
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(returnedEService.data),
+      });
     }
   );
 
@@ -790,10 +802,16 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [mockCertifiedAttribute3.id],
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [mockCertifiedAttribute3.id],
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
   it("should write on event-store when updating only dailyCalls on existing certified attribute", async () => {
@@ -878,10 +896,16 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
   it("should write on event-store when removing dailyCalls from certified attribute", async () => {
@@ -964,10 +988,16 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
   it("should throw attributeDailyCallsNotAllowed when dailyCalls is on declared attribute", async () => {
@@ -1180,10 +1210,16 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [mockCertifiedAttribute3.id],
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [mockCertifiedAttribute3.id],
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
   it("should detect dailyCallsPerConsumer change for an attribute (same id) appearing in two different groups", async () => {
@@ -1319,64 +1355,67 @@ describe("update descriptor", () => {
       ],
     };
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [],
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
-  it.each([{ dailyCallsPerConsumer: 200 }, { dailyCallsPerConsumer: 100 }])(
-    "should throw inconsistentDailyCalls if a certified attribute dailyCallsPerConsumer meets or exceeds descriptor dailyCallsTotal",
-    async ({ dailyCallsPerConsumer }) => {
-      const mockDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.published,
-        dailyCallsTotal: 100,
-        attributes: {
-          certified: [
-            [
-              {
-                id: mockCertifiedAttribute1.id,
-                explicitAttributeVerification: false,
-              },
-            ],
-          ],
-          verified: [],
-          declared: [],
-        },
-      };
-
-      const mockEService: EService = {
-        ...getMockEService(),
-        descriptors: [mockDescriptor],
-      };
-
-      await addOneEService(mockEService);
-
-      const seed: catalogApi.AttributesSeed = {
+  it("should throw inconsistentDailyCalls if a certified attribute dailyCallsPerConsumer exceeds descriptor dailyCallsTotal", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 100,
+      attributes: {
         certified: [
           [
             {
               id: mockCertifiedAttribute1.id,
               explicitAttributeVerification: false,
-              dailyCallsPerConsumer,
             },
           ],
         ],
         verified: [],
         declared: [],
-      };
+      },
+    };
 
-      await expect(
-        catalogService.updateDescriptorAttributes(
-          mockEService.id,
-          mockDescriptor.id,
-          seed,
-          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-        )
-      ).rejects.toThrowError(inconsistentDailyCalls());
-    }
-  );
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: mockCertifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            dailyCallsPerConsumer: 101,
+          },
+        ],
+      ],
+      verified: [],
+      declared: [],
+    };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
 
   it("should correctly match certified groups by content when seed groups are in different order than the descriptor groups", async () => {
     const mockDescriptor: Descriptor = {
@@ -1468,9 +1507,11 @@ describe("update descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      descriptorId: mockDescriptor.id,
+      attributeIds: [mockCertifiedAttribute4.id],
+      eservice: toEServiceV2(returnedEService.data),
+    });
 
     // Verify the new attribute was actually added to the correct group (the one with attr3)
     const updatedDescriptor = returnedEService.data.descriptors[0];
@@ -1483,7 +1524,7 @@ describe("update descriptor", () => {
     ).toBe(true);
   });
 
-  it("should throw inconsistentDailyCalls when updating dailyCallsPerConsumer on a newly added certified attribute to meet or exceed dailyCallsTotal", async () => {
+  it("should throw inconsistentDailyCalls when updating dailyCallsPerConsumer on a newly added certified attribute to exceed dailyCallsTotal", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
