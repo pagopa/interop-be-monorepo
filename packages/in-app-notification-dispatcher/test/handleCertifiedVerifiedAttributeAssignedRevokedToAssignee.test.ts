@@ -287,33 +287,37 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeIPA.id,
-      expectedBody: inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
-        certifiedAttributeIPA.name
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          certifiedAttributeIPA.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
       assigneeAttributes: [],
       attributeId: certifiedAttributeIPA.id,
-      expectedBody: inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
-        certifiedAttributeIPA.name
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          certifiedAttributeIPA.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeSELFCARE.id,
-      expectedBody: inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
-        certifiedAttributeSELFCARE.name
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          certifiedAttributeSELFCARE.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
       assigneeAttributes: [],
       attributeId: certifiedAttributeSELFCARE.id,
-      expectedBody: inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
-        certifiedAttributeSELFCARE.name
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          certifiedAttributeSELFCARE.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
