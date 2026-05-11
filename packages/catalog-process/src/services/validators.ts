@@ -526,7 +526,7 @@ function isDescriptorCancelArchivable(
   eservice: EService
 ): boolean {
   const latestDescriptor = getLatestDescriptor(eservice);
-  const isLatest = latestDescriptor?.id === descriptor.id;
+  const isLatest = latestDescriptor.id === descriptor.id;
 
   return match(descriptor.state)
     .with(

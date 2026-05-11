@@ -3834,17 +3834,12 @@ export function catalogServiceBuilder(
           ? descriptorState.suspended
           : descriptorState.deprecated;
 
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
+      assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      const updatedDescriptor: Descriptor = {
-        ...updateDescriptorState(descriptor, newState),
-        archivingSchedule: undefined,
-      };
+      const updatedDescriptor = updateDescriptorState(
+        { ...descriptor, archivingSchedule: undefined },
+        newState
+      );
 
       const updatedEService = replaceDescriptor(
         eservice.data,

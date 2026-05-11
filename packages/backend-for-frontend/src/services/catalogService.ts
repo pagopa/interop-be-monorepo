@@ -1396,7 +1396,7 @@ export function catalogServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Canceling archiving for descriptor ${descriptorId} of EService ${eServiceId}`
+        `Schedule interruption for descriptor ${descriptorId} of EService ${eServiceId}`
       );
       await catalogProcessClient.cancelEServiceDescriptorArchiving(undefined, {
         headers,
