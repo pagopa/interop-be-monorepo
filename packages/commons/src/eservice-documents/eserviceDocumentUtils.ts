@@ -384,12 +384,12 @@ export type FileSizeLimits = {
 };
 
 const resolveMaxSizeForKind = (
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   limits: FileSizeLimits
 ): number =>
-  kind === "INTERFACE"
-    ? (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes)
-    : limits.maxFileSizeBytes;
+  kind === "DOCUMENT"
+    ? limits.maxFileSizeBytes
+    : (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes);
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateDocument<T>(
