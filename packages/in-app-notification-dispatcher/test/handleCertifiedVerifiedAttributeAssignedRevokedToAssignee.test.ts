@@ -38,6 +38,16 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
     name: "Certifier Name",
     features: [{ type: "PersistentCertifier", certifierId }],
   };
+  const anacCertifier: Tenant = {
+    ...getMockTenant(),
+    name: "ANAC Name",
+    features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],
+  };
+  const ivassCertifier: Tenant = {
+    ...getMockTenant(),
+    name: "IVASS Name",
+    features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
+  };
   const verifier: Tenant = {
     ...getMockTenant(),
     name: "Verifier Name",
@@ -67,6 +77,11 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
     name: "Certified IVASS Attribute",
     origin: "IVASS",
   };
+  const certifiedAttributeSELFCARE: Attribute = {
+    ...getMockAttribute(attributeKind.certified),
+    name: "Certified SELFCARE Attribute",
+    origin: "SELFCARE",
+  };
   const verifiedAttribute: Attribute = {
     ...getMockAttribute(attributeKind.verified),
     name: "Verified Attribute",
@@ -81,12 +96,15 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
     // Setup test data
     await addOneTenant(assignee);
     await addOneTenant(certifier);
+    await addOneTenant(anacCertifier);
+    await addOneTenant(ivassCertifier);
     await addOneTenant(verifier);
     await addOneTenant(revoker);
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(certifiedAttributeANAC);
     await addOneAttribute(certifiedAttributeIPA);
     await addOneAttribute(certifiedAttributeIVASS);
+    await addOneAttribute(certifiedAttributeSELFCARE);
     await addOneAttribute(verifiedAttribute);
   });
 
@@ -262,17 +280,39 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       expectedBody: inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
         certifiedAttributeANAC.name,
         "certificato",
-        "ANAC"
+        "ANAC Name"
+      ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeAssigned",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeIPA.id,
+      expectedBody: inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+        certifiedAttributeIPA.name
       ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
       assigneeAttributes: [],
       attributeId: certifiedAttributeIPA.id,
-      expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
-        certifiedAttributeIPA.name,
-        "certificato",
-        "IPA"
+      expectedBody: inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+        certifiedAttributeIPA.name
+      ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeAssigned",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeSELFCARE.id,
+      expectedBody: inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+        certifiedAttributeSELFCARE.name
+      ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeRevoked",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeSELFCARE.id,
+      expectedBody: inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+        certifiedAttributeSELFCARE.name
       ),
     },
     {
@@ -282,7 +322,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
         certifiedAttributeIVASS.name,
         "certificato",
-        "IVASS"
+        "IVASS Name"
       ),
     },
     {
