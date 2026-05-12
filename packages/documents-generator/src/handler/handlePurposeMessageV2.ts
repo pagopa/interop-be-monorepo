@@ -165,7 +165,7 @@ export async function handlePurposeMessageV2(
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
-          "MaintenancePurposeRiskAnalysisSetTenandKind"
+          "MaintenancePurposeRiskAnalysisSetTenantKind"
         ),
       },
       () => Promise.resolve()

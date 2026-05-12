@@ -107,7 +107,7 @@ export async function handlePurposeEvent(
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
-          "MaintenancePurposeRiskAnalysisSetTenandKind"
+          "MaintenancePurposeRiskAnalysisSetTenantKind"
         ),
       },
       () => {

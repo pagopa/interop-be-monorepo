@@ -101,7 +101,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
-  toCreateEventMaintenancePurposeRiskAnalysisSetTenandKind,
+  toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -387,7 +387,7 @@ export function purposeServiceBuilder(
         },
       };
 
-      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenandKind({
+      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind({
         purpose: updatedPurpose,
         riskAnalysisId,
         version: purpose.metadata.version,
@@ -2183,13 +2183,11 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const tenantKindToWriteInRA = tenantKind; // TODO
-
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
       ? {
           ...riskAnalysisForm,
-          tenantKind: tenantKindToWriteInRA,
+          tenantKind,
         }
       : undefined;
 

@@ -109,7 +109,7 @@ export function toOutboundEventV2(
       })
     )
     .with(
-      { type: "MaintenancePurposeRiskAnalysisSetTenandKind" },
+      { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({

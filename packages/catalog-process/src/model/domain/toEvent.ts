@@ -464,7 +464,7 @@ export const toCreateEventEServiceRiskAnalysisUpdated = (
   correlationId,
 });
 
-export const toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind = (
+export const toCreateEventMaintenanceEServiceRiskAnalysisSetTenantKind = (
   streamId: string,
   version: number,
   riskAnalysisId: RiskAnalysisId,
@@ -474,7 +474,7 @@ export const toCreateEventMaintenanceEServiceRiskAnalysisSetTenandKind = (
   streamId,
   version,
   event: {
-    type: "MaintenanceEServiceRiskAnalysisSetTenandKind",
+    type: "MaintenanceEServiceRiskAnalysisSetTenantKind",
     event_version: 2,
     data: {
       riskAnalysisId,

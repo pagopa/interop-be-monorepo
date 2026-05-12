@@ -71,7 +71,7 @@ export const toPurposeEventNotification = (
     .with(
       { type: "RiskAnalysisDocumentGenerated" },
       { type: "RiskAnalysisSignedDocumentGenerated" },
-      { type: "MaintenancePurposeRiskAnalysisSetTenandKind" },
+      { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       () => undefined
     )
     .exhaustive();

@@ -125,7 +125,7 @@ export async function handlePurposeDocument(
           "PurposeVersionRejected",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisSignedDocumentGenerated",
-          "MaintenancePurposeRiskAnalysisSetTenandKind"
+          "MaintenancePurposeRiskAnalysisSetTenantKind"
         ),
       },
       () => Promise.resolve()

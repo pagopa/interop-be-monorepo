@@ -1161,19 +1161,8 @@ export function eserviceTemplateServiceBuilder(
         throw tenantKindNotFound(template.data.creatorId);
       }
 
-      const fixedRiskAnalysis: RiskAnalysis = {
-        ...riskAnalysisToFix,
-        riskAnalysisForm: {
-          ...riskAnalysisToFix.riskAnalysisForm,
-          tenantKind: existingTenantKind,
-        },
-      };
-
       const updatedTemplate: EServiceTemplate = {
         ...template.data,
-        riskAnalysis: template.data.riskAnalysis.map((ra) =>
-          ra.id === riskAnalysisToFix.id ? fixedRiskAnalysis : ra
-        ),
       };
 
       const event = await repository.createEvent(
