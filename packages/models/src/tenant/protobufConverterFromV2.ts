@@ -12,6 +12,7 @@ import {
   TenantAttributeV2,
   TenantV2,
   TenantUnitTypeV2,
+  TenantRemoteIdV2,
 } from "../gen/v2/tenant/tenant.js";
 import { bigIntToDate } from "../utils.js";
 import {
@@ -29,6 +30,7 @@ import {
   TenantUnitType,
   tenantUnitType,
   TenantFeature,
+  TenantRemoteId,
 } from "./tenant.js";
 
 export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
@@ -173,6 +175,14 @@ export const fromTenantUnitTypeV2 = (
   }
 };
 
+export const fromTenantRemoteIdV2 = (
+  input: TenantRemoteIdV2
+): TenantRemoteId => ({
+  origin: input.origin,
+  value: input.value,
+  assignment_timestamp: bigIntToDate(input.assignmentTimestamp),
+});
+
 export const fromTenantV2 = (input: TenantV2): Tenant => {
   /**
    * The `externalId` field is required in the TenantV2 protobuf model but
@@ -203,5 +213,6 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
         ? fromTenantUnitTypeV2(input.subUnitType)
         : undefined,
     selfcareInstitutionType: input.selfcareInstitutionType,
+    remoteId: input.remoteId.map(fromTenantRemoteIdV2),
   };
 };

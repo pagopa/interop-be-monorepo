@@ -5,6 +5,7 @@ import {
   TenantKindV2,
   TenantMailKindV2,
   TenantMailV2,
+  TenantRemoteIdV2,
   TenantRevokerV2,
   TenantUnitTypeV2,
   TenantV2,
@@ -18,6 +19,7 @@ import {
   TenantKind,
   TenantMail,
   TenantMailKind,
+  TenantRemoteId,
   TenantRevoker,
   TenantUnitType,
   TenantVerifier,
@@ -153,6 +155,14 @@ function checkSelfcareId(selfcareId: string | undefined): string {
   return selfcareId;
 }
 
+export function toTenantRemoteIdV2(remoteId: TenantRemoteId): TenantRemoteIdV2 {
+  return {
+    origin: remoteId.origin,
+    value: remoteId.value,
+    assignmentTimestamp: dateToBigInt(remoteId.assignment_timestamp),
+  };
+}
+
 export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   ...tenant,
   selfcareId: checkSelfcareId(tenant.selfcareId),
@@ -168,4 +178,5 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
   selfcareInstitutionType: tenant.selfcareInstitutionType,
+  remoteId: tenant.remoteId?.map(toTenantRemoteIdV2) ?? [],
 });
