@@ -4516,6 +4516,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -23328,6 +23329,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
