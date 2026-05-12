@@ -1793,19 +1793,26 @@ describe("activate agreement", () => {
     });
   });
 
-  describe("All other error cases", () => {
+  describe.each([
+    {
+      state: agreementState.pending,
+      getMethod(service: typeof agreementService) {
+        return service.approveAgreement;
+      },
+    },
+    {
+      state: agreementState.suspended,
+      getMethod(service: typeof agreementService) {
+        return service.unsuspendAgreement;
+      },
+    },
+  ])("All other error cases", ({ state, getMethod }) => {
     it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
       await addOneAgreement(getMockAgreement());
       const authData = getMockAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
-        agreementService.approveAgreement(
-          { agreementId, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(agreementNotFound(agreementId));
-      await expect(
-        agreementService.unsuspendAgreement(
+        getMethod(agreementService)(
           { agreementId, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -1840,12 +1847,6 @@ describe("activate agreement", () => {
       await addOneDelegation(consumerDelegation);
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
-      await expect(
-        agreementService.approveAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
       await expect(
         agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
@@ -1895,18 +1896,10 @@ describe("activate agreement", () => {
 
       const agreement: Agreement = {
         ...getMockAgreement(),
-        state: randomArrayItem(
-          agreementActivableStates.filter((s) => s !== agreementState.pending)
-        ),
+        state: agreementState.suspended,
         consumerId,
       };
       await addOneAgreement(agreement);
-      await expect(
-        agreementService.approveAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
       await expect(
         agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
@@ -1928,7 +1921,7 @@ describe("activate agreement", () => {
         ...getMockAgreement(),
         eserviceId: eservice.id,
         consumerId,
-        state: randomArrayItem(agreementActivableStates),
+        state: state,
         producerId,
       };
 
@@ -1936,15 +1929,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.approveAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(
-        descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
-      );
-      await expect(
-        agreementService.unsuspendAgreement(
+        getMethod(agreementService)(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -1977,7 +1962,7 @@ describe("activate agreement", () => {
 
         const agreement: Agreement = {
           ...getMockAgreement(),
-          state: randomArrayItem(agreementActivableStates),
+          state: state,
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
           producerId,
@@ -1988,19 +1973,7 @@ describe("activate agreement", () => {
         await addOneAgreement(agreement);
 
         await expect(
-          agreementService.approveAgreement(
-            { agreementId: agreement.id, delegationId: undefined },
-            getMockContext({ authData })
-          )
-        ).rejects.toThrowError(
-          descriptorNotInExpectedState(
-            eservice.id,
-            descriptor.id,
-            agreementActivationAllowedDescriptorStates
-          )
-        );
-        await expect(
-          agreementService.unsuspendAgreement(
+          getMethod(agreementService)(
             { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
@@ -2032,7 +2005,7 @@ describe("activate agreement", () => {
 
       const agreement: Agreement = {
         ...getMockAgreement(),
-        state: randomArrayItem(agreementActivableStates),
+        state: state,
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
         producerId: producer.id,
@@ -2044,13 +2017,7 @@ describe("activate agreement", () => {
       await addOneTenant(producer);
 
       await expect(
-        agreementService.approveAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(tenantNotFound(consumerId));
-      await expect(
-        agreementService.unsuspendAgreement(
+        getMethod(agreementService)(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
