@@ -27,6 +27,7 @@ import {
   purposeTemplateState,
   ClientId,
   Client,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -42,6 +43,7 @@ import {
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import {
   aggregatePurposeArray,
   AgreementReadModelService,
@@ -55,9 +57,11 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   and,
+  desc,
   eq,
   inArray,
   isNotNull,
+  lte,
   ne,
   notExists,
   or,
@@ -215,6 +219,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -224,6 +229,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
   clientReadModelServiceSQL: ClientReadModelService;
+  tenantKindHistoryDB: DrizzleReturnType;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -249,6 +255,23 @@ export function readModelServiceBuilderSQL({
           ilikeEscaped(purposeInReadmodelPurpose.title, escapeSqlLike(title))
         )
       );
+    },
+    async getTenantKindAt(
+      tenantId: TenantId,
+      date: Date
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(
+          and(
+            eq(tenantKindHistory.tenantId, tenantId),
+            lte(tenantKindHistory.modifiedAt, date.toISOString())
+          )
+        )
+        .orderBy(desc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
     async getPurposes(
       requesterId: TenantId,
