@@ -481,6 +481,80 @@ describe("validateTokenGeneration", () => {
       });
     });
 
+    it("should return purposeIdNotProvided when a consumer client assertion has no purposeId", async () => {
+      const clientsWithConsumerClient = {
+        authorizationClient: {
+          token: {
+            getKeyWithClientByKeyId: vi.fn().mockResolvedValue({
+              client: {
+                id: MOCK_CLIENT_ID,
+                consumerId: mockAuthData.organizationId,
+                kind: authorizationApi.ClientKind.enum.CONSUMER,
+              },
+            }),
+          },
+          client: {
+            getClientKeyById: vi
+              .fn()
+              .mockResolvedValue({ encodedPem: "encoded-pem" }),
+          },
+        },
+      } as unknown as PagoPAInteropBeClients;
+
+      vi.spyOn(
+        clientAssertionValidation,
+        "verifyClientAssertion"
+      ).mockReturnValue({
+        errors: undefined,
+        data: {
+          header: { kid: MOCK_KID, alg: "RS256", typ: "JWT" },
+          payload: {
+            ...MOCK_JWT_PAYLOAD,
+            purposeId: undefined,
+          },
+        },
+      });
+
+      const validationResult = await toolsServiceBuilder(
+        clientsWithConsumerClient
+      ).validateTokenGeneration(
+        MOCK_CLIENT_ID,
+        MOCK_CLIENT_ASSERTION,
+        MOCK_CLIENT_ASSERTION_TYPE,
+        MOCK_GRANT_TYPE,
+        undefined,
+        bffMockContext
+      );
+
+      expect(validationResult).toEqual({
+        clientKind: undefined,
+        eservice: undefined,
+        steps: {
+          clientAssertionValidation: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
+            failures: [],
+          },
+          publicKeyRetrieve: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
+            failures: [
+              {
+                code: "purposeIdNotProvided",
+                reason: "Claim purposeId does not exist in this assertion",
+              },
+            ],
+          },
+          clientAssertionSignatureVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+          platformStatesVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+        },
+      });
+    });
+
     it("should handle client assertion signature verification errors", async () => {
       const signatureVerificationError: ApiError<"invalidSignature"> = {
         code: "invalidSignature",
