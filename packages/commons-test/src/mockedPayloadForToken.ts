@@ -4,10 +4,11 @@ import {
   exportJWK,
   calculateJwkThumbprint,
   SignJWT,
+  UnsecuredJWT,
   JWK,
+  JWTPayload,
   exportSPKI,
 } from "jose";
-import jwt from "jsonwebtoken";
 import {
   AuthRole,
   InteropJwtMaintenancePayload,
@@ -75,8 +76,12 @@ export function createPayload<T extends keyof RolePayloadsMap>(
 export const generateToken = (role: AuthRole): string =>
   signPayload(createPayload(role));
 
-export const signPayload = (payload: object): string =>
-  jwt.sign(payload, "test-secret");
+export const signPayload = (payload: object): string => {
+  const p = payload as Record<string, unknown>;
+  const claims =
+    p.iat != null ? p : { ...p, iat: Math.floor(Date.now() / 1000) };
+  return new UnsecuredJWT(claims as JWTPayload).encode();
+};
 
 export const mockTokenUserId = generateId<UserId>();
 
