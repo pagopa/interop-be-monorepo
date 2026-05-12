@@ -279,6 +279,7 @@ export const getMockCatalogApiEService = (): catalogApi.EService & {
   isClientAccessDelegable: generateMock(z.boolean().optional()),
   templateId: generateMock(z.string().uuid().optional()),
   personalData: generateMock(z.boolean().optional()),
+  archivingReason: generateMock(z.string().optional()),
 });
 
 export const getMockBffApiFileResource = (): bffApi.FileResource => ({
@@ -1155,4 +1156,9 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
       z.array(bffApi.RiskAnalysisTemplateAnswerAnnotationDocument)
     ),
     handlesPersonalData: false,
+  });
+
+export const getMockBffEServiceArchiveReasonSeed =
+  (): bffApi.EServiceArchiveReasonSeed => ({
+    archivingReason: generateMock(z.string()),
   });
