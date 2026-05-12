@@ -25,7 +25,7 @@ import {
 } from "../src/model/errors.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
-describe("getPurposeTemplateSuggestedEServices (service)", () => {
+describe("getPurposeTemplateLinkableResources (service)", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const requesterId = generateId<TenantId>();
   const authData: AuthData = {
@@ -149,7 +149,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         ),
     });
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 0,
@@ -202,7 +202,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         ),
     });
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 0,
@@ -260,7 +260,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         ),
     });
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 0,
@@ -297,7 +297,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
       }),
     });
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 10,
@@ -334,7 +334,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
         ),
     });
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 2,
@@ -355,7 +355,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
 
     const { service, mocks } = buildService({});
 
-    await service.getPurposeTemplateSuggestedEServices({
+    await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [publisherA, publisherB],
       q: "alpha",
@@ -408,7 +408,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
       getTenant,
     });
 
-    await service.getPurposeTemplateSuggestedEServices({
+    await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 0,
@@ -425,7 +425,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
   it("short-circuits enrichment calls when there are no links", async () => {
     const { service, mocks } = buildService({});
 
-    const result = await service.getPurposeTemplateSuggestedEServices({
+    const result = await service.getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds: [],
       offset: 0,
@@ -455,7 +455,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     });
 
     await expect(
-      service.getPurposeTemplateSuggestedEServices({
+      service.getPurposeTemplateLinkableResources({
         purposeTemplateId,
         publisherIds: [],
         offset: 0,
@@ -484,7 +484,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     });
 
     await expect(
-      service.getPurposeTemplateSuggestedEServices({
+      service.getPurposeTemplateLinkableResources({
         purposeTemplateId,
         publisherIds: [],
         offset: 0,
@@ -509,7 +509,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     });
 
     await expect(
-      service.getPurposeTemplateSuggestedEServices({
+      service.getPurposeTemplateLinkableResources({
         purposeTemplateId,
         publisherIds: [],
         offset: 0,
@@ -540,7 +540,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     });
 
     await expect(
-      service.getPurposeTemplateSuggestedEServices({
+      service.getPurposeTemplateLinkableResources({
         purposeTemplateId,
         publisherIds: [],
         offset: 0,
@@ -558,7 +558,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
   it("throws tenantNotFound when the publisher tenant is missing from the lookup map", async () => {
     const concrete = buildConcreteFixture("2026-01-01T00:00:00.000Z");
     // Process returns a tenant whose id does not match the requested producerId,
-    // so the Map.get(producerId) lookup in enrichSuggestedEServicePage falls through.
+    // so the Map.get(producerId) lookup in enrichLinkableResourcePage falls through.
     const decoyTenant = { ...getMockedApiTenant() };
 
     const { service } = buildService({
@@ -571,7 +571,7 @@ describe("getPurposeTemplateSuggestedEServices (service)", () => {
     });
 
     await expect(
-      service.getPurposeTemplateSuggestedEServices({
+      service.getPurposeTemplateLinkableResources({
         purposeTemplateId,
         publisherIds: [],
         offset: 0,

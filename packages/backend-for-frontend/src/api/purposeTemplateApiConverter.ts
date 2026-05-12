@@ -69,11 +69,11 @@ export function toCompactPurposeTemplateEServiceTemplate(
   };
 }
 
-export function toBffSuggestedEServiceConcrete(
+export function toBffLinkableEService(
   link: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
   eservice: bffApi.CompactPurposeTemplateEService,
   descriptor: bffApi.CompactDescriptor
-): bffApi.SuggestedEServiceConcrete {
+): bffApi.LinkableEService {
   return {
     resourceKind: "ESERVICE",
     purposeTemplateId: link.purposeTemplateId,
@@ -83,11 +83,11 @@ export function toBffSuggestedEServiceConcrete(
   };
 }
 
-export function toBffSuggestedEServiceTemplate(
+export function toBffLinkableEServiceTemplate(
   link: purposeTemplateApi.EServiceTemplateVersionPurposeTemplate,
   eserviceTemplate: bffApi.CompactPurposeTemplateEServiceTemplate,
   eserviceTemplateVersion: bffApi.CompactEServiceTemplateVersion
-): bffApi.SuggestedEServiceTemplate {
+): bffApi.LinkableEServiceTemplate {
   return {
     resourceKind: "ESERVICE_TEMPLATE",
     purposeTemplateId: link.purposeTemplateId,

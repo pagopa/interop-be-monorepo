@@ -11242,7 +11242,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /purposeTemplates/{purposeTemplateId}/suggestedEServices:
+  /purposeTemplates/{purposeTemplateId}/linkableResources:
     parameters:
       - name: purposeTemplateId
         in: path
@@ -11255,13 +11255,13 @@ paths:
         description: |
           Fuzzy match on resource name (e-service name for concrete entries,
           e-service template name for template entries). If not provided,
-          suggestions match any name.
+          linkable resources match any name.
         schema:
           type: string
       - in: query
         name: publisherIds
         description: |
-          Filter by tenant ID. Matches the publisher of each suggested resource:
+          Filter by tenant ID. Matches the publisher of each linkable resource:
           the producer of a concrete e-service, or the creator of an e-service template.
         schema:
           type: array
@@ -11288,23 +11288,23 @@ paths:
     get:
       tags:
         - purposeTemplates
-      summary: Get Purpose Template Suggested E-Services (concrete + templates)
-      operationId: getPurposeTemplateSuggestedEServices
+      summary: Get Purpose Template Linkable Resources
+      operationId: getPurposeTemplateLinkableResources
       description: |
-        Retrieve the unified list of e-services suggested by a purpose template.
+        Retrieve the unified list of resources linkable to a purpose template, currently associated with it.
         Each entry is either a concrete e-service (`resourceKind=ESERVICE`) or an
         e-service template (`resourceKind=ESERVICE_TEMPLATE`).
         Results are sorted by `createdAt` DESC (most recent links first), unified across both kinds.
-        `totalCount` reflects the real total of suggested entries (concrete + templates).
+        `totalCount` reflects the real total of linkable entries (concrete + templates).
         Behavior on missing referenced resources is fail-fast: if any link points to a removed
         e-service, descriptor, e-service template, version or tenant, the request returns 404.
       responses:
         "200":
-          description: Purpose Template Suggested E-Services retrieved
+          description: Purpose Template Linkable Resources retrieved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuggestedEServicesPurposeTemplate"
+                $ref: "#/components/schemas/LinkableResources"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -30283,7 +30283,7 @@ components:
           $ref: "#/components/schemas/CompactOrganization"
         description:
           type: string
-    SuggestedEServiceConcrete:
+    LinkableEService:
       type: object
       additionalProperties: false
       required:
@@ -30307,7 +30307,7 @@ components:
         createdAt:
           type: string
           format: date-time
-    SuggestedEServiceTemplate:
+    LinkableEServiceTemplate:
       type: object
       additionalProperties: false
       required:
@@ -30331,16 +30331,16 @@ components:
         createdAt:
           type: string
           format: date-time
-    SuggestedEServicePurposeTemplate:
+    LinkableResource:
       oneOf:
-        - $ref: "#/components/schemas/SuggestedEServiceConcrete"
-        - $ref: "#/components/schemas/SuggestedEServiceTemplate"
+        - $ref: "#/components/schemas/LinkableEService"
+        - $ref: "#/components/schemas/LinkableEServiceTemplate"
       discriminator:
         propertyName: resourceKind
         mapping:
-          ESERVICE: "#/components/schemas/SuggestedEServiceConcrete"
-          ESERVICE_TEMPLATE: "#/components/schemas/SuggestedEServiceTemplate"
-    SuggestedEServicesPurposeTemplate:
+          ESERVICE: "#/components/schemas/LinkableEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplate"
+    LinkableResources:
       type: object
       additionalProperties: false
       required:
@@ -30350,7 +30350,7 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/SuggestedEServicePurposeTemplate"
+            $ref: "#/components/schemas/LinkableResource"
         pagination:
           $ref: "#/components/schemas/Pagination"
     NotificationsCountBySection:

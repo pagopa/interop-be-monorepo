@@ -18,7 +18,7 @@ import {
   addPurposeTemplateAnnotationDocumentErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
-  getPurposeTemplateSuggestedEServicesErrorMapper,
+  getPurposeTemplateLinkableResourcesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -184,13 +184,13 @@ const purposeTemplateRouter = (
       }
     })
     .get(
-      "/purposeTemplates/:purposeTemplateId/suggestedEServices",
+      "/purposeTemplates/:purposeTemplateId/linkableResources",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const { q, publisherIds, offset, limit } = req.query;
           const response =
-            await purposeTemplateService.getPurposeTemplateSuggestedEServices({
+            await purposeTemplateService.getPurposeTemplateLinkableResources({
               purposeTemplateId: req.params.purposeTemplateId,
               publisherIds,
               q,
@@ -200,13 +200,13 @@ const purposeTemplateRouter = (
             });
           return res
             .status(200)
-            .send(bffApi.SuggestedEServicesPurposeTemplate.parse(response));
+            .send(bffApi.LinkableResources.parse(response));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getPurposeTemplateSuggestedEServicesErrorMapper,
+            getPurposeTemplateLinkableResourcesErrorMapper,
             ctx,
-            `Error retrieving suggested e-services for purpose template ${req.params.purposeTemplateId}`
+            `Error retrieving linkable resources for purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

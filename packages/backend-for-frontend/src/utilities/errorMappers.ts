@@ -290,7 +290,7 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposeTemplateSuggestedEServicesErrorMapper = (
+export const getPurposeTemplateLinkableResourcesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

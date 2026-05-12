@@ -1135,9 +1135,9 @@ export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAn
     descriptor: generateMock(bffApi.CompactDescriptor),
   });
 
-export const getMockBffApiSuggestedEServiceConcrete = (
+export const getMockBffApiLinkableEService = (
   purposeTemplateId: PurposeTemplateId = generateId()
-): bffApi.SuggestedEServiceConcrete => ({
+): bffApi.LinkableEService => ({
   resourceKind: "ESERVICE",
   purposeTemplateId,
   createdAt: generateMock(z.string().datetime({ offset: true })),
@@ -1145,9 +1145,9 @@ export const getMockBffApiSuggestedEServiceConcrete = (
   descriptor: generateMock(bffApi.CompactDescriptor),
 });
 
-export const getMockBffApiSuggestedEServiceTemplate = (
+export const getMockBffApiLinkableEServiceTemplate = (
   purposeTemplateId: PurposeTemplateId = generateId()
-): bffApi.SuggestedEServiceTemplate => ({
+): bffApi.LinkableEServiceTemplate => ({
   resourceKind: "ESERVICE_TEMPLATE",
   purposeTemplateId,
   createdAt: generateMock(z.string().datetime({ offset: true })),

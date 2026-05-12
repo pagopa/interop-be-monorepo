@@ -6,8 +6,8 @@ import { bffApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { authRole } from "pagopa-interop-commons";
 import {
-  getMockBffApiSuggestedEServiceConcrete,
-  getMockBffApiSuggestedEServiceTemplate,
+  getMockBffApiLinkableEService,
+  getMockBffApiLinkableEServiceTemplate,
 } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -19,18 +19,18 @@ import {
   tenantNotFound,
 } from "../../../src/model/errors.js";
 
-describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () => {
+describe("API GET /purposeTemplates/:purposeTemplateId/linkableResources", () => {
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const concrete1 = getMockBffApiSuggestedEServiceConcrete(
+  const concrete1 = getMockBffApiLinkableEService(
     mockPurposeTemplateId
   );
-  const concrete2 = getMockBffApiSuggestedEServiceConcrete(
+  const concrete2 = getMockBffApiLinkableEService(
     mockPurposeTemplateId
   );
-  const template1 = getMockBffApiSuggestedEServiceTemplate(
+  const template1 = getMockBffApiLinkableEServiceTemplate(
     mockPurposeTemplateId
   );
-  const template2 = getMockBffApiSuggestedEServiceTemplate(
+  const template2 = getMockBffApiLinkableEServiceTemplate(
     mockPurposeTemplateId
   );
 
@@ -41,13 +41,13 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
     limit: 10,
   };
 
-  const mockResponse: bffApi.SuggestedEServicesPurposeTemplate = {
+  const mockResponse: bffApi.LinkableResources = {
     results: [concrete1, template1, concrete2, template2],
     pagination: { offset: 0, limit: 10, totalCount: 4 },
   };
 
   beforeEach(() => {
-    services.purposeTemplateService.getPurposeTemplateSuggestedEServices = vi
+    services.purposeTemplateService.getPurposeTemplateLinkableResources = vi
       .fn()
       .mockResolvedValue(mockResponse);
   });
@@ -59,7 +59,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
   ) =>
     request(api)
       .get(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/suggestedEServices`
+        `${appBasePath}/purposeTemplates/${purposeTemplateId}/linkableResources`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -81,12 +81,12 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
   });
 
   it("Should return 200 with empty results", async () => {
-    services.purposeTemplateService.getPurposeTemplateSuggestedEServices = vi
+    services.purposeTemplateService.getPurposeTemplateLinkableResources = vi
       .fn()
       .mockResolvedValue({
         results: [],
         pagination: { offset: 0, limit: 10, totalCount: 0 },
-      } satisfies bffApi.SuggestedEServicesPurposeTemplate);
+      } satisfies bffApi.LinkableResources);
 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
@@ -97,7 +97,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
 
   it("Should forward q, publisherIds, offset, limit to the service", async () => {
     const spy = vi.fn().mockResolvedValue(mockResponse);
-    services.purposeTemplateService.getPurposeTemplateSuggestedEServices = spy;
+    services.purposeTemplateService.getPurposeTemplateLinkableResources = spy;
     const publisher1 = generateId();
     const publisher2 = generateId();
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -136,7 +136,7 @@ describe("API GET /purposeTemplates/:purposeTemplateId/suggestedEServices", () =
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      services.purposeTemplateService.getPurposeTemplateSuggestedEServices = vi
+      services.purposeTemplateService.getPurposeTemplateLinkableResources = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);

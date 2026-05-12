@@ -30,8 +30,8 @@ import {
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
   toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
-  toBffSuggestedEServiceConcrete,
-  toBffSuggestedEServiceTemplate,
+  toBffLinkableEService,
+  toBffLinkableEServiceTemplate,
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
@@ -47,7 +47,7 @@ import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiC
 
 const FETCH_ALL_PAGE = 50;
 
-type SuggestedLink =
+type LinkableResourceRow =
   | {
       kind: "ESERVICE";
       link: purposeTemplateApi.EServiceDescriptorPurposeTemplate;
@@ -147,10 +147,10 @@ export function purposeTemplateServiceBuilder(
     return acc;
   }
 
-  async function enrichSuggestedEServicePage(
-    page: SuggestedLink[],
+  async function enrichLinkableResourcePage(
+    page: LinkableResourceRow[],
     headers: BffAppContext["headers"]
-  ): Promise<bffApi.SuggestedEServicePurposeTemplate[]> {
+  ): Promise<bffApi.LinkableResource[]> {
     const eserviceIds = Array.from(
       new Set(
         page.flatMap((p) => (p.kind === "ESERVICE" ? [p.link.eserviceId] : []))
@@ -226,7 +226,7 @@ export function purposeTemplateServiceBuilder(
           if (!producer) {
             throw tenantNotFound(eservice.producerId);
           }
-          return toBffSuggestedEServiceConcrete(
+          return toBffLinkableEService(
             link,
             toCompactPurposeTemplateEService(eservice, producer),
             toCompactDescriptor(descriptor)
@@ -252,7 +252,7 @@ export function purposeTemplateServiceBuilder(
           if (!creator) {
             throw tenantNotFound(eserviceTemplate.creatorId);
           }
-          return toBffSuggestedEServiceTemplate(
+          return toBffLinkableEServiceTemplate(
             link,
             toCompactPurposeTemplateEServiceTemplate(eserviceTemplate, creator),
             toBffCompactEServiceTemplateVersion(version)
@@ -522,7 +522,7 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getPurposeTemplateSuggestedEServices({
+    async getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds,
       q,
@@ -536,13 +536,13 @@ export function purposeTemplateServiceBuilder(
       offset: number;
       limit: number;
       ctx: WithLogger<BffAppContext>;
-    }): Promise<bffApi.SuggestedEServicesPurposeTemplate> {
+    }): Promise<bffApi.LinkableResources> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const { headers, logger } = ctx;
 
       logger.info(
-        `Retrieving suggested e-services (concrete + templates) for purpose template ${purposeTemplateId} with q ${q}, publisherIds ${publisherIds.toString()}, offset ${offset}, limit ${limit}`
+        `Retrieving linkable resources (concrete + templates) for purpose template ${purposeTemplateId} with q ${q}, publisherIds ${publisherIds.toString()}, offset ${offset}, limit ${limit}`
       );
 
       // Multi round-trip pagination is not snapshot-isolated: concurrent
@@ -556,12 +556,12 @@ export function purposeTemplateServiceBuilder(
         fetchAllTemplateLinks(purposeTemplateId, publisherIds, q, headers),
       ]);
 
-      const merged: SuggestedLink[] = [
+      const merged: LinkableResourceRow[] = [
         ...concreteLinks.map(
-          (link): SuggestedLink => ({ kind: "ESERVICE", link })
+          (link): LinkableResourceRow => ({ kind: "ESERVICE", link })
         ),
         ...templateLinks.map(
-          (link): SuggestedLink => ({ kind: "ESERVICE_TEMPLATE", link })
+          (link): LinkableResourceRow => ({ kind: "ESERVICE_TEMPLATE", link })
         ),
       ];
 
@@ -570,7 +570,7 @@ export function purposeTemplateServiceBuilder(
 
       const pageLinks = merged.slice(offset, offset + limit);
 
-      const results = await enrichSuggestedEServicePage(pageLinks, headers);
+      const results = await enrichLinkableResourcePage(pageLinks, headers);
 
       return {
         results,
