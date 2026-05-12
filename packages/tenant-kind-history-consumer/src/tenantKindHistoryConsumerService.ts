@@ -19,7 +19,7 @@ export async function handleMessageV1(
       { type: P.union("TenantCreated", "TenantUpdated") },
       async (message) => {
         if (!message.data.tenant) {
-          throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+          throw missingKafkaMessageDataError("tenant", message.type);
         }
         const tenant = fromTenantV1(message.data.tenant);
         await tenantKindHistoryWriterService.createTenantKindHistoryEntry(
