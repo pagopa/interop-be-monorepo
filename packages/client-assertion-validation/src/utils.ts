@@ -120,8 +120,8 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
     return failedValidation([kidNotFound()]);
   }
 
-  const alphanumericRegex = new RegExp("^[a-zA-Z0-9-_]+$");
-  if (alphanumericRegex.test(kid)) {
+  const jwkThumbprintRegex = new RegExp("^[a-zA-Z0-9_-]{43}$");
+  if (jwkThumbprintRegex.test(kid)) {
     return successfulValidation(kid);
   }
   return failedValidation([invalidKidFormat()]);
