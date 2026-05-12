@@ -412,6 +412,18 @@ export const deleteRiskAnalysisErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceRiskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateEServiceDescriptionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
