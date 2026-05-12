@@ -27,14 +27,14 @@ export const approveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveAgreementErrorMapper = (
