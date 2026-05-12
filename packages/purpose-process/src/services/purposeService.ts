@@ -2183,13 +2183,11 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const tenantKindToWriteInRA = tenantKind; // TODO
-
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
       ? {
           ...riskAnalysisForm,
-          tenantKind: tenantKindToWriteInRA,
+          tenantKind,
         }
       : undefined;
 
