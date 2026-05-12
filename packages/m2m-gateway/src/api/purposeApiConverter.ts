@@ -1,5 +1,6 @@
 import {
   agreementApi,
+  catalogApi,
   m2mGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
@@ -97,12 +98,14 @@ export async function toM2MGatewayApiPurpose(
       });
 
       const isRiskAnalysisValid =
-        validateRiskAnalysis(
-          { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind }, // TODO double-check
-          false,
-          new Date(),
-          eservice.data.personalData
-        ).type === "valid";
+        eservice.data.mode === catalogApi.EServiceMode.Enum.DELIVER
+          ? validateRiskAnalysis(
+              { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind },
+              false,
+              new Date(),
+              eservice.data.personalData
+            ).type === "valid"
+          : true; // the risk analysis form was validated before publishing the eservice (receive mode)
 
       return isRiskAnalysisValid;
     })
