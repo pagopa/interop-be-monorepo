@@ -8,7 +8,7 @@ import { authRole } from "pagopa-interop-commons";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
-describe("API POST /purposeTemplates/:purposeTemplateId/linkSuggestedEService", () => {
+describe("API POST /purposeTemplates/:purposeTemplateId/linkResource", () => {
   const mockPurposeTemplateId = generateId();
   const mockEServiceId = generateId();
   const mockEServiceTemplateId = generateId();
@@ -39,13 +39,11 @@ describe("API POST /purposeTemplates/:purposeTemplateId/linkSuggestedEService", 
 
   const makeRequest = async (
     token: string,
-    body: bffApi.SuggestedEServiceRequest,
+    body: bffApi.LinkableResourceRequest,
     purposeTemplateId: string = mockPurposeTemplateId
   ): Promise<request.Response> =>
     request(api)
-      .post(
-        `${appBasePath}/purposeTemplates/${purposeTemplateId}/linkSuggestedEService`
-      )
+      .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/linkResource`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -142,7 +140,7 @@ describe("API POST /purposeTemplates/:purposeTemplateId/linkSuggestedEService", 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as unknown as bffApi.SuggestedEServiceRequest
+      body as unknown as bffApi.LinkableResourceRequest
     );
     expect(res.status).toBe(400);
   });

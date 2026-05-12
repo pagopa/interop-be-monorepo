@@ -323,17 +323,17 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
-    async linkSuggestedEServiceToPurposeTemplate(
+    async linkResourceToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      body: bffApi.SuggestedEServiceRequest,
+      body: bffApi.LinkableResourceRequest,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.LinkedSuggestedEService> {
+    ): Promise<bffApi.LinkedResource> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       return await match(body)
         .with(
           { resourceKind: "ESERVICE" },
-          async ({ eserviceId }): Promise<bffApi.LinkedSuggestedEService> => {
+          async ({ eserviceId }): Promise<bffApi.LinkedResource> => {
             logger.info(
               `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
             );
@@ -353,9 +353,7 @@ export function purposeTemplateServiceBuilder(
         )
         .with(
           { resourceKind: "ESERVICE_TEMPLATE" },
-          async ({
-            eserviceTemplateId,
-          }): Promise<bffApi.LinkedSuggestedEService> => {
+          async ({ eserviceTemplateId }): Promise<bffApi.LinkedResource> => {
             logger.info(
               `Linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
             );
@@ -375,9 +373,9 @@ export function purposeTemplateServiceBuilder(
         )
         .exhaustive();
     },
-    async unlinkSuggestedEServiceFromPurposeTemplate(
+    async unlinkResourceFromPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
-      body: bffApi.SuggestedEServiceRequest,
+      body: bffApi.LinkableResourceRequest,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");

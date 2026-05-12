@@ -10968,7 +10968,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /purposeTemplates/{purposeTemplateId}/linkSuggestedEService:
+  /purposeTemplates/{purposeTemplateId}/linkResource:
     parameters:
       - name: purposeTemplateId
         in: path
@@ -10980,26 +10980,26 @@ paths:
     post:
       tags:
         - purposeTemplates
-      summary: Link a suggested e-service or e-service template to a purpose template
+      summary: Link a resource to a purpose template
       description: |
         Link a single resource (concrete e-service or e-service template) to a purpose template.
         The kind of resource is specified by the `resourceKind` discriminator in the request body.
-        Symmetric to the unified retrieval endpoint `/suggestedEServices`.
+        Symmetric to the unified retrieval endpoint `/linkableResources`.
         Returns the created link with its `resourceKind` discriminator (raw link, no enrichment).
-      operationId: linkSuggestedEServiceToPurposeTemplate
+      operationId: linkResourceToPurposeTemplate
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SuggestedEServiceRequest"
+              $ref: "#/components/schemas/LinkableResourceRequest"
       responses:
         "200":
           description: Resource linked to purpose template
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LinkedSuggestedEService"
+                $ref: "#/components/schemas/LinkedResource"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -11104,7 +11104,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  /purposeTemplates/{purposeTemplateId}/unlinkSuggestedEService:
+  /purposeTemplates/{purposeTemplateId}/unlinkResource:
     parameters:
       - name: purposeTemplateId
         in: path
@@ -11116,17 +11116,17 @@ paths:
     post:
       tags:
         - purposeTemplates
-      summary: Unlink a suggested e-service or e-service template from a purpose template
+      summary: Unlink a resource from a purpose template
       description: |
         Unlink a single resource (concrete e-service or e-service template) from a purpose template.
         The kind of resource is specified by the `resourceKind` discriminator in the request body.
-      operationId: unlinkSuggestedEServiceFromPurposeTemplate
+      operationId: unlinkResourceFromPurposeTemplate
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SuggestedEServiceRequest"
+              $ref: "#/components/schemas/LinkableResourceRequest"
       responses:
         "204":
           description: Resource unlinked from purpose template
@@ -28185,28 +28185,7 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
-    EServiceTemplateVersionPurposeTemplate:
-      type: object
-      additionalProperties: false
-      properties:
-        purposeTemplateId:
-          type: string
-          format: uuid
-        eserviceTemplateId:
-          type: string
-          format: uuid
-        eserviceTemplateVersionId:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - purposeTemplateId
-        - eserviceTemplateId
-        - eserviceTemplateVersionId
-        - createdAt
-    SuggestedEServiceConcreteRequest:
+    LinkableEServiceRequest:
       type: object
       additionalProperties: false
       required:
@@ -28220,7 +28199,7 @@ components:
         eserviceId:
           type: string
           format: uuid
-    SuggestedEServiceTemplateRequest:
+    LinkableEServiceTemplateRequest:
       type: object
       additionalProperties: false
       required:
@@ -28234,16 +28213,16 @@ components:
         eserviceTemplateId:
           type: string
           format: uuid
-    SuggestedEServiceRequest:
+    LinkableResourceRequest:
       oneOf:
-        - $ref: "#/components/schemas/SuggestedEServiceConcreteRequest"
-        - $ref: "#/components/schemas/SuggestedEServiceTemplateRequest"
+        - $ref: "#/components/schemas/LinkableEServiceRequest"
+        - $ref: "#/components/schemas/LinkableEServiceTemplateRequest"
       discriminator:
         propertyName: resourceKind
         mapping:
-          ESERVICE: "#/components/schemas/SuggestedEServiceConcreteRequest"
-          ESERVICE_TEMPLATE: "#/components/schemas/SuggestedEServiceTemplateRequest"
-    LinkedSuggestedEServiceConcrete:
+          ESERVICE: "#/components/schemas/LinkableEServiceRequest"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplateRequest"
+    LinkedEService:
       type: object
       additionalProperties: false
       required:
@@ -28269,7 +28248,7 @@ components:
         createdAt:
           type: string
           format: date-time
-    LinkedSuggestedEServiceTemplate:
+    LinkedEServiceTemplate:
       type: object
       additionalProperties: false
       required:
@@ -28295,15 +28274,15 @@ components:
         createdAt:
           type: string
           format: date-time
-    LinkedSuggestedEService:
+    LinkedResource:
       oneOf:
-        - $ref: "#/components/schemas/LinkedSuggestedEServiceConcrete"
-        - $ref: "#/components/schemas/LinkedSuggestedEServiceTemplate"
+        - $ref: "#/components/schemas/LinkedEService"
+        - $ref: "#/components/schemas/LinkedEServiceTemplate"
       discriminator:
         propertyName: resourceKind
         mapping:
-          ESERVICE: "#/components/schemas/LinkedSuggestedEServiceConcrete"
-          ESERVICE_TEMPLATE: "#/components/schemas/LinkedSuggestedEServiceTemplate"
+          ESERVICE: "#/components/schemas/LinkedEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkedEServiceTemplate"
     CreatorPurposeTemplate:
       type: object
       additionalProperties: false
