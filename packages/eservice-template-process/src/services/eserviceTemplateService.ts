@@ -294,10 +294,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -2248,6 +2257,25 @@ async function updateDraftEServiceTemplateVersion(
     );
   }
 
+  const updatedAgreementApprovalPolicy = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) =>
+      seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : undefined
+    )
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy === undefined
+          ? eserviceTemplateVersion.agreementApprovalPolicy
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
+    )
+    .exhaustive();
+
   const updatedDailyCallsPerConsumer = match(updateSeed)
     .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
     .with({ type: "patch" }, ({ seed }) =>
@@ -2265,25 +2293,6 @@ async function updateDraftEServiceTemplateVersion(
         seed.dailyCallsTotal,
         eserviceTemplateVersion.dailyCallsTotal
       )
-    )
-    .exhaustive();
-
-  const updatedAgreementApprovalPolicy = match(updateSeed)
-    .with({ type: "post" }, ({ seed }) =>
-      seed.agreementApprovalPolicy
-        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
-        : undefined
-    )
-    .with({ type: "patch" }, ({ seed }) =>
-      seed.agreementApprovalPolicy === null
-        ? undefined
-        : seed.agreementApprovalPolicy === undefined
-          ? eserviceTemplateVersion.agreementApprovalPolicy
-          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-              seed.agreementApprovalPolicy
-            )
     )
     .exhaustive();
 

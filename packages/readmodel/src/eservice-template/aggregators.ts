@@ -107,6 +107,9 @@ export const aggregateEServiceTemplateVersion = ({
     docs: documentsSQL.map(documentSQLtoDocument),
     state: EServiceTemplateVersionState.parse(versionSQL.state),
     voucherLifespan: versionSQL.voucherLifespan,
+    ...(versionSQL.dailyCallsPerConsumer
+      ? { dailyCallsPerConsumer: versionSQL.dailyCallsPerConsumer }
+      : undefined),
     ...(versionSQL.dailyCallsTotal
       ? { dailyCallsTotal: versionSQL.dailyCallsTotal }
       : undefined),

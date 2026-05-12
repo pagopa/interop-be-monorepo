@@ -320,6 +320,7 @@ const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
   createdAt: dateToString(eserviceTemplateVersion.createdAt),
   state: eserviceTemplateVersion.state,
   voucherLifespan: eserviceTemplateVersion.voucherLifespan,
+  dailyCallsPerConsumer: eserviceTemplateVersion.dailyCallsPerConsumer ?? null,
   dailyCallsTotal: eserviceTemplateVersion.dailyCallsTotal ?? null,
   agreementApprovalPolicy:
     eserviceTemplateVersion.agreementApprovalPolicy ?? null,

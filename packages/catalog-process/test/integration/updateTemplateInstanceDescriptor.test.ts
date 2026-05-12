@@ -20,6 +20,7 @@ import {
   delegationState,
   delegationKind,
   attributeKind,
+  attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -638,6 +639,81 @@ describe("update descriptor", () => {
         dailyCallsPerConsumer: 1,
         dailyCallsTotal: 1000,
         attributes: seedWithExtraAttribute,
+      };
+
+    expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, mockTemplate.id)
+    );
+  });
+
+  it("should throw templateInstanceNotAllowed when seed.attributes changes certified discrete threshold", async () => {
+    const mockCertifiedAttribute = getMockAttribute(
+      attributeKind.certifiedDiscrete
+    );
+
+    await addOneAttribute(mockCertifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: mockCertifiedAttribute.id,
+              explicitAttributeVerification: false,
+              certifiedDiscreteItems: {
+                certifiedDiscreteThreshold: 10,
+                certifiedDiscreteComparator:
+                  attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: mockCertifiedAttribute.id,
+                explicitAttributeVerification: false,
+                certifiedDiscreteItems: {
+                  certifiedDiscreteThreshold: 20,
+                  certifiedDiscreteComparator:
+                    attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
       };
 
     expect(

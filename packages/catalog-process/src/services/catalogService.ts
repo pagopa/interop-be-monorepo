@@ -460,10 +460,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -2916,7 +2925,7 @@ export function catalogServiceBuilder(
         seed
       );
 
-      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
         eserviceId,
         descriptor,
         seed
@@ -2933,7 +2942,7 @@ export function catalogServiceBuilder(
         descriptor.dailyCallsTotal
       );
 
-      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
@@ -3103,10 +3112,11 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-
-      if (newAttributes.length === 0) {
-        return;
-      }
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed,
@@ -3117,6 +3127,10 @@ export function catalogServiceBuilder(
         parsedAttributes,
         descriptor.attributes
       );
+
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
+        return;
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -4205,7 +4219,7 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
-function hasCertifiedAttributeDailyCallsChanged(
+function hasCertifiedAttributeConfigurationChanged(
   eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
@@ -4230,10 +4244,30 @@ function hasCertifiedAttributeDailyCallsChanged(
 
       return (
         seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer
+          descriptorAttribute.dailyCallsPerConsumer ||
+        seedAttribute?.certifiedDiscreteItems?.certifiedDiscreteThreshold !==
+          getCertifiedDiscreteThreshold(descriptorAttribute) ||
+        seedAttribute?.certifiedDiscreteItems?.certifiedDiscreteComparator !==
+          getCertifiedDiscreteComparator(descriptorAttribute)
       );
     });
   });
+}
+
+function getCertifiedDiscreteThreshold(
+  attribute: EServiceCertifiedAttribute
+): number | undefined {
+  return "certifiedDiscreteItems" in attribute
+    ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+    : undefined;
+}
+
+function getCertifiedDiscreteComparator(
+  attribute: EServiceCertifiedAttribute
+): string | undefined {
+  return "certifiedDiscreteItems" in attribute
+    ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+    : undefined;
 }
 
 function evaluateTemplateVersionRef(
