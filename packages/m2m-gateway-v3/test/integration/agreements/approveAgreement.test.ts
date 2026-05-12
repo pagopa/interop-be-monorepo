@@ -18,15 +18,11 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  agreementNotInExpectedState,
-  missingMetadata,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
 } from "../../mockUtils.js";
-import { BRAND } from "zod";
 
 describe("approveAgreement", () => {
   const mockAgreementProcessResponse = getMockWithMetadata(
