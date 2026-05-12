@@ -1,15 +1,14 @@
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
-import { CorrelationId, EventEnvelope } from "pagopa-interop-models";
+import {
+  HandlerCommonParams as CommonsHandlerCommonParams,
+  HandlerParams as CommonsHandlerParams,
+} from "pagopa-interop-notification-commons";
 import { z } from "zod";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
-export type HandlerCommonParams = {
-  readModelService: ReadModelServiceSQL;
-  logger: Logger;
-  templateService: HtmlTemplateService;
-  correlationId: CorrelationId;
-};
+export type HandlerCommonParams =
+  CommonsHandlerCommonParams<ReadModelServiceSQL>;
 
-export type HandlerParams<T extends z.ZodType> = HandlerCommonParams & {
-  decodedMessage: EventEnvelope<z.infer<T>>;
-};
+export type HandlerParams<T extends z.ZodType> = CommonsHandlerParams<
+  T,
+  ReadModelServiceSQL
+>;
