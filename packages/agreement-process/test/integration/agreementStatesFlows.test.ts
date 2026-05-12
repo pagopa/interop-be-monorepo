@@ -257,7 +257,7 @@ describe("Agreement states flows", () => {
     const producerAuthData = getMockAuthData(producer.id);
 
     const { data: activatedAgreement } =
-      await agreementService.unsuspendAgreement(
+      await agreementService.approveAgreement(
         { agreementId: submittedUpgradedAgreement.id, delegationId: undefined },
         getMockContext({ authData: producerAuthData })
       );
