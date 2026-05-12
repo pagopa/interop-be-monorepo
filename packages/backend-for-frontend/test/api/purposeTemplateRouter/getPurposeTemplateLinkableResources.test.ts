@@ -21,12 +21,8 @@ import {
 
 describe("API GET /purposeTemplates/:purposeTemplateId/linkableResources", () => {
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();
-  const concrete1 = getMockBffApiLinkableEService(
-    mockPurposeTemplateId
-  );
-  const concrete2 = getMockBffApiLinkableEService(
-    mockPurposeTemplateId
-  );
+  const concrete1 = getMockBffApiLinkableEService(mockPurposeTemplateId);
+  const concrete2 = getMockBffApiLinkableEService(mockPurposeTemplateId);
   const template1 = getMockBffApiLinkableEServiceTemplate(
     mockPurposeTemplateId
   );

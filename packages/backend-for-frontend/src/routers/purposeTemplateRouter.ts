@@ -198,9 +198,7 @@ const purposeTemplateRouter = (
               limit,
               ctx,
             });
-          return res
-            .status(200)
-            .send(bffApi.LinkableResources.parse(response));
+          return res.status(200).send(bffApi.LinkableResources.parse(response));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
