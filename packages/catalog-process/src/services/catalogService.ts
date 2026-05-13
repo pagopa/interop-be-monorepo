@@ -355,11 +355,6 @@ const updateDescriptorState = (
         suspendedAt: new Date(),
       })
     )
-    .with([descriptorState.suspended, descriptorState.published], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-    }))
     .with([descriptorState.suspended, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
