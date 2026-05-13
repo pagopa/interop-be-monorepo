@@ -10,8 +10,10 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
-  PurposeId,
+  Interaction,
   InteractionId,
+  makeInteractionPK,
+  PurposeId,
   TenantId,
 } from "pagopa-interop-models";
 import { dateToSeconds } from "pagopa-interop-commons";
@@ -108,8 +110,8 @@ describe("interactions utils", () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
-    const currentInteraction = {
-      PK: `INTERACTION#${interactionId}`,
+    const currentInteraction: Interaction = {
+      PK: makeInteractionPK(interactionId),
       interactionId,
       clientId: generateId<ClientId>(),
       purposeId,
@@ -149,8 +151,8 @@ describe("interactions utils", () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
-    const currentInteraction = {
-      PK: `INTERACTION#${interactionId}`,
+    const currentInteraction: Interaction = {
+      PK: makeInteractionPK(interactionId),
       interactionId,
       clientId: generateId<ClientId>(),
       purposeId,

@@ -3155,6 +3155,15 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3936,6 +3945,15 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     EServiceInstanceLabelUpdateSeed:
       type: object
       additionalProperties: false

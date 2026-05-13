@@ -71,6 +71,7 @@ const errorCodes = {
   asyncExchangeBulkNotAllowedForSoap: "0054",
   asyncExchangeNotAllowedForReceiveMode: "0055",
   missingAsyncExchangeCallbackInterface: "0056",
+  templateVersionMissingAsyncExchangeProperties: "0057",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -201,7 +202,7 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
 
 export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `dailyCallsPerConsumer can't be greater than or equal to dailyCallsTotal`,
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
   });
@@ -626,6 +627,17 @@ export function asyncExchangeCallbackInterfaceAlreadyExists(
     detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
     code: "asyncExchangeCallbackInterfaceAlreadyExists",
     title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
   });
 }
 

@@ -4516,6 +4516,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -23328,6 +23329,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -26120,6 +26122,15 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeResponseTime:
+          type: integer
+          format: int32
+        asyncExchangeResourceAvailableTime:
+          type: integer
+          format: int32
+        asyncExchangeMaxResultSet:
+          type: integer
+          format: int32
     Mail:
       type: object
       additionalProperties: false
@@ -26597,6 +26608,8 @@ components:
         - mode
         - riskAnalysis
         - descriptors
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26619,6 +26632,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         draftDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
@@ -29683,6 +29700,10 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:
@@ -30015,6 +30036,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceTemplateAttributesSeed:
       properties:
         certified:

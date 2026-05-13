@@ -31,6 +31,7 @@ function toOutboundEServiceTemplateVersionV2(
     interface:
       template.interface && toOuboundEServiceDocumentV2(template.interface),
     asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
   };
 }
 

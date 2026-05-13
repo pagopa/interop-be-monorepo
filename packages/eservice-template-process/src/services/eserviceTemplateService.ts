@@ -43,6 +43,7 @@ import {
   Tenant,
   EServiceTemplateEvent,
   CompactOrganization,
+  technology,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -72,6 +73,8 @@ import {
   riskAnalysisNotFound,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  missingAsyncExchangeProperties,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -537,6 +540,18 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eserviceTemplate.data.asyncExchange === true
+      ) {
+        if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+      }
+
       const publishedTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         versions: eserviceTemplate.data.versions.map((v) =>
@@ -912,17 +927,7 @@ export function eserviceTemplateServiceBuilder(
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
 
-      if (version.interface) {
-        await fileManager.delete(
-          config.s3Bucket,
-          version.interface.path,
-          logger
-        );
-      }
-
-      for (const document of version.docs) {
-        await fileManager.delete(config.s3Bucket, document.path, logger);
-      }
+      await deleteVersionInterfaceAndDocs(version, fileManager, logger);
 
       if (isLastVersion) {
         await repository.createEvent(
@@ -1653,6 +1658,13 @@ export function eserviceTemplateServiceBuilder(
           );
         }
 
+        if (version.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplate.data.id,
+            version.id
+          );
+        }
+
         if (version.asyncExchangeCallbackInterface !== undefined) {
           throw asyncExchangeCallbackInterfaceAlreadyExists(version.id);
         }
@@ -2313,6 +2325,8 @@ async function updateDraftEServiceTemplateVersion(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     agreementApprovalPolicy,
     attributes,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    asyncExchangeProperties,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
@@ -2399,6 +2413,38 @@ async function updateDraftEServiceTemplateVersion(
       )
     : eserviceTemplateVersion.attributes;
 
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eserviceTemplate.data.asyncExchange === true;
+
+  const updatedAsyncExchangeProperties = asyncExchangeEnabled
+    ? match(updateSeed)
+        .with(
+          { type: "post" },
+          ({ seed }) =>
+            seed.asyncExchangeProperties ??
+            eserviceTemplateVersion.asyncExchangeProperties
+        )
+        .with({ type: "patch" }, ({ seed }) =>
+          resolvePatchValue(
+            seed.asyncExchangeProperties,
+            eserviceTemplateVersion.asyncExchangeProperties
+          )
+        )
+        .exhaustive()
+    : eserviceTemplateVersion.asyncExchangeProperties;
+
+  if (
+    asyncExchangeEnabled &&
+    eserviceTemplate.data.technology === technology.soap &&
+    updatedAsyncExchangeProperties?.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(
+      eserviceTemplate.data.id,
+      eserviceTemplateVersion.id
+    );
+  }
+
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
@@ -2407,6 +2453,7 @@ async function updateDraftEServiceTemplateVersion(
     description: description ?? eserviceTemplateVersion.description,
     voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
     attributes: parsedAttributes,
+    asyncExchangeProperties: updatedAsyncExchangeProperties,
   };
 
   const updatedEServiceTemplate = replaceEServiceTemplateVersion(

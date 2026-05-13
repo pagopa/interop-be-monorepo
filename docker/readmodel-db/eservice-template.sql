@@ -80,6 +80,19 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_async_exchange_properties (
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  version_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version (id) ON DELETE CASCADE,
+  response_time INTEGER NOT NULL,
+  resource_available_time INTEGER NOT NULL,
+  confirmation BOOLEAN NOT NULL,
+  bulk BOOLEAN NOT NULL,
+  max_result_set INTEGER NOT NULL,
+  PRIMARY KEY (version_id),
+  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_analysis (
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,

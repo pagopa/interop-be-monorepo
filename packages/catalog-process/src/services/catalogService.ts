@@ -62,6 +62,7 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  AsyncExchangeProperties,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -108,6 +109,7 @@ import {
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
   descriptorAsyncExchangeNotConfigured,
+  templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
@@ -192,6 +194,7 @@ import {
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
+  assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
@@ -522,6 +525,7 @@ async function innerCreateEService(
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
           riskAnalysis: RiskAnalysis[] | undefined;
+          asyncExchangeProperties?: AsyncExchangeProperties;
         }
       | undefined;
     instanceLabel?: string | undefined;
@@ -625,6 +629,7 @@ async function innerCreateEService(
     templateVersionRef: templateVersionId
       ? { id: templateVersionId }
       : undefined,
+    asyncExchangeProperties: template?.asyncExchangeProperties,
   };
 
   const eserviceWithDescriptor: EService = {
@@ -1483,6 +1488,13 @@ export function catalogServiceBuilder(
             : undefined,
       });
 
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        eservice.data.technology,
+        newDescriptor.asyncExchangeProperties,
+        eservice.data.id,
+        newDescriptor.id
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
@@ -1694,6 +1706,10 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       if (seed.attributes) {
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
@@ -1724,6 +1740,21 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+        asyncExchangeProperties:
+          asyncExchangeEnabled && descriptor.asyncExchangeProperties
+            ? {
+                ...descriptor.asyncExchangeProperties,
+                responseTime:
+                  seed.asyncExchangeResponseTime ??
+                  descriptor.asyncExchangeProperties.responseTime,
+                resourceAvailableTime:
+                  seed.asyncExchangeResourceAvailableTime ??
+                  descriptor.asyncExchangeProperties.resourceAvailableTime,
+                maxResultSet:
+                  seed.asyncExchangeMaxResultSet ??
+                  descriptor.asyncExchangeProperties.maxResultSet,
+              }
+            : descriptor.asyncExchangeProperties,
       };
 
       const updatedEService = replaceDescriptor(
@@ -1799,7 +1830,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -2903,7 +2933,6 @@ export function catalogServiceBuilder(
         eservice.data.asyncExchange === true
       ) {
         assertAsyncExchangeReadyForPublication(
-          eservice.data.technology,
           descriptor,
           eserviceId,
           descriptorId
@@ -3544,6 +3573,17 @@ export function catalogServiceBuilder(
         );
       }
 
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        template.asyncExchange === true &&
+        !publishedVersion.asyncExchangeProperties
+      ) {
+        throw templateVersionMissingAsyncExchangeProperties(
+          template.id,
+          publishedVersion.id
+        );
+      }
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
@@ -3579,6 +3619,24 @@ export function catalogServiceBuilder(
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
             riskAnalysis,
+            asyncExchangeProperties:
+              isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+              template.asyncExchange === true &&
+              publishedVersion.asyncExchangeProperties
+                ? {
+                    ...publishedVersion.asyncExchangeProperties,
+                    responseTime:
+                      seed.asyncExchangeResponseTime ??
+                      publishedVersion.asyncExchangeProperties.responseTime,
+                    resourceAvailableTime:
+                      seed.asyncExchangeResourceAvailableTime ??
+                      publishedVersion.asyncExchangeProperties
+                        .resourceAvailableTime,
+                    maxResultSet:
+                      seed.asyncExchangeMaxResultSet ??
+                      publishedVersion.asyncExchangeProperties.maxResultSet,
+                  }
+                : undefined,
           },
           instanceLabel: parsedInstanceLabel,
         },
@@ -4071,6 +4129,10 @@ async function createOpenApiInterfaceByTemplate(
         },
         ctx
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     ctx.logger
   );
 }
@@ -4741,6 +4803,13 @@ async function updateDraftDescriptor(
         : descriptor.asyncExchangeProperties
       : descriptor.asyncExchangeProperties,
   };
+
+  assertAsyncExchangeBulkAllowedForDescriptor(
+    eservice.data.technology,
+    updatedDescriptor.asyncExchangeProperties,
+    eservice.data.id,
+    descriptor.id
+  );
 
   const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 

@@ -13,6 +13,7 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  AsyncExchangeProperties,
   Descriptor,
   DescriptorId,
   EService,
@@ -252,6 +253,12 @@ export function assertRiskAnalysisIsValidForPublication(
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
+  const firstPublishedAt = eservice.descriptors.find(
+    (d) => d.publishedAt !== undefined
+  )?.publishedAt;
+
+  const dateForRiskAnalysisValidation = firstPublishedAt ?? new Date();
+
   eservice.riskAnalysis.forEach((riskAnalysis) => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
@@ -259,7 +266,7 @@ export function assertRiskAnalysisIsValidForPublication(
       ),
       false,
       tenantKind,
-      new Date(),
+      dateForRiskAnalysisValidation,
       eservice.personalData
     );
 
@@ -364,7 +371,7 @@ export function assertConsistentDailyCalls({
   dailyCallsPerConsumer: number;
   dailyCallsTotal: number;
 }): void {
-  if (dailyCallsPerConsumer >= dailyCallsTotal) {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
     throw inconsistentDailyCalls();
   }
 }
@@ -426,7 +433,6 @@ export function hasRoleToAccessInactiveDescriptors(
 }
 
 export function assertAsyncExchangeReadyForPublication(
-  eserviceTechnology: Technology,
   descriptor: Descriptor,
   eserviceId: EServiceId,
   descriptorId: DescriptorId
@@ -438,10 +444,18 @@ export function assertAsyncExchangeReadyForPublication(
   if (descriptor.asyncExchangeCallbackInterface === undefined) {
     throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
   }
+}
 
+export function assertAsyncExchangeBulkAllowedForDescriptor(
+  eserviceTechnology: Technology,
+  asyncExchangeProperties: AsyncExchangeProperties | undefined,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
   if (
+    asyncExchangeProperties !== undefined &&
     eserviceTechnology === technology.soap &&
-    descriptor.asyncExchangeProperties.bulk === true
+    asyncExchangeProperties.bulk === true
   ) {
     throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
   }
@@ -535,7 +549,7 @@ export function assertAttributeDailyCallsConsistentWithTotal(
     for (const attribute of attributeGroup) {
       if (
         attribute.dailyCallsPerConsumer !== undefined &&
-        attribute.dailyCallsPerConsumer >= dailyCallsTotal
+        attribute.dailyCallsPerConsumer > dailyCallsTotal
       ) {
         throw inconsistentDailyCalls();
       }

@@ -262,7 +262,9 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
 
 export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
+  producer: tenantApi.Tenant,
+  hasProducerKeychain: boolean,
+  hasProducerKeychainKeys: boolean
 ): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
@@ -294,6 +296,8 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
       producer.kind
     ),
     descriptors: notDraftDecriptors,
+    hasProducerKeychain,
+    hasProducerKeychainKeys,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,

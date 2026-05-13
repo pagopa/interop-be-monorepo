@@ -4,6 +4,7 @@ import {
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockExpiredRiskAnalysis,
   getMockDelegation,
   getMockAuthData,
   getMockContext,
@@ -44,7 +45,6 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -830,42 +830,6 @@ describe("publish descriptor", () => {
     );
   });
 
-  it("should throw asyncExchangeBulkNotAllowedForSoap if technology is Soap and asyncExchange bulk is true", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      interface: mockDocument,
-      asyncExchangeProperties: {
-        responseTime: 30,
-        resourceAvailableTime: 30,
-        confirmation: false,
-        bulk: true,
-        maxResultSet: 100,
-      },
-      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
-    };
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      personalData: false,
-      asyncExchange: true,
-      technology: technology.soap,
-    };
-
-    await addOneEService(eservice);
-
-    await expect(
-      catalogService.publishDescriptor(
-        eservice.id,
-        descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
-    );
-  });
-
   it("should not throw when asyncExchange is true, technology is REST, and all required fields are set", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -959,7 +923,7 @@ describe("publish descriptor", () => {
     config.featureFlagAsyncExchange = true;
   });
 
-  it("should not throw asyncExchangeBulkNotAllowedForSoap when technology is REST and asyncExchange bulk is true", async () => {
+  it("should publish when technology is REST and asyncExchange bulk is true", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -992,5 +956,86 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).resolves.toBeDefined();
+  });
+
+  it("should succeed publishing a new descriptor when risk analysis form version is expired but was valid at first publication", async () => {
+    const firstPublishedAt = new Date("2023-07-01");
+
+    const descriptor1: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "1",
+      state: descriptorState.published,
+      publishedAt: firstPublishedAt,
+      interface: getMockDocument(),
+    };
+    const descriptor2: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.draft,
+      interface: getMockDocument(),
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    // PA 2.0 is expired, but was valid at firstPublishedAt (2023-07-01)
+    const riskAnalysis = getMockExpiredRiskAnalysis(tenantKind.PA);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor1, descriptor2],
+      riskAnalysis: [riskAnalysis],
+      personalData: true,
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    const publishDescriptorResponse = await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor2.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorPublished",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorPublishedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor1: Descriptor = {
+      ...descriptor1,
+      archivedAt: new Date(),
+      state: descriptorState.archived,
+    };
+    const expectedDescriptor2: Descriptor = {
+      ...descriptor2,
+      publishedAt: new Date(),
+      state: descriptorState.published,
+    };
+
+    const expectedEservice: EService = {
+      ...eservice,
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
+    };
+
+    expect(publishDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
+    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 });
