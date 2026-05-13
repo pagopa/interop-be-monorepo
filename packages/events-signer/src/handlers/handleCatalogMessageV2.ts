@@ -95,6 +95,7 @@ export const handleCatalogMessageV2 = async (
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",
             "EServiceIsClientAccessDelegableEnabled",
