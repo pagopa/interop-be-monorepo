@@ -294,6 +294,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceNameUpdated" },
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptionUpdatedByTemplateUpdate" },

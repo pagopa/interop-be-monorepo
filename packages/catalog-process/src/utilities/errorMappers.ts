@@ -483,6 +483,27 @@ export const updateDescriptorAttributesErrorMapper = (
     .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateDescriptorCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      "unchangedAttributes",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const approveDelegatedEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

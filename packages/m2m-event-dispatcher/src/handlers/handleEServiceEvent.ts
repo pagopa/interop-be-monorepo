@@ -113,6 +113,7 @@ async function handleEServiceEventV2(
             "EServiceDraftDescriptorDeleted",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
