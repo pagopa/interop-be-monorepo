@@ -109,7 +109,11 @@ describe("schedule archiving of an EService", () => {
     }
   );
 
-  it.each([descriptorState.archiving, descriptorState.archivingSuspended, descriptorState.archived])(
+  it.each([
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+    descriptorState.archived,
+  ])(
     "should throw notValidEServiceState if the active descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
@@ -147,7 +151,7 @@ describe("schedule archiving of an EService", () => {
     },
   ])(
     "should change previous descriptor version from $state state to $expectedState when archiving is scheduled for an EService",
-    async ({state, expectedState}) => {
+    async ({ state, expectedState }) => {
       const previousDescriptor: Descriptor = {
         ...getMockDescriptor(),
         id: generateId(),
@@ -239,7 +243,7 @@ describe("schedule archiving of an EService", () => {
     }
   );
 
-  it.each([descriptorState.draft,descriptorState.waitingForApproval])(
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should delete previous descriptor version in %s state when archiving is scheduled for an EService",
     async (state) => {
       const activeDescriptor: Descriptor = {

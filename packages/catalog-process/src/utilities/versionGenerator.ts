@@ -40,7 +40,7 @@ export const getLatestActiveDescriptor = (eservice: EService): Descriptor => {
   }
 
   return latestDescriptor;
-}
+};
 
 export const nextDescriptorVersion = (eservice: EService): string => {
   const currentVersion =

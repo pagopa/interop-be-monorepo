@@ -56,7 +56,10 @@ import {
   notValidEServiceState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { getLatestActiveDescriptor, getLatestDescriptor } from "../utilities/versionGenerator.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestDescriptor,
+} from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor

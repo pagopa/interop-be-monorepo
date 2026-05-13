@@ -3933,11 +3933,8 @@ async function processEserviceArchiving(
             archivingScope.eservice
           )
         )
-        .with(
-          descriptorState.draft,
-          descriptorState.waitingForApproval,
-          () =>
-            deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger)
+        .with(descriptorState.draft, descriptorState.waitingForApproval, () =>
+          deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger)
         )
         .exhaustive()
     )
