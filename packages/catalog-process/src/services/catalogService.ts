@@ -153,7 +153,7 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
-  toCreateEventEServiceDescriptorArchivingDeleted,
+  toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
@@ -3827,14 +3827,14 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
       assertDescriptorCancelArchivable(descriptor, eservice.data);
 
       const newState =
         descriptor.state === descriptorState.archivingSuspended
           ? descriptorState.suspended
           : descriptorState.deprecated;
-
-      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       const updatedDescriptor = updateDescriptorState(
         { ...descriptor, archivingSchedule: undefined },
@@ -3846,7 +3846,7 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceDescriptorArchivingDeleted(
+      const event = toCreateEventEServiceDescriptorArchivingCanceled(
         eservice.metadata.version,
         updatedEService,
         descriptorId,
