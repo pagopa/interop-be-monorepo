@@ -171,6 +171,7 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.agreementProcessClient,
       clients.attributeProcessClient,
+      clients.authorizationClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
