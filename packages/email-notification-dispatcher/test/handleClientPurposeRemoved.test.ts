@@ -28,7 +28,7 @@ import {
   eServiceNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
 import { handleClientPurposeRemoved } from "../src/handlers/authorization/handleClientPurposeRemovedEvent.js";
 import {
   addOneEService,

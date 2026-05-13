@@ -17,12 +17,10 @@ import {
   retrieveAttribute,
   retrieveTenant,
   retrieveTenantByCertifierId,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import {
+  inAppTemplates,
   attributeOriginUndefined,
   verifiedAttributeNotFoundInTenant,
-} from "../../models/errors.js";
+} from "pagopa-interop-notification-commons";
 
 type CertifiedVerifiedAttributeAssignedRevokedEventType =
   | "TenantCertifiedAttributeAssigned"

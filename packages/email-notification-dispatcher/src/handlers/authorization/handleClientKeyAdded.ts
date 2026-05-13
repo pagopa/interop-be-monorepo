@@ -11,13 +11,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { clientKeyNotFound } from "../../models/errors.js";
+  clientKeyNotFound,
+} from "pagopa-interop-notification-commons";
+import { ClientKeyHandlerParams } from "../handlerCommons.js";
+
 import { config } from "../../config/config.js";
 
 export async function handleClientKeyAdded(

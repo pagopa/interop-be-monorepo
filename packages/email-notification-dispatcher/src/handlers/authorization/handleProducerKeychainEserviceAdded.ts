@@ -9,13 +9,12 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  ProducerKeychainEServiceHandlerParams,
-} from "../handlerCommons.js";
-import { eServiceNotFound } from "../../models/errors.js";
+  eServiceNotFound,
+} from "pagopa-interop-notification-commons";
+import { ProducerKeychainEServiceHandlerParams } from "../handlerCommons.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";

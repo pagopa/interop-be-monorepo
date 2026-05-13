@@ -22,7 +22,7 @@ import {
   eserviceWithoutDescriptors,
   eServiceNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
 import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
   addOneAgreement,

@@ -20,7 +20,10 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  eServiceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handleAgreementUnsuspendedByConsumer } from "../src/handlers/agreements/handleAgreementUnsuspendedByConsumer.js";
 import {
   addOneAgreement,

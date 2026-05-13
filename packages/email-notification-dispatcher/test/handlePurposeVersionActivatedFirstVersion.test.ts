@@ -27,7 +27,10 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  eServiceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handlePurposeVersionActivatedFirstVersion } from "../src/handlers/purposes/handlePurposeVersionActivatedFirstVersion.js";
 import {
   addOneEService,

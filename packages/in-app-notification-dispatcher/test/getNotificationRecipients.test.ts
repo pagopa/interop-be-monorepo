@@ -5,11 +5,11 @@ import {
   notificationAdmittedRoles,
 } from "pagopa-interop-commons";
 import { TenantId, UserId, UserRole, generateId } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import { getNotificationRecipients } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 describe("getNotificationRecipients", () => {
-  vi.unmock("../src/handlers/handlerCommons.js");
+  vi.unmock("pagopa-interop-notification-commons");
 
   const tenants: TenantId[] = [generateId<TenantId>(), generateId<TenantId>()];
 

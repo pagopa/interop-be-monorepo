@@ -22,7 +22,10 @@ import {
   toPurposeV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  eServiceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handlePurposeVersionUnsuspendedByProducer } from "../src/handlers/purposes/handlePurposeVersionUnsuspendedByProducer.js";
 import {
   addOneEService,

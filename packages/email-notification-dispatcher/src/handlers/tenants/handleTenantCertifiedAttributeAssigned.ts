@@ -8,14 +8,13 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
-  TenantHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { TenantHandlerParams } from "../handlerCommons.js";
+
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 import { config } from "../../config/config.js";
 

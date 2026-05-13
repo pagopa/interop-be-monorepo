@@ -6,12 +6,12 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { activeProducerDelegationNotFound } from "../../models/errors.js";
+  activeProducerDelegationNotFound,
+} from "pagopa-interop-notification-commons";
 
 export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"

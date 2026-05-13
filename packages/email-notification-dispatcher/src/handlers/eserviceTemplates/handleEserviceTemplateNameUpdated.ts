@@ -12,12 +12,11 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
-} from "../../services/utils.js";
-import {
-  EserviceTemplateNameUpdatedHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { EserviceTemplateNameUpdatedHandlerParams } from "../handlerCommons.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =

@@ -6,12 +6,12 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"

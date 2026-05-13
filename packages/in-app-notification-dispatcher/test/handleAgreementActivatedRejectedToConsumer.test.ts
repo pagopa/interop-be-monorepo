@@ -16,10 +16,14 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  eserviceNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
-import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneAgreement,
   addOneEService,

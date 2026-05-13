@@ -11,12 +11,11 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientUserHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { ClientUserHandlerParams } from "../handlerCommons.js";
+
 import { config } from "../../config/config.js";
 
 export async function handleClientUserDeleted(

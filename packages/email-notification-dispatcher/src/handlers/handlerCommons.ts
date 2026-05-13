@@ -83,12 +83,3 @@ export type ProducerKeychainEServiceHandlerParams = HandlerCommonParams & {
   producerKeychainV2Msg?: ProducerKeychainV2;
   eserviceId: EServiceId;
 };
-
-export {
-  getRecipientsForTenants,
-  mapRecipientToEmailPayload,
-  retrieveAgreementEservice,
-  retrieveAttribute,
-  retrievePurpose,
-  retrieveTenantByCertifierId,
-} from "pagopa-interop-notification-commons";

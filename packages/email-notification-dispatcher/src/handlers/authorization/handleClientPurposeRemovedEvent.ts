@@ -8,13 +8,12 @@ import {
   retrieveEService,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
-  ClientPurposeHandlerParams,
   retrievePurpose,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { ClientPurposeHandlerParams } from "../handlerCommons.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
