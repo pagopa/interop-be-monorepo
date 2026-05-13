@@ -95,6 +95,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
   it.each([
     { body: {} },
     { body: { client_id: "invalid" } },
+    { body: { ...mockRequest, client_id: "not-a-uuid" } },
     { body: { ...mockRequest, client_assertion: 123 } },
     { body: { ...mockRequest, client_assertion_type: 123 } },
     { body: { ...mockRequest, grant_type: 123 } },
