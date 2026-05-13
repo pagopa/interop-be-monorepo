@@ -227,3 +227,10 @@ message MaintenanceEServicePersonalDataFlagResetV2 {
   EServiceV2 eservice = 1;
   string reason = 2;
 }
+
+message EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2 {
+  EServiceV2 eservice = 1;
+  string descriptorId = 2;
+  string attributeId = 3;
+  int32 dailyCallsPerConsumer = 4;
+}

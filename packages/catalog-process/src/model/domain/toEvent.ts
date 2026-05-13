@@ -930,3 +930,27 @@ export const toCreateEventMaintenanceEServicePersonalDataFlagReset = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdated =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    attributeId: AttributeId,
+    dailyCallsPerConsumer: number,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+      event_version: 2,
+      data: {
+        descriptorId,
+        attributeId,
+        dailyCallsPerConsumer,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });

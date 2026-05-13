@@ -128,6 +128,7 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorQuotasUpdated",
         "EServiceDescriptorAgreementApprovalPolicyUpdated",
         "EServiceDescriptorAttributesUpdated",
+        "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
         "EServicePersonalDataFlagUpdatedAfterPublication",
         "EServicePersonalDataFlagUpdatedByTemplateUpdate",
         "EServiceInstanceLabelUpdated",
