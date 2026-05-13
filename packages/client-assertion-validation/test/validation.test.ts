@@ -662,6 +662,21 @@ describe("validation test", async () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat());
     });
+
+    it("InvalidKidFormat when kid is not a JWK thumbprint", async () => {
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: "not-a-valid-kid-format" },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat());
+    });
   });
 
   describe("verifyClientAssertionSignature", async () => {
