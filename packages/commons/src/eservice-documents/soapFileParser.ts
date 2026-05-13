@@ -110,14 +110,30 @@ export const retrieveServerUrlsSoapAPI = (file: string): string[] => {
 const soapAddressLocationRegexp =
   /(<(?:soap|soap12):address\b[^>]*\blocation\s*=\s*)(["'])([^"']*)(\2[^>]*\/?>)/g;
 
+const xmlNonElementRegexp = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>/g;
+
+const findXmlNonElementRanges = (
+  file: string
+): Array<{ start: number; end: number }> =>
+  Array.from(file.matchAll(xmlNonElementRegexp)).map((match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+  }));
+
 export const updateSoapApiFileServerUrls = (
   file: string,
   serverUrls: string[]
 ): Buffer => {
   retrieveServerUrlsSoapAPI(file);
 
+  const xmlNonElementRanges = findXmlNonElementRanges(file);
   const soapAddressLocationMatches = Array.from(
     file.matchAll(soapAddressLocationRegexp)
+  ).filter(
+    (match) =>
+      !xmlNonElementRanges.some(
+        ({ start, end }) => match.index >= start && match.index < end
+      )
   );
 
   if (soapAddressLocationMatches.length !== serverUrls.length) {

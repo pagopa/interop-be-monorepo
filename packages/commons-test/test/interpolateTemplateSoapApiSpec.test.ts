@@ -122,6 +122,31 @@ describe("interpolateTemplateSoapApiSpec", async () => {
     );
   });
 
+  it("should ignore SOAP address examples inside XML comments", async () => {
+    const wsdlWithCommentedAddress = file.replace(
+      '<wsdl:port name="TestWS" binding="tns:TestWS">',
+      `<wsdl:port name="TestWS" binding="tns:TestWS">
+                        <!-- <soap:address location="http://commented.example.com"/> -->`
+    );
+
+    const result: File = await interpolateTemplateSoapApiSpec(
+      eservice,
+      wsdlWithCommentedAddress,
+      interfaceFileInfo,
+      eserviceInstanceInterfaceData
+    );
+
+    const expectedFileContent = wsdlWithCommentedAddress.replace(
+      'location="https://host.com/TestWS/v1"',
+      'location="http://server1.example.com"'
+    );
+
+    expect(await result.text()).toBe(expectedFileContent);
+    expect(expectedFileContent).toContain(
+      '<!-- <soap:address location="http://commented.example.com"/> -->'
+    );
+  });
+
   it("should throw invalidInterfaceFileDetected if server urls do not match SOAP addresses", async () => {
     await expect(
       interpolateTemplateSoapApiSpec(eservice, file, interfaceFileInfo, {
