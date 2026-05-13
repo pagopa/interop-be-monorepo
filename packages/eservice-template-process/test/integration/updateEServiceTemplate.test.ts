@@ -84,12 +84,12 @@ describe("update EService template", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+    });
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -168,9 +168,9 @@ describe("update EService template", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
@@ -179,9 +179,9 @@ describe("update EService template", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+    });
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
@@ -234,12 +234,12 @@ describe("update EService template", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedEserviceTemplate)
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+    });
   });
 
   it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {

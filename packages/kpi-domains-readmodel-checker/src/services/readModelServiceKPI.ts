@@ -174,6 +174,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
+        asyncExchangePropertiesSQL: [],
       });
     },
 

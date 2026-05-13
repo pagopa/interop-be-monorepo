@@ -19,6 +19,7 @@ import {
   eserviceTemplateVersionState,
   operationForbidden,
   AttributeId,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,6 +28,7 @@ import {
   eserviceTemplateVersionNotFound,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -109,9 +111,10 @@ describe("update draft version", () => {
       messageType: EServiceTemplateDraftVersionUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {
@@ -281,9 +284,10 @@ describe("update draft version", () => {
       messageType: EServiceTemplateDraftVersionUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEserviceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEserviceTemplate),
+    });
   });
 
   it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
@@ -344,5 +348,162 @@ describe("update draft version", () => {
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
+  });
+
+  it("should update asyncExchangeProperties when asyncExchange is true and feature flag enabled", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: descriptorState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const asyncExchangeProperties = {
+      responseTime: 3600,
+      resourceAvailableTime: 7200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 1000,
+    };
+
+    const expectedVersionSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed =
+      {
+        ...buildUpdateVersionSeed(version),
+        asyncExchangeProperties,
+      };
+
+    const updatedEServiceTemplate: EServiceTemplate = {
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...version,
+          asyncExchangeProperties,
+        },
+      ],
+    };
+
+    await eserviceTemplateService.updateDraftTemplateVersion(
+      eserviceTemplate.id,
+      version.id,
+      expectedVersionSeed,
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateDraftVersionUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftVersionUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(updatedEServiceTemplate)
+    );
+  });
+
+  it("should reject version update when technology is SOAP and async exchange bulk is true", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: descriptorState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      technology: technology.soap,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const versionSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed = {
+      ...buildUpdateVersionSeed(version),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    await expect(
+      eserviceTemplateService.updateDraftTemplateVersion(
+        eserviceTemplate.id,
+        version.id,
+        versionSeed,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eserviceTemplate.id, version.id)
+    );
+  });
+
+  it("should not update asyncExchangeProperties when asyncExchange is not true", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: descriptorState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: false,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const asyncExchangeProperties = {
+      responseTime: 3600,
+      resourceAvailableTime: 7200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 1000,
+    };
+
+    const expectedVersionSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed =
+      {
+        ...buildUpdateVersionSeed(version),
+        asyncExchangeProperties,
+      };
+
+    const updatedEServiceTemplate: EServiceTemplate = {
+      ...eserviceTemplate,
+      versions: [version],
+    };
+
+    await eserviceTemplateService.updateDraftTemplateVersion(
+      eserviceTemplate.id,
+      version.id,
+      expectedVersionSeed,
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateDraftVersionUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftVersionUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(updatedEServiceTemplate)
+    );
   });
 });

@@ -72,6 +72,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -228,6 +229,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          asyncExchangeProperties:
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
@@ -264,6 +267,14 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           // 5
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          // 6
           eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -271,7 +282,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 6
+          // 7
           eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,

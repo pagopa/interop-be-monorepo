@@ -64,6 +64,17 @@ export const fromEServiceTemplateVersionV2 = (
     input.asyncExchangeCallbackInterface != null
       ? fromDocumentV2(input.asyncExchangeCallbackInterface)
       : undefined,
+  asyncExchangeProperties:
+    input.asyncExchangeProperties != null
+      ? {
+          responseTime: input.asyncExchangeProperties.responseTime,
+          resourceAvailableTime:
+            input.asyncExchangeProperties.resourceAvailableTime,
+          confirmation: input.asyncExchangeProperties.confirmation,
+          bulk: input.asyncExchangeProperties.bulk,
+          maxResultSet: input.asyncExchangeProperties.maxResultSet,
+        }
+      : undefined,
   agreementApprovalPolicy:
     input.agreementApprovalPolicy != null
       ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)

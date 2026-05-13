@@ -70,6 +70,8 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)
@@ -280,6 +282,8 @@ export const createEServiceTemplateDocumentErrorMapper = (
       "interfaceAlreadyExists",
       "asyncExchangeCallbackInterfaceAlreadyExists",
       "eserviceTemplateAsyncExchangeNotEnabled",
+      "missingAsyncExchangeProperties",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

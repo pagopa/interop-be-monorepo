@@ -32,7 +32,6 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
-  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -99,8 +98,10 @@ describe("publish descriptor (after delegator's approval)", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should also archive the previously published descriptor", async () => {
@@ -163,8 +164,10 @@ describe("publish descriptor (after delegator's approval)", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor2.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should also deprecate the previously published descriptor if there was a valid agreement", async () => {
@@ -238,8 +241,10 @@ describe("publish descriptor (after delegator's approval)", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor2.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should throw eServiceNotFound if the eService doesn't exist", async () => {
@@ -428,7 +433,7 @@ describe("publish descriptor (after delegator's approval)", () => {
     );
   });
 
-  it("should throw asyncExchangeBulkNotAllowedForSoap when approving with SOAP and asyncExchange bulk", async () => {
+  it("should not throw async exchange bulk errors when approving with SOAP and bulk enabled", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.waitingForApproval,
@@ -458,9 +463,7 @@ describe("publish descriptor (after delegator's approval)", () => {
         descriptor.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
-    );
+    ).resolves.toBeDefined();
   });
 
   it("should not throw async exchange errors when approving and all conditions are met", async () => {
