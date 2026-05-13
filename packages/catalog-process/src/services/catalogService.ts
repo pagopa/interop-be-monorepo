@@ -3937,8 +3937,7 @@ async function processEserviceArchiving(
           descriptorState.draft,
           descriptorState.waitingForApproval,
           () =>
-            deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger) ||
-            null
+            deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger)
         )
         .exhaustive()
     )
@@ -3947,7 +3946,7 @@ async function processEserviceArchiving(
   return {
     ...eservice,
     archivingReason: body.archivingReason,
-    descriptors: descriptors.filter((d): d is Descriptor => d !== null),
+    descriptors: descriptors.filter((d): d is Descriptor => d !== undefined),
   };
 }
 
