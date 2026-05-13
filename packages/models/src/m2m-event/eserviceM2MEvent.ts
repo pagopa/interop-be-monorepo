@@ -48,6 +48,7 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDraftDescriptorDeleted",
   "EServiceDraftDescriptorUpdated",
   "EServiceDescriptorAttributesUpdated",
+  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
   "EServiceDescriptorSubmittedByDelegate",
   "EServiceDescriptorRejectedByDelegator",
   "EServiceDescriptorAttributesUpdatedByTemplateUpdate",

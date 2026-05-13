@@ -19,6 +19,20 @@ export async function handleMessageV2(
       );
     })
     .with(
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
+      async (message) => {
+        const eservice = message.data.eservice;
+        if (!eservice) {
+          throw missingKafkaMessageDataError("eservice", message.type);
+        }
+
+        return await catalogWriterService.upsertEService(
+          fromEServiceV2(eservice),
+          message.version
+        );
+      }
+    )
+    .with(
       { type: "EServiceAdded" },
       { type: "DraftEServiceUpdated" },
       { type: "EServiceCloned" },

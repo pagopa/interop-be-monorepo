@@ -4393,6 +4393,49 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/AttributeId"
+    patch:
+      tags:
+        - eservices
+      summary: Update an E-Service Descriptor Certified Attribute in a specific Attribute Group
+      description: |
+        Update a specific Certified Attribute (identified by attributeId) within the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        Currently the only supported property is dailyCallsPerConsumer.
+      operationId: updateEServiceDescriptorCertifiedAttributeInGroup
+      requestBody:
+        description: A seed object containing the properties to update for the Certified Attribute
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Attribute updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
     delete:
       tags:
         - eservices
@@ -10365,6 +10408,7 @@ components:
             - ESERVICE_SIGNAL_HUB_ENABLED
             - ESERVICE_SIGNAL_HUB_DISABLED
             - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
             - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
             - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -10953,6 +10997,17 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer that has the related certified attribute
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     DeclaredAttributeSeed:
       type: object
       additionalProperties: false

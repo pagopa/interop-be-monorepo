@@ -1469,5 +1469,34 @@ export function eserviceServiceBuilder(
         ctx
       );
     },
+
+    async updateEServiceDescriptorCertifiedAttributeInGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      seed: m2mGatewayApiV3.EServiceDescriptorAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating Certified Attribute ${attributeId} in group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateDescriptorCertifiedAttribute(
+          seed,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              groupIndex,
+              attributeId,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+    },
   };
 }
