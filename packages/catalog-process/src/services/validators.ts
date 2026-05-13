@@ -56,7 +56,7 @@ import {
   notValidEServiceState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import { getLatestActiveDescriptor, getLatestDescriptor } from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -127,7 +127,7 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
 }
 
 function isEserviceArchivable(eservice: EService): boolean {
-  const latestDescriptor = getLatestDescriptor(eservice);
+  const latestDescriptor = getLatestActiveDescriptor(eservice);
   return latestDescriptor
     ? match(latestDescriptor.state)
         .with(descriptorState.published, descriptorState.suspended, () => true)

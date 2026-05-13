@@ -28,6 +28,20 @@ export const getLatestDescriptor = (eservice: EService): Descriptor => {
   return latestDescriptor;
 };
 
+export const getLatestActiveDescriptor = (eservice: EService): Descriptor => {
+  const latestDescriptor = [...eservice.descriptors]
+    .filter(isActiveDescriptor)
+    .sort(
+      (a, b) => parseVersionNumber(a.version) - parseVersionNumber(b.version)
+    )
+    .at(-1);
+  if (!latestDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+
+  return latestDescriptor;
+}
+
 export const nextDescriptorVersion = (eservice: EService): string => {
   const currentVersion =
     eservice.descriptors.length === 0
