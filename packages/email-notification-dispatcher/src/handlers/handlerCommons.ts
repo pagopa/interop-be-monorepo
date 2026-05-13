@@ -16,8 +16,7 @@ import {
 import { HandlerCommonParams as CommonsHandlerCommonParams } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
-export type HandlerCommonParams =
-  CommonsHandlerCommonParams<ReadModelServiceSQL>;
+type HandlerCommonParams = CommonsHandlerCommonParams<ReadModelServiceSQL>;
 
 export type AgreementHandlerParams = HandlerCommonParams & {
   agreementV2Msg?: AgreementV2;

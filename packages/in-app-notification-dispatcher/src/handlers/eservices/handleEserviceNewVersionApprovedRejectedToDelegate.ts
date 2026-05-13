@@ -13,7 +13,7 @@ import {
   activeProducerDelegationNotFound,
 } from "pagopa-interop-notification-commons";
 
-export type EserviceNewVersionApprovedRejectedToDelegateEventType =
+type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 

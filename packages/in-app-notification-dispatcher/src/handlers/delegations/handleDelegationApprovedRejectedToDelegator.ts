@@ -13,7 +13,7 @@ import {
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
 
-export type DelegationApprovedRejectedToDelegatorEventType =
+type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
   | "ConsumerDelegationApproved"
   | "ProducerDelegationRejected"
