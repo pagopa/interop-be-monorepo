@@ -26603,6 +26603,8 @@ components:
         - mode
         - riskAnalysis
         - descriptors
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26625,6 +26627,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         draftDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
