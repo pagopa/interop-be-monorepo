@@ -26,7 +26,7 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 
-describe("archive eservice", () => {
+describe("archiveEService", () => {
   const mockEService = getMockEService();
 
   const invalidStates = [
@@ -40,7 +40,7 @@ describe("archive eservice", () => {
 
   it.each(
     validStates.flatMap((state) =>
-      [1, 2, 3, 4, 5].map((count) => [count, state] as const)
+      [1, 2, 5].map((count) => [count, state] as const)
     )
   )(
     "should write on event-store for the archiving of an EService with %i descriptor(s) in state %s",

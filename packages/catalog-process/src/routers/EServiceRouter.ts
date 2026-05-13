@@ -82,6 +82,7 @@ import {
   maintenanceResetEServicePersonalDataFlagErrorMapper,
   updateEServiceArchivingStatusErrorMapper,
   cancelEServiceArchivingErrorMapper,
+  archiveEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -872,11 +873,7 @@ const eservicesRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          archiveDescriptorErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, archiveEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
