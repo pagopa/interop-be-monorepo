@@ -324,7 +324,7 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
-    it("unexpectedClientAssertionPayload", async () => {
+    it("unexpectedClientAssertion", async () => {
       const { keySet } = generateKeySet();
       const options: jsonwebtoken.SignOptions = {
         header: {
