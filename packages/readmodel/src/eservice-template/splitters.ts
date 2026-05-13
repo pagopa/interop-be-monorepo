@@ -16,6 +16,7 @@ import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
   EServiceTemplateSQL,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
   EServiceTemplateVersionInterfaceSQL,
@@ -59,42 +60,53 @@ export const splitEServiceTemplateIntoObjectsSQL = (
       }
     );
 
-  const { versionsSQL, attributesSQL, interfacesSQL, documentsSQL } =
-    eserviceTemplate.versions.reduce(
-      (
-        acc: {
-          versionsSQL: EServiceTemplateVersionSQL[];
-          attributesSQL: EServiceTemplateVersionAttributeSQL[];
-          interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
-          documentsSQL: EServiceTemplateVersionDocumentSQL[];
-        },
-        currentVersion: EServiceTemplateVersion
-      ) => {
-        const {
-          eserviceTemplateVersionSQL,
-          attributesSQL,
-          interfacesSQL,
-          documentsSQL,
-        } = splitEServiceTemplateVersionIntoObjectsSQL(
-          eserviceTemplate.id,
-          currentVersion,
-          metadataVersion
-        );
-
-        return {
-          versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
-          attributesSQL: acc.attributesSQL.concat(attributesSQL),
-          interfacesSQL: acc.interfacesSQL.concat(interfacesSQL),
-          documentsSQL: acc.documentsSQL.concat(documentsSQL),
-        };
+  const {
+    versionsSQL,
+    attributesSQL,
+    interfacesSQL,
+    documentsSQL,
+    asyncExchangePropertiesSQL,
+  } = eserviceTemplate.versions.reduce(
+    (
+      acc: {
+        versionsSQL: EServiceTemplateVersionSQL[];
+        attributesSQL: EServiceTemplateVersionAttributeSQL[];
+        interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
+        documentsSQL: EServiceTemplateVersionDocumentSQL[];
+        asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
       },
-      {
-        versionsSQL: [],
-        attributesSQL: [],
-        interfacesSQL: [],
-        documentsSQL: [],
-      }
-    );
+      currentVersion: EServiceTemplateVersion
+    ) => {
+      const {
+        eserviceTemplateVersionSQL,
+        attributesSQL,
+        interfacesSQL,
+        documentsSQL,
+        asyncExchangePropertiesSQL,
+      } = splitEServiceTemplateVersionIntoObjectsSQL(
+        eserviceTemplate.id,
+        currentVersion,
+        metadataVersion
+      );
+
+      return {
+        versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
+        attributesSQL: acc.attributesSQL.concat(attributesSQL),
+        interfacesSQL: acc.interfacesSQL.concat(interfacesSQL),
+        documentsSQL: acc.documentsSQL.concat(documentsSQL),
+        asyncExchangePropertiesSQL: asyncExchangePropertiesSQL
+          ? acc.asyncExchangePropertiesSQL.concat([asyncExchangePropertiesSQL])
+          : acc.asyncExchangePropertiesSQL,
+      };
+    },
+    {
+      versionsSQL: [],
+      attributesSQL: [],
+      interfacesSQL: [],
+      documentsSQL: [],
+      asyncExchangePropertiesSQL: [],
+    }
+  );
 
   return {
     eserviceTemplateSQL,
@@ -104,6 +116,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
     attributesSQL,
     interfacesSQL,
     documentsSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -160,6 +173,9 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL:
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
+    | undefined;
 } => {
   const versionSQL = eserviceTemplateVersionToEServiceTemplateVersionSQL(
     eserviceTemplateId,
@@ -225,11 +241,31 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
     )
   );
 
+  const asyncExchangePropertiesSQL:
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
+    | undefined = eserviceTemplateVersion.asyncExchangeProperties
+    ? {
+        eserviceTemplateId,
+        metadataVersion,
+        versionId: eserviceTemplateVersion.id,
+        responseTime:
+          eserviceTemplateVersion.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          eserviceTemplateVersion.asyncExchangeProperties.resourceAvailableTime,
+        confirmation:
+          eserviceTemplateVersion.asyncExchangeProperties.confirmation,
+        bulk: eserviceTemplateVersion.asyncExchangeProperties.bulk,
+        maxResultSet:
+          eserviceTemplateVersion.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined;
+
   return {
     eserviceTemplateVersionSQL: versionSQL,
     attributesSQL,
     interfacesSQL,
     documentsSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 

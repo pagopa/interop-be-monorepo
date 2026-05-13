@@ -114,8 +114,11 @@ describe("upload Document", () => {
         ],
       });
 
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expectedDocument.id,
+        eservice: expectedEservice,
+      });
       expect(returnedDocument).toEqual({
         data: expectedDocument,
         metadata: {
@@ -176,8 +179,11 @@ describe("upload Document", () => {
       ],
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: expectedDocument.id,
+      eservice: expectedEservice,
+    });
     expect(returnedDocument).toEqual({
       data: expectedDocument,
       metadata: {
@@ -252,8 +258,11 @@ describe("upload Document", () => {
         ],
       });
 
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        documentId: expectedDocument.id,
+        eservice: expectedEservice,
+      });
       expect(returnedDocument).toEqual({
         data: expectedDocument,
         metadata: {
@@ -321,8 +330,11 @@ describe("upload Document", () => {
       ],
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: expectedDocument.id,
+      eservice: expectedEservice,
+    });
     expect(returnedDocument).toEqual({
       data: expectedDocument,
       metadata: {

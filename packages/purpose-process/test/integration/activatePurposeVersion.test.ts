@@ -201,9 +201,13 @@ describe("activatePurposeVersion", () => {
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: versionWithStamp.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -268,9 +272,13 @@ describe("activatePurposeVersion", () => {
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -337,9 +345,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -406,9 +418,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -478,9 +494,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: activateResponse.data.id,
+    });
 
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[1],
@@ -548,9 +568,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersionMock.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -610,9 +634,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -672,9 +699,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -755,9 +785,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -820,9 +853,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -945,9 +981,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -1049,9 +1088,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },

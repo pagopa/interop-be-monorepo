@@ -210,8 +210,6 @@ export const handleCallbackInvocation = async (
     );
   }
 
-  const issuedAt = now.toISOString();
-
   const token = await tokenGenerator.generateInteropAsyncConsumerToken({
     sub: clientId,
     audience: catalogEntry.descriptorAudience,
@@ -225,6 +223,7 @@ export const handleCallbackInvocation = async (
     interactionId,
     scope: interactionState.callbackInvocation,
     dpopJWK: dpopProofJWT?.header.jwk,
+    now,
   });
 
   await updateInteractionState({
@@ -232,7 +231,7 @@ export const handleCallbackInvocation = async (
     interactionsTable,
     interactionId,
     state: interactionState.callbackInvocation,
-    updatedAt: issuedAt,
+    updatedAt: new Date(token.payload.iat * 1000).toISOString(),
   });
 
   // 11. Publish audit

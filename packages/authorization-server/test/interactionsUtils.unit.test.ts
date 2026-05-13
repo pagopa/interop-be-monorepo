@@ -6,11 +6,14 @@ import {
 import { marshall } from "@aws-sdk/util-dynamodb";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   generateId,
-  PurposeId,
+  Interaction,
   InteractionId,
+  makeInteractionPK,
+  PurposeId,
   TenantId,
 } from "pagopa-interop-models";
 import { dateToSeconds } from "pagopa-interop-commons";
@@ -50,6 +53,7 @@ describe("interactions utils", () => {
       dynamoDBClient: dynamoDBClient as never,
       interactionsTable,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId,
       eServiceId,
@@ -91,6 +95,7 @@ describe("interactions utils", () => {
         dynamoDBClient: dynamoDBClient as never,
         interactionsTable,
         interactionId,
+        clientId: generateId<ClientId>(),
         purposeId,
         consumerId,
         eServiceId,
@@ -105,9 +110,10 @@ describe("interactions utils", () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
-    const currentInteraction = {
-      PK: `INTERACTION#${interactionId}`,
+    const currentInteraction: Interaction = {
+      PK: makeInteractionPK(interactionId),
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,
@@ -145,9 +151,10 @@ describe("interactions utils", () => {
     const interactionId = generateId<InteractionId>();
     const purposeId = generateId<PurposeId>();
     const eServiceId = generateId<EServiceId>();
-    const currentInteraction = {
-      PK: `INTERACTION#${interactionId}`,
+    const currentInteraction: Interaction = {
+      PK: makeInteractionPK(interactionId),
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,

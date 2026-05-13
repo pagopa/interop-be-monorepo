@@ -344,15 +344,15 @@ describe("activate agreement", () => {
           suspendedByProducer: false,
           suspendedByConsumer: false,
           suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
+          // The contract document is populated by a separate event, so we
+          // don't assert on its specific shape here
+          contract: actualAgreementActivated.contract,
         };
-        delete (expectedActivatedAgreement as Partial<Agreement>).contract;
 
-        expect(actualAgreementActivated).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect(actualAgreementActivated).toEqual(expectedActivatedAgreement);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(activateAgreementReturnValue).toMatchObject({
+        expect(activateAgreementReturnValue).toEqual({
           data: expectedActivatedAgreement,
           metadata: { version: 1 },
         });
@@ -458,10 +458,12 @@ describe("activate agreement", () => {
         ...agreement,
         state: agreementState.missingCertifiedAttributes,
         suspendedByPlatform: true,
+        // The contract document is populated by a separate event, so we
+        // don't assert on its specific shape here
+        contract: actualAgreement.contract,
       };
-      delete (expectedAgreement as Partial<Agreement>).contract;
 
-      expect(sortAgreement(actualAgreement)).toMatchObject(
+      expect(sortAgreement(actualAgreement)).toEqual(
         sortAgreement(expectedAgreement)
       );
     });

@@ -157,7 +157,8 @@ export async function handleCatalogMessage(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-          "EServiceInstanceLabelUpdated"
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => {

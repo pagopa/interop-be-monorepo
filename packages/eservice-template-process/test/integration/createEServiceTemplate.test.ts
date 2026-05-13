@@ -91,9 +91,9 @@ describe("create eservice template", () => {
       asyncExchange,
     };
 
-    expect(eserviceCreationPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedEserviceTemplate)
-    );
+    expect(eserviceCreationPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
 
     expect(eserviceTemplate).toEqual({
       data: expectedEserviceTemplate,

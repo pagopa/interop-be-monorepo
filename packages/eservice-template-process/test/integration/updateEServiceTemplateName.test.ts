@@ -76,9 +76,10 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
       oldName: eserviceTemplate.name,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+      oldName: eserviceTemplate.name,
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {

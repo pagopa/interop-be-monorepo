@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import {
+  ClientId,
   DescriptorId,
   EServiceId,
   generateId,
@@ -43,6 +44,7 @@ describe("interactions utils integration", () => {
       dynamoDBClient,
       interactionsTable,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,
@@ -73,6 +75,7 @@ describe("interactions utils integration", () => {
       dynamoDBClient,
       interactionsTable,
       interactionId,
+      clientId: generateId<ClientId>(),
       purposeId,
       consumerId: generateId<TenantId>(),
       eServiceId,
@@ -118,6 +121,7 @@ describe("interactions utils integration", () => {
     expect(retrieved?.state).toBe("confirmation");
     expect(retrieved?.startInteractionTokenIssuedAt).toBe(startIssuedAt);
     expect(retrieved?.callbackInvocationTokenIssuedAt).toBe(callbackIssuedAt);
+    expect(retrieved?.confirmationTokenIssuedAt).toBe(confirmedAt);
     expect(retrieved?.updatedAt).toBe(confirmedAt);
   });
 });

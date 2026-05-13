@@ -5,6 +5,8 @@ import {
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagAsyncExchangeConfig,
+  FeatureFlagDpopClientAssertionDebuggerConfig,
+  FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
@@ -238,6 +240,17 @@ const ImportFileConfig = z
   }));
 type ImportFileConfig = z.infer<typeof ImportFileConfig>;
 
+const FileSizeLimitConfig = z
+  .object({
+    MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+    MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce.number().default(3 * 1024 * 1024),
+  })
+  .transform((c) => ({
+    maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
+    maxInterfaceFileSizeBytes: c.MAX_INTERFACE_FILE_SIZE_BYTES,
+  }));
+type FileSizeLimitConfig = z.infer<typeof FileSizeLimitConfig>;
+
 const InterfaceVersion = z
   .object({
     BACKEND_FOR_FRONTEND_INTERFACE_VERSION: z.string(),
@@ -315,6 +328,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
+  .and(FileSizeLimitConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
   .and(NotificationConfigProcessServerConfig)
@@ -325,9 +339,20 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
+  .and(FeatureFlagDpopClientAssertionDebuggerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagAsyncExchangeConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
+  .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagDelegationConstraintSkipConfig)
+  .and(
+    z
+      .object({
+        DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string().uuid(),
+      })
+      .transform((c) => ({
+        delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
+      }))
+  );
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
