@@ -1,17 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
+import { XMLParser } from "fast-xml-parser";
 import {
-  buildingSoapFileError,
   interfaceExtractingInfoError,
   interfaceExtractingSoapFiledError,
   parsingSoapFileError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  eserviceInterfaceAllowedFileType,
-  EserviceSoapInterfaceType,
-} from "./eserviceDocumentUtils.js";
 
 const extractAddress = (parsedXml: any): string[] => {
   try {
@@ -112,25 +107,34 @@ export const retrieveServerUrlsSoapAPI = (file: string): string[] => {
   return address;
 };
 
-export const soapApiFileToBuffer: (
-  fileType: EserviceSoapInterfaceType,
-  jsonApi: object
-) => Buffer = (fileType, file) =>
-  match(fileType)
-    .with(
-      eserviceInterfaceAllowedFileType.xml,
-      eserviceInterfaceAllowedFileType.wsdl,
-      () => {
-        try {
-          const xmlDataStr: string = new XMLBuilder({
-            ignoreAttributes: false,
-            attributeNamePrefix: "",
-            format: true,
-          }).build(file);
-          return Buffer.from(xmlDataStr);
-        } catch (e) {
-          throw buildingSoapFileError();
-        }
-      }
-    )
-    .exhaustive();
+const soapAddressLocationRegexp =
+  /(<(?:soap|soap12):address\b[^>]*\blocation\s*=\s*)(["'])([^"']*)(\2[^>]*\/?>)/g;
+
+export const updateSoapApiFileServerUrls = (
+  file: string,
+  serverUrls: string[]
+): Buffer => {
+  retrieveServerUrlsSoapAPI(file);
+
+  const soapAddressLocationMatches = Array.from(
+    file.matchAll(soapAddressLocationRegexp)
+  );
+
+  if (soapAddressLocationMatches.length !== serverUrls.length) {
+    throw interfaceExtractingInfoError();
+  }
+
+  const updatedFile = soapAddressLocationMatches.reduceRight(
+    (currentFile, match, index) => {
+      const [soapAddress, prefix, quote, , suffix] = match;
+      const matchIndex = match.index;
+
+      return `${currentFile.slice(0, matchIndex)}${prefix}${quote}${
+        serverUrls[index]
+      }${suffix}${currentFile.slice(matchIndex + soapAddress.length)}`;
+    },
+    file
+  );
+
+  return Buffer.from(updatedFile);
+};
