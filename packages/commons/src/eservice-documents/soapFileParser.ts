@@ -78,7 +78,7 @@ const extractEndpoints = (parsedXml: any): string[] => {
   }
 };
 
-export const soapParse = (file: string) => {
+const soapParse = (file: string) => {
   try {
     return new XMLParser({
       ignoreDeclaration: false,
