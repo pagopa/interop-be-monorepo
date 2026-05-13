@@ -97,6 +97,87 @@ describe("archiveEService", () => {
     }
   );
 
+  it.each(
+    validStates.flatMap((state) =>
+      [1, 2, 5].flatMap((countToArchive) =>
+        [1, 3].map(
+          (alreadyArchivedCount) =>
+            [countToArchive, state, alreadyArchivedCount] as const
+        )
+      )
+    )
+  )(
+    "should write on event-store for the archiving of an EService with %i descriptor(s) in state %s and %i already archived descriptor(s)",
+    async (countToArchive, state, alreadyArchivedCount) => {
+      const descriptorsToArchive: Descriptor[] = Array.from(
+        { length: countToArchive },
+        (_, idx) => ({
+          ...getMockDescriptor(),
+          interface: getMockDocument(),
+          version: (idx + 1).toString(),
+          state,
+        })
+      );
+
+      const archivedDescriptors: Descriptor[] = Array.from(
+        { length: alreadyArchivedCount },
+        (_, idx) => ({
+          ...getMockDescriptor(),
+          interface: getMockDocument(),
+          version: (countToArchive + idx + 1).toString(),
+          state: descriptorState.archived,
+          archivedAt: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000),
+        })
+      );
+
+      const allDescriptors = [...descriptorsToArchive, ...archivedDescriptors];
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: allDescriptors,
+      };
+
+      await addOneEService(eservice);
+
+      await catalogService.archiveEService(
+        eservice.id,
+        getMockContextInternal({})
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceArchivingCompleted",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceArchivingCompletedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedDescriptors = [
+        ...descriptorsToArchive.map((descriptor, idx) => ({
+          ...descriptor,
+          state: descriptorState.archived,
+          archivedAt: new Date(
+            Number(writtenPayload.eservice!.descriptors[idx]!.archivedAt)
+          ),
+        })),
+        ...archivedDescriptors,
+      ];
+
+      const expectedEService = toEServiceV2({
+        ...eservice,
+        descriptors: expectedDescriptors,
+      });
+
+      expect(writtenPayload.eservice).toEqual(expectedEService);
+    }
+  );
+
   it.each([0, 1, 2, 5])(
     "should throw eServiceAlreadyArchived if the eservice has %i descriptors, all in state archived",
     async (count) => {
