@@ -395,7 +395,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ArchivingReason"
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
       responses:
         "200":
           description: E-service archiving process started.
@@ -3933,7 +3933,7 @@ components:
             - MANUAL
       required:
         - kind
-    ArchivingReason:
+    EServiceArchivingReasonSeed:
       type: object
       additionalProperties: false
       description: Archiving Reason

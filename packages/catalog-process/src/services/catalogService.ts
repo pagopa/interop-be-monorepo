@@ -1107,7 +1107,7 @@ export function catalogServiceBuilder(
 
     async scheduleEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.ArchivingReason,
+      body: catalogApi.EServiceArchivingReasonSeed,
       {
         authData,
         correlationId,
@@ -3906,7 +3906,7 @@ export function catalogServiceBuilder(
 
 async function processEserviceArchiving(
   eservice: EService,
-  body: catalogApi.ArchivingReason,
+  body: catalogApi.EServiceArchivingReasonSeed,
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
