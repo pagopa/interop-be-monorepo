@@ -34,13 +34,7 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
-  | "EServiceDescriptorArchivingScheduled"
-  | "EServiceDescriptorArchivingCanceled"
-  | "EServiceDescriptorArchivingCompleted"
-  | "EServiceArchivingScheduled"
-  | "EServiceArchivingCanceled"
-  | "EServiceArchivingCompleted";
+  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -257,23 +251,6 @@ function getBodyAndDescriptorId(
           descriptorId,
         };
       }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingCanceled",
-          "EServiceDescriptorArchivingCompleted",
-          "EServiceArchivingScheduled",
-          "EServiceArchivingCanceled",
-          "EServiceArchivingCompleted"
-        ),
-      },
-      () => ({
-        // FIXME these events will be managed with "WORK ITEM 10"
-        body: "",
-        descriptorId: undefined,
-      })
     )
     .exhaustive();
 }
