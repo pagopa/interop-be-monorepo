@@ -83,7 +83,7 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     clientAddedRemovedToProducer: "/erogazione/finalita",
     purposeStatusChangedToProducer: "/erogazione/finalita",
     templateStatusChangedToProducer: "/erogazione/template-eservice",
-    eserviceStateChangedToProducer: "/erogazione/template-eservice",
+    eserviceStateChangedToProducer: "/erogazione/e-service",
     newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
     eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
     eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",

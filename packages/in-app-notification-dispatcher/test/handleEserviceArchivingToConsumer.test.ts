@@ -11,6 +11,7 @@ import {
   agreementState,
   archivingScope,
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
   EServiceDescriptorArchivedV2,
@@ -257,10 +258,14 @@ describe("handleEserviceArchivingToConsumer", () => {
   });
 
   it("returns empty array when there are no agreements", async () => {
+    const otherDescriptor: Descriptor = {
+      ...archivingDescriptor,
+      id: generateId<DescriptorId>(),
+    };
     const otherEservice: EService = {
       ...getMockEService(),
       producerId: producerTenant.id,
-      descriptors: [archivingDescriptor],
+      descriptors: [otherDescriptor],
     };
     await addOneEService(otherEservice);
 
@@ -269,7 +274,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       type: "EServiceDescriptorArchivingScheduled",
       data: {
         eservice: toEServiceV2(otherEservice),
-        descriptorId: archivingDescriptor.id,
+        descriptorId: otherDescriptor.id,
       } satisfies EServiceDescriptorArchivingScheduledV2,
     };
     const notifications = await handleEserviceArchivingToConsumer(

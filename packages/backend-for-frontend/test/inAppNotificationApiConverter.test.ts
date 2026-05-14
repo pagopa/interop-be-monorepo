@@ -54,9 +54,9 @@ describe("toBffApiNotificationsCountBySection", () => {
         richieste: 8, // 5 + 3
         finalita: 6, // 2 + 4
         "template-eservice": 1,
-        "e-service": 9, // 6 + 2 + 1
+        "e-service": 10, // 6 + 2 + 1 + 1
         portachiavi: 4,
-        totalCount: 28, // 8 + 6 + 1 + 9 + 4
+        totalCount: 29, // 8 + 6 + 1 + 10 + 4
       },
       fruizione: {
         richieste: 10, // 8 + 2
