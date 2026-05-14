@@ -28559,6 +28559,8 @@ components:
           type: string
         explicitAttributeVerification:
           type: boolean
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -28571,6 +28573,7 @@ components:
         - name
         - description
         - explicitAttributeVerification
+        - kind
     DescriptorAttributesSeed:
       type: object
       additionalProperties: false

@@ -69,9 +69,7 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
     att.certifiedDiscrete && {
       id: unsafeBrandId(att.certifiedDiscrete.id),
       type: tenantAttributeType.CERTIFIED_DISCRETE,
-      assignmentTimestamp: new Date(
-        att.certifiedDiscrete.assignmentTimestamp
-      ),
+      assignmentTimestamp: new Date(att.certifiedDiscrete.assignmentTimestamp),
       revocationTimestamp: att.certifiedDiscrete.revocationTimestamp
         ? new Date(att.certifiedDiscrete.revocationTimestamp)
         : undefined,

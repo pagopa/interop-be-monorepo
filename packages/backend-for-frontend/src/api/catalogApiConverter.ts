@@ -145,7 +145,8 @@ export async function toBffCatalogDescriptorEService(
 
 export function toBffCatalogApiDescriptorAttribute(
   attributes: attributeRegistryApi.Attribute[],
-  attribute: catalogApi.Attribute
+  attribute: catalogApi.Attribute,
+  kind: bffApi.AttributeKind
 ): bffApi.DescriptorAttribute {
   const foundAttribute = attributes.find((att) => att.id === attribute.id);
   if (!foundAttribute) {
@@ -157,7 +158,9 @@ export function toBffCatalogApiDescriptorAttribute(
     name: foundAttribute.name,
     description: foundAttribute.description,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
+    kind,
     dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    discreteConfig: attribute.discreteConfig,
   };
 }
 
@@ -337,11 +340,12 @@ export function descriptorAttributesFromApi(
 
 function toBffCatalogApiDescriptorAttributeGroups(
   attributes: attributeRegistryApi.Attribute[],
-  descriptorAttributesGroups: catalogApi.Attribute[][]
+  descriptorAttributesGroups: catalogApi.Attribute[][],
+  kind: bffApi.AttributeKind
 ): bffApi.DescriptorAttribute[][] {
   return descriptorAttributesGroups.map((attributeGroup) =>
     attributeGroup.map((attribute) =>
-      toBffCatalogApiDescriptorAttribute(attributes, attribute)
+      toBffCatalogApiDescriptorAttribute(attributes, attribute, kind)
     )
   );
 }
@@ -351,17 +355,24 @@ export function toBffCatalogApiDescriptorAttributes(
   descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
   return {
-    certified: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
-      descriptorAttributes.certified
+    certified: descriptorAttributes.certified.map((attributeGroup) =>
+      attributeGroup.map((attribute) =>
+        toBffCatalogApiDescriptorAttribute(
+          attributes,
+          attribute,
+          attribute.discreteConfig != null ? "CERTIFIED_DISCRETE" : "CERTIFIED"
+        )
+      )
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptorAttributes.declared
+      descriptorAttributes.declared,
+      "DECLARED"
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptorAttributes.verified
+      descriptorAttributes.verified,
+      "VERIFIED"
     ),
   };
 }
