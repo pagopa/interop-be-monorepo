@@ -214,7 +214,19 @@ async function validateAsyncTokenGeneration(
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.TokenGenerationValidationResult> {
   if (!storage) {
-    throw new Error("Async token validation storage is not configured");
+    return handleValidationResults(
+      {
+        clientAssertionErrors: [
+          makeDiagnosticError(
+            "asyncStorageNotConfigured",
+            "Async token validation storage is not configured",
+            "Async storage not configured"
+          ),
+        ],
+      },
+      undefined,
+      undefined
+    );
   }
 
   ctx.logger.info(`Validating async token generation for client ${clientId}`);

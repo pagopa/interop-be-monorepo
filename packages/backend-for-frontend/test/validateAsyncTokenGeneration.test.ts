@@ -747,4 +747,47 @@ describe("validateTokenGeneration async validations", () => {
       "SKIPPED"
     );
   });
+
+  it("returns a structured clientAssertionValidation failure when async storage is not configured", async () => {
+    const serviceWithoutStorage = toolsServiceBuilder(mockClients, undefined);
+
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          purposeId: mockPurposeId,
+          scope: interactionState.startInteraction,
+          urlCallback: "https://example.com/callback",
+        },
+      },
+    });
+
+    const result = await serviceWithoutStorage.validateTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.clientAssertionValidation.result).toBe("FAILED");
+    expect(
+      result.steps.clientAssertionValidation.failures.some(
+        (f) => f.code === "asyncStorageNotConfigured"
+      )
+    ).toBe(true);
+    expect(result.steps.publicKeyRetrieve.result).toBe("SKIPPED");
+  });
 });
