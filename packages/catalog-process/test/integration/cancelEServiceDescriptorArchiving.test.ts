@@ -22,6 +22,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
+  descriptorArchivingNotCancelableByScope,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -247,6 +248,41 @@ describe("cancel archiving of a descriptor", () => {
       ).rejects.toThrowError(notValidDescriptorState(descriptor1.id, state));
     }
   );
+
+  it("should throw descriptorArchivingNotCancelableByScope if the descriptor archiving was scheduled at eservice scope", async () => {
+    const descriptor1: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.archiving,
+      version: "1",
+      archivingSchedule: {
+        archivableOn: new Date(),
+        startedAt: new Date(),
+        scope: archivingScope.eservice,
+      },
+    };
+    const descriptor2: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.published,
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor1, descriptor2],
+    };
+    await addOneEService(eservice);
+    await expect(
+      catalogService.cancelEServiceDescriptorArchiving(
+        eservice.id,
+        descriptor1.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      descriptorArchivingNotCancelableByScope(descriptor1.id)
+    );
+  });
 
   it("should throw notValidDescriptorState if the descriptor is the latest version", async () => {
     const descriptor: Descriptor = {
