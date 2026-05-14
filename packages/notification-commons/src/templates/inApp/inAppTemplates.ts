@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import { EService, EServiceTemplate } from "pagopa-interop-models";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
@@ -372,7 +373,7 @@ export const inAppTemplates = {
   ): string =>
     `Hai avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${
       archivableOn
-        ? `. L'archiviazione sarà completata il ${formatItalianDate(archivableOn)}`
+        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
         : ""
     }.`,
   eserviceArchivingStartedEserviceToProducer: (
@@ -381,7 +382,7 @@ export const inAppTemplates = {
   ): string =>
     `Hai avviato il processo di archiviazione dell'e-service ${eserviceName}${
       archivableOn
-        ? `. L'archiviazione sarà completata il ${formatItalianDate(archivableOn)}`
+        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
         : ""
     }.`,
   eserviceArchivingCompletedDescriptorToProducer: (
@@ -398,7 +399,6 @@ export const inAppTemplates = {
   ): string =>
     `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata in anticipo poiché tutte le sottoscrizioni attive si sono concluse.`,
 
-  // eservices - archiviazione real-time (event-driven) - fruizione
   eserviceArchivingStartedDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
@@ -407,7 +407,7 @@ export const inAppTemplates = {
   ): string =>
     `L'ente erogatore ${producerName} ha avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto${
       archivableOn
-        ? `. Hai tempo fino al ${formatItalianDate(archivableOn)} per concludere ordinatamente le chiamate`
+        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
         : ""
     }.`,
   eserviceArchivingStartedEserviceToConsumer: (
@@ -417,7 +417,7 @@ export const inAppTemplates = {
   ): string =>
     `L'ente erogatore ${producerName} ha avviato il processo di archiviazione dell'e-service ${eserviceName} a cui sei iscritto${
       archivableOn
-        ? `. Hai tempo fino al ${formatItalianDate(archivableOn)} per concludere ordinatamente le chiamate`
+        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
         : ""
     }.`,
   eserviceArchivingCompletedDescriptorToConsumer: (
@@ -438,10 +438,3 @@ export const inAppTemplates = {
   ): string =>
     `L'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
 };
-
-const formatItalianDate = (date: Date): string =>
-  new Intl.DateTimeFormat("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);

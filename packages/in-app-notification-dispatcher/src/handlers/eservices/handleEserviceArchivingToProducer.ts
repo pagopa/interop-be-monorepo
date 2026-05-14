@@ -12,9 +12,9 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
-  descriptorNotFound,
   getNotificationRecipients,
   inAppTemplates,
+  retrieveDescriptor,
   retrieveLatestDescriptor,
 } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -90,7 +90,10 @@ function bodyAndDescriptorForProducer(
     .with(
       { type: "EServiceDescriptorArchivingScheduled" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingStartedDescriptorToProducer(
             eservice.name,
@@ -114,7 +117,10 @@ function bodyAndDescriptorForProducer(
     .with(
       { type: "EServiceDescriptorArchivingCompleted" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToProducer(
             eservice.name,
@@ -136,7 +142,10 @@ function bodyAndDescriptorForProducer(
     .with(
       { type: "EServiceDescriptorArchived" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingEarlyArchivedToProducer(
             eservice.name,
@@ -147,18 +156,4 @@ function bodyAndDescriptorForProducer(
       }
     )
     .exhaustive();
-}
-
-function retrieveDescriptor(
-  eservice: EService,
-  descriptorId: string
-): Descriptor {
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
-    throw descriptorNotFound(
-      eservice.id,
-      unsafeBrandId<DescriptorId>(descriptorId)
-    );
-  }
-  return descriptor;
 }
