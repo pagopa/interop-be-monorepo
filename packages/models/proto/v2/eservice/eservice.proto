@@ -55,16 +55,16 @@ enum AttributeCertifiedDiscreteComparatorV2 {
   NE = 5;
 }
 
-message EServiceAttributeCertifiedDiscreteItemsV2 {
-  int32 certifiedDiscreteThreshold = 1;
-  AttributeCertifiedDiscreteComparatorV2 certifiedDiscreteComparator = 2;
+message EServiceAttributeCertifiedDiscreteConfigV2 {
+  int32 threshold = 1;
+  AttributeCertifiedDiscreteComparatorV2 comparator = 2;
 }
 
 message EServiceAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
   optional int32 dailyCallsPerConsumer = 3;
-  optional EServiceAttributeCertifiedDiscreteItemsV2 certifiedDiscreteItems = 4;
+  optional EServiceAttributeCertifiedDiscreteConfigV2 discreteConfig = 4;
 }
 
 message EServiceAttributeV2 {

@@ -673,9 +673,9 @@ describe("update descriptor", () => {
             {
               id: mockCertifiedAttribute.id,
               explicitAttributeVerification: false,
-              certifiedDiscreteItems: {
-                certifiedDiscreteThreshold: 10,
-                certifiedDiscreteComparator:
+              discreteConfig: {
+                threshold: 10,
+                comparator:
                   attributeCertifiedDiscreteComparator.GTE,
               },
             },
@@ -703,9 +703,9 @@ describe("update descriptor", () => {
               {
                 id: mockCertifiedAttribute.id,
                 explicitAttributeVerification: false,
-                certifiedDiscreteItems: {
-                  certifiedDiscreteThreshold: 20,
-                  certifiedDiscreteComparator:
+                discreteConfig: {
+                  threshold: 20,
+                  comparator:
                     attributeCertifiedDiscreteComparator.GTE,
                 },
               },

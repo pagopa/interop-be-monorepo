@@ -522,9 +522,9 @@ describe("update draft descriptor instance", () => {
             {
               id: certifiedAttributeId,
               explicitAttributeVerification: false,
-              certifiedDiscreteItems: {
-                certifiedDiscreteThreshold: 10,
-                certifiedDiscreteComparator:
+              discreteConfig: {
+                threshold: 10,
+                comparator:
                   attributeCertifiedDiscreteComparator.GTE,
               },
             },
@@ -558,9 +558,9 @@ describe("update draft descriptor instance", () => {
                 {
                   id: certifiedAttributeId,
                   explicitAttributeVerification: false,
-                  certifiedDiscreteItems: {
-                    certifiedDiscreteThreshold: 20,
-                    certifiedDiscreteComparator:
+                  discreteConfig: {
+                    threshold: 20,
+                    comparator:
                       attributeCertifiedDiscreteComparator.GTE,
                   },
                 },

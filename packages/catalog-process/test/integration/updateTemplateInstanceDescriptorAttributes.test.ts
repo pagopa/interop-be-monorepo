@@ -557,8 +557,8 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
       );
       const dailyCallsPerConsumer = 500;
       const inheritedCertifiedDiscreteItems = {
-        certifiedDiscreteThreshold: 20,
-        certifiedDiscreteComparator: attributeCertifiedDiscreteComparator.GTE,
+        threshold: 20,
+        comparator: attributeCertifiedDiscreteComparator.GTE,
       };
 
       const mockDescriptor: Descriptor = {
@@ -572,9 +572,9 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
                 id: mockCertifiedDiscreteAttribute.id,
                 explicitAttributeVerification: false,
                 dailyCallsPerConsumer,
-                certifiedDiscreteItems: {
-                  certifiedDiscreteThreshold: 10,
-                  certifiedDiscreteComparator:
+                discreteConfig: {
+                  threshold: 10,
+                  comparator:
                     attributeCertifiedDiscreteComparator.GTE,
                 },
               },
@@ -600,7 +600,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
               {
                 id: mockCertifiedDiscreteAttribute.id,
                 explicitAttributeVerification: false,
-                certifiedDiscreteItems: inheritedCertifiedDiscreteItems,
+                discreteConfig: inheritedCertifiedDiscreteItems,
               },
             ],
           ],
@@ -640,7 +640,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
                     id: mockCertifiedDiscreteAttribute.id,
                     explicitAttributeVerification: false,
                     dailyCallsPerConsumer,
-                    certifiedDiscreteItems: inheritedCertifiedDiscreteItems,
+                    discreteConfig: inheritedCertifiedDiscreteItems,
                   },
                 ],
               ],

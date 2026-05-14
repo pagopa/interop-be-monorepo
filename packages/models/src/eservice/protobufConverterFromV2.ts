@@ -13,7 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
-  type EServiceAttributeCertifiedDiscreteItemsV2,
+  type EServiceAttributeCertifiedDiscreteConfigV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -39,7 +39,7 @@ import {
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
-  type EServiceAttributeCertifiedDiscreteItems,
+  type EServiceAttributeCertifiedDiscreteConfig,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -95,10 +95,7 @@ export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
 export const fromEServiceAttributeV2 = (
   input: EServiceAttributeV2
 ): EServiceAttribute[] =>
-  input.values.map((a) => ({
-    id: unsafeBrandId(a.id),
-    explicitAttributeVerification: a.explicitAttributeVerification,
-  }));
+  input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
 
 const fromAttributeCertifiedDiscreteComparatorV2 = (
   input: AttributeCertifiedDiscreteComparatorV2
@@ -119,13 +116,11 @@ const fromAttributeCertifiedDiscreteComparatorV2 = (
   }
 };
 
-export const fromCertifiedDiscreteItemsV2 = (
-  input: EServiceAttributeCertifiedDiscreteItemsV2
-): EServiceAttributeCertifiedDiscreteItems => ({
-  certifiedDiscreteThreshold: input.certifiedDiscreteThreshold,
-  certifiedDiscreteComparator: fromAttributeCertifiedDiscreteComparatorV2(
-    input.certifiedDiscreteComparator
-  ),
+export const fromCertifiedDiscreteConfigV2 = (
+  input: EServiceAttributeCertifiedDiscreteConfigV2
+): EServiceAttributeCertifiedDiscreteConfig => ({
+  threshold: input.threshold,
+  comparator: fromAttributeCertifiedDiscreteComparatorV2(input.comparator),
 });
 
 export const fromEServiceAttributeCertifiedV2 = (
@@ -136,10 +131,10 @@ export const fromEServiceAttributeCertifiedV2 = (
       id: unsafeBrandId(attribute.id),
       explicitAttributeVerification: attribute.explicitAttributeVerification,
       dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
-      ...(attribute.certifiedDiscreteItems != null
+      ...(attribute.discreteConfig != null
         ? {
-            certifiedDiscreteItems: fromCertifiedDiscreteItemsV2(
-              attribute.certifiedDiscreteItems
+            discreteConfig: fromCertifiedDiscreteConfigV2(
+              attribute.discreteConfig
             ),
           }
         : undefined),

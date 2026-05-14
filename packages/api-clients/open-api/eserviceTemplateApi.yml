@@ -1843,8 +1843,8 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
-        certifiedDiscreteItems:
-          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteItems"
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification
@@ -1857,20 +1857,20 @@ components:
         - GTE
         - LTE
         - NE
-    EServiceAttributeCertifiedDiscreteItems:
+    EServiceAttributeCertifiedDiscreteConfig:
       type: object
       additionalProperties: false
       properties:
-        certifiedDiscreteThreshold:
+        threshold:
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
-        certifiedDiscreteComparator:
+        comparator:
           $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
       required:
-        - certifiedDiscreteThreshold
-        - certifiedDiscreteComparator
+        - threshold
+        - comparator
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -2203,8 +2203,8 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
-        certifiedDiscreteItems:
-          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteItems"
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification

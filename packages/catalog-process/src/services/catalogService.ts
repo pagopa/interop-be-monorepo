@@ -4245,9 +4245,9 @@ function hasCertifiedAttributeConfigurationChanged(
       return (
         seedAttribute?.dailyCallsPerConsumer !==
           descriptorAttribute.dailyCallsPerConsumer ||
-        seedAttribute?.certifiedDiscreteItems?.certifiedDiscreteThreshold !==
+        seedAttribute?.discreteConfig?.threshold !==
           getCertifiedDiscreteThreshold(descriptorAttribute) ||
-        seedAttribute?.certifiedDiscreteItems?.certifiedDiscreteComparator !==
+        seedAttribute?.discreteConfig?.comparator !==
           getCertifiedDiscreteComparator(descriptorAttribute)
       );
     });
@@ -4257,16 +4257,16 @@ function hasCertifiedAttributeConfigurationChanged(
 function getCertifiedDiscreteThreshold(
   attribute: EServiceCertifiedAttribute
 ): number | undefined {
-  return "certifiedDiscreteItems" in attribute
-    ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+  return "discreteConfig" in attribute
+    ? attribute.discreteConfig.threshold
     : undefined;
 }
 
 function getCertifiedDiscreteComparator(
   attribute: EServiceCertifiedAttribute
 ): string | undefined {
-  return "certifiedDiscreteItems" in attribute
-    ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+  return "discreteConfig" in attribute
+    ? attribute.discreteConfig.comparator
     : undefined;
 }
 

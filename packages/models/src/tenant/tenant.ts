@@ -129,7 +129,7 @@ export const CertifiedDiscreteTenantAttribute = z.object({
   id: AttributeId,
   type: z.literal(tenantAttributeType.CERTIFIED_DISCRETE),
   revocationTimestamp: z.coerce.date().optional(),
-  certifiedDiscreteValue: z.number().int().min(1).max(1000000000),
+  discreteValue: z.number().int().min(1).max(1000000000),
 });
 export type CertifiedDiscreteTenantAttribute = z.infer<
   typeof CertifiedDiscreteTenantAttribute

@@ -400,7 +400,7 @@ const aggregateTenantAttributes = ({
       id: unsafeBrandId(row.attributeId),
       type: tenantAttributeType.CERTIFIED_DISCRETE,
       assignmentTimestamp: stringToDate(row.assignmentTimestamp),
-      certifiedDiscreteValue: row.certifiedDiscreteValue,
+      discreteValue: row.discreteValue,
       ...(row.revocationTimestamp
         ? { revocationTimestamp: stringToDate(row.revocationTimestamp) }
         : {}),

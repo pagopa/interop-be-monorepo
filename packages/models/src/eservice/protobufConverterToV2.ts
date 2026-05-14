@@ -32,7 +32,7 @@ import {
   descriptorState,
   eserviceMode,
   technology,
-  type EServiceAttributeCertifiedDiscreteItems,
+  type EServiceAttributeCertifiedDiscreteConfig,
 } from "./eservice.js";
 
 const toAgreementApprovalPolicyV2 = (
@@ -121,12 +121,12 @@ const toAttributeCertifiedDiscreteComparatorV2 = (
     )
     .exhaustive();
 
-export const toCertifiedDiscreteItemsV2 = (
-  items: EServiceAttributeCertifiedDiscreteItems
+export const toCertifiedDiscreteConfigV2 = (
+  items: EServiceAttributeCertifiedDiscreteConfig
 ) => ({
-  certifiedDiscreteThreshold: items.certifiedDiscreteThreshold,
-  certifiedDiscreteComparator: toAttributeCertifiedDiscreteComparatorV2(
-    items.certifiedDiscreteComparator
+  threshold: items.threshold,
+  comparator: toAttributeCertifiedDiscreteComparatorV2(
+    items.comparator
   ),
 });
 
@@ -137,10 +137,10 @@ export const toEServiceAttributeCertifiedV2 = (
     id: attribute.id,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
     dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
-    ...("certifiedDiscreteItems" in attribute
+    ...("discreteConfig" in attribute
       ? {
-          certifiedDiscreteItems: toCertifiedDiscreteItemsV2(
-            attribute.certifiedDiscreteItems
+          discreteConfig: toCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
           ),
         }
       : undefined),

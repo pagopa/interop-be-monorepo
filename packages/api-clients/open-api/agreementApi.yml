@@ -1529,7 +1529,7 @@ components:
         revocationTimestamp:
           type: string
           format: date-time
-        certifiedDiscreteValue:
+        discreteValue:
           type: integer
           format: int32
           minimum: 1
@@ -1537,7 +1537,7 @@ components:
       required:
         - id
         - assignmentTimestamp
-        - certifiedDiscreteValue
+        - discreteValue
     VerifiedTenantAttribute:
       type: object
       additionalProperties: false

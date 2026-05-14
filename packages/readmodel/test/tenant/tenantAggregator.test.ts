@@ -121,6 +121,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -132,6 +134,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({
@@ -221,6 +225,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -232,6 +238,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({

@@ -576,7 +576,7 @@ function getCertifiedDiscreteTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.certifiedDiscrete.assignmentTimestamp,
     revocationTimestamp: attribute.certifiedDiscrete.revocationTimestamp,
-    certifiedDiscreteValue: attribute.certifiedDiscrete.certifiedDiscreteValue,
+    discreteValue: attribute.certifiedDiscrete.discreteValue,
   };
 }
 

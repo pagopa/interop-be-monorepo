@@ -62,7 +62,7 @@ function toApiCompactTenantCertifiedDiscreteAttribute(
     id: attr.id,
     assignmentTimestamp: attr.assignmentTimestamp.toISOString(),
     revocationTimestamp: attr.revocationTimestamp?.toISOString(),
-    certifiedDiscreteValue: attr.certifiedDiscreteValue,
+    discreteValue: attr.discreteValue,
   };
 }
 

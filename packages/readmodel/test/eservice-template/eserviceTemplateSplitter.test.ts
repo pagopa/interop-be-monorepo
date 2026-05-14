@@ -147,8 +147,8 @@ describe("E-service template splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
-      certifiedDiscreteThreshold: null,
-      certifiedDiscreteComparator: null,
+      threshold: null,
+      comparator: null,
     };
 
     const expectedDocumentSQL: EServiceTemplateVersionDocumentSQL = {

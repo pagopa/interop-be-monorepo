@@ -196,7 +196,7 @@ const splitTenantAttributesIntoObjectsSQL = (
           id,
           assignmentTimestamp,
           revocationTimestamp,
-          certifiedDiscreteValue,
+          discreteValue,
           ...rest
         }: Omit<CertifiedDiscreteTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
@@ -208,7 +208,7 @@ const splitTenantAttributesIntoObjectsSQL = (
               metadataVersion,
               assignmentTimestamp: dateToString(assignmentTimestamp),
               revocationTimestamp: dateToString(revocationTimestamp),
-              certifiedDiscreteValue,
+              discreteValue,
             };
           // eslint-disable-next-line functional/immutable-data
           certifiedDiscreteAttributesSQL.push(certifiedDiscreteAttributeSQL);

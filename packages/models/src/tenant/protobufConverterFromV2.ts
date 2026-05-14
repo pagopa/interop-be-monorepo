@@ -131,6 +131,20 @@ export const fromTenantAttributesV2 = (
         type: tenantAttributeType.CERTIFIED,
       };
     }
+    case "certifiedDiscreteAttribute": {
+      const { certifiedDiscreteAttribute } = sealedValue;
+      return {
+        id: unsafeBrandId(certifiedDiscreteAttribute.id),
+        assignmentTimestamp: bigIntToDate(
+          certifiedDiscreteAttribute.assignmentTimestamp
+        ),
+        revocationTimestamp: bigIntToDate(
+          certifiedDiscreteAttribute.revocationTimestamp
+        ),
+        discreteValue: certifiedDiscreteAttribute.discreteValue,
+        type: tenantAttributeType.CERTIFIED_DISCRETE,
+      };
+    }
     case "verifiedAttribute": {
       const { verifiedAttribute } = sealedValue;
       return {

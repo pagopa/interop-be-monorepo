@@ -111,7 +111,7 @@ function toApiTenantAttribute(
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
-        certifiedDiscreteValue: attribute.certifiedDiscreteValue,
+        discreteValue: attribute.discreteValue,
       },
     }))
     .exhaustive();

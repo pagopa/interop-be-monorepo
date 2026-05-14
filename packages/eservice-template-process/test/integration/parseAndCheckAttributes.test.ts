@@ -75,9 +75,9 @@ describe("parseAndCheckAttributes", () => {
           {
             id: certifiedDiscrete1.id,
             explicitAttributeVerification: false,
-            certifiedDiscreteItems: {
-              certifiedDiscreteThreshold: 10,
-              certifiedDiscreteComparator: "GTE",
+            discreteConfig: {
+              threshold: 10,
+              comparator: "GTE",
             },
           },
         ],

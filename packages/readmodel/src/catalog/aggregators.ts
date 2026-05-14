@@ -23,6 +23,8 @@ import {
   EServiceTemplateId,
   RiskAnalysisForm,
   AttributeCertifiedDiscreteComparator,
+  EServiceAttributeCertified,
+  EserviceAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -443,8 +445,21 @@ export const aggregateRiskAnalysis = (
 
 export const attributesSQLtoAttributes = (
   attributesSQL: EServiceDescriptorAttributeSQL[]
-): EServiceAttribute[][] => {
-  const attributesMap = new Map<number, EServiceAttribute[]>();
+): Array<
+  Array<
+    | EServiceAttribute
+    | EServiceAttributeCertified
+    | EserviceAttributeCertifiedDiscrete
+  >
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      | EServiceAttribute
+      | EServiceAttributeCertified
+      | EserviceAttributeCertifiedDiscrete
+    >
+  >();
   attributesSQL.forEach((current) => {
     const currentAttribute = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
@@ -452,15 +467,13 @@ export const attributesSQLtoAttributes = (
       ...(current.dailyCallsPerConsumer != null
         ? { dailyCallsPerConsumer: current.dailyCallsPerConsumer }
         : undefined),
-      ...(current.certifiedDiscreteThreshold != null &&
-      current.certifiedDiscreteComparator != null
+      ...(current.threshold != null && current.comparator != null
         ? {
-            certifiedDiscreteItems: {
-              certifiedDiscreteThreshold: current.certifiedDiscreteThreshold,
-              certifiedDiscreteComparator:
-                AttributeCertifiedDiscreteComparator.parse(
-                  current.certifiedDiscreteComparator
-                ),
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
             },
           }
         : undefined),

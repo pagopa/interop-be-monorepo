@@ -508,12 +508,12 @@ function assertAttributeGroupsUnchanged(
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
           descriptorAttr.explicitAttributeVerification ||
-        seedAttr.certifiedDiscreteItems?.certifiedDiscreteThreshold !==
+        seedAttr.discreteConfig?.threshold !==
           getCertifiedDiscreteThreshold(descriptorAttr) ||
-        seedAttr.certifiedDiscreteItems?.certifiedDiscreteComparator !==
+        seedAttr.discreteConfig?.comparator !==
           getCertifiedDiscreteComparator(descriptorAttr) ||
-        Boolean(seedAttr.certifiedDiscreteItems) !==
-          "certifiedDiscreteItems" in descriptorAttr
+        Boolean(seedAttr.discreteConfig) !==
+          "discreteConfig" in descriptorAttr
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
@@ -524,16 +524,16 @@ function assertAttributeGroupsUnchanged(
 function getCertifiedDiscreteThreshold(
   attribute: EServiceCertifiedAttribute
 ): number | undefined {
-  return "certifiedDiscreteItems" in attribute
-    ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+  return "discreteConfig" in attribute
+    ? attribute.discreteConfig.threshold
     : undefined;
 }
 
 function getCertifiedDiscreteComparator(
   attribute: EServiceCertifiedAttribute
 ): string | undefined {
-  return "certifiedDiscreteItems" in attribute
-    ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+  return "discreteConfig" in attribute
+    ? attribute.discreteConfig.comparator
     : undefined;
 }
 

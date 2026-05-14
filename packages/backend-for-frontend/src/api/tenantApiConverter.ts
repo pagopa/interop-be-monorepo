@@ -75,7 +75,7 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
       revocationTimestamp: att.certifiedDiscrete.revocationTimestamp
         ? new Date(att.certifiedDiscrete.revocationTimestamp)
         : undefined,
-      certifiedDiscreteValue: att.certifiedDiscrete.certifiedDiscreteValue,
+      discreteValue: att.certifiedDiscrete.discreteValue,
     };
 
   return [certified, verified, declared, certifiedDiscrete].filter(
@@ -133,7 +133,7 @@ const toBffApiCertifiedDiscreteTenantAttribute = (
         description: registryAttribute.description,
         assignmentTimestamp: tenantAttribute.assignmentTimestamp,
         revocationTimestamp: tenantAttribute.revocationTimestamp,
-        certifiedDiscreteValue: tenantAttribute.certifiedDiscreteValue,
+        discreteValue: tenantAttribute.discreteValue,
       }
     : undefined;
 };

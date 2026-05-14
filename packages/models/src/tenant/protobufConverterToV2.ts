@@ -28,7 +28,6 @@ import {
   tenantUnitType,
   type TenantRemoteId,
 } from "./tenant.js";
-import { genericInternalError } from "../errors.js";
 
 export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
   return match<TenantFeature, TenantFeatureV2>(feature)
@@ -114,11 +113,17 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
         },
       },
     }))
-    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, () => {
-      throw genericInternalError(
-        "CertifiedDiscreteTenantAttribute protobuf serialization not yet supported"
-      );
-    })
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attribute) => ({
+      sealedValue: {
+        oneofKind: "certifiedDiscreteAttribute",
+        certifiedDiscreteAttribute: {
+          id: attribute.id,
+          assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
+          revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
+          discreteValue: attribute.discreteValue,
+        },
+      },
+    }))
     .exhaustive();
 }
 

@@ -2,7 +2,7 @@ import { unsafeBrandId } from "../brandedIds.js";
 import {
   fromAgreementApprovalPolicyV2,
   fromDocumentV2,
-  fromCertifiedDiscreteItemsV2,
+  fromCertifiedDiscreteConfigV2,
   fromEServiceAttributeV2,
   fromEServiceModeV2,
   fromEServiceTechnologyV2,
@@ -27,15 +27,15 @@ import {
 } from "./eserviceTemplate.js";
 
 const fromEServiceTemplateAttributeGroupV2 = (
-  input: { values: Array<{ id: string; explicitAttributeVerification: boolean; certifiedDiscreteItems?: { certifiedDiscreteThreshold: number; certifiedDiscreteComparator: number } | null }> }
+  input: { values: Array<{ id: string; explicitAttributeVerification: boolean; discreteConfig?: { threshold: number; comparator: number } | null }> }
 ): Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete> =>
   input.values.map((attribute) => ({
     id: unsafeBrandId(attribute.id),
     explicitAttributeVerification: attribute.explicitAttributeVerification,
-    ...(attribute.certifiedDiscreteItems != null
+    ...(attribute.discreteConfig != null
       ? {
-          certifiedDiscreteItems: fromCertifiedDiscreteItemsV2(
-            attribute.certifiedDiscreteItems
+          discreteConfig: fromCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
           ),
         }
       : undefined),

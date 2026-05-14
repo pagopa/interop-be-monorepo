@@ -178,9 +178,9 @@ describe("create eService from template", () => {
     const certifiedAttribute: Attribute = getMockAttribute(
       attributeKind.certifiedDiscrete
     );
-    const certifiedDiscreteItems = {
-      certifiedDiscreteThreshold: 10,
-      certifiedDiscreteComparator: attributeCertifiedDiscreteComparator.GTE,
+    const discreteConfig = {
+      threshold: 10,
+      comparator: attributeCertifiedDiscreteComparator.GTE,
     };
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -191,7 +191,7 @@ describe("create eService from template", () => {
             {
               id: certifiedAttribute.id,
               explicitAttributeVerification: false,
-              certifiedDiscreteItems,
+              discreteConfig,
             },
           ],
         ],
@@ -223,7 +223,7 @@ describe("create eService from template", () => {
     expect(eService.descriptors[0].attributes.certified[0][0]).toMatchObject({
       id: certifiedAttribute.id,
       explicitAttributeVerification: false,
-      certifiedDiscreteItems,
+      discreteConfig,
     });
   });
 

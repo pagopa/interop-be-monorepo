@@ -133,17 +133,17 @@ const templateAttributeToTemplateAttributeSQL = ({
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind:
-    "certifiedDiscreteItems" in attribute
+    "discreteConfig" in attribute
       ? attributeKind.certifiedDiscrete
       : kind,
   groupId,
-  certifiedDiscreteThreshold:
-    "certifiedDiscreteItems" in attribute
-      ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
+  threshold:
+    "discreteConfig" in attribute
+      ? attribute.discreteConfig.threshold
       : null,
-  certifiedDiscreteComparator:
-    "certifiedDiscreteItems" in attribute
-      ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
+  comparator:
+    "discreteConfig" in attribute
+      ? attribute.discreteConfig.comparator
       : null,
 });
 

@@ -10,7 +10,7 @@ import {
   AgreementApprovalPolicy,
   Technology,
   EServiceMode,
-  EServiceAttributeCertifiedDiscreteItems,
+  EServiceAttributeCertifiedDiscreteConfig,
 } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { TenantKind } from "../tenant/tenant.js";
@@ -39,7 +39,7 @@ export type EServiceTemplateAttribute = z.infer<
 
 export const EServiceTemplateAttributeCertifiedDiscrete =
   EServiceTemplateAttribute.extend({
-    certifiedDiscreteItems: EServiceAttributeCertifiedDiscreteItems,
+    discreteConfig: EServiceAttributeCertifiedDiscreteConfig,
   });
 export type EServiceTemplateAttributeCertifiedDiscrete = z.infer<
   typeof EServiceTemplateAttributeCertifiedDiscrete

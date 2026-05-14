@@ -70,17 +70,17 @@ export type AttributeCertifiedDiscreteComparator = z.infer<
   typeof AttributeCertifiedDiscreteComparator
 >;
 
-export const EServiceAttributeCertifiedDiscreteItems = z.object({
-  certifiedDiscreteThreshold: z.number().int().min(1).max(1000000000),
-  certifiedDiscreteComparator: AttributeCertifiedDiscreteComparator,
+export const EServiceAttributeCertifiedDiscreteConfig = z.object({
+  threshold: z.number().int().min(1).max(1000000000),
+  comparator: AttributeCertifiedDiscreteComparator,
 });
-export type EServiceAttributeCertifiedDiscreteItems = z.infer<
-  typeof EServiceAttributeCertifiedDiscreteItems
+export type EServiceAttributeCertifiedDiscreteConfig = z.infer<
+  typeof EServiceAttributeCertifiedDiscreteConfig
 >;
 
 export const EserviceAttributeCertifiedDiscrete =
   EServiceAttributeCertified.extend({
-    certifiedDiscreteItems: EServiceAttributeCertifiedDiscreteItems,
+    discreteConfig: EServiceAttributeCertifiedDiscreteConfig,
   });
 export type EserviceAttributeCertifiedDiscrete = z.infer<
   typeof EserviceAttributeCertifiedDiscrete

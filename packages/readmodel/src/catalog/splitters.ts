@@ -153,23 +153,16 @@ const attributeToAttributeSQL = ({
   attributeId: attribute.id,
   descriptorId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind:
-    "certifiedDiscreteItems" in attribute
-      ? attributeKind.certifiedDiscrete
-      : kind,
+  kind: "discreteConfig" in attribute ? attributeKind.certifiedDiscrete : kind,
   groupId,
   dailyCallsPerConsumer:
     "dailyCallsPerConsumer" in attribute
-      ? attribute.dailyCallsPerConsumer ?? null
+      ? (attribute.dailyCallsPerConsumer ?? null)
       : null,
-  certifiedDiscreteThreshold:
-    "certifiedDiscreteItems" in attribute
-      ? attribute.certifiedDiscreteItems.certifiedDiscreteThreshold
-      : null,
-  certifiedDiscreteComparator:
-    "certifiedDiscreteItems" in attribute
-      ? attribute.certifiedDiscreteItems.certifiedDiscreteComparator
-      : null,
+  threshold:
+    "discreteConfig" in attribute ? attribute.discreteConfig.threshold : null,
+  comparator:
+    "discreteConfig" in attribute ? attribute.discreteConfig.comparator : null,
 });
 
 const attributesNestedArrayToAttributeSQLarray = (

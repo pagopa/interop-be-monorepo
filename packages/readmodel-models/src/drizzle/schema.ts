@@ -1533,8 +1533,8 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
       dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
-      certifiedDiscreteThreshold: integer("certified_discrete_threshold"),
-      certifiedDiscreteComparator: varchar("certified_discrete_comparator"),
+      threshold: integer("certified_discrete_threshold"),
+      comparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
@@ -1575,8 +1575,8 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
-      certifiedDiscreteThreshold: integer("certified_discrete_threshold"),
-      certifiedDiscreteComparator: varchar("certified_discrete_comparator"),
+      threshold: integer("certified_discrete_threshold"),
+      comparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
@@ -2339,7 +2339,7 @@ export const tenantCertifiedDiscreteAttributeInReadmodelTenant =
         withTimezone: true,
         mode: "string",
       }),
-      certifiedDiscreteValue: integer("certified_discrete_value").notNull(),
+      discreteValue: integer("certified_discrete_value").notNull(),
     },
     (table) => [
       foreignKey({

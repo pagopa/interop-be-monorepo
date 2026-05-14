@@ -8,7 +8,7 @@ import {
 } from "../gen/v2/eservice-template/eservice-template.js";
 import {
   toDocumentV2,
-  toCertifiedDiscreteItemsV2,
+  toCertifiedDiscreteConfigV2,
   toEServiceAttributeV2,
   toEServiceModeV2,
   toEServiceTechnologyV2,
@@ -34,10 +34,10 @@ const toEServiceTemplateAttributeValueV2 = (
 ) => ({
   id: attribute.id,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  ...("certifiedDiscreteItems" in attribute
+  ...("discreteConfig" in attribute
     ? {
-        certifiedDiscreteItems: toCertifiedDiscreteItemsV2(
-          attribute.certifiedDiscreteItems
+        discreteConfig: toCertifiedDiscreteConfigV2(
+          attribute.discreteConfig
         ),
       }
     : undefined),

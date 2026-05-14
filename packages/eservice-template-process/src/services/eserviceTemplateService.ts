@@ -2257,25 +2257,6 @@ async function updateDraftEServiceTemplateVersion(
     );
   }
 
-  const updatedAgreementApprovalPolicy = match(updateSeed)
-    .with({ type: "post" }, ({ seed }) =>
-      seed.agreementApprovalPolicy
-        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
-        : undefined
-    )
-    .with({ type: "patch" }, ({ seed }) =>
-      seed.agreementApprovalPolicy === null
-        ? undefined
-        : seed.agreementApprovalPolicy === undefined
-          ? eserviceTemplateVersion.agreementApprovalPolicy
-          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-              seed.agreementApprovalPolicy
-            )
-    )
-    .exhaustive();
-
   const updatedDailyCallsPerConsumer = match(updateSeed)
     .with({ type: "post" }, ({ seed }) => seed.dailyCallsPerConsumer)
     .with({ type: "patch" }, ({ seed }) =>
@@ -2300,6 +2281,25 @@ async function updateDraftEServiceTemplateVersion(
     dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
     dailyCallsTotal: updatedDailyCallsTotal,
   });
+
+  const updatedAgreementApprovalPolicy = match(updateSeed)
+    .with({ type: "post" }, ({ seed }) =>
+      seed.agreementApprovalPolicy
+        ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          )
+        : undefined
+    )
+    .with({ type: "patch" }, ({ seed }) =>
+      seed.agreementApprovalPolicy === null
+        ? undefined
+        : seed.agreementApprovalPolicy === undefined
+          ? eserviceTemplateVersion.agreementApprovalPolicy
+          : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              seed.agreementApprovalPolicy
+            )
+    )
+    .exhaustive();
 
   const parsedAttributes = attributes
     ? await parseAndCheckAttributes(
