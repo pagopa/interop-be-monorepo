@@ -96,6 +96,30 @@ describe("API POST /tools/validateTokenGeneration", () => {
     );
   });
 
+  it("Should default to sync validation when is_async is not provided", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const requestWithoutAsyncFlag = {
+      client_id: mockRequest.client_id,
+      client_assertion: mockRequest.client_assertion,
+      client_assertion_type: mockRequest.client_assertion_type,
+      grant_type: mockRequest.grant_type,
+    };
+    const res = await makeRequest(
+      token,
+      requestWithoutAsyncFlag as bffApi.AccessTokenRequest
+    );
+    expect(res.status).toBe(200);
+    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
+      mockRequest.client_id,
+      mockRequest.client_assertion,
+      mockRequest.client_assertion_type,
+      mockRequest.grant_type,
+      false,
+      undefined,
+      expect.anything()
+    );
+  });
+
   it("Should return 200 with DPoP validation steps when dpop_proof is provided", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     services.toolsService.validateTokenGeneration = vi

@@ -25736,7 +25736,6 @@ components:
         - client_assertion
         - client_assertion_type
         - grant_type
-        - is_async
       properties:
         client_id:
           type: string
