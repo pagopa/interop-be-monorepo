@@ -872,4 +872,104 @@ describe("validateTokenGeneration async validations", () => {
       )
     ).toBe(true);
   });
+
+  it("responseTimeExpired is detected for callback_invocation when startInteractionTokenIssuedAt is too old", async () => {
+    const producerKeychainId = generateId<ProducerKeychainId>();
+    const producerClientId = unsafeBrandId<ClientId>(producerKeychainId);
+
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: producerClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: producerClientId,
+          aud: ["audience"],
+          scope: interactionState.callbackInvocation,
+          interactionId: mockInteractionId,
+          entityNumber: 0,
+        },
+      },
+    });
+
+    const expiredTimestamp = new Date(Date.now() - 200_000).toISOString();
+    dynamoDBClient.send = vi.fn().mockResolvedValueOnce({
+      Items: [
+        marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.startInteraction,
+          startInteractionTokenIssuedAt: expiredTimestamp,
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      ],
+    });
+
+    mockClients.authorizationClient.producerKeychain.getProducerKeychain = vi
+      .fn()
+      .mockResolvedValue({
+        visibility: authorizationApi.Visibility.Values.FULL,
+        id: producerKeychainId,
+        producerId: generateId(),
+        name: "Producer keychain",
+        createdAt: new Date().toISOString(),
+        eservices: [mockEServiceId],
+        description: "Producer keychain description",
+        users: [],
+        keys: [],
+      });
+
+    mockClients.catalogProcessClient.getEServiceById = vi
+      .fn()
+      .mockResolvedValue({
+        id: mockEServiceId,
+        name: "Test eService",
+        asyncExchange: true,
+        descriptors: [
+          {
+            id: mockDescriptorId,
+            version: "1",
+            state: "PUBLISHED",
+            audience: ["audience"],
+            voucherLifespan: 3600,
+            asyncExchangeProperties: {
+              responseTime: 60,
+              resourceAvailableTime: 120,
+              confirmation: true,
+              bulk: false,
+              maxResultSet: 100,
+            },
+          },
+        ],
+      });
+
+    const result = await service.validateTokenGeneration(
+      producerClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.platformStatesVerification.result).toBe("FAILED");
+    expect(
+      result.steps.platformStatesVerification.failures.some(
+        (f) => f.code === "responseTimeExpired"
+      )
+    ).toBe(true);
+  });
 });
