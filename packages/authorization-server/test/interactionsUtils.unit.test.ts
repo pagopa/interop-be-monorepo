@@ -233,7 +233,9 @@ describe("interactions utils", () => {
 
     const updateCall = mockSend.mock.calls[1][0] as UpdateItemCommand;
     expect(updateCall).toBeInstanceOf(UpdateItemCommand);
-    expect(JSON.stringify(updateCall.input)).not.toContain("GSIPK_interactionId");
+    expect(JSON.stringify(updateCall.input)).not.toContain(
+      "GSIPK_interactionId"
+    );
   });
 
   it("should validate allowed state transitions by scope", () => {
