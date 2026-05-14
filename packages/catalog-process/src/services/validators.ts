@@ -492,7 +492,7 @@ export function assertDescriptorArchivable(
 export function assertEserviceIsNotInArchivingOrArchivedState(
   eservice: EService
 ): void {
-  const latestActiveDescriptor = eservice.descriptors
+  const latestActiveDescriptor = [...eservice.descriptors]
     .sort(
       (a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10)
     )
