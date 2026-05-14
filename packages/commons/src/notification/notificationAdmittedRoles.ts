@@ -38,6 +38,12 @@ export const notificationAdmittedRoles = {
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },
+  eserviceStateChangedToProducer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+  },
   agreementSuspendedUnsuspendedToConsumer: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,

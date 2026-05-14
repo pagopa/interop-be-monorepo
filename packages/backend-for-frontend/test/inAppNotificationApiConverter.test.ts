@@ -19,6 +19,7 @@ describe("toBffApiNotificationsCountBySection", () => {
         purposeStatusChangedToProducer: 4,
         // Erogazione - template-eservice
         templateStatusChangedToProducer: 1,
+        eserviceStateChangedToProducer: 1,
         // Erogazione - e-service
         newEserviceTemplateVersionToInstantiator: 6,
         eserviceTemplateNameChangedToInstantiator: 2,
@@ -227,6 +228,7 @@ describe("toBffApiNotificationsCountBySection", () => {
         clientAddedRemovedToProducer: 0,
         purposeStatusChangedToProducer: 10,
         templateStatusChangedToProducer: 0,
+        eserviceStateChangedToProducer: 0,
       },
     };
 
