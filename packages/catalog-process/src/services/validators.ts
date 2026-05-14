@@ -26,7 +26,6 @@ import {
   operationForbidden,
   EServiceTemplateId,
   type EserviceAttributes,
-  DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -501,13 +500,22 @@ export function assertEserviceIsNotInArchivingOrArchivedState(
     .at(-1);
   if (
     latestActiveDescriptor &&
-    (
-      [
+    match(latestActiveDescriptor.state)
+      .with(
         descriptorState.archived,
         descriptorState.archiving,
         descriptorState.archivingSuspended,
-      ] as DescriptorState[]
-    ).includes(latestActiveDescriptor.state)
+        () => true
+      )
+      .with(
+        descriptorState.draft,
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.waitingForApproval,
+        () => false
+      )
+      .exhaustive()
   ) {
     throw eserviceInArchivingOrArchivedState(eservice.id);
   }
