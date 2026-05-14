@@ -194,6 +194,7 @@ import {
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
   assertDescriptorCancelArchivable,
+  assertDescriptorArchivingIsNotEserviceScoped,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -3826,10 +3827,18 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const latestDescriptor = getLatestDescriptor(eservice.data);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
+      assertDescriptorArchivingIsNotEserviceScoped(descriptor);
+
       assertDescriptorCancelArchivable(descriptor, eservice.data);
+
+      const archivingSchedule =
+        latestDescriptor.archivingSchedule?.scope === "EService"
+          ? latestDescriptor.archivingSchedule
+          : undefined;
 
       const newState =
         descriptor.state === descriptorState.archivingSuspended
@@ -3837,8 +3846,8 @@ export function catalogServiceBuilder(
           : descriptorState.deprecated;
 
       const updatedDescriptor = updateDescriptorState(
-        { ...descriptor, archivingSchedule: undefined },
-        newState
+        { ...descriptor, archivingSchedule },
+        archivingSchedule ? descriptor.state : newState
       );
 
       const updatedEService = replaceDescriptor(

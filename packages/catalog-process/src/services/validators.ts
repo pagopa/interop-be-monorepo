@@ -19,6 +19,7 @@ import {
   Tenant,
   TenantId,
   TenantKind,
+  archivingScope,
   delegationKind,
   delegationState,
   descriptorState,
@@ -50,6 +51,7 @@ import {
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
+  descriptorArchivingNotCancelableByScope,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -552,5 +554,13 @@ export function assertDescriptorCancelArchivable(
 ): void {
   if (!isDescriptorCancelArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertDescriptorArchivingIsNotEserviceScoped(
+  descriptor: Descriptor
+): void {
+  if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
+    throw descriptorArchivingNotCancelableByScope(descriptor.id);
   }
 }
