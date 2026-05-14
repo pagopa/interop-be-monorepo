@@ -14,6 +14,7 @@ import {
   archivingScope,
   CorrelationId,
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
   EServiceId,
@@ -119,16 +120,20 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
   });
 
   it("returns empty array when there are no agreements", async () => {
+    const otherDescriptor: Descriptor = {
+      ...archivingDescriptor,
+      id: generateId<DescriptorId>(),
+    };
     const otherEservice: EService = {
       ...getMockEService(),
       id: generateId<EServiceId>(),
       producerId,
-      descriptors: [archivingDescriptor],
+      descriptors: [otherDescriptor],
     };
     await addOneEService(otherEservice);
     const messages = await handleEserviceDescriptorArchivedToConsumer({
       eserviceV2Msg: toEServiceV2(otherEservice),
-      descriptorId: archivingDescriptor.id,
+      descriptorId: otherDescriptor.id,
       logger,
       templateService,
       readModelService,
