@@ -1030,4 +1030,85 @@ describe("validateTokenGeneration async validations", () => {
       },
     ]);
   });
+
+  it("asyncExchangeNotEnabled when eService has asyncExchange: false", async () => {
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          scope: interactionState.getResource,
+          interactionId: mockInteractionId,
+        },
+      },
+    });
+
+    dynamoDBClient.send = vi.fn().mockResolvedValueOnce({
+      Items: [
+        marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.getResource,
+          callbackInvocationTokenIssuedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      ],
+    });
+
+    mockClients.catalogProcessClient.getEServiceById = vi
+      .fn()
+      .mockResolvedValue({
+        id: mockEServiceId,
+        name: "Test eService",
+        asyncExchange: false,
+        descriptors: [
+          {
+            id: mockDescriptorId,
+            version: "1",
+            state: "PUBLISHED",
+            audience: ["audience"],
+            voucherLifespan: 3600,
+            asyncExchangeProperties: {
+              responseTime: 60,
+              resourceAvailableTime: 120,
+              confirmation: true,
+              bulk: false,
+              maxResultSet: 100,
+            },
+          },
+        ],
+      });
+
+    const result = await service.validateTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.platformStatesVerification.result).toBe("FAILED");
+    expect(
+      result.steps.platformStatesVerification.failures.some(
+        (f) => f.code === "asyncExchangeNotEnabled"
+      )
+    ).toBe(true);
+  });
 });
