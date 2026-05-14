@@ -1076,16 +1076,12 @@ export function catalogServiceBuilder(
         );
         await repository.createEvent(eserviceDeletionEvent);
       } else {
-        await deleteDescriptorInterfaceAndDocs(
+        const eserviceWithoutDescriptors = await deleteDraftDescriptorLogic(
+          eservice.data,
           eservice.data.descriptors[0],
           fileManager,
           logger
         );
-
-        const eserviceWithoutDescriptors: EService = {
-          ...eservice.data,
-          descriptors: [],
-        };
         const descriptorDeletionEvent =
           toCreateEventEServiceDraftDescriptorDeleted(
             eservice.metadata.version,
@@ -1535,14 +1531,12 @@ export function catalogServiceBuilder(
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
-      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
-
-      const eserviceAfterDescriptorDeletion: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d: Descriptor) => d.id !== descriptorId
-        ),
-      };
+      const eserviceAfterDescriptorDeletion = await deleteDraftDescriptorLogic(
+        eservice.data,
+        descriptor,
+        fileManager,
+        logger
+      );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -3910,14 +3904,29 @@ async function processEserviceArchiving(
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
+  const draftOrWaiting = eservice.descriptors.find(
+    (d) =>
+      d.state === descriptorState.draft ||
+      d.state === descriptorState.waitingForApproval
+  );
+
+  const eserviceAfterCleanup = draftOrWaiting
+    ? await deleteDraftDescriptorLogic(
+        eservice,
+        draftOrWaiting,
+        fileManager,
+        logger
+      )
+    : eservice;
+
   const descriptors = await Promise.all(
-    eservice.descriptors.map((descriptor) =>
+    eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
         .with(
           descriptorState.archived,
           descriptorState.archivingSuspended,
           descriptorState.archiving,
-          () => Promise.resolve(descriptor)
+          () => descriptor
         )
         .with(descriptorState.published, descriptorState.deprecated, () =>
           processDescriptorArchiving(
@@ -3933,9 +3942,10 @@ async function processEserviceArchiving(
             archivingScope.eservice
           )
         )
-        .with(descriptorState.draft, descriptorState.waitingForApproval, () =>
-          deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger)
-        )
+        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
+          //Should never happen since we already deleted draft/waiting descriptors, but we put it here for type safety reasons
+          throw notValidDescriptorState(descriptor.id, descriptor.state);
+        })
         .exhaustive()
     )
   );
@@ -3943,8 +3953,26 @@ async function processEserviceArchiving(
   return {
     ...eservice,
     archivingReason: body.archivingReason,
-    descriptors: descriptors.filter((d): d is Descriptor => d !== undefined),
+    descriptors,
   };
+}
+
+async function deleteDraftDescriptorLogic(
+  eservice: EService,
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
+
+  const eserviceAfterDescriptorDeletion: EService = {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptor.id
+    ),
+  };
+
+  return eserviceAfterDescriptorDeletion;
 }
 
 async function processDescriptorArchiving(
