@@ -9,10 +9,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  descriptorNotFound,
   eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
+  retrieveDescriptor,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
@@ -43,10 +43,7 @@ export async function handleEserviceDescriptorArchivingScheduledToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
-    throw descriptorNotFound(eservice.id, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(eservice, descriptorId);
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(

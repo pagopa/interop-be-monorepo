@@ -9,16 +9,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  descriptorNotFound,
   eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
+  retrieveDescriptor,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
 import { EServiceDescriptorHandlerParams } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -43,10 +42,7 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
-    throw descriptorNotFound(eservice.id, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(eservice, descriptorId);
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(
@@ -76,9 +72,6 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
     return [];
   }
 
-  const archivableOn = descriptor.archivingSchedule
-    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
-    : undefined;
   const subject = `Archiviazione conclusa per la versione ${descriptor.version} dell'e-service "${eservice.name}"`;
 
   return targets.flatMap((t) => {
@@ -99,7 +92,6 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
-            archivableOn,
             ctaLabel: `Visualizza e-service`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,

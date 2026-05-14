@@ -15,7 +15,6 @@ import {
 } from "pagopa-interop-notification-commons";
 import { EServiceHandlerParams } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
@@ -62,9 +61,6 @@ export async function handleEserviceArchivingCompletedToProducer(
     return [];
   }
 
-  const archivableOn = descriptor.archivingSchedule
-    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
-    : undefined;
   const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
 
   return targets.map((t) => ({
@@ -77,7 +73,6 @@ export async function handleEserviceArchivingCompletedToProducer(
         entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
-        archivableOn,
         ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
