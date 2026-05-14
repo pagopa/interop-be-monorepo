@@ -232,6 +232,8 @@ export const inAppTemplates = {
   },
   templateStatusChangedToProducer: (templateName: string): string =>
     `È stato sospeso il tuo template "${templateName}".`,
+  eserviceStateChangedToProducer: (templateName: string): string =>
+    `È stato sospeso il tuo template "${templateName}".`,
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
     eserviceTemplateVersion: string,
@@ -347,4 +349,85 @@ export const inAppTemplates = {
     producerKeychainName: string
   ): string =>
     `Una chiave associata al portachiavi erogatore ${producerKeychainName} non è più considerata sicura, in quanto l'operatore che l'ha caricata non è più attivo. La chiave deve essere sostituita per garantire la sicurezza e l'operatività.`,
+
+  // eservices - archiviazione real-time (event-driven) - erogazione
+  eserviceArchivingStartedDescriptorToProducer: (
+    eserviceName: string,
+    descriptorVersion: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `Hai avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${
+      archivableOn
+        ? `. L'archiviazione sarà completata il ${formatItalianDate(archivableOn)}`
+        : ""
+    }.`,
+  eserviceArchivingStartedEserviceToProducer: (
+    eserviceName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `Hai avviato il processo di archiviazione dell'e-service ${eserviceName}${
+      archivableOn
+        ? `. L'archiviazione sarà completata il ${formatItalianDate(archivableOn)}`
+        : ""
+    }.`,
+  eserviceArchivingCompletedDescriptorToProducer: (
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata.`,
+  eserviceArchivingCompletedEserviceToProducer: (
+    eserviceName: string
+  ): string => `Hai completato l'archiviazione dell'e-service ${eserviceName}.`,
+  eserviceArchivingEarlyArchivedToProducer: (
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata in anticipo poiché tutte le sottoscrizioni attive si sono concluse.`,
+
+  // eservices - archiviazione real-time (event-driven) - fruizione
+  eserviceArchivingStartedDescriptorToConsumer: (
+    eserviceName: string,
+    descriptorVersion: string,
+    producerName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto${
+      archivableOn
+        ? `. Hai tempo fino al ${formatItalianDate(archivableOn)} per concludere ordinatamente le chiamate`
+        : ""
+    }.`,
+  eserviceArchivingStartedEserviceToConsumer: (
+    eserviceName: string,
+    producerName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione dell'e-service ${eserviceName} a cui sei iscritto${
+      archivableOn
+        ? `. Hai tempo fino al ${formatItalianDate(archivableOn)} per concludere ordinatamente le chiamate`
+        : ""
+    }.`,
+  eserviceArchivingCompletedDescriptorToConsumer: (
+    eserviceName: string,
+    descriptorVersion: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha completato l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. La versione non è più richiamabile.`,
+  eserviceArchivingCompletedEserviceToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha completato l'archiviazione dell'e-service ${eserviceName}. L'e-service non è più richiamabile.`,
+  eserviceArchivingEarlyArchivedToConsumer: (
+    eserviceName: string,
+    descriptorVersion: string,
+    producerName: string
+  ): string =>
+    `L'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
 };
+
+const formatItalianDate = (date: Date): string =>
+  new Intl.DateTimeFormat("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
