@@ -57,6 +57,8 @@ describe("updateUserNotificationConfig", () => {
           !userNotificationConfig.inAppConfig.purposeStatusChangedToProducer,
         templateStatusChangedToProducer:
           !userNotificationConfig.inAppConfig.templateStatusChangedToProducer,
+        eserviceStateChangedToProducer:
+          !userNotificationConfig.inAppConfig.templateStatusChangedToProducer,
         agreementSuspendedUnsuspendedToConsumer:
           !userNotificationConfig.inAppConfig
             .agreementSuspendedUnsuspendedToConsumer,

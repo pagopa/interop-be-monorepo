@@ -1081,6 +1081,7 @@ export const getMockInAppNotificationApiNotificationsByType =
       clientAddedRemovedToProducer: generateMock(z.number().int()),
       purposeStatusChangedToProducer: generateMock(z.number().int()),
       templateStatusChangedToProducer: generateMock(z.number().int()),
+      eserviceStateChangedToProducer: generateMock(z.number().int()),
       agreementSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
       eserviceStateChangedToConsumer: generateMock(z.number().int()),
       agreementActivatedRejectedToConsumer: generateMock(z.number().int()),
