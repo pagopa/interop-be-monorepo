@@ -377,7 +377,7 @@ describe("validateTokenGeneration async validations", () => {
           aud: ["audience"],
           scope: interactionState.callbackInvocation,
           interactionId: mockInteractionId,
-          entityNumber: 1,
+          entityNumber: 0,
         },
       },
     });
@@ -433,7 +433,7 @@ describe("validateTokenGeneration async validations", () => {
     expect(result.steps.platformStatesVerification.result).toBe("PASSED");
   });
 
-  it("should fail callback_invocation when entityNumber is zero", async () => {
+  it("should fail callback_invocation when entityNumber is negative", async () => {
     const producerKeychainId = generateId<ProducerKeychainId>();
     const producerClientId = unsafeBrandId<ClientId>(producerKeychainId);
 
@@ -453,7 +453,7 @@ describe("validateTokenGeneration async validations", () => {
           aud: ["audience"],
           scope: interactionState.callbackInvocation,
           interactionId: mockInteractionId,
-          entityNumber: 0,
+          entityNumber: -1,
         },
       },
     });
@@ -472,7 +472,7 @@ describe("validateTokenGeneration async validations", () => {
     expect(result.steps.clientAssertionValidation.failures).toEqual([
       {
         code: "invalidEntityNumber",
-        reason: `entityNumber 0 is not valid for client ${producerClientId} - must be greater than 0`,
+        reason: `entityNumber -1 is not valid for client ${producerClientId} - must be greater than or equal to 0`,
       },
     ]);
     expect(result.steps.publicKeyRetrieve.result).toBe("SKIPPED");

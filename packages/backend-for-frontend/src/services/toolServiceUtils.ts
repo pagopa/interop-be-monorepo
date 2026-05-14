@@ -78,10 +78,10 @@ export function validateAsyncScopeClaims(
             "entityNumber not provided"
           )
         : undefined,
-      jwt.payload.entityNumber !== undefined && jwt.payload.entityNumber <= 0
+      jwt.payload.entityNumber !== undefined && jwt.payload.entityNumber < 0
         ? makeDiagnosticError(
             "invalidEntityNumber",
-            `entityNumber ${jwt.payload.entityNumber} is not valid for client ${jwt.payload.sub} - must be greater than 0`,
+            `entityNumber ${jwt.payload.entityNumber} is not valid for client ${jwt.payload.sub} - must be greater than or equal to 0`,
             "Invalid entityNumber"
           )
         : undefined,
