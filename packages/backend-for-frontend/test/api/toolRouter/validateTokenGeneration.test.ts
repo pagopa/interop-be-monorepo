@@ -75,11 +75,20 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 with validation result for valid request", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+  it.each([authRole.ADMIN_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "Should return 200 with validation result for valid request (role %s)",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResult);
+    }
+  );
+
+  it("Should return 403 for a user role that is not allowed (api)", async () => {
+    const token = generateToken(authRole.API_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockResult);
+    expect(res.status).toBe(403);
   });
 
   it("Should return 200 with DPoP validation steps when dpop_proof is provided", async () => {

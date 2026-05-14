@@ -1,7 +1,9 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
+  authRole,
   ExpressContext,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -22,6 +24,12 @@ const toolRouter = (
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
     try {
+      validateAuthorization(ctx, [
+        authRole.ADMIN_ROLE,
+        authRole.SECURITY_ROLE,
+        authRole.SUPPORT_ROLE,
+      ]);
+
       const result = await toolsService.validateTokenGeneration(
         req.body.client_id,
         req.body.client_assertion,
