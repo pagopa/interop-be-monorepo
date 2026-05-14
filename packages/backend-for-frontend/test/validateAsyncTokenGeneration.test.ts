@@ -972,4 +972,62 @@ describe("validateTokenGeneration async validations", () => {
       )
     ).toBe(true);
   });
+
+  it("interactionStateNotAllowed when interaction is in start_interaction state but scope is get_resource", async () => {
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: mockClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: mockClientId,
+          aud: ["audience"],
+          scope: interactionState.getResource,
+          interactionId: mockInteractionId,
+        },
+      },
+    });
+
+    dynamoDBClient.send = vi.fn().mockResolvedValueOnce({
+      Items: [
+        marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.startInteraction,
+          startInteractionTokenIssuedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      ],
+    });
+
+    const result = await service.validateTokenGeneration(
+      mockClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.publicKeyRetrieve.result).toBe("FAILED");
+    expect(result.steps.publicKeyRetrieve.failures).toEqual([
+      {
+        code: "interactionStateNotAllowed",
+        reason: `Interaction ${mockInteractionId} in state ${interactionState.startInteraction} does not allow scope ${interactionState.getResource}`,
+      },
+    ]);
+  });
 });
