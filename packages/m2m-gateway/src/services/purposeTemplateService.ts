@@ -38,6 +38,18 @@ export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
 
+const emptyPage = (
+  limit: number,
+  offset: number,
+  totalCount: number
+): {
+  results: never[];
+  pagination: { limit: number; offset: number; totalCount: number };
+} => ({
+  results: [],
+  pagination: { limit, offset, totalCount },
+});
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
   clients: PagoPAInteropBeClients,
@@ -300,6 +312,10 @@ export function purposeTemplateServiceBuilder(
           },
           headers,
         });
+
+      if (processResults.length === 0) {
+        return emptyPage(limit, offset, totalCount);
+      }
 
       const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
       const eservices = await clients.catalogProcessClient
