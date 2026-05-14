@@ -62,17 +62,20 @@ export function readModelServiceBuilderSQL({
       return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
     async getAgreementsByEserviceId(
-      eserviceId: EServiceId
+      eserviceId: EServiceId,
+      { includeArchived = false }: { includeArchived?: boolean } = {}
     ): Promise<Agreement[] | undefined> {
+      const states = [
+        agreementState.active,
+        agreementState.suspended,
+        agreementState.pending,
+        ...(includeArchived ? [agreementState.archived] : []),
+      ];
       return (
         await agreementReadModelServiceSQL.getAgreementsByFilter(
           and(
             eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-              agreementState.pending,
-            ])
+            inArray(agreementInReadmodelAgreement.state, states)
           )
         )
       ).map((agreement) => agreement.data);
