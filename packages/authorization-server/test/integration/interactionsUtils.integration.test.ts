@@ -9,6 +9,7 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  makeGSIPKInteractionId,
   PurposeId,
   InteractionId,
   TenantId,
@@ -59,7 +60,10 @@ describe("interactions utils integration", () => {
       interactionsTable
     );
 
-    expect(retrieved).toEqual(created);
+    expect(retrieved).toEqual({
+      ...created,
+      GSIPK_interactionId: makeGSIPKInteractionId(interactionId),
+    });
     expect(created.ttl).toBe(dateToSeconds(new Date(issuedAt)) + ttlSeconds);
   });
 
