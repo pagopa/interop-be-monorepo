@@ -4,6 +4,7 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEserviceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
@@ -30,6 +31,7 @@ import { catalogReadModelService } from "./eserviceUtils.js";
 describe("E-service aggregator", () => {
   it("should convert eservice SQL items into an eservice", () => {
     const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedDiscreteAttribute = getMockEserviceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
@@ -57,7 +59,7 @@ describe("E-service aggregator", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },

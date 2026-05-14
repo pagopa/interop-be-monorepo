@@ -4,6 +4,7 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEserviceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
@@ -33,6 +34,7 @@ import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 describe("E-service splitter", () => {
   it("should convert a complete e-service into e-service SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedDiscreteAttribute = getMockEserviceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
@@ -62,7 +64,7 @@ describe("E-service splitter", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },
@@ -180,6 +182,21 @@ describe("E-service splitter", () => {
       comparator: null,
     };
 
+    const expectedCertifiedDiscreteAttributeSQL: EServiceDescriptorAttributeSQL =
+      {
+        metadataVersion: 1,
+        eserviceId: eservice.id,
+        kind: attributeKind.certifiedDiscrete,
+        attributeId: certifiedDiscreteAttribute.id,
+        descriptorId: descriptor.id,
+        groupId: 0,
+        explicitAttributeVerification:
+          certifiedDiscreteAttribute.explicitAttributeVerification,
+        dailyCallsPerConsumer: null,
+        threshold: certifiedDiscreteAttribute.discreteConfig.threshold,
+        comparator: certifiedDiscreteAttribute.discreteConfig.comparator,
+      };
+
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {
       ...doc,
       metadataVersion: 1,
@@ -229,7 +246,13 @@ describe("E-service splitter", () => {
       expectedRiskAnalysisAnswersSQL
     );
     expect(descriptorsSQL).toStrictEqual([expectedDescriptorSQL]);
-    expect(attributesSQL).toStrictEqual([expectedAttributeSQL]);
+    expect(attributesSQL).toStrictEqual(
+      expect.arrayContaining([
+        expectedAttributeSQL,
+        expectedCertifiedDiscreteAttributeSQL,
+      ])
+    );
+    expect(attributesSQL).toHaveLength(2);
     expect(interfacesSQL).toStrictEqual([expectedInterfaceDocSQL]);
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])

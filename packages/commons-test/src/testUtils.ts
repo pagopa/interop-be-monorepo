@@ -81,6 +81,13 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   EServiceTemplateAttribute,
+  CertifiedDiscreteTenantAttribute,
+  TenantRemoteId,
+  EserviceAttributeCertifiedDiscrete,
+  EServiceTemplateAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscreteConfig,
+  attributeCertifiedDiscreteComparator,
+  tenantAttributeType,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -276,6 +283,44 @@ export const getMockDeclaredTenantAttribute = (
 ): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
+});
+
+export const getMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp: new Date(),
+  revocationTimestamp: undefined,
+  discreteValue: 42,
+});
+
+export const getMockTenantRemoteId = (): TenantRemoteId => ({
+  origin: "ISTAT",
+  value: generateId(),
+  assignment_timestamp: new Date(),
+});
+
+export const getMockEServiceAttributeCertifiedDiscreteConfig =
+  (): EServiceAttributeCertifiedDiscreteConfig => ({
+    threshold: 1000,
+    comparator: attributeCertifiedDiscreteComparator.GTE,
+  });
+
+export const getMockEserviceAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EserviceAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
+export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
 });
 
 export const getMockTenant = (
