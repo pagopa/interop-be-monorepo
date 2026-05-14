@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.bffApi.tsbuildinfo"
+  },
+  "include": ["src/bffApi.ts", "src/generated/bffApi.ts"],
+  "references": [{ "path": "./tsconfig.rest.json" }]
+}

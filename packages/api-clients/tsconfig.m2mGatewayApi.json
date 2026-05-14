@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.m2mGatewayApi.tsbuildinfo"
+  },
+  "include": ["src/m2mGatewayApi.ts", "src/generated/m2mGatewayApi.ts"],
+  "references": [{ "path": "./tsconfig.rest.json" }]
+}

@@ -1,16 +1,18 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.barrel.tsbuildinfo"
   },
-  "files": [],
+  "include": ["src/index.ts"],
   "references": [
     { "path": "./tsconfig.rest.json" },
     { "path": "./tsconfig.bffApi.json" },
     { "path": "./tsconfig.m2mGatewayApi.json" },
-    { "path": "./tsconfig.m2mGatewayApiV3.json" },
-    { "path": "./tsconfig.barrel.json" }
+    { "path": "./tsconfig.m2mGatewayApiV3.json" }
   ]
 }

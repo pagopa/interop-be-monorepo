@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.rest.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/index.ts",
+    "src/bffApi.ts",
+    "src/generated/bffApi.ts",
+    "src/m2mGatewayApi.ts",
+    "src/generated/m2mGatewayApi.ts",
+    "src/m2mGatewayApiV3.ts",
+    "src/generated/m2mGatewayApiV3.ts"
+  ]
+}
