@@ -98,7 +98,6 @@ export const eventMailTemplateType = {
   purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
   purposeQuotaAdjustmentResponseMailTemplate:
     "purpose-quota-adjustment-response-mail",
-  // eservice archiving real-time (event-driven)
   eserviceArchivingStartedDescriptorToProducerMailTemplate:
     "eservice-archiving-started-descriptor-to-producer-mail",
   eserviceArchivingStartedDescriptorToConsumerMailTemplate:

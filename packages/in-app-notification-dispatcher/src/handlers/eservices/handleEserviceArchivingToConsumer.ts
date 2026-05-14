@@ -13,9 +13,9 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
-  descriptorNotFound,
   getNotificationRecipients,
   inAppTemplates,
+  retrieveDescriptor,
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
@@ -49,9 +49,6 @@ export async function handleEserviceArchivingToConsumer(
     `Sending in-app notification to consumers for ${msg.type} - eservice ${eservice.id}`
   );
 
-  // For early-archive (anticipata), include archived agreements: by the time
-  // we receive the event, consumers' agreements are likely already in the
-  // "archived" state (that's exactly what triggered the early-archive).
   const includeArchived = msg.type === "EServiceDescriptorArchived";
 
   const agreements = await readModelService.getAgreementsByEserviceId(
@@ -108,7 +105,10 @@ function bodyAndDescriptorForConsumer(
     .with(
       { type: "EServiceDescriptorArchivingScheduled" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
             eservice.name,
@@ -134,7 +134,10 @@ function bodyAndDescriptorForConsumer(
     .with(
       { type: "EServiceDescriptorArchivingCompleted" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
             eservice.name,
@@ -158,7 +161,10 @@ function bodyAndDescriptorForConsumer(
     .with(
       { type: "EServiceDescriptorArchived" },
       ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(eservice, descriptorId);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
         return {
           body: inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
             eservice.name,
@@ -170,18 +176,4 @@ function bodyAndDescriptorForConsumer(
       }
     )
     .exhaustive();
-}
-
-function retrieveDescriptor(
-  eservice: EService,
-  descriptorId: string
-): Descriptor {
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
-    throw descriptorNotFound(
-      eservice.id,
-      unsafeBrandId<DescriptorId>(descriptorId)
-    );
-  }
-  return descriptor;
 }

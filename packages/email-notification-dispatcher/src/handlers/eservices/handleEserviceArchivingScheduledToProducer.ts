@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import { EServiceHandlerParams } from "../handlerCommons.js";
 import { config } from "../../config/config.js";
-import { formatItalianDate } from "./archivingDateFormat.js";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
@@ -63,7 +63,7 @@ export async function handleEserviceArchivingScheduledToProducer(
   }
 
   const archivableOn = descriptor.archivingSchedule
-    ? formatItalianDate(descriptor.archivingSchedule.archivableOn)
+    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
     : undefined;
   const subject = `Avvio archiviazione dell'e-service "${eservice.name}"`;
 
