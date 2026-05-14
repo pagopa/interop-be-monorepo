@@ -112,7 +112,7 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
     });
   });
 
-  it("Should short-circuit and not invoke the enrichment client when there are no links (PIN-10004)", async () => {
+  it("Should short-circuit and not invoke the enrichment client when there are no links", async () => {
     const purposeTemplateId = generateId<PurposeTemplateId>();
     mockGetPurposeTemplateEServices.mockResolvedValueOnce({
       data: { results: [], totalCount: 0 },

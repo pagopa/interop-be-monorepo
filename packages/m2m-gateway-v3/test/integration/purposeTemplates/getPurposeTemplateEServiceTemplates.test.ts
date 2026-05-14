@@ -159,7 +159,7 @@ describe("getPurposeTemplateEServiceTemplates", () => {
     expect(result.pagination.totalCount).not.toBe(result.results.length);
   });
 
-  it("Should short-circuit and not invoke the enrichment client when there are no links (PIN-10004)", async () => {
+  it("Should short-circuit and not invoke the enrichment client when there are no links", async () => {
     const purposeTemplateId = generateId<PurposeTemplateId>();
     mockGetPurposeTemplateEServiceTemplates.mockResolvedValueOnce({
       data: { results: [], totalCount: 0 },
