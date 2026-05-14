@@ -102,6 +102,27 @@ export const eventMailTemplateType = {
     "purpose-quota-adjustment-response-mail",
   asyncEserviceWithoutKeychainMailTemplate:
     "async-eservice-without-keychain-mail",
+  // eservice archiving real-time (event-driven)
+  eserviceArchivingStartedDescriptorToProducerMailTemplate:
+    "eservice-archiving-started-descriptor-to-producer-mail",
+  eserviceArchivingStartedDescriptorToConsumerMailTemplate:
+    "eservice-archiving-started-descriptor-to-consumer-mail",
+  eserviceArchivingStartedEserviceToProducerMailTemplate:
+    "eservice-archiving-started-eservice-to-producer-mail",
+  eserviceArchivingStartedEserviceToConsumerMailTemplate:
+    "eservice-archiving-started-eservice-to-consumer-mail",
+  eserviceArchivingCompletedDescriptorToProducerMailTemplate:
+    "eservice-archiving-completed-descriptor-to-producer-mail",
+  eserviceArchivingCompletedDescriptorToConsumerMailTemplate:
+    "eservice-archiving-completed-descriptor-to-consumer-mail",
+  eserviceArchivingCompletedEserviceToProducerMailTemplate:
+    "eservice-archiving-completed-eservice-to-producer-mail",
+  eserviceArchivingCompletedEserviceToConsumerMailTemplate:
+    "eservice-archiving-completed-eservice-to-consumer-mail",
+  eserviceArchivingEarlyArchivedToProducerMailTemplate:
+    "eservice-archiving-early-archived-to-producer-mail",
+  eserviceArchivingEarlyArchivedToConsumerMailTemplate:
+    "eservice-archiving-early-archived-to-consumer-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
