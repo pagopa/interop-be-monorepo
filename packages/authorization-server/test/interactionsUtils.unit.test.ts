@@ -180,6 +180,62 @@ describe("interactions utils", () => {
     expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
+  it("createInteraction writes GSIPK_interactionId enabling GSI queries", async () => {
+    const interactionId = generateId<InteractionId>();
+    const issuedAt = new Date().toISOString();
+
+    mockSend.mockResolvedValueOnce({});
+
+    await createInteraction({
+      dynamoDBClient: dynamoDBClient as never,
+      interactionsTable,
+      interactionId,
+      clientId: generateId<ClientId>(),
+      purposeId: generateId<PurposeId>(),
+      consumerId: generateId<TenantId>(),
+      eServiceId: generateId<EServiceId>(),
+      descriptorId: generateId<DescriptorId>(),
+      issuedAt,
+      ttlSeconds,
+    });
+
+    const putCall = mockSend.mock.calls[0][0] as PutItemCommand;
+    expect(putCall).toBeInstanceOf(PutItemCommand);
+    expect(putCall.input.Item).toHaveProperty("GSIPK_interactionId");
+  });
+
+  it("updateInteractionState does not overwrite GSIPK_interactionId", async () => {
+    const interactionId = generateId<InteractionId>();
+    const currentInteraction: Interaction = {
+      PK: makeInteractionPK(interactionId),
+      interactionId,
+      clientId: generateId<ClientId>(),
+      purposeId: generateId<PurposeId>(),
+      consumerId: generateId<TenantId>(),
+      eServiceId: generateId<EServiceId>(),
+      descriptorId: generateId<DescriptorId>(),
+      state: "start_interaction",
+      startInteractionTokenIssuedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ttl: dateToSeconds(new Date()) + ttlSeconds,
+    };
+
+    mockSend.mockResolvedValueOnce({ Item: marshall(currentInteraction) });
+    mockSend.mockResolvedValueOnce({});
+
+    await updateInteractionState({
+      dynamoDBClient: dynamoDBClient as never,
+      interactionsTable,
+      interactionId,
+      state: "callback_invocation",
+      updatedAt: new Date().toISOString(),
+    });
+
+    const updateCall = mockSend.mock.calls[1][0] as UpdateItemCommand;
+    expect(updateCall).toBeInstanceOf(UpdateItemCommand);
+    expect(JSON.stringify(updateCall.input)).not.toContain("GSIPK_interactionId");
+  });
+
   it("should validate allowed state transitions by scope", () => {
     expect(
       isInteractionStateAllowedForScope({

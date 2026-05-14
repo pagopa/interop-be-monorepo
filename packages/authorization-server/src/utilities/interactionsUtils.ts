@@ -19,6 +19,7 @@ import {
   InteractionId,
   interactionState,
   InteractionState,
+  makeGSIPKInteractionId,
   makeInteractionPK,
   PurposeId,
   TenantId,
@@ -88,6 +89,7 @@ export const createInteraction = async ({
     ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: { S: interaction.PK },
+      GSIPK_interactionId: { S: makeGSIPKInteractionId(interactionId) },
       interactionId: { S: interaction.interactionId },
       clientId: { S: interaction.clientId },
       purposeId: { S: interaction.purposeId },
