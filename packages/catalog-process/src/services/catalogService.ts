@@ -3823,8 +3823,13 @@ export function catalogServiceBuilder(
       {
         authData,
         correlationId,
+        logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancel archiving schedule for EService ${eserviceId} Descriptor ${descriptorId}`
+      );
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const latestDescriptor = getLatestDescriptor(eservice.data);
@@ -3836,7 +3841,7 @@ export function catalogServiceBuilder(
       assertDescriptorCancelArchivable(descriptor, eservice.data);
 
       const archivingSchedule =
-        latestDescriptor.archivingSchedule?.scope === "EService"
+        latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
           ? latestDescriptor.archivingSchedule
           : undefined;
 
