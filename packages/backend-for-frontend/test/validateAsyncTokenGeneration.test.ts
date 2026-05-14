@@ -674,4 +674,77 @@ describe("validateTokenGeneration async validations", () => {
       },
     ]);
   });
+
+  it("get_resource fails when jwt.sub differs from interaction.clientId (same tenant)", async () => {
+    const differentClientId = generateId<ClientId>();
+
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: differentClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: differentClientId,
+          aud: ["audience"],
+          scope: interactionState.getResource,
+          interactionId: mockInteractionId,
+        },
+      },
+    });
+
+    dynamoDBClient.send = vi.fn().mockResolvedValueOnce({
+      Items: [
+        marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.getResource,
+          callbackInvocationTokenIssuedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      ],
+    });
+
+    mockClients.authorizationClient.token.getKeyWithClientByKeyId = vi
+      .fn()
+      .mockResolvedValue({
+        client: {
+          id: differentClientId,
+          consumerId: mockAuthData.organizationId,
+          kind: authorizationApi.ClientKind.enum.CONSUMER,
+        },
+      });
+
+    const result = await service.validateTokenGeneration(
+      differentClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.publicKeyRetrieve.result).toBe("FAILED");
+    expect(result.steps.publicKeyRetrieve.failures).toEqual([
+      {
+        code: "interactionClientIdMismatch",
+        reason: `Client ${differentClientId} did not start interaction ${mockInteractionId}`,
+      },
+    ]);
+    expect(result.steps.clientAssertionSignatureVerification.result).toBe(
+      "SKIPPED"
+    );
+  });
 });

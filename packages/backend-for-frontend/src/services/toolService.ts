@@ -443,6 +443,19 @@ async function retrieveConsumerAsyncValidationContext(
   }
   const { interaction } = interactionValidation;
 
+  if (jwt.payload.sub !== interaction.clientId) {
+    return {
+      data: undefined,
+      errors: [
+        makeDiagnosticError(
+          "interactionClientIdMismatch",
+          `Client ${jwt.payload.sub} did not start interaction ${interaction.interactionId}`,
+          "Interaction client ID mismatch"
+        ),
+      ],
+    };
+  }
+
   const consumerJwt = toClientAssertion(jwt, interaction.purposeId);
 
   const keyValidation = await retrieveKeyAndEservice(clients, consumerJwt, ctx);
