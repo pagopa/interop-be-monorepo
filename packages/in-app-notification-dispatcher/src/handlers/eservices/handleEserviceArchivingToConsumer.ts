@@ -39,7 +39,7 @@ export async function handleEserviceArchivingToConsumer(
     );
     if (!archivedDescriptor?.archivingSchedule) {
       logger.info(
-        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiviation`
+        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
       );
       return [];
     }
@@ -51,22 +51,21 @@ export async function handleEserviceArchivingToConsumer(
 
   const includeArchived = msg.type === "EServiceDescriptorArchived";
 
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eservice.id,
-    { includeArchived }
-  );
+  const [producer, agreements] = await Promise.all([
+    retrieveTenant(eservice.producerId, readModelService),
+    readModelService.getAgreementsByEserviceId(eservice.id, {
+      includeArchived,
+    }),
+  ]);
   if (!agreements || agreements.length === 0) {
     return [];
   }
 
-  const [producer, consumers] = await Promise.all([
-    retrieveTenant(eservice.producerId, readModelService),
-    Promise.all(
-      agreements.map((a: Agreement) =>
-        retrieveTenant(a.consumerId, readModelService)
-      )
-    ),
-  ]);
+  const consumers = await Promise.all(
+    agreements.map((a: Agreement) =>
+      retrieveTenant(a.consumerId, readModelService)
+    )
+  );
 
   const recipients = await getNotificationRecipients(
     consumers.map((c: Tenant) => c.id),

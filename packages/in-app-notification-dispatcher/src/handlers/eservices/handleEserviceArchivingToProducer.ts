@@ -48,7 +48,7 @@ export async function handleEserviceArchivingToProducer(
     );
     if (!archivedDescriptor?.archivingSchedule) {
       logger.info(
-        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiviation`
+        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
       );
       return [];
     }
