@@ -84,11 +84,6 @@ export async function applicationAuditBeginMiddleware(
     const amznTraceId = parseAmznTraceIdHeader(req);
     const forwardedFor = parseForwardedForHeader(req);
 
-    const rawToken = req.headers.authorization?.split(" ")?.[1];
-    const jwtId = rawToken
-      ? decodeJwtToken(rawToken, loggerInstance)?.jti
-      : undefined;
-
     const initialAudit: ApplicationAuditBeginRequest = {
       correlationId,
       spanId: context.spanId,
@@ -103,7 +98,6 @@ export async function applicationAuditBeginMiddleware(
       uptimeSeconds: Math.round(process.uptime()),
       timestamp: requestTimestamp,
       amazonTraceId: amznTraceId,
-      jwtId,
     };
 
     try {

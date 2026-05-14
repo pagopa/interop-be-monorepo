@@ -21,7 +21,6 @@ export const ApplicationAuditBeginRequest = z.object({
   uptimeSeconds: z.number(),
   timestamp: z.number(),
   amazonTraceId: z.string().optional(),
-  jwtId: z.string().optional(),
 });
 export type ApplicationAuditBeginRequest = z.infer<
   typeof ApplicationAuditBeginRequest
