@@ -154,6 +154,67 @@ describe("cancel archiving of a descriptor", () => {
     });
   });
 
+  it("should merge descriptor into global archiving if E-Service archiving is ongoing", async () => {
+    const eserviceArchivingSchedule = {
+      archivableOn: new Date(),
+      startedAt: new Date(),
+      scope: archivingScope.eservice,
+    };
+    const descriptor1: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.archiving,
+      version: "1",
+      archivingSchedule,
+    };
+    const descriptor2: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.archiving,
+      interface: getMockDocument(),
+      archivingSchedule: eserviceArchivingSchedule,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor1, descriptor2],
+    };
+    await addOneEService(eservice);
+    const cancelDescriptorArchivingResponse =
+      await catalogService.cancelEServiceDescriptorArchiving(
+        eservice.id,
+        descriptor1.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceDescriptorArchivingCanceled");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorArchivingCanceledV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor1: Descriptor = {
+      ...descriptor1,
+      archivingSchedule: eserviceArchivingSchedule,
+    };
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [expectedDescriptor1, descriptor2],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload.descriptorId).toEqual(descriptor1.id);
+    expect(cancelDescriptorArchivingResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
+  });
+
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await expect(
       catalogService.cancelEServiceDescriptorArchiving(
