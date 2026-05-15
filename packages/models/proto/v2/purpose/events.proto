@@ -108,19 +108,3 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
-
-message PurposeRiskAnalysisAssignedV2 {
-  PurposeV2 purpose = 1;
-}
-
-message PurposeRiskAnalysisSubmittedV2 {
-  PurposeV2 purpose = 1;
-}
-
-message PurposeRiskAnalysisSignedV2 {
-  PurposeV2 purpose = 1;
-}
-
-message PurposeRiskAnalysisRejectedV2 {
-  PurposeV2 purpose = 1;
-}
