@@ -2042,7 +2042,7 @@ export function catalogServiceBuilder(
       assertDescriptorIsAlreadyArchived(descriptor);
 
       const updatedDescriptor = updateDescriptorState(
-        { ...descriptor, archivingSchedule: undefined },
+        descriptor,
         descriptorState.archived
       );
 
