@@ -320,6 +320,17 @@ const getAllProducerKeychainsByEService = async (
     })
   );
 
+const getProducerKeychainFlags = (
+  producerKeychains: authorizationApi.ProducerKeychain[]
+): { hasProducerKeychain: boolean; hasProducerKeychainKeys: boolean } => ({
+  hasProducerKeychain: producerKeychains.length > 0,
+  hasProducerKeychainKeys: producerKeychains.some(
+    (keychain) =>
+      keychain.visibility === authorizationApi.Visibility.Values.FULL &&
+      keychain.keys.length > 0
+  ),
+});
+
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
@@ -419,12 +430,8 @@ export function catalogServiceBuilder(
         ),
       ]);
 
-      const hasProducerKeychain = producerKeychains.length > 0;
-      const hasProducerKeychainKeys = producerKeychains.some(
-        (keychain) =>
-          keychain.visibility === authorizationApi.Visibility.Values.FULL &&
-          keychain.keys.length > 0
-      );
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        getProducerKeychainFlags(producerKeychains);
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -924,11 +931,18 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await getAllBulkAttributes(
-        attributeProcessClient,
-        headers,
-        attributeIds
-      );
+      const [attributes, producerKeychains] = await Promise.all([
+        getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
+        getAllProducerKeychainsByEService(
+          authorizationClient,
+          headers,
+          eserviceId,
+          unsafeBrandId<TenantId>(eservice.producerId)
+        ),
+      ]);
+
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        getProducerKeychainFlags(producerKeychains);
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -1001,7 +1015,9 @@ export function catalogServiceBuilder(
           producerTenant,
           agreements,
           requesterTenant,
-          consumerDelegators
+          consumerDelegators,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
         ),
       };
     },

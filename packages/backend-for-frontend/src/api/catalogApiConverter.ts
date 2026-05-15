@@ -101,7 +101,9 @@ export async function toBffCatalogDescriptorEService(
   producerTenant: tenantApi.Tenant,
   agreements: agreementApi.Agreement[],
   requesterTenant: tenantApi.Tenant,
-  consumerDelegators: tenantApi.Tenant[]
+  consumerDelegators: tenantApi.Tenant[],
+  hasProducerKeychain: boolean,
+  hasProducerKeychainKeys: boolean
 ): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
@@ -142,6 +144,8 @@ export async function toBffCatalogDescriptorEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
     asyncExchange: eservice.asyncExchange,
+    hasProducerKeychain,
+    hasProducerKeychainKeys,
   };
 }
 
