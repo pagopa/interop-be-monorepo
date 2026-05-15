@@ -431,6 +431,22 @@ export function purposeServiceBuilder(
       });
       return { id: result.id };
     },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisAssignmentSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+      logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
+      const result = await purposeProcessClient.assignRiskAnalysisReviewer(
+        seed,
+        {
+          params: { purposeId },
+          headers,
+        }
+      );
+      return { id: result.id };
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>

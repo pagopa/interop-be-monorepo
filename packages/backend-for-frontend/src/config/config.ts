@@ -6,6 +6,7 @@ import {
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagDelegationConstraintSkipConfig,
+  FeatureFlagNewOperatorsConfig,
   FeatureFlagPurposeTemplateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
@@ -342,6 +343,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagPurposeTemplateConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
+  .and(FeatureFlagNewOperatorsConfig)
   .and(
     z
       .object({
