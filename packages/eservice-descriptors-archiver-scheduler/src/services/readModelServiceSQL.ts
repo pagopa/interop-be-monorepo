@@ -74,6 +74,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       }));
       return refsToBeArchived;
     },
+    /**
+     * Fetches all expired archivable e-service references from the database.
+     * An e-service is considered expired and archivable if its descriptors have a state of "archiving" or "archivingSuspended"
+     * and its archivableOn date is in the past.
+     *
+     * @returns The array of expired archivable e-service references
+     */
     async getExpiredArchivableEserviceRefs(): Promise<EServiceId[]> {
       const queryResult: {
         eservice: EServiceSQL;
@@ -114,6 +121,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         );
       return queryResult.map((row) => unsafeBrandId(row.eservice.id));
     },
+    /**
+     * This query checks that all the descriptors in a given set of e-services are in the correct state.
+     * It checks that the descriptors are in 'archiving', 'archivingSuspended' or 'archived' state and
+     * that their archiving scope is 'EService'.
+     *
+     * @returns The list of e-services with wrong descriptors
+     **/
     async getWrongEservices(
       eserviceIds: EServiceId[]
     ): Promise<WrongEServices> {

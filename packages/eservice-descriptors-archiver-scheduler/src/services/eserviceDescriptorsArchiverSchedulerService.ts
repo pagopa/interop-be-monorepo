@@ -79,21 +79,23 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
         (wrongEservice) => wrongEservice.eserviceId
       );
 
+      const correctEservicesIds = eserviceIds.filter(
+        (eserviceId) => !wrongEservicesIds.includes(eserviceId)
+      );
+
       Promise.all(
-        eserviceIds
-          .filter((eserviceId) => !wrongEservicesIds.includes(eserviceId))
-          .map(async (eserviceId) => {
-            loggerInstance.info(`Archiving e-service with id ${eserviceId}...`);
-            // const token = (await refreshableToken.get()).serialized;
-            // const correlationId: CorrelationId = generateId();
-            // const headers = getHeaders(correlationId, token);
-            // catalogProcessClient.archiveEService(undefined, {
-            //   params: {
-            //     eServiceId,
-            //   },
-            //   headers,
-            // });
-          })
+        correctEservicesIds.map(async (eServiceId) => {
+          loggerInstance.info(`Archiving e-service with id ${eServiceId}...`);
+          const token = (await refreshableToken.get()).serialized;
+          const correlationId: CorrelationId = generateId();
+          const headers = getHeaders(correlationId, token);
+          catalogProcessClient.archiveEService(undefined, {
+            params: {
+              eServiceId,
+            },
+            headers,
+          });
+        })
       );
     },
   };
