@@ -8,6 +8,7 @@ import {
   getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
+  ArchivingSchedule,
   Descriptor,
   descriptorState,
   EService,
@@ -79,15 +80,17 @@ describe("archive descriptor", () => {
   });
 
   it("should write on event-store for the archiving of a descriptor in archiving state", async () => {
+    const archivingSchedule: ArchivingSchedule = {
+      archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+      startedAt: new Date(new Date().getTime() - 91 * 24 * 60 * 60 * 1000),
+      scope: "Descriptor",
+    };
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
       state: descriptorState.archiving,
-      archivingSchedule: {
-        archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
-        startedAt: new Date(new Date().getTime() - 91 * 24 * 60 * 60 * 1000),
-        scope: "Descriptor",
-      },
+      archivingSchedule,
     };
     const eservice: EService = {
       ...mockEService,
@@ -120,7 +123,7 @@ describe("archive descriptor", () => {
       archivedAt: new Date(
         Number(writtenPayload.eservice!.descriptors[0]!.archivedAt)
       ),
-      archivingSchedule: undefined,
+      archivingSchedule,
     };
 
     const expectedEService = toEServiceV2({
