@@ -3840,20 +3840,19 @@ export function catalogServiceBuilder(
 
       assertDescriptorCancelArchivable(descriptor, eservice.data);
 
-      const archivingSchedule =
+      const eserviceArchivingSchedule =
         latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
           ? latestDescriptor.archivingSchedule
           : undefined;
 
-      const newState =
-        descriptor.state === descriptorState.archivingSuspended
-          ? descriptorState.suspended
-          : descriptorState.deprecated;
-
-      const updatedDescriptor = updateDescriptorState(
-        { ...descriptor, archivingSchedule },
-        archivingSchedule ? descriptor.state : newState
-      );
+      const updatedDescriptor = eserviceArchivingSchedule
+        ? { ...descriptor, archivingSchedule: eserviceArchivingSchedule }
+        : updateDescriptorState(
+            { ...descriptor, archivingSchedule: undefined },
+            descriptor.state === descriptorState.archivingSuspended
+              ? descriptorState.suspended
+              : descriptorState.deprecated
+          );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
