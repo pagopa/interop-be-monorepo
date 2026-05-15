@@ -7,8 +7,10 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionState,
   RiskAnalysisMultiAnswer,
+  RiskAnalysisReviewMode,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  riskAnalysisReviewMode,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -262,3 +264,17 @@ export const remainingDailyCallsToApiRemainingDailyCalls = (
     remainingDailyCalls.remainingDailyCallsPerConsumer,
   remainingDailyCallsTotal: remainingDailyCalls.remainingDailyCallsTotal,
 });
+
+export const apiReviewModeToReviewMode = (
+  apiReviewMode: purposeApi.RiskAnalysisReviewMode
+): RiskAnalysisReviewMode =>
+  match(apiReviewMode)
+    .with(
+      "REVIEWER_WRITES_REVIEWER_SIGNS",
+      () => riskAnalysisReviewMode.reviewerWritesReviewerSigns
+    )
+    .with(
+      "ADMIN_WRITES_REVIEWER_SIGNS",
+      () => riskAnalysisReviewMode.adminWritesReviewerSigns
+    )
+    .exhaustive();

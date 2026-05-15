@@ -44,6 +44,9 @@ import {
   PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
+  ReviewerWorkflow,
   Tenant,
   TenantId,
   TenantKind,
@@ -82,6 +85,7 @@ import {
   tenantNotAllowed,
   tenantNotFound,
   unchangedDailyCalls,
+  reviewerWorkflowConflict,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -106,6 +110,7 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
+  toCreateEventPurposeRiskAnalysisAssigned,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -436,6 +441,56 @@ export function purposeServiceBuilder(
 
       return {
         data: updatedPurpose,
+        metadata: { version: event.newVersion },
+      };
+    },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: {
+        reviewMode: RiskAnalysisReviewMode;
+        reviewerIds: string[];
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const existingWorkflow = purpose.data.reviewerWorkflow;
+      if (existingWorkflow && existingWorkflow.signingState !== "Draft") {
+        throw reviewerWorkflowConflict(purposeId);
+      }
+
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: seed.reviewMode,
+        reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
+        signingState: RiskAnalysisSigningState.Values.Draft,
+      };
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        reviewerWorkflow,
+        updatedAt: new Date(),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisAssigned({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: { purpose: updatedPurpose },
         metadata: { version: event.newVersion },
       };
     },

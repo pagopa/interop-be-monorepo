@@ -474,3 +474,22 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
   },
   correlationId,
 });
+
+export const toCreateEventPurposeRiskAnalysisAssigned = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisAssigned",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});

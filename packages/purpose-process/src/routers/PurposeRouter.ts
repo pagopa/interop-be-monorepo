@@ -22,6 +22,7 @@ import {
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
+  apiReviewModeToReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -34,6 +35,7 @@ import { PurposeService } from "../services/purposeService.js";
 import {
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
+  assignRiskAnalysisReviewerErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createPurposeFromTemplateErrorMapper,
@@ -499,6 +501,45 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectPurposeVersionErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposes/:purposeId/riskAnalysis/assign",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
+          const {
+            data: { purpose, isRiskAnalysisValid },
+            metadata,
+          } = await purposeService.assignRiskAnalysisReviewer(
+            unsafeBrandId(req.params.purposeId),
+            {
+              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
+              reviewerIds: req.body.reviewerIds,
+            },
+            ctx
+          );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              purposeApi.Purpose.parse(
+                purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignRiskAnalysisReviewerErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

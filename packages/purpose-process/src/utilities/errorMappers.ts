@@ -340,3 +340,16 @@ export const getRemainingDailyCallsErrorMapper = (
     )
     .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const assignRiskAnalysisReviewerErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

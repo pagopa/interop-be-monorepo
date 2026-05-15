@@ -58,6 +58,7 @@ const errorCodes = {
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
+  reviewerWorkflowConflict: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -496,5 +497,15 @@ export function invalidFreeOfChargeReason(
     detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
     code: "invalidFreeOfChargeReason",
     title: "Invalid free of charge reason",
+  });
+}
+
+export function reviewerWorkflowConflict(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
+    code: "reviewerWorkflowConflict",
+    title: "Reviewer workflow conflict",
   });
 }
