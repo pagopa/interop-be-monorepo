@@ -16,7 +16,6 @@ import {
   activeProducerDelegationNotFound,
   attributeNotFound,
   certifierTenantNotFound,
-  eServiceNotFound,
   eserviceNotFound,
   eserviceWithoutDescriptors,
   purposeNotFound,
@@ -46,22 +45,11 @@ export async function retrieveEservice(
   return eservice;
 }
 
-export async function retrieveEService(
-  eserviceId: EServiceId,
-  readModelService: NotificationReadModelService
-): Promise<EService> {
-  const eservice = await readModelService.getEServiceById(eserviceId);
-  if (!eservice) {
-    throw eServiceNotFound(eserviceId);
-  }
-  return eservice;
-}
-
 export async function retrieveAgreementEservice(
   agreement: Agreement,
   readModelService: NotificationReadModelService
 ): Promise<EService> {
-  return await retrieveEService(agreement.eserviceId, readModelService);
+  return await retrieveEservice(agreement.eserviceId, readModelService);
 }
 
 export async function retrievePurpose(

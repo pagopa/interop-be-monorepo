@@ -9,7 +9,6 @@ type NotificationCommonsErrorCode =
   | "htmlTemplateNotFound"
   | "agreementStampDateNotFound"
   | "attributeNotFound"
-  | "eServiceNotFound"
   | "eserviceNotFound"
   | "tenantNotFound"
   | "descriptorNotFound"
@@ -47,15 +46,6 @@ export function tenantNotFound(tenantId: TenantId): NotificationCommonsError {
   return new InternalError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
-  });
-}
-
-export function eServiceNotFound(
-  eserviceId: EServiceId
-): NotificationCommonsError {
-  return new InternalError({
-    detail: `EService ${eserviceId} not found`,
-    code: "eServiceNotFound",
   });
 }
 
