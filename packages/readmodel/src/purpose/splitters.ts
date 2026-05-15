@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeItemsSQL,
+  PurposeReviewerSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
@@ -41,6 +42,7 @@ export const splitPurposeIntoObjectsSQL = (
     riskAnalysisForm,
     versions,
     purposeTemplateId,
+    reviewerWorkflow,
     ...rest
   }: Purpose,
   version: number
@@ -64,7 +66,19 @@ export const splitPurposeIntoObjectsSQL = (
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
     purposeTemplateId: purposeTemplateId || null,
+    reviewerWorkflowReviewMode: reviewerWorkflow?.reviewMode ?? null,
+    reviewerWorkflowSigningState: reviewerWorkflow?.signingState ?? null,
+    reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
+    reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
   };
+
+  const reviewersSQL: PurposeReviewerSQL[] = (
+    reviewerWorkflow?.reviewerIds ?? []
+  ).map((reviewerId) => ({
+    purposeId: id,
+    metadataVersion: version,
+    reviewerId,
+  }));
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
     id,
@@ -122,6 +136,7 @@ export const splitPurposeIntoObjectsSQL = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL,
   };
 };
 

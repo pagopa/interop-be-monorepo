@@ -12,6 +12,7 @@ import {
   PurposeVersionStamp,
   PurposeVersionStampKind,
   PurposeVersionState,
+  ReviewerWorkflow,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
   RiskAnalysisId,
@@ -19,8 +20,11 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswer,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
   stringToDate,
   unsafeBrandId,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -79,6 +83,7 @@ export const aggregatePurposeArray = ({
       versionStampsSQL: versionStampsSQLByPurposeId.get(purposeId) || [],
       versionSignedDocumentsSQL:
         versionSignedDocumentsSQLByPurposeId.get(purposeId) || [],
+      reviewersSQL: [],
     });
   });
 };
@@ -111,6 +116,7 @@ export const aggregatePurpose = ({
   versionDocumentsSQL,
   versionStampsSQL,
   versionSignedDocumentsSQL,
+  reviewersSQL,
 }: // eslint-disable-next-line sonarjs/cognitive-complexity
 PurposeItemsSQL): WithMetadata<Purpose> => {
   const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
@@ -260,6 +266,33 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
+    ...(purposeSQL.reviewerWorkflowReviewMode &&
+    purposeSQL.reviewerWorkflowSigningState
+      ? {
+          reviewerWorkflow: {
+            reviewMode: RiskAnalysisReviewMode.parse(
+              purposeSQL.reviewerWorkflowReviewMode
+            ),
+            signingState: RiskAnalysisSigningState.parse(
+              purposeSQL.reviewerWorkflowSigningState
+            ),
+            reviewerIds: reviewersSQL.map((r) => unsafeBrandId<UserId>(r.reviewerId)),
+            ...(purposeSQL.reviewerWorkflowSignedBy
+              ? {
+                  signedBy: unsafeBrandId<UserId>(
+                    purposeSQL.reviewerWorkflowSignedBy
+                  ),
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowRejectionReason
+              ? {
+                  rejectionReason:
+                    purposeSQL.reviewerWorkflowRejectionReason,
+                }
+              : {}),
+          } satisfies ReviewerWorkflow,
+        }
+      : {}),
   };
 
   return {
@@ -373,6 +406,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL: [],
   };
 };
 

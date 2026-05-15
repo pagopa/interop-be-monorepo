@@ -8,6 +8,7 @@ import {
   timestamp,
   foreignKey,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import {
   readmodelAgreement,
@@ -845,12 +846,47 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
     purposeTemplateId: uuid("purpose_template_id"),
+    reviewerWorkflowReviewMode: varchar("reviewer_workflow_review_mode"),
+    reviewerWorkflowSigningState: varchar("reviewer_workflow_signing_state"),
+    reviewerWorkflowSignedBy: uuid("reviewer_workflow_signed_by"),
+    reviewerWorkflowRejectionReason: varchar(
+      "reviewer_workflow_rejection_reason"
+    ),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
       table.id,
       table.metadataVersion
     ),
+  ]
+);
+
+export const purposeReviewerInReadmodelPurpose = readmodelPurpose.table(
+  "purpose_reviewer",
+  {
+    purposeId: uuid("purpose_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    reviewerId: uuid("reviewer_id").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.purposeId],
+      foreignColumns: [purposeInReadmodelPurpose.id],
+      name: "purpose_reviewer_purpose_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.purposeId, table.metadataVersion],
+      foreignColumns: [
+        purposeInReadmodelPurpose.id,
+        purposeInReadmodelPurpose.metadataVersion,
+      ],
+      name: "purpose_reviewer_purpose_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.purposeId, table.reviewerId],
+      name: "purpose_reviewer_pkey",
+    }),
+    index("idx_purpose_reviewer_id").on(table.reviewerId),
   ]
 );
 
