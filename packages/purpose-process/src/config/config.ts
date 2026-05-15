@@ -6,6 +6,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagPurposeTemplateConfig,
+  FeatureFlagNewOperatorsConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -23,7 +24,8 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
+  .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagNewOperatorsConfig);
 
 type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
