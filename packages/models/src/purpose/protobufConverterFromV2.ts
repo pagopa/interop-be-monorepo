@@ -3,6 +3,7 @@ import {
   PurposeTemplateId,
   RiskAnalysisId,
   unsafeBrandId,
+  UserId,
 } from "../brandedIds.js";
 import {
   PurposeStateV2,
@@ -12,6 +13,9 @@ import {
   PurposeV2,
   PurposeVersionStampsV2,
   PurposeVersionSignedDocumentV2,
+  ReviewerWorkflowV2,
+  RiskAnalysisReviewModeV2,
+  RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
@@ -25,6 +29,11 @@ import {
   PurposeVersionStamps,
   PurposeVersionState,
   purposeVersionState,
+  ReviewerWorkflow,
+  RiskAnalysisReviewMode,
+  riskAnalysisReviewMode,
+  RiskAnalysisSigningState,
+  riskAnalysisSigningState,
 } from "./purpose.js";
 
 export const fromPurposeVersionStateV2 = (
@@ -117,6 +126,40 @@ export const fromPurposeRiskAnalysisFormV2 = (
   })),
 });
 
+export const fromRiskAnalysisReviewModeV2 = (
+  input: RiskAnalysisReviewModeV2
+): RiskAnalysisReviewMode => {
+  switch (input) {
+    case RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS:
+      return riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+    case RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS:
+      return riskAnalysisReviewMode.adminWritesReviewerSigns;
+  }
+};
+
+export const fromRiskAnalysisSigningStateV2 = (
+  input: RiskAnalysisSigningStateV2
+): RiskAnalysisSigningState => {
+  switch (input) {
+    case RiskAnalysisSigningStateV2.SIGNING_STATE_DRAFT:
+      return riskAnalysisSigningState.draft;
+    case RiskAnalysisSigningStateV2.PENDING_SIGNATURE:
+      return riskAnalysisSigningState.pendingSignature;
+    case RiskAnalysisSigningStateV2.SIGNED:
+      return riskAnalysisSigningState.signed;
+  }
+};
+
+export const fromReviewerWorkflowV2 = (
+  input: ReviewerWorkflowV2
+): ReviewerWorkflow => ({
+  reviewMode: fromRiskAnalysisReviewModeV2(input.reviewMode),
+  reviewerIds: input.reviewerIds.map(unsafeBrandId<UserId>),
+  signingState: fromRiskAnalysisSigningStateV2(input.signingState),
+  signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
+  rejectionReason: input.rejectionReason,
+});
+
 export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -133,5 +176,8 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
     : undefined,
   purposeTemplateId: input.purposeTemplateId
     ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
+    : undefined,
+  reviewerWorkflow: input.reviewerWorkflow
+    ? fromReviewerWorkflowV2(input.reviewerWorkflow)
     : undefined,
 });
