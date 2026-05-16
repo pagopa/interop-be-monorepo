@@ -11,7 +11,7 @@ import {
   retrieveTenant,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  eServiceNotFound,
+  eserviceNotFound,
 } from "pagopa-interop-notification-commons";
 import { ProducerKeychainEServiceHandlerParams } from "../handlerCommons.js";
 
@@ -33,7 +33,7 @@ export async function handleProducerKeychainEserviceAdded(
   const eservice = await readModelService.getEServiceById(eserviceId);
 
   if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
+    throw eserviceNotFound(eserviceId);
   }
 
   const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([

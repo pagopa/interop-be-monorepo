@@ -23,7 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
 import { handleAgreementSuspendedByPlatformToConsumer } from "../src/handlers/agreements/handleAgreementSuspendedByPlatformToConsumer.js";
@@ -118,7 +118,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const agreement = {
       ...getMockAgreement(),
@@ -138,7 +138,7 @@ describe("handleAgreementSuspendedByPlatform", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {

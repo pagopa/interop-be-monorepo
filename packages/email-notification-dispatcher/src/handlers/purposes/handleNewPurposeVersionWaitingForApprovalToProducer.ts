@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
   getRecipientsForTenants,
@@ -43,7 +43,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToProducer(
     retrieveHTMLTemplate(
       eventMailTemplateType.newPurposeVersionQuotaAdjustmentRequestMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

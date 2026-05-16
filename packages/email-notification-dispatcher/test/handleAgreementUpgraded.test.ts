@@ -21,7 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
 import { handleAgreementUpgraded } from "../src/handlers/agreements/handleAgreementUpgraded.js";
@@ -138,7 +138,7 @@ describe("handleAgreementUpgraded", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const agreement: Agreement = {
@@ -159,7 +159,7 @@ describe("handleAgreementUpgraded", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant that produced the eservice", async () => {

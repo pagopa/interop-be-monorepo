@@ -20,7 +20,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   eserviceWithoutDescriptors,
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
 import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
@@ -75,7 +75,7 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       );
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const eserviceId = generateId<EServiceId>();
     await expect(() =>
       handleProducerKeychainEserviceAdded({
@@ -85,7 +85,7 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(eserviceId));
+    ).rejects.toThrow(eserviceNotFound(eserviceId));
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {

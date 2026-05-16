@@ -12,7 +12,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
@@ -45,7 +45,7 @@ export async function handlePurposeVersionSuspendedByProducer(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionSuspendedByProducerMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

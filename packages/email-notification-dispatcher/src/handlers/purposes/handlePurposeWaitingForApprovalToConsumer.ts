@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
@@ -40,7 +40,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaOverthresholdMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
   const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);

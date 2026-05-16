@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
   getRecipientsForTenants,
@@ -33,7 +33,7 @@ export async function handleClientPurposeAdded(
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.clientPurposeAddedMailTemplate),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

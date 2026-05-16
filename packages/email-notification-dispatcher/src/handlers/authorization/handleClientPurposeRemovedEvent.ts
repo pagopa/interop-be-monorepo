@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
   getRecipientsForTenants,
@@ -35,7 +35,7 @@ export async function handleClientPurposeRemoved(
     retrieveHTMLTemplate(
       eventMailTemplateType.clientPurposeRemovedMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

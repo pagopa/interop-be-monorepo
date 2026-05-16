@@ -25,7 +25,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
 import { handleConsumerDelegationSubmitted } from "../src/handlers/delegations/handleConsumerDelegationSubmitted.js";
@@ -155,7 +155,7 @@ describe("handleConsumerDelegationSubmitted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownDelegatorId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const delegation = getMockDelegation({
       kind: "DelegatedConsumer",
@@ -173,7 +173,7 @@ describe("handleConsumerDelegationSubmitted", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the delegate", async () => {

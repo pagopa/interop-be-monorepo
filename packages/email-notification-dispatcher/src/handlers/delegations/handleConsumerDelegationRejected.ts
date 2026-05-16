@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
   getRecipientsForTenants,
@@ -44,7 +44,7 @@ export async function handleConsumerDelegationRejected(
     retrieveHTMLTemplate(
       eventMailTemplateType.consumerDelegationRejectedMailTemplate
     ),
-    retrieveEService(delegation.eserviceId, readModelService),
+    retrieveEservice(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
     retrieveTenant(delegation.delegateId, readModelService),
   ]);

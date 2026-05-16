@@ -26,7 +26,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
 import { handleAgreementActivatedToProducer } from "../src/handlers/agreements/handleAgreementActivatedToProducer.js";
@@ -152,7 +152,7 @@ describe("handleAgreementActivated", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const agreement: Agreement = {
       ...getMockAgreement(),
@@ -172,7 +172,7 @@ describe("handleAgreementActivated", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant that produced the eservice", async () => {
