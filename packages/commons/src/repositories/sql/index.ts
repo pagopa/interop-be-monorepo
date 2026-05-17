@@ -24,3 +24,4 @@ function sql(file: string): pgPromise.QueryFile {
 
 export const insertEvent = sql("insertEvent.sql");
 export const checkEventVersionExists = sql("checkEventVersionExists.sql");
+export const getLatestEventVersion = sql("getLatestEventVersion.sql");
