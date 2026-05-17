@@ -17,7 +17,7 @@ import {
   retrieveAttribute,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { TenantHandlerParams } from "../handlerCommons.js";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 

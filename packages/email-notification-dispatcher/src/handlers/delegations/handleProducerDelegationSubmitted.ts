@@ -13,7 +13,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { DelegationHandlerParams } from "../handlerCommons.js";
+import { DelegationHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 

@@ -12,7 +12,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { ProducerKeychainUserHandlerParams } from "../handlerCommons.js";
+import { ProducerKeychainUserHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 

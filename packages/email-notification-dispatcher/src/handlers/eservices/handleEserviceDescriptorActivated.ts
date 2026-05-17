@@ -15,7 +15,7 @@ import {
   mapRecipientToEmailPayload,
   descriptorNotFound,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../handlerCommons.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 

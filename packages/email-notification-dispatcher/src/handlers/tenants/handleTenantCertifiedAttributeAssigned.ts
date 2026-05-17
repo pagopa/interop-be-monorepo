@@ -13,7 +13,7 @@ import {
   retrieveAttribute,
   retrieveTenantByCertifierId,
 } from "pagopa-interop-notification-commons";
-import { TenantHandlerParams } from "../handlerCommons.js";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
 
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 import { config } from "../../config/config.js";

@@ -7,7 +7,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import { PurposeHandlerParams } from "../handlerCommons.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,

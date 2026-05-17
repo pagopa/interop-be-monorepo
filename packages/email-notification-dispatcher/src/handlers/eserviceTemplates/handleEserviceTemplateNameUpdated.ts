@@ -15,7 +15,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { EserviceTemplateNameUpdatedHandlerParams } from "../handlerCommons.js";
+import { EserviceTemplateNameUpdatedHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 
