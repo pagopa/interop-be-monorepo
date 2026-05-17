@@ -120,7 +120,8 @@ describe("getRecipientsForTenants", () => {
       readModelService.getTenantUsersWithNotificationEnabled
     ).toHaveBeenCalledWith(
       tenants.map((tenant) => tenant.id),
-      "agreementActivatedRejectedToConsumer"
+      "agreementActivatedRejectedToConsumer",
+      "email"
     );
   });
 

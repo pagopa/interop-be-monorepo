@@ -12,11 +12,9 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  Channel,
   EmailNotificationReadModelService,
   EmailNotificationRecipient,
   NotificationReadModelService,
-  ResolvedRecipient,
   TenantEmailNotificationRecipient,
   UserEmailNotificationRecipient,
 } from "./types.js";
@@ -55,56 +53,6 @@ const getTenantContactEmailIfEnabled = async (
   return email.address;
 };
 
-export async function resolveRecipientsForChannel({
-  tenantIds,
-  notificationType,
-  channel,
-  readModelService,
-  logger,
-  notificationTypeBlocklist,
-}: {
-  tenantIds: TenantId[];
-  notificationType: NotificationType;
-  channel: Channel;
-  readModelService: NotificationReadModelService;
-  logger: Logger;
-  notificationTypeBlocklist?: NotificationType[];
-}): Promise<ResolvedRecipient[]> {
-  if (
-    getNotificationTypeBlocklist({
-      notificationTypeBlocklist,
-      readModelService,
-    }).includes(notificationType)
-  ) {
-    logger.info(
-      `Notification type ${notificationType} is in the blocklist - skipping notifications for tenants with id: ${tenantIds.join(
-        ","
-      )}`
-    );
-    return [];
-  }
-
-  const usersWithNotifications =
-    await readModelService.getTenantUsersWithNotificationEnabled(
-      tenantIds,
-      notificationType,
-      channel
-    );
-  return usersWithNotifications.filter(({ userId, tenantId, userRoles }) => {
-    const userCanReceiveNotification = userRoles.some(
-      (r) => notificationAdmittedRoles[notificationType][r]
-    );
-    if (!userCanReceiveNotification) {
-      logger.warn(
-        `Discarding notification for user ${userId} in ${tenantId} due to missing roles (notification type: ${notificationType}, user roles: ${userRoles.join(
-          ", "
-        )})`
-      );
-    }
-    return userCanReceiveNotification;
-  });
-}
-
 export async function getNotificationRecipients(
   tenantIds: TenantId[],
   notificationType: NotificationType,
@@ -129,7 +77,8 @@ export async function getNotificationRecipients(
   const usersWithNotifications =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenantIds,
-      notificationType
+      notificationType,
+      "inApp"
     );
   return usersWithNotifications.filter(({ userId, tenantId, userRoles }) => {
     const userCanReceiveNotification = userRoles.some(
@@ -182,7 +131,8 @@ export const getRecipientsForTenants = async ({
   const tenantUsers =
     await readModelService.getTenantUsersWithNotificationEnabled(
       tenants.map((tenant) => tenant.id),
-      notificationType
+      notificationType,
+      "email"
     );
 
   const userRecipients: UserEmailNotificationRecipient[] = tenantUsers

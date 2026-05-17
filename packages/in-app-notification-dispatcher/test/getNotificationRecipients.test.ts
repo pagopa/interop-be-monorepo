@@ -69,7 +69,11 @@ describe("getNotificationRecipients", () => {
     );
     expect(
       readModelService.getTenantUsersWithNotificationEnabled
-    ).toHaveBeenCalledWith(tenants, "agreementActivatedRejectedToConsumer");
+    ).toHaveBeenCalledWith(
+      tenants,
+      "agreementActivatedRejectedToConsumer",
+      "inApp"
+    );
   });
 
   it("should not return users with 'support' role", async () => {

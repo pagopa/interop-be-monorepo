@@ -36,7 +36,7 @@ export type NotificationReadModelService = {
   getTenantUsersWithNotificationEnabled: (
     tenantIds: TenantId[],
     notificationType: NotificationType,
-    channel?: Channel
+    channel: Channel
   ) => Promise<
     Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
   >;
@@ -46,11 +46,6 @@ export type EmailNotificationReadModelService = NotificationReadModelService & {
   getTenantNotificationConfigByTenantId: (
     tenantId: TenantId
   ) => Promise<TenantNotificationConfig | undefined>;
-};
-
-export type ResolvedRecipient = {
-  userId: UserId;
-  tenantId: TenantId;
 };
 
 export type TenantEmailNotificationRecipient = {
