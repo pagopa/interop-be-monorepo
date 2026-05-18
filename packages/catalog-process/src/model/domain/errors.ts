@@ -4,6 +4,7 @@ import {
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -137,7 +138,7 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,

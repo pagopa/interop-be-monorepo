@@ -1601,10 +1601,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       assertConsistentDailyCalls(seed);
@@ -1662,10 +1659,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (descriptor.interface === undefined) {
@@ -1760,10 +1754,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.deprecated &&
         descriptor.state !== descriptorState.published
       ) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -1814,10 +1805,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.suspended) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -2797,10 +2785,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (eservice.data.personalData === undefined) {
@@ -2847,10 +2832,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       const newRejectionReason: DescriptorRejectionReason = {
@@ -3822,21 +3804,20 @@ export function catalogServiceBuilder(
 
       assertDescriptorArchivingIsNotEserviceScoped(descriptor);
 
-      assertDescriptorCancelArchivable(descriptor, eservice.data);
+      assertDescriptorCancelArchivable(descriptor, latestDescriptor);
 
-      const eserviceArchivingSchedule =
+      const updatedDescriptor =
         latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
-          ? latestDescriptor.archivingSchedule
-          : undefined;
-
-      const updatedDescriptor = eserviceArchivingSchedule
-        ? { ...descriptor, archivingSchedule: eserviceArchivingSchedule }
-        : updateDescriptorState(
-            { ...descriptor, archivingSchedule: undefined },
-            descriptor.state === descriptorState.archivingSuspended
-              ? descriptorState.suspended
-              : descriptorState.deprecated
-          );
+          ? {
+              ...descriptor,
+              archivingSchedule: latestDescriptor.archivingSchedule,
+            }
+          : updateDescriptorState(
+              { ...descriptor, archivingSchedule: undefined },
+              descriptor.state === descriptorState.archivingSuspended
+                ? descriptorState.suspended
+                : descriptorState.deprecated
+            );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
