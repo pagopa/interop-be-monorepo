@@ -11242,6 +11242,129 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/linkableResources:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: q
+        description: |
+          Fuzzy match on resource name (e-service name for concrete entries,
+          e-service template name for template entries). If not provided,
+          linkable resources match any name.
+        schema:
+          type: string
+      - in: query
+        name: publisherIds
+        description: |
+          Filter by tenant ID. Matches the publisher of each linkable resource:
+          the producer of a concrete e-service, or the creator of an e-service template.
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - purposeTemplates
+      summary: Get Purpose Template Linkable Resources
+      operationId: getPurposeTemplateLinkableResources
+      description: |
+        Retrieve the unified list of resources linkable to a purpose template, currently associated with it.
+        Each entry is either a concrete e-service (`resourceKind=ESERVICE`) or an
+        e-service template (`resourceKind=ESERVICE_TEMPLATE`).
+        Results are sorted by `createdAt` DESC (most recent links first), unified across both kinds.
+        `totalCount` reflects the real total of linkable entries (concrete + templates).
+        Behavior on missing referenced resources is fail-fast: if any link points to a removed
+        e-service, descriptor, e-service template, version or tenant, the request returns 404.
+      responses:
+        "200":
+          description: Purpose Template Linkable Resources retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkableResources"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposeTemplates/{purposeTemplateId}/eservices:
     parameters:
       - name: purposeTemplateId
@@ -30222,6 +30345,93 @@ components:
         - eservice
         - descriptor
         - createdAt
+    CompactPurposeTemplateEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - creator
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        creator:
+          $ref: "#/components/schemas/CompactOrganization"
+        description:
+          type: string
+    LinkableEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eservice
+        - descriptor
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eservice:
+          $ref: "#/components/schemas/CompactPurposeTemplateEService"
+        descriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        createdAt:
+          type: string
+          format: date-time
+    LinkableEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceTemplate
+        - eserviceTemplateVersion
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplate:
+          $ref: "#/components/schemas/CompactPurposeTemplateEServiceTemplate"
+        eserviceTemplateVersion:
+          $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+        createdAt:
+          type: string
+          format: date-time
+    LinkableResource:
+      oneOf:
+        - $ref: "#/components/schemas/LinkableEService"
+        - $ref: "#/components/schemas/LinkableEServiceTemplate"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkableEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplate"
+    LinkableResources:
+      type: object
+      additionalProperties: false
+      required:
+        - results
+        - pagination
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinkableResource"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
     NotificationsCountBySection:
       type: object
       additionalProperties: false

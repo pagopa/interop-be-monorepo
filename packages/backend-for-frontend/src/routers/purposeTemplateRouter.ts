@@ -18,6 +18,7 @@ import {
   addPurposeTemplateAnnotationDocumentErrorMapper,
   getPurposeTemplateErrorMapper,
   getPurposeTemplateEServiceDescriptorsErrorMapper,
+  getPurposeTemplateLinkableResourcesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -182,6 +183,33 @@ const purposeTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/purposeTemplates/:purposeTemplateId/linkableResources",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { q, publisherIds, offset, limit } = req.query;
+          const response =
+            await purposeTemplateService.getPurposeTemplateLinkableResources({
+              purposeTemplateId: req.params.purposeTemplateId,
+              publisherIds,
+              q,
+              offset,
+              limit,
+              ctx,
+            });
+          return res.status(200).send(bffApi.LinkableResources.parse(response));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeTemplateLinkableResourcesErrorMapper,
+            ctx,
+            `Error retrieving linkable resources for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
