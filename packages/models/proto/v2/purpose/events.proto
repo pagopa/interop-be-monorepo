@@ -112,3 +112,7 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
 message PurposeRiskAnalysisWorkflowCreatedV2 {
   PurposeV2 purpose = 1;
 }
+
+message PurposeRiskAnalysisSubmittedV2 {
+  PurposeV2 purpose = 1;
+}

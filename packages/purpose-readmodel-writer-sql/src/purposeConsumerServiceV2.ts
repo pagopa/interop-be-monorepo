@@ -50,6 +50,7 @@ export async function handleMessageV2(
       { type: "RiskAnalysisDocumentGenerated" },
       { type: "RiskAnalysisSignedDocumentGenerated" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisSubmitted" },
       async (message) => {
         await purposeWriterService.upsertPurpose(purpose, message.version);
       }
