@@ -13,7 +13,6 @@ describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");
   const certified2 = getMockAttribute("Certified");
   const certified3 = getMockAttribute("Certified");
-  const certifiedDiscrete1 = getMockAttribute("CertifiedDiscrete");
 
   const declared1 = getMockAttribute("Declared");
   const declared2 = getMockAttribute("Declared");
@@ -29,7 +28,6 @@ describe("parseAndCheckAttributes", () => {
     await addOneAttribute(certified1);
     await addOneAttribute(certified2);
     await addOneAttribute(certified3);
-    await addOneAttribute(certifiedDiscrete1);
     await addOneAttribute(declared1);
     await addOneAttribute(declared2);
     await addOneAttribute(declared3);
@@ -61,29 +59,6 @@ describe("parseAndCheckAttributes", () => {
           { id: verified3.id, explicitAttributeVerification: false },
         ],
       ],
-    };
-
-    const result = await parseAndCheckAttributes(seed, readModelService);
-
-    expect(result).toEqual(seed);
-  });
-
-  it("should parse certified discrete attributes as certified attributes", async () => {
-    const seed: catalogApi.AttributesSeed = {
-      certified: [
-        [
-          {
-            id: certifiedDiscrete1.id,
-            explicitAttributeVerification: false,
-            discreteConfig: {
-              threshold: 10,
-              comparator: "GTE",
-            },
-          },
-        ],
-      ],
-      declared: [],
-      verified: [],
     };
 
     const result = await parseAndCheckAttributes(seed, readModelService);

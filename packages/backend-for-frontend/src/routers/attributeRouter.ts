@@ -43,29 +43,6 @@ const attributeRouter = (
       }
     })
 
-    .post("/certifiedDiscreteAttributes", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result = await attributeService.createCertifiedDiscreteAttribute(
-          req.body,
-          ctx
-        );
-
-        return res.status(200).send(bffApi.Attribute.parse(result));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error creating certified discrete attribute with seed ${JSON.stringify(
-            req.body
-          )}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-
     .post("/verifiedAttributes", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

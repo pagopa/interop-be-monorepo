@@ -76,50 +76,6 @@ paths:
             schema:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
         description: Contains the attribute data to save.
-  "/certifiedDiscreteAttributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      summary: Creates certified discrete attribute
-      tags:
-        - attribute
-      operationId: createCertifiedDiscreteAttribute
-      responses:
-        "200":
-          description: Certified discrete attribute created
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Attribute"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      description: Creates the certified discrete attribute passed as payload
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CertifiedDiscreteAttributeSeed"
-        description: Contains the certified discrete attribute data to save.
   "/declaredAttributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -249,47 +205,6 @@ paths:
             schema:
               $ref: "#/components/schemas/InternalCertifiedAttributeSeed"
         description: Contains the attribute data to save.
-  "/internal/certifiedDiscreteAttributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
-      summary: Creates certified discrete attribute for internal user
-      tags:
-        - attribute
-      operationId: createInternalCertifiedDiscreteAttribute
-      description: Creates the certified discrete attribute passed as payload
-      responses:
-        "200":
-          description: Certified discrete attribute created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Attribute"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InternalCertifiedDiscreteAttributeSeed"
-        description: Contains the certified discrete attribute data to save.
   "/attributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

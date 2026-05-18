@@ -12,13 +12,9 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockContext,
-  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  Attribute,
-  attributeCertifiedDiscreteComparator,
-  attributeKind,
   Document,
   EService,
   EServiceAddedV2,
@@ -44,7 +40,6 @@ import {
   addOneEServiceTemplate,
   fileManager,
   addOneTenant,
-  addOneAttribute,
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
@@ -171,59 +166,6 @@ describe("create eService from template", () => {
     expect(descriptorCreationPayload).toEqual({
       descriptorId: eService.descriptors[0].id,
       eservice: toEServiceV2(expectedEServiceWithDescriptor),
-    });
-  });
-
-  it("should inherit certified discrete thresholds from the template version", async () => {
-    const certifiedAttribute: Attribute = getMockAttribute(
-      attributeKind.certifiedDiscrete
-    );
-    const discreteConfig = {
-      threshold: 10,
-      comparator: attributeCertifiedDiscreteComparator.GTE,
-    };
-    const publishedVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.published,
-      attributes: {
-        certified: [
-          [
-            {
-              id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
-              discreteConfig,
-            },
-          ],
-        ],
-        declared: [],
-        verified: [],
-      },
-    };
-    const eServiceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [publishedVersion],
-      personalData: false,
-    };
-
-    const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
-      kind: tenantKind.PA,
-    };
-
-    await addOneTenant(tenant);
-    await addOneAttribute(certifiedAttribute);
-    await addOneEServiceTemplate(eServiceTemplate);
-
-    const eService = await catalogService.createEServiceInstanceFromTemplate(
-      eServiceTemplate.id,
-      {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eService.descriptors[0].attributes.certified[0][0]).toMatchObject({
-      id: certifiedAttribute.id,
-      explicitAttributeVerification: false,
-      discreteConfig,
     });
   });
 
