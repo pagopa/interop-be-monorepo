@@ -985,6 +985,9 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   state: generateMock(bffApi.AgreementState),
   verifiedAttributes: generateMock(z.array(bffApi.VerifiedAttribute)),
   certifiedAttributes: generateMock(z.array(bffApi.CertifiedAttribute)),
+  certifiedDiscreteAttributes: generateMock(
+    z.array(bffApi.CertifiedDiscreteAttribute)
+  ),
   declaredAttributes: generateMock(z.array(bffApi.DeclaredAttribute)),
   suspendedByConsumer: generateMock(z.boolean().optional()),
   suspendedByPlatform: generateMock(z.boolean().optional()),

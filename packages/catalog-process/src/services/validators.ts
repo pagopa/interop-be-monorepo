@@ -475,6 +475,22 @@ function assertAttributeGroupsUnchanged(
   descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
+  function getCertifiedDiscreteThreshold(
+    attribute: EServiceCertifiedAttribute
+  ): number | undefined {
+    return "discreteConfig" in attribute
+      ? attribute.discreteConfig.threshold
+      : undefined;
+  }
+
+  function getCertifiedDiscreteComparator(
+    attribute: EServiceCertifiedAttribute
+  ): string | undefined {
+    return "discreteConfig" in attribute
+      ? attribute.discreteConfig.comparator
+      : undefined;
+  }
+
   if (descriptorGroups.length !== seedGroups.length) {
     throw templateInstanceNotAllowed(eserviceId, templateId);
   }
@@ -511,22 +527,6 @@ function assertAttributeGroupsUnchanged(
       }
     }
   }
-}
-
-function getCertifiedDiscreteThreshold(
-  attribute: EServiceCertifiedAttribute
-): number | undefined {
-  return "discreteConfig" in attribute
-    ? attribute.discreteConfig.threshold
-    : undefined;
-}
-
-function getCertifiedDiscreteComparator(
-  attribute: EServiceCertifiedAttribute
-): string | undefined {
-  return "discreteConfig" in attribute
-    ? attribute.discreteConfig.comparator
-    : undefined;
 }
 
 export function assertAttributeDailyCallsConsistentWithTotal(

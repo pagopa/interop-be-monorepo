@@ -118,6 +118,7 @@ const expectedAgreementCreation = async (
     state: agreementState.draft,
     verifiedAttributes: [],
     certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
     declaredAttributes: [],
     consumerDocuments: [],
     stamps: {},
