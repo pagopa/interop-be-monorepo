@@ -78,7 +78,7 @@ describe("API GET /delegations test", () => {
         delete finalQuery.delegatorIds;
       }
 
-      const res = await makeRequest(token, { limit: 5, offset: 0 });
+      const res = await makeRequest(token, finalQuery);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegations);
