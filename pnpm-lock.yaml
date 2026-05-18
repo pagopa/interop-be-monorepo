@@ -4224,12 +4224,18 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -4249,6 +4255,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-config-process:
     dependencies:
@@ -5419,6 +5428,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

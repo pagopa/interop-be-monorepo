@@ -1,3 +1,5 @@
+import { drizzle } from "drizzle-orm/node-postgres";
+
 export const scheduledNotificationChannel = {
   inApp: "inApp",
   email: "email",
@@ -13,3 +15,9 @@ export const schedulableEventType = {
 
 export type SchedulableEventType =
   (typeof schedulableEventType)[keyof typeof schedulableEventType];
+
+export type ScheduledNotificationDrizzleReturnType = ReturnType<typeof drizzle>;
+
+export type ScheduledNotificationDrizzleTransactionType = Parameters<
+  Parameters<ScheduledNotificationDrizzleReturnType["transaction"]>[0]
+>[0];

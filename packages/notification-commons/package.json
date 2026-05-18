@@ -12,13 +12,16 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "build": "tsc && pnpm cpx './src/templates/email/resources/**/*' './dist/templates/email/resources'"
+    "build": "tsc && pnpm cpx './src/templates/email/resources/**/*' './dist/templates/email/resources'",
+    "test": "vitest --config vitest.config.ts"
   },
   "keywords": [],
   "dependencies": {
     "cpx2": "catalog:",
+    "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-scheduled-notification-db-models": "workspace:*",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   },
@@ -26,6 +29,7 @@
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
