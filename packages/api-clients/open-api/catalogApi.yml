@@ -1242,7 +1242,7 @@ paths:
         - process
       summary: Cancel e-service descriptor archiving process
       operationId: cancelEServiceDescriptorArchiving
-      description: Cancels the archiving process of the specified E-Service descriptor if it is in scheduled state
+      description: Cancels the archiving process of the specified E-Service descriptor if it is in archiving or archivingSuspended state
       responses:
         "200":
           description: E-service descriptor archiving process canceled.
@@ -1254,7 +1254,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
-          description: Invalid input or e-service descriptor is not in scheduled state
+          description: Invalid input or e-service descriptor is not in archiving or archivingSuspended state
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -1265,8 +1271,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:

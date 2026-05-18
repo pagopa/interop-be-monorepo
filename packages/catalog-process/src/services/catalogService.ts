@@ -153,13 +153,13 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
-  toCreateEventEServiceDescriptorArchivingDeleted,
+  toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
-  isLatestActiveDescriptorVersion,
   getPreviousDescriptorByStates,
+  isLatestActiveDescriptorVersion,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -196,6 +196,7 @@ import {
   assertDescriptorArchivable,
   assertDescriptorInRequiredStates,
   assertDescriptorCancelArchivable,
+  assertDescriptorArchivingIsNotEserviceScoped,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1606,10 +1607,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       assertConsistentDailyCalls(seed);
@@ -1667,10 +1665,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (descriptor.interface === undefined) {
@@ -1765,10 +1760,7 @@ export function catalogServiceBuilder(
         descriptor.state !== descriptorState.deprecated &&
         descriptor.state !== descriptorState.published
       ) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       const updatedDescriptor = updateDescriptorState(
@@ -2122,12 +2114,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
+      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
@@ -2769,10 +2756,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (eservice.data.personalData === undefined) {
@@ -2819,10 +2803,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       const newRejectionReason: DescriptorRejectionReason = {
@@ -3779,36 +3760,42 @@ export function catalogServiceBuilder(
       {
         authData,
         correlationId,
+        logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      assertDescriptorCancelArchivable(descriptor, eservice.data);
-
-      const newState =
-        descriptor.state === descriptorState.archivingSuspended
-          ? descriptorState.suspended
-          : descriptorState.deprecated;
-
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
+      logger.info(
+        `Cancel archiving schedule for EService ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const updatedDescriptor: Descriptor = {
-        ...updateDescriptorState(descriptor, newState),
-        archivingSchedule: undefined,
-      };
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertDescriptorArchivingIsNotEserviceScoped(descriptor);
+
+      assertDescriptorCancelArchivable(descriptor, latestDescriptor);
+
+      const updatedDescriptor =
+        latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
+          ? {
+              ...descriptor,
+              archivingSchedule: latestDescriptor.archivingSchedule,
+            }
+          : updateDescriptorState(
+              { ...descriptor, archivingSchedule: undefined },
+              descriptor.state === descriptorState.archivingSuspended
+                ? descriptorState.suspended
+                : descriptorState.deprecated
+            );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceDescriptorArchivingDeleted(
+      const event = toCreateEventEServiceDescriptorArchivingCanceled(
         eservice.metadata.version,
         updatedEService,
         descriptorId,
