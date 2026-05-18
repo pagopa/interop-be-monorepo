@@ -53,6 +53,7 @@ export function isLatestActiveDescriptorVersion(
   const maxVersion = Math.max(...versions);
   return parseInt(target.version, 10) === maxVersion;
 }
+
 export const getPreviousDescriptorByStates = (
   eservice: EService,
   newVersion: string,

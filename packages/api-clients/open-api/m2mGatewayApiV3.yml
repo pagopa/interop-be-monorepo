@@ -3898,26 +3898,26 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/scheduleArchive:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor to schedule for archiving
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - eservices
       summary: Schedule the archiving process for an E-Service Descriptor
-      description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.        
+      description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
       operationId: scheduleArchiveEserviceDescriptor
-      parameters:
-        - name: eserviceId
-          in: path
-          description: The E-Service ID of the Descriptor
-          required: true
-          schema:
-            $ref: "#/components/schemas/EServiceId"
-        - name: descriptorId
-          in: path
-          description: The ID of the Descriptor to schedule for archiving
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: Archiving process of an E-Service Descriptor scheduled successfully
@@ -3952,20 +3952,6 @@ paths:
       summary: Cancel the archiving process for an E-Service Descriptor
       description: Cancels an archiving of an E-Service Descriptor that is in Archiving or ArchivingSuspended state, transitioning it back to Deprecated or Suspended.
       operationId: cancelEServiceDescriptorArchiving
-      parameters:
-        - name: eserviceId
-          in: path
-          description: The E-Service ID of the Descriptor
-          required: true
-          schema:
-            $ref: "#/components/schemas/EServiceId"
-        - name: descriptorId
-          in: path
-          description: The ID of the Descriptor to cancel archiving for
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: Archiving process of an E-Service Descriptor canceled successfully

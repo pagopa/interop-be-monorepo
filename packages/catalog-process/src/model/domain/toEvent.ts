@@ -931,7 +931,7 @@ export const toCreateEventEServiceDescriptorArchivingScheduled = (
   correlationId,
 });
 
-export const toCreateEventEServiceDescriptorArchivingDeleted = (
+export const toCreateEventEServiceDescriptorArchivingCanceled = (
   version: number,
   eservice: EService,
   descriptorId: DescriptorId,

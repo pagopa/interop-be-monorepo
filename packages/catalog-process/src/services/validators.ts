@@ -19,6 +19,7 @@ import {
   Tenant,
   TenantId,
   TenantKind,
+  archivingScope,
   delegationKind,
   delegationState,
   descriptorState,
@@ -51,6 +52,7 @@ import {
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
+  descriptorArchivingNotCancelableByScope,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -402,7 +404,7 @@ export function assertDescriptorUpdatableAfterPublish(
   descriptor: Descriptor
 ): void {
   if (!isDescriptorUpdatableAfterPublish(descriptor)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -486,7 +488,7 @@ export function assertDescriptorArchivable(
   eservice: EService
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -495,16 +497,47 @@ export function assertDescriptorInRequiredStates(
   states: DescriptorState[]
 ): void {
   if (!states.includes(descriptor.state)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
+  const latestActiveDescriptor = [...eservice.descriptors]
+    .sort(
+      (a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10)
+    )
+    .filter(isActiveDescriptor)
+    .at(-1);
+  if (
+    latestActiveDescriptor &&
+    match(latestActiveDescriptor.state)
+      .with(
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+        () => true
+      )
+      .with(
+        descriptorState.draft,
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.waitingForApproval,
+        () => false
+      )
+      .exhaustive()
+  ) {
+    throw eserviceInArchivingOrArchivedState(eservice.id);
   }
 }
 
 function isDescriptorCancelArchivable(
   descriptor: Descriptor,
-  eservice: EService
+  latestDescriptor: Descriptor
 ): boolean {
-  const latestDescriptor = getLatestDescriptor(eservice);
-  const isLatest = latestDescriptor?.id === descriptor.id;
+  const isLatest = latestDescriptor.id === descriptor.id;
 
   return match(descriptor.state)
     .with(
@@ -526,29 +559,17 @@ function isDescriptorCancelArchivable(
 
 export function assertDescriptorCancelArchivable(
   descriptor: Descriptor,
-  eservice: EService
+  latestDescriptor: Descriptor
 ): void {
-  if (!isDescriptorCancelArchivable(descriptor, eservice)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  if (!isDescriptorCancelArchivable(descriptor, latestDescriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
-export function assertEserviceIsNotInArchivingOrArchivedState(
-  eservice: EService
+export function assertDescriptorArchivingIsNotEserviceScoped(
+  descriptor: Descriptor
 ): void {
-  const latestActiveDescriptor = eservice.descriptors
-    .filter(isActiveDescriptor)
-    .at(-1);
-  if (
-    latestActiveDescriptor &&
-    (
-      [
-        descriptorState.archived,
-        descriptorState.archiving,
-        descriptorState.archivingSuspended,
-      ] as DescriptorState[]
-    ).includes(latestActiveDescriptor.state)
-  ) {
-    throw eserviceInArchivingOrArchivedState(eservice.id);
+  if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
+    throw descriptorArchivingNotCancelableByScope(descriptor.id);
   }
 }
