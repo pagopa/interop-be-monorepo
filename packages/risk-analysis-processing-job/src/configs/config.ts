@@ -15,7 +15,12 @@ const RiskAnalysisProcessingJobConfig = LoggerConfig.and(ReadModelSQLDbConfig)
         ESERVICE_TEMPLATE_PROCESS_URL: z.string(),
         FIX_LIST_TENANT_KIND_RISK_ANALYSIS_ESERVICE_TEMPLATES: z
           .string()
-          .transform((value) => value.split(","))
+          .transform((value) =>
+            value
+              .split(",")
+              .map((v) => v.trim())
+              .filter((v) => v)
+          )
           .optional(),
       })
       .transform((c) => ({

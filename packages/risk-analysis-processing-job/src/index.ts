@@ -42,7 +42,10 @@ export async function main(): Promise<void> {
     correlationId
   );
 
-  if (config.fixListTenantKindRiskAnalysisEserviceTemplates) {
+  if (
+    config.fixListTenantKindRiskAnalysisEserviceTemplates &&
+    config.fixListTenantKindRiskAnalysisEserviceTemplates?.length > 0
+  ) {
     const templates =
       config.fixListTenantKindRiskAnalysisEserviceTemplates as unknown as EServiceTemplate["id"][];
     const eserviceTemplatesProcessingResult =
