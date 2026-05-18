@@ -110,6 +110,5 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
 }
 
 message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
-  string riskAnalysisId = 1;
-  PurposeV2 purpose = 2;
+  PurposeV2 purpose = 1;
 }

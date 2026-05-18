@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { PurposeId, RiskAnalysisId, generateId } from "pagopa-interop-models";
+import { EServiceId, PurposeId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockPurpose,
@@ -11,11 +11,11 @@ import { authRole } from "pagopa-interop-commons";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
   purposeNotFound,
-  eserviceRiskAnalysisNotFound,
+  eserviceNotFound,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
+describe("API POST /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix test", () => {
   const mockPurpose = getMockPurpose();
   const serviceResponse = getMockWithMetadata(mockPurpose);
 
@@ -27,12 +27,11 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisI
 
   const makeRequest = async (
     token: string,
-    purposeId: PurposeId = mockPurpose.id,
-    riskAnalysisId: RiskAnalysisId = generateId<RiskAnalysisId>()
+    purposeId: PurposeId = mockPurpose.id
   ) =>
     request(api)
       .post(
-        `/maintenance/purposes/${purposeId}/riskAnalyses/${riskAnalysisId}/tenantKind/fix`
+        `/maintenance/purposes/${purposeId}/riskAnalysis/tenantKind/fix`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
@@ -61,16 +60,15 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisI
     expect(res.status).toBe(404);
   });
 
-  it("Should return 404 for eserviceRiskAnalysisNotFound", async () => {
-    const riskAnalysisId = generateId<RiskAnalysisId>();
+  it("Should return 404 for eserviceNotFound", async () => {
     purposeService.fixPurposeRiskAnalysisTenantKind = vi
       .fn()
       .mockRejectedValue(
-        eserviceRiskAnalysisNotFound(mockPurpose.eserviceId, riskAnalysisId)
+        eserviceNotFound(generateId<EServiceId>())
       );
 
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, mockPurpose.id, riskAnalysisId);
+    const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
@@ -84,19 +82,9 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisI
     expect(res.status).toBe(404);
   });
 
-  it.each([
-    { purposeId: "invalid" as PurposeId },
-    { riskAnalysisId: "invalid" as RiskAnalysisId },
-  ])(
-    "Should return 400 if passed invalid params: %s",
-    async ({ purposeId, riskAnalysisId }) => {
-      const token = generateToken(authRole.INTERNAL_ROLE);
-      const res = await makeRequest(
-        token,
-        purposeId ?? mockPurpose.id,
-        riskAnalysisId ?? generateId<RiskAnalysisId>()
-      );
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed invalid purposeId", async () => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(token, "invalid" as PurposeId);
+    expect(res.status).toBe(400);
+  });
 });

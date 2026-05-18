@@ -343,31 +343,34 @@ export function purposeServiceBuilder(
     },
     async fixPurposeRiskAnalysisTenantKind(
       purposeId: PurposeId,
-      riskAnalysisId: RiskAnalysisId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<WithMetadata<Purpose>> {
-      logger.info(
-        `Fixing Risk Analysis ${riskAnalysisId} for Purpose ${purposeId}`
-      );
+      logger.info(`Fixing Risk Analysis for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const riskAnalysisForm = purpose.data.riskAnalysisForm;
       if (!riskAnalysisForm) {
         throw missingRiskAnalysis(purposeId);
       }
-      if (riskAnalysisForm.riskAnalysisId !== riskAnalysisId) {
-        throw eserviceRiskAnalysisNotFound(
-          purpose.data.eserviceId,
-          riskAnalysisId
-        );
+
+      const eservice = await readModelService.getEServiceById(
+        purpose.data.eserviceId
+      );
+      if (!eservice) {
+        throw eserviceNotFound(purpose.data.eserviceId);
       }
 
+      const tenantId =
+        eservice.mode === eserviceMode.deliver
+          ? purpose.data.consumerId
+          : eservice.producerId;
+
       const historyKind = await readModelService.getTenantKindAt(
-        purpose.data.consumerId,
+        tenantId,
         purpose.data.createdAt
       );
       if (!historyKind) {
-        throw tenantKindNotFound(purpose.data.consumerId);
+        throw tenantKindNotFound(tenantId);
       }
 
       const updatedPurpose: Purpose = {
@@ -380,7 +383,6 @@ export function purposeServiceBuilder(
 
       const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind({
         purpose: updatedPurpose,
-        riskAnalysisId,
         version: purpose.metadata.version,
         correlationId,
       });

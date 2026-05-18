@@ -103,7 +103,7 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
   match(error.code)
     .with(
       "purposeNotFound",
-      "eserviceRiskAnalysisNotFound",
+      "eserviceNotFound",
       "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
