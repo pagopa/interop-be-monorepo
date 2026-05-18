@@ -75,8 +75,10 @@ describe("activate descriptor", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should write on event-store for the activation of a descriptor (delegate)", async () => {
@@ -132,8 +134,10 @@ describe("activate descriptor", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {

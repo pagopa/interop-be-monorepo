@@ -83,6 +83,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving client with id ${clientId}`);
 
       const client = await retrieveClientById(clientId, headers);
+
       if (client.data.kind === authorizationApi.ClientKind.Values.API) {
         throw clientNotFound(client.data);
       }

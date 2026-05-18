@@ -283,8 +283,8 @@ catalogs:
       specifier: 5.4.5
       version: 5.4.5
     uuid:
-      specifier: 13.0.0
-      version: 13.0.0
+      specifier: 14.0.0
+      version: 14.0.0
     vitest:
       specifier: 4.0.18
       version: 4.0.18
@@ -1308,6 +1308,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-dpop-validation:
+        specifier: workspace:*
+        version: link:../dpop-validation
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -3922,7 +3925,7 @@ importers:
         version: 5.2.0
       uuid:
         specifier: 'catalog:'
-        version: 13.0.0
+        version: 14.0.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8
@@ -4029,7 +4032,7 @@ importers:
         version: 5.4.5
       uuid:
         specifier: 'catalog:'
-        version: 13.0.0
+        version: 14.0.0
       vitest:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
@@ -11414,8 +11417,8 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
-  uuid@13.0.0:
-    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   uuid@9.0.1:
@@ -18707,7 +18710,7 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
-  uuid@13.0.0: {}
+  uuid@14.0.0: {}
 
   uuid@9.0.1: {}
 

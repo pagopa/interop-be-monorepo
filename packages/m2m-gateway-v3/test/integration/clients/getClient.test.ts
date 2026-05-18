@@ -12,7 +12,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { unexpectedClientKind } from "../../../src/model/errors.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getClient", () => {
@@ -84,7 +84,7 @@ describe("getClient", () => {
     });
   });
 
-  it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
+  it("Should throw clientNotFound in case the returned client is not an E-Service Client", async () => {
     const mockResponse = {
       ...mockPartialClientFromProcess,
       data: {
@@ -100,7 +100,7 @@ describe("getClient", () => {
         unsafeBrandId(mockPartialClientFromProcess.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(unexpectedClientKind(mockResponse.data));
+    ).rejects.toThrowError(clientNotFound(mockResponse.data));
 
     const mockResponsFull = {
       ...mockFullClientFromProcess,
@@ -117,6 +117,6 @@ describe("getClient", () => {
         unsafeBrandId(mockFullClientFromProcess.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(unexpectedClientKind(mockResponsFull.data));
+    ).rejects.toThrowError(clientNotFound(mockResponsFull.data));
   });
 });

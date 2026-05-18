@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
-  EServiceDeletedV1,
+  EServiceDeletedV2,
   Descriptor,
   descriptorState,
   operationForbidden,
@@ -58,10 +58,13 @@ describe("delete eservice", () => {
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV1,
+      messageType: EServiceDeletedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceId).toBe(eservice.id);
+    expect(writtenPayload).toEqual({
+      eserviceId: eservice.id,
+      eservice: toEServiceV2(eservice),
+    });
   });
 
   it("should write on event-store for the deletion of an eservice (eservice with a draft descriptor only) and delete the interface and documents of the draft descriptor", async () => {
@@ -151,7 +154,7 @@ describe("delete eservice", () => {
       payload: descriptorDeletionEvent.data,
     });
     const eserviceDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV1,
+      messageType: EServiceDeletedV2,
       payload: eserviceDeletionEvent.data,
     });
 
@@ -159,7 +162,10 @@ describe("delete eservice", () => {
       ...eservice,
       descriptors: [],
     };
-    expect(eserviceDeletionPayload.eserviceId).toBe(mockEService.id);
+    expect(eserviceDeletionPayload).toEqual({
+      eserviceId: mockEService.id,
+      eservice: toEServiceV2(expectedEserviceWithoutDescriptors),
+    });
     expect(descriptorDeletionPayload).toEqual({
       eservice: toEServiceV2(expectedEserviceWithoutDescriptors),
       descriptorId: eservice.descriptors[0].id,
