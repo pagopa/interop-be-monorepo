@@ -105,8 +105,12 @@ describe("update E-service instanceLabel after publication", async () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 

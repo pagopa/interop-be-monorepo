@@ -101,7 +101,10 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       ],
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("should throw tenantNotFound when tenant doesn't exist", async () => {

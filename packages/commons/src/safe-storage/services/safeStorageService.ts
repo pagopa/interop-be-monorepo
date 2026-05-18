@@ -55,7 +55,9 @@ export function createSafeStorageApiClient(config: SafeStorageApiConfig) {
       checksumValue: string,
       logger: Logger
     ): Promise<void> {
-      logger.info(`Uploading file content on safe storage`);
+      logger.info(
+        `Uploading file content on safe storage with checksum: ${checksumValue} having length: ${fileContent.length} bytes`
+      );
       try {
         await axios.put(uploadUrl, fileContent, {
           headers: {
