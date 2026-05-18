@@ -58,7 +58,6 @@ describe("API GET /delegations test", () => {
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
-    authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
@@ -69,16 +68,8 @@ describe("API GET /delegations test", () => {
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const finalQuery: Partial<typeof defaultQuery> = {
-        ...defaultQuery,
-      };
 
-      if (role === authRole.API_ROLE) {
-        delete finalQuery.delegateIds;
-        delete finalQuery.delegatorIds;
-      }
-
-      const res = await makeRequest(token, finalQuery);
+      const res = await makeRequest(token, defaultQuery);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegations);
@@ -112,16 +103,4 @@ describe("API GET /delegations test", () => {
     const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
-
-  it.each([
-    { query: { ...defaultQuery, delegatorIds: `${generateId()}` } },
-    { query: { ...defaultQuery, delegateIds: `${generateId()}` } },
-  ])(
-    "Should return 403 if role is api and query includes delegatorIds and/or delegateIds",
-    async ({ query }) => {
-      const token = generateToken(authRole.API_ROLE);
-      const res = await makeRequest(token, query as typeof defaultQuery);
-      expect(res.status).toBe(403);
-    }
-  );
 });
