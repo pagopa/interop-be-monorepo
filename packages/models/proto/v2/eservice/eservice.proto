@@ -47,7 +47,7 @@ message EServiceRiskAnalysisMultiAnswerV2 {
 }
 
 enum AttributeCertifiedDiscreteComparatorV2 {
-  ATTRIBUTE_CERTIFIED_DISCRETE_COMPARATOR_UNSPECIFIED = 0;
+  UNSPECIFIED = 0;
   GT = 1;
   LT = 2;
   EQ = 3;
