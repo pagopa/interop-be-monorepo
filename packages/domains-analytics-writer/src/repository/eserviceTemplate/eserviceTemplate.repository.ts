@@ -13,10 +13,8 @@ import {
   EserviceTemplateDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
-import {
-  EserviceTemplateDeletingSchema,
-  EserviceTemplateSchema,
-} from "../../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateSchema } from "pagopa-interop-kpi-models";
+import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
 
 export function eserviceTemplateRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

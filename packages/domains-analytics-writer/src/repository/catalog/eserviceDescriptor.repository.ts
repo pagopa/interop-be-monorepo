@@ -14,13 +14,13 @@ import { config } from "../../config/config.js";
 import {
   EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
-  EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
 import {
   CatalogDbPartialTable,
   CatalogDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
+import { EserviceDescriptorSchema } from "pagopa-interop-kpi-models";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

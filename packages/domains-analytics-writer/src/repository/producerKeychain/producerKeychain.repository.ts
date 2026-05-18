@@ -13,10 +13,8 @@ import {
   DeletingDbTable,
   ProducerKeychainDbTable,
 } from "../../model/db/index.js";
-import {
-  ProducerKeychainSchema,
-  ProducerKeychainDeletingSchema,
-} from "../../model/authorization/producerKeychain.js";
+import { ProducerKeychainSchema } from "pagopa-interop-kpi-models";
+import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
 
 export function producerKeychainRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -8,7 +8,7 @@ import { match, P } from "ts-pattern";
 import { splitDelegationIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
-import { DelegationItemsSchema } from "../../model/delegation/delegation.js";
+import { DelegationItemsSchema } from "pagopa-interop-kpi-models";
 import { delegationServiceBuilder } from "../../service/delegationService.js";
 
 export async function handleDelegationMessageV2(

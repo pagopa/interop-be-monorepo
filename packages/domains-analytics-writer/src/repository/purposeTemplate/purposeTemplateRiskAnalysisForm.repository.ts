@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { PurposeTemplateDbTable } from "../../model/db/index.js";
-import { PurposeTemplateRiskAnalysisFormSchema } from "../../model/purposeTemplate/purposeTemplateRiskAnalysisForm.js";
+import { PurposeTemplateRiskAnalysisFormSchema } from "pagopa-interop-kpi-models";
 
 export function purposeTemplateRiskAnalysisFormRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

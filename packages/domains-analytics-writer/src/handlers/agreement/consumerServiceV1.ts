@@ -18,16 +18,14 @@ import {
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { agreementServiceBuilder } from "../../service/agreementService.js";
-import {
-  AgreementConsumerDocumentDeletingSchema,
-  AgreementConsumerDocumentSchema,
-} from "../../model/agreement/agreementConsumerDocument.js";
-import {
-  AgreementDeletingSchema,
-  AgreementItemsSchema,
-} from "../../model/agreement/agreement.js";
-import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
+import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import {
+  AgreementConsumerDocumentSchema,
+  AgreementContractSchema,
+  AgreementItemsSchema,
+} from "pagopa-interop-kpi-models";
 
 export async function handleAgreementMessageV1(
   messages: AgreementEventEnvelopeV1[],

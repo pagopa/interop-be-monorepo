@@ -9,7 +9,7 @@ import {
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable } from "../../model/db/index.js";
-import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
+import { AgreementContractSchema } from "pagopa-interop-kpi-models";
 
 export function agreementContractRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

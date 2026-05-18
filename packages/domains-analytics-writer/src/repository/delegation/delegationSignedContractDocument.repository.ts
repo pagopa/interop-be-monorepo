@@ -9,7 +9,7 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DelegationDbTable } from "../../model/db/index.js";
-import { DelegationSignedContractDocumentSchema } from "../../model/delegation/delegationSignedContractDocument.js";
+import { DelegationSignedContractDocumentSchema } from "pagopa-interop-kpi-models";
 
 export function delegationSignedContractDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

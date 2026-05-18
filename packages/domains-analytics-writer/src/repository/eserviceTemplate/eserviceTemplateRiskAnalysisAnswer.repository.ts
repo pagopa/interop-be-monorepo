@@ -10,7 +10,7 @@ import {
 import { config } from "../../config/config.js";
 
 import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateRiskAnalysisAnswerSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
+import { EserviceTemplateRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 
 export function eserviceTemplateRiskAnalysisAnswerRepository(
   conn: DBConnection

@@ -12,18 +12,15 @@ import {
 import { config } from "../config/config.js";
 import {
   ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../model/authorization/client.js";
-import {
-  ClientUserSchema,
-  ClientUserDeletingSchema,
-} from "../model/authorization/clientUser.js";
-import {
-  ClientPurposeSchema,
-  ClientPurposeDeletingSchema,
-} from "../model/authorization/clientPurpose.js";
-import {
   ClientKeySchema,
+  ClientPurposeSchema,
+  ClientUserSchema,
+  ProducerKeychainItemsSchema,
+} from "pagopa-interop-kpi-models";
+import { ClientDeletingSchema } from "../model/authorization/client.js";
+import { ClientUserDeletingSchema } from "../model/authorization/clientUser.js";
+import { ClientPurposeDeletingSchema } from "../model/authorization/clientPurpose.js";
+import {
   ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../model/authorization/clientKey.js";
@@ -36,10 +33,7 @@ import { clientRepository } from "../repository/client/client.repository.js";
 import { clientKeyRepository } from "../repository/client/clientKey.repository.js";
 import { clientPurposeRepository } from "../repository/client/clientPurpose.repository.js";
 import { clientUserRepository } from "../repository/client/clientUser.repository.js";
-import {
-  ProducerKeychainDeletingSchema,
-  ProducerKeychainItemsSchema,
-} from "../model/authorization/producerKeychain.js";
+import { ProducerKeychainDeletingSchema } from "../model/authorization/producerKeychain.js";
 import { producerKeychainRepository } from "../repository/producerKeychain/producerKeychain.repository.js";
 import { producerKeychainEServiceRepository } from "../repository/producerKeychain/producerKeychainEService.repository.js";
 import { producerKeychainKeyRepository } from "../repository/producerKeychain/producerKeychainKey.js";

@@ -3,7 +3,7 @@ import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import { DelegationContractDocumentSchema } from "../../model/delegation/delegationContractDocument.js";
+import { DelegationContractDocumentSchema } from "pagopa-interop-kpi-models";
 import {
   buildColumnSet,
   generateMergeQuery,

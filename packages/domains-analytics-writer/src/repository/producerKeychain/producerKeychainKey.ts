@@ -11,7 +11,7 @@ import {
 
 import { ProducerKeychainDbTable } from "../../model/db/index.js";
 
-import { ProducerKeychainKeySchema } from "../../model/authorization/producerKeychainKey.js";
+import { ProducerKeychainKeySchema } from "pagopa-interop-kpi-models";
 
 export function producerKeychainKeyRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

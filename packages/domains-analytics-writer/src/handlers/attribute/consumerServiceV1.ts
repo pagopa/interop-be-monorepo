@@ -10,7 +10,7 @@ import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
-import { AttributeSchema } from "../../model/attribute/attribute.js";
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],

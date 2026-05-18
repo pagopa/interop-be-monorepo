@@ -3,10 +3,7 @@ import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  AttributeSchema,
-  AttributeDeletingSchema,
-} from "../../model/attribute/attribute.js";
+import { AttributeDeletingSchema } from "../../model/attribute/attribute.js";
 import {
   buildColumnSet,
   generateMergeDeleteQuery,
@@ -14,6 +11,7 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, AttributeDbTable } from "../../model/db/index.js";
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

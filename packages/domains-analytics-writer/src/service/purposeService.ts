@@ -12,13 +12,11 @@ import { config } from "../config/config.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
 import {
-  PurposeDeletingSchema,
   PurposeItemsSchema,
-} from "../model/purpose/purpose.js";
-import {
-  PurposeVersionDeletingSchema,
   PurposeVersionItemsSchema,
-} from "../model/purpose/purposeVersion.js";
+} from "pagopa-interop-kpi-models";
+import { PurposeDeletingSchema } from "../model/purpose/purpose.js";
+import { PurposeVersionDeletingSchema } from "../model/purpose/purposeVersion.js";
 import { purposeRiskAnalysisAnswerRepo } from "../repository/purpose/purposeRiskAnalysisAnswer.repository.js";
 import { purposeRiskAnalysisFormRepo } from "../repository/purpose/purposeRiskAnalysisForm.repository.js";
 import { purposeVersionRepo } from "../repository/purpose/purposeVersion.repository.js";

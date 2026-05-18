@@ -11,18 +11,16 @@ import {
 } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import {
-  PurposeTemplateDeletingSchema,
   PurposeTemplateItemsSchema,
-} from "../model/purposeTemplate/purposeTemplate.js";
+  PurposeTemplateEServiceDescriptorSchema,
+} from "pagopa-interop-kpi-models";
+import { PurposeTemplateDeletingSchema } from "../model/purposeTemplate/purposeTemplate.js";
 import { purposeTemplateRepository } from "../repository/purposeTemplate/purposeTemplate.repository.js";
 import { purposeTemplateRiskAnalysisAnswerRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswer.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.repository.js";
 import { purposeTemplateRiskAnalysisFormRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisForm.repository.js";
-import {
-  PurposeTemplateEServiceDescriptorDeletingSchema,
-  PurposeTemplateEServiceDescriptorSchema,
-} from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 import { purposeTemplateEServiceDescriptorRepository } from "../repository/purposeTemplate/purposeTemplateEServiceDescriptor.repository.js";
 
 export function purposeTemplateServiceBuilder(db: DBContext) {
