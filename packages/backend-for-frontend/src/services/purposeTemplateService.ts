@@ -323,6 +323,87 @@ export function purposeTemplateServiceBuilder(
         }
       );
     },
+    async linkResourceToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.LinkableResourceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.LinkedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      return await match(body)
+        .with(
+          { resourceKind: "ESERVICE" },
+          async ({ eserviceId }): Promise<bffApi.LinkedResource> => {
+            logger.info(
+              `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServicesToPurposeTemplate(
+                { eserviceIds: [eserviceId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE", ...link };
+          }
+        )
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({ eserviceTemplateId }): Promise<bffApi.LinkedResource> => {
+            logger.info(
+              `Linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServiceTemplatesToPurposeTemplate(
+                { eserviceTemplateIds: [eserviceTemplateId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE_TEMPLATE", ...link };
+          }
+        )
+        .exhaustive();
+    },
+    async unlinkResourceFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.LinkableResourceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
+
+      await match(body)
+        .with({ resourceKind: "ESERVICE" }, async ({ eserviceId }) => {
+          logger.info(
+            `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+          );
+          await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+            { eserviceIds: [eserviceId] },
+            { params: { id: purposeTemplateId }, headers }
+          );
+        })
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({ eserviceTemplateId }) => {
+            logger.info(
+              `Unlinking e-service template ${eserviceTemplateId} from purpose template ${purposeTemplateId}`
+            );
+            await purposeTemplateClient.unlinkEServiceTemplatesFromPurposeTemplate(
+              { eserviceTemplateIds: [eserviceTemplateId] },
+              { params: { id: purposeTemplateId }, headers }
+            );
+          }
+        )
+        .exhaustive();
+    },
     async getCreatorPurposeTemplates({
       purposeTitle,
       states,

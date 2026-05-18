@@ -10968,6 +10968,272 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/linkResource:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates
+      summary: Link a resource to a purpose template
+      description: |
+        Link a single resource (concrete e-service or e-service template) to a purpose template.
+        The kind of resource is specified by the `resourceKind` discriminator in the request body.
+        Symmetric to the unified retrieval endpoint `/linkableResources`.
+        Returns the created link with its `resourceKind` discriminator (raw link, no enrichment).
+      operationId: linkResourceToPurposeTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkableResourceRequest"
+      responses:
+        "200":
+          description: Resource linked to purpose template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkedResource"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/unlinkResource:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates
+      summary: Unlink a resource from a purpose template
+      description: |
+        Unlink a single resource (concrete e-service or e-service template) from a purpose template.
+        The kind of resource is specified by the `resourceKind` discriminator in the request body.
+      operationId: unlinkResourceFromPurposeTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkableResourceRequest"
+      responses:
+        "204":
+          description: Resource unlinked from purpose template
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposeTemplates/{purposeTemplateId}/linkEservice:
     parameters:
       - name: purposeTemplateId
@@ -27919,6 +28185,104 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
+    LinkableEServiceRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - eserviceId
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        eserviceId:
+          type: string
+          format: uuid
+    LinkableEServiceTemplateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - eserviceTemplateId
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        eserviceTemplateId:
+          type: string
+          format: uuid
+    LinkableResourceRequest:
+      oneOf:
+        - $ref: "#/components/schemas/LinkableEServiceRequest"
+        - $ref: "#/components/schemas/LinkableEServiceTemplateRequest"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkableEServiceRequest"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplateRequest"
+    LinkedEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceId
+        - descriptorId
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    LinkedEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceTemplateId
+        - eserviceTemplateVersionId
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    LinkedResource:
+      oneOf:
+        - $ref: "#/components/schemas/LinkedEService"
+        - $ref: "#/components/schemas/LinkedEServiceTemplate"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkedEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkedEServiceTemplate"
     CreatorPurposeTemplate:
       type: object
       additionalProperties: false

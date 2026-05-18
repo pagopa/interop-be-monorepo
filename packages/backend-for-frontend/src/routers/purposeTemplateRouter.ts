@@ -341,6 +341,51 @@ const purposeTemplateRouter = (
       }
     )
     .post(
+      "/purposeTemplates/:purposeTemplateId/linkResource",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const result =
+            await purposeTemplateService.linkResourceToPurposeTemplate(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(bffApi.LinkedResource.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error linking resource to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/unlinkResource",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await purposeTemplateService.unlinkResourceFromPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unlinking resource from purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
