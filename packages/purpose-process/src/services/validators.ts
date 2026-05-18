@@ -802,6 +802,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
+    tenantKind,
     createdAt,
     eservicePersonalData
   );

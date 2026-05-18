@@ -126,7 +126,6 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
-  assertRiskAnalysisTenantKindMatch,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -1135,7 +1134,7 @@ export function purposeServiceBuilder(
           ) {
             assertRiskAnalysisTenantKindMatch({
               actualKind: riskAnalysisForm.tenantKind,
-              currentKind: tenantKind,
+              expectedKind: tenantKind,
               riskAnalysisFormId: riskAnalysisForm.id,
             });
           }

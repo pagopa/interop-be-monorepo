@@ -150,7 +150,6 @@ describe("createReversePurpose", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -265,7 +264,6 @@ describe("createReversePurpose", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });

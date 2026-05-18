@@ -260,6 +260,7 @@ function validateRiskAnalysisSchemaOrThrow(
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
+    riskAnalysisForm.tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
