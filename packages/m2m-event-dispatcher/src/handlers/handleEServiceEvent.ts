@@ -73,7 +73,8 @@ async function handleEServiceEventV2(
             "EServiceRiskAnalysisDeleted",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         async (event) => {

@@ -30,6 +30,7 @@ function toOutboundEServiceTemplateVersionV2(
     docs: template.docs.map(toOuboundEServiceDocumentV2),
     interface:
       template.interface && toOuboundEServiceDocumentV2(template.interface),
+    attributes: undefined, // TODO REMOVE THIS WORKAROUND
   };
 }
 

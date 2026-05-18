@@ -2,13 +2,13 @@ import { WithLogger } from "pagopa-interop-commons";
 import {
   attributeRegistryApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {

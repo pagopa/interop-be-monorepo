@@ -77,7 +77,7 @@ describe("deletePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
+    expect(writtenPayload).toEqual({ purpose: toPurposeV2(mockPurpose) });
   });
   it("should write on event-store for the deletion of a purpose (draft version)", async () => {
     const mockEService = getMockEService();
@@ -110,7 +110,7 @@ describe("deletePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
+    expect(writtenPayload).toEqual({ purpose: toPurposeV2(mockPurpose) });
   });
   it("should write on event-store for the deletion of a purpose (waitingForApproval version)", async () => {
     const mockEService = getMockEService();
@@ -145,7 +145,7 @@ describe("deletePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
+    expect(writtenPayload).toEqual({ purpose: toPurposeV2(mockPurpose) });
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a deletable state", async () => {
     const authData = getMockAuthData();
@@ -191,7 +191,7 @@ describe("deletePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
+    expect(writtenPayload).toEqual({ purpose: toPurposeV2(mockPurpose) });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a deletable state", async () => {
     const producer = {
@@ -283,7 +283,7 @@ describe("deletePurpose", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(delegatePurpose));
+    expect(writtenPayload).toEqual({ purpose: toPurposeV2(delegatePurpose) });
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomId: PurposeId = generateId();

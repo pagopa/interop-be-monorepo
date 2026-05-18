@@ -7,6 +7,7 @@ import {
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -14,6 +15,7 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
+import { clientNotFound } from "../model/errors.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
@@ -94,7 +96,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         params: { clientId },
         headers: ctx.headers,
       });
-      return enhanceClient(apiClients, client, ctx);
+      return match(client)
+        .with(
+          { visibility: authorizationApi.Visibility.Values.FULL },
+          (fullClient) => enhanceClient(apiClients, fullClient, ctx)
+        )
+        .with(
+          { visibility: authorizationApi.Visibility.Values.PARTIAL },
+          () => {
+            throw clientNotFound(clientId);
+          }
+        )
+        .exhaustive();
     },
 
     async deleteClient(
@@ -178,6 +191,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         }
       );
+      assertClientVisibilityIsFull(client);
 
       return enhanceClient(apiClients, client, ctx);
     },
@@ -375,10 +389,9 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
-  client: authorizationApi.Client,
+  client: authorizationApi.FullClient,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  assertClientVisibilityIsFull(client);
   const [consumer, admin, ...purposes] = await Promise.all([
     apiClients.tenantProcessClient.tenant.getTenant({
       params: { id: client.consumerId },

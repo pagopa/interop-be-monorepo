@@ -7,8 +7,8 @@ import {
   RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
-  getIpaCode,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   getMockAgreement,
   getMockDescriptorPublished,

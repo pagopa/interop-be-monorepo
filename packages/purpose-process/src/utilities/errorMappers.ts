@@ -74,6 +74,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
       "eServiceModeNotAllowed",
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "riskAnalysisValidationFailed",
       "riskAnalysisTenantKindMismatch",
@@ -177,6 +178,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
@@ -199,6 +201,7 @@ export const createReversePurposeErrorMapper = (
       "eserviceNotFound",
       "eServiceModeNotAllowed",
       "eserviceRiskAnalysisNotFound",
+      "invalidFreeOfChargeReason",
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
@@ -347,6 +350,11 @@ export const getRemainingDailyCallsErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeNotFound", "eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

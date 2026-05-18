@@ -43,6 +43,10 @@ import {
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -146,19 +150,23 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
     };
 
-    expect(eServiceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEService)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEServiceWithDescriptor)
-    );
+    expect(eServiceCreationPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(descriptorCreationPayload).toEqual({
+      descriptorId: eService.descriptors[0].id,
+      eservice: toEServiceV2(expectedEServiceWithDescriptor),
+    });
   });
 
   it.each([
@@ -299,19 +307,23 @@ describe("create eService from template", () => {
             createdAt: new Date(),
             serverUrls: [],
             audience: [],
-            dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-            dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+            dailyCallsPerConsumer:
+              publishedVersion?.dailyCallsPerConsumer ??
+              DEFAULT_DAILY_CALLS_PER_CONSUMER,
+            dailyCallsTotal:
+              publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
             templateVersionRef: { id: publishedVersion.id },
           },
         ],
       };
 
-      expect(eServiceCreationPayload.eservice).toEqual(
-        toEServiceV2(expectedEService)
-      );
-      expect(descriptorCreationPayload.eservice).toEqual(
-        toEServiceV2(expectedEServiceWithDescriptor)
-      );
+      expect(eServiceCreationPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+      });
+      expect(descriptorCreationPayload).toEqual({
+        descriptorId: eService.descriptors[0].id,
+        eservice: toEServiceV2(expectedEServiceWithDescriptor),
+      });
     }
   );
 
@@ -379,8 +391,11 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
@@ -450,8 +465,11 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
         },
       ],
@@ -632,9 +650,11 @@ describe("create eService from template", () => {
           serverUrls: [],
           audience: [],
           dailyCallsPerConsumer:
-            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
           dailyCallsTotal:
-            eserviceTemplatePublishedVersion?.dailyCallsTotal ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsTotal ??
+            DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: eserviceTemplatePublishedVersion.id },
         },
       ],
@@ -692,8 +712,10 @@ describe("create eService from template", () => {
       expectedEventStoredDocument1
     );
 
-    expect(actualEServiceDocument2Creation.eservice).toEqual(
-      toEServiceV2({
+    expect(actualEServiceDocument2Creation).toEqual({
+      descriptorId: eService.descriptors[0].id,
+      documentId: expectedDocument2.id,
+      eservice: toEServiceV2({
         ...expectedEServiceWithDescriptor,
         descriptors: [
           {
@@ -701,8 +723,8 @@ describe("create eService from template", () => {
             docs: [expectedDocument1, expectedDocument2],
           },
         ],
-      })
-    );
+      }),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,

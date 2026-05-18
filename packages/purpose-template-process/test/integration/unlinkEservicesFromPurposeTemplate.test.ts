@@ -157,11 +157,11 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
       payload: writtenEvent1.data,
     });
 
-    expect(writtenPayload1.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
-    expect(writtenPayload1.eservice).toEqual(toEServiceV2(eService2));
-    expect(writtenPayload1.descriptorId).toBe(descriptor2.id);
+    expect(writtenPayload1).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      eservice: toEServiceV2(eService2),
+      descriptorId: descriptor2.id,
+    });
 
     vi.useRealTimers();
   });

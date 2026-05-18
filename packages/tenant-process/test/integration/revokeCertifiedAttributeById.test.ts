@@ -114,7 +114,10 @@ describe("revokeCertifiedAttributeById", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
 
     expect(revokeCertifiedAttributeByIdResponse).toEqual({
       data: updatedTenant,

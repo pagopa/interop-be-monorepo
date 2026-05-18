@@ -17,11 +17,6 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, afterEach, inject, vi } from "vitest";
 import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
-import puppeteer, { Browser } from "puppeteer";
-import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
@@ -36,7 +31,7 @@ import {
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
+export const { cleanup, postgresDB, readModelDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
@@ -62,29 +57,13 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
 });
-
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
 afterAll(() => {
   vi.useRealTimers();
 });
 
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-
-export const pdfGenerator = await initPDFGenerator();
-
 export const delegationService = delegationServiceBuilder(
   postgresDB,
-  readModelService,
-  pdfGenerator,
-  fileManager
+  readModelService
 );
 
 const writeSubmitDelegationInEventstore = async (
