@@ -2362,7 +2362,7 @@ async function activatePurposeLogic({
       );
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysisForm.tenantKind,
-        expectedKind: tenantKind,
+        currentTenantKind: tenantKind,
         riskAnalysisFormId: riskAnalysisForm.id,
       });
     }

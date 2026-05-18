@@ -112,7 +112,7 @@ export function validateRiskAnalysis(
       .otherwise(() => undefined);
 
     const personalDataFlagValidation = validatePersonalDataFlag({
-      tenantKind: tenantKind,
+      tenantKind,
       version: formRulesForValidation.version,
       personalDataInRiskAnalysis,
       personalDataInEService,
@@ -125,7 +125,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
-      tenantKind: tenantKind,
+      tenantKind,
     });
   }
 }

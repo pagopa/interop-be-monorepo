@@ -261,7 +261,7 @@ export function assertRiskAnalysisIsValidForPublication(
     if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
-        expectedKind: tenantKind,
+        currentTenantKind: tenantKind,
         eserviceId: eservice.id,
         riskAnalysisId: riskAnalysis.id,
       });
@@ -284,19 +284,19 @@ export function assertRiskAnalysisIsValidForPublication(
 
 function assertRiskAnalysisTenantKindMatch({
   actualKind,
-  expectedKind,
+  currentTenantKind,
   eserviceId,
   riskAnalysisId,
 }: {
   actualKind: TenantKind | undefined;
-  expectedKind: TenantKind;
+  currentTenantKind: TenantKind;
   eserviceId: EServiceId;
   riskAnalysisId: RiskAnalysisId;
 }): void {
-  if (actualKind && actualKind !== expectedKind) {
+  if (actualKind && actualKind !== currentTenantKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
-      expectedKind,
+      currentTenantKind,
       eserviceId,
       riskAnalysisId
     );
