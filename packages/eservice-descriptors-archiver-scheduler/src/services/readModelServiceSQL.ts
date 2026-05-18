@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { and, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, eq, inArray, lte, sql } from "drizzle-orm";
 import {
   descriptorState,
   unsafeBrandId,
   archivingScope,
   EServiceId,
 } from "pagopa-interop-models";
-import { toUTCMidnight } from "pagopa-interop-commons";
 import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
@@ -55,9 +54,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
               descriptorState.archiving,
               descriptorState.archivingSuspended,
             ]),
-            lt(
+            lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-              new Date(toUTCMidnight(new Date(), 0)).toISOString()
+              new Date().toISOString()
             ),
             eq(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
@@ -109,9 +108,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
               descriptorState.archiving,
               descriptorState.archivingSuspended,
             ]),
-            lt(
+            lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-              new Date(toUTCMidnight(new Date(), 0)).toISOString()
+              new Date().toISOString()
             ),
             eq(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,

@@ -15,6 +15,7 @@ import {
 import { toUTCMidnight } from "pagopa-interop-commons";
 import {
   Descriptor,
+  DescriptorState,
   EService,
   TenantId,
   descriptorState,
@@ -42,10 +43,23 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
   afterEach(async () => {
     vi.clearAllMocks();
   });
+
+  const archivingStates: DescriptorState[] = [
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+  ];
+
+  const notArchivingStates = Object.values(descriptorState).filter(
+    (state) => !archivingStates.includes(state)
+  );
   describe("getExpiredArchivableDescriptorRefs", async () => {
-    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
-      "should return Descriptor refs when archivableOn is expired and state is %s",
-      async (state) => {
+    it.each(
+      [0, 1, 2, 365].flatMap((daysBefore) =>
+        archivingStates.map((state) => [state, daysBefore] as const)
+      )
+    )(
+      "should return Descriptor refs when archivableOn is expired and state is %s and archivableOn is %s days before today",
+      async (state, daysBefore) => {
         const producerId: TenantId = generateId();
 
         const numberOfArchivableDescriptors = 5;
@@ -58,8 +72,12 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
                 ...getMockDescriptor(),
                 state,
                 archivingSchedule: {
-                  archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                  startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                  archivableOn: new Date(
+                    toUTCMidnight(new Date(), -daysBefore)
+                  ),
+                  startedAt: new Date(
+                    toUTCMidnight(new Date(), -(30 + daysBefore))
+                  ),
                   scope: "Descriptor",
                 },
               };
@@ -87,15 +105,6 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         expect(expectedRefs).toEqual(expect.arrayContaining(refs));
       }
     );
-
-    const notArchivingStates = [
-      descriptorState.published,
-      descriptorState.deprecated,
-      descriptorState.suspended,
-      descriptorState.archived,
-      descriptorState.waitingForApproval,
-      descriptorState.draft,
-    ];
 
     it.each(notArchivingStates)(
       "should return empty list when Descriptor is in state %s",
@@ -136,9 +145,13 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
       }
     );
 
-    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
-      "should return empty list when Descriptor archivableOn is not expired and in state %s",
-      async (state) => {
+    it.each(
+      [1, 2, 365].flatMap((daysAfter) =>
+        archivingStates.map((state) => [state, daysAfter] as const)
+      )
+    )(
+      "should return empty list when Descriptor archivableOn is not expired and in state %s and archivableOn is %s days after today",
+      async (state, daysAfter) => {
         const producerId: TenantId = generateId();
 
         const numberOfNonArchivableDescriptors = 5;
@@ -151,7 +164,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
                 ...getMockDescriptor(),
                 state,
                 archivingSchedule: {
-                  archivableOn: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+                  archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
                 },
@@ -179,154 +192,185 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
       }
     );
 
-    it("should return list of Descriptor refs only when is not in archiving state", async () => {
-      const producerId: TenantId = generateId();
+    it.each(
+      [0, 1, 2, 365].flatMap((daysBefore) =>
+        archivingStates.map((state) => [state, daysBefore] as const)
+      )
+    )(
+      "should return list of Descriptor refs only when is not in archiving state in state %s and archivableOn is %s days before today",
+      async (state, daysBefore) => {
+        const producerId: TenantId = generateId();
 
-      const numberOfArchivableDescriptors = 5;
-      const numberOfNonArchivableDescriptors = 5;
+        const numberOfArchivableDescriptors = 5;
+        const numberOfNonArchivableDescriptors = 5;
 
-      const archivableRefs: RefsToBeArchived[] = await Promise.all(
-        Array.from(
-          { length: numberOfArchivableDescriptors },
-          async (): Promise<RefsToBeArchived> => {
-            const descriptor: Descriptor = {
-              ...getMockDescriptor(),
-              state: descriptorState.archiving,
-              archivingSchedule: {
-                archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                startedAt: new Date(toUTCMidnight(new Date(), -30)),
-                scope: "Descriptor",
-              },
-            };
+        const archivableRefs: RefsToBeArchived[] = await Promise.all(
+          Array.from(
+            { length: numberOfArchivableDescriptors },
+            async (): Promise<RefsToBeArchived> => {
+              const descriptor: Descriptor = {
+                ...getMockDescriptor(),
+                state,
+                archivingSchedule: {
+                  archivableOn: new Date(
+                    toUTCMidnight(new Date(), -daysBefore)
+                  ),
+                  startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                  scope: "Descriptor",
+                },
+              };
 
-            const eservice = {
-              ...getMockEService(),
-              producerId,
-              descriptors: [descriptor],
-            };
+              const eservice = {
+                ...getMockEService(),
+                producerId,
+                descriptors: [descriptor],
+              };
 
-            await addOneEService(eservice);
+              await addOneEService(eservice);
 
-            return {
-              eserviceId: eservice.id,
-              descriptorId: descriptor.id,
-            };
-          }
-        )
-      );
+              return {
+                eserviceId: eservice.id,
+                descriptorId: descriptor.id,
+              };
+            }
+          )
+        );
 
-      await Promise.all(
-        Array.from(
-          { length: numberOfNonArchivableDescriptors },
-          async (): Promise<RefsToBeArchived> => {
-            const descriptor: Descriptor = {
-              ...getMockDescriptor(),
-              state: descriptorState.published,
-              version: "1",
-            };
+        await Promise.all(
+          Array.from(
+            { length: numberOfNonArchivableDescriptors },
+            async (): Promise<RefsToBeArchived> => {
+              const descriptor: Descriptor = {
+                ...getMockDescriptor(),
+                state: descriptorState.published,
+                version: "1",
+              };
 
-            const eservice = {
-              ...getMockEService(),
-              producerId,
-              descriptors: [descriptor],
-            };
+              const eservice = {
+                ...getMockEService(),
+                producerId,
+                descriptors: [descriptor],
+              };
 
-            await addOneEService(eservice);
+              await addOneEService(eservice);
 
-            return {
-              eserviceId: eservice.id,
-              descriptorId: descriptor.id,
-            };
-          }
-        )
-      );
+              return {
+                eserviceId: eservice.id,
+                descriptorId: descriptor.id,
+              };
+            }
+          )
+        );
 
-      const refs = await readModelService.getExpiredArchivableDescriptorRefs();
-      expect(refs).toEqual(expect.arrayContaining(archivableRefs));
-      expect(archivableRefs).toEqual(expect.arrayContaining(refs));
-    });
+        const refs =
+          await readModelService.getExpiredArchivableDescriptorRefs();
+        expect(refs).toEqual(expect.arrayContaining(archivableRefs));
+        expect(archivableRefs).toEqual(expect.arrayContaining(refs));
+      }
+    );
   });
 
   describe("getExpiredArchivableEserviceRefs", async () => {
-    it("should return an array with all EServices to be archived", async () => {
-      const producerId: TenantId = generateId();
+    it.each(
+      [0, 1, 2, 365].flatMap((daysBefore) =>
+        archivingStates.map((state) => [state, daysBefore] as const)
+      )
+    )(
+      "should return an array with all EServices to be archived when their descriptors are in state %s and archivableOn is %s days before today",
+      async (state, daysBefore) => {
+        const producerId: TenantId = generateId();
 
-      const numberOfArchivableDescriptors = 5;
+        const numberOfArchivableDescriptors = 5;
 
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [],
-      };
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId,
+          descriptors: [],
+        };
 
-      let i = 0;
+        let i = 0;
 
-      await Promise.all(
-        Array.from({ length: numberOfArchivableDescriptors }, async () => {
-          i++;
-          const descriptor: Descriptor = {
-            ...getMockDescriptor(),
-            state: descriptorState.archiving,
-            version: i.toString(),
-            archivingSchedule: {
-              archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
-              startedAt: new Date(toUTCMidnight(new Date(), -30)),
-              scope: "EService",
-            },
-          };
+        await Promise.all(
+          Array.from({ length: numberOfArchivableDescriptors }, async () => {
+            i++;
+            const descriptor: Descriptor = {
+              ...getMockDescriptor(),
+              state,
+              version: i.toString(),
+              archivingSchedule: {
+                archivableOn: new Date(toUTCMidnight(new Date(), -daysBefore)),
+                startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                scope: "EService",
+              },
+            };
 
-          eservice.descriptors.push(descriptor);
-        })
-      );
+            eservice.descriptors.push(descriptor);
+          })
+        );
 
-      await addOneEService(eservice);
+        await addOneEService(eservice);
 
-      const eserviceIds =
-        await readModelService.getExpiredArchivableEserviceRefs();
+        const eserviceIds =
+          await readModelService.getExpiredArchivableEserviceRefs();
 
-      expect(eserviceIds).toEqual([eservice.id]);
-    });
+        expect(eserviceIds).toEqual([eservice.id]);
+      }
+    );
 
-    it("should return an empty array when no eservices need to be archived", async () => {
-      const producerId: TenantId = generateId();
+    it.each(
+      [1, 2, 365]
+        .flatMap((daysAfter) =>
+          archivingStates.map((state) => [state, daysAfter] as const)
+        )
+        .flatMap(([state, daysAfter]) =>
+          notArchivingStates.map(
+            (notArchivingState) =>
+              [state, daysAfter, notArchivingState] as const
+          )
+        )
+    )(
+      "should return an empty array when the EService in archiving is in state %s but expires in %i days, and the EService not in archiving is in state %s",
+      async (archivingState, daysAfter, notArchivingState) => {
+        const producerId: TenantId = generateId();
 
-      const nonExpiredDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.archiving,
-        version: "1",
-        archivingSchedule: {
-          archivableOn: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          startedAt: new Date(toUTCMidnight(new Date(), -30)),
-          scope: "EService",
-        },
-      };
+        const nonExpiredDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: archivingState,
+          version: "1",
+          archivingSchedule: {
+            archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
+            startedAt: new Date(toUTCMidnight(new Date(), -30)),
+            scope: "EService",
+          },
+        };
 
-      const nonExpiredEservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [nonExpiredDescriptor],
-      };
+        const nonExpiredEservice: EService = {
+          ...getMockEService(),
+          producerId,
+          descriptors: [nonExpiredDescriptor],
+        };
 
-      const nonArchivingDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.published,
-        version: "1",
-      };
+        const nonArchivingDescriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: notArchivingState,
+          version: "1",
+        };
 
-      const nonArchivingEservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [nonArchivingDescriptor],
-      };
+        const nonArchivingEservice: EService = {
+          ...getMockEService(),
+          producerId,
+          descriptors: [nonArchivingDescriptor],
+        };
 
-      await addOneEService(nonExpiredEservice);
-      await addOneEService(nonArchivingEservice);
+        await addOneEService(nonExpiredEservice);
+        await addOneEService(nonArchivingEservice);
 
-      const eserviceIds =
-        await readModelService.getExpiredArchivableEserviceRefs();
+        const eserviceIds =
+          await readModelService.getExpiredArchivableEserviceRefs();
 
-      expect(eserviceIds.length).toEqual(0);
-    });
+        expect(eserviceIds.length).toEqual(0);
+      }
+    );
   });
 
   describe("getWrongEservices", async () => {
