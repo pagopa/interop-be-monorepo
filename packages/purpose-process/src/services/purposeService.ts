@@ -17,6 +17,7 @@ import {
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
+  assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -455,6 +456,8 @@ export function purposeServiceBuilder(
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
     > {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 

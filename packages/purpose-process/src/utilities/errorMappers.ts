@@ -9,6 +9,7 @@ type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_NOT_IMPLEMENTED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
   HTTP_STATUS_BAD_REQUEST,
@@ -352,4 +353,5 @@ export const assignRiskAnalysisReviewerErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
