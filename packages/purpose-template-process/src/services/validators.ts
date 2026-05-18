@@ -72,6 +72,7 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
   tooManyEServicesForPurposeTemplate,
   purposeTemplateNotFound,
 } from "../model/domain/errors.js";
@@ -96,11 +97,6 @@ export const ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIAT
     descriptorState.deprecated,
     descriptorState.archived,
   ];
-
-export const isRequesterCreator = (
-  creatorId: TenantId,
-  authData: Pick<UIAuthData | M2MAuthData | M2MAdminAuthData, "organizationId">
-): boolean => authData.organizationId === creatorId;
 
 export const isPurposeTemplateDraft = (
   currentPurposeTemplateState: PurposeTemplateState
@@ -280,11 +276,26 @@ export const assertPurposeTemplateIsDraft = (
 export const assertRequesterIsCreator = (
   purposeTemplateId: PurposeTemplateId,
   creatorId: TenantId,
-  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+  requesterId: TenantId
 ): void => {
-  if (!isRequesterCreator(creatorId, authData)) {
+  if (creatorId !== requesterId) {
     throw purposeTemplateNotFound(purposeTemplateId);
   }
+};
+
+export const assertRequesterCanManagePurposeTemplate = (
+  purposeTemplate: PurposeTemplate,
+  requesterId: TenantId
+): void => {
+  if (purposeTemplate.creatorId === requesterId) {
+    return;
+  }
+
+  if (isPurposeTemplateDraft(purposeTemplate.state)) {
+    throw purposeTemplateNotFound(purposeTemplate.id);
+  }
+
+  throw tenantNotAllowed(requesterId);
 };
 
 export const assertPurposeTemplateStateIsValid = (
