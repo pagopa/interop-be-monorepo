@@ -96,6 +96,9 @@ export async function createUpgradeOrNewDraft({
         consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
+      // TODO(PIN-9889, Work Item 5): recompute and carry
+      // certifiedDiscreteAttributes during upgrade once certified discrete
+      // agreement validation is implemented.
       certifiedDiscreteAttributes: [],
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,

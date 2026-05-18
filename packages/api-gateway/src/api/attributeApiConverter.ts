@@ -57,6 +57,8 @@ export function toApiGatewayAttribute(
     kind: match(attribute.kind)
       .with("CERTIFIED", "DECLARED", "VERIFIED", (kind) => kind)
       .with("CERTIFIED_DISCRETE", () => {
+        // TODO(PIN-10074): add CERTIFIED_DISCRETE support when the future M2M
+        // contract work item extends API Gateway/M2M surfaces.
         throw genericInternalError(
           `Unsupported attribute kind ${attribute.kind} for api-gateway`
         );

@@ -25,6 +25,10 @@ export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[]
 ): boolean => {
+  // TODO(PIN-9889, Work Item 5): extend this check to evaluate
+  // certified discrete attributes with threshold/comparator. Work Item 1 only
+  // introduces the shared descriptor model where certified and
+  // certified discrete attributes coexist in the same descriptor array.
   const certifiedAttributes = filterCertifiedAttributes(tenantAttributes).map(
     (a) => a.id
   );

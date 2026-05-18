@@ -102,8 +102,13 @@ export function tenantServiceBuilder(
         .map((v) => v.verified)
         .filter(isDefined);
 
+      const certifiedDiscreteAttributes = tenant.attributes
+        .map((v) => v.certifiedDiscrete)
+        .filter(isDefined);
+
       const allAttributeIds = [
         ...certifiedAttributes,
+        ...certifiedDiscreteAttributes,
         ...declaredAttributes,
         ...verifiedAttributes,
       ].map((v) => v.id);
