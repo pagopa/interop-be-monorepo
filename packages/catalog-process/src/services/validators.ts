@@ -19,6 +19,7 @@ import {
   Tenant,
   TenantId,
   TenantKind,
+  archivingScope,
   delegationKind,
   delegationState,
   descriptorState,
@@ -50,6 +51,7 @@ import {
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
+  descriptorArchivingNotCancelableByScope,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -401,7 +403,7 @@ export function assertDescriptorUpdatableAfterPublish(
   descriptor: Descriptor
 ): void {
   if (!isDescriptorUpdatableAfterPublish(descriptor)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -485,7 +487,7 @@ export function assertDescriptorArchivable(
   eservice: EService
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -518,5 +520,46 @@ export function assertEserviceIsNotInArchivingOrArchivedState(
       .exhaustive()
   ) {
     throw eserviceInArchivingOrArchivedState(eservice.id);
+  }
+}
+
+function isDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor
+): boolean {
+  const isLatest = latestDescriptor.id === descriptor.id;
+
+  return match(descriptor.state)
+    .with(
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      () => !isLatest
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.published,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function assertDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor
+): void {
+  if (!isDescriptorCancelArchivable(descriptor, latestDescriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertDescriptorArchivingIsNotEserviceScoped(
+  descriptor: Descriptor
+): void {
+  if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
+    throw descriptorArchivingNotCancelableByScope(descriptor.id);
   }
 }

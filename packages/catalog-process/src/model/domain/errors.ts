@@ -4,6 +4,7 @@ import {
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -65,6 +66,7 @@ const errorCodes = {
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
   eserviceInArchivingOrArchivedState: "0050",
+  descriptorArchivingNotCancelableByScope: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -136,7 +138,7 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
@@ -578,5 +580,15 @@ export function eserviceInArchivingOrArchivedState(
     detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
     code: "eserviceInArchivingOrArchivedState",
     title: "EService in archiving or archived state",
+  });
+}
+
+export function descriptorArchivingNotCancelableByScope(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
+    code: "descriptorArchivingNotCancelableByScope",
+    title: "Descriptor archiving not cancelable by scope",
   });
 }
