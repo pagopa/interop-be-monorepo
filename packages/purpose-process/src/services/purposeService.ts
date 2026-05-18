@@ -1128,16 +1128,6 @@ export function purposeServiceBuilder(
             readModelService
           );
 
-          // TODO double-check
-          if (
-            isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")
-          ) {
-            assertRiskAnalysisTenantKindMatch({
-              actualKind: riskAnalysisForm.tenantKind,
-              expectedKind: tenantKind,
-              riskAnalysisFormId: riskAnalysisForm.id,
-            });
-          }
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
