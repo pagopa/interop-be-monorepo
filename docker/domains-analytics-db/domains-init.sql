@@ -245,6 +245,10 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
   purpose_template_id VARCHAR(36),
+  reviewer_workflow_review_mode VARCHAR(2048),
+  reviewer_workflow_signing_state VARCHAR(2048),
+  reviewer_workflow_signed_by VARCHAR(36),
+  reviewer_workflow_rejection_reason VARCHAR(2048),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
