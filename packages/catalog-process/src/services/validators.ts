@@ -56,7 +56,6 @@ import {
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
-import { isArchivable } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -571,14 +570,5 @@ export function assertDescriptorIsAlreadyArchived(
 ): void {
   if (descriptor.state === descriptorState.archived) {
     throw descriptorAlreadyArchived(descriptor.id);
-  }
-}
-
-export function assertGracePeriodExpired(descriptor: Descriptor): void {
-  if (!descriptor.archivingSchedule) {
-    throw operationForbidden;
-  }
-  if (!isArchivable(descriptor.archivingSchedule.archivableOn, new Date())) {
-    throw archivableOnIsNotExpiredYet(descriptor.id);
   }
 }

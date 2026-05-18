@@ -68,7 +68,6 @@ const errorCodes = {
   eserviceInArchivingOrArchivedState: "0050",
   descriptorArchivingNotCancelableByScope: "0051",
   descriptorAlreadyArchived: "0052",
-  archivableOnIsNotExpiredYet: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
