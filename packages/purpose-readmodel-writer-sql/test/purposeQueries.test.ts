@@ -83,6 +83,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -93,6 +94,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -148,6 +150,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
         versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
+        reviewersSQL: [],
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -208,6 +211,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -218,6 +222,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
