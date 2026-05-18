@@ -1,14 +1,15 @@
 import { Logger } from "pagopa-interop-commons";
 import {
+  CorrelationId,
+  Descriptor,
+  DescriptorId,
   EServiceEventEnvelopeV2,
+  EServiceId,
   EServiceV2,
   fromDescriptorV2,
   fromEServiceV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
-  DescriptorId,
-  EServiceId,
-  Descriptor,
 } from "pagopa-interop-models";
 import { schedulableEventType } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
@@ -23,6 +24,7 @@ type ReminderConfig = {
 
 export const handleCatalogMessageV2 = async (
   decodedMsg: EServiceEventEnvelopeV2,
+  correlationId: CorrelationId,
   schedulerService: SchedulerService,
   reminderConfig: ReminderConfig,
   log: Logger
@@ -36,6 +38,7 @@ export const handleCatalogMessageV2 = async (
         }
         await scheduleForEserviceScope(
           eservice,
+          correlationId,
           schedulerService,
           reminderConfig,
           log
@@ -51,6 +54,7 @@ export const handleCatalogMessageV2 = async (
         await scheduleForDescriptorScope(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId),
+          correlationId,
           schedulerService,
           reminderConfig,
           log
@@ -95,6 +99,7 @@ export const handleCatalogMessageV2 = async (
 
 const scheduleForEserviceScope = async (
   eservice: EServiceV2,
+  correlationId: CorrelationId,
   schedulerService: SchedulerService,
   cfg: ReminderConfig,
   log: Logger
@@ -119,6 +124,7 @@ const scheduleForEserviceScope = async (
         descriptorId: descriptor.id,
         archivableOn: descriptor.archivingSchedule.archivableOn,
         eventType: schedulableEventType.eserviceArchivingScheduled,
+        correlationId,
         reminderDays: cfg.eserviceReminderDays,
         sendAtHour: cfg.sendAtHour,
         tz: cfg.tz,
@@ -131,6 +137,7 @@ const scheduleForEserviceScope = async (
 const scheduleForDescriptorScope = async (
   eservice: EServiceV2,
   descriptorId: DescriptorId,
+  correlationId: CorrelationId,
   schedulerService: SchedulerService,
   cfg: ReminderConfig,
   log: Logger
@@ -155,6 +162,7 @@ const scheduleForDescriptorScope = async (
       descriptorId,
       archivableOn: domainDescriptor.archivingSchedule.archivableOn,
       eventType: schedulableEventType.eserviceDescriptorArchivingScheduled,
+      correlationId,
       reminderDays: cfg.descriptorReminderDays,
       sendAtHour: cfg.sendAtHour,
       tz: cfg.tz,

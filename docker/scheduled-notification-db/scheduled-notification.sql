@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS scheduled_notification.scheduled_notification (
     channel VARCHAR NOT NULL,
     event_type VARCHAR NOT NULL,
     entity_id VARCHAR NOT NULL,
+    correlation_id UUID NOT NULL,
     send_at TIMESTAMP WITH TIME ZONE NOT NULL,
     sent_at TIMESTAMP WITH TIME ZONE,
     attempts INTEGER NOT NULL DEFAULT 0,

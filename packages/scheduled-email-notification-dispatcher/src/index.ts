@@ -61,8 +61,7 @@ const dispatch = dispatchEmailDeliveryBuilder({
   readModelService,
   templateService,
   bffUrl: config.bffUrl,
-  correlationId,
-  log,
+  rootLog: log,
 });
 
 try {

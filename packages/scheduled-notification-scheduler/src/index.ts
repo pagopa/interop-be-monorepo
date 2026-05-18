@@ -47,6 +47,7 @@ async function processMessage({
   if (decodedMsg.event_version === 2) {
     await handleCatalogMessageV2(
       decodedMsg,
+      correlationId,
       schedulerService,
       reminderConfig,
       log

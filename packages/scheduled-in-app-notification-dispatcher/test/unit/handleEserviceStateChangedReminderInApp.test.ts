@@ -73,6 +73,7 @@ const buildRow = (entityId: string): ScheduledNotificationRow => ({
   channel: scheduledNotificationChannel.inApp,
   eventType: schedulableEventType.eserviceDescriptorArchivingScheduled,
   entityId,
+  correlationId: generateId(),
   sendAt: new Date(),
   sentAt: null,
   attempts: 0,

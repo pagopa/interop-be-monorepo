@@ -5,7 +5,6 @@ import {
   NotificationType,
   Tenant,
   TenantId,
-  generateId,
 } from "pagopa-interop-models";
 import {
   HtmlTemplateService,
@@ -95,7 +94,7 @@ export async function handleEserviceStateChangedReminderEmail(
   });
   const producerSubject = `Promemoria: archiviazione dell'e-service "${eservice.name}"`;
   const producerPayloads = producerTargets.map((t) => ({
-    correlationId: correlationId ?? generateId(),
+    correlationId,
     email: {
       subject: producerSubject,
       body: templateService.compileHtml(producerTemplate, {
@@ -141,7 +140,7 @@ export async function handleEserviceStateChangedReminderEmail(
     consumerPayloads = consumerTargets.map((t) => {
       const consumerTenant = consumerTenants.find((tt) => tt.id === t.tenantId);
       return {
-        correlationId: correlationId ?? generateId(),
+        correlationId,
         email: {
           subject: consumerSubject,
           body: templateService.compileHtml(consumerTemplate, {

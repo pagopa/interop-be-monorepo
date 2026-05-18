@@ -63,7 +63,10 @@ const readModelService = readModelServiceBuilderSQL({
 });
 
 const inAppSink = inAppNotificationSinkBuilder(inAppDb);
-const dispatch = dispatchInAppDeliveryBuilder({ readModelService, log });
+const dispatch = dispatchInAppDeliveryBuilder({
+  readModelService,
+  rootLog: log,
+});
 
 try {
   const counters = await runScheduledDeliveryBatch({

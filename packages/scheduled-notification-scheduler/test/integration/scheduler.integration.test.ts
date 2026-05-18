@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { eq, isNull } from "drizzle-orm";
 import { genericLogger } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  DescriptorId,
+  EServiceId,
+  generateId,
+} from "pagopa-interop-models";
 import {
   formatEServiceIdDescriptorId,
   schedulableEventType,
@@ -17,6 +22,7 @@ describe("scheduledNotificationScheduler integration", () => {
     const archivableOn = new Date("2027-01-01T00:00:00Z"); // far enough in the future
 
     const reminderDays = [7, 3, 1];
+    const correlationId = generateId<CorrelationId>();
     const params = {
       eserviceId,
       descriptorId,
@@ -25,6 +31,7 @@ describe("scheduledNotificationScheduler integration", () => {
       reminderDays,
       sendAtHour: 9,
       tz: "Europe/Rome",
+      correlationId,
     };
 
     const inserted1 = await schedulerService.scheduleReminders(
@@ -62,6 +69,9 @@ describe("scheduledNotificationScheduler integration", () => {
         scheduledNotificationChannel.inApp,
       ].sort()
     );
+
+    // correlation_id is preserved from the originating Kafka event payload
+    expect(stored.every((r) => r.correlationId === correlationId)).toBe(true);
   });
 
   it("descriptor-scope DELETE only removes rows for the exact (eservice, descriptor) pair", async () => {
@@ -79,6 +89,7 @@ describe("scheduledNotificationScheduler integration", () => {
         reminderDays: [7, 3, 1],
         sendAtHour: 9,
         tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
       },
       genericLogger
     );
@@ -91,6 +102,7 @@ describe("scheduledNotificationScheduler integration", () => {
         reminderDays: [7, 3, 1],
         sendAtHour: 9,
         tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
       },
       genericLogger
     );
@@ -127,6 +139,7 @@ describe("scheduledNotificationScheduler integration", () => {
           reminderDays: [7, 3, 1],
           sendAtHour: 9,
           tz: "Europe/Rome",
+          correlationId: generateId<CorrelationId>(),
         },
         genericLogger
       );
@@ -157,6 +170,7 @@ describe("scheduledNotificationScheduler integration", () => {
         reminderDays: [7, 3, 1],
         sendAtHour: 9,
         tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
       },
       genericLogger
     );
@@ -194,6 +208,7 @@ describe("scheduledNotificationScheduler integration", () => {
         reminderDays: [7, 3], // both before now()
         sendAtHour: 9,
         tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
       },
       genericLogger
     );

@@ -1,5 +1,9 @@
-import { Logger } from "pagopa-interop-commons";
-import { NewNotification } from "pagopa-interop-models";
+import { Logger, logger } from "pagopa-interop-commons";
+import {
+  CorrelationId,
+  NewNotification,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   schedulableEventType,
   ScheduledNotificationRow,
@@ -8,10 +12,13 @@ import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleEserviceStateChangedReminderInApp } from "./eservices/handleEserviceStateChangedReminderInApp.js";
 
+const SERVICE_NAME = "scheduled-in-app-notification-dispatcher";
+
 export const dispatchInAppDeliveryBuilder =
-  (deps: { readModelService: ReadModelServiceSQL; log: Logger }) =>
-  async (row: ScheduledNotificationRow): Promise<NewNotification[]> =>
-    match(row.eventType)
+  (deps: { readModelService: ReadModelServiceSQL; rootLog: Logger }) =>
+  async (row: ScheduledNotificationRow): Promise<NewNotification[]> => {
+    const rowLog = loggerForRow(row);
+    return match(row.eventType)
       .with(
         schedulableEventType.eserviceArchivingScheduled,
         schedulableEventType.eserviceDescriptorArchivingScheduled,
@@ -19,12 +26,21 @@ export const dispatchInAppDeliveryBuilder =
           handleEserviceStateChangedReminderInApp(
             row,
             deps.readModelService,
-            deps.log
+            rowLog
           )
       )
       .otherwise(() => {
-        deps.log.warn(
+        deps.rootLog.warn(
           `Unhandled scheduled event_type ${row.eventType} for row ${row.id}`
         );
         return [];
       });
+  };
+
+const loggerForRow = (row: ScheduledNotificationRow): Logger =>
+  logger({
+    serviceName: SERVICE_NAME,
+    correlationId: unsafeBrandId<CorrelationId>(row.correlationId),
+    eventType: row.eventType,
+    streamId: row.entityId,
+  });

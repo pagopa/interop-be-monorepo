@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { addMinutes } from "date-fns";
 import { and, eq, isNull, like, sql } from "drizzle-orm";
 import { Logger } from "pagopa-interop-commons";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import { CorrelationId, DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
   NewScheduledNotificationRow,
   SchedulableEventType,
@@ -22,6 +22,7 @@ type ScheduleRemindersParams = {
   descriptorId: DescriptorId;
   archivableOn: Date;
   eventType: SchedulableEventType;
+  correlationId: CorrelationId;
   reminderDays: number[];
   sendAtHour: number;
   tz: string;
@@ -47,6 +48,7 @@ export const schedulerServiceBuilder = (
     descriptorId,
     archivableOn,
     eventType,
+    correlationId,
     reminderDays,
     sendAtHour,
     tz,
@@ -76,6 +78,7 @@ export const schedulerServiceBuilder = (
           channel,
           eventType,
           entityId,
+          correlationId,
           sendAt,
         }))
       );

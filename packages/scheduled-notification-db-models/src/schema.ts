@@ -18,6 +18,7 @@ export const scheduledNotification = scheduledNotificationSchema.table(
     channel: varchar("channel").notNull(),
     eventType: varchar("event_type").notNull(),
     entityId: varchar("entity_id").notNull(),
+    correlationId: uuid("correlation_id").notNull(),
     sendAt: timestamp("send_at", { withTimezone: true }).notNull(),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     attempts: integer("attempts").notNull().default(0),
