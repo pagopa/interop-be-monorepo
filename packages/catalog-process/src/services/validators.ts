@@ -49,6 +49,7 @@ import {
   eServiceUpdateSameNameConflict,
   eserviceInDraftState,
   attributeDailyCallsNotAllowed,
+  eserviceInArchivingOrArchivedState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { getLatestDescriptor } from "../utilities/versionGenerator.js";
@@ -485,5 +486,37 @@ export function assertDescriptorArchivable(
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
+  const latestActiveDescriptor = [...eservice.descriptors]
+    .sort(
+      (a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10)
+    )
+    .filter(isActiveDescriptor)
+    .at(-1);
+  if (
+    latestActiveDescriptor &&
+    match(latestActiveDescriptor.state)
+      .with(
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+        () => true
+      )
+      .with(
+        descriptorState.draft,
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.waitingForApproval,
+        () => false
+      )
+      .exhaustive()
+  ) {
+    throw eserviceInArchivingOrArchivedState(eservice.id);
   }
 }
