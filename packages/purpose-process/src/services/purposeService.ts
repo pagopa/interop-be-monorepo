@@ -101,6 +101,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -149,6 +150,7 @@ import {
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
+  assertRiskAnalysisTenantKindMatch,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -348,6 +350,57 @@ export function purposeServiceBuilder(
       );
 
       return purpose;
+    },
+    async fixPurposeRiskAnalysisTenantKind(
+      purposeId: PurposeId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(
+        `Fixing Risk Analysis ${riskAnalysisId} for Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+      if (riskAnalysisForm.riskAnalysisId !== riskAnalysisId) {
+        throw eserviceRiskAnalysisNotFound(
+          purpose.data.eserviceId,
+          riskAnalysisId
+        );
+      }
+
+      const historyKind = await readModelService.getTenantKindAt(
+        purpose.data.consumerId,
+        purpose.data.createdAt
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(purpose.data.consumerId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: {
+          ...riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind({
+        purpose: updatedPurpose,
+        riskAnalysisId,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getRiskAnalysisDocument({
       purposeId,
@@ -2148,13 +2201,11 @@ const performUpdatePurpose = async (
     readModelService
   );
 
-  const currentTenantKind = tenantKind; // TODO
-
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
       ? {
           ...riskAnalysisForm,
-          tenantKind: currentTenantKind,
+          tenantKind,
         }
       : undefined;
 
@@ -2164,7 +2215,7 @@ const performUpdatePurpose = async (
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
-            currentTenantKind,
+            tenantKind,
             new Date(),
             eservice.personalData
           );
@@ -2409,7 +2460,7 @@ async function activatePurposeLogic({
       );
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysisForm.tenantKind,
-        currentKind: tenantKind,
+        expectedKind: tenantKind,
         riskAnalysisFormId: riskAnalysisForm.id,
       });
     }

@@ -64,22 +64,21 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertRiskAnalysisTenantKindMatch = ({
   actualKind,
-  currentKind,
+  expectedKind,
   riskAnalysisFormId,
 }: {
   actualKind: TenantKind | undefined;
-  currentKind: TenantKind;
+  expectedKind: TenantKind;
   riskAnalysisFormId: RiskAnalysisFormId;
 }): void => {
   // TODO after the fix
   // if (actualKind === undefined) {
   //   throw missingTenantKindError();
   // }
-
-  if (actualKind && actualKind !== currentKind) {
+  if (actualKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
-      currentKind,
+      expectedKind,
       riskAnalysisFormId
     );
   }
@@ -798,7 +797,6 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
-    tenantKind,
     createdAt,
     eservicePersonalData
   );

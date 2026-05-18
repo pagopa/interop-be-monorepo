@@ -48,6 +48,7 @@ export async function handleEserviceTemplateMessageV2(
             "EServiceTemplateVersionInterfaceUpdated",
             "EServiceTemplateRiskAnalysisAdded",
             "EServiceTemplateRiskAnalysisUpdated",
+            "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
             "EServiceTemplateVersionActivated",
             "EServiceTemplateDraftVersionDeleted",
             "EServiceTemplateVersionInterfaceDeleted",

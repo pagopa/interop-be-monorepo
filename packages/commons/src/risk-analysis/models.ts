@@ -9,7 +9,10 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
-import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import {
+  missingTenantKindError,
+  RiskAnalysisValidationIssue,
+} from "./riskAnalysisValidationErrors.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";

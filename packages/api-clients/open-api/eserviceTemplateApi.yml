@@ -1471,6 +1471,60 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/templates/{templateId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Fix an e-service template risk analysis tenant kind
+      operationId: fixEServiceTemplateRiskAnalysisTenantKind
+      description: Fixes the tenant kind for the specified risk analysis in an e-service template
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService Template Risk Analysis fixed.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService Template or Risk Analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []

@@ -85,6 +85,27 @@ export const toCreateEventEServiceTemplateRiskAnalysisUpdated = (
   correlationId,
 });
 
+export const toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind =
+  (
+    streamId: string,
+    version: number,
+    riskAnalysisId: RiskAnalysisId,
+    eserviceTemplate: EServiceTemplate,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceTemplateEvent> => ({
+    streamId,
+    version,
+    event: {
+      type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+      event_version: 2,
+      data: {
+        riskAnalysisId,
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+      },
+    },
+    correlationId,
+  });
+
 export const toCreateEventEServiceTemplateDraftUpdated = (
   streamId: string,
   version: number,

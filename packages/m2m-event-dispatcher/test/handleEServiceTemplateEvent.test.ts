@@ -27,7 +27,13 @@ import {
 describe("handleEServiceTemplateEvent test", async () => {
   vi.spyOn(testM2mEventWriterService, "insertEServiceTemplateM2MEvent");
 
-  describe.each(EServiceTemplateEventV2.options.map((o) => o.shape.type.value))(
+  const eserviceTemplateEventTypes = EServiceTemplateEventV2.options
+    .map((o) => o.shape.type.value)
+    .filter(
+      (type) => type !== "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind"
+    );
+
+  describe.each(eserviceTemplateEventTypes)(
     "with %s event",
     (eventType: EServiceTemplateEventV2["type"]) =>
       it("should write M2M events with the right visibility", async () => {
@@ -190,6 +196,21 @@ describe("handleEServiceTemplateEvent test", async () => {
               },
             ]
           )
+          .with(
+            "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+            async () => [
+              {
+                versions: [
+                  getMockEServiceTemplateVersion(
+                    undefined,
+                    eserviceTemplateVersionState.published
+                  ),
+                ],
+                affectedVersion: undefined,
+                expectedVisibility: m2mEventVisibility.owner,
+              },
+            ]
+          )
           .exhaustive();
 
         for (const {
@@ -242,6 +263,32 @@ describe("handleEServiceTemplateEvent test", async () => {
         }
       })
   );
+
+  it("should skip M2M event creation for MaintenanceEServiceTemplateRiskAnalysisSetTenantKind", async () => {
+    const eserviceTemplate = getMockEServiceTemplate();
+    const eventTimestamp = new Date();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: eserviceTemplate.id,
+      type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+      data: {
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        riskAnalysisId: generateId(),
+      },
+    } as EServiceTemplateEventEnvelopeV2;
+
+    await handleEServiceTemplateEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertEServiceTemplateM2MEvent
+    ).toHaveBeenCalledTimes(0);
+  });
 
   it("should not write the event if the same resource version is already present", async () => {
     const eserviceTemplate = getMockEServiceTemplate();

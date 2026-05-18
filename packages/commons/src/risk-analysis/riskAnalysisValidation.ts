@@ -47,13 +47,16 @@ export function validateRiskAnalysis(
     throw missingTenantKindError();
   }
   const formRulesForValidation = getFormRulesByVersion(
-    tenantKind,
+    riskAnalysisForm.tenantKind,
     riskAnalysisForm.version
   );
 
   if (formRulesForValidation === undefined) {
     return invalidResult([
-      rulesVersionNotFoundError(tenantKind, riskAnalysisForm.version),
+      rulesVersionNotFoundError(
+        riskAnalysisForm.tenantKind,
+        riskAnalysisForm.version
+      ),
     ]);
   }
 
@@ -62,7 +65,10 @@ export function validateRiskAnalysis(
     formRulesForValidation.expiration < dateForExpirationValidation
   ) {
     return invalidResult([
-      expiredRulesVersionError(riskAnalysisForm.version, tenantKind),
+      expiredRulesVersionError(
+        riskAnalysisForm.version,
+        riskAnalysisForm.tenantKind
+      ),
     ]);
   }
 

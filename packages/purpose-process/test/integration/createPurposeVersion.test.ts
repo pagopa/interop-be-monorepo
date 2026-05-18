@@ -948,7 +948,7 @@ describe("createPurposeVersion", () => {
     }).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
 
-  it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
+  it("should throw eserviceNotFound if the e-service does not exist in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);

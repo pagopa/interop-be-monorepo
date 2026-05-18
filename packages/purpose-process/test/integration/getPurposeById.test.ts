@@ -599,41 +599,4 @@ describe("getPurposeById", () => {
       )
     ).rejects.toThrowError(eserviceNotFound(notExistingId));
   });
-  it.skip("should throw tenantNotFound if the tenant doesn't exist", async () => {
-    const notExistingTenantId: TenantId = generateId();
-    const mockEService = getMockEService();
-
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-    };
-    await addOnePurpose(mockPurpose);
-    await addOneEService(mockEService);
-
-    expect(
-      purposeService.getPurposeById(
-        mockPurpose.id,
-        getMockContext({ authData: getMockAuthData(notExistingTenantId) })
-      )
-    ).rejects.toThrowError(tenantNotFound(notExistingTenantId));
-  });
-  it.skip("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
-    const mockTenant = getMockTenant();
-    const mockEService = getMockEService();
-
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-    };
-    await addOnePurpose(mockPurpose);
-    await addOneEService(mockEService);
-    await addOneTenant(mockTenant);
-
-    expect(
-      purposeService.getPurposeById(
-        mockPurpose.id,
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
-      )
-    ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
-  });
 });

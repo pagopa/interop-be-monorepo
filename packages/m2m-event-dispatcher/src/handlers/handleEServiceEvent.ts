@@ -147,6 +147,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      })
       .exhaustive()
   );
 }

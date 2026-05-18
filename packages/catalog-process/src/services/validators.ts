@@ -19,7 +19,6 @@ import {
   EServiceId,
   Tenant,
   TenantId,
-  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -28,6 +27,7 @@ import {
   EServiceTemplateId,
   RiskAnalysisId,
   type EserviceAttributes,
+  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -245,7 +245,7 @@ export function assertRiskAnalysisIsValidForPublication(
     if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
-        currentKind: tenantKind,
+        expectedKind: tenantKind,
         eserviceId: eservice.id,
         riskAnalysisId: riskAnalysis.id,
       });
@@ -255,7 +255,6 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      tenantKind,
       new Date(),
       eservice.personalData
     );
@@ -268,19 +267,19 @@ export function assertRiskAnalysisIsValidForPublication(
 
 function assertRiskAnalysisTenantKindMatch({
   actualKind,
-  currentKind,
+  expectedKind,
   eserviceId,
   riskAnalysisId,
 }: {
   actualKind: TenantKind | undefined;
-  currentKind: TenantKind;
+  expectedKind: TenantKind;
   eserviceId: EServiceId;
   riskAnalysisId: RiskAnalysisId;
 }): void {
-  if (actualKind && actualKind !== currentKind) {
+  if (actualKind && actualKind !== expectedKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
-      currentKind,
+      expectedKind,
       eserviceId,
       riskAnalysisId
     );

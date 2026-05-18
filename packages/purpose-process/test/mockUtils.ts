@@ -123,7 +123,6 @@ export const createUpdatedPurpose = (
         ? { ...purposeUpdateContent.riskAnalysisForm, tenantKind }
         : undefined,
       false,
-      tenantKind,
       new Date(),
       undefined
     )!,

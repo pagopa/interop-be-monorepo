@@ -92,5 +92,13 @@ export async function handleEServiceTemplateEvent(
         );
       }
     )
+    .with(
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
+      () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      }
+    )
     .exhaustive();
 }
