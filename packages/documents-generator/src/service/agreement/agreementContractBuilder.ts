@@ -13,7 +13,6 @@ import {
   Agreement,
   AgreementDocumentId,
   Attribute,
-  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   EService,
@@ -72,10 +71,6 @@ const getAttributesData = async (
     attribute: Attribute;
     tenantAttribute: CertifiedTenantAttribute;
   }>;
-  certifiedDiscrete: Array<{
-    attribute: Attribute;
-    tenantAttribute: CertifiedDiscreteTenantAttribute;
-  }>;
   declared: Array<{
     attribute: Attribute;
     tenantAttribute: DeclaredTenantAttribute;
@@ -88,7 +83,6 @@ const getAttributesData = async (
   const getAttributesDataByType = async <
     T extends
       | CertifiedTenantAttribute
-      | CertifiedDiscreteTenantAttribute
       | DeclaredTenantAttribute
       | VerifiedTenantAttribute,
   >(
@@ -147,10 +141,6 @@ const getAttributesData = async (
   const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
-  const certifiedDiscrete =
-    await getAttributesDataByType<CertifiedDiscreteTenantAttribute>(
-      tenantAttributeType.CERTIFIED_DISCRETE
-    );
   const declared = await getAttributesDataByType<DeclaredTenantAttribute>(
     tenantAttributeType.DECLARED
   );
@@ -160,7 +150,6 @@ const getAttributesData = async (
 
   return {
     certified,
-    certifiedDiscrete,
     declared,
     verified,
   };
@@ -176,8 +165,11 @@ const getPdfPayload = async (
   documentCreatedAt: Date,
   readModelService: ReadModelServiceSQL
 ): Promise<AgreementContractPDFPayload> => {
-  const { certified, certifiedDiscrete, declared, verified } =
-    await getAttributesData(consumer, agreement, readModelService);
+  const { certified, declared, verified } = await getAttributesData(
+    consumer,
+    agreement,
+    readModelService
+  );
 
   const descriptor = retrieveDescriptor(agreement.descriptorId, eservice);
 
@@ -202,14 +194,12 @@ const getPdfPayload = async (
     producerIpaCode: getIpaCode(producer),
     consumerName: consumer.name,
     consumerIpaCode: getIpaCode(consumer),
-    certifiedAttributes: [...certified, ...certifiedDiscrete].map(
-      ({ attribute, tenantAttribute }) => ({
-        assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
-        assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
-        attributeName: attribute.name,
-        attributeId: attribute.id,
-      })
-    ),
+    certifiedAttributes: certified.map(({ attribute, tenantAttribute }) => ({
+      assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),
+      assignmentTime: timeAtRomeZone(tenantAttribute.assignmentTimestamp),
+      attributeName: attribute.name,
+      attributeId: attribute.id,
+    })),
     // eslint-disable-next-line sonarjs/no-identical-functions
     declaredAttributes: declared.map(({ attribute, tenantAttribute }) => ({
       assignmentDate: dateAtRomeZone(tenantAttribute.assignmentTimestamp),

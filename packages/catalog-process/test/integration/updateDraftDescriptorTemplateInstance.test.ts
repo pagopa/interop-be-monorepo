@@ -23,7 +23,6 @@ import {
   delegationKind,
   AttributeId,
   unsafeBrandId,
-  attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -33,7 +32,6 @@ import {
   inconsistentDailyCalls,
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
-  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -497,82 +495,6 @@ describe("update draft descriptor instance", () => {
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-  });
-
-  it("should throw templateInstanceNotAllowed when changing certified discrete threshold", async () => {
-    const template = getMockEServiceTemplate();
-
-    const certifiedAttributeId = unsafeBrandId<AttributeId>(generateId());
-    const certifiedAttribute: Attribute = {
-      name: "Certified discrete attribute",
-      id: certifiedAttributeId,
-      kind: "CertifiedDiscrete",
-      description: "A certified discrete attribute",
-      creationTime: new Date(),
-    };
-
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      dailyCallsPerConsumer: 1,
-      dailyCallsTotal: 1000,
-      attributes: {
-        certified: [
-          [
-            {
-              id: certifiedAttributeId,
-              explicitAttributeVerification: false,
-              discreteConfig: {
-                threshold: 10,
-                comparator: attributeCertifiedDiscreteComparator.GTE,
-              },
-            },
-          ],
-        ],
-        declared: [],
-        verified: [],
-      },
-    };
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      name: `${template.name} test`,
-      templateId: template.id,
-    };
-
-    await addOneEServiceTemplate(template);
-    await addOneAttribute(certifiedAttribute);
-    await addOneEService(eservice);
-
-    await expect(
-      catalogService.updateDraftDescriptorTemplateInstance(
-        eservice.id,
-        descriptor.id,
-        {
-          ...buildUpdateDescriptorSeed(descriptor),
-          attributes: {
-            certified: [
-              [
-                {
-                  id: certifiedAttributeId,
-                  explicitAttributeVerification: false,
-                  discreteConfig: {
-                    threshold: 20,
-                    comparator: attributeCertifiedDiscreteComparator.GTE,
-                  },
-                },
-              ],
-            ],
-            declared: [],
-            verified: [],
-          },
-        },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      templateInstanceNotAllowed(eservice.id, template.id)
-    );
   });
 
   it("should preserve existing attributes when seed.attributes is not provided", async () => {
