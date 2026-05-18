@@ -420,4 +420,26 @@ export const inAppTemplates = {
     producerName: string
   ): string =>
     `L'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
+
+  eserviceStateChangedToProducerScheduledReminder: (
+    eserviceName: string,
+    descriptorVersion: string,
+    daysRemaining: number,
+    archivableOn: Date | undefined
+  ): string =>
+    `Promemoria: la versione ${descriptorVersion} dell'e-service ${eserviceName} verrà archiviata ${
+      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
+    }${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
+  eserviceStateChangedToConsumerScheduledReminder: (
+    eserviceName: string,
+    descriptorVersion: string,
+    daysRemaining: number,
+    archivableOn: Date | undefined,
+    producerName: string
+  ): string =>
+    `Promemoria: l'ente erogatore ${producerName} archivierà la versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto ${
+      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
+    }${
+      archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
+    }. Concludi ordinatamente le chiamate prima di tale data.`,
 };

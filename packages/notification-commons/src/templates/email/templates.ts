@@ -118,6 +118,10 @@ export const eventMailTemplateType = {
     "eservice-archiving-early-archived-to-producer-mail",
   eserviceArchivingEarlyArchivedToConsumerMailTemplate:
     "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceStateChangedToProducerScheduledReminderMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-mail",
+  eserviceStateChangedToConsumerScheduledReminderMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
