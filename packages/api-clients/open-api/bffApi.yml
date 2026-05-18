@@ -26749,6 +26749,11 @@ components:
           description: "set of the certified attributes belonging to this agreement, if any."
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        certifiedDiscreteAttributes:
+          type: array
+          description: "set of the certified discrete attributes belonging to this agreement, if any."
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteAttribute"
         declaredAttributes:
           type: array
           description: "set of the declared attributes belonging to this agreement, if any."
@@ -26791,6 +26796,7 @@ components:
         - state
         - verifiedAttributes
         - certifiedAttributes
+        - certifiedDiscreteAttributes
         - declaredAttributes
         - consumerDocuments
         - createdAt
@@ -28781,6 +28787,28 @@ components:
       type: object
       additionalProperties: false
       description: Models a certified attribute registry entry as payload response
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: uniquely identifies the attribute on the registry
+        description:
+          type: string
+        name:
+          type: string
+        creationTime:
+          type: string
+          format: date-time
+      required:
+        - id
+        - description
+        - name
+        - creationTime
+    CertifiedDiscreteAttribute:
+      title: CertifiedDiscreteAttribute
+      type: object
+      additionalProperties: false
+      description: Models a certified discrete attribute registry entry as payload response
       properties:
         id:
           type: string

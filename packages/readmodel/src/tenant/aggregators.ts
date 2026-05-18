@@ -650,7 +650,6 @@ export const toTenantAggregatorArray = (
       : undefined;
     if (remoteId && remoteIdPK && !remoteIdSet.has(remoteIdPK)) {
       remoteIdSet.add(remoteIdPK);
-      // eslint-disable-next-line functional/immutable-data
       remoteIdsSQL.push(remoteId);
     }
   });

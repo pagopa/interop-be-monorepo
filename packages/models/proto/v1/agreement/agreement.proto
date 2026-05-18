@@ -23,6 +23,7 @@ message AgreementV1 {
   optional StampsV1 stamps = 18;
   optional string rejectionReason = 19;
   optional int64 suspendedAt = 20;
+  repeated CertifiedAttributeV1 certifiedDiscreteAttributes = 21;
 }
 
 message VerifiedAttributeV1 {
