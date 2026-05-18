@@ -1,0 +1,148 @@
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { EService, Purpose, EServiceTemplate } from "pagopa-interop-models";
+import {
+  aggregateEserviceArray,
+  toEServiceAggregatorArray,
+  toPurposeAggregatorArray,
+  aggregatePurposeArray,
+  aggregateEServiceTemplateArray,
+  toEServiceTemplateAggregatorArray,
+} from "pagopa-interop-readmodel";
+import {
+  DrizzleReturnType,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
+} from "pagopa-interop-readmodel-models";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
+  return {
+    async getAllReadModelEServicesWithEmptyTenantKindRAs(): Promise<
+      EService[]
+    > {
+      const queryResult = await readModelDB
+        .select({
+          eservice: eserviceInReadmodelCatalog,
+          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          eserviceRiskAnalysisInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+          )
+        )
+        .where(
+          or(
+            isNull(eserviceRiskAnalysisInReadmodelCatalog.tenantKind),
+            eq(eserviceRiskAnalysisInReadmodelCatalog.tenantKind, "")
+          )
+        );
+
+      return aggregateEserviceArray(
+        toEServiceAggregatorArray(
+          queryResult.map((e) => ({
+            ...e,
+            descriptor: null,
+            interface: null,
+            document: null,
+            attribute: null,
+            rejection: null,
+            riskAnalysisAnswer: null,
+            templateVersionRef: null,
+          }))
+        )
+      ).map((e) => e.data);
+    },
+
+    async getAllReadModelPurposesWithoutTenantKind(): Promise<Purpose[]> {
+      const queryResult = await readModelDB
+        .select({
+          purpose: purposeInReadmodelPurpose,
+          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
+          purposeRiskAnalysisAnswer:
+            purposeRiskAnalysisAnswerInReadmodelPurpose,
+        })
+        .from(purposeInReadmodelPurpose)
+        .leftJoin(
+          purposeRiskAnalysisFormInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          purposeRiskAnalysisAnswerInReadmodelPurpose,
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
+            ),
+            eq(
+              purposeRiskAnalysisFormInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+            )
+          )
+        )
+        .where(
+          or(
+            isNull(purposeRiskAnalysisFormInReadmodelPurpose.tenantKind),
+            eq(purposeRiskAnalysisFormInReadmodelPurpose.tenantKind, "")
+          )
+        );
+
+      return aggregatePurposeArray(
+        toPurposeAggregatorArray(
+          queryResult.map((p) => ({
+            ...p,
+            purposeVersion: null,
+            purposeVersionDocument: null,
+            purposeVersionStamp: null,
+            purposeVersionSignedDocument: null,
+          }))
+        )
+      ).map((p) => p.data);
+    },
+
+    async getReadModelEServiceTemplates(
+      filterIds: EServiceTemplate["id"][]
+    ): Promise<EServiceTemplate[]> {
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .leftJoin(
+          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .where(
+          inArray(eserviceTemplateInReadmodelEserviceTemplate.id, filterIds)
+        );
+
+      return aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(
+          queryResult.map((e) => ({
+            ...e,
+            version: null,
+            interface: null,
+            document: null,
+            attribute: null,
+            riskAnalysisAnswer: null,
+          }))
+        )
+      ).map((p) => p.data);
+    },
+  };
+}
+export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
