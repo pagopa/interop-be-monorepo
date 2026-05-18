@@ -114,7 +114,7 @@ const fromAttributeCertifiedDiscreteComparatorV2 = (
       return attributeCertifiedDiscreteComparator.LTE;
     case AttributeCertifiedDiscreteComparatorV2.NE:
       return attributeCertifiedDiscreteComparator.NE;
-    case AttributeCertifiedDiscreteComparatorV2.ATTRIBUTE_CERTIFIED_DISCRETE_COMPARATOR_UNSPECIFIED:
+    case AttributeCertifiedDiscreteComparatorV2.UNSPECIFIED:
       throw genericInternalError(
         "Unspecified AttributeCertifiedDiscreteComparator in protobuf event"
       );
