@@ -942,11 +942,17 @@ function descriptorAttributesIds(
 function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   const verifiedIds = tenant.attributes.map((attr) => attr.verified?.id);
   const certifiedIds = tenant.attributes.map((attr) => attr.certified?.id);
+  const certifiedDiscreteIds = tenant.attributes.map(
+    (attr) => attr.certifiedDiscrete?.id
+  );
   const declaredIds = tenant.attributes.map((attr) => attr.declared?.id);
 
-  return [...verifiedIds, ...certifiedIds, ...declaredIds].filter(
-    (x): x is string => x !== undefined
-  );
+  return [
+    ...verifiedIds,
+    ...certifiedIds,
+    ...certifiedDiscreteIds,
+    ...declaredIds,
+  ].filter((x): x is string => x !== undefined);
 }
 
 async function getConsumerProducerEserviceDelegation(
