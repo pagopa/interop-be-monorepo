@@ -346,11 +346,16 @@ const updateDescriptorState = (
         publishedAt: new Date(),
       })
     )
-    .with([descriptorState.published, descriptorState.suspended], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.suspended],
+      [descriptorState.deprecated, descriptorState.suspended],
+      [descriptorState.archiving, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: new Date(),
+      })
+    )
     .with([descriptorState.suspended, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
@@ -1756,16 +1761,17 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      if (
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.archiving,
+      ]);
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
-        descriptorState.suspended
+        descriptor.state === descriptorState.archiving
+          ? descriptorState.archivingSuspended
+          : descriptorState.suspended
       );
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
