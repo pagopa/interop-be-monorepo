@@ -524,8 +524,7 @@ describe("update draft descriptor instance", () => {
               explicitAttributeVerification: false,
               discreteConfig: {
                 threshold: 10,
-                comparator:
-                  attributeCertifiedDiscreteComparator.GTE,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
               },
             },
           ],
@@ -560,8 +559,7 @@ describe("update draft descriptor instance", () => {
                   explicitAttributeVerification: false,
                   discreteConfig: {
                     threshold: 20,
-                    comparator:
-                      attributeCertifiedDiscreteComparator.GTE,
+                    comparator: attributeCertifiedDiscreteComparator.GTE,
                   },
                 },
               ],
@@ -572,7 +570,9 @@ describe("update draft descriptor instance", () => {
         },
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, template.id));
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, template.id)
+    );
   });
 
   it("should preserve existing attributes when seed.attributes is not provided", async () => {

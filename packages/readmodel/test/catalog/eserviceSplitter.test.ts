@@ -4,7 +4,7 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
-  getMockEserviceAttributeCertifiedDiscrete,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
@@ -34,7 +34,8 @@ import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 describe("E-service splitter", () => {
   it("should convert a complete e-service into e-service SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
-    const certifiedDiscreteAttribute = getMockEserviceAttributeCertifiedDiscrete();
+    const certifiedDiscreteAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();

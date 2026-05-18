@@ -47,12 +47,13 @@ message EServiceRiskAnalysisMultiAnswerV2 {
 }
 
 enum AttributeCertifiedDiscreteComparatorV2 {
-  GT = 0;
-  LT = 1;
-  EQ = 2;
-  GTE = 3;
-  LTE = 4;
-  NE = 5;
+  ATTRIBUTE_CERTIFIED_DISCRETE_COMPARATOR_UNSPECIFIED = 0;
+  GT = 1;
+  LT = 2;
+  EQ = 3;
+  GTE = 4;
+  LTE = 5;
+  NE = 6;
 }
 
 message EServiceAttributeCertifiedDiscreteConfigV2 {

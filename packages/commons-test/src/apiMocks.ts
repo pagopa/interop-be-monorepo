@@ -202,6 +202,9 @@ export function getMockedApiAgreement({
     consumerId: consumerId ?? generateId(),
     state: state ?? agreementApi.AgreementState.Values.ACTIVE,
     certifiedAttributes: generateMock(z.array(agreementApi.CertifiedAttribute)),
+    certifiedDiscreteAttributes: generateMock(
+      z.array(agreementApi.CertifiedAttribute)
+    ),
     declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
     consumerDocuments:
       consumerDocuments ?? generateMock(z.array(agreementApi.Document)),

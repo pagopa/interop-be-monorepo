@@ -25,9 +25,7 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
-  type EServiceAttribute,
-  type EServiceAttributeCertified,
-  type EserviceAttributeCertifiedDiscrete,
+  type EServiceCertifiedAttribute,
   type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -54,11 +52,6 @@ import {
   eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-
-type EServiceCertifiedAttribute =
-  | EServiceAttribute
-  | EServiceAttributeCertified
-  | EserviceAttributeCertifiedDiscrete;
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -512,8 +505,7 @@ function assertAttributeGroupsUnchanged(
           getCertifiedDiscreteThreshold(descriptorAttr) ||
         seedAttr.discreteConfig?.comparator !==
           getCertifiedDiscreteComparator(descriptorAttr) ||
-        Boolean(seedAttr.discreteConfig) !==
-          "discreteConfig" in descriptorAttr
+        Boolean(seedAttr.discreteConfig) !== "discreteConfig" in descriptorAttr
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }

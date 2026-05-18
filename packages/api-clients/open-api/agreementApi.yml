@@ -1300,6 +1300,11 @@ components:
           description: "set of the certified attributes belonging to this agreement, if any."
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        certifiedDiscreteAttributes:
+          type: array
+          description: "set of the certified discrete attributes belonging to this agreement, if any."
+          items:
+            $ref: "#/components/schemas/CertifiedAttribute"
         declaredAttributes:
           type: array
           description: "set of the declared attributes belonging to this agreement, if any."
@@ -1343,6 +1348,7 @@ components:
         - state
         - verifiedAttributes
         - certifiedAttributes
+        - certifiedDiscreteAttributes
         - declaredAttributes
         - consumerDocuments
         - createdAt

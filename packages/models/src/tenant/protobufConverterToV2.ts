@@ -170,7 +170,7 @@ export function toRemoteIdsV2(remoteId: TenantRemoteId): TenantRemoteIdV2 {
   return {
     origin: remoteId.origin,
     value: remoteId.value,
-    assignmentTimestamp: dateToBigInt(remoteId.assignment_timestamp),
+    assignmentTimestamp: dateToBigInt(remoteId.assignmentTimestamp),
   };
 }
 

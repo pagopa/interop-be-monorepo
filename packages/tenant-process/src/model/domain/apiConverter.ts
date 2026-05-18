@@ -148,6 +148,11 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds?.map((remoteId) => ({
+      origin: remoteId.origin,
+      value: remoteId.value,
+      assignmentTimestamp: remoteId.assignmentTimestamp.toJSON(),
+    })),
   };
 }
 

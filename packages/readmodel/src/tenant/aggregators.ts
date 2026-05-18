@@ -136,7 +136,7 @@ export const aggregateTenant = ({
             ({ origin, value, assignmentTimestamp }): TenantRemoteId => ({
               origin,
               value,
-              assignment_timestamp: stringToDate(assignmentTimestamp),
+              assignmentTimestamp: stringToDate(assignmentTimestamp),
             })
           ),
         }

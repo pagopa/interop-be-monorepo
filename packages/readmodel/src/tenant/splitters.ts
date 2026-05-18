@@ -80,12 +80,12 @@ export const splitTenantIntoObjectsSQL = (
   } = splitTenantAttributesIntoObjectsSQL(attributes, id, metadataVersion);
 
   const remoteIdsSQL: TenantRemoteIdSQL[] = (remoteIds ?? []).map(
-    ({ origin, value, assignment_timestamp }: TenantRemoteId) => ({
+    ({ origin, value, assignmentTimestamp }: TenantRemoteId) => ({
       tenantId: id,
       metadataVersion,
       origin,
       value,
-      assignmentTimestamp: dateToString(assignment_timestamp),
+      assignmentTimestamp: dateToString(assignmentTimestamp),
     })
   );
 

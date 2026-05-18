@@ -24,6 +24,7 @@ import {
   descriptorState,
   DescriptorId,
   CertifiedTenantAttribute,
+  CertifiedDiscreteTenantAttribute,
   DeclaredTenantAttribute,
   VerifiedTenantAttribute,
   AttributeId,
@@ -49,6 +50,7 @@ import {
   getMockAgreementAttribute,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -219,6 +221,7 @@ describe("handleAgreementMessageV2", () => {
 
   it("should generate and store a contract for an 'AgreementActivated' event with detailed payload check and call agreement process", async () => {
     const mockAttributeIdCertified = generateId<AttributeId>();
+    const mockAttributeIdCertifiedDiscrete = generateId<AttributeId>();
     const mockAttributeIdDeclared = generateId<AttributeId>();
     const mockAttributeIdVerified = generateId<AttributeId>();
     const mockAttributeIdCertifiedDiscrete = generateId<AttributeId>();
@@ -230,6 +233,14 @@ describe("handleAgreementMessageV2", () => {
     const certifiedAttribute: Attribute = {
       ...getMockAttribute("Certified", mockAttributeIdCertified),
       kind: "Certified",
+    };
+
+    const certifiedDiscreteAttribute: Attribute = {
+      ...getMockAttribute(
+        "CertifiedDiscrete",
+        mockAttributeIdCertifiedDiscrete
+      ),
+      kind: "CertifiedDiscrete",
     };
 
     const declaredAttribute: Attribute = {
@@ -252,6 +263,11 @@ describe("handleAgreementMessageV2", () => {
 
     const mockCertifiedAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+      revocationTimestamp: undefined,
+    };
+
+    const mockCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
+      ...getMockCertifiedDiscreteTenantAttribute(certifiedDiscreteAttribute.id),
       revocationTimestamp: undefined,
     };
 
@@ -283,8 +299,10 @@ describe("handleAgreementMessageV2", () => {
       state: "Published",
       attributes: {
         certified: [
-          [getMockEServiceAttribute(mockCertifiedAttribute.id)],
-          [getMockEServiceAttribute(mockCertifiedDiscreteAttribute.id)],
+          [
+            getMockEServiceAttribute(mockCertifiedAttribute.id),
+            getMockEServiceAttribute(mockCertifiedDiscreteAttribute.id),
+          ],
         ],
         declared: [[getMockEServiceAttribute(mockTenantDeclaredAttribute.id)]],
         verified: [[getMockEServiceAttribute(mockTenantVerifiedAttribute.id)]],
@@ -341,6 +359,14 @@ describe("handleAgreementMessageV2", () => {
       revocationTimestamp: undefined,
     };
 
+    const validTenantCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+      {
+        ...getMockCertifiedDiscreteTenantAttribute(
+          mockCertifiedDiscreteAttribute.id
+        ),
+        revocationTimestamp: undefined,
+      };
+
     const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(mockTenantDeclaredAttribute.id),
       revocationTimestamp: undefined,
@@ -364,6 +390,7 @@ describe("handleAgreementMessageV2", () => {
       selfcareId: generateId(),
       attributes: [
         validTenantCertifiedAttribute,
+        validTenantCertifiedDiscreteAttribute,
         validTenantDeclaredAttribute,
         validTenantVerifiedAttribute,
       ],
@@ -374,6 +401,7 @@ describe("handleAgreementMessageV2", () => {
     await addOneTenant(mockConsumer);
     await addOneEService(mockEService);
     await addOneAttribute(certifiedAttribute);
+    await addOneAttribute(certifiedDiscreteAttribute);
     await addOneAttribute(declaredAttribute);
     await addOneAttribute(verifiedAttribute);
     vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
@@ -433,6 +461,16 @@ describe("handleAgreementMessageV2", () => {
           ),
           attributeName: certifiedAttribute.name,
           attributeId: mockCertifiedAttribute.id,
+        },
+        {
+          assignmentDate: dateAtRomeZone(
+            validTenantCertifiedDiscreteAttribute.assignmentTimestamp
+          ),
+          assignmentTime: timeAtRomeZone(
+            validTenantCertifiedDiscreteAttribute.assignmentTimestamp
+          ),
+          attributeName: certifiedDiscreteAttribute.name,
+          attributeId: mockCertifiedDiscreteAttribute.id,
         },
       ],
       declaredAttributes: [

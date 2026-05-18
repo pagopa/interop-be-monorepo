@@ -132,19 +132,12 @@ const templateAttributeToTemplateAttributeSQL = ({
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind:
-    "discreteConfig" in attribute
-      ? attributeKind.certifiedDiscrete
-      : kind,
+  kind: "discreteConfig" in attribute ? attributeKind.certifiedDiscrete : kind,
   groupId,
   threshold:
-    "discreteConfig" in attribute
-      ? attribute.discreteConfig.threshold
-      : null,
+    "discreteConfig" in attribute ? attribute.discreteConfig.threshold : null,
   comparator:
-    "discreteConfig" in attribute
-      ? attribute.discreteConfig.comparator
-      : null,
+    "discreteConfig" in attribute ? attribute.discreteConfig.comparator : null,
 });
 
 const templateAttributesNestedArrayToTemplateAttributeSQLarray = (

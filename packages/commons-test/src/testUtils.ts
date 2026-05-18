@@ -83,7 +83,7 @@ import {
   EServiceTemplateAttribute,
   CertifiedDiscreteTenantAttribute,
   TenantRemoteId,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
   EServiceTemplateAttributeCertifiedDiscrete,
   EServiceAttributeCertifiedDiscreteConfig,
   attributeCertifiedDiscreteComparator,
@@ -298,7 +298,7 @@ export const getMockCertifiedDiscreteTenantAttribute = (
 export const getMockTenantRemoteId = (): TenantRemoteId => ({
   origin: "ISTAT",
   value: generateId(),
-  assignment_timestamp: new Date(),
+  assignmentTimestamp: new Date(),
 });
 
 export const getMockEServiceAttributeCertifiedDiscreteConfig =
@@ -307,9 +307,9 @@ export const getMockEServiceAttributeCertifiedDiscreteConfig =
     comparator: attributeCertifiedDiscreteComparator.GTE,
   });
 
-export const getMockEserviceAttributeCertifiedDiscrete = (
+export const getMockEServiceAttributeCertifiedDiscrete = (
   attributeId: AttributeId = generateId<AttributeId>()
-): EserviceAttributeCertifiedDiscrete => ({
+): EServiceAttributeCertifiedDiscrete => ({
   id: attributeId,
   explicitAttributeVerification: false,
   discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),

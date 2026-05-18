@@ -11,6 +11,11 @@ import {
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
+type SupportedAttributeKind =
+  | typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED
+  | typeof attributeRegistryApi.AttributeKind.Values.DECLARED
+  | typeof attributeRegistryApi.AttributeKind.Values.VERIFIED;
+
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -34,7 +39,7 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  attributeKind: SupportedAttributeKind,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):
@@ -52,14 +57,6 @@ function convertAttribute(
     };
     return match(attributeKind)
       .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
-        assertAttributeOriginAndCodeAreDefined(attribute);
-        return {
-          ...baseFields,
-          code: attribute.code,
-          origin: attribute.origin,
-        };
-      })
-      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE, () => {
         assertAttributeOriginAndCodeAreDefined(attribute);
         return {
           ...baseFields,
