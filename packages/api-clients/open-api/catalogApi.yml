@@ -92,6 +92,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: consumersIds
+          description: comma separated sequence of consumer IDs; restricts the result to e-services that have at least one agreement with one of the listed consumers
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: mode
           description: mode
           schema:
@@ -2729,6 +2739,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/eservices/{eServiceId}/personalDataFlag:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reset personalData flag for an eservice
+      operationId: maintenanceResetEServicePersonalDataFlag
+      description: Resets the personalData flag to undefined for the specified eservice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceResetEServicePersonalDataFlagPayload"
+        required: true
+      responses:
+        "204":
+          description: EService personalData flag reset
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
   /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2777,6 +2827,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+             
   /status:
     get:
       security: []
@@ -2824,7 +2875,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -2855,7 +2906,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -2879,7 +2930,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -3139,6 +3190,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3178,6 +3231,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3632,7 +3687,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceDelegationFlagsUpdateSeed:
@@ -3955,6 +4010,21 @@ components:
       required:
         - code
         - detail
+    MaintenanceResetEServicePersonalDataFlagPayload:
+      description: Maintenance payload to reset personalData flag
+      type: object
+      additionalProperties: false
+      properties:
+        currentVersion:
+          type: integer
+          format: int32
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - currentVersion
+        - reason
   securitySchemes:
     bearerAuth:
       type: http

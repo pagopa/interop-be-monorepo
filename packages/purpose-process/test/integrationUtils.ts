@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
-import {
   ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
@@ -31,8 +27,7 @@ import {
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
-import puppeteer, { Browser } from "puppeteer";
+import { afterEach, expect, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -100,24 +95,9 @@ const readModelService = readModelServiceBuilderSQL({
   tenantKindHistoryDB,
 });
 
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-export const pdfGenerator = await initPDFGenerator();
-
 export const purposeService = purposeServiceBuilder(
   postgresDB,
-  readModelService,
-  fileManager,
-  pdfGenerator
+  readModelService
 );
 
 export const addOneClient = async (client: Client): Promise<void> => {

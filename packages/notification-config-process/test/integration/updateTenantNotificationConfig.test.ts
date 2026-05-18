@@ -65,9 +65,11 @@ describe("updateTenantNotificationConfig", () => {
       updatedAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        expectedTenantNotificationConfig
+      ),
+    });
   });
 
   it("should throw tenantNotificationConfigNotFound if no notification config exists for the tenant", async () => {

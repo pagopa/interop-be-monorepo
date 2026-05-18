@@ -58,7 +58,8 @@ const errorCodes = {
   invalidPersonalData: "0038",
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
-  riskAnalysisTenantKindMismatch: "0041",
+  invalidFreeOfChargeReason: "0041",
+  riskAnalysisTenantKindMismatch: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -498,5 +499,16 @@ export function purposeFromTemplateCannotBeModified(
     detail: `Purpose ${purposeId} created from template ${purposeTemplateId} cannot be modified entirely`,
     code: "purposeFromTemplateCannotBeModified",
     title: "Purpose from template cannot be modified",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  isFreeOfCharge: boolean,
+  freeOfChargeReason: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }

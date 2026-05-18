@@ -43,6 +43,7 @@ import {
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   tenantIsNotTheConsumer,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -143,9 +144,13 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -254,9 +259,13 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -398,9 +407,12 @@ describe("createReversePurpose", () => {
       data: expectedPurpose,
       metadata: { version: 0 },
     });
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
 
     vi.useRealTimers();
   });
@@ -556,6 +568,60 @@ describe("createReversePurpose", () => {
       )
     ).rejects.toThrowError(
       eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
+    );
+  });
+  it(`should throw invalidFreeOfChargeReason if isFreeOfCharge is false and freeOfChargeReason is defined (seed #%#)`, async () => {
+    const consumer = getMockTenant();
+    const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      publishedAt: new Date(),
+      interface: getMockDocument(),
+    };
+
+    const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+    const mockEService: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      riskAnalysis: [mockRiskAnalysis],
+      descriptors: [mockDescriptor],
+      mode: eserviceMode.receive,
+    };
+
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(),
+      eserviceId: mockEService.id,
+      consumerId: consumer.id,
+      state: agreementState.active,
+    };
+
+    const isFreeOfCharge = false;
+    const freeOfChargeReason = "Some reason";
+    const reversePurposeSeed: purposeApi.ReversePurposeSeed = {
+      eserviceId: mockEService.id,
+      consumerId: consumer.id,
+      riskAnalysisId: mockRiskAnalysis.id,
+      title: "test purpose title",
+      description: "test purpose description",
+      isFreeOfCharge,
+      freeOfChargeReason,
+      dailyCalls: 1,
+    };
+
+    await addOneEService(mockEService);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(mockAgreement);
+
+    expect(
+      purposeService.createReversePurpose(
+        reversePurposeSeed,
+        getMockContext({ authData: getMockAuthData(consumer.id) })
+      )
+    ).rejects.toThrowError(
+      invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
     );
   });
   it("should throw missingFreeOfChargeReason if freeOfChargeReason has been omitted", async () => {

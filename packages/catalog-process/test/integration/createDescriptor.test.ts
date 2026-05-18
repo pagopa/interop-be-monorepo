@@ -528,6 +528,42 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+
+  it("should create a new descriptor when dailyCallsPerConsumer equals dailyCallsTotal", async () => {
+    const existingDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
+      state: descriptorState.published,
+    };
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 100,
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [existingDescriptor],
+    };
+
+    await addOneEService(eservice);
+
+    const createDescriptorResponse = await catalogService.createDescriptor(
+      eservice.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    expect(createDescriptorResponse.data.eservice.descriptors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createDescriptorResponse.data.createdDescriptorId,
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 100,
+        }),
+      ])
+    );
+  });
+
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptorSeed: catalogApi.EServiceDescriptorSeed = {

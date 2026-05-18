@@ -1,4 +1,8 @@
-import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   FileManager,
   validateAndStorePDFDocument,
@@ -13,7 +17,6 @@ import {
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 import {

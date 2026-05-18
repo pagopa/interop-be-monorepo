@@ -129,12 +129,13 @@ describe("create eservice", () => {
       ],
     };
 
-    expect(eserviceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEservice)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEserviceWithDescriptor)
-    );
+    expect(eserviceCreationPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+    });
+    expect(descriptorCreationPayload).toEqual({
+      descriptorId: eservice.data.descriptors[0].id,
+      eservice: toEServiceV2(expectedEserviceWithDescriptor),
+    });
     expect(eservice).toEqual({
       data: expectedEserviceWithDescriptor,
       metadata: { version: 1 },
@@ -230,12 +231,13 @@ describe("create eservice", () => {
       ],
     };
 
-    expect(eserviceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEservice)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEserviceWithDescriptor)
-    );
+    expect(eserviceCreationPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+    });
+    expect(descriptorCreationPayload).toEqual({
+      descriptorId: eservice.data.descriptors[0].id,
+      eservice: toEServiceV2(expectedEserviceWithDescriptor),
+    });
   });
 
   it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {

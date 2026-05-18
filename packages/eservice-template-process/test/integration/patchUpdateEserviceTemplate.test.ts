@@ -122,9 +122,9 @@ describe("update eserviceTemplate", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2(expectedEServiceTemplate)
-      );
+      expect(writtenPayload).toEqual({
+        eserviceTemplate: toEServiceTemplateV2(expectedEServiceTemplate),
+      });
       expect(updateEServiceTemplateReturn).toEqual({
         data: expectedEServiceTemplate,
         metadata: { version: 1 },
