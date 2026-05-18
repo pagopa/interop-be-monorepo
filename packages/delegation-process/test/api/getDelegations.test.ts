@@ -48,7 +48,7 @@ describe("API GET /delegations test", () => {
 
   const makeRequest = async (
     token: string,
-    query: typeof defaultQuery = defaultQuery
+    query: Partial<typeof defaultQuery> = defaultQuery
   ) =>
     request(api)
       .get("/delegations")
@@ -69,7 +69,17 @@ describe("API GET /delegations test", () => {
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const finalQuery: Partial<typeof defaultQuery> = {
+        ...defaultQuery,
+      };
+
+      if (role === authRole.API_ROLE) {
+        delete finalQuery.delegateIds;
+        delete finalQuery.delegatorIds;
+      }
+
+      const res = await makeRequest(token, { limit: 5, offset: 0 });
+
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegations);
     }
@@ -102,4 +112,16 @@ describe("API GET /delegations test", () => {
     const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
+
+  it.each([
+    { query: { ...defaultQuery, delegatorIds: `${generateId()}` } },
+    { query: { ...defaultQuery, delegateIds: `${generateId()}` } },
+  ])(
+    "Should return 403 if role is api and query includes delegatorIds and/or delegateIds",
+    async ({ query }) => {
+      const token = generateToken(authRole.API_ROLE);
+      const res = await makeRequest(token, query as typeof defaultQuery);
+      expect(res.status).toBe(403);
+    }
+  );
 });

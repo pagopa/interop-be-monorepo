@@ -73,14 +73,19 @@ const delegationRouter = (
       } = req.query;
 
       try {
-        validateAuthorization(ctx, [
+        const baseAuthorizedRoles = [
           ADMIN_ROLE,
-          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
-        ]);
+        ] as unknown as Parameters<typeof validateAuthorization>[1];
+
+        if (delegateIds?.length > 0 || delegatorIds?.length > 0) {
+          validateAuthorization(ctx, baseAuthorizedRoles);
+        } else {
+          validateAuthorization(ctx, [...baseAuthorizedRoles, API_ROLE]);
+        }
 
         const delegations = await delegationService.getDelegations(
           {
