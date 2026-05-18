@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "date-fns": "catalog:",
-    "date-fns-tz": "catalog:",
     "dotenv-flow": "catalog:",
     "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",

@@ -30,7 +30,7 @@ const PRODUCER_NOTIFICATION: NotificationType =
 const CONSUMER_NOTIFICATION: NotificationType =
   "eserviceStateChangedToConsumer";
 
-export type EmailReminderHandlerDeps = {
+type EmailReminderHandlerDeps = {
   readModelService: ReadModelServiceSQL;
   templateService: HtmlTemplateService;
   bffUrl: string;

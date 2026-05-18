@@ -1,7 +1,7 @@
 import { set, subDays } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 
-export type ComputeSendAtParams = {
+type ComputeSendAtParams = {
   archivableOn: Date;
   daysBeforeArchive: number;
   sendAtHour: number;

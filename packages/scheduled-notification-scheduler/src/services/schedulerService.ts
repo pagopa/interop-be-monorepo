@@ -16,7 +16,7 @@ import { computeSendAt } from "./sendAtCalculator.js";
 
 const SEND_AT_MARGIN_MINUTES = 5;
 
-export type ScheduleRemindersParams = {
+type ScheduleRemindersParams = {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   archivableOn: Date;
@@ -27,12 +27,12 @@ export type ScheduleRemindersParams = {
   now?: Date;
 };
 
-export type DeletePendingByEserviceScopeParams = {
+type DeletePendingByEserviceScopeParams = {
   eserviceId: EServiceId;
   eventType: SchedulableEventType;
 };
 
-export type DeletePendingByDescriptorScopeParams = {
+type DeletePendingByDescriptorScopeParams = {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   eventType: SchedulableEventType;

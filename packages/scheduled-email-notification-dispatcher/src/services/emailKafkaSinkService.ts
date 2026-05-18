@@ -41,5 +41,3 @@ export const emailKafkaSinkBuilder = (producer: Producer, log: Logger) => ({
     }
   },
 });
-
-export type EmailKafkaSink = ReturnType<typeof emailKafkaSinkBuilder>;

@@ -5422,9 +5422,6 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
-      date-fns-tz:
-        specifier: 'catalog:'
-        version: 3.2.0(date-fns@4.1.0)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5434,9 +5431,6 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 'catalog:'
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -5492,9 +5486,6 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
-      date-fns-tz:
-        specifier: 'catalog:'
-        version: 3.2.0(date-fns@4.1.0)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0

@@ -17,7 +17,3 @@ export function inAppNotificationSinkBuilder(
     },
   };
 }
-
-export type InAppNotificationSink = ReturnType<
-  typeof inAppNotificationSinkBuilder
->;
