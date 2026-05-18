@@ -2260,10 +2260,7 @@ export function catalogServiceBuilder(
       const descriptors = eservice.descriptors.map((d) =>
         d.state === descriptorState.archived
           ? d
-          : updateDescriptorState(
-              { ...d, archivingSchedule: undefined },
-              descriptorState.archived
-            )
+          : updateDescriptorState(d, descriptorState.archived)
       );
       const updatedEservice: EService = {
         ...eservice,
