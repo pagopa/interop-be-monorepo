@@ -286,6 +286,30 @@ const purposeRouter = (
       }
     )
     .post(
+      "/purposes/:purposeId/riskAnalysis/submit",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await purposeService.submitRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
+
+          return res.status(200).send(bffApi.CreatedResource.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error submitting risk analysis for purpose ${req.params.purposeId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
