@@ -110,7 +110,7 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
-  toCreateEventPurposeRiskAnalysisAssigned,
+  toCreateEventPurposeRiskAnalysisWorkflowCreated,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -482,7 +482,7 @@ export function purposeServiceBuilder(
       };
 
       const event = await repository.createEvent(
-        toCreateEventPurposeRiskAnalysisAssigned({
+        toCreateEventPurposeRiskAnalysisWorkflowCreated({
           purpose: updatedPurpose,
           version: purpose.metadata.version,
           correlationId,
@@ -490,7 +490,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose },
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: false },
         metadata: { version: event.newVersion },
       };
     },
