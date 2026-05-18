@@ -675,8 +675,7 @@ describe("update descriptor", () => {
               explicitAttributeVerification: false,
               discreteConfig: {
                 threshold: 10,
-                comparator:
-                  attributeCertifiedDiscreteComparator.GTE,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
               },
             },
           ],
@@ -705,8 +704,7 @@ describe("update descriptor", () => {
                 explicitAttributeVerification: false,
                 discreteConfig: {
                   threshold: 20,
-                  comparator:
-                    attributeCertifiedDiscreteComparator.GTE,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
                 },
               },
             ],

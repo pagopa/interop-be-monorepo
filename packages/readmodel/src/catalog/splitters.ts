@@ -3,7 +3,7 @@ import {
   EServiceId,
   EServiceAttribute,
   EServiceAttributeCertified,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
   DescriptorId,
   riskAnalysisAnswerKind,
   AttributeKind,
@@ -141,7 +141,7 @@ const attributeToAttributeSQL = ({
   attribute:
     | EServiceAttribute
     | EServiceAttributeCertified
-    | EserviceAttributeCertifiedDiscrete;
+    | EServiceAttributeCertifiedDiscrete;
   descriptorId: DescriptorId;
   groupId: number;
   kind: AttributeKind;
@@ -171,7 +171,7 @@ const attributesNestedArrayToAttributeSQLarray = (
     Array<
       | EServiceAttribute
       | EServiceAttributeCertified
-      | EserviceAttributeCertifiedDiscrete
+      | EServiceAttributeCertifiedDiscrete
     >
   >,
   kind: AttributeKind,

@@ -1,4 +1,5 @@
 import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { genericInternalError } from "../errors.js";
 import {
   AgreementApprovalPolicyV2,
   AttributeCertifiedDiscreteComparatorV2,
@@ -33,7 +34,7 @@ import {
   eserviceMode,
   EServiceAttribute,
   EServiceAttributeCertified,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
   Descriptor,
   EService,
   Document,
@@ -113,6 +114,10 @@ const fromAttributeCertifiedDiscreteComparatorV2 = (
       return attributeCertifiedDiscreteComparator.LTE;
     case AttributeCertifiedDiscreteComparatorV2.NE:
       return attributeCertifiedDiscreteComparator.NE;
+    case AttributeCertifiedDiscreteComparatorV2.ATTRIBUTE_CERTIFIED_DISCRETE_COMPARATOR_UNSPECIFIED:
+      throw genericInternalError(
+        "Unspecified AttributeCertifiedDiscreteComparator in protobuf event"
+      );
   }
 };
 
@@ -125,7 +130,7 @@ export const fromCertifiedDiscreteConfigV2 = (
 
 export const fromEServiceAttributeCertifiedV2 = (
   input: EServiceAttributeV2
-): (EserviceAttributeCertifiedDiscrete | EServiceAttributeCertified)[] =>
+): (EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified)[] =>
   input.values.map((attribute) => {
     const base: EServiceAttributeCertified = {
       id: unsafeBrandId(attribute.id),

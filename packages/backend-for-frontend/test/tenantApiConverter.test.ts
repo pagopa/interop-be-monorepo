@@ -259,10 +259,18 @@ describe("toBffApiTenant", () => {
       name: "tenant",
       attributes: [],
       mails: [],
+      remoteIds: [
+        {
+          origin: "IPA",
+          value: "remote-id",
+          assignmentTimestamp: now,
+        },
+      ],
     };
 
     const result = toBffApiTenant(tenant, [], [], [], new Map());
 
     expect(result.attributes.certifiedDiscrete).toStrictEqual([]);
+    expect(result.remoteIds).toStrictEqual(tenant.remoteIds);
   });
 });

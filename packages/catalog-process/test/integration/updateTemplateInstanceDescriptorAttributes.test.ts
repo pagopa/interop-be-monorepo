@@ -574,8 +574,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
                 dailyCallsPerConsumer,
                 discreteConfig: {
                   threshold: 10,
-                  comparator:
-                    attributeCertifiedDiscreteComparator.GTE,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
                 },
               },
             ],

@@ -242,6 +242,7 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
