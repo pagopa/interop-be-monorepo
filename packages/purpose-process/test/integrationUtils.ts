@@ -68,7 +68,7 @@ const { cleanup, postgresDB, fileManager, readModelDB, tenantKindHistoryDB } =
     inject("tenantKindHistoryDBConfig")
   );
 
-export { postgresDB, fileManager };
+export { postgresDB };
 
 afterEach(cleanup);
 
