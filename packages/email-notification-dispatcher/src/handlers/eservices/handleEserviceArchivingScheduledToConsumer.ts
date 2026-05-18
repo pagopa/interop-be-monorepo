@@ -3,6 +3,7 @@ import {
   EmailNotificationMessagePayload,
   fromEServiceV2,
   generateId,
+  genericError,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -40,6 +41,11 @@ export async function handleEserviceArchivingScheduledToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestDescriptor(eservice);
+  if (!descriptor.archivingSchedule) {
+    throw genericError(
+      `EServiceArchivingScheduled for eservice ${eservice.id} is missing archivingSchedule on its latest descriptor ${descriptor.id}`
+    );
+  }
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(
@@ -69,9 +75,9 @@ export async function handleEserviceArchivingScheduledToConsumer(
     return [];
   }
 
-  const archivableOn = descriptor.archivingSchedule
-    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
-    : undefined;
+  const archivableOn = dateAtRomeZone(
+    descriptor.archivingSchedule.archivableOn
+  );
   const subject = `Avvio archiviazione dell'e-service "${eservice.name}"`;
 
   return targets.flatMap((t) => {

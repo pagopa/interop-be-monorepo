@@ -3,6 +3,7 @@ import {
   EmailNotificationMessagePayload,
   fromEServiceV2,
   generateId,
+  genericError,
   missingKafkaMessageDataError,
   NotificationType,
   unsafeBrandId,
@@ -43,6 +44,11 @@ export async function handleEserviceDescriptorArchivingScheduledToProducer(
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
   const descriptor = retrieveDescriptor(eservice, descriptorId);
+  if (!descriptor.archivingSchedule) {
+    throw genericError(
+      `EServiceDescriptorArchivingScheduled for eservice ${eservice.id}, descriptor ${descriptor.id} is missing archivingSchedule`
+    );
+  }
 
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
@@ -66,9 +72,9 @@ export async function handleEserviceDescriptorArchivingScheduledToProducer(
     return [];
   }
 
-  const archivableOn = descriptor.archivingSchedule
-    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
-    : undefined;
+  const archivableOn = dateAtRomeZone(
+    descriptor.archivingSchedule.archivableOn
+  );
   const subject = `Avvio archiviazione della versione ${descriptor.version} dell'e-service "${eservice.name}"`;
 
   return targets.map((t) => ({
