@@ -3,7 +3,7 @@ import { eq, isNull } from "drizzle-orm";
 import { genericLogger } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import {
-  composeEntityId,
+  formatEServiceIdDescriptorId,
   schedulableEventType,
   scheduledNotification,
   scheduledNotificationChannel,
@@ -46,7 +46,7 @@ describe("scheduledNotificationScheduler integration", () => {
       .where(
         eq(
           scheduledNotification.entityId,
-          composeEntityId(eserviceId, descriptorId)
+          formatEServiceIdDescriptorId(eserviceId, descriptorId)
         )
       );
     expect(stored).toHaveLength(reminderDays.length * 2);
@@ -107,7 +107,7 @@ describe("scheduledNotificationScheduler integration", () => {
     expect(remaining).toHaveLength(6);
     const remainingEntityIds = new Set(remaining.map((r) => r.entityId));
     expect(remainingEntityIds).toEqual(
-      new Set([composeEntityId(eserviceId, descriptorB)])
+      new Set([formatEServiceIdDescriptorId(eserviceId, descriptorB)])
     );
   });
 

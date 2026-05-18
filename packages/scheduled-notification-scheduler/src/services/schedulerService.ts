@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { addMinutes } from "date-fns";
 import { and, eq, isNull, like, sql } from "drizzle-orm";
 import { Logger } from "pagopa-interop-commons";
@@ -7,8 +8,8 @@ import {
   SchedulableEventType,
   ScheduledNotificationChannel,
   ScheduledNotificationDrizzleReturnType,
-  composeEntityId,
-  eserviceEntityIdPrefix,
+  formatEServiceIdDescriptorId,
+  eServiceIdDescriptorIdPrefix,
   scheduledNotification,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
@@ -51,7 +52,7 @@ export const schedulerServiceBuilder = (
     tz,
     now,
   }: ScheduleRemindersParams): NewScheduledNotificationRow[] => {
-    const entityId = composeEntityId(eserviceId, descriptorId);
+    const entityId = formatEServiceIdDescriptorId(eserviceId, descriptorId);
     const cutoff = addMinutes(now ?? new Date(), SEND_AT_MARGIN_MINUTES);
     const channels: ScheduledNotificationChannel[] = [
       scheduledNotificationChannel.inApp,
@@ -71,6 +72,7 @@ export const schedulerServiceBuilder = (
       .filter(({ sendAt }) => sendAt > cutoff)
       .flatMap(({ sendAt }) =>
         channels.map((channel) => ({
+          id: randomUUID(),
           channel,
           eventType,
           entityId,
@@ -119,7 +121,7 @@ export const schedulerServiceBuilder = (
             eq(scheduledNotification.eventType, eventType),
             like(
               scheduledNotification.entityId,
-              `${eserviceEntityIdPrefix(eserviceId)}%`
+              `${eServiceIdDescriptorIdPrefix(eserviceId)}%`
             ),
             isNull(scheduledNotification.sentAt)
           )
@@ -138,7 +140,7 @@ export const schedulerServiceBuilder = (
             eq(scheduledNotification.eventType, eventType),
             eq(
               scheduledNotification.entityId,
-              composeEntityId(eserviceId, descriptorId)
+              formatEServiceIdDescriptorId(eserviceId, descriptorId)
             ),
             isNull(scheduledNotification.sentAt)
           )

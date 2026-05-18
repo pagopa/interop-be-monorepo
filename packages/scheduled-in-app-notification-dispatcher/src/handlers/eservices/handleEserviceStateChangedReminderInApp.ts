@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import {
   ScheduledNotificationRow,
-  parseEntityId,
+  parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
@@ -22,7 +22,9 @@ export async function handleEserviceStateChangedReminderInApp(
   readModelService: ReadModelServiceSQL,
   log: Logger
 ): Promise<NewNotification[]> {
-  const { eserviceId, descriptorId } = parseEntityId(row.entityId);
+  const { eserviceId, descriptorId } = parseEServiceIdDescriptorId(
+    row.entityId
+  );
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     log.warn(

@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS scheduled_notification;
 
 CREATE TABLE IF NOT EXISTS scheduled_notification.scheduled_notification (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     channel VARCHAR NOT NULL,
     event_type VARCHAR NOT NULL,
     entity_id VARCHAR NOT NULL,

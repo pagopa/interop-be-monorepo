@@ -2,18 +2,15 @@ import { z } from "zod";
 
 export const ScheduledNotificationDBConfig = z
   .object({
-    SCHEDULED_NOTIFICATION_DB_HOST: z.string().default("localhost"),
-    SCHEDULED_NOTIFICATION_DB_NAME: z.string().default("root"),
-    SCHEDULED_NOTIFICATION_DB_USERNAME: z.string().default("root"),
-    SCHEDULED_NOTIFICATION_DB_PASSWORD: z.string().default("root"),
-    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001).default(6008),
+    SCHEDULED_NOTIFICATION_DB_HOST: z.string(),
+    SCHEDULED_NOTIFICATION_DB_NAME: z.string(),
+    SCHEDULED_NOTIFICATION_DB_USERNAME: z.string(),
+    SCHEDULED_NOTIFICATION_DB_PASSWORD: z.string(),
+    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001),
     SCHEDULED_NOTIFICATION_DB_USE_SSL: z
       .enum(["true", "false"])
-      .transform((value) => value === "true")
-      .default("false"),
-    SCHEDULED_NOTIFICATION_DB_SCHEMA: z
-      .string()
-      .default("scheduled_notification"),
+      .transform((value) => value === "true"),
+    SCHEDULED_NOTIFICATION_DB_SCHEMA: z.string(),
   })
   .transform((c) => ({
     scheduledNotificationDBHost: c.SCHEDULED_NOTIFICATION_DB_HOST,

@@ -14,7 +14,7 @@ import { scheduledNotificationSchema } from "./pgSchema.js";
 export const scheduledNotification = scheduledNotificationSchema.table(
   "scheduled_notification",
   {
-    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    id: uuid("id").primaryKey().notNull(),
     channel: varchar("channel").notNull(),
     eventType: varchar("event_type").notNull(),
     entityId: varchar("entity_id").notNull(),

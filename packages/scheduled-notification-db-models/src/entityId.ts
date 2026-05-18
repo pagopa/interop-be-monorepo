@@ -1,18 +1,24 @@
-import { DescriptorId, EServiceId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  EServiceIdDescriptorId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 const SEPARATOR = "/";
 
-export const composeEntityId = (
+export const formatEServiceIdDescriptorId = (
   eserviceId: EServiceId,
   descriptorId: DescriptorId
-): string => `${eserviceId}${SEPARATOR}${descriptorId}`;
+): EServiceIdDescriptorId =>
+  EServiceIdDescriptorId.parse(`${eserviceId}${SEPARATOR}${descriptorId}`);
 
-export const parseEntityId = (
-  entityId: string
+export const parseEServiceIdDescriptorId = (
+  value: string
 ): { eserviceId: EServiceId; descriptorId: DescriptorId } => {
-  const [eserviceId, descriptorId, ...rest] = entityId.split(SEPARATOR);
+  const [eserviceId, descriptorId, ...rest] = value.split(SEPARATOR);
   if (!eserviceId || !descriptorId || rest.length > 0) {
-    throw new Error(`Invalid scheduled notification entity_id: ${entityId}`);
+    throw new Error(`Invalid scheduled notification entity_id: ${value}`);
   }
   return {
     eserviceId: unsafeBrandId<EServiceId>(eserviceId),
@@ -20,5 +26,5 @@ export const parseEntityId = (
   };
 };
 
-export const eserviceEntityIdPrefix = (eserviceId: EServiceId): string =>
+export const eServiceIdDescriptorIdPrefix = (eserviceId: EServiceId): string =>
   `${eserviceId}${SEPARATOR}`;

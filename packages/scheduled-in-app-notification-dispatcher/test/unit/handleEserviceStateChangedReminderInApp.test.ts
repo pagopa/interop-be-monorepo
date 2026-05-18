@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import {
   ScheduledNotificationRow,
-  composeEntityId,
+  formatEServiceIdDescriptorId,
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
@@ -83,7 +83,10 @@ const buildRow = (entityId: string): ScheduledNotificationRow => ({
 describe("handleEserviceStateChangedReminderInApp", () => {
   it("returns no notifications when the eservice is missing from the readmodel", async () => {
     const row = buildRow(
-      composeEntityId(generateId<EServiceId>(), generateId<DescriptorId>())
+      formatEServiceIdDescriptorId(
+        generateId<EServiceId>(),
+        generateId<DescriptorId>()
+      )
     );
     const readModelService = {
       getEServiceById: vi.fn().mockResolvedValue(undefined),
@@ -100,7 +103,9 @@ describe("handleEserviceStateChangedReminderInApp", () => {
     const descriptor = makeDescriptor();
     const otherDescriptorId = generateId<DescriptorId>();
     const eservice = makeEservice({ descriptors: [descriptor] });
-    const row = buildRow(composeEntityId(eservice.id, otherDescriptorId));
+    const row = buildRow(
+      formatEServiceIdDescriptorId(eservice.id, otherDescriptorId)
+    );
     const readModelService = {
       getEServiceById: vi.fn().mockResolvedValue(eservice),
     } as any;
@@ -154,7 +159,7 @@ describe("handleEserviceStateChangedReminderInApp", () => {
     } as any;
 
     const result = await handleEserviceStateChangedReminderInApp(
-      buildRow(composeEntityId(eservice.id, descriptor.id)),
+      buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
       readModelService,
       genericLogger
     );
@@ -199,7 +204,7 @@ describe("handleEserviceStateChangedReminderInApp", () => {
     } as any;
 
     const result = await handleEserviceStateChangedReminderInApp(
-      buildRow(composeEntityId(eservice.id, descriptor.id)),
+      buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
       readModelService,
       genericLogger
     );
