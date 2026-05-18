@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  EServiceTemplate,
+  EServiceTemplateId,
   generateId,
 } from "pagopa-interop-models";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
@@ -44,10 +44,10 @@ export async function main(): Promise<void> {
 
   if (
     config.fixListTenantKindRiskAnalysisEserviceTemplates &&
-    config.fixListTenantKindRiskAnalysisEserviceTemplates?.length > 0
+    config.fixListTenantKindRiskAnalysisEserviceTemplates.length > 0
   ) {
     const templates =
-      config.fixListTenantKindRiskAnalysisEserviceTemplates as unknown as EServiceTemplate["id"][];
+      config.fixListTenantKindRiskAnalysisEserviceTemplates as unknown as EServiceTemplateId[];
     const eserviceTemplatesProcessingResult =
       await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses(
         templates
