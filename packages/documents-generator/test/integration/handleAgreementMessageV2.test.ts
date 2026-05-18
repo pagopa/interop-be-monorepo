@@ -221,6 +221,7 @@ describe("handleAgreementMessageV2", () => {
     const mockAttributeIdCertified = generateId<AttributeId>();
     const mockAttributeIdDeclared = generateId<AttributeId>();
     const mockAttributeIdVerified = generateId<AttributeId>();
+    const mockAttributeIdCertifiedDiscrete = generateId<AttributeId>();
     const mockActivatorId = generateId<UserId>();
 
     const mockProducer: Tenant = getMockTenant();
@@ -239,6 +240,14 @@ describe("handleAgreementMessageV2", () => {
     const verifiedAttribute: Attribute = {
       ...getMockAttribute("Verified", mockAttributeIdVerified),
       kind: "Verified",
+    };
+
+    const certifiedDiscreteAttribute: Attribute = {
+      ...getMockAttribute(
+        "CertifiedDiscrete",
+        mockAttributeIdCertifiedDiscrete
+      ),
+      kind: "Certified",
     };
 
     const mockCertifiedAttribute: CertifiedTenantAttribute = {
@@ -264,11 +273,19 @@ describe("handleAgreementMessageV2", () => {
       revokedBy: [],
     };
 
+    const mockCertifiedDiscreteAttribute: CertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(certifiedDiscreteAttribute.id),
+      revocationTimestamp: undefined,
+    };
+
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: "Published",
       attributes: {
-        certified: [[getMockEServiceAttribute(mockCertifiedAttribute.id)]],
+        certified: [
+          [getMockEServiceAttribute(mockCertifiedAttribute.id)],
+          [getMockEServiceAttribute(mockCertifiedDiscreteAttribute.id)],
+        ],
         declared: [[getMockEServiceAttribute(mockTenantDeclaredAttribute.id)]],
         verified: [[getMockEServiceAttribute(mockTenantVerifiedAttribute.id)]],
       },
@@ -300,7 +317,10 @@ describe("handleAgreementMessageV2", () => {
         },
       },
 
-      certifiedAttributes: [getMockAgreementAttribute(certifiedAttribute.id)],
+      certifiedAttributes: [
+        getMockAgreementAttribute(certifiedAttribute.id),
+        getMockAgreementAttribute(certifiedDiscreteAttribute.id),
+      ],
       declaredAttributes: [getMockAgreementAttribute(declaredAttribute.id)],
       verifiedAttributes: [getMockAgreementAttribute(verifiedAttribute.id)],
     };
