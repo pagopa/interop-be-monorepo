@@ -17,6 +17,7 @@ import {
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
   DynamoDBClientConfig,
+  ScheduledNotificationDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -41,6 +42,8 @@ import {
   TEST_IN_APP_NOTIFICATION_DB_PORT,
   m2mEventDBContainer,
   TEST_M2M_EVENT_DB_PORT,
+  scheduledNotificationDBContainer,
+  TEST_SCHEDULED_NOTIFICATION_DB_PORT,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
@@ -63,6 +66,7 @@ declare module "vitest" {
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     m2mEventDbConfig?: M2MEventSQLDbConfig;
     dynamoDBClientConfig?: EnhancedDynamoDBClientConfig;
+    scheduledNotificationDbConfig?: ScheduledNotificationDBConfig;
   }
 }
 
@@ -91,6 +95,9 @@ export function setupTestContainersVitestGlobal() {
   );
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
+  const scheduledNotificationDbConfig = ScheduledNotificationDBConfig.safeParse(
+    process.env
+  );
 
   return async function ({
     provide,
@@ -105,6 +112,7 @@ export function setupTestContainersVitestGlobal() {
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
     let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
+    let startedScheduledNotificationContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -262,6 +270,20 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (scheduledNotificationDbConfig.success) {
+      startedScheduledNotificationContainer =
+        await scheduledNotificationDBContainer(
+          scheduledNotificationDbConfig.data
+        ).start();
+      provide("scheduledNotificationDbConfig", {
+        ...scheduledNotificationDbConfig.data,
+        scheduledNotificationDBPort:
+          startedScheduledNotificationContainer.getMappedPort(
+            TEST_SCHEDULED_NOTIFICATION_DB_PORT
+          ),
+      });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
@@ -273,6 +295,7 @@ export function setupTestContainersVitestGlobal() {
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
       await startedM2MEventSQLDbContainer?.stop();
+      await startedScheduledNotificationContainer?.stop();
     };
   };
 }

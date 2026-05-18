@@ -5,6 +5,7 @@ import {
   M2MEventSQLDbConfig,
   ReadModelSQLDbConfig,
   S3Config,
+  ScheduledNotificationDBConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -36,6 +37,9 @@ export const TEST_IN_APP_NOTIFICATION_DB_IMAGE = "postgres:14";
 
 export const TEST_M2M_EVENT_DB_PORT = 5432;
 export const TEST_M2M_EVENT_DB_IMAGE = "postgres:14";
+
+export const TEST_SCHEDULED_NOTIFICATION_DB_PORT = 5432;
+export const TEST_SCHEDULED_NOTIFICATION_DB_IMAGE = "postgres:14";
 
 /**
  * Starts a PostgreSQL container for testing purposes.
@@ -206,3 +210,20 @@ export const m2mEventDBContainer = (
       },
     ])
     .withExposedPorts(TEST_M2M_EVENT_DB_PORT);
+
+export const scheduledNotificationDBContainer = (
+  config: ScheduledNotificationDBConfig
+): GenericContainer =>
+  new GenericContainer(TEST_SCHEDULED_NOTIFICATION_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.scheduledNotificationDBName,
+      POSTGRES_USER: config.scheduledNotificationDBUsername,
+      POSTGRES_PASSWORD: config.scheduledNotificationDBPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/scheduled-notification-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_SCHEDULED_NOTIFICATION_DB_PORT);
