@@ -29927,6 +29927,7 @@ components:
         - title
     UpdateEServiceTemplateVersionSeed:
       required:
+        - description
         - voucherLifespan
         - attributes
       type: object

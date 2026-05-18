@@ -490,6 +490,7 @@ export function getMockedApiEserviceTemplateVersion({
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
+    description: "Mock template version description",
     state:
       state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),

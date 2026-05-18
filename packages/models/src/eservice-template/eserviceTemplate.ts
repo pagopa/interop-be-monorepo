@@ -55,7 +55,7 @@ export const EServiceTemplateVersion = z.object({
   deprecatedAt: z.coerce.date().optional(),
 
   // Values to be set in all e-service descriptor instances created from this template, not editable by the user
-  description: z.string().optional(),
+  description: z.string(),
   interface: Document.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),

@@ -16,6 +16,7 @@ import { config } from "../../../src/config/config.js";
 describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/quotas router test", () => {
   const mockVersion: eserviceTemplateApi.EServiceTemplateVersion = {
     id: generateId(),
+    description: "",
     state: "PUBLISHED",
     attributes: {
       declared: [],

@@ -1591,6 +1591,7 @@ components:
           nullable: true
     VersionSeedForEServiceTemplateCreation:
       required:
+        - description
         - voucherLifespan
       type: object
       additionalProperties: false
@@ -1620,6 +1621,7 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
     EServiceTemplateVersionSeed:
       required:
+        - description
         - voucherLifespan
         - attributes
         - docs
@@ -1657,6 +1659,7 @@ components:
             $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
     UpdateEServiceTemplateVersionSeed:
       required:
+        - description
         - voucherLifespan
         - attributes
       type: object
@@ -2119,6 +2122,7 @@ components:
       required:
         - id
         - version
+        - description
         - docs
         - state
         - creationDate

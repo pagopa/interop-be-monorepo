@@ -725,7 +725,7 @@ export const getMockBffApiEServiceTemplateUpdateSeed =
 
 export const getMockBffApiUpdateEServiceTemplateVersionSeed =
   (): bffApi.UpdateEServiceTemplateVersionSeed => ({
-    description: generateMock(z.string().min(10).max(250).optional()),
+    description: generateMock(z.string().min(10).max(250)),
     voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),
     dailyCallsPerConsumer: generateMock(
       z.number().int().gte(1).lte(1000000000).optional()

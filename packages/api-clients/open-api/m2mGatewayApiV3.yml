@@ -11943,6 +11943,7 @@ components:
       required:
         - id
         - version
+        - description
         - state
         - creationDate
         - voucherLifespan
@@ -12000,6 +12001,7 @@ components:
           type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
+        - description
         - voucherLifespan
       type: object
       additionalProperties: false
@@ -12101,6 +12103,7 @@ components:
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
       required:
+        - description
         - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
       type: object

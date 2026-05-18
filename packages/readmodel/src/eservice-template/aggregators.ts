@@ -113,7 +113,7 @@ export const aggregateEServiceTemplateVersion = ({
       verified: verifiedAttributes,
     },
     ...(parsedInterface ? { interface: parsedInterface } : {}),
-    ...(versionSQL.description ? { description: versionSQL.description } : {}),
+    description: versionSQL.description ?? "",
     ...(versionSQL.agreementApprovalPolicy
       ? {
           agreementApprovalPolicy: AgreementApprovalPolicy.parse(
