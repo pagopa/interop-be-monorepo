@@ -380,22 +380,6 @@ const updateDescriptorState = (
       state: newState,
       deprecatedAt: new Date(),
     }))
-    .with(
-      [descriptorState.deprecated, descriptorState.archiving],
-      [descriptorState.published, descriptorState.archiving],
-      [descriptorState.suspended, descriptorState.archivingSuspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivingSchedule: {
-          ...calculateArchivableOn(
-            new Date(),
-            config.gracePeriodArchivingEService
-          ),
-          scope: scope ?? archivingScope.descriptor,
-        },
-      })
-    )
     .otherwise(() => ({
       ...descriptor,
       state: newState,
