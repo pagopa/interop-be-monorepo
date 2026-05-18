@@ -1174,6 +1174,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               correlationId,
               authData,
+              eservice,
+              readModelService,
             });
           }
         )
@@ -1210,6 +1212,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               correlationId,
               authData,
+              eservice,
+              readModelService,
             })
         )
         .with(
@@ -2324,6 +2328,8 @@ async function activatePurposeLogic({
   purposeVersion,
   correlationId,
   authData,
+  eservice,
+  readModelService,
 }: {
   fromState:
     | typeof purposeVersionState.draft
@@ -2332,6 +2338,8 @@ async function activatePurposeLogic({
   purposeVersion: PurposeVersion;
   correlationId: CorrelationId;
   authData: UIAuthData | M2MAdminAuthData;
+  eservice: EService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;

@@ -5033,9 +5033,6 @@ importers:
       pagopa-interop-tenant-kind-history-db-models:
         specifier: workspace:*
         version: link:../tenant-kind-history-db-models
-      pg:
-        specifier: 'catalog:'
-        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -5561,7 +5558,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -5616,7 +5613,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
