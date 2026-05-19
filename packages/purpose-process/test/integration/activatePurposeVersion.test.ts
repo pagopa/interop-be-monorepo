@@ -1571,7 +1571,7 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should not require tenant kind check when document generation is not used", async () => {
-    const consumer: Tenant = { ...mockConsumer, kind: undefined };
+    const consumer: Tenant = { ...mockConsumer, kind: tenantKind.PA };
     const eservice: EService = {
       ...mockEService,
       mode: eserviceMode.deliver,
