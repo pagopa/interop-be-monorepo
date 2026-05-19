@@ -4,6 +4,24 @@ name: pagopa-interop
 volumes:
   readmodel-volume:
   ses-mock-npm-global:
+  ses-mock-npm-cache:
+  event-store-data:
+  readmodel-sql-data:
+  in-app-notification-manager-sql-data:
+  domains-analytics-sql-data:
+  m2m-event-sql-data:
+  digest-tracking-sql-data:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
+  kafka-logs:
+  connect-data:
+  connect-logs:
+  pg-admin-data:
+  elasticmq-data:
+  mailpit-data:
+  local-kms-data:
+  redis-data:
 
 services:
   # Event Store Postgres DB
@@ -12,11 +30,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - event-store-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6001:5432
@@ -32,11 +50,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./readmodel-db:/docker-entrypoint-initdb.d
+      - readmodel-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6002:5433
@@ -51,11 +69,11 @@ services:
   in-app-notification-manager-sql:
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./in-app-notification-db:/docker-entrypoint-initdb.d
+      - in-app-notification-manager-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6004:5433
@@ -71,11 +89,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./domains-analytics-db:/docker-entrypoint-initdb.d
+      - domains-analytics-sql-data:/var/lib/postgresql/data
     image: postgres:15
     ports:
       - 6003:5434
@@ -90,11 +108,11 @@ services:
   m2m-event-sql:
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./m2m-event-db:/docker-entrypoint-initdb.d
+      - m2m-event-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6006:5433
@@ -108,11 +126,11 @@ services:
   digest-tracking-sql:
     read_only: true
     tmpfs:
-      - /var/lib/postgresql/data
       - /var/run/postgresql
       - /tmp
     volumes:
       - ./digest-tracking-db:/docker-entrypoint-initdb.d
+      - digest-tracking-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6007:5433
@@ -128,10 +146,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /zookeeper/data
-      - /zookeeper/logs
       - /zookeeper/conf
       - /tmp
+    volumes:
+      - zookeeper-data:/zookeeper/data
+      - zookeeper-logs:/zookeeper/logs
     image: quay.io/debezium/zookeeper:2.3
 
   # Kafka server
@@ -140,10 +159,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /kafka/data
-      - /kafka/logs
       - /kafka/config
       - /tmp
+    volumes:
+      - kafka-data:/kafka/data
+      - kafka-logs:/kafka/logs
     image: quay.io/debezium/kafka:2.3
     ports:
       - 9092:9092
@@ -165,10 +185,11 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /kafka/data
-      - /kafka/logs
       - /kafka/config
       - /tmp
+    volumes:
+      - connect-data:/kafka/data
+      - connect-logs:/kafka/logs
     image: quay.io/debezium/connect:2.3
     ports:
       - 8083:8083
@@ -241,7 +262,6 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /var/lib/pgadmin
       - /tmp
       - /var/log/pgadmin
     image: dpage/pgadmin4:2024-04-01-1
@@ -256,6 +276,7 @@ services:
     volumes:
       - ./pg-servers.json:/pgadmin4/servers.json
       - ./pg-pass:/pgadmin4/pgpass
+      - pg-admin-data:/var/lib/pgadmin
     # see https://stackoverflow.com/a/69475874/846273
     entrypoint: >
       /bin/sh -c "
@@ -338,13 +359,13 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /data
     image: softwaremill/elasticmq-native:1.5.7
     ports:
       - 9324:9324
       - 9325:9325
     volumes:
       - ./elasticmq.local.conf:/opt/elasticmq.conf
+      - elasticmq-data:/data
     restart: always
 
   # Mailpit is a local SMTP server, to replace AWS SES in local development
@@ -354,7 +375,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /data
+    volumes:
+      - mailpit-data:/data
     image: axllent/mailpit:v1.19
     ports:
       - 8025:8025
@@ -367,7 +389,6 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /data
     image: nsmithuk/local-kms:3.11.7
     ports:
       - 4566:4566
@@ -376,6 +397,7 @@ services:
       KMS_REGION: eu-south-1
     volumes:
       - ./local-kms-seed/seed.yaml:/init/seed.yaml
+      - local-kms-data:/data
 
   # HTTP server to simulate well-known JWKS endpoint
   jwks:
@@ -399,9 +421,9 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /root/.npm
     volumes:
       - ses-mock-npm-global:/root/.npm-global
+      - ses-mock-npm-cache:/root/.npm
     image: node:20
     ports:
       - 8005:8005
@@ -414,7 +436,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /data
+    volumes:
+      - redis-data:/data
     image: "redis:7.2.5-alpine3.20"
     ports:
       - "6379:6379"
