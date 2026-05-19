@@ -302,23 +302,21 @@ const getAllEserviceConsumers = async (
     })
   );
 
-const getAllProducerKeychainsByEService = async (
+const getProducerKeychainFlagsByEService = async (
   authorizationClient: AuthorizationProcessClient,
   headers: Headers,
   eServiceId: EServiceId,
   producerId: TenantId
-): Promise<authorizationApi.ProducerKeychain[]> =>
-  await getAllFromPaginated(async (offset, limit) =>
-    authorizationClient.producerKeychain.getProducerKeychains({
-      headers,
-      queries: {
-        eserviceId: eServiceId,
-        producerId,
-        offset,
-        limit,
-      },
-    })
-  );
+): Promise<authorizationApi.ProducerKeychainEServiceFlags> =>
+  await authorizationClient.producerKeychain.getProducerKeychainEServiceFlags({
+    headers,
+    params: {
+      eserviceId: eServiceId,
+    },
+    queries: {
+      producerId,
+    },
+  });
 
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
@@ -405,13 +403,13 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const [attributes, producerKeychains] = await Promise.all([
+      const [attributes, producerKeychainFlags] = await Promise.all([
         getAllBulkAttributes(
           attributeProcessClient,
           headers,
           descriptorAttributeIds
         ),
-        getAllProducerKeychainsByEService(
+        getProducerKeychainFlagsByEService(
           authorizationClient,
           headers,
           eserviceId,
@@ -419,12 +417,8 @@ export function catalogServiceBuilder(
         ),
       ]);
 
-      const hasProducerKeychain = producerKeychains.length > 0;
-      const hasProducerKeychainKeys = producerKeychains.some(
-        (keychain) =>
-          keychain.visibility === authorizationApi.Visibility.Values.FULL &&
-          keychain.keys.length > 0
-      );
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        producerKeychainFlags;
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -926,11 +920,18 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await getAllBulkAttributes(
-        attributeProcessClient,
-        headers,
-        attributeIds
-      );
+      const [attributes, producerKeychainFlags] = await Promise.all([
+        getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
+        getProducerKeychainFlagsByEService(
+          authorizationClient,
+          headers,
+          eserviceId,
+          unsafeBrandId<TenantId>(eservice.producerId)
+        ),
+      ]);
+
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        producerKeychainFlags;
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -1003,7 +1004,9 @@ export function catalogServiceBuilder(
           producerTenant,
           agreements,
           requesterTenant,
-          consumerDelegators
+          consumerDelegators,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
         ),
       };
     },

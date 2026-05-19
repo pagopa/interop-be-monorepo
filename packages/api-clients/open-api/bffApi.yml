@@ -26335,6 +26335,8 @@ components:
         - hasCertifiedAttributes
         - isSubscribed
         - agreements
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26371,6 +26373,10 @@ components:
               - the requester is the delegated consumer for the eservice and
                 the delegator has the certified attributes required to consume the eservice
         isSubscribed:
+          type: boolean
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
