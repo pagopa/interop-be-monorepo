@@ -62,6 +62,8 @@ const errorCodes = {
   reviewerWorkflowNotFound: "0043",
   reviewerWorkflowNotInDraftState: "0044",
   requesterIsNotTheWriter: "0045",
+  reviewerWorkflowNotInPendingSignatureState: "0046",
+  requesterIsNotTheSigner: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -540,5 +542,25 @@ export function requesterIsNotTheWriter(
     detail: `Requester is not authorized to write the risk analysis for purpose ${purposeId}`,
     code: "requesterIsNotTheWriter",
     title: "Requester is not the writer",
+  });
+}
+
+export function reviewerWorkflowNotInPendingSignatureState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in PendingSignature state`,
+    code: "reviewerWorkflowNotInPendingSignatureState",
+    title: "Reviewer workflow not in pending signature state",
+  });
+}
+
+export function requesterIsNotTheSigner(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester is not authorized to sign the risk analysis for purpose ${purposeId}`,
+    code: "requesterIsNotTheSigner",
+    title: "Requester is not the signer",
   });
 }
