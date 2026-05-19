@@ -1,8 +1,15 @@
 import { match } from "ts-pattern";
-import { EServiceTemplate } from "pagopa-interop-models";
-import { EService } from "pagopa-interop-models";
-import { DelegationApprovedRejectedToDelegatorEventType } from "../handlers/delegations/handleDelegationApprovedRejectedToDelegator.js";
-import { EserviceNewVersionApprovedRejectedToDelegateEventType } from "../handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
+import { EService, EServiceTemplate } from "pagopa-interop-models";
+
+export type DelegationApprovedRejectedToDelegatorEventType =
+  | "ProducerDelegationApproved"
+  | "ConsumerDelegationApproved"
+  | "ProducerDelegationRejected"
+  | "ConsumerDelegationRejected";
+
+export type EserviceNewVersionApprovedRejectedToDelegateEventType =
+  | "EServiceDescriptorApprovedByDelegator"
+  | "EServiceDescriptorRejectedByDelegator";
 
 export const inAppTemplates = {
   // agreements - erogazione

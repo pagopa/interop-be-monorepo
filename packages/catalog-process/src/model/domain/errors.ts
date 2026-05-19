@@ -604,3 +604,12 @@ export function descriptorArchivingNotCancelableByScope(
     title: "Descriptor archiving not cancelable by scope",
   });
 }
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}

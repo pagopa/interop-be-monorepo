@@ -12,7 +12,7 @@ import {
   UserRole,
   generateId,
 } from "pagopa-interop-models";
-import { getRecipientsForTenants } from "../src/handlers/handlerCommons.js";
+import { getRecipientsForTenants } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 describe("getRecipientsForTenants", () => {
@@ -120,7 +120,8 @@ describe("getRecipientsForTenants", () => {
       readModelService.getTenantUsersWithNotificationEnabled
     ).toHaveBeenCalledWith(
       tenants.map((tenant) => tenant.id),
-      "agreementActivatedRejectedToConsumer"
+      "agreementActivatedRejectedToConsumer",
+      "email"
     );
   });
 

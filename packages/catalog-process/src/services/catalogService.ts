@@ -156,10 +156,12 @@ import {
   toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
   toCreateEventEServiceArchivingScheduled,
+  toCreateEventEServiceDescriptorArchivingCompleted,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
   getPreviousDescriptorByStates,
+  isLatestActiveDescriptorVersion,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -194,9 +196,11 @@ import {
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
+  assertDescriptorInRequiredStates,
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
   assertEServiceArchivable,
+  assertDescriptorIsNotAlreadyArchived,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -346,22 +350,31 @@ const updateDescriptorState = (
         publishedAt: new Date(),
       })
     )
-    .with([descriptorState.published, descriptorState.suspended], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: new Date(),
-    }))
-    .with([descriptorState.suspended, descriptorState.published], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-    }))
+    .with(
+      [descriptorState.published, descriptorState.suspended],
+      [descriptorState.deprecated, descriptorState.suspended],
+      [descriptorState.archiving, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: new Date(),
+      })
+    )
     .with([descriptorState.suspended, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
       suspendedAt: undefined,
       deprecatedAt: new Date(),
     }))
+    .with(
+      [descriptorState.suspended, descriptorState.published],
+      [descriptorState.archivingSuspended, descriptorState.archiving],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: undefined,
+      })
+    )
     .with([descriptorState.suspended, descriptorState.archived], () => ({
       ...descriptor,
       state: newState,
@@ -371,6 +384,8 @@ const updateDescriptorState = (
     .with(
       [descriptorState.published, descriptorState.archived],
       [descriptorState.deprecated, descriptorState.archived],
+      [descriptorState.archiving, descriptorState.archived],
+      [descriptorState.archivingSuspended, descriptorState.archived],
       () => ({
         ...descriptor,
         state: newState,
@@ -400,7 +415,7 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-const archiveDescriptor = (
+const archiveDescriptorLogic = (
   streamId: string,
   descriptor: Descriptor,
   logger: Logger
@@ -1780,16 +1795,17 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      if (
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.archiving,
+      ]);
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
-        descriptorState.suspended
+        descriptor.state === descriptorState.archiving
+          ? descriptorState.archivingSuspended
+          : descriptorState.suspended
       );
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
@@ -1834,82 +1850,47 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      if (descriptor.state !== descriptorState.suspended) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.suspended, // --> to published or deprecated
+        descriptorState.archivingSuspended, // --> to archiving
+      ]);
+
+      const resolveTargetState = () => {
+        if (descriptor.state === descriptorState.archivingSuspended) {
+          return descriptorState.archiving;
+        }
+        const isMostRecent = isLatestActiveDescriptorVersion(
+          descriptor,
+          eservice.data.descriptors
+        );
+        return isMostRecent
+          ? descriptorState.published
+          : descriptorState.deprecated;
+      };
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
-        descriptorState.published
+        resolveTargetState()
       );
-      const descriptorVersions: number[] = eservice.data.descriptors
-        .filter(
-          (d: Descriptor) =>
-            d.state === descriptorState.suspended ||
-            d.state === descriptorState.deprecated ||
-            d.state === descriptorState.published
+
+      const updatedEserviceData = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorActivated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEserviceData,
+          correlationId
         )
-        .map((d: Descriptor) => parseInt(d.version, 10));
-      const recentDescriptorVersion = Math.max(...descriptorVersions);
-
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const createActivationEvent = async () => {
-        if (
-          recentDescriptorVersion !== null &&
-          parseInt(descriptor.version, 10) === recentDescriptorVersion
-        ) {
-          const newEservice = replaceDescriptor(
-            eservice.data,
-            updatedDescriptor
-          );
-
-          const event = await repository.createEvent(
-            toCreateEventEServiceDescriptorActivated(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              newEservice,
-              correlationId
-            )
-          );
-
-          return {
-            data: newEservice,
-            metadata: {
-              version: event.newVersion,
-            },
-          };
-        } else {
-          const newEservice = replaceDescriptor(
-            eservice.data,
-            deprecateDescriptor(eserviceId, descriptor, logger)
-          );
-
-          const event = await repository.createEvent(
-            toCreateEventEServiceDescriptorActivated(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              newEservice,
-              correlationId
-            )
-          );
-          return {
-            data: newEservice,
-            metadata: {
-              version: event.newVersion,
-            },
-          };
-        }
-      };
-
-      const response = await createActivationEvent();
+      );
 
       return {
-        data: response.data,
-        metadata: {
-          version: response.metadata.version,
-        },
+        data: updatedEserviceData,
+        metadata: { version: event.newVersion },
       };
     },
 
@@ -2054,15 +2035,18 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      archivingKindSeed: catalogApi.ArchivingKindSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} with kind ${archivingKindSeed.kind}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorIsNotAlreadyArchived(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
         descriptor,
         descriptorState.archived
@@ -2070,16 +2054,26 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorArchived(
-        eserviceId,
-        eservice.metadata.version,
-        descriptorId,
-        newEservice,
-        correlationId
-      );
+      const event =
+        archivingKindSeed.kind === "AUTOMATIC"
+          ? toCreateEventEServiceDescriptorArchived(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
+          : toCreateEventEServiceDescriptorArchivingCompleted(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            );
 
       await repository.createEvent(event);
     },
+
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -4181,7 +4175,7 @@ const processDescriptorPublication = async (
     eserviceWithPublishedDescriptor,
     hasAgreements
       ? deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
-      : archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
 
@@ -4645,5 +4639,4 @@ const buildInstanceName = ({
     : templateName;
   return { parsedInstanceLabel, instanceName };
 };
-
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

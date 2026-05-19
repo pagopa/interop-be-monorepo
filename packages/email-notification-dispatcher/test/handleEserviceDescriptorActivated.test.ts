@@ -21,7 +21,10 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { descriptorNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  descriptorNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handleEserviceDescriptorActivated } from "../src/handlers/eservices/handleEserviceDescriptorActivated.js";
 import {
   addOneAgreement,

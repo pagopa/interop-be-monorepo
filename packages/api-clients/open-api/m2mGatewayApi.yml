@@ -7092,10 +7092,12 @@ paths:
     post:
       tags:
         - eservices
-      summary: Suspend an E-Service Descriptor in Published or Deprecated state
+      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving
+        state
       operationId: suspendDescriptor
-      description: Suspend an E-Service Descriptor that is in Published or Deprecated
-        state, transitioning it to Suspended state
+      description: Suspend an E-Service Descriptor that is in Published, Deprecated or
+        Archiving state, transitioning it to Suspended state or in
+        ArchivingSuspended if previous state was Archiving
       parameters:
         - name: eserviceId
           in: path
@@ -7194,9 +7196,11 @@ paths:
     post:
       tags:
         - eservices
-      summary: Unsuspend an E-Service Descriptor in Suspended state
-      description: Unsuspend an E-Service Descriptor that is in Suspended state,
-        transitioning it to Active or Deprecated state
+      summary: Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended
+        state
+      description: Unsuspend an E-Service Descriptor that is in Suspended or
+        ArchivingSuspended state, transitioning it to Active, Deprecated or
+        Archiving state
       operationId: unsuspendDescriptor
       parameters:
         - name: eserviceId

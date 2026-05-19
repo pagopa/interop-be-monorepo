@@ -54,6 +54,7 @@ import {
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
+  descriptorAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -599,5 +600,13 @@ export function assertDescriptorArchivingIsNotEserviceScoped(
 ): void {
   if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
     throw descriptorArchivingNotCancelableByScope(descriptor.id);
+  }
+}
+
+export function assertDescriptorIsNotAlreadyArchived(
+  descriptor: Descriptor
+): void {
+  if (descriptor.state === descriptorState.archived) {
+    throw descriptorAlreadyArchived(descriptor.id);
   }
 }
