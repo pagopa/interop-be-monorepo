@@ -30,9 +30,7 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix
     purposeId: PurposeId = mockPurpose.id
   ) =>
     request(api)
-      .post(
-        `/maintenance/purposes/${purposeId}/riskAnalysis/tenantKind/fix`
-      )
+      .post(`/maintenance/purposes/${purposeId}/riskAnalysis/tenantKind/fix`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -63,9 +61,7 @@ describe("API POST /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix
   it("Should return 404 for eserviceNotFound", async () => {
     purposeService.fixPurposeRiskAnalysisTenantKind = vi
       .fn()
-      .mockRejectedValue(
-        eserviceNotFound(generateId<EServiceId>())
-      );
+      .mockRejectedValue(eserviceNotFound(generateId<EServiceId>()));
 
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
