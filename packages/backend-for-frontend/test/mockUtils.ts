@@ -207,6 +207,8 @@ export const getMockBffApiProducerEServiceDetails =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     isConsumerDelegable: generateMock(z.boolean().optional()),
     isClientAccessDelegable: generateMock(z.boolean().optional()),
+    asyncExchange: generateMock(z.boolean().optional()),
+    latestActiveDescriptorId: generateId(),
   });
 
 export const getMockBffApiCatalogEServiceDescriptor =
