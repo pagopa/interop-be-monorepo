@@ -46,13 +46,49 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     async getAllReadModelEServices(): Promise<EService[]> {
       const eservicesSQL = await readModelDB
         .select()
-        .from(eserviceInReadmodelCatalog);
-      const descriptorsSQL = await readModelDB
-        .select()
-        .from(eserviceDescriptorInReadmodelCatalog);
-      const asyncExchangePropertiesSQL = await readModelDB
-        .select()
-        .from(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog);
+        .from(eserviceInReadmodelCatalog)
+        .where(eq(eserviceInReadmodelCatalog.asyncExchange, true));
+      const descriptorsSQL = (
+        await readModelDB
+          .select({ descriptor: eserviceDescriptorInReadmodelCatalog })
+          .from(eserviceDescriptorInReadmodelCatalog)
+          .innerJoin(
+            eserviceInReadmodelCatalog,
+            and(
+              eq(
+                eserviceDescriptorInReadmodelCatalog.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                eserviceDescriptorInReadmodelCatalog.metadataVersion,
+                eserviceInReadmodelCatalog.metadataVersion
+              ),
+              eq(eserviceInReadmodelCatalog.asyncExchange, true)
+            )
+          )
+      ).map(({ descriptor }) => descriptor);
+      const asyncExchangePropertiesSQL = (
+        await readModelDB
+          .select({
+            asyncExchangeProperties:
+              eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+          })
+          .from(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+          .innerJoin(
+            eserviceInReadmodelCatalog,
+            and(
+              eq(
+                eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.metadataVersion,
+                eserviceInReadmodelCatalog.metadataVersion
+              ),
+              eq(eserviceInReadmodelCatalog.asyncExchange, true)
+            )
+          )
+      ).map(({ asyncExchangeProperties }) => asyncExchangeProperties);
 
       return aggregateEserviceArray({
         eservicesSQL,
