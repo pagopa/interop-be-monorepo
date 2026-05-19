@@ -42,6 +42,7 @@ const rolePayloadMap = {
   [systemRole.INTERNAL_ROLE]: createInternalPayload,
   [systemRole.MAINTENANCE_ROLE]: createMaintenancePayload,
   [userRole.ADMIN_ROLE]: createUserPayload,
+  [userRole.REVIEWER_ROLE]: createUserPayload,
   [userRole.API_ROLE]: createUserPayload,
   [userRole.SECURITY_ROLE]: createUserPayload,
   [userRole.SUPPORT_ROLE]: createUserPayload,
