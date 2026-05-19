@@ -298,6 +298,15 @@ paths:
             type: boolean
             default: false
         - in: query
+          name: reviewerId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: signingState
+          schema:
+            $ref: "#/components/schemas/RiskAnalysisSigningState"
+        - in: query
           name: offset
           required: true
           schema:
@@ -1594,6 +1603,13 @@ components:
       enum:
         - REVIEWER_WRITES_REVIEWER_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - PENDING_SIGNATURE
+        - SIGNED
     RiskAnalysisAssignmentSeed:
       type: object
       additionalProperties: false
