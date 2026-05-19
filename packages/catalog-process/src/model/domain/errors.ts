@@ -67,6 +67,7 @@ const errorCodes = {
   certifiedAttributeGroupNotFoundInSeed: "0049",
   eserviceInArchivingOrArchivedState: "0050",
   descriptorArchivingNotCancelableByScope: "0051",
+  descriptorAlreadyArchived: "0052",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -590,5 +591,14 @@ export function descriptorArchivingNotCancelableByScope(
     detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
     code: "descriptorArchivingNotCancelableByScope",
     title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
   });
 }
