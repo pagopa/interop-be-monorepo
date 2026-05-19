@@ -100,10 +100,6 @@ const getAttributesData = async (
         () => agreement.certifiedAttributes || []
       )
       .with(
-        tenantAttributeType.CERTIFIED_DISCRETE,
-        () => agreement.certifiedDiscreteAttributes || []
-      )
-      .with(
         tenantAttributeType.DECLARED,
         () => agreement.declaredAttributes || []
       )
