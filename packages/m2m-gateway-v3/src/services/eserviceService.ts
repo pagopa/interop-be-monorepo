@@ -994,6 +994,32 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
+    async cancelEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Canceling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.cancelEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

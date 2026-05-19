@@ -943,9 +943,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Suspend the selected descriptor.
+      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving state
       operationId: suspendDescriptor
-      description: Suspends the specified descriptor
+      description: Suspend an E-Service Descriptor that is in Published, Deprecated or Archiving state, transitioning it to Suspended state or in ArchivingSuspended if previous state was Archiving
       parameters:
         - name: eServiceId
           in: path
@@ -1080,9 +1080,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     post:
       security:
         - bearerAuth: []
@@ -1092,6 +1090,7 @@ paths:
       operationId: archiveDescriptor
       description: Archives the specified descriptor
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId
           in: path
           description: the eservice id
@@ -1106,6 +1105,13 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArchivingKindSeed"
       responses:
         "204":
           description: E-Service Descriptor archived
@@ -1115,8 +1121,20 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
-          description: Not found
+          description: E-Service or Descriptor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1231,6 +1249,48 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel e-service descriptor archiving process
+      operationId: cancelEServiceDescriptorArchiving
+      description: Cancels the archiving process of the specified E-Service descriptor if it is in archiving or archivingSuspended state
+      responses:
+        "200":
+          description: E-service descriptor archiving process canceled.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input or e-service descriptor is not in archiving or archivingSuspended state
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -3821,6 +3881,19 @@ components:
       enum:
         - ESERVICE
         - DESCRIPTOR
+        
+    ArchivingKindSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Kind Seed
+      properties:
+        kind:
+          type: string
+          enum:
+            - AUTOMATIC
+            - MANUAL
+      required:
+        - kind
     Attribute:
       type: object
       additionalProperties: false

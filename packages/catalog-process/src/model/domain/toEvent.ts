@@ -931,6 +931,25 @@ export const toCreateEventEServiceDescriptorArchivingScheduled = (
   correlationId,
 });
 
+export const toCreateEventEServiceDescriptorArchivingCanceled = (
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingCanceled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      descriptorId,
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventMaintenanceEServicePersonalDataFlagReset = (
   version: number,
   eservice: EService,
@@ -945,6 +964,26 @@ export const toCreateEventMaintenanceEServicePersonalDataFlagReset = (
     data: {
       eservice: toEServiceV2(eservice),
       reason,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchivingCompleted = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingCompleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
     },
   },
   correlationId,

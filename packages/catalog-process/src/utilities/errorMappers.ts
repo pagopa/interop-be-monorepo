@@ -189,6 +189,7 @@ export const createDescriptorErrorMapper = (
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
+      "eserviceInArchivingOrArchivedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -354,6 +355,7 @@ export const archiveDescriptorErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("descriptorAlreadyArchived", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createRiskAnalysisErrorMapper = (
@@ -723,8 +725,13 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "operationForbidden",
+      "descriptorArchivingNotCancelableByScope",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceResetEServicePersonalDataFlagErrorMapper = (
