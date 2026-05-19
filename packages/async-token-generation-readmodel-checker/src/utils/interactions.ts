@@ -1,4 +1,5 @@
 import { dateToSeconds, Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   AsyncPlatformStatesCatalogEntry,
   Interaction,
@@ -16,28 +17,25 @@ import { ReadModelContext } from "./readModelContext.js";
 
 const getInteractionRequiredTimestampFields = (
   interaction: Interaction
-): Array<keyof Interaction> => {
-  switch (interaction.state) {
-    case interactionState.startInteraction:
-      return ["startInteractionTokenIssuedAt"];
-    case interactionState.callbackInvocation:
-      return [
-        "startInteractionTokenIssuedAt",
-        "callbackInvocationTokenIssuedAt",
-      ];
-    case interactionState.getResource:
-      return [
-        "startInteractionTokenIssuedAt",
-        "callbackInvocationTokenIssuedAt",
-      ];
-    case interactionState.confirmation:
-      return [
-        "startInteractionTokenIssuedAt",
-        "callbackInvocationTokenIssuedAt",
-        "confirmationTokenIssuedAt",
-      ];
-  }
-};
+): Array<keyof Interaction> =>
+  match<Interaction["state"], Array<keyof Interaction>>(interaction.state)
+    .with(interactionState.startInteraction, () => [
+      "startInteractionTokenIssuedAt",
+    ])
+    .with(interactionState.callbackInvocation, () => [
+      "startInteractionTokenIssuedAt",
+      "callbackInvocationTokenIssuedAt",
+    ])
+    .with(interactionState.getResource, () => [
+      "startInteractionTokenIssuedAt",
+      "callbackInvocationTokenIssuedAt",
+    ])
+    .with(interactionState.confirmation, () => [
+      "startInteractionTokenIssuedAt",
+      "callbackInvocationTokenIssuedAt",
+      "confirmationTokenIssuedAt",
+    ])
+    .exhaustive();
 
 const compareInteractionEntries = ({
   rawInteractions,
