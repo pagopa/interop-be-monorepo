@@ -2803,19 +2803,19 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/scheduleArchive:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
     post:
       tags:
         - eservices
       summary: Schedule the archiving process for an E-Service
-      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.  
+      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
       operationId: scheduleArchiveEservice
-      parameters:
-        - name: eserviceId
-          in: path
-          description: The E-Service ID
-          required: true
-          schema:
-            $ref: "#/components/schemas/EServiceId"
       requestBody:
         description: A payload containing archiving reason that describes the motivation about archiving
         required: true 
@@ -2857,13 +2857,6 @@ paths:
       summary: Cancel the archiving process for an E-Service
       description: Cancels the global archiving process of an E-Service, restoring all descriptors to their previous operational state.
       operationId: cancelEServiceArchiving
-      parameters:
-        - name: eserviceId
-          in: path
-          description: The E-Service ID
-          required: true
-          schema:
-            $ref: "#/components/schemas/EServiceId"
       responses:
         "200":
           description: Archiving process of an E-Service canceled successfully
