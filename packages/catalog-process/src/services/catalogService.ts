@@ -1745,13 +1745,13 @@ export function catalogServiceBuilder(
             ? {
                 ...descriptor.asyncExchangeProperties,
                 responseTime:
-                  seed.asyncExchangeResponseTime ??
+                  seed.asyncExchangeProperties?.responseTime ??
                   descriptor.asyncExchangeProperties.responseTime,
                 resourceAvailableTime:
-                  seed.asyncExchangeResourceAvailableTime ??
+                  seed.asyncExchangeProperties?.resourceAvailableTime ??
                   descriptor.asyncExchangeProperties.resourceAvailableTime,
                 maxResultSet:
-                  seed.asyncExchangeMaxResultSet ??
+                  seed.asyncExchangeProperties?.maxResultSet ??
                   descriptor.asyncExchangeProperties.maxResultSet,
               }
             : descriptor.asyncExchangeProperties,
@@ -3626,14 +3626,14 @@ export function catalogServiceBuilder(
                 ? {
                     ...publishedVersion.asyncExchangeProperties,
                     responseTime:
-                      seed.asyncExchangeResponseTime ??
+                      seed.asyncExchangeProperties?.responseTime ??
                       publishedVersion.asyncExchangeProperties.responseTime,
                     resourceAvailableTime:
-                      seed.asyncExchangeResourceAvailableTime ??
+                      seed.asyncExchangeProperties?.resourceAvailableTime ??
                       publishedVersion.asyncExchangeProperties
                         .resourceAvailableTime,
                     maxResultSet:
-                      seed.asyncExchangeMaxResultSet ??
+                      seed.asyncExchangeProperties?.maxResultSet ??
                       publishedVersion.asyncExchangeProperties.maxResultSet,
                   }
                 : undefined,

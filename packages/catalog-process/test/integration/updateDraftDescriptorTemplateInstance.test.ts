@@ -429,9 +429,11 @@ describe("update draft descriptor instance", () => {
     const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
       {
         ...buildUpdateDescriptorSeed(descriptor),
-        asyncExchangeResponseTime: 1800,
-        asyncExchangeResourceAvailableTime: 3600,
-        asyncExchangeMaxResultSet: 500,
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
       };
 
     await catalogService.updateDraftDescriptorTemplateInstance(
@@ -508,9 +510,11 @@ describe("update draft descriptor instance", () => {
     const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
       {
         ...buildUpdateDescriptorSeed(descriptor),
-        asyncExchangeResponseTime: 1800,
-        asyncExchangeResourceAvailableTime: 3600,
-        asyncExchangeMaxResultSet: 500,
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
       };
 
     await catalogService.updateDraftDescriptorTemplateInstance(
