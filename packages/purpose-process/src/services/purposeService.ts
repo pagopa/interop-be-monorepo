@@ -529,7 +529,7 @@ export function purposeServiceBuilder(
       }
 
       // Assert caller is the writer per mode
-      await match(workflow)
+      match(workflow)
         .with(
           { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
           (workflow) => {
@@ -540,22 +540,13 @@ export function purposeServiceBuilder(
         )
         .with(
           { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
-          (workflow) => {
-            if (
-              workflow.reviewerIds.includes(authData.userId) ||
-              !authData.userRoles.includes(userRole.ADMIN_ROLE)
-            ) {
+          P.nullish,
+          () => {
+            if (!authData.userRoles.includes(userRole.ADMIN_ROLE)) {
               throw requesterIsNotTheWriter(purposeId);
             }
           }
         )
-        .with(P.nullish, async () => {
-          assertRequesterCanActAsConsumer(
-            purpose.data,
-            authData,
-            await retrievePurposeDelegation(purpose.data, readModelService)
-          );
-        })
         .exhaustive();
 
       const tenantKind = await retrieveTenantKind(
