@@ -180,7 +180,7 @@ export const fromTenantRemoteIdV2 = (
 ): TenantRemoteId => ({
   origin: input.origin,
   value: input.value,
-  assignment_timestamp: bigIntToDate(input.assignmentTimestamp),
+  assignmentTimestamp: bigIntToDate(input.assignmentTimestamp),
 });
 
 export const fromTenantV2 = (input: TenantV2): Tenant => {
@@ -213,6 +213,6 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
         ? fromTenantUnitTypeV2(input.subUnitType)
         : undefined,
     selfcareInstitutionType: input.selfcareInstitutionType,
-    remoteId: input.remoteId.map(fromTenantRemoteIdV2),
+    remoteIds: input.remoteIds.map(fromTenantRemoteIdV2),
   };
 };

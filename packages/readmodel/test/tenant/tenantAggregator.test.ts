@@ -92,10 +92,10 @@ describe("Tenant aggregators", () => {
       origin: "IPA",
       value: generateId(),
     };
-    const remoteId: TenantRemoteId = {
+    const remoteIds: TenantRemoteId = {
       origin: "ISTAT",
       value: "ISTAT-VALUE",
-      assignment_timestamp: new Date(),
+      assignmentTimestamp: new Date(),
     };
     const tenant: Tenant = {
       ...getMockTenant(),
@@ -116,7 +116,7 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedConsumer,
         TenantFeatureDelegatedProducer,
       ],
-      remoteId: [remoteId],
+      remoteIds: [remoteIds],
     };
 
     const {
@@ -204,10 +204,10 @@ describe("Tenant aggregators", () => {
       value: generateId(),
     };
 
-    const remoteId: TenantRemoteId = {
+    const remoteIds: TenantRemoteId = {
       origin: "ISTAT",
       value: "ISTAT-VALUE",
-      assignment_timestamp: new Date(),
+      assignmentTimestamp: new Date(),
     };
     const tenant: Tenant = {
       ...getMockTenant(),
@@ -225,7 +225,7 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedConsumer,
         TenantFeatureDelegatedProducer,
       ],
-      remoteId: [remoteId],
+      remoteIds: [remoteIds],
     };
 
     const {

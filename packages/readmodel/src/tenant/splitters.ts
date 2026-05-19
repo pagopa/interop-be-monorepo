@@ -42,7 +42,7 @@ export const splitTenantIntoObjectsSQL = (
     onboardedAt,
     subUnitType,
     selfcareInstitutionType,
-    remoteId,
+    remoteIds,
     ...rest
   }: Tenant,
   metadataVersion: number
@@ -103,7 +103,7 @@ export const splitTenantIntoObjectsSQL = (
   );
 
   const remoteIdsSQL: TenantRemoteIdSQL[] =
-    remoteId?.map((rId) =>
+    remoteIds?.map((rId) =>
       tenantRemoteIdToTenantRemoteIdSQL(rId, id, metadataVersion)
     ) ?? [];
 
@@ -138,7 +138,7 @@ const tenantMailToTenantMailSQL = (
 };
 
 const tenantRemoteIdToTenantRemoteIdSQL = (
-  { origin, value, assignment_timestamp, ...rest }: TenantRemoteId,
+  { origin, value, assignmentTimestamp, ...rest }: TenantRemoteId,
   tenantId: TenantId,
   metadataVersion: number
 ): TenantRemoteIdSQL => {
@@ -148,7 +148,7 @@ const tenantRemoteIdToTenantRemoteIdSQL = (
     metadataVersion,
     origin,
     value,
-    assignmentTimestamp: dateToString(assignment_timestamp),
+    assignmentTimestamp: dateToString(assignmentTimestamp),
   };
 };
 

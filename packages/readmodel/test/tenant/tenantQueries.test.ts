@@ -49,10 +49,10 @@ describe("Tenant Queries", () => {
         delegationId,
       };
 
-      const remoteId: TenantRemoteId = {
+      const remoteIds: TenantRemoteId = {
         origin: "ISTAT",
         value: "istat-value",
-        assignment_timestamp: new Date(),
+        assignmentTimestamp: new Date(),
       };
 
       const tenant: WithMetadata<Tenant> = {
@@ -97,7 +97,7 @@ describe("Tenant Queries", () => {
               assignmentTimestamp: new Date(),
             },
           ],
-          remoteId: [remoteId],
+          remoteIds: [remoteIds],
         },
         metadata: {
           version: 1,

@@ -100,10 +100,10 @@ export const aggregateTenant = ({
       .exhaustive()
   );
 
-  const remoteId: TenantRemoteId[] = remoteIdsSQL.map((r) => ({
+  const remoteIds: TenantRemoteId[] = remoteIdsSQL.map((r) => ({
     origin: r.origin,
     value: r.value,
-    assignment_timestamp: stringToDate(r.assignmentTimestamp),
+    assignmentTimestamp: stringToDate(r.assignmentTimestamp),
   }));
 
   const tenant: Tenant = {
@@ -132,7 +132,7 @@ export const aggregateTenant = ({
     },
     features,
     mails,
-    remoteId,
+    remoteIds,
   };
   return {
     data: tenant,
@@ -394,7 +394,7 @@ export const toTenantAggregator = (
     verifier: TenantVerifiedAttributeVerifierSQL | null;
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
-    remoteId: TenantRemoteIdSQL | null;
+    remoteIds: TenantRemoteIdSQL | null;
   }>
 ): TenantItemsSQL => {
   const {
@@ -434,7 +434,7 @@ export const toTenantAggregatorArray = (
     verifier: TenantVerifiedAttributeVerifierSQL | null;
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
-    remoteId: TenantRemoteIdSQL | null;
+    remoteIds: TenantRemoteIdSQL | null;
   }>
 ): {
   tenantsSQL: TenantSQL[];
@@ -586,14 +586,14 @@ export const toTenantAggregatorArray = (
       // eslint-disable-next-line functional/immutable-data
       featuresSQL.push(feature);
     }
-    const remoteId = row.remoteId;
-    const remoteIdPK = remoteId
-      ? makeUniqueKey([remoteId.tenantId, remoteId.origin, remoteId.value])
+    const remoteIds = row.remoteIds;
+    const remoteIdPK = remoteIds
+      ? makeUniqueKey([remoteIds.tenantId, remoteIds.origin, remoteIds.value])
       : undefined;
-    if (remoteId && remoteIdPK && !remoteIdIdSet.has(remoteIdPK)) {
+    if (remoteIds && remoteIdPK && !remoteIdIdSet.has(remoteIdPK)) {
       remoteIdIdSet.add(remoteIdPK);
       // eslint-disable-next-line functional/immutable-data
-      remoteIdsSQL.push(remoteId);
+      remoteIdsSQL.push(remoteIds);
     }
   });
 

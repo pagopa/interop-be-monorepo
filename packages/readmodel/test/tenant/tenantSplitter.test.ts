@@ -105,10 +105,10 @@ describe("Tenant splitters", () => {
         value: generateId(),
       };
 
-      const remoteId: TenantRemoteId = {
+      const remoteIds: TenantRemoteId = {
         origin: "ISTAT",
         value: "istat-value",
-        assignment_timestamp: new Date(),
+        assignmentTimestamp: new Date(),
       };
 
       const tenant: Tenant = {
@@ -129,7 +129,7 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedConsumer,
           tenantFeatureDelegatedProducer,
         ],
-        remoteId: [remoteId],
+        remoteIds: [remoteIds],
       };
 
       const {
@@ -248,9 +248,9 @@ describe("Tenant splitters", () => {
       const expectedTenantRemoteIdSQL: TenantRemoteIdSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
-        origin: remoteId.origin,
-        value: remoteId.value,
-        assignmentTimestamp: remoteId.assignment_timestamp.toISOString(),
+        origin: remoteIds.origin,
+        value: remoteIds.value,
+        assignmentTimestamp: remoteIds.assignmentTimestamp.toISOString(),
       };
 
       expect(tenantSQL).toStrictEqual(expectedTenantSQL);

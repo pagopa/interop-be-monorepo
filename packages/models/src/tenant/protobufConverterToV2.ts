@@ -155,11 +155,13 @@ function checkSelfcareId(selfcareId: string | undefined): string {
   return selfcareId;
 }
 
-export function toTenantRemoteIdV2(remoteId: TenantRemoteId): TenantRemoteIdV2 {
+export function toTenantRemoteIdV2(
+  remoteIds: TenantRemoteId
+): TenantRemoteIdV2 {
   return {
-    origin: remoteId.origin,
-    value: remoteId.value,
-    assignmentTimestamp: dateToBigInt(remoteId.assignment_timestamp),
+    origin: remoteIds.origin,
+    value: remoteIds.value,
+    assignmentTimestamp: dateToBigInt(remoteIds.assignmentTimestamp),
   };
 }
 
@@ -178,5 +180,5 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
   selfcareInstitutionType: tenant.selfcareInstitutionType,
-  remoteId: tenant.remoteId?.map(toTenantRemoteIdV2) ?? [],
+  remoteIds: tenant.remoteIds?.map(toTenantRemoteIdV2) ?? [],
 });

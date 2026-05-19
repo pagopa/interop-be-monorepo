@@ -79,7 +79,7 @@ export function readModelQueriesBuilderSQL(
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
-            remoteId: null,
+            remoteIds: null,
           }))
         )
       );
@@ -137,7 +137,7 @@ export function readModelQueriesBuilderSQL(
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
-            remoteId: null,
+            remoteIds: null,
           }))
         )
       );
@@ -232,7 +232,7 @@ export function readModelQueriesBuilderSQL(
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
-            remoteId: null,
+            remoteIds: null,
           }))
         )
       );

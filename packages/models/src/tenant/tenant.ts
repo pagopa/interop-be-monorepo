@@ -165,7 +165,7 @@ export type TenantUnitType = z.infer<typeof TenantUnitType>;
 export const TenantRemoteId = z.object({
   origin: z.string(),
   value: z.string(),
-  assignment_timestamp: z.coerce.date(),
+  assignmentTimestamp: z.coerce.date(),
 });
 
 export type TenantRemoteId = z.infer<typeof TenantRemoteId>;
@@ -184,7 +184,7 @@ export const Tenant = z.object({
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
   selfcareInstitutionType: z.string().optional(),
-  remoteId: z.array(TenantRemoteId).optional(),
+  remoteIds: z.array(TenantRemoteId).optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

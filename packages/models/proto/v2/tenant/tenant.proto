@@ -16,7 +16,7 @@ message TenantV2 {
   int64 onboardedAt = 11;
   optional TenantUnitTypeV2 subUnitType = 12;
   optional string selfcareInstitutionType = 13;
-  repeated TenantRemoteIdV2 remoteId = 14;
+  repeated TenantRemoteIdV2 remoteIds = 14;
 }
 
 enum TenantKindV2 {

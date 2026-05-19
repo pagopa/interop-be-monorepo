@@ -130,7 +130,7 @@ export function readModelServiceBuilderSQL({
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
-            remoteId: null,
+            remoteIds: null,
           }))
         )
       );
