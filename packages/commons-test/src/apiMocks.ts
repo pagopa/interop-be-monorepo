@@ -123,9 +123,9 @@ export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
 
 export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
   id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
-  name = "doc.txt",
-  path = `mock/path/${id}/doc.txt`,
-  contentType = "text/plain",
+  name = "doc.pdf",
+  path = `mock/path/${id}/doc.pdf`,
+  contentType = "application/pdf",
   answerId = generateId(),
 }: {
   id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
@@ -546,9 +546,9 @@ export function getMockedApiDeclaredTenantAttribute({
 
 export function getMockedApiAgreementDocument({
   id = generateId(),
-  name = "doc.txt",
-  path = `mock/path/${id}/doc.txt`,
-  contentType = "text/plain",
+  name = "file.pdf",
+  path = `mock/path/${id}/file.pdf`,
+  contentType = "application/pdf",
 }: {
   id?: string;
   name?: string;
@@ -567,9 +567,9 @@ export function getMockedApiAgreementDocument({
 
 export function getMockedApiEserviceDoc({
   id = generateId(),
-  name = "doc.txt",
-  path = `mock/path/${id}/doc.txt`,
-  contentType = "text/plain",
+  name = "file.pdf",
+  path = `mock/path/${id}/file.pdf`,
+  contentType = "application/pdf",
 }: {
   id?: string;
   name?: string;
