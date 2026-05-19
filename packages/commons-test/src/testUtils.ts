@@ -1044,18 +1044,18 @@ export const getMockContext = ({
 
 export const sortBy =
   <T>(getKey: (item: T) => string) =>
-    (a: T, b: T): number => {
-      const keyA = getKey(a);
-      const keyB = getKey(b);
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
 
-      if (keyA < keyB) {
-        return -1;
-      }
-      if (keyA > keyB) {
-        return 1;
-      }
-      return 0;
-    };
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };
 
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   tenant: T
@@ -1093,23 +1093,23 @@ export const sortAgreement = <
       ...agreement,
       verifiedAttributes: agreement.verifiedAttributes
         ? [...agreement.verifiedAttributes].sort(
-          sortBy<AgreementAttribute>((attr) => attr.id)
-        )
+            sortBy<AgreementAttribute>((attr) => attr.id)
+          )
         : [],
       certifiedAttributes: agreement.certifiedAttributes
         ? [...agreement.certifiedAttributes].sort(
-          sortBy<AgreementAttribute>((att) => att.id)
-        )
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
         : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
-          sortBy<AgreementAttribute>((att) => att.id)
-        )
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
         : [],
       consumerDocuments: agreement.consumerDocuments
         ? [...agreement.consumerDocuments].sort(
-          sortBy<AgreementDocument>((doc) => doc.id)
-        )
+            sortBy<AgreementDocument>((doc) => doc.id)
+          )
         : [],
     };
   }
@@ -1133,16 +1133,16 @@ export const sortPurpose = <
       versions: [...purpose.versions].sort(sortBy((version) => version.id)),
       ...(purpose.riskAnalysisForm
         ? {
-          riskAnalysisForm: {
-            ...purpose.riskAnalysisForm,
-            singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
-              sortBy((answer) => answer.key)
-            ),
-            multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
-              sortBy((answer) => answer.key)
-            ),
-          },
-        }
+            riskAnalysisForm: {
+              ...purpose.riskAnalysisForm,
+              singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+              multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+            },
+          }
         : {}),
     };
   }
@@ -1150,10 +1150,10 @@ export const sortPurpose = <
 
 const sortRiskAnalysisTemplateAnswers = <
   T extends
-  | RiskAnalysisTemplateSingleAnswer
-  | RiskAnalysisTemplateSingleAnswerV2
-  | RiskAnalysisTemplateMultiAnswer
-  | RiskAnalysisTemplateMultiAnswerV2,
+    | RiskAnalysisTemplateSingleAnswer
+    | RiskAnalysisTemplateSingleAnswerV2
+    | RiskAnalysisTemplateMultiAnswer
+    | RiskAnalysisTemplateMultiAnswerV2,
 >(
   answers: T[]
 ): T[] =>
@@ -1168,17 +1168,17 @@ const sortRiskAnalysisTemplateAnswers = <
       }),
       ...("suggestedValues" in answer &&
         answer.suggestedValues && {
-        suggestedValues: [...answer.suggestedValues].sort(),
-      }),
+          suggestedValues: [...answer.suggestedValues].sort(),
+        }),
     }))
     .sort(sortBy((a) => a.key));
 
 export const sortPurposeTemplate = <
   T extends
-  | PurposeTemplate
-  | PurposeTemplateV2
-  | WithMetadata<PurposeTemplate>
-  | undefined,
+    | PurposeTemplate
+    | PurposeTemplateV2
+    | WithMetadata<PurposeTemplate>
+    | undefined,
 >(
   purposeTemplate: T
 ): T => {
@@ -1194,24 +1194,24 @@ export const sortPurposeTemplate = <
       ...purposeTemplate,
       ...(purposeTemplate.purposeRiskAnalysisForm
         ? {
-          purposeRiskAnalysisForm: {
-            ...purposeTemplate.purposeRiskAnalysisForm,
-            singleAnswers: sortRiskAnalysisTemplateAnswers(
-              purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
-                (answer) => ({
-                  ...answer,
-                })
-              )
-            ),
-            multiAnswers: sortRiskAnalysisTemplateAnswers(
-              purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
-                (answer) => ({
-                  ...answer,
-                })
-              )
-            ),
-          },
-        }
+            purposeRiskAnalysisForm: {
+              ...purposeTemplate.purposeRiskAnalysisForm,
+              singleAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
+              ),
+              multiAnswers: sortRiskAnalysisTemplateAnswers(
+                purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
+                  (answer) => ({
+                    ...answer,
+                  })
+                )
+              ),
+            },
+          }
         : {}),
     };
   }
@@ -1267,23 +1267,23 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
   ...agreement,
   verifiedAttributes: agreement?.verifiedAttributes
     ? [...agreement.verifiedAttributes].sort(
-      sortBy<VerifiedAttributeV2>((attr) => attr.id)
-    )
+        sortBy<VerifiedAttributeV2>((attr) => attr.id)
+      )
     : [],
   certifiedAttributes: agreement?.certifiedAttributes
     ? [...agreement.certifiedAttributes].sort(
-      sortBy<CertifiedAttributeV2>((att) => att.id)
-    )
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
     : [],
   declaredAttributes: agreement?.declaredAttributes
     ? [...agreement.declaredAttributes].sort(
-      sortBy<DeclaredAttributeV2>((att) => att.id)
-    )
+        sortBy<DeclaredAttributeV2>((att) => att.id)
+      )
     : [],
   consumerDocuments: agreement?.consumerDocuments
     ? [...agreement.consumerDocuments].sort(
-      sortBy<AgreementDocumentV2>((doc) => doc.id)
-    )
+        sortBy<AgreementDocumentV2>((doc) => doc.id)
+      )
     : [],
 });
 
