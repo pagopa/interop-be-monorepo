@@ -294,10 +294,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
