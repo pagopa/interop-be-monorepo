@@ -509,83 +509,77 @@ const purposeRouter = (
         }
       }
     )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/assign",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    .post("/purposes/:purposeId/riskAnalysis/assign", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
 
-          const {
-            data: { purpose, isRiskAnalysisValid },
-            metadata,
-          } = await purposeService.assignRiskAnalysisReviewer(
-            unsafeBrandId(req.params.purposeId),
-            {
-              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
-            },
-            ctx
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.assignRiskAnalysisReviewer(
+          unsafeBrandId(req.params.purposeId),
+          {
+            reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
+            reviewerIds: req.body.reviewerIds,
+          },
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-
-          setMetadataVersionHeader(res, metadata);
-
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            assignRiskAnalysisReviewerErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          assignRiskAnalysisReviewerErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/submit",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .post("/purposes/:purposeId/riskAnalysis/submit", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          validateAuthorization(ctx, [ADMIN_ROLE, REVIEWER_ROLE]);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, REVIEWER_ROLE]);
 
-          const {
-            data: { purpose, isRiskAnalysisValid },
-            metadata,
-          } = await purposeService.submitRiskAnalysis(
-            unsafeBrandId(req.params.purposeId),
-            {
-              riskAnalysisForm: req.body.riskAnalysisForm,
-            },
-            ctx
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.submitRiskAnalysis(
+          unsafeBrandId(req.params.purposeId),
+          {
+            riskAnalysisForm: req.body.riskAnalysisForm,
+          },
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-
-          setMetadataVersionHeader(res, metadata);
-
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            submitRiskAnalysisErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          submitRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       async (req, res) => {
