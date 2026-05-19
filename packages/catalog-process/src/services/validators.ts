@@ -56,6 +56,7 @@ import {
   notValidEServiceState,
   descriptorAlreadyArchived,
   eserviceInDraftState,
+  eserviceNotInArchiving,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -682,5 +683,14 @@ export function assertDescriptorIsNotAlreadyArchived(
 ): void {
   if (descriptor.state === descriptorState.archived) {
     throw descriptorAlreadyArchived(descriptor.id);
+  }
+}
+
+export function assertEServiceIsInArchiving(eservice: EService): void {
+  const latestDescriptor =
+    eservice.descriptors.length > 0 ? getLatestDescriptor(eservice) : undefined;
+
+  if (latestDescriptor?.archivingSchedule?.scope !== archivingScope.eservice) {
+    throw eserviceNotInArchiving(eservice.id);
   }
 }

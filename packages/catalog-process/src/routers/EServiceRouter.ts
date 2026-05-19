@@ -80,6 +80,7 @@ import {
   updateEserviceDescriptorArchivingStatusErrorMapper,
   maintenanceResetEServicePersonalDataFlagErrorMapper,
   updateEServiceArchivingStatusErrorMapper,
+  cancelEServiceArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -1661,6 +1662,35 @@ const eservicesRouter = (
         }
       }
     )
+    .delete("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+        const updatedEService = await catalogService.cancelEServiceArchiving(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, updatedEService.metadata);
+
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(
+              eServiceToApiEService(updatedEService.data)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          cancelEServiceArchivingErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
       "/maintenance/eservices/:eServiceId/personalDataFlag",
       async (req, res) => {

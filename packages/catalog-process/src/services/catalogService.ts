@@ -157,6 +157,7 @@ import {
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
   toCreateEventEServiceArchivingScheduled,
   toCreateEventEServiceDescriptorArchivingCompleted,
+  toCreateEventEServiceArchivingCanceled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -202,6 +203,7 @@ import {
   assertDescriptorIsNotAlreadyArchived,
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
+  assertEServiceIsInArchiving,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -3917,6 +3919,68 @@ export function catalogServiceBuilder(
         metadata: { version: createdEvent.newVersion },
       };
     },
+    async cancelEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(`Canceling archiving for EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEServiceIsInArchiving(eservice.data);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+
+      const updatedDescriptors = eservice.data.descriptors.map((descriptor) => {
+        if (descriptor.archivingSchedule?.scope !== archivingScope.eservice) {
+          return descriptor;
+        }
+
+        const isLatest = descriptor.id === latestDescriptor.id;
+
+        const newState: DescriptorState =
+          descriptor.state === descriptorState.archivingSuspended
+            ? descriptorState.suspended
+            : isLatest
+              ? descriptorState.published
+              : descriptorState.deprecated;
+
+        return updateDescriptorState(
+          { ...descriptor, archivingSchedule: undefined },
+          newState
+        );
+      });
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: updatedDescriptors,
+        archivingReason: undefined,
+      };
+
+      const event = toCreateEventEServiceArchivingCanceled(
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+
     async maintenanceResetEServicePersonalDataFlag(
       eserviceId: EServiceId,
       currentVersion: number,
