@@ -1111,7 +1111,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ArchivingKind"
+              $ref: "#/components/schemas/ArchivingKindSeed"
       responses:
         "204":
           description: E-Service Descriptor archived
@@ -3882,10 +3882,10 @@ components:
         - ESERVICE
         - DESCRIPTOR
         
-    ArchivingKind:
+    ArchivingKindSeed:
       type: object
       additionalProperties: false
-      description: Archiving Kind
+      description: Archiving Kind Seed
       properties:
         kind:
           type: string

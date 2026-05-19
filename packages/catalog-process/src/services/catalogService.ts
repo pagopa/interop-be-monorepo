@@ -2005,11 +2005,11 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      archivingKind: catalogApi.ArchivingKind,
+      archivingKindSeed: catalogApi.ArchivingKindSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} with kind ${archivingKind.kind}`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} with kind ${archivingKindSeed.kind}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2025,7 +2025,7 @@ export function catalogServiceBuilder(
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
       const event =
-        archivingKind.kind === "AUTOMATIC"
+        archivingKindSeed.kind === "AUTOMATIC"
           ? toCreateEventEServiceDescriptorArchived(
               eserviceId,
               eservice.metadata.version,
