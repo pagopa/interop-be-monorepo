@@ -3865,6 +3865,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/scheduleArchive:
+    parameters:
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -3873,21 +3888,6 @@ paths:
       summary: Schedule the archiving process for an E-Service Descriptor
       description: Schedule the archiving process for an E-Service Descriptor
       operationId: scheduleArchiveEserviceDescriptor
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -3969,6 +3969,35 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Cancel the archiving process for an E-Service Descriptor
+      description: Cancel the archiving process for an E-Service Descriptor
+      operationId: cancelEServiceDescriptorArchiving
+      responses:
+        "204":
+          description: E-Service Descriptor archiving canceled
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
           content:
             application/problem+json:
               schema:
@@ -4347,9 +4376,9 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Suspend the selected descriptor.
-      description: Suspend the selected descriptor
+      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving state
       operationId: suspendDescriptor
+      description: Suspend an E-Service Descriptor that is in Published, Deprecated or Archiving state, transitioning it to Suspended state or in ArchivingSuspended if previous state was Archiving
       parameters:
         - name: eServiceId
           in: path

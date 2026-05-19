@@ -162,80 +162,87 @@ describe("publish descriptor (after delegator's approval)", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
   });
 
-  it("should also deprecate the previously published descriptor if there was a valid agreement", async () => {
-    const descriptor1: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "1",
-      state: descriptorState.published,
-      publishedAt: new Date(),
-      interface: getMockDocument(),
-    };
-    const descriptor2: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.waitingForApproval,
-      interface: getMockDocument(),
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor1, descriptor2],
-    };
-    await addOneEService(eservice);
-    const tenant: Tenant = {
-      ...getMockTenant(),
-    };
-    await addOneTenant(tenant);
-    const agreement = {
-      ...getMockAgreement(eservice.id),
-      descriptorId: descriptor1.id,
-      producerId: eservice.producerId,
-      consumerId: tenant.id,
-      state: agreementState.active,
-    };
-    await addOneAgreement(agreement);
-    const approveDelegatedEServiceDescriptorResponse =
-      await catalogService.approveDelegatedEServiceDescriptor(
-        eservice.id,
-        descriptor2.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
+  it.each([
+    [descriptorState.published, descriptorState.deprecated],
+    [descriptorState.suspended, descriptorState.suspended],
+  ])(
+    "should also set the state of the previously published descriptor from %s to %s if there was a valid agreement",
+    async (startingState, expectedState) => {
+      const descriptor1: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "1",
+        state: startingState,
+        publishedAt: new Date(),
+        interface: getMockDocument(),
+      };
+      const descriptor2: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state: descriptorState.waitingForApproval,
+        interface: getMockDocument(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor1, descriptor2],
+      };
+      await addOneEService(eservice);
+      const tenant: Tenant = {
+        ...getMockTenant(),
+      };
+      await addOneTenant(tenant);
+      const agreement = {
+        ...getMockAgreement(eservice.id),
+        descriptorId: descriptor1.id,
+        producerId: eservice.producerId,
+        consumerId: tenant.id,
+        state: agreementState.active,
+      };
+      await addOneAgreement(agreement);
+      const approveDelegatedEServiceDescriptorResponse =
+        await catalogService.approveDelegatedEServiceDescriptor(
+          eservice.id,
+          descriptor2.id,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
 
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDescriptorApprovedByDelegator",
-      event_version: 2,
-    });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorApprovedByDelegatorV2,
-      payload: writtenEvent.data,
-    });
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorApprovedByDelegator",
+        event_version: 2,
+      });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorApprovedByDelegatorV2,
+        payload: writtenEvent.data,
+      });
 
-    const updatedDescriptor1: Descriptor = {
-      ...descriptor1,
-      deprecatedAt: new Date(),
-      state: descriptorState.deprecated,
-    };
-    const updatedDescriptor2: Descriptor = {
-      ...descriptor2,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
+      const updatedDescriptor1: Descriptor = {
+        ...descriptor1,
+        deprecatedAt:
+          startingState === descriptorState.suspended ? undefined : new Date(),
+        state: expectedState,
+      };
+      const updatedDescriptor2: Descriptor = {
+        ...descriptor2,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
 
-    const expectedEservice: EService = {
-      ...eservice,
-      descriptors: [updatedDescriptor1, updatedDescriptor2],
-    };
-    expect(approveDelegatedEServiceDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
-    });
-    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-  });
+      const expectedEservice: EService = {
+        ...eservice,
+        descriptors: [updatedDescriptor1, updatedDescriptor2],
+      };
+      expect(approveDelegatedEServiceDescriptorResponse).toEqual({
+        data: expectedEservice,
+        metadata: { version: parseInt(writtenEvent.version, 10) },
+      });
+      expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    }
+  );
 
   it("should throw eServiceNotFound if the eService doesn't exist", async () => {
     await expect(
