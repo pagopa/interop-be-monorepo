@@ -3959,6 +3959,8 @@ components:
       properties:
         archivingReason:
           type: string
+          minLength: 10
+          maxLength: 250
       required:
         - archivingReason
     Attribute:
