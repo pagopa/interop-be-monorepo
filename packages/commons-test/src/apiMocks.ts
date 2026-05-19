@@ -123,9 +123,9 @@ export function getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument({
 
 export function getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId({
   id = generateId<RiskAnalysisTemplateAnswerAnnotationDocumentId>(),
-  name = "doc.pdf",
-  path = `mock/path/${id}/doc.pdf`,
-  contentType = "application/pdf",
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
   answerId = generateId(),
 }: {
   id?: RiskAnalysisTemplateAnswerAnnotationDocumentId;
