@@ -784,11 +784,8 @@ export function assertEServiceIsInArchiving(eservice: EService): void {
 }
 
 export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
-  // TODO: Use different logic
-  if (
-    eservice.descriptors.filter((d) => d.state !== descriptorState.archived)
-      .length === 0
-  ) {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  if (latestDescriptor.state === descriptorState.archived) {
     throw eServiceAlreadyArchived(eservice.id);
   }
 }

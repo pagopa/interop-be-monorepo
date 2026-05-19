@@ -109,28 +109,28 @@ describe("archiveEService", () => {
   )(
     "should write on event-store for the archiving of an EService with %i descriptor(s) in state %s and %i already archived descriptor(s)",
     async (countToArchive, state, alreadyArchivedCount) => {
-      const descriptorsToArchive: Descriptor[] = Array.from(
-        { length: countToArchive },
-        (_, idx) => ({
-          ...getMockDescriptor(),
-          interface: getMockDocument(),
-          version: (idx + 1).toString(),
-          state,
-        })
-      );
-
       const archivedDescriptors: Descriptor[] = Array.from(
         { length: alreadyArchivedCount },
         (_, idx) => ({
           ...getMockDescriptor(),
           interface: getMockDocument(),
-          version: (countToArchive + idx + 1).toString(),
+          version: (idx + 1).toString(),
           state: descriptorState.archived,
           archivedAt: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000),
         })
       );
 
-      const allDescriptors = [...descriptorsToArchive, ...archivedDescriptors];
+      const descriptorsToArchive: Descriptor[] = Array.from(
+        { length: countToArchive },
+        (_, idx) => ({
+          ...getMockDescriptor(),
+          interface: getMockDocument(),
+          version: (alreadyArchivedCount + idx + 1).toString(),
+          state,
+        })
+      );
+
+      const allDescriptors = [...archivedDescriptors, ...descriptorsToArchive];
 
       const eservice: EService = {
         ...mockEService,
@@ -159,14 +159,17 @@ describe("archiveEService", () => {
       });
 
       const expectedDescriptors = [
+        ...archivedDescriptors,
         ...descriptorsToArchive.map((descriptor, idx) => ({
           ...descriptor,
           state: descriptorState.archived,
           archivedAt: new Date(
-            Number(writtenPayload.eservice!.descriptors[idx]!.archivedAt)
+            Number(
+              writtenPayload.eservice!.descriptors[idx + alreadyArchivedCount]!
+                .archivedAt
+            )
           ),
         })),
-        ...archivedDescriptors,
       ];
 
       const expectedEService = toEServiceV2({
@@ -178,7 +181,7 @@ describe("archiveEService", () => {
     }
   );
 
-  it.each([0, 1, 2, 5])(
+  it.each([1, 2, 5])(
     "should throw eServiceAlreadyArchived if the eservice has %i descriptors, all in state archived",
     async (count) => {
       const descriptors: Descriptor[] = Array.from(
