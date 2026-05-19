@@ -116,7 +116,29 @@ describe("verifyAndCreateDocument", async () => {
     );
   });
   it("should throw invalidPdfSignatureError if kind is DOCUMENT and file is not a valid pdf", async () => {
-    const invalidFile = new File([file], file.name, {
+    const invalidFile = new File([file], "file.pdf", {
+      type: "application/pdf",
+      lastModified: file.lastModified,
+    });
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        "DOCUMENT",
+        invalidFile,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        () => Promise.resolve(),
+        noLimitFileSizePolicy,
+        genericLogger
+      )
+    ).rejects.toThrowError(invalidPdfSignatureError());
+  });
+  it("should throw invalidPdfSignatureError if kind is DOCUMENT and file doesn't have .pdf extension", async () => {
+    const invalidFile = new File([file], "empty.exe", {
       type: "application/pdf",
       lastModified: file.lastModified,
     });
@@ -140,7 +162,7 @@ describe("verifyAndCreateDocument", async () => {
 
   it("should not throw with a valid PDF file", async () => {
     const pdfContent = await readFileContentAsBuffer("empty.pdf");
-    const validPDF = new File([pdfContent], file.name, {
+    const validPDF = new File([pdfContent], "empty.pdf", {
       type: "application/pdf",
       lastModified: file.lastModified,
     });

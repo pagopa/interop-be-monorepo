@@ -560,7 +560,7 @@ export function invalidPdfSignatureError(
   return new ApiError({
     code: "invalidPdfSignatureError",
     title: "Malformed PDF file signature",
-    detail: "PDF file signature did not pass magic bytes check",
+    detail: "PDF file has wrong extension or did not pass magic bytes check",
     errors,
   });
 }

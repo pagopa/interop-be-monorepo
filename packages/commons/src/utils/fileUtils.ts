@@ -20,13 +20,14 @@ export async function calculateChecksum(stream: Readable): Promise<string> {
 }
 
 export async function isPdf(doc: File) {
-  if (doc.size < 5) return false;
+  const PDF_MAGIC_BYTES = [0x25, 0x50, 0x44, 0x46, 0x2d];
+  if (doc.size < PDF_MAGIC_BYTES.length) return false;
+  if (!doc.name?.toLowerCase().endsWith(".pdf")) return false;
 
   const header = doc.slice(0, 5);
   const buffer = await header.arrayBuffer();
   const bytes = new Uint8Array(buffer);
 
-  const PDF_MAGIC_BYTES = [0x25, 0x50, 0x44, 0x46, 0x2d];
   for (let i = 0; i < PDF_MAGIC_BYTES.length; ++i) {
     if (PDF_MAGIC_BYTES[i] !== bytes[i]) return false;
   }
