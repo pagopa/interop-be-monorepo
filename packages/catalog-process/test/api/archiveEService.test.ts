@@ -72,7 +72,7 @@ describe("API /internal/eservices/{eServiceId}/archive authorization test", () =
 
   it("Should return 400 if passed invalid eserviceId", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, "eServiceId" as EServiceId);
+    const res = await makeRequest(token, "invalidId" as EServiceId);
 
     expect(res.status).toBe(400);
   });
