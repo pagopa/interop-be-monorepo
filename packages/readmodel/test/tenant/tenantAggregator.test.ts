@@ -119,9 +119,9 @@ describe("Tenant aggregators", () => {
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,
+        tenantCertifiedDiscreteAttribute,
         tenantDeclaredAttribute,
         tenantVerifiedAttribute,
-        tenantCertifiedDiscreteAttribute,
       ],
       features: [
         tenantFeatureCertifier,

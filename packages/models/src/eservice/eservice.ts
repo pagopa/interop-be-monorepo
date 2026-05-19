@@ -78,18 +78,22 @@ export type EServiceAttributeCertifiedDiscreteConfig = z.infer<
   typeof EServiceAttributeCertifiedDiscreteConfig
 >;
 
-export const EserviceAttributeCertifiedDiscrete =
+export const EServiceAttributeCertifiedDiscrete =
   EServiceAttributeCertified.extend({
     discreteConfig: EServiceAttributeCertifiedDiscreteConfig,
   });
-export type EserviceAttributeCertifiedDiscrete = z.infer<
-  typeof EserviceAttributeCertifiedDiscrete
+export type EServiceAttributeCertifiedDiscrete = z.infer<
+  typeof EServiceAttributeCertifiedDiscrete
 >;
+export type EServiceCertifiedAttribute =
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EServiceAttributeCertifiedDiscrete;
 
 export const EServiceAttributes = z.object({
   certified: z.array(
     z.array(
-      z.union([EserviceAttributeCertifiedDiscrete, EServiceAttributeCertified])
+      z.union([EServiceAttributeCertifiedDiscrete, EServiceAttributeCertified])
     )
   ),
   declared: z.array(z.array(EServiceAttribute)),

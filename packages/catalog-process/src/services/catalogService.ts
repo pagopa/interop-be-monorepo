@@ -40,9 +40,8 @@ import {
   Document,
   EService,
   EServiceAttribute,
-  EServiceAttributeCertified,
   EserviceAttributes,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceCertifiedAttribute,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -196,11 +195,6 @@ import {
   DEFAULT_DAILY_CALLS_PER_CONSUMER,
   DEFAULT_DAILY_CALLS_TOTAL,
 } from "../model/domain/constants.js";
-
-type EServiceCertifiedAttribute =
-  | EServiceAttribute
-  | EServiceAttributeCertified
-  | EserviceAttributeCertifiedDiscrete;
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -1944,19 +1938,14 @@ export function catalogServiceBuilder(
       );
 
       const currentDate = new Date();
-      const suffix = ` - clone - ${dateAtRomeZone(
-        currentDate
-      )} ${timeAtRomeZone(currentDate)}`;
+      const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
       const dots = "...";
       const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
       const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
       const clonedEServiceName =
         eservice.data.name.length + suffix.length <= maxNameLength
           ? `${eservice.data.name}${suffix}`
-          : `${eservice.data.name.slice(
-              0,
-              prefixLengthAllowance
-            )}${dots}${suffix}`;
+          : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,

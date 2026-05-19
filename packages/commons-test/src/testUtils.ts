@@ -83,7 +83,7 @@ import {
   EServiceTemplateAttribute,
   CertifiedDiscreteTenantAttribute,
   TenantRemoteId,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
   EServiceTemplateAttributeCertifiedDiscrete,
   EServiceAttributeCertifiedDiscreteConfig,
   attributeCertifiedDiscreteComparator,
@@ -298,7 +298,7 @@ export const getMockCertifiedDiscreteTenantAttribute = (
 export const getMockTenantRemoteId = (): TenantRemoteId => ({
   origin: "ISTAT",
   value: generateId(),
-  assignment_timestamp: new Date(),
+  assignmentTimestamp: new Date(),
 });
 
 export const getMockEServiceAttributeCertifiedDiscreteConfig =
@@ -307,9 +307,9 @@ export const getMockEServiceAttributeCertifiedDiscreteConfig =
     comparator: attributeCertifiedDiscreteComparator.GTE,
   });
 
-export const getMockEserviceAttributeCertifiedDiscrete = (
+export const getMockEServiceAttributeCertifiedDiscrete = (
   attributeId: AttributeId = generateId<AttributeId>()
-): EserviceAttributeCertifiedDiscrete => ({
+): EServiceAttributeCertifiedDiscrete => ({
   id: attributeId,
   explicitAttributeVerification: false,
   discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
@@ -1145,6 +1145,11 @@ export const sortAgreement = <
             sortBy<AgreementAttribute>((att) => att.id)
           )
         : [],
+      certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+        ? [...agreement.certifiedDiscreteAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
             sortBy<AgreementAttribute>((att) => att.id)
@@ -1316,6 +1321,11 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
     : [],
   certifiedAttributes: agreement?.certifiedAttributes
     ? [...agreement.certifiedAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
+  certifiedDiscreteAttributes: agreement?.certifiedDiscreteAttributes
+    ? [...agreement.certifiedDiscreteAttributes].sort(
         sortBy<CertifiedAttributeV2>((att) => att.id)
       )
     : [],

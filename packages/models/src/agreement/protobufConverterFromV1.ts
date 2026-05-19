@@ -92,6 +92,10 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
     ...a,
     id: unsafeBrandId(a.id),
   })),
+  certifiedDiscreteAttributes: input.certifiedDiscreteAttributes.map((a) => ({
+    ...a,
+    id: unsafeBrandId(a.id),
+  })),
   declaredAttributes: input.declaredAttributes.map((a) => ({
     ...a,
     id: unsafeBrandId(a.id),

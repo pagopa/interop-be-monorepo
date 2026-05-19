@@ -26,9 +26,15 @@ import {
   EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
 
-const fromEServiceTemplateAttributeGroupV2 = (
-  input: { values: Array<{ id: string; explicitAttributeVerification: boolean; discreteConfig?: { threshold: number; comparator: number } | null }> }
-): Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete> =>
+const fromEServiceTemplateAttributeGroupV2 = (input: {
+  values: Array<{
+    id: string;
+    explicitAttributeVerification: boolean;
+    discreteConfig?: { threshold: number; comparator: number } | null;
+  }>;
+}): Array<
+  EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+> =>
   input.values.map((attribute) => ({
     id: unsafeBrandId(attribute.id),
     explicitAttributeVerification: attribute.explicitAttributeVerification,

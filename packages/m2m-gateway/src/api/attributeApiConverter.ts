@@ -34,7 +34,12 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  // TODO(PIN-10074): remove this exclusion when the future M2M work item adds
+  // CERTIFIED_DISCRETE support to the M2M contract.
+  attributeKind: Exclude<
+    attributeRegistryApi.AttributeKind,
+    "CERTIFIED_DISCRETE"
+  >,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):
@@ -52,14 +57,6 @@ function convertAttribute(
     };
     return match(attributeKind)
       .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
-        assertAttributeOriginAndCodeAreDefined(attribute);
-        return {
-          ...baseFields,
-          code: attribute.code,
-          origin: attribute.origin,
-        };
-      })
-      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE, () => {
         assertAttributeOriginAndCodeAreDefined(attribute);
         return {
           ...baseFields,

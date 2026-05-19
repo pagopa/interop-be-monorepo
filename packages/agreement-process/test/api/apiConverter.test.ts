@@ -7,7 +7,14 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
-import { fromApiCompactTenant } from "../../src/model/domain/apiConverter.js";
+import {
+  agreementToApiAgreement,
+  fromApiCompactTenant,
+} from "../../src/model/domain/apiConverter.js";
+import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+} from "pagopa-interop-commons-test";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,
@@ -143,5 +150,21 @@ describe("fromApiCompactTenant API converter", () => {
         )}`
       )
     );
+  });
+});
+
+describe("agreementToApiAgreement API converter", () => {
+  it("converts certified discrete agreement attributes", () => {
+    const certifiedDiscreteAttribute = getMockAgreementAttribute();
+    const agreement = {
+      ...getMockAgreement(),
+      certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
+    };
+
+    const actualAgreement = agreementToApiAgreement(agreement);
+
+    expect(actualAgreement.certifiedDiscreteAttributes).toStrictEqual([
+      certifiedDiscreteAttribute,
+    ]);
   });
 });

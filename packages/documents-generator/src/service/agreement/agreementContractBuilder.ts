@@ -100,6 +100,10 @@ const getAttributesData = async (
         () => agreement.certifiedAttributes || []
       )
       .with(
+        tenantAttributeType.CERTIFIED_DISCRETE,
+        () => agreement.certifiedDiscreteAttributes || []
+      )
+      .with(
         tenantAttributeType.DECLARED,
         () => agreement.declaredAttributes || []
       )
@@ -134,6 +138,9 @@ const getAttributesData = async (
     );
   };
 
+  // TODO(PIN-9889): include certified discrete attributes in the generated
+  // contract by invoking getAttributesDataByType with CERTIFIED_DISCRETE,
+  // once the agreement verification flow for discrete attributes is in place.
   const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );

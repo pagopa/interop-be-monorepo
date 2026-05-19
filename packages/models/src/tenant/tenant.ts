@@ -178,7 +178,7 @@ export type TenantUnitType = z.infer<typeof TenantUnitType>;
 export const TenantRemoteId = z.object({
   origin: z.string(),
   value: z.string(),
-  assignment_timestamp: z.coerce.date(),
+  assignmentTimestamp: z.coerce.date(),
 });
 export type TenantRemoteId = z.infer<typeof TenantRemoteId>;
 

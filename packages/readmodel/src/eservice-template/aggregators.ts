@@ -456,15 +456,13 @@ export const templateAttributesSQLtoTemplateAttributes = (
     const currentAttribute = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
-      ...(current.threshold != null &&
-      current.comparator != null
+      ...(current.threshold != null && current.comparator != null
         ? {
             discreteConfig: {
               threshold: current.threshold,
-              comparator:
-                AttributeCertifiedDiscreteComparator.parse(
-                  current.comparator
-                ),
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
             },
           }
         : undefined),

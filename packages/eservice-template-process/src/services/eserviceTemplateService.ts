@@ -2277,11 +2277,6 @@ async function updateDraftEServiceTemplateVersion(
     )
     .exhaustive();
 
-  assertConsistentDailyCalls({
-    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
-    dailyCallsTotal: updatedDailyCallsTotal,
-  });
-
   const updatedAgreementApprovalPolicy = match(updateSeed)
     .with({ type: "post" }, ({ seed }) =>
       seed.agreementApprovalPolicy
@@ -2300,6 +2295,11 @@ async function updateDraftEServiceTemplateVersion(
             )
     )
     .exhaustive();
+
+  assertConsistentDailyCalls({
+    dailyCallsPerConsumer: updatedDailyCallsPerConsumer,
+    dailyCallsTotal: updatedDailyCallsTotal,
+  });
 
   const parsedAttributes = attributes
     ? await parseAndCheckAttributes(

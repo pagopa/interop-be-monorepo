@@ -25,7 +25,7 @@ import {
   EServiceAttribute,
   EServiceAttributeCertified,
   EServiceMode,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
   Technology,
   agreementApprovalPolicy,
   attributeCertifiedDiscreteComparator,
@@ -125,13 +125,11 @@ export const toCertifiedDiscreteConfigV2 = (
   items: EServiceAttributeCertifiedDiscreteConfig
 ) => ({
   threshold: items.threshold,
-  comparator: toAttributeCertifiedDiscreteComparatorV2(
-    items.comparator
-  ),
+  comparator: toAttributeCertifiedDiscreteComparatorV2(items.comparator),
 });
 
 export const toEServiceAttributeCertifiedV2 = (
-  input: (EServiceAttributeCertified | EserviceAttributeCertifiedDiscrete)[]
+  input: (EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete)[]
 ): EServiceAttributeV2 => ({
   values: input.map((attribute) => ({
     id: attribute.id,
@@ -139,9 +137,7 @@ export const toEServiceAttributeCertifiedV2 = (
     dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
     ...("discreteConfig" in attribute
       ? {
-          discreteConfig: toCertifiedDiscreteConfigV2(
-            attribute.discreteConfig
-          ),
+          discreteConfig: toCertifiedDiscreteConfigV2(attribute.discreteConfig),
         }
       : undefined),
   })),

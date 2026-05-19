@@ -87,6 +87,7 @@ export const agreementToApiAgreement = (
   state: agreementStateToApiAgreementState(agreement.state),
   verifiedAttributes: agreement.verifiedAttributes,
   certifiedAttributes: agreement.certifiedAttributes,
+  certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes,
   declaredAttributes: agreement.declaredAttributes,
   suspendedByConsumer: agreement.suspendedByConsumer,
   suspendedByProducer: agreement.suspendedByProducer,

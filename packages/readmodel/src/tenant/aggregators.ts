@@ -136,7 +136,7 @@ export const aggregateTenant = ({
             ({ origin, value, assignmentTimestamp }): TenantRemoteId => ({
               origin,
               value,
-              assignment_timestamp: stringToDate(assignmentTimestamp),
+              assignmentTimestamp: stringToDate(assignmentTimestamp),
             })
           ),
         }
@@ -650,7 +650,6 @@ export const toTenantAggregatorArray = (
       : undefined;
     if (remoteId && remoteIdPK && !remoteIdSet.has(remoteIdPK)) {
       remoteIdSet.add(remoteIdPK);
-      // eslint-disable-next-line functional/immutable-data
       remoteIdsSQL.push(remoteId);
     }
   });

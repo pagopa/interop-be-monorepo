@@ -24,7 +24,7 @@ import {
   RiskAnalysisForm,
   AttributeCertifiedDiscreteComparator,
   EServiceAttributeCertified,
-  EserviceAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -449,7 +449,7 @@ export const attributesSQLtoAttributes = (
   Array<
     | EServiceAttribute
     | EServiceAttributeCertified
-    | EserviceAttributeCertifiedDiscrete
+    | EServiceAttributeCertifiedDiscrete
   >
 > => {
   const attributesMap = new Map<
@@ -457,7 +457,7 @@ export const attributesSQLtoAttributes = (
     Array<
       | EServiceAttribute
       | EServiceAttributeCertified
-      | EserviceAttributeCertifiedDiscrete
+      | EServiceAttributeCertifiedDiscrete
     >
   >();
   attributesSQL.forEach((current) => {

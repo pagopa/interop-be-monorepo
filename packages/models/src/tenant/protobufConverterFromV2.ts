@@ -194,7 +194,7 @@ export const fromRemoteIdsV2 = (
 ): TenantRemoteId => ({
   origin: remoteId.origin,
   value: remoteId.value,
-  assignment_timestamp: bigIntToDate(remoteId.assignmentTimestamp),
+  assignmentTimestamp: bigIntToDate(remoteId.assignmentTimestamp),
 });
 
 export const fromTenantV2 = (input: TenantV2): Tenant => {
