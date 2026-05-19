@@ -80,7 +80,7 @@ export type GetProducerKeychainsFilters = {
   eserviceId: EServiceId | undefined;
 };
 
-export type ProducerKeychainEServiceFlags = {
+type ProducerKeychainEServiceFlags = {
   hasProducerKeychain: boolean;
   hasProducerKeychainKeys: boolean;
 };
