@@ -4,6 +4,7 @@ import {
   eserviceWithoutValidDescriptors,
   invalidDescriptorVersion,
 } from "../model/domain/errors.js";
+import { isActiveDescriptor } from "../services/validators.js";
 
 function parseVersionNumber(version: string): number {
   const versionNumber = z.coerce.number().safeParse(version);
