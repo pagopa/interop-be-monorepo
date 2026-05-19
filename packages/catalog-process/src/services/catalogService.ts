@@ -198,7 +198,7 @@ import {
   assertDescriptorInRequiredStates,
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
-  assertDescriptorIsAlreadyArchived,
+  assertDescriptorIsNotAlreadyArchived,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -2009,13 +2009,13 @@ export function catalogServiceBuilder(
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} (${archivingKind})`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} with kind ${archivingKind.kind}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorIsAlreadyArchived(descriptor);
+      assertDescriptorIsNotAlreadyArchived(descriptor);
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,

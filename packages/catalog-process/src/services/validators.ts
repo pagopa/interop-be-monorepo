@@ -575,7 +575,7 @@ export function assertDescriptorArchivingIsNotEserviceScoped(
   }
 }
 
-export function assertDescriptorIsAlreadyArchived(
+export function assertDescriptorIsNotAlreadyArchived(
   descriptor: Descriptor
 ): void {
   if (descriptor.state === descriptorState.archived) {
