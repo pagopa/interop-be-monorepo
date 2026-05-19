@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable fp/no-delete */
 import { FileManagerError, genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
@@ -71,6 +70,34 @@ describe("clone agreement", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+
+  // See agreementService.cloneAgreement for the fields overridden during clone.
+  const buildExpectedClonedAgreement = ({
+    source,
+    newAgreementId,
+    sourceConsumerDocuments,
+    clonedConsumerDocuments,
+  }: {
+    source: Parameters<typeof toAgreementV2>[0];
+    newAgreementId: AgreementId;
+    sourceConsumerDocuments: AgreementDocument[];
+    clonedConsumerDocuments: AgreementV2["consumerDocuments"] | undefined;
+  }): AgreementV2 =>
+    toAgreementV2({
+      ...source,
+      id: newAgreementId,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      state: agreementState.draft,
+      createdAt: TEST_EXECUTION_DATE,
+      consumerDocuments: sourceConsumerDocuments.map((doc, i) => ({
+        ...doc,
+        id: unsafeBrandId(clonedConsumerDocuments?.[i].id as string),
+        path: clonedConsumerDocuments?.[i].path as string,
+      })),
+      stamps: {},
+    });
 
   it("should succeed when requester is Consumer and the Agreement is in a clonable state", async () => {
     const authData = getMockAuthData();
@@ -166,36 +193,14 @@ describe("clone agreement", () => {
 
     const agreementClonedAgreement = agreementClonedEventPayload.agreement;
 
-    const expectedAgreementCloned: AgreementV2 = toAgreementV2({
-      id: newAgreementId,
-      eserviceId: agreementToBeCloned.eserviceId,
-      descriptorId: agreementToBeCloned.descriptorId,
-      producerId: agreementToBeCloned.producerId,
-      consumerId: agreementToBeCloned.consumerId,
-      consumerNotes: agreementToBeCloned.consumerNotes,
-      verifiedAttributes: [],
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      state: agreementState.draft,
-      createdAt: TEST_EXECUTION_DATE,
-      consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
-        (doc, i) => ({
-          ...doc,
-          id: unsafeBrandId(
-            agreementClonedAgreement?.consumerDocuments[i].id as string
-          ),
-          path: agreementClonedAgreement?.consumerDocuments[i].path as string,
-        })
-      ),
-      stamps: {},
+    const expectedAgreementCloned = buildExpectedClonedAgreement({
+      source: agreementToBeCloned,
+      newAgreementId,
+      sourceConsumerDocuments: agreementConsumerDocuments,
+      clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
-    delete expectedAgreementCloned.suspendedAt;
-    delete expectedAgreementCloned.updatedAt;
-    delete expectedAgreementCloned.contract;
-    delete expectedAgreementCloned.signedContract;
-    expectedAgreementCloned.stamps = {};
 
-    expect(agreementClonedEventPayload).toMatchObject({
+    expect(agreementClonedEventPayload).toEqual({
       agreement: expectedAgreementCloned,
     });
     expect(agreementClonedEventPayload).toEqual({
@@ -315,36 +320,14 @@ describe("clone agreement", () => {
 
     const agreementClonedAgreement = agreementClonedEventPayload.agreement;
 
-    const expectedAgreementCloned: AgreementV2 = toAgreementV2({
-      id: newAgreementId,
-      eserviceId: agreementToBeCloned.eserviceId,
-      descriptorId: agreementToBeCloned.descriptorId,
-      producerId: agreementToBeCloned.producerId,
-      consumerId: agreementToBeCloned.consumerId,
-      consumerNotes: agreementToBeCloned.consumerNotes,
-      verifiedAttributes: [],
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      state: agreementState.draft,
-      createdAt: TEST_EXECUTION_DATE,
-      consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
-        (doc, i) => ({
-          ...doc,
-          id: unsafeBrandId(
-            agreementClonedAgreement?.consumerDocuments[i].id as string
-          ),
-          path: agreementClonedAgreement?.consumerDocuments[i].path as string,
-        })
-      ),
-      stamps: {},
+    const expectedAgreementCloned = buildExpectedClonedAgreement({
+      source: agreementToBeCloned,
+      newAgreementId,
+      sourceConsumerDocuments: agreementConsumerDocuments,
+      clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
-    delete expectedAgreementCloned.suspendedAt;
-    delete expectedAgreementCloned.updatedAt;
-    delete expectedAgreementCloned.contract;
-    delete expectedAgreementCloned.signedContract;
-    expectedAgreementCloned.stamps = {};
 
-    expect(agreementClonedEventPayload).toMatchObject({
+    expect(agreementClonedEventPayload).toEqual({
       agreement: expectedAgreementCloned,
     });
     expect(agreementClonedEventPayload).toEqual({

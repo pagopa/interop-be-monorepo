@@ -152,3 +152,4 @@ export * from "./m2m-event/keyM2MEvent.js";
 export * from "./m2m-event/producerKeychainM2MEvent.js";
 export * from "./m2m-event/producerKeyM2MEvent.js";
 export * from "./m2m-event/tenantM2MEvent.js";
+export * from "./m2m-event/purposeTemplateM2MEvent.js";

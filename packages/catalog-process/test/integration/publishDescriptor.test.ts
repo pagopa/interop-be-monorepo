@@ -110,8 +110,10 @@ describe("publish descriptor", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should write on event-store for the publication of a descriptor with mode Receive", async () => {
@@ -176,8 +178,10 @@ describe("publish descriptor", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should write on event-store for the submission of the descriptor by the delegate", async () => {
@@ -250,8 +254,10 @@ describe("publish descriptor", () => {
       ],
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: expectedEservice,
+    });
   });
 
   it("should also archive the previously published descriptor", async () => {

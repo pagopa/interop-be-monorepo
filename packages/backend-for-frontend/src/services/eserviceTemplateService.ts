@@ -632,6 +632,10 @@ export function eserviceTemplateServiceBuilder(
             }
           );
         },
+        {
+          maxFileSizeBytes: config.maxFileSizeBytes,
+          maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+        },
         ctx.logger
       );
 

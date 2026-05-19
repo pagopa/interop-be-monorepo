@@ -267,9 +267,9 @@ export const removeProducerKeychainUserErrorMapper = (
     .with(
       "producerKeychainNotFound",
       "producerKeychainUserIdNotFound",
+      "tenantNotAllowedOnProducerKeychain",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteProducerKeychainKeyByIdErrorMapper = (

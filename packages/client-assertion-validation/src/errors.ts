@@ -7,7 +7,7 @@ export const errorCodes = {
   invalidAudience: "0004",
   audienceNotFound: "0005",
   invalidClientAssertionFormat: "0006",
-  unexpectedClientAssertionPayload: "0007",
+  unexpectedClientAssertion: "0007",
   jtiNotFound: "0008",
   issuedAtNotFound: "0009",
   expNotFound: "0010",
@@ -104,12 +104,12 @@ export function invalidClientAssertionFormat(
   });
 }
 
-export function unexpectedClientAssertionPayload(
+export function unexpectedClientAssertion(
   message: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unexpected client assertion payload: ${message}`,
-    code: "unexpectedClientAssertionPayload",
+    code: "unexpectedClientAssertion",
     title: "Invalid client assertion payload",
   });
 }

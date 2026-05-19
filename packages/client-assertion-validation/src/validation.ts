@@ -50,7 +50,7 @@ import {
   notBeforeError,
   purposeIdNotProvided,
   tokenExpiredError,
-  unexpectedClientAssertionPayload,
+  unexpectedClientAssertion,
   invalidSignature,
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
@@ -232,7 +232,7 @@ export const verifyClientAssertion = (
       return failedValidation([invalidClientAssertionFormat(error.message)]);
     }
     const message = error instanceof Error ? error.message : "generic error";
-    return failedValidation([unexpectedClientAssertionPayload(message)]);
+    return failedValidation([unexpectedClientAssertion(message)]);
   }
 };
 

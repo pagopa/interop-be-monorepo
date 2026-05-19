@@ -11,6 +11,7 @@ import {
   producerKeyInM2MEvent,
   tenantInM2MEvent,
   eserviceTemplateInM2MEvent,
+  purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -39,6 +40,8 @@ import {
   TenantM2MEvent,
   TenantM2MEventId,
   m2mEventVisibility,
+  PurposeTemplateM2MEventId,
+  PurposeTemplateM2MEvent,
 } from "pagopa-interop-models";
 import { and, asc, eq, or } from "drizzle-orm";
 import {
@@ -63,6 +66,7 @@ import {
 } from "../model/authorizationM2MEventAdapterSQL.js";
 import { fromTenantM2MEventSQL } from "../model/tenantM2MEventAdapterSQL.js";
 import { fromEServiceTemplateM2MEventSQL } from "../model/eserviceTemplateM2MEventAdapterSQL.js";
+import { fromPurposeTemplateM2MEventSQL } from "../model/purposeTemplateM2MEventAdapterSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(
@@ -338,6 +342,29 @@ export function m2mEventReaderServiceSQLBuilder(
         .limit(limit);
 
       return sqlEvents.map(fromTenantM2MEventSQL);
+    },
+
+    async getPurposeTemplateM2MEvents(
+      lastEventId: PurposeTemplateM2MEventId | undefined,
+      limit: number,
+      requester: TenantId
+    ): Promise<PurposeTemplateM2MEvent[]> {
+      const sqlEvents = await m2mEventDB
+        .select()
+        .from(purposeTemplateInM2MEvent)
+        .where(
+          and(
+            afterEventIdFilter(purposeTemplateInM2MEvent, lastEventId),
+            visibilityFilter(purposeTemplateInM2MEvent, {
+              ownerFilter: eq(purposeTemplateInM2MEvent.creatorId, requester),
+              restrictedFilter: undefined,
+            })
+          )
+        )
+        .orderBy(asc(purposeTemplateInM2MEvent.id))
+        .limit(limit);
+
+      return sqlEvents.map(fromPurposeTemplateM2MEventSQL);
     },
   };
 }

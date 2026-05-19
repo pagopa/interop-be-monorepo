@@ -83,9 +83,14 @@ describe("suspendPurposeTemplate", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
-      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
-    );
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
+      purposeTemplate: sortPurposeTemplate(
+        toPurposeTemplateV2(expectedPurposeTemplate)
+      ),
+    });
     expect(suspendResponse).toMatchObject({
       data: updatedPurposeTemplate,
       metadata: { version: expectedMetadataVersion },

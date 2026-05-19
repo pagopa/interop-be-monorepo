@@ -14,6 +14,7 @@ import {
   generateId,
   genericInternalError,
   PurposeEvent,
+  PurposeTemplateEvent,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -44,6 +45,7 @@ import { handleEServiceEvent } from "./handlers/handleEServiceEvent.js";
 import { handleTenantEvent } from "./handlers/handleTenantEvent.js";
 import { handleEServiceTemplateEvent } from "./handlers/handleEServiceTemplateEvent.js";
 import { getEventTimestamp } from "./utils/eventTimestamp.js";
+import { handlePurposeTemplateEvent } from "./handlers/handlePurposeTemplateEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -54,6 +56,7 @@ interface TopicNames {
   attributeTopic: string;
   tenantTopic: string;
   eserviceTemplateTopic: string;
+  purposeTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -90,6 +93,7 @@ function processMessage(topicNames: TopicNames) {
       attributeTopic,
       tenantTopic,
       eserviceTemplateTopic,
+      purposeTemplateTopic,
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
@@ -182,6 +186,13 @@ function processMessage(topicNames: TopicNames) {
         );
         await handleWith(decodedMessage, handleEServiceTemplateEvent);
       })
+      .with(purposeTemplateTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          PurposeTemplateEvent
+        );
+        await handleWith(decodedMessage, handlePurposeTemplateEvent);
+      })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -199,6 +210,7 @@ await runConsumer(
     config.attributeTopic,
     config.tenantTopic,
     config.eserviceTemplateTopic,
+    config.purposeTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -209,6 +221,7 @@ await runConsumer(
     attributeTopic: config.attributeTopic,
     tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
+    purposeTemplateTopic: config.purposeTemplateTopic,
   }),
   "m2m-event-dispatcher"
 );

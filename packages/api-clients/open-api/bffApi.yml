@@ -8528,7 +8528,7 @@ paths:
       tags:
         - tools
       summary: Validate token generation request
-      description: Provides additional details about token generation request failure
+      description: Provides additional details about token generation request failure, including optional DPoP proof validation
       operationId: validateTokenGeneration
       requestBody:
         required: true
@@ -25737,6 +25737,7 @@ components:
       properties:
         client_id:
           type: string
+          format: uuid
           example: e58035ce-c753-4f72-b613-46f8a17b71cc
         client_assertion:
           type: string
@@ -25745,6 +25746,10 @@ components:
           type: string
         grant_type:
           type: string
+        dpop_proof:
+          type: string
+          format: jws
+          description: Optional DPoP proof JWT used to validate token generation
     PrivacyNotice:
       type: object
       additionalProperties: false
@@ -29199,11 +29204,14 @@ components:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
         platformStatesVerification:
           $ref: "#/components/schemas/TokenGenerationValidationEntry"
+        dpopValidation:
+          $ref: "#/components/schemas/TokenGenerationValidationEntry"
       required:
         - clientAssertionValidation
         - publicKeyRetrieve
         - clientAssertionSignatureVerification
         - platformStatesVerification
+
     TokenGenerationValidationEntry:
       type: object
       additionalProperties: false
@@ -29682,7 +29690,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -29712,7 +29720,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:

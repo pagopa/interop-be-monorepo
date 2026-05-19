@@ -181,7 +181,9 @@ describe("patch update eService", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+      });
       expect(updateEServiceReturn).toEqual({
         data: expectedEService,
         metadata: { version: 1 },
@@ -258,7 +260,9 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(updateEServiceReturn).toEqual({
       data: expectedEService,
       metadata: { version: 1 },
@@ -359,7 +363,9 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
@@ -411,7 +417,9 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(updateEServiceReturn).toEqual({
       data: expectedEService,
       metadata: { version: 1 },
