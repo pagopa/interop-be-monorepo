@@ -27,6 +27,49 @@ type AsyncPlatformStatesComparisonResult = {
   asyncPlatformStatesByPK: Map<string, AsyncPlatformStatesCatalogEntry>;
 };
 
+const descriptorAudiencesMatch = (
+  actual: string[],
+  expected: string[]
+): boolean => {
+  if (actual.length !== expected.length) {
+    return false;
+  }
+
+  const expectedAudienceOccurrences = new Map<string, number>();
+  for (const audience of expected) {
+    expectedAudienceOccurrences.set(
+      audience,
+      (expectedAudienceOccurrences.get(audience) ?? 0) + 1
+    );
+  }
+
+  for (const audience of actual) {
+    const occurrences = expectedAudienceOccurrences.get(audience);
+    if (!occurrences) {
+      return false;
+    }
+
+    expectedAudienceOccurrences.set(audience, occurrences - 1);
+  }
+
+  return true;
+};
+
+const comparableAsyncPlatformStatesEntriesMatch = (
+  actual: ComparableAsyncPlatformStatesCatalogEntry,
+  expected: ComparableAsyncPlatformStatesCatalogEntry
+): boolean =>
+  descriptorAudiencesMatch(
+    actual.descriptorAudience,
+    expected.descriptorAudience
+  ) &&
+  actual.PK === expected.PK &&
+  actual.state === expected.state &&
+  actual.descriptorVoucherLifespan === expected.descriptorVoucherLifespan &&
+  actual.asyncExchange === expected.asyncExchange &&
+  JSON.stringify(actual.asyncExchangeProperties) ===
+    JSON.stringify(expected.asyncExchangeProperties);
+
 const buildExpectedAsyncPlatformStatesByPK = (
   eservices: EService[]
 ): Map<string, ComparableAsyncPlatformStatesCatalogEntry> =>
@@ -130,7 +173,10 @@ const compareAsyncPlatformStatesEntry = ({
       parsedAsyncEntry.data
     );
 
-    return JSON.stringify(comparableActual) !== JSON.stringify(expected)
+    return !comparableAsyncPlatformStatesEntriesMatch(
+      comparableActual,
+      expected
+    )
       ? logDifference({
           logger,
           message: `Differences in async platform-states catalog entry ${pk}`,

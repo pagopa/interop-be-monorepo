@@ -332,6 +332,41 @@ describe("Async Token Generation Read Model Checker tests", () => {
     ).toBe(1);
   });
 
+  it("should not detect differences when platform-states descriptor audience has different order", () => {
+    const fixture = buildFixture();
+    const eservice: EService = {
+      ...fixture.eservice,
+      descriptors: [
+        {
+          ...fixture.descriptor,
+          audience: ["pagopa.it", "interop.pagopa.it"],
+        },
+      ],
+    };
+
+    expect(
+      compareAsyncPlatformStates({
+        eservices: [eservice],
+        platformStates: [
+          {
+            PK: makePlatformStatesEServiceDescriptorPK({
+              eserviceId: fixture.eservice.id,
+              descriptorId: fixture.descriptor.id,
+            }),
+            state: itemState.active,
+            descriptorAudience: ["interop.pagopa.it", "pagopa.it"],
+            descriptorVoucherLifespan: fixture.descriptor.voucherLifespan,
+            asyncExchange: true,
+            asyncExchangeProperties,
+            version: 1,
+            updatedAt: issuedAt,
+          },
+        ],
+        logger: genericLogger,
+      })
+    ).toBe(0);
+  });
+
   it("should detect a wrong asyncExchange flag in token-generation-states", async () => {
     const fixture = buildFixture();
     await addReadModelFixture(fixture);
