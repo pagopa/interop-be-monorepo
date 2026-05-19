@@ -10,6 +10,9 @@ import {
   EServiceDescriptorActivatedV2,
   EServiceAddedV2,
   toEServiceV2,
+  EServiceArchivingScheduledV2,
+  EServiceArchivingCompletedV2,
+  EServiceArchivingCanceledV2,
 } from "pagopa-interop-models";
 import {
   FileManager,
@@ -122,6 +125,80 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
       path: "path/to",
     });
   });
+
+  it.each([
+    "EServiceArchivingScheduled",
+    "EServiceArchivingCanceled",
+    "EServiceArchivingCompleted",
+  ])(
+    "should process an %s event and save all descriptors with archiving state in DynamoDB",
+    async (eventType) => {
+      const descriptor = getMockDescriptorArchiving();
+      const mockEService = getMockEService(undefined, undefined, [descriptor]);
+
+      const message: EServiceEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 1,
+        event_version: 2,
+        type: eventType as
+          | "EServiceArchivingScheduled"
+          | "EServiceArchivingCanceled"
+          | "EServiceArchivingCompleted",
+        data: {
+          eservice: toEServiceV2({
+            ...mockEService,
+            descriptors: mockEService.descriptors.map((desc) => ({
+              ...desc,
+              state: "Archiving",
+            })),
+          }),
+        } as
+          | EServiceArchivingScheduledV2
+          | EServiceArchivingCanceledV2
+          | EServiceArchivingCompletedV2,
+        log_date: new Date(),
+      };
+
+      const eventsWithTimestamp = [
+        {
+          eserviceV2: message,
+          timestamp: new Date(),
+        },
+      ];
+
+      vi.spyOn(safeStorageService, "createFile").mockResolvedValue({
+        uploadMethod: "POST",
+        uploadUrl: "mock-upload-url",
+        secret: "mock-secret",
+        key: mockSafeStorageId,
+      });
+      vi.spyOn(safeStorageService, "uploadFileContent").mockResolvedValue(
+        undefined
+      );
+
+      await handleCatalogMessageV2(
+        eventsWithTimestamp,
+        fileManager,
+        signatureService,
+        safeStorageService
+      );
+
+      const retrievedReference = await signatureService.readSignatureReference(
+        mockSafeStorageId,
+        genericLogger
+      );
+
+      expect(retrievedReference).toEqual({
+        safeStorageId: mockSafeStorageId,
+        fileKind: "EVENT_JOURNAL",
+        fileName: expect.stringMatching(/.ndjson.gz$/),
+        correlationId: expect.any(String),
+        creationTimestamp: expect.any(Number),
+        path: "path/to",
+      });
+    }
+  );
 
   it("should not process an EServiceAdded event", async () => {
     const descriptor = getMockDescriptorPublished();
