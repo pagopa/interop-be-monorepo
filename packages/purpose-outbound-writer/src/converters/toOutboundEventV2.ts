@@ -71,6 +71,7 @@ export function toOutboundEventV2(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisSubmitted" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
