@@ -15,6 +15,7 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidPdfSignatureError,
   invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
@@ -22,7 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
-import { calculateChecksum } from "../utils/fileUtils.js";
+import { calculateChecksum, isPdf } from "../utils/fileUtils.js";
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
 import {
@@ -391,6 +392,11 @@ export async function verifyAndCreateDocument<T>(
   const contentType = doc.type;
   if (!contentType) {
     throw invalidContentTypeDetected(resource, "invalid", technology);
+  }
+
+  if (kind === "DOCUMENT") {
+    const pdfCheck = await isPdf(doc);
+    if (!pdfCheck) throw invalidPdfSignatureError();
   }
 
   const maxSizeForKind = resolveMaxSizeForKind(kind, fileSizeLimits);

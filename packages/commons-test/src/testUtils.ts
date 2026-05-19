@@ -1448,6 +1448,17 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   return htmlTemplateBuffer.toString();
 };
 
+export const readFileContentAsBuffer = async (
+  fileName: string
+): Promise<Buffer> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const buffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return buffer;
+};
+
 export function createDummyStub<T>(): T {
   return {} as T;
 }

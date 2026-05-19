@@ -8,9 +8,14 @@ import {
   contentTooLargeError,
   generateId,
   invalidContentTypeDetected,
+  invalidPdfSignatureError,
   technology,
 } from "pagopa-interop-models";
-import { getMockEService, readFileContent } from "../src/index.js";
+import {
+  getMockEService,
+  readFileContent,
+  readFileContentAsBuffer,
+} from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
 describe("verifyAndCreateDocument", async () => {
@@ -110,6 +115,58 @@ describe("verifyAndCreateDocument", async () => {
       invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
+  it("should throw invalidPdfSignatureError if kind is DOCUMENT and file is not a valid pdf", async () => {
+    const invalidFile = new File([file], file.name, {
+      type: "application/pdf",
+      lastModified: file.lastModified,
+    });
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        "DOCUMENT",
+        invalidFile,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        () => Promise.resolve(),
+        noLimitFileSizePolicy,
+        genericLogger
+      )
+    ).rejects.toThrowError(invalidPdfSignatureError());
+  });
+
+  it("should not throw with a valid PDF file", async () => {
+    const pdfContent = await readFileContentAsBuffer("empty.pdf");
+    const validPDF = new File([pdfContent], file.name, {
+      type: "application/pdf",
+      lastModified: file.lastModified,
+    });
+
+    const mockCreateDocumentHandler = vi
+      .fn()
+      .mockResolvedValue({ id: documentId });
+
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        "DOCUMENT",
+        validPDF,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        mockCreateDocumentHandler,
+        noLimitFileSizePolicy,
+        genericLogger
+      )
+    ).resolves.toEqual({ id: documentId });
+  });
+
   it("should throw contentTooLargeError if file size is greater than max file size", async () => {
     const maxFileSizeBytes = file.size - 1;
 
