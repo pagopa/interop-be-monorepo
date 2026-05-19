@@ -70,6 +70,7 @@ export function toOutboundEventV2(
       { type: "PurposeActivated" },
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
