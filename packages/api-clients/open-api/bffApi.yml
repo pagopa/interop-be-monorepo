@@ -30069,6 +30069,8 @@ components:
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
     EServiceTemplateAttributesSeed:
+      type: object
+      additionalProperties: false
       properties:
         certified:
           type: array
