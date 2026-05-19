@@ -302,39 +302,21 @@ const getAllEserviceConsumers = async (
     })
   );
 
-const producerKeychainHasKeys = (
-  keychain: authorizationApi.ProducerKeychain
-): boolean =>
-  keychain.visibility === authorizationApi.Visibility.Values.FULL &&
-  keychain.keys.length > 0;
-
 const getProducerKeychainFlagsByEService = async (
   authorizationClient: AuthorizationProcessClient,
   headers: Headers,
   eServiceId: EServiceId,
   producerId: TenantId
-): Promise<{
-  hasProducerKeychain: boolean;
-  hasProducerKeychainKeys: boolean;
-}> => {
-  const producerKeychains =
-    await authorizationClient.producerKeychain.getProducerKeychains({
-      headers,
-      queries: {
-        eserviceId: eServiceId,
-        producerId,
-        offset: 0,
-        limit: 1,
-      },
-    });
-
-  return {
-    hasProducerKeychain: producerKeychains.totalCount > 0,
-    hasProducerKeychainKeys: producerKeychains.results.some(
-      producerKeychainHasKeys
-    ),
-  };
-};
+): Promise<authorizationApi.ProducerKeychainEServiceFlags> =>
+  await authorizationClient.producerKeychain.getProducerKeychainEServiceFlags({
+    headers,
+    params: {
+      eserviceId: eServiceId,
+    },
+    queries: {
+      producerId,
+    },
+  });
 
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,

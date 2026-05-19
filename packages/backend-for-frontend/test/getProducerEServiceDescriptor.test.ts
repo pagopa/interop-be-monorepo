@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   attributeRegistryApi,
-  authorizationApi,
   catalogApi,
   agreementApi,
   eserviceTemplateApi,
@@ -100,12 +99,12 @@ describe("getProducerEServiceDescriptor", () => {
     }),
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
-  const mockProducerKeychains = vi.fn();
+  const mockProducerKeychainEServiceFlags = vi.fn();
   const mockGetDelegations = vi.fn();
 
   const mockAuthorizationClient = {
     producerKeychain: {
-      getProducerKeychains: mockProducerKeychains,
+      getProducerKeychainEServiceFlags: mockProducerKeychainEServiceFlags,
     },
   } as unknown as AuthorizationProcessClient;
 
@@ -133,37 +132,13 @@ describe("getProducerEServiceDescriptor", () => {
     config
   );
 
-  const mockKey = (): authorizationApi.Key => ({
-    userId: generateId(),
-    kid: "mockKid",
-    name: "mockKey",
-    encodedPem: "mockPem",
-    algorithm: "RS256",
-    use: authorizationApi.KeyUse.Values.SIG,
-    createdAt: new Date().toISOString(),
-  });
-
-  const mockFullProducerKeychain = (
-    keys: authorizationApi.Key[],
-    producerId: TenantId = tenantId
-  ): authorizationApi.ProducerKeychain => ({
-    visibility: authorizationApi.Visibility.Values.FULL,
-    id: generateId(),
-    name: "mockProducerKeychain",
-    producerId,
-    createdAt: new Date().toISOString(),
-    eservices: [eServiceId],
-    description: "mockDescription",
-    users: [],
-    keys,
-  });
-
-  const mockProducerKeychainsResponse = (
-    results: authorizationApi.ProducerKeychain[]
+  const mockProducerKeychainEServiceFlagsResponse = (
+    hasProducerKeychain: boolean,
+    hasProducerKeychainKeys: boolean
   ): void => {
-    mockProducerKeychains.mockResolvedValueOnce({
-      results,
-      totalCount: results.length,
+    mockProducerKeychainEServiceFlags.mockResolvedValueOnce({
+      hasProducerKeychain,
+      hasProducerKeychainKeys,
     });
   };
 
@@ -177,7 +152,7 @@ describe("getProducerEServiceDescriptor", () => {
   };
 
   beforeEach(() => {
-    mockProducerKeychains.mockReset();
+    mockProducerKeychainEServiceFlags.mockReset();
     mockGetDelegations.mockReset();
     mockGetDelegations.mockResolvedValue({
       results: [],
@@ -186,7 +161,7 @@ describe("getProducerEServiceDescriptor", () => {
   });
 
   it("should return false fields when the descriptor eservice has no producer keychain", async () => {
-    mockProducerKeychainsResponse([]);
+    mockProducerKeychainEServiceFlagsResponse(false, false);
 
     const result = await catalogService.getProducerEServiceDescriptor(
       eServiceId,
@@ -199,7 +174,7 @@ describe("getProducerEServiceDescriptor", () => {
   });
 
   it("should distinguish a producer keychain without keys", async () => {
-    mockProducerKeychainsResponse([mockFullProducerKeychain([])]);
+    mockProducerKeychainEServiceFlagsResponse(true, false);
 
     const result = await catalogService.getProducerEServiceDescriptor(
       eServiceId,
@@ -212,7 +187,7 @@ describe("getProducerEServiceDescriptor", () => {
   });
 
   it("should return true fields when the producer keychain has keys", async () => {
-    mockProducerKeychainsResponse([mockFullProducerKeychain([mockKey()])]);
+    mockProducerKeychainEServiceFlagsResponse(true, true);
 
     const result = await catalogService.getProducerEServiceDescriptor(
       eServiceId,
@@ -222,13 +197,13 @@ describe("getProducerEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(true);
     expect(result.eservice.hasProducerKeychainKeys).toBe(true);
-    expect(mockProducerKeychains).toHaveBeenCalledWith({
+    expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
       headers: bffMockContext.headers,
-      queries: {
+      params: {
         eserviceId: eServiceId,
+      },
+      queries: {
         producerId: tenantId,
-        offset: 0,
-        limit: 1,
       },
     });
   });
@@ -238,9 +213,7 @@ describe("getProducerEServiceDescriptor", () => {
       results: [mockActiveProducerDelegation],
       totalCount: 1,
     });
-    mockProducerKeychainsResponse([
-      mockFullProducerKeychain([mockKey()], delegateId),
-    ]);
+    mockProducerKeychainEServiceFlagsResponse(true, true);
 
     const result = await catalogService.getProducerEServiceDescriptor(
       eServiceId,
@@ -250,13 +223,13 @@ describe("getProducerEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(true);
     expect(result.eservice.hasProducerKeychainKeys).toBe(true);
-    expect(mockProducerKeychains).toHaveBeenCalledWith({
+    expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
       headers: delegateBffMockContext.headers,
-      queries: {
+      params: {
         eserviceId: eServiceId,
+      },
+      queries: {
         producerId: delegateId,
-        offset: 0,
-        limit: 1,
       },
     });
   });

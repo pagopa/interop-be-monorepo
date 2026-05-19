@@ -5,12 +5,10 @@ import {
   EServiceId,
   generateId,
   TenantId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   agreementApi,
   attributeRegistryApi,
-  authorizationApi,
   bffApi,
   catalogApi,
   eserviceTemplateApi,
@@ -210,14 +208,14 @@ describe("getCatalogEServiceDescriptor", () => {
     }),
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
-  const mockProducerKeychains = vi.fn().mockResolvedValue({
-    results: [],
-    totalCount: 0,
+  const mockProducerKeychainEServiceFlags = vi.fn().mockResolvedValue({
+    hasProducerKeychain: false,
+    hasProducerKeychainKeys: false,
   });
 
   const mockAuthorizationClient = {
     producerKeychain: {
-      getProducerKeychains: mockProducerKeychains,
+      getProducerKeychainEServiceFlags: mockProducerKeychainEServiceFlags,
     },
   } as unknown as AuthorizationProcessClient;
 
@@ -319,34 +317,10 @@ describe("getCatalogEServiceDescriptor", () => {
     );
   });
 
-  const mockKey = (): authorizationApi.Key => ({
-    userId: generateId(),
-    kid: "mockKid",
-    name: "mockKey",
-    encodedPem: "mockPem",
-    algorithm: "RS256",
-    use: authorizationApi.KeyUse.Values.SIG,
-    createdAt: new Date().toISOString(),
-  });
-
-  const mockFullProducerKeychain = (
-    keys: authorizationApi.Key[]
-  ): authorizationApi.ProducerKeychain => ({
-    visibility: authorizationApi.Visibility.Values.FULL,
-    id: generateId(),
-    name: "mockProducerKeychain",
-    producerId: unsafeBrandId<TenantId>(eService.producerId),
-    createdAt: new Date().toISOString(),
-    eservices: [eServiceId],
-    description: "mockDescription",
-    users: [],
-    keys,
-  });
-
   it("should expose producer keychain flags on the catalog descriptor eservice", async () => {
-    mockProducerKeychains.mockResolvedValueOnce({
-      results: [mockFullProducerKeychain([mockKey()])],
-      totalCount: 1,
+    mockProducerKeychainEServiceFlags.mockResolvedValueOnce({
+      hasProducerKeychain: true,
+      hasProducerKeychainKeys: true,
     });
     vi.mocked(
       catalogApiConverter.toBffCatalogDescriptorEService
@@ -364,13 +338,11 @@ describe("getCatalogEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(true);
     expect(result.eservice.hasProducerKeychainKeys).toBe(true);
-    expect(mockProducerKeychains).toHaveBeenCalledWith({
+    expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
       headers: bffMockContext.headers,
+      params: { eserviceId: eServiceId },
       queries: {
-        eserviceId: eServiceId,
         producerId: eService.producerId,
-        offset: 0,
-        limit: 1,
       },
     });
     expect(
