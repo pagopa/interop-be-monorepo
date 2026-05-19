@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_certified_attribute (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_declared_attribute (
-  attribute_id UUID NOT NULL,
+  attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
