@@ -21,6 +21,8 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -57,6 +59,8 @@ import {
   purposeEventToBinaryData,
   purposeVersionState,
   unsafeBrandId,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
@@ -87,6 +91,8 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
+  reviewerWorkflowNotInDraftState,
+  requesterIsNotTheWriter,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -112,6 +118,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
+  toCreateEventPurposeRiskAnalysisSubmitted,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -494,6 +501,110 @@ export function purposeServiceBuilder(
 
       return {
         data: { purpose: updatedPurpose, isRiskAnalysisValid: false },
+        metadata: { version: event.newVersion },
+      };
+    },
+    async submitRiskAnalysis(
+      purposeId: PurposeId,
+      seed: {
+        riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(`Submitting risk analysis for Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      const workflow = purpose.data.reviewerWorkflow;
+
+      if (
+        workflow &&
+        workflow.signingState !== riskAnalysisSigningState.draft
+      ) {
+        throw reviewerWorkflowNotInDraftState(purposeId);
+      }
+
+      // Assert caller is the writer per mode
+      await match(workflow)
+        .with(
+          { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
+          (workflow) => {
+            if (!workflow.reviewerIds.includes(authData.userId)) {
+              throw requesterIsNotTheWriter(purposeId);
+            }
+          }
+        )
+        .with(
+          { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
+          (workflow) => {
+            if (
+              workflow.reviewerIds.includes(authData.userId) ||
+              !authData.userRoles.includes(userRole.ADMIN_ROLE)
+            ) {
+              throw requesterIsNotTheWriter(purposeId);
+            }
+          }
+        )
+        .with(P.nullish, async () => {
+          assertRequesterCanActAsConsumer(
+            purpose.data,
+            authData,
+            await retrievePurposeDelegation(purpose.data, readModelService)
+          );
+        })
+        .exhaustive();
+
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const now = new Date();
+
+      const validatedForm = validateRiskAnalysisOrThrow({
+        riskAnalysisForm: seed.riskAnalysisForm,
+        schemaOnlyValidation: false,
+        tenantKind,
+        dateForExpirationValidation: now,
+        personalDataInEService: eservice.personalData,
+      });
+
+      const riskAnalysisForm: PurposeRiskAnalysisForm = {
+        ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+        riskAnalysisId: purpose.data.riskAnalysisForm?.riskAnalysisId,
+      };
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm,
+        reviewerWorkflow: workflow
+          ? {
+              ...workflow,
+              signingState: riskAnalysisSigningState.pendingSignature,
+              rejectionReason: undefined,
+            }
+          : undefined,
+        updatedAt: now,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisSubmitted({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
         metadata: { version: event.newVersion },
       };
     },

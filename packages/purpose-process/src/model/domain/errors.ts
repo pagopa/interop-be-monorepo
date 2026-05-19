@@ -59,6 +59,9 @@ const errorCodes = {
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
   reviewerWorkflowConflict: "0042",
+  reviewerWorkflowNotFound: "0043",
+  reviewerWorkflowNotInDraftState: "0044",
+  requesterIsNotTheWriter: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -507,5 +510,35 @@ export function reviewerWorkflowConflict(
     detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
     code: "reviewerWorkflowConflict",
     title: "Reviewer workflow conflict",
+  });
+}
+
+export function reviewerWorkflowNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not have a reviewer workflow`,
+    code: "reviewerWorkflowNotFound",
+    title: "Reviewer workflow not found",
+  });
+}
+
+export function reviewerWorkflowNotInDraftState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in Draft state`,
+    code: "reviewerWorkflowNotInDraftState",
+    title: "Reviewer workflow not in draft state",
+  });
+}
+
+export function requesterIsNotTheWriter(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester is not authorized to write the risk analysis for purpose ${purposeId}`,
+    code: "requesterIsNotTheWriter",
+    title: "Requester is not the writer",
   });
 }
