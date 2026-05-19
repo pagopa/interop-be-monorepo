@@ -17,12 +17,14 @@ import {
   PurposeTemplateId,
   PurposeVersionDocument,
   TenantId,
+  UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
   apiReviewModeToReviewMode,
+  apiSigningStateToSigningState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -85,6 +87,7 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          REVIEWER_ROLE,
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
@@ -100,6 +103,8 @@ const purposeRouter = (
           clientId,
           states,
           excludeDraft,
+          reviewerId,
+          signingState,
           offset,
           limit,
         } = req.query;
@@ -112,6 +117,12 @@ const purposeRouter = (
             clientId: clientId ? unsafeBrandId<ClientId>(clientId) : undefined,
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
+            reviewerId: reviewerId
+              ? unsafeBrandId<UserId>(reviewerId)
+              : undefined,
+            signingState: signingState
+              ? apiSigningStateToSigningState(signingState)
+              : undefined,
           },
           { offset, limit },
           ctx

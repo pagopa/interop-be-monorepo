@@ -27,6 +27,8 @@ import {
   purposeTemplateState,
   ClientId,
   Client,
+  UserId,
+  RiskAnalysisSigningState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -34,6 +36,7 @@ import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   purposeInReadmodelPurpose,
+  purposeReviewerInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -56,6 +59,7 @@ import {
 import {
   and,
   eq,
+  exists,
   inArray,
   isNotNull,
   ne,
@@ -73,6 +77,8 @@ export type GetPurposesFilters = {
   purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
+  reviewerId?: UserId;
+  signingState?: RiskAnalysisSigningState;
 };
 
 const activeProducerDelegations = alias(
@@ -148,14 +154,54 @@ const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
     eq(activeConsumerDelegations.delegateId, requesterId)
   );
 
+const getReviewerIdFilter = (
+  db: DrizzleReturnType,
+  reviewerId: UserId | undefined
+): SQL | undefined =>
+  reviewerId
+    ? exists(
+        db
+          .select()
+          .from(purposeReviewerInReadmodelPurpose)
+          .where(
+            and(
+              eq(
+                purposeReviewerInReadmodelPurpose.purposeId,
+                purposeInReadmodelPurpose.id
+              ),
+              eq(purposeReviewerInReadmodelPurpose.reviewerId, reviewerId)
+            )
+          )
+      )
+    : undefined;
+
+const getSigningStateFilter = (
+  signingState: RiskAnalysisSigningState | undefined
+): SQL | undefined =>
+  signingState
+    ? eq(purposeInReadmodelPurpose.reviewerWorkflowSigningState, signingState)
+    : undefined;
+
 const getPurposesFilters = (
   db: DrizzleReturnType,
   filters: Pick<
     GetPurposesFilters,
-    "title" | "eservicesIds" | "states" | "excludeDraft"
+    | "title"
+    | "eservicesIds"
+    | "states"
+    | "excludeDraft"
+    | "reviewerId"
+    | "signingState"
   >
 ): Array<SQL | undefined> => {
-  const { title, eservicesIds, states, excludeDraft } = filters;
+  const {
+    title,
+    eservicesIds,
+    states,
+    excludeDraft,
+    reviewerId,
+    signingState,
+  } = filters;
   const titleFilter = title
     ? ilikeEscaped(purposeInReadmodelPurpose.title, `%${escapeSqlLike(title)}%`)
     : undefined;
@@ -202,7 +248,17 @@ const getPurposesFilters = (
       )
     : undefined;
 
-  return [titleFilter, eservicesIdsFilter, versionStateFilter, draftFilter];
+  const reviewerIdFilter = getReviewerIdFilter(db, reviewerId);
+  const signingStateFilter = getSigningStateFilter(signingState);
+
+  return [
+    titleFilter,
+    eservicesIdsFilter,
+    versionStateFilter,
+    draftFilter,
+    reviewerIdFilter,
+    signingStateFilter,
+  ];
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

@@ -143,6 +143,30 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/purposes/riskAnalysis/assignments", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.getRiskAnalysisAssignments(
+          {
+            signingState: req.query.signingState,
+          },
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.Purposes.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposesErrorMapper,
+          ctx,
+          `Error retrieving risk analysis assignments for signingState ${req.query.signingState}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

@@ -317,6 +317,8 @@ export function purposeServiceBuilder(
       producersIds?: string[];
       states?: purposeApi.PurposeVersionState[];
       excludeDraft?: boolean | undefined;
+      reviewerId?: string | undefined;
+      signingState?: purposeApi.RiskAnalysisSigningState | undefined;
       offset: number;
       limit: number;
     },
@@ -602,6 +604,30 @@ export function purposeServiceBuilder(
           ...filters,
           excludeDraft: false,
           consumersIds: [authData.organizationId],
+          offset,
+          limit,
+        },
+        ctx
+      );
+    },
+    async getRiskAnalysisAssignments(
+      filters: {
+        signingState?: bffApi.RiskAnalysisSigningState | undefined;
+      },
+      offset: number,
+      limit: number,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
+      logger.info(
+        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${filters.signingState} offset ${offset}, limit ${limit}`
+      );
+      return await getPurposes(
+        authData,
+        {
+          ...filters,
+          reviewerId: authData.userId,
+          excludeDraft: true,
           offset,
           limit,
         },

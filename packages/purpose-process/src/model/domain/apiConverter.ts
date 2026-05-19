@@ -8,9 +8,11 @@ import {
   PurposeVersionState,
   RiskAnalysisMultiAnswer,
   RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
   riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -277,4 +279,13 @@ export const apiReviewModeToReviewMode = (
       "ADMIN_WRITES_REVIEWER_SIGNS",
       () => riskAnalysisReviewMode.adminWritesReviewerSigns
     )
+    .exhaustive();
+
+export const apiSigningStateToSigningState = (
+  apiSigningState: purposeApi.RiskAnalysisSigningState
+): RiskAnalysisSigningState =>
+  match(apiSigningState)
+    .with("DRAFT", () => riskAnalysisSigningState.draft)
+    .with("PENDING_SIGNATURE", () => riskAnalysisSigningState.pendingSignature)
+    .with("SIGNED", () => riskAnalysisSigningState.signed)
     .exhaustive();
