@@ -70,8 +70,6 @@ export function toOutboundEventV2(
       { type: "PurposeActivated" },
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      { type: "PurposeRiskAnalysisSubmitted" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -83,6 +81,23 @@ export function toOutboundEventV2(
         streamVersion: msg.version,
         timestamp: new Date(),
       })
+    )
+    .with(
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisSubmitted" },
+      { type: "PurposeRiskAnalysisSigned" },
+      (msg) =>
+        ({
+          event_version: msg.event_version,
+          type: msg.type,
+          version: msg.version,
+          data: {
+            purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
+          },
+          stream_id: msg.stream_id,
+          streamVersion: msg.version,
+          timestamp: new Date(),
+        }) as unknown as OutboundPurposeEvent
     )
     .with(
       { type: "NewPurposeVersionActivated" },
