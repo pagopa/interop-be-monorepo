@@ -43,7 +43,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archiv
     token: string,
     eServiceId: EServiceId,
     descriptorId: DescriptorId,
-    body: catalogApi.ArchivingKind = { kind: "AUTOMATIC" }
+    body: catalogApi.ArchivingKindSeed = { kind: "AUTOMATIC" }
   ) =>
     request(api)
       .post(
@@ -110,7 +110,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archiv
         token,
         eServiceId as EServiceId,
         descriptorId as DescriptorId,
-        body as catalogApi.ArchivingKind
+        body as catalogApi.ArchivingKindSeed
       );
 
       expect(res.status).toBe(400);
