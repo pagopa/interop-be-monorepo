@@ -1090,9 +1090,11 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {
-        asyncExchangeResponseTime: 1800,
-        asyncExchangeResourceAvailableTime: 3600,
-        asyncExchangeMaxResultSet: 500,
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -1152,7 +1154,7 @@ describe("create eService from template", () => {
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
-      { asyncExchangeResponseTime: 900 },
+      { asyncExchangeProperties: { responseTime: 900 } },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
@@ -1214,9 +1216,11 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {
-        asyncExchangeResponseTime: 900,
-        asyncExchangeResourceAvailableTime: 1800,
-        asyncExchangeMaxResultSet: 500,
+        asyncExchangeProperties: {
+          responseTime: 900,
+          resourceAvailableTime: 1800,
+          maxResultSet: 500,
+        },
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
