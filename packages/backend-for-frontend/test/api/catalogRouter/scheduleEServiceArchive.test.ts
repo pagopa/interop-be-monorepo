@@ -8,12 +8,13 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
-  getMockBffEServiceArchiveReasonSeed,
+  getMockBffEServiceArchivingReasonSeed,
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
-  const mockEServiceArchiveReasonSeed = getMockBffEServiceArchiveReasonSeed();
+  const mockEServiceArchivingReasonSeed =
+    getMockBffEServiceArchivingReasonSeed();
   const mockEService = getMockCatalogApiEService();
 
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = mockEService.id,
-    body: bffApi.EServiceArchiveReasonSeed = mockEServiceArchiveReasonSeed
+    body: bffApi.EServiceArchivingReasonSeed = mockEServiceArchivingReasonSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eServiceId}/scheduleArchive`)
@@ -43,7 +44,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
     { eServiceId: "invalid" as EServiceId },
     {
       body: {
-        ...mockEServiceArchiveReasonSeed,
+        ...mockEServiceArchivingReasonSeed,
         extraField: 1,
       },
     },
@@ -54,7 +55,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
       const res = await makeRequest(
         token,
         eServiceId,
-        body as bffApi.EServiceArchiveReasonSeed
+        body as bffApi.EServiceArchivingReasonSeed
       );
       expect(res.status).toBe(400);
     }

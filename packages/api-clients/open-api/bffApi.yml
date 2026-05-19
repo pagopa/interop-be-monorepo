@@ -5305,11 +5305,11 @@ paths:
             format: uuid
       requestBody:
         description: A payload containing archiving reason that describes the motivation about archiving
-        required: true 
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchiveReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -30392,7 +30392,7 @@ components:
         - eservice
         - descriptor
         - createdAt
-    EServiceArchiveReasonSeed:
+    EServiceArchivingReasonSeed:
       type: object
       additionalProperties: false
       properties:

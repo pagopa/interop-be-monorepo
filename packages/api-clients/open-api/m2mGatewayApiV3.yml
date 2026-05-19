@@ -2822,7 +2822,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchiveReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
       responses:
           "200":
             description: Archiving process of an E-Service scheduled successfully
@@ -13164,7 +13164,7 @@ components:
         createdAt:
           type: string
           format: date-time
-    EServiceArchiveReasonSeed:
+    EServiceArchivingReasonSeed:
       type: object
       additionalProperties: false
       properties:

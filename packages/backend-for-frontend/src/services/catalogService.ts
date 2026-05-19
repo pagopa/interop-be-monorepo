@@ -712,7 +712,7 @@ export function catalogServiceBuilder(
     },
     scheduleArchiveEService: async (
       eServiceId: EServiceId,
-      archiveReason: bffApi.EServiceArchiveReasonSeed,
+      archiveReason: bffApi.EServiceArchivingReasonSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Scheduling archive for EService ${eServiceId}`);

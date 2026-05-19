@@ -28,7 +28,7 @@ describe("scheduleArchiveEService", () => {
   const mockEService = getMockedApiEservice();
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchiveReasonSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
     archivingReason: "test reason",
   };
 

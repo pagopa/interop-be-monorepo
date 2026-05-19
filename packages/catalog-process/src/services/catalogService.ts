@@ -1091,7 +1091,7 @@ export function catalogServiceBuilder(
         );
         await repository.createEvent(eserviceDeletionEvent);
       } else {
-        const eserviceWithoutDescriptors = await deleteDraftDescriptorLogic(
+        const eserviceWithoutDescriptors = await deleteInactiveDescriptorLogic(
           eservice.data,
           eservice.data.descriptors[0],
           fileManager,
@@ -1546,12 +1546,13 @@ export function catalogServiceBuilder(
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
-      const eserviceAfterDescriptorDeletion = await deleteDraftDescriptorLogic(
-        eservice.data,
-        descriptor,
-        fileManager,
-        logger
-      );
+      const eserviceAfterDescriptorDeletion =
+        await deleteInactiveDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -3905,7 +3906,7 @@ async function processEserviceArchiving(
   );
 
   const eserviceAfterCleanup = draftOrWaiting
-    ? await deleteDraftDescriptorLogic(
+    ? await deleteInactiveDescriptorLogic(
         eservice,
         draftOrWaiting,
         fileManager,
@@ -3951,7 +3952,7 @@ async function processEserviceArchiving(
   };
 }
 
-async function deleteDraftDescriptorLogic(
+async function deleteInactiveDescriptorLogic(
   eservice: EService,
   descriptor: Descriptor,
   fileManager: FileManager,

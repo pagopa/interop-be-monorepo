@@ -132,20 +132,18 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
 
 function isEserviceArchivable(eservice: EService): boolean {
   const latestDescriptor = getLatestActiveDescriptor(eservice);
-  return latestDescriptor
-    ? match(latestDescriptor.state)
-        .with(descriptorState.published, descriptorState.suspended, () => true)
-        .with(
-          descriptorState.deprecated,
-          descriptorState.waitingForApproval,
-          descriptorState.archived,
-          descriptorState.archiving,
-          descriptorState.archivingSuspended,
-          descriptorState.draft,
-          () => false
-        )
-        .exhaustive()
-    : false;
+  return match(latestDescriptor.state)
+    .with(descriptorState.published, descriptorState.suspended, () => true)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      descriptorState.draft,
+      () => false
+    )
+    .exhaustive();
 }
 
 function isDescriptorArchivable(

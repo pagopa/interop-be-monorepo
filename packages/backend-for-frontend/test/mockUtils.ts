@@ -1158,7 +1158,7 @@ export const getMockBffApiPurposeTemplateWithCompactCreator =
     handlesPersonalData: false,
   });
 
-export const getMockBffEServiceArchiveReasonSeed =
-  (): bffApi.EServiceArchiveReasonSeed => ({
+export const getMockBffEServiceArchivingReasonSeed =
+  (): bffApi.EServiceArchivingReasonSeed => ({
     archivingReason: generateMock(z.string()),
   });
