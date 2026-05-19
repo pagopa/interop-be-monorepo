@@ -588,6 +588,8 @@ export function catalogServiceBuilder(
         isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
         personalData: eservice.personalData,
+        asyncExchange: eservice.asyncExchange,
+        latestDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
     },
     updateEServiceDescription: async (

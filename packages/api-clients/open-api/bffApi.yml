@@ -26429,6 +26429,9 @@ components:
           type: boolean
         asyncExchange:
           type: boolean
+        latestDescriptorId:
+          type: string
+          format: uuid
     EServiceMode:
       type: string
       description: Risk Analysis Mode
