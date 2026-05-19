@@ -3548,6 +3548,8 @@ components:
           format: uuid
         version:
           type: string
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         singleAnswers:
           type: array
           items:
@@ -3556,6 +3558,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+    TenantKind:
+      type: string
+      description: Tenant Kind
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     EServiceRiskAnalysisSingleAnswer:
       type: object
       additionalProperties: false

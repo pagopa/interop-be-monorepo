@@ -1987,6 +1987,8 @@ components:
         riskAnalysisId:
           type: string
           format: uuid
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
       required:
         - version
         - answers
