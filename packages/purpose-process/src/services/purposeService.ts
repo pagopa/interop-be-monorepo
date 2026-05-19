@@ -95,6 +95,7 @@ import {
   requesterIsNotTheWriter,
   reviewerWorkflowNotInPendingSignatureState,
   requesterIsNotTheSigner,
+  rejectNotAllowedInCurrentMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -122,6 +123,7 @@ import {
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
   toCreateEventPurposeRiskAnalysisSubmitted,
   toCreateEventPurposeRiskAnalysisSigned,
+  toCreateEventPurposeRiskAnalysisRejected,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -640,6 +642,62 @@ export function purposeServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventPurposeRiskAnalysisSigned({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        metadata: { version: event.newVersion },
+      };
+    },
+    async rejectRiskAnalysis(
+      purposeId: PurposeId,
+      { rejectionReason }: { rejectionReason: string },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      const workflow = purpose.data.reviewerWorkflow;
+
+      if (
+        !workflow ||
+        workflow.signingState !== riskAnalysisSigningState.pendingSignature
+      ) {
+        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+      }
+
+      if (
+        !workflow ||
+        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        throw rejectNotAllowedInCurrentMode(purposeId);
+      }
+
+      if (!workflow.reviewerIds.includes(authData.userId)) {
+        throw requesterIsNotTheSigner(purposeId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        reviewerWorkflow: {
+          ...workflow,
+          signingState: riskAnalysisSigningState.draft,
+          rejectionReason,
+        },
+        updatedAt: new Date(),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisRejected({
           purpose: updatedPurpose,
           version: purpose.metadata.version,
           correlationId,

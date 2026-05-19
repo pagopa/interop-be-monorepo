@@ -64,6 +64,7 @@ const errorCodes = {
   requesterIsNotTheWriter: "0045",
   reviewerWorkflowNotInPendingSignatureState: "0046",
   requesterIsNotTheSigner: "0047",
+  rejectNotAllowedInCurrentMode: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -562,5 +563,15 @@ export function requesterIsNotTheSigner(
     detail: `Requester is not authorized to sign the risk analysis for purpose ${purposeId}`,
     code: "requesterIsNotTheSigner",
     title: "Requester is not the signer",
+  });
+}
+
+export function rejectNotAllowedInCurrentMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Rejection is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
+    code: "rejectNotAllowedInCurrentMode",
+    title: "Reject not allowed in current mode",
   });
 }

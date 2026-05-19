@@ -391,3 +391,23 @@ export const signRiskAnalysisErrorMapper = (
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "requesterIsNotTheSigner",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "reviewerWorkflowNotInPendingSignatureState",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
