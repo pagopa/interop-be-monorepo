@@ -460,6 +460,18 @@ export function purposeServiceBuilder(
       });
       return { id: result.id };
     },
+    async signRiskAnalysis(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+      logger.info(`Signing risk analysis for purpose ${purposeId}`);
+      const result = await purposeProcessClient.signRiskAnalysis(undefined, {
+        params: { purposeId },
+        headers,
+      });
+      return { id: result.id };
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>

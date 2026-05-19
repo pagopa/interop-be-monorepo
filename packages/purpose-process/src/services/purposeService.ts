@@ -93,6 +93,8 @@ import {
   reviewerWorkflowConflict,
   reviewerWorkflowNotInDraftState,
   requesterIsNotTheWriter,
+  reviewerWorkflowNotInPendingSignatureState,
+  requesterIsNotTheSigner,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -119,6 +121,7 @@ import {
   toCreateEventRiskAnalysisSignedDocumentGenerated,
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
   toCreateEventPurposeRiskAnalysisSubmitted,
+  toCreateEventPurposeRiskAnalysisSigned,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -588,6 +591,55 @@ export function purposeServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventPurposeRiskAnalysisSubmitted({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        metadata: { version: event.newVersion },
+      };
+    },
+    async signRiskAnalysis(
+      purposeId: PurposeId,
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(`Signing risk analysis for Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      const workflow = purpose.data.reviewerWorkflow;
+
+      if (!workflow) {
+        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+      }
+
+      if (workflow.signingState !== riskAnalysisSigningState.pendingSignature) {
+        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+      }
+
+      if (!workflow.reviewerIds.includes(authData.userId)) {
+        throw requesterIsNotTheSigner(purposeId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        reviewerWorkflow: {
+          ...workflow,
+          signingState: riskAnalysisSigningState.signed,
+          signedBy: authData.userId,
+        },
+        updatedAt: new Date(),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisSigned({
           purpose: updatedPurpose,
           version: purpose.metadata.version,
           correlationId,
