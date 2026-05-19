@@ -86,6 +86,7 @@ export function toOutboundEventV2(
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
       (msg) =>
         ({
           event_version: msg.event_version,
