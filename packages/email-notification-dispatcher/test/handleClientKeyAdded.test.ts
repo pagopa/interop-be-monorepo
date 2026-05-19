@@ -23,7 +23,10 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleClientKeyAdded } from "../src/handlers/authorization/handleClientKeyAdded.js";
-import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  clientKeyNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import {
   addOneTenant,
   getMockUser,

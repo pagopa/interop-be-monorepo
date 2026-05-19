@@ -10,8 +10,8 @@ import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveLatestDescriptor,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 type PurposeOverQuotaToConsumerType =
   | "NewPurposeVersionWaitingForApproval"

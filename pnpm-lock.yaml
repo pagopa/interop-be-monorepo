@@ -2811,6 +2811,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
@@ -2833,9 +2836,6 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      cpx2:
-        specifier: 'catalog:'
-        version: 7.0.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -3385,6 +3385,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
@@ -4212,6 +4215,37 @@ importers:
       tsc-esm-fix:
         specifier: 'catalog:'
         version: 2.20.27
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+
+  packages/notification-commons:
+    dependencies:
+      cpx2:
+        specifier: 'catalog:'
+        version: 7.0.2
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       typescript:
         specifier: 'catalog:'
         version: 5.4.5

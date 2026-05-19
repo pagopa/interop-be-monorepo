@@ -42,6 +42,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist = [],
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
   attributeReadModelServiceSQL: AttributeReadModelService;
@@ -50,8 +51,10 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
+  notificationTypeBlocklist?: NotificationType[];
 }) {
   return {
+    notificationTypeBlocklist,
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -76,14 +79,15 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationType: NotificationType
+      notificationType: NotificationType,
+      notificationChannel: "inApp" | "email"
     ): Promise<
       Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
     > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationType,
-        "inApp"
+        notificationChannel
       );
     },
     async getActiveProducerDelegation(
