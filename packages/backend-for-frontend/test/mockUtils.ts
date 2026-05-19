@@ -208,7 +208,7 @@ export const getMockBffApiProducerEServiceDetails =
     isConsumerDelegable: generateMock(z.boolean().optional()),
     isClientAccessDelegable: generateMock(z.boolean().optional()),
     asyncExchange: generateMock(z.boolean().optional()),
-    latestDescriptorId: generateId(),
+    latestActiveDescriptorId: generateId(),
   });
 
 export const getMockBffApiCatalogEServiceDescriptor =

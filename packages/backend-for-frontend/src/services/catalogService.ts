@@ -589,7 +589,7 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: eservice.isClientAccessDelegable,
         personalData: eservice.personalData,
         asyncExchange: eservice.asyncExchange,
-        latestDescriptorId: getLatestActiveDescriptor(eservice)?.id,
+        latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
     },
     updateEServiceDescription: async (
