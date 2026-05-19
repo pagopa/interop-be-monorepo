@@ -104,7 +104,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
     },
     {
       error: notValidEServiceState(mockEService.id),
-      expectedStatus: 400,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -117,6 +117,25 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       const res = await makeRequest(token, mockEService.id);
 
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id],
+    [{ archivingReason: "Some reason" }, "invalidId"],
+    [{ archivingReason: 1 }, mockEService.id],
+    [{ archivingReason: "too short" }, mockEService.id],
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async (body, eServiceId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        body as catalogApi.EServiceArchivingReasonSeed
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  getMockDescriptorArchiving,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -154,20 +155,17 @@ describe("schedule archiving of an EService", () => {
     async ({ state, expectedState }) => {
       const previousDescriptor: Descriptor = {
         ...getMockDescriptor(),
-        id: generateId(),
-        interface: getMockDocument(),
         version: "1",
         state,
       };
       const activeDescriptor: Descriptor = {
-        ...mockDescriptor,
-        interface: mockDocument,
+        ...getMockDescriptor(),
         state: descriptorState.published,
         version: "2",
       };
       const eservice: EService = {
         ...mockEService,
-        descriptors: [activeDescriptor, previousDescriptor],
+        descriptors: [previousDescriptor, activeDescriptor],
       };
       await addOneEService(eservice);
       const scheduleEServiceArchivingResponse =
@@ -195,13 +193,13 @@ describe("schedule archiving of an EService", () => {
         archivingSchedule: {
           archivableOn: new Date(
             Number(
-              writtenPayload.eservice!.descriptors[0]!.archivingSchedule!
+              writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
                 .archivableOn
             )
           ),
           startedAt: new Date(
             Number(
-              writtenPayload.eservice!.descriptors[0]!.archivingSchedule!
+              writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
                 .startedAt
             )
           ),
@@ -233,6 +231,117 @@ describe("schedule archiving of an EService", () => {
         ...eservice,
         archivingReason: mockArchivingReason,
         descriptors: [expectedPreviousDescriptor, expectedActiveDescriptor],
+      };
+
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(scheduleEServiceArchivingResponse).toEqual({
+        data: expectedEService,
+        metadata: { version: parseInt(writtenEvent.version, 10) },
+      });
+    }
+  );
+
+  it.each([
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+    descriptorState.archived,
+  ])(
+    "should not change previous descriptor version in %s state when archiving is scheduled for an EService",
+    async (state) => {
+      const activeDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        version: "3",
+      };
+      const previousDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.deprecated,
+        version: "2",
+      };
+      const unchangedDescriptor: Descriptor = {
+        ...getMockDescriptorArchiving(),
+        state,
+        version: "1",
+      };
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [
+          unchangedDescriptor,
+          previousDescriptor,
+          activeDescriptor,
+        ],
+      };
+      await addOneEService(eservice);
+      const scheduleEServiceArchivingResponse =
+        await catalogService.scheduleEServiceArchiving(
+          eservice.id,
+          {
+            archivingReason: mockArchivingReason,
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceArchivingScheduled",
+        event_version: 2,
+      });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceArchivingScheduledV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedActiveDescriptor: Descriptor = {
+        ...activeDescriptor,
+        state: descriptorState.archiving,
+        archivingSchedule: {
+          archivableOn: new Date(
+            Number(
+              writtenPayload.eservice!.descriptors[2]!.archivingSchedule!
+                .archivableOn
+            )
+          ),
+          startedAt: new Date(
+            Number(
+              writtenPayload.eservice!.descriptors[2]!.archivingSchedule!
+                .startedAt
+            )
+          ),
+          scope: "EService",
+        },
+      };
+
+      const expectedPreviousDescriptor: Descriptor = {
+        ...previousDescriptor,
+        state: descriptorState.archiving,
+        archivingSchedule: {
+          archivableOn: new Date(
+            Number(
+              writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
+                .archivableOn
+            )
+          ),
+          startedAt: new Date(
+            Number(
+              writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
+                .startedAt
+            )
+          ),
+          scope: "EService",
+        },
+      };
+
+      const expectedEService: EService = {
+        ...eservice,
+        archivingReason: mockArchivingReason,
+        descriptors: [
+          unchangedDescriptor,
+          expectedPreviousDescriptor,
+          expectedActiveDescriptor,
+        ],
       };
 
       expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
@@ -321,9 +430,11 @@ describe("schedule archiving of an EService", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.scheduleEServiceDescriptorArchiving(
+      catalogService.scheduleEServiceArchiving(
         mockEService.id,
-        mockDescriptor.id,
+        {
+          archivingReason: mockArchivingReason,
+        },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -332,7 +443,6 @@ describe("schedule archiving of an EService", () => {
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
-      interface: mockDocument,
       state: descriptorState.published,
       version: "1",
     };
@@ -342,9 +452,11 @@ describe("schedule archiving of an EService", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.scheduleEServiceDescriptorArchiving(
+      catalogService.scheduleEServiceArchiving(
         eservice.id,
-        descriptor.id,
+        {
+          archivingReason: mockArchivingReason,
+        },
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);

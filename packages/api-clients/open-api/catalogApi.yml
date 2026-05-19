@@ -418,14 +418,14 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "404":
-          description: Not found
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
+        "404":
+          description: Not found
           content:
             application/problem+json:
               schema:
