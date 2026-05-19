@@ -228,7 +228,7 @@ describe("getProducerEServiceDescriptor", () => {
         eserviceId: eServiceId,
         producerId: tenantId,
         offset: 0,
-        limit: 50,
+        limit: 1,
       },
     });
   });
@@ -256,7 +256,7 @@ describe("getProducerEServiceDescriptor", () => {
         eserviceId: eServiceId,
         producerId: delegateId,
         offset: 0,
-        limit: 50,
+        limit: 1,
       },
     });
   });

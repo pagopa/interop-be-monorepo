@@ -370,7 +370,7 @@ describe("getCatalogEServiceDescriptor", () => {
         eserviceId: eServiceId,
         producerId: eService.producerId,
         offset: 0,
-        limit: 50,
+        limit: 1,
       },
     });
     expect(
