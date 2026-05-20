@@ -108,16 +108,20 @@ export const toRiskAnalysisSigningStateV2 = (
 ): RiskAnalysisSigningStateV2 =>
   match(input)
     .with(
-      riskAnalysisSigningState.draft,
-      () => RiskAnalysisSigningStateV2.SIGNING_STATE_DRAFT
+      riskAnalysisSigningState.assigned,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED
     )
     .with(
-      riskAnalysisSigningState.pendingSignature,
-      () => RiskAnalysisSigningStateV2.PENDING_SIGNATURE
+      riskAnalysisSigningState.submitted,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_SUBMITTED
     )
     .with(
       riskAnalysisSigningState.signed,
-      () => RiskAnalysisSigningStateV2.SIGNED
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_SIGNED
+    )
+    .with(
+      riskAnalysisSigningState.rejected,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_REJECTED
     )
     .exhaustive();
 
@@ -129,6 +133,7 @@ export const toReviewerWorkflowV2 = (
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy,
   rejectionReason: input.rejectionReason,
+  sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
 });
 
 export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
