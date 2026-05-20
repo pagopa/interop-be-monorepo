@@ -3,12 +3,14 @@ import {
   decodeProtobufPayload,
   expectPastTimestamp,
   getMockAgreement,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
@@ -30,6 +32,7 @@ import {
   TenantId,
   WithMetadata,
   agreementState,
+  attributeCertifiedDiscreteComparator,
   delegationKind,
   delegationState,
   descriptorState,
@@ -743,6 +746,130 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(consumer.id);
 
+    await expect(
+      agreementService.createAgreement(
+        {
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+        },
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(
+      missingCertifiedAttributesError(descriptor.id, consumer.id)
+    );
+  });
+
+  it("should succeed when the consumer has a certified discrete attribute matching descriptor threshold", async () => {
+    const eserviceProducer: Tenant = getMockTenant();
+    const certifiedDiscreteDescriptorAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(generateId<DescriptorId>()),
+      attributes: {
+        certified: [
+          [
+            {
+              ...certifiedDiscreteDescriptorAttribute,
+              discreteConfig: {
+                threshold: 40,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const consumer = {
+      ...getMockTenant(),
+      attributes: [
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(
+            certifiedDiscreteDescriptorAttribute.id
+          ),
+          discreteValue: 42,
+        },
+      ],
+    };
+
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      eserviceProducer.id,
+      [descriptor]
+    );
+
+    await addOneTenant(eserviceProducer);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+
+    const authData = getMockAuthData(consumer.id);
+    const createdAgreementResponse = await agreementService.createAgreement(
+      {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      },
+      getMockContext({ authData })
+    );
+
+    await expectedAgreementCreation(
+      createdAgreementResponse,
+      eservice.id,
+      descriptor.id,
+      eserviceProducer.id,
+      consumer.id
+    );
+  });
+
+  it("should throw a missingCertifiedAttributesError when the consumer has a certified discrete attribute below descriptor threshold", async () => {
+    const eserviceProducer: Tenant = getMockTenant();
+    const certifiedDiscreteDescriptorAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(generateId<DescriptorId>()),
+      attributes: {
+        certified: [
+          [
+            {
+              ...certifiedDiscreteDescriptorAttribute,
+              discreteConfig: {
+                threshold: 100,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const consumer = {
+      ...getMockTenant(),
+      attributes: [
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(
+            certifiedDiscreteDescriptorAttribute.id
+          ),
+          discreteValue: 42,
+        },
+      ],
+    };
+
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      eserviceProducer.id,
+      [descriptor]
+    );
+
+    await addOneTenant(eserviceProducer);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+
+    const authData = getMockAuthData(consumer.id);
     await expect(
       agreementService.createAgreement(
         {

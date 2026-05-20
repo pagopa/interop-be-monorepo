@@ -18,6 +18,7 @@ import {
   Delegation,
   delegationState,
   DelegationId,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import {
   M2MAdminAuthData,
@@ -28,6 +29,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
+  discreteComparatorMatches,
   filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
@@ -53,6 +55,7 @@ import {
 import {
   ActiveDelegations,
   CertifiedAgreementAttribute,
+  CertifiedDiscreteAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -536,6 +539,37 @@ export const matchingCertifiedAttributes = (
     descriptor.attributes.certified,
     certifiedAttributes
   ).map((id) => ({ id }) as CertifiedAgreementAttribute);
+};
+
+export const matchingCertifiedDiscreteAttributes = (
+  descriptor: Descriptor,
+  consumer: Tenant
+): CertifiedDiscreteAgreementAttribute[] => {
+  const matched: AttributeId[] = [];
+
+  for (const group of descriptor.attributes.certified) {
+    for (const descriptorAttribute of group) {
+      if ("discreteConfig" in descriptorAttribute) {
+        const tenantAttribute = consumer.attributes.find(
+          (attribute) =>
+            attribute.id === descriptorAttribute.id &&
+            attribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+            !attribute.revocationTimestamp &&
+            discreteComparatorMatches(
+              attribute.discreteValue,
+              descriptorAttribute.discreteConfig.threshold,
+              descriptorAttribute.discreteConfig.comparator
+            )
+        );
+
+        if (tenantAttribute) {
+          matched.push(descriptorAttribute.id);
+        }
+      }
+    }
+  }
+
+  return matched.map((id) => ({ id }) as CertifiedDiscreteAgreementAttribute);
 };
 
 export const matchingDeclaredAttributes = (

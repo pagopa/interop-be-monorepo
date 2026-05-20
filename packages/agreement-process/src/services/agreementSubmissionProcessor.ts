@@ -16,6 +16,7 @@ import { agreementApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
@@ -64,10 +65,11 @@ export const createSubmissionUpdateAgreementSeed = (
   return isActivation
     ? {
         state: newState,
-        // TODO(PIN-9889, Work Item 5): populate certifiedDiscreteAttributes
-        // when agreement submission starts validating certified discrete
-        // attributes against threshold/comparator.
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+          descriptor,
+          consumer
+        ),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
