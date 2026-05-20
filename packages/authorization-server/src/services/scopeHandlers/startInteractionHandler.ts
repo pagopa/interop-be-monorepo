@@ -199,7 +199,7 @@ export const handleStartInteraction = async (
     logger,
     interaction: {
       interactionId,
-      state: scope,
+      state: interactionState.startInteraction,
       startInteractionTokenIssuedAt: issuedAt,
     },
   });

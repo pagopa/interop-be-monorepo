@@ -257,9 +257,11 @@ export const handleCallbackInvocation = async (
     logger,
     interaction: {
       interactionId: interaction.interactionId,
-      state: scope,
+      state: interactionState.callbackInvocation,
       startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
-      callbackInvocationTokenIssuedAt: issuedAt,
+      callbackInvocationTokenIssuedAt: new Date(
+        token.payload.iat * 1000
+      ).toISOString(),
     },
   });
 

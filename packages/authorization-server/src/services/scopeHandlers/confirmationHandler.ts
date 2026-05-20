@@ -242,11 +242,13 @@ export const handleConfirmation = async (
     logger,
     interaction: {
       interactionId: interaction.interactionId,
-      state: scope,
+      state: interactionState.confirmation,
       startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
       callbackInvocationTokenIssuedAt:
         interaction.callbackInvocationTokenIssuedAt,
-      confirmationTokenIssuedAt: issuedAt,
+      confirmationTokenIssuedAt: new Date(
+        token.payload.iat * 1000
+      ).toISOString(),
     },
   });
 

@@ -235,7 +235,7 @@ export const handleGetResource = async (
     logger,
     interaction: {
       interactionId: interaction.interactionId,
-      state: scope,
+      state: interactionState.getResource,
       startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
       callbackInvocationTokenIssuedAt:
         interaction.callbackInvocationTokenIssuedAt,
