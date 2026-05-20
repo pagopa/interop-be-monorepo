@@ -56,6 +56,7 @@ describe("Purpose splitter", () => {
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
+      sentToReviewerAt: new Date(),
     };
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
@@ -121,6 +122,8 @@ describe("Purpose splitter", () => {
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
+      reviewerWorkflowSentToReviewerAt:
+        reviewerWorkflow.sentToReviewerAt!.toISOString(),
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -301,6 +304,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,
       reviewerWorkflowRejectionReason: null,
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {

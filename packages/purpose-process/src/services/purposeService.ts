@@ -21,8 +21,6 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -91,10 +89,11 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInDraftState,
-  requesterIsNotTheWriter,
   reviewerWorkflowNotInPendingSignatureState,
   requesterIsNotTheSigner,
+  reviewerWorkflowNotFound,
+  reviewerWorkflowNotSubmittable,
+  submitNotAllowedForReviewMode,
   rejectNotAllowedInCurrentMode,
 } from "../model/domain/errors.js";
 import {
@@ -480,14 +479,18 @@ export function purposeServiceBuilder(
       );
 
       const existingWorkflow = purpose.data.reviewerWorkflow;
-      if (existingWorkflow && existingWorkflow.signingState !== "Draft") {
+      if (existingWorkflow) {
         throw reviewerWorkflowConflict(purposeId);
       }
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
         reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
-        signingState: RiskAnalysisSigningState.Values.Draft,
+        signingState: RiskAnalysisSigningState.Values.Assigned,
+        sentToReviewerAt:
+          seed.reviewMode === "ReviewerWritesReviewerSigns"
+            ? new Date()
+            : undefined,
       };
 
       const updatedPurpose: Purpose = {
@@ -511,9 +514,6 @@ export function purposeServiceBuilder(
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
-      seed: {
-        riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
-      },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
@@ -526,33 +526,33 @@ export function purposeServiceBuilder(
 
       const workflow = purpose.data.reviewerWorkflow;
 
-      if (
-        workflow &&
-        workflow.signingState !== riskAnalysisSigningState.draft
-      ) {
-        throw reviewerWorkflowNotInDraftState(purposeId);
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
       }
 
-      // Assert caller is the writer per mode
-      match(workflow)
-        .with(
-          { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
-          (workflow) => {
-            if (!workflow.reviewerIds.includes(authData.userId)) {
-              throw requesterIsNotTheWriter(purposeId);
-            }
-          }
-        )
-        .with(
-          { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
-          P.nullish,
-          () => {
-            if (!authData.userRoles.includes(userRole.ADMIN_ROLE)) {
-              throw requesterIsNotTheWriter(purposeId);
-            }
-          }
-        )
-        .exhaustive();
+      if (
+        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        throw submitNotAllowedForReviewMode(purposeId);
+      }
+
+      if (
+        workflow.signingState !== riskAnalysisSigningState.assigned &&
+        workflow.signingState !== riskAnalysisSigningState.rejected
+      ) {
+        throw reviewerWorkflowNotSubmittable(purposeId);
+      }
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -565,29 +565,23 @@ export function purposeServiceBuilder(
 
       const now = new Date();
 
-      const validatedForm = validateRiskAnalysisOrThrow({
-        riskAnalysisForm: seed.riskAnalysisForm,
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm:
+          riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation: false,
         tenantKind,
         dateForExpirationValidation: now,
         personalDataInEService: eservice.personalData,
       });
 
-      const riskAnalysisForm: PurposeRiskAnalysisForm = {
-        ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-        riskAnalysisId: purpose.data.riskAnalysisForm?.riskAnalysisId,
-      };
-
       const updatedPurpose: Purpose = {
         ...purpose.data,
-        riskAnalysisForm,
-        reviewerWorkflow: workflow
-          ? {
-              ...workflow,
-              signingState: riskAnalysisSigningState.pendingSignature,
-              rejectionReason: undefined,
-            }
-          : undefined,
+        reviewerWorkflow: {
+          ...workflow,
+          signingState: riskAnalysisSigningState.submitted,
+          rejectionReason: undefined,
+          sentToReviewerAt: now,
+        },
         updatedAt: now,
       };
 
@@ -619,12 +613,27 @@ export function purposeServiceBuilder(
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        throw reviewerWorkflowNotFound(purposeId);
       }
 
-      if (workflow.signingState !== riskAnalysisSigningState.pendingSignature) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
-      }
+      match(workflow)
+        .with(
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.submitted,
+          },
+          () => void 0
+        )
+        .with(
+          {
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.assigned,
+          },
+          () => void 0
+        )
+        .otherwise(() => {
+          throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
         throw requesterIsNotTheSigner(purposeId);
@@ -668,15 +677,15 @@ export function purposeServiceBuilder(
 
       const workflow = purpose.data.reviewerWorkflow;
 
-      if (
-        !workflow ||
-        workflow.signingState !== riskAnalysisSigningState.pendingSignature
-      ) {
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
+      }
+
+      if (workflow.signingState !== riskAnalysisSigningState.submitted) {
         throw reviewerWorkflowNotInPendingSignatureState(purposeId);
       }
 
       if (
-        !workflow ||
         workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw rejectNotAllowedInCurrentMode(purposeId);
@@ -690,7 +699,7 @@ export function purposeServiceBuilder(
         ...purpose.data,
         reviewerWorkflow: {
           ...workflow,
-          signingState: riskAnalysisSigningState.draft,
+          signingState: riskAnalysisSigningState.rejected,
           rejectionReason,
         },
         updatedAt: new Date(),

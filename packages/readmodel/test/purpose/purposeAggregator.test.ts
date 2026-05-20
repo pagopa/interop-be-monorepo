@@ -55,6 +55,7 @@ describe("Purpose aggregator", () => {
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),
           rejectionReason: "Reviewer workflow rejection reason",
+          sentToReviewerAt: new Date(),
         },
       },
       metadata: { version: 1 },
