@@ -20,6 +20,7 @@ import {
   EServiceId,
   TenantId,
   agreementState,
+  archivingScope,
   descriptorState,
   generateId,
   genericInternalError,
@@ -397,6 +398,62 @@ describe("EService Descriptors Archiver", async () => {
         await addOneAgreement(archivedAgreement);
         await addOneAgreement(otherAgreement1);
         await addOneAgreement(otherAgreement2);
+
+        await archiveDescriptorForArchivedAgreement(
+          archivedAgreement,
+          mockRefreshableToken,
+          readModelService,
+          catalogProcessClient,
+          genericLogger,
+          testCorrelationId
+        );
+
+        expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
+      "should not call archive Descriptor when Descriptor is %s, is the latest version, archiving scope is EService and has no active agreements",
+      async (state) => {
+        const producerId: TenantId = generateId();
+
+        const eserviceArchivingSchedule = {
+          startedAt: new Date(),
+          archivableOn: new Date(),
+          scope: archivingScope.eservice,
+        };
+
+        const previousDescriptor = {
+          ...getMockDescriptorPublished(),
+          state,
+          version: "1",
+          archivingSchedule: eserviceArchivingSchedule,
+        };
+
+        const descriptor = {
+          ...getMockDescriptorPublished(),
+          state,
+          version: "2",
+          archivingSchedule: eserviceArchivingSchedule,
+        };
+
+        const eservice = {
+          ...getMockEService(),
+          descriptors: [previousDescriptor, descriptor],
+        };
+
+        const archivedAgreement = {
+          ...getMockAgreement(
+            eservice.id,
+            generateId<TenantId>(),
+            agreementState.archived
+          ),
+          descriptorId: descriptor.id,
+          producerId,
+        };
+
+        await addOneEService(eservice);
+        await addOneAgreement(archivedAgreement);
 
         await archiveDescriptorForArchivedAgreement(
           archivedAgreement,
