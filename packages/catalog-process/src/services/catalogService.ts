@@ -3938,9 +3938,7 @@ export function catalogServiceBuilder(
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
       const updatedDescriptors = eservice.data.descriptors.map((descriptor) => {
-        if (
-          descriptor.archivingSchedule?.scope === archivingScope.descriptor
-        ) {
+        if (descriptor.archivingSchedule?.scope === archivingScope.descriptor) {
           return descriptor;
         }
 
