@@ -744,7 +744,7 @@ export const updateEServiceArchivingStatusErrorMapper = (
       "notValidEServiceState",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceResetEServicePersonalDataFlagErrorMapper = (

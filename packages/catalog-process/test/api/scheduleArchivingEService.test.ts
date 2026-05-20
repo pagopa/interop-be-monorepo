@@ -91,12 +91,12 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   it.each([
     {
-      error: eServiceNotFound(mockEService.id),
-      expectedStatus: 404,
+      error: eserviceWithoutValidDescriptors(mockEService.id),
+      expectedStatus: 400,
     },
     {
-      error: eserviceWithoutValidDescriptors(mockEService.id),
-      expectedStatus: 409,
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
     },
     {
       error: operationForbidden,
