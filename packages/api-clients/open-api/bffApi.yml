@@ -26121,15 +26121,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
-        asyncExchangeResponseTime:
-          type: integer
-          format: int32
-        asyncExchangeResourceAvailableTime:
-          type: integer
-          format: int32
-        asyncExchangeMaxResultSet:
-          type: integer
-          format: int32
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     Mail:
       type: object
       additionalProperties: false
@@ -26346,6 +26339,8 @@ components:
         - hasCertifiedAttributes
         - isSubscribed
         - agreements
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26382,6 +26377,10 @@ components:
               - the requester is the delegated consumer for the eservice and
                 the delegator has the certified attributes required to consume the eservice
         isSubscribed:
+          type: boolean
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
@@ -26433,6 +26432,9 @@ components:
           type: boolean
         asyncExchange:
           type: boolean
+        latestActiveDescriptorId:
+          type: string
+          format: uuid
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -29646,6 +29648,19 @@ components:
           type: boolean
         bulk:
           type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
         maxResultSet:
           type: integer
           format: int32

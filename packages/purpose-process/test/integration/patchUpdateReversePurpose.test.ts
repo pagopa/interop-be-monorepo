@@ -715,7 +715,9 @@ describe("patchUpdateReversePurpose", () => {
         updatedAt: new Date(),
       };
 
-      expect(patchPurposeResult.data.purpose).toEqual(expectedPurpose);
+      expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(
+        sortPurpose(expectedPurpose)
+      );
     }
   );
 
