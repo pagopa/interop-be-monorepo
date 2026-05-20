@@ -5,11 +5,13 @@ import {
   AgreementEventV2,
   AgreementSuspensionReason,
   AgreementSuspensionReasonV2,
+  CertifiedDiscreteAttributeFailure,
   CorrelationId,
   DelegationId,
   WithMetadata,
   agreementSuspensionReason,
   toAgreementV2,
+  toAttributeCertifiedDiscreteComparatorV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -29,6 +31,15 @@ const toAgreementSuspensionReasonV2 = (
         AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE
     )
     .exhaustive();
+
+const toCertifiedDiscreteAttributeFailureV2 = (
+  failure: CertifiedDiscreteAttributeFailure
+) => ({
+  attributeId: failure.attributeId,
+  tenantValue: failure.tenantValue,
+  threshold: failure.threshold,
+  comparator: toAttributeCertifiedDiscreteComparatorV2(failure.comparator),
+});
 
 export function toCreateEventAgreementDeleted(
   agreement: Agreement,
@@ -283,7 +294,8 @@ export function toCreateEventAgreementSuspendedByPlatform(
   agreement: Agreement,
   version: number,
   correlationId: CorrelationId,
-  suspensionReason?: AgreementSuspensionReason
+  suspensionReason?: AgreementSuspensionReason,
+  discreteAttributeFailure?: CertifiedDiscreteAttributeFailure
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -294,6 +306,9 @@ export function toCreateEventAgreementSuspendedByPlatform(
       data: {
         agreement: toAgreementV2(agreement),
         suspensionReason: toAgreementSuspensionReasonV2(suspensionReason),
+        discreteAttributeFailure: discreteAttributeFailure
+          ? toCertifiedDiscreteAttributeFailureV2(discreteAttributeFailure)
+          : undefined,
       },
     },
     correlationId,

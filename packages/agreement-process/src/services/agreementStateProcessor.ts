@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
-  certifiedAttributesFailureReason,
+  certifiedAttributesFailure,
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
@@ -218,6 +218,7 @@ function updateAgreementState(
   agreement: WithMetadata<Agreement>,
   consumer: CompactTenant,
   eservices: EService[],
+  triggeringAttributeId: AttributeId,
   correlationId: CorrelationId,
   logger: Logger
 ): CreateEvent<AgreementEvent> | undefined {
@@ -259,16 +260,20 @@ function updateAgreementState(
     allowedStateTransitions(agreement.data.state).includes(finalState) &&
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
+    const attributesFailure = certifiedAttributesFailure(
+      descriptor.attributes,
+      consumer.attributes,
+      triggeringAttributeId
+    );
+
     return match([finalState, newSuspendedByPlatform])
       .with([agreementState.suspended, true], () =>
         toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId,
-          certifiedAttributesFailureReason(
-            descriptor.attributes,
-            consumer.attributes
-          )
+          attributesFailure.suspensionReason,
+          attributesFailure.discreteAttributeFailure
         )
       )
       .with(
@@ -357,6 +362,7 @@ export async function computeAgreementsStateByAttribute(
         agreement,
         consumer,
         eservicesWithAttribute,
+        attributeId,
         correlationId,
         logger
       )

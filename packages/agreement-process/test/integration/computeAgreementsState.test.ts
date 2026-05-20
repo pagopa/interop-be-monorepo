@@ -21,8 +21,9 @@ import {
   Agreement,
   AgreementSetDraftByPlatformV2,
   AgreementSuspendedByPlatformV2,
-  AgreementUnsuspendedByPlatformV2,
   AgreementSuspensionReasonV2,
+  AgreementUnsuspendedByPlatformV2,
+  AttributeCertifiedDiscreteComparatorV2,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -126,9 +127,12 @@ describe("compute Agreements state by attribute", () => {
       expect(agreementStateUpdateEventData.suspensionReason).toBe(
         AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE
       );
+      expect(
+        agreementStateUpdateEventData.discreteAttributeFailure
+      ).toBeUndefined();
     });
 
-    it("suspends an active Agreement with certified discrete suspension reason when the threshold is no longer satisfied", async () => {
+    it("suspends an active Agreement with certified discrete suspension reason and full failure detail when the threshold is no longer satisfied", async () => {
       const invalidCertifiedDiscreteAttribute = {
         ...getMockCertifiedDiscreteTenantAttribute(),
         discreteValue: 42,
@@ -209,6 +213,12 @@ describe("compute Agreements state by attribute", () => {
       expect(agreementStateUpdateEventData.suspensionReason).toBe(
         AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE
       );
+      expect(agreementStateUpdateEventData.discreteAttributeFailure).toEqual({
+        attributeId: invalidCertifiedDiscreteAttribute.id,
+        tenantValue: 42,
+        threshold: 100,
+        comparator: AttributeCertifiedDiscreteComparatorV2.GTE,
+      });
     });
 
     it.each([agreementState.draft, agreementState.pending])(
