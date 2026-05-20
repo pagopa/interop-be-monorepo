@@ -990,12 +990,6 @@ paths:
     post:
       summary: Submit risk analysis for signing
       operationId: submitRiskAnalysis
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
-        required: true
       responses:
         "200":
           description: Risk analysis submitted for signing
@@ -1561,15 +1555,6 @@ components:
       required:
         - reviewMode
         - reviewerIds
-    RiskAnalysisSubmissionSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to submit the risk analysis form for reviewer signing
-      properties:
-        riskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormSeed"
-      required:
-        - riskAnalysisForm
     TenantKind:
       type: string
       description: Tenant Kind

@@ -360,16 +360,22 @@ export const submitRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeNotFound", "reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "requesterIsNotTheWriter",
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInDraftState", () => HTTP_STATUS_CONFLICT)
-    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "reviewerWorkflowNotSubmittable",
+      "submitNotAllowedForReviewMode",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with(
+      "riskAnalysisValidationFailed",
+      "missingRiskAnalysis",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

@@ -141,12 +141,14 @@ export const fromRiskAnalysisSigningStateV2 = (
   input: RiskAnalysisSigningStateV2
 ): RiskAnalysisSigningState => {
   switch (input) {
-    case RiskAnalysisSigningStateV2.SIGNING_STATE_DRAFT:
-      return riskAnalysisSigningState.draft;
-    case RiskAnalysisSigningStateV2.PENDING_SIGNATURE:
-      return riskAnalysisSigningState.pendingSignature;
-    case RiskAnalysisSigningStateV2.SIGNED:
+    case RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED:
+      return riskAnalysisSigningState.assigned;
+    case RiskAnalysisSigningStateV2.RISK_ANALYSIS_SUBMITTED:
+      return riskAnalysisSigningState.submitted;
+    case RiskAnalysisSigningStateV2.RISK_ANALYSIS_SIGNED:
       return riskAnalysisSigningState.signed;
+    case RiskAnalysisSigningStateV2.RISK_ANALYSIS_REJECTED:
+      return riskAnalysisSigningState.rejected;
   }
 };
 
@@ -158,6 +160,7 @@ export const fromReviewerWorkflowV2 = (
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
   rejectionReason: input.rejectionReason,
+  sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
 });
 
 export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
