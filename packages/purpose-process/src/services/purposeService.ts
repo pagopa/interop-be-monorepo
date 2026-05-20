@@ -468,14 +468,18 @@ export function purposeServiceBuilder(
       );
 
       const existingWorkflow = purpose.data.reviewerWorkflow;
-      if (existingWorkflow && existingWorkflow.signingState !== "Draft") {
+      if (existingWorkflow) {
         throw reviewerWorkflowConflict(purposeId);
       }
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
         reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
-        signingState: RiskAnalysisSigningState.Values.Draft,
+        signingState: RiskAnalysisSigningState.Values.Assigned,
+        sentToReviewerAt:
+          seed.reviewMode === "ReviewerWritesReviewerSigns"
+            ? new Date()
+            : undefined,
       };
 
       const updatedPurpose: Purpose = {
