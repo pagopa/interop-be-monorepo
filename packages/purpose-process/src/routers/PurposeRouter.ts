@@ -68,7 +68,6 @@ const purposeRouter = (
   });
   const {
     ADMIN_ROLE,
-    REVIEWER_ROLE,
     API_ROLE,
     SECURITY_ROLE,
     M2M_ROLE,
@@ -549,16 +548,13 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, REVIEWER_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
           data: { purpose, isRiskAnalysisValid },
           metadata,
         } = await purposeService.submitRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
-          {
-            riskAnalysisForm: req.body.riskAnalysisForm,
-          },
           ctx
         );
 

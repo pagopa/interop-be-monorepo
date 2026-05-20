@@ -21,8 +21,6 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -91,8 +89,9 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInDraftState,
-  requesterIsNotTheWriter,
+  reviewerWorkflowNotFound,
+  reviewerWorkflowNotSubmittable,
+  submitNotAllowedForReviewMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -510,9 +509,6 @@ export function purposeServiceBuilder(
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
-      seed: {
-        riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
-      },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
@@ -525,33 +521,33 @@ export function purposeServiceBuilder(
 
       const workflow = purpose.data.reviewerWorkflow;
 
-      if (
-        workflow &&
-        workflow.signingState !== riskAnalysisSigningState.draft
-      ) {
-        throw reviewerWorkflowNotInDraftState(purposeId);
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
       }
 
-      // Assert caller is the writer per mode
-      match(workflow)
-        .with(
-          { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
-          (workflow) => {
-            if (!workflow.reviewerIds.includes(authData.userId)) {
-              throw requesterIsNotTheWriter(purposeId);
-            }
-          }
-        )
-        .with(
-          { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
-          P.nullish,
-          () => {
-            if (!authData.userRoles.includes(userRole.ADMIN_ROLE)) {
-              throw requesterIsNotTheWriter(purposeId);
-            }
-          }
-        )
-        .exhaustive();
+      if (
+        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        throw submitNotAllowedForReviewMode(purposeId);
+      }
+
+      if (
+        workflow.signingState !== riskAnalysisSigningState.assigned &&
+        workflow.signingState !== riskAnalysisSigningState.rejected
+      ) {
+        throw reviewerWorkflowNotSubmittable(purposeId);
+      }
+
+      assertRequesterCanActAsConsumer(
+        purpose.data,
+        authData,
+        await retrievePurposeDelegation(purpose.data, readModelService)
+      );
+
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -564,29 +560,23 @@ export function purposeServiceBuilder(
 
       const now = new Date();
 
-      const validatedForm = validateRiskAnalysisOrThrow({
-        riskAnalysisForm: seed.riskAnalysisForm,
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm:
+          riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
         schemaOnlyValidation: false,
         tenantKind,
         dateForExpirationValidation: now,
         personalDataInEService: eservice.personalData,
       });
 
-      const riskAnalysisForm: PurposeRiskAnalysisForm = {
-        ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-        riskAnalysisId: purpose.data.riskAnalysisForm?.riskAnalysisId,
-      };
-
       const updatedPurpose: Purpose = {
         ...purpose.data,
-        riskAnalysisForm,
-        reviewerWorkflow: workflow
-          ? {
-              ...workflow,
-              signingState: riskAnalysisSigningState.pendingSignature,
-              rejectionReason: undefined,
-            }
-          : undefined,
+        reviewerWorkflow: {
+          ...workflow,
+          signingState: riskAnalysisSigningState.submitted,
+          rejectionReason: undefined,
+          sentToReviewerAt: now,
+        },
         updatedAt: now,
       };
 
