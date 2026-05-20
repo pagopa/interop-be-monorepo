@@ -1,11 +1,16 @@
 import {
+  AttributeCertifiedDiscreteComparator,
+  attributeCertifiedDiscreteComparator,
   Descriptor,
-  TenantId,
   EServiceAttribute,
+  EServiceAttributeCertified,
+  EServiceAttributeCertifiedDiscrete,
   TenantAttribute,
+  tenantAttributeType,
+  TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
-  filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
@@ -21,23 +26,59 @@ const attributesSatisfied = (
       return attributes.filter((a) => tenantAttributes.includes(a)).length > 0;
     });
 
+export const discreteComparatorMatches = (
+  value: number,
+  threshold: number,
+  comparator: AttributeCertifiedDiscreteComparator
+): boolean =>
+  match(comparator)
+    .with(attributeCertifiedDiscreteComparator.GT, () => value > threshold)
+    .with(attributeCertifiedDiscreteComparator.LT, () => value < threshold)
+    .with(attributeCertifiedDiscreteComparator.EQ, () => value === threshold)
+    .with(attributeCertifiedDiscreteComparator.GTE, () => value >= threshold)
+    .with(attributeCertifiedDiscreteComparator.LTE, () => value <= threshold)
+    .with(attributeCertifiedDiscreteComparator.NE, () => value !== threshold)
+    .exhaustive();
+
+export const matchesCertifiedDescriptorAttribute = (
+  descriptorAttribute:
+    | EServiceAttributeCertified
+    | EServiceAttributeCertifiedDiscrete,
+  tenantAttributes: TenantAttribute[]
+): boolean =>
+  tenantAttributes.some((tenantAttribute) => {
+    if (tenantAttribute.id !== descriptorAttribute.id) {
+      return false;
+    }
+    if ("discreteConfig" in descriptorAttribute) {
+      return (
+        tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+        !tenantAttribute.revocationTimestamp &&
+        discreteComparatorMatches(
+          tenantAttribute.discreteValue,
+          descriptorAttribute.discreteConfig.threshold,
+          descriptorAttribute.discreteConfig.comparator
+        )
+      );
+    }
+    return (
+      (tenantAttribute.type === tenantAttributeType.CERTIFIED ||
+        tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE) &&
+      !tenantAttribute.revocationTimestamp
+    );
+  });
+
 export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[]
-): boolean => {
-  // TODO(PIN-9889, Work Item 5): extend this check to evaluate
-  // certified discrete attributes with threshold/comparator. Work Item 1 only
-  // introduces the shared descriptor model where certified and
-  // certified discrete attributes coexist in the same descriptor array.
-  const certifiedAttributes = filterCertifiedAttributes(tenantAttributes).map(
-    (a) => a.id
-  );
-
-  return attributesSatisfied(
-    descriptorAttributes.certified,
-    certifiedAttributes
-  );
-};
+): boolean =>
+  descriptorAttributes.certified
+    .filter((attGroup) => attGroup.length > 0)
+    .every((attributeList) =>
+      attributeList.some((attr) =>
+        matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
+      )
+    );
 
 export const declaredAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],

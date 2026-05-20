@@ -378,6 +378,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  certifiedDiscreteAttributes: [],
   stamps: getMockAgreementStamps(),
 });
 

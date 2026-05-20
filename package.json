@@ -87,6 +87,11 @@
     "protocVersion": "26.1"
   },
   "packageManager": "pnpm@10.29.3",
+  "pnpm": {
+    "overrides": {
+      "@pagopa/interop-outbound-models": "link:../interop-outbound-models"
+    }
+  },
   "packageRules": [
     {
       "enabled": true,
