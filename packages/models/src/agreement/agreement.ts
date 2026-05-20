@@ -29,10 +29,12 @@ export const agreementSuspensionReason = {
   certifiedAttribute: "CERTIFIED_ATTRIBUTE",
   certifiedDiscreteAttribute: "CERTIFIED_DISCRETE_ATTRIBUTE",
 } as const;
+
 export const AgreementSuspensionReason = z.enum([
   Object.values(agreementSuspensionReason)[0],
   ...Object.values(agreementSuspensionReason).slice(1),
 ]);
+
 export type AgreementSuspensionReason = z.infer<
   typeof AgreementSuspensionReason
 >;
