@@ -94,6 +94,7 @@ import {
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
+  rejectNotAllowedInCurrentMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -676,15 +677,15 @@ export function purposeServiceBuilder(
 
       const workflow = purpose.data.reviewerWorkflow;
 
-      if (
-        !workflow ||
-        workflow.signingState !== riskAnalysisSigningState.pendingSignature
-      ) {
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
+      }
+
+      if (workflow.signingState !== riskAnalysisSigningState.submitted) {
         throw reviewerWorkflowNotInPendingSignatureState(purposeId);
       }
 
       if (
-        !workflow ||
         workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw rejectNotAllowedInCurrentMode(purposeId);
@@ -698,7 +699,7 @@ export function purposeServiceBuilder(
         ...purpose.data,
         reviewerWorkflow: {
           ...workflow,
-          signingState: riskAnalysisSigningState.draft,
+          signingState: riskAnalysisSigningState.rejected,
           rejectionReason,
         },
         updatedAt: new Date(),

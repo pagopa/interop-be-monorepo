@@ -65,6 +65,7 @@ const errorCodes = {
   submitNotAllowedForReviewMode: "0046",
   reviewerWorkflowNotInPendingSignatureState: "0047",
   requesterIsNotTheSigner: "0048",
+  rejectNotAllowedInCurrentMode: "0049",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

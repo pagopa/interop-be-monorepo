@@ -1604,6 +1604,17 @@ components:
       required:
         - reviewMode
         - reviewerIds
+    RiskAnalysisRejectionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to reject the risk analysis with a reason
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
     TenantKind:
       type: string
       description: Tenant Kind
