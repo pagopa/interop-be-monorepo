@@ -186,6 +186,22 @@ export type FeatureFlagUseSignedDocumentConfig = z.infer<
   typeof FeatureFlagUseSignedDocumentConfig
 >;
 
+export const FeatureFlagAttributeCertifiedDiscreteConfig = z
+  .object({
+    FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAttributeCertifiedDiscrete:
+      c.FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE ?? false,
+  }));
+export type FeatureFlagAttributeCertifiedDiscreteConfig = z.infer<
+  typeof FeatureFlagAttributeCertifiedDiscreteConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -196,7 +212,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
   FeatureFlagUseSignedDocumentConfig &
-  FeatureFlagDelegationConstraintSkipConfig;
+  FeatureFlagDelegationConstraintSkipConfig &
+  FeatureFlagAttributeCertifiedDiscreteConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

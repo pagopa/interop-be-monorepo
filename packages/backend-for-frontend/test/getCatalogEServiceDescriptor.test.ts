@@ -247,14 +247,14 @@ describe("getCatalogEServiceDescriptor", () => {
       id: certifiedAttributeId,
       name: certifiedAttributeName,
       description: "mockDescription",
-      kind: "VERIFIED",
+      kind: "CERTIFIED",
       creationTime: new Date().toTimeString(),
     },
     {
       id: declaredAttributeId,
       name: declaredAttributeName,
       description: attributeDescription,
-      kind: "VERIFIED",
+      kind: "DECLARED",
       creationTime: new Date().toTimeString(),
     },
     {
