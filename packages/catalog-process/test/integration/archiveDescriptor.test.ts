@@ -75,8 +75,10 @@ describe("archive descriptor", () => {
       ...eservice,
       descriptors: [expectedDescriptor],
     });
-    expect(writtenPayload.eservice).toEqual(expectedEService);
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: expectedEService,
+    });
   });
 
   it("should write on event-store for the archiving of a descriptor in archiving state", async () => {

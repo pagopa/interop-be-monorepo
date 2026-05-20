@@ -4,7 +4,12 @@ import {
   tenantApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
+import {
+  isDefined,
+  isFeatureFlagEnabled,
+  Logger,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
@@ -12,6 +17,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { BffAppContext } from "../utilities/context.js";
+import { config } from "../config/config.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
@@ -443,6 +449,32 @@ export function tenantServiceBuilder(
         delegatedFeatures,
         { headers }
       );
+    },
+    async isTenantAllowedToDelegation(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.IsTenantAllowedToDelegation> {
+      logger.info(
+        `Checking if tenant ${tenantId} is allowed to use delegations`
+      );
+
+      if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+        return { isAllowed: true };
+      }
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const isAllowed = (tenant.attributes ?? []).some(
+        (attr) =>
+          attr.certified &&
+          attr.certified.id === config.delegationsAllowedAttributeId &&
+          !attr.certified.revocationTimestamp
+      );
+
+      return { isAllowed };
     },
   };
 }
