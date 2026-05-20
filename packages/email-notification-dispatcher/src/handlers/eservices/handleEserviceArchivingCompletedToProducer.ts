@@ -61,7 +61,7 @@ export async function handleEserviceArchivingCompletedToProducer(
     return [];
   }
 
-  const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
+  const subject = `Conferma di archiviazione di un tuo e-service`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -73,7 +73,7 @@ export async function handleEserviceArchivingCompletedToProducer(
         entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

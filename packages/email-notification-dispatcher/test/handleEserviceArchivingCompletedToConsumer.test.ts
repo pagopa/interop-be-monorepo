@@ -109,7 +109,7 @@ describe("handleEserviceArchivingCompletedToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Archiviazione conclusa dell'e-service"
+      'L\'e-service "Test E-service" è stato archiviato'
     );
   });
 

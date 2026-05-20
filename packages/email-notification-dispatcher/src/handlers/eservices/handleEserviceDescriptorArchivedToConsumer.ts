@@ -82,7 +82,7 @@ export async function handleEserviceDescriptorArchivedToConsumer(
     return [];
   }
 
-  const subject = `Archiviazione anticipata della versione ${descriptor.version} dell'e-service "${eservice.name}"`;
+  const subject = `Archiviazione anticipata di una versione di "${eservice.name}"`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);

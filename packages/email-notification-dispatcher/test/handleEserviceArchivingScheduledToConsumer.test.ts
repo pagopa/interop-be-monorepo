@@ -109,7 +109,7 @@ describe("handleEserviceArchivingScheduledToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Avvio archiviazione dell'e-service"
+      'Avviso di archiviazione per l\'e-service "Test E-service"'
     );
   });
 

@@ -96,7 +96,7 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
     });
     expect(messages).toHaveLength(users.length);
     expect(messages[0].email.subject).toContain(
-      "Archiviazione anticipata della versione"
+      "Archiviazione anticipata di una versione di un tuo e-service"
     );
   });
 

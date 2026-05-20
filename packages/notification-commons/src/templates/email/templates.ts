@@ -118,6 +118,10 @@ export const eventMailTemplateType = {
     "eservice-archiving-early-archived-to-producer-mail",
   eserviceArchivingEarlyArchivedToConsumerMailTemplate:
     "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
+    "eservice-archiving-canceled-descriptor-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToConsumerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-consumer-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

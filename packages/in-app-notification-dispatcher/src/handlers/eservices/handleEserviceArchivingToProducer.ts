@@ -11,7 +11,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
@@ -25,7 +25,9 @@ type ArchivingEventType =
   | "EServiceArchivingScheduled"
   | "EServiceDescriptorArchivingCompleted"
   | "EServiceArchivingCompleted"
-  | "EServiceDescriptorArchived";
+  | "EServiceDescriptorArchived"
+  | "EServiceDescriptorArchivingCanceled"
+  | "EServiceArchivingCanceled";
 
 export type ArchivingEvent = Extract<
   EServiceEventV2,
@@ -41,6 +43,14 @@ export async function handleEserviceArchivingToProducer(
     throw missingKafkaMessageDataError("eservice", msg.type);
   }
   const eservice = fromEServiceV2(msg.data.eservice);
+
+  // Cancellation: the producer initiated the cancel itself, no notification needed
+  if (
+    msg.type === "EServiceArchivingCanceled" ||
+    msg.type === "EServiceDescriptorArchivingCanceled"
+  ) {
+    return [];
+  }
 
   // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
   if (msg.type === "EServiceDescriptorArchived") {
@@ -165,6 +175,19 @@ function bodyAndDescriptorForProducer(
           ),
           descriptor,
         };
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceArchivingCanceled",
+          "EServiceDescriptorArchivingCanceled"
+        ),
+      },
+      (m) => {
+        throw genericError(
+          `bodyAndDescriptorForProducer reached for canceled event ${m.type} — should have been short-circuited upstream`
+        );
       }
     )
     .exhaustive();

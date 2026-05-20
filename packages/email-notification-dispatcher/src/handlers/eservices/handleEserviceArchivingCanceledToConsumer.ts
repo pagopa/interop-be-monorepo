@@ -3,7 +3,6 @@ import {
   EmailNotificationMessagePayload,
   fromEServiceV2,
   generateId,
-  genericError,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -17,11 +16,10 @@ import {
 } from "pagopa-interop-notification-commons";
 import { EServiceHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceArchivingScheduledToConsumer(
+export async function handleEserviceArchivingCanceledToConsumer(
   data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -33,23 +31,15 @@ export async function handleEserviceArchivingScheduledToConsumer(
   } = data;
 
   if (!eserviceV2Msg) {
-    throw missingKafkaMessageDataError(
-      "eservice",
-      "EServiceArchivingScheduled"
-    );
+    throw missingKafkaMessageDataError("eservice", "EServiceArchivingCanceled");
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestDescriptor(eservice);
-  if (!descriptor.archivingSchedule) {
-    throw genericError(
-      `EServiceArchivingScheduled for eservice ${eservice.id} is missing archivingSchedule on its latest descriptor ${descriptor.id}`
-    );
-  }
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingStartedEserviceToConsumerMailTemplate
+      eventMailTemplateType.eserviceArchivingCanceledEserviceToConsumerMailTemplate
     ),
     retrieveTenant(eservice.producerId, readModelService),
     readModelService.getAgreementsByEserviceId(eservice.id),
@@ -75,10 +65,7 @@ export async function handleEserviceArchivingScheduledToConsumer(
     return [];
   }
 
-  const archivableOn = dateAtRomeZone(
-    descriptor.archivingSchedule.archivableOn
-  );
-  const subject = `Avviso di archiviazione per l'e-service "${eservice.name}"`;
+  const subject = `Annullata l'archiviazione di "${eservice.name}"`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);
@@ -97,7 +84,6 @@ export async function handleEserviceArchivingScheduledToConsumer(
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
             producerName: producer.name,
-            archivableOn,
             ctaLabel: `Visualizza e-service`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,

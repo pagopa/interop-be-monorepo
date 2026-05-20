@@ -352,72 +352,76 @@ export const inAppTemplates = {
   eserviceArchivingStartedDescriptorToProducer: (
     eserviceName: string,
     descriptorVersion: string,
-    archivableOn: Date | undefined
+    archivableOn: Date
   ): string =>
-    `Hai avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${
+    `Il processo di archiviazione per la versione ${descriptorVersion} del tuo e-service "${eserviceName}" si concluderà in data ${dateAtRomeZone(
       archivableOn
-        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
-        : ""
-    }.`,
+    )}.`,
   eserviceArchivingStartedEserviceToProducer: (
     eserviceName: string,
-    archivableOn: Date | undefined
+    archivableOn: Date
   ): string =>
-    `Hai avviato il processo di archiviazione dell'e-service ${eserviceName}${
+    `Il processo di archiviazione per il tuo e-service "${eserviceName}" si concluderà in data ${dateAtRomeZone(
       archivableOn
-        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
-        : ""
-    }.`,
+    )}.`,
   eserviceArchivingCompletedDescriptorToProducer: (
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata.`,
+    `È stata archiviata la versione ${descriptorVersion} del tuo e-service "${eserviceName}". Da questo momento, gli aderenti non possono più fruire dei dati esposti in quella versione.`,
   eserviceArchivingCompletedEserviceToProducer: (
     eserviceName: string
-  ): string => `Hai completato l'archiviazione dell'e-service ${eserviceName}.`,
+  ): string =>
+    `È stato archiviato il tuo e-service "${eserviceName}". Da questo momento, gli aderenti non possono più fruire dei dati esposti.`,
   eserviceArchivingEarlyArchivedToProducer: (
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata in anticipo poiché tutte le sottoscrizioni attive si sono concluse.`,
+    `È stata archiviata in anticipo la versione ${descriptorVersion} del tuo e-service "${eserviceName}" poiché tutte le sottoscrizioni attive si sono concluse. Da questo momento, gli aderenti non possono più fruire dei dati esposti in quella versione.`,
 
   eserviceArchivingStartedDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     producerName: string,
-    archivableOn: Date | undefined
+    archivableOn: Date
   ): string =>
-    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto${
+    `Ti informiamo che l'ente erogatore ${producerName} ha avviato il processo di archiviazione per la versione ${descriptorVersion} dell'e-service "${eserviceName}", a cui sei iscritto. La versione non sarà più disponibile a partire dal ${dateAtRomeZone(
       archivableOn
-        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
-        : ""
-    }.`,
+    )}.`,
   eserviceArchivingStartedEserviceToConsumer: (
     eserviceName: string,
     producerName: string,
-    archivableOn: Date | undefined
+    archivableOn: Date
   ): string =>
-    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione dell'e-service ${eserviceName} a cui sei iscritto${
+    `Ti informiamo che l'ente erogatore ${producerName} ha avviato il processo di archiviazione per l'e-service "${eserviceName}", a cui sei iscritto. Il servizio non sarà più disponibile a partire dal ${dateAtRomeZone(
       archivableOn
-        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
-        : ""
-    }.`,
+    )}.`,
   eserviceArchivingCompletedDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     producerName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha completato l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. La versione non è più richiamabile.`,
+    `Ti informiamo che l'ente erogatore ${producerName} ha archiviato la versione ${descriptorVersion} dell'e-service "${eserviceName}".`,
   eserviceArchivingCompletedEserviceToConsumer: (
     eserviceName: string,
     producerName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha completato l'archiviazione dell'e-service ${eserviceName}. L'e-service non è più richiamabile.`,
+    `Ti informiamo che l'ente erogatore ${producerName} ha archiviato l'e-service "${eserviceName}".`,
   eserviceArchivingEarlyArchivedToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     producerName: string
   ): string =>
-    `L'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
+    `Ti informiamo che l'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service "${eserviceName}".`,
+  eserviceArchivingCanceledDescriptorToConsumer: (
+    eserviceName: string,
+    descriptorVersion: string,
+    producerName: string
+  ): string =>
+    `Ti informiamo che l'ente erogatore ${producerName} ha annullato il processo di archiviazione per la versione ${descriptorVersion} dell'e-service "${eserviceName}". La versione continuerà ad essere disponibile come in precedenza.`,
+  eserviceArchivingCanceledEserviceToConsumer: (
+    eserviceName: string,
+    producerName: string
+  ): string =>
+    `Ti informiamo che l'ente erogatore ${producerName} ha annullato il processo di archiviazione per l'e-service "${eserviceName}". Il servizio continuerà ad essere disponibile come in precedenza.`,
 };
