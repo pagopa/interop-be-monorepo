@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   reviewer_workflow_signing_state VARCHAR,
   reviewer_workflow_signed_by UUID,
   reviewer_workflow_rejection_reason VARCHAR,
+  reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
   CONSTRAINT purpose_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
