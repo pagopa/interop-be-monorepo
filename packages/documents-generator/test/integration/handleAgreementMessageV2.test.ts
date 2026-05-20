@@ -37,6 +37,7 @@ import {
   delegationState,
   CorrelationId,
   unsafeBrandId,
+  CertifiedDiscreteTenantAttribute,
 } from "pagopa-interop-models";
 import {
   RefreshableInteropToken,
@@ -273,9 +274,11 @@ describe("handleAgreementMessageV2", () => {
       revokedBy: [],
     };
 
-    const mockCertifiedDiscreteAttribute: CertifiedTenantAttribute = {
+    const mockCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
       ...getMockCertifiedTenantAttribute(certifiedDiscreteAttribute.id),
       revocationTimestamp: undefined,
+      discreteValue: 1234,
+      type: "PersistentCertifiedDiscreteAttribute",
     };
 
     const descriptor: Descriptor = {
