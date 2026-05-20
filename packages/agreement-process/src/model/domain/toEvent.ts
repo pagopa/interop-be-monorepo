@@ -3,11 +3,32 @@ import {
   Agreement,
   AgreementDocumentId,
   AgreementEventV2,
+  AgreementSuspensionReason,
+  AgreementSuspensionReasonV2,
   CorrelationId,
   DelegationId,
   WithMetadata,
+  agreementSuspensionReason,
   toAgreementV2,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
+const toAgreementSuspensionReasonV2 = (
+  suspensionReason: AgreementSuspensionReason | undefined
+): AgreementSuspensionReasonV2 | undefined =>
+  match(suspensionReason)
+    .with(undefined, () => undefined)
+    .with(
+      agreementSuspensionReason.certifiedAttribute,
+      () =>
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE
+    )
+    .with(
+      agreementSuspensionReason.certifiedDiscreteAttribute,
+      () =>
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE
+    )
+    .exhaustive();
 
 export function toCreateEventAgreementDeleted(
   agreement: Agreement,
@@ -261,7 +282,8 @@ export function toCreateEventAgreementSuspendedByConsumer(
 export function toCreateEventAgreementSuspendedByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  suspensionReason?: AgreementSuspensionReason
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -271,6 +293,7 @@ export function toCreateEventAgreementSuspendedByPlatform(
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
+        suspensionReason: toAgreementSuspensionReasonV2(suspensionReason),
       },
     },
     correlationId,

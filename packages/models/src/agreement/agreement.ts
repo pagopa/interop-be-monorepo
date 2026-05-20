@@ -25,6 +25,18 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
+export const agreementSuspensionReason = {
+  certifiedAttribute: "CERTIFIED_ATTRIBUTE",
+  certifiedDiscreteAttribute: "CERTIFIED_DISCRETE_ATTRIBUTE",
+} as const;
+export const AgreementSuspensionReason = z.enum([
+  Object.values(agreementSuspensionReason)[0],
+  ...Object.values(agreementSuspensionReason).slice(1),
+]);
+export type AgreementSuspensionReason = z.infer<
+  typeof AgreementSuspensionReason
+>;
+
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 

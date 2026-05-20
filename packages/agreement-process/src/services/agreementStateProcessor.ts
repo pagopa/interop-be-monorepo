@@ -16,6 +16,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
+  certifiedAttributesFailureReason,
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
@@ -263,7 +264,11 @@ function updateAgreementState(
         toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
-          correlationId
+          correlationId,
+          certifiedAttributesFailureReason(
+            descriptor.attributes,
+            consumer.attributes
+          )
         )
       )
       .with(
