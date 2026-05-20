@@ -852,6 +852,10 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     reviewerWorkflowRejectionReason: varchar(
       "reviewer_workflow_rejection_reason"
     ),
+    reviewerWorkflowSentToReviewerAt: timestamp(
+      "reviewer_workflow_sent_to_reviewer_at",
+      { withTimezone: true, mode: "string" }
+    ),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(

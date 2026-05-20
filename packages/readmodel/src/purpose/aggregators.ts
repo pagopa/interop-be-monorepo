@@ -276,7 +276,9 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             signingState: RiskAnalysisSigningState.parse(
               purposeSQL.reviewerWorkflowSigningState
             ),
-            reviewerIds: reviewersSQL.map((r) => unsafeBrandId<UserId>(r.reviewerId)),
+            reviewerIds: reviewersSQL.map((r) =>
+              unsafeBrandId<UserId>(r.reviewerId)
+            ),
             ...(purposeSQL.reviewerWorkflowSignedBy
               ? {
                   signedBy: unsafeBrandId<UserId>(
@@ -286,8 +288,14 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
               : {}),
             ...(purposeSQL.reviewerWorkflowRejectionReason
               ? {
-                  rejectionReason:
-                    purposeSQL.reviewerWorkflowRejectionReason,
+                  rejectionReason: purposeSQL.reviewerWorkflowRejectionReason,
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowSentToReviewerAt
+              ? {
+                  sentToReviewerAt: stringToDate(
+                    purposeSQL.reviewerWorkflowSentToReviewerAt
+                  ),
                 }
               : {}),
           } satisfies ReviewerWorkflow,

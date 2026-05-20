@@ -9986,12 +9986,6 @@ paths:
       operationId: submitRiskAnalysis
       description: Validate and submit the risk analysis form for reviewer signing
       summary: Submit risk analysis for signing
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
-        required: true
       responses:
         "200":
           description: Risk analysis submitted for signing
@@ -25973,26 +25967,6 @@ components:
       required:
         - reviewMode
         - reviewerIds
-    RiskAnalysisSubmissionSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to submit the risk analysis form for reviewer signing
-      properties:
-        riskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormSeed"
-      required:
-        - riskAnalysisForm
-    RiskAnalysisRejectionSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to reject the risk analysis with a reason
-      properties:
-        rejectionReason:
-          type: string
-          minLength: 10
-          maxLength: 250
-      required:
-        - rejectionReason
     GoogleSAMLPayload:
       type: object
       additionalProperties: false

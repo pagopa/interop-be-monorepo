@@ -60,11 +60,11 @@ const errorCodes = {
   invalidFreeOfChargeReason: "0041",
   reviewerWorkflowConflict: "0042",
   reviewerWorkflowNotFound: "0043",
-  reviewerWorkflowNotInDraftState: "0044",
+  reviewerWorkflowNotSubmittable: "0044",
   requesterIsNotTheWriter: "0045",
-  reviewerWorkflowNotInPendingSignatureState: "0046",
-  requesterIsNotTheSigner: "0047",
-  rejectNotAllowedInCurrentMode: "0048",
+  submitNotAllowedForReviewMode: "0046",
+  reviewerWorkflowNotInPendingSignatureState: "0047",
+  requesterIsNotTheSigner: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -526,13 +526,23 @@ export function reviewerWorkflowNotFound(
   });
 }
 
-export function reviewerWorkflowNotInDraftState(
+export function reviewerWorkflowNotSubmittable(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow is not in Draft state`,
-    code: "reviewerWorkflowNotInDraftState",
-    title: "Reviewer workflow not in draft state",
+    detail: `Purpose ${purposeId} reviewer workflow is not in a submittable state (must be Assigned or Rejected)`,
+    code: "reviewerWorkflowNotSubmittable",
+    title: "Reviewer workflow not submittable",
+  });
+}
+
+export function submitNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Submit is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
+    code: "submitNotAllowedForReviewMode",
+    title: "Submit not allowed for review mode",
   });
 }
 
@@ -550,9 +560,9 @@ export function reviewerWorkflowNotInPendingSignatureState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow is not in PendingSignature state`,
+    detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
     code: "reviewerWorkflowNotInPendingSignatureState",
-    title: "Reviewer workflow not in pending signature state",
+    title: "Reviewer workflow not in signable state",
   });
 }
 
