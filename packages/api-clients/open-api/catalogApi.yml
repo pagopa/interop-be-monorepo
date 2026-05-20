@@ -92,6 +92,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: consumersIds
+          description: comma separated sequence of consumer IDs; restricts the result to e-services that have at least one agreement with one of the listed consumers
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: mode
           description: mode
           schema:
@@ -2992,7 +3002,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -3023,7 +3033,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -3047,7 +3057,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -3307,6 +3317,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3346,6 +3358,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3802,7 +3816,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceDelegationFlagsUpdateSeed:

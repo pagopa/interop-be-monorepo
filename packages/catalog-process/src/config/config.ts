@@ -29,11 +29,17 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
     z
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
+        MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+        MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce
+          .number()
+          .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
         GRACE_PERIOD_ARCHIVING_ESERVICE: z.coerce.number().int().positive(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
+        maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
+        maxInterfaceFileSizeBytes: c.MAX_INTERFACE_FILE_SIZE_BYTES,
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
