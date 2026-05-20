@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   logger,
   InteropTokenGenerator,
@@ -46,11 +47,12 @@ export async function main(): Promise<void> {
     config.fixListTenantKindRiskAnalysisEserviceTemplates &&
     config.fixListTenantKindRiskAnalysisEserviceTemplates.length > 0
   ) {
-    const templates =
-      config.fixListTenantKindRiskAnalysisEserviceTemplates as unknown as EServiceTemplateId[];
+    const templatesIds = z
+      .array(EServiceTemplateId)
+      .parse(config.fixListTenantKindRiskAnalysisEserviceTemplates);
     const eserviceTemplatesProcessingResult =
       await riskAnalysisProcessingService.processEServiceTemplateRiskAnalyses(
-        templates
+        templatesIds
       );
     loggerInstance.info(
       `(EService Template RiskAnalysis) fixed ${eserviceTemplatesProcessingResult.processed.riskAnalyses} tenantKind/s.`
