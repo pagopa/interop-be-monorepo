@@ -3969,6 +3969,7 @@ async function processEserviceArchiving(
       )
     : eservice;
 
+  const requestDate = new Date();
   const descriptors = await Promise.all(
     eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
@@ -3982,14 +3983,16 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archiving,
-            archivingScope.eservice
+            archivingScope.eservice,
+            requestDate
           )
         )
         .with(descriptorState.suspended, () =>
           processDescriptorArchiving(
             descriptor,
             descriptorState.archivingSuspended,
-            archivingScope.eservice
+            archivingScope.eservice,
+            requestDate
           )
         )
         .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
@@ -4028,10 +4031,11 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
-  scope: ArchivingScope = archivingScope.descriptor
+  scope: ArchivingScope = archivingScope.descriptor,
+  requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
     scope,
   };
 
