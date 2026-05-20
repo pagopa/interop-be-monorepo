@@ -77,15 +77,14 @@ describe("Purpose queries", () => {
         reviewerWorkflow: {
           reviewMode: "AdminWritesReviewerSigns",
           reviewerIds: [generateId<UserId>(), generateId<UserId>()],
-          signingState: riskAnalysisSigningState.pendingSignature,
+          signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
+          sentToReviewerAt: new Date(),
         },
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
-
-      const {
         purposeSQL,
         riskAnalysisFormSQL,
         riskAnalysisAnswersSQL,
@@ -214,9 +213,10 @@ describe("Purpose queries", () => {
         reviewerWorkflow: {
           reviewMode: "AdminWritesReviewerSigns",
           reviewerIds: [generateId<UserId>(), generateId<UserId>()],
-          signingState: riskAnalysisSigningState.pendingSignature,
+          signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
+          sentToReviewerAt: new Date(),
         },
       };
 
