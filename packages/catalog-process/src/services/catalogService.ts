@@ -3933,20 +3933,11 @@ export function catalogServiceBuilder(
 
       assertEServiceIsInArchiving(eservice.data);
 
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
+      await assertRequesterIsProducer(eservice.data.producerId, authData);
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
       const updatedDescriptors = eservice.data.descriptors.map((descriptor) => {
-        if (descriptor.archivingSchedule?.scope !== archivingScope.eservice) {
-          return descriptor;
-        }
-
         const isLatest = descriptor.id === latestDescriptor.id;
 
         const newState: DescriptorState =

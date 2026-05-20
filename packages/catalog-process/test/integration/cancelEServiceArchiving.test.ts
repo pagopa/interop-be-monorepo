@@ -5,7 +5,6 @@ import {
   getMockAuthData,
   getMockEService,
   getMockDescriptor,
-  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -30,8 +29,6 @@ import {
 
 describe("cancel eservice archiving", () => {
   const mockEService = getMockEService();
-  const mockDescriptor = getMockDescriptor();
-  const mockDocument = getMockDocument();
 
   const archivingScheduleEService = {
     archivableOn: new Date(),
@@ -41,16 +38,13 @@ describe("cancel eservice archiving", () => {
 
   it("should write on event-store restoring published state for vLatest in archiving and deprecated for older descriptors", async () => {
     const descriptor1: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "1",
       archivingSchedule: archivingScheduleEService,
     };
     const descriptor2: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: getMockDocument(),
+      ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "2",
       archivingSchedule: archivingScheduleEService,
@@ -68,10 +62,12 @@ describe("cancel eservice archiving", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceArchivingCanceled");
-    expect(writtenEvent.event_version).toBe(2);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceArchivingCanceled",
+      event_version: 2,
+    });
 
     const writtenPayload = decodeProtobufPayload({
       messageType: EServiceArchivingCanceledV2,
@@ -103,17 +99,15 @@ describe("cancel eservice archiving", () => {
 
   it("should write on event-store restoring suspended state for archivingSuspended descriptors", async () => {
     const descriptor1: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.archivingSuspended,
       suspendedAt: new Date(),
       version: "1",
       archivingSchedule: archivingScheduleEService,
     };
     const descriptor2: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
       id: generateId(),
-      interface: getMockDocument(),
       state: descriptorState.archivingSuspended,
       suspendedAt: new Date(),
       version: "2",
@@ -164,8 +158,7 @@ describe("cancel eservice archiving", () => {
 
   it("should not modify descriptors with scope == Descriptor", async () => {
     const descriptorWithDescriptorScope: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "1",
       archivingSchedule: {
@@ -175,9 +168,8 @@ describe("cancel eservice archiving", () => {
       },
     };
     const descriptorWithEServiceScope: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
       id: generateId(),
-      interface: getMockDocument(),
       state: descriptorState.archiving,
       version: "2",
       archivingSchedule: archivingScheduleEService,
@@ -221,8 +213,7 @@ describe("cancel eservice archiving", () => {
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "1",
       archivingSchedule: archivingScheduleEService,
@@ -240,8 +231,7 @@ describe("cancel eservice archiving", () => {
 
   it("should throw eserviceNotInArchiving if no descriptor has EService scope", async () => {
     const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "1",
       archivingSchedule: {
@@ -266,8 +256,7 @@ describe("cancel eservice archiving", () => {
 
   it("should throw eserviceNotInArchiving if the latest descriptor has no archivingSchedule", async () => {
     const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
       state: descriptorState.published,
       version: "1",
     };

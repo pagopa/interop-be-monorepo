@@ -687,10 +687,18 @@ export function assertDescriptorIsNotAlreadyArchived(
 }
 
 export function assertEServiceIsInArchiving(eservice: EService): void {
-  const latestDescriptor =
-    eservice.descriptors.length > 0 ? getLatestDescriptor(eservice) : undefined;
+  const latestDescriptorScope =
+    getLatestDescriptor(eservice).archivingSchedule?.scope ===
+    archivingScope.eservice;
 
-  if (latestDescriptor?.archivingSchedule?.scope !== archivingScope.eservice) {
+  const descriptorsInWrongStates = eservice.descriptors.filter(
+    (d) =>
+      d.state !== descriptorState.archiving &&
+      d.state !== descriptorState.archivingSuspended &&
+      d.state !== descriptorState.archived
+  );
+
+  if (!latestDescriptorScope || descriptorsInWrongStates) {
     throw eserviceNotInArchiving(eservice.id);
   }
 }
