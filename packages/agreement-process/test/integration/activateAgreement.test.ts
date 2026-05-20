@@ -363,7 +363,7 @@ describe("activate agreement", () => {
       }
     );
 
-    it("Agreement Pending, valid certified discrete attribute -- success case: populates certifiedDiscreteAttributes on the activated agreement", async () => {
+    it("should populate certifiedDiscreteAttributes on activated agreement when pending agreement has a valid certified discrete attribute", async () => {
       const producer: Tenant = getMockTenant();
       const certifiedDiscreteAttribute = getMockAttribute(
         attributeKind.certified

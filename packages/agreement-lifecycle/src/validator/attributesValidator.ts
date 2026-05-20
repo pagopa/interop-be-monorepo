@@ -50,6 +50,7 @@ export const matchesCertifiedDescriptorAttribute = (
     if (tenantAttribute.id !== descriptorAttribute.id) {
       return false;
     }
+
     if ("discreteConfig" in descriptorAttribute) {
       return (
         tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
@@ -71,14 +72,17 @@ export const matchesCertifiedDescriptorAttribute = (
 export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[]
-): boolean =>
-  descriptorAttributes.certified
-    .filter((attGroup) => attGroup.length > 0)
-    .every((attributeList) =>
-      attributeList.some((attr) =>
-        matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
-      )
-    );
+): boolean => {
+  const nonEmptyCertifiedGroups = descriptorAttributes.certified.filter(
+    (group) => group.length > 0
+  );
+
+  return nonEmptyCertifiedGroups.every((group) =>
+    group.some((attribute) =>
+      matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
+    )
+  );
+};
 
 export const declaredAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
