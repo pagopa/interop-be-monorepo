@@ -122,6 +122,10 @@ describe("compute Agreements state by attribute", () => {
           })
         ),
       });
+
+      expect(agreementStateUpdateEventData.suspensionReason).toBe(
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE
+      );
     });
 
     it("suspends an active Agreement with certified discrete suspension reason when the threshold is no longer satisfied", async () => {
