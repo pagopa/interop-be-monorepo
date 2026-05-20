@@ -386,9 +386,9 @@ export function buildProducerAsyncPlatformErrors(
   if (elapsedMs >= responseTimeMs) {
     errors.push(
       makeDiagnosticError(
-        "responseTimeExpired",
+        "asyncExchangeResponseTimeExceeded",
         `Response time expired for interaction ${interaction.interactionId}: elapsed ${elapsedMs / 1000}s exceeds limit of ${catalogEntry.asyncExchangeProperties.responseTime}s`,
-        "Response time expired"
+        "Async exchange response time exceeded"
       )
     );
   }

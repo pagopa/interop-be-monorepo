@@ -873,7 +873,7 @@ describe("validateTokenGeneration async validations", () => {
     ).toBe(true);
   });
 
-  it("responseTimeExpired is detected for callback_invocation when startInteractionTokenIssuedAt is too old", async () => {
+  it("asyncExchangeResponseTimeExceeded is detected for callback_invocation when startInteractionTokenIssuedAt is too old", async () => {
     const producerKeychainId = generateId<ProducerKeychainId>();
     const producerClientId = unsafeBrandId<ClientId>(producerKeychainId);
 
@@ -968,7 +968,7 @@ describe("validateTokenGeneration async validations", () => {
     expect(result.steps.platformStatesVerification.result).toBe("FAILED");
     expect(
       result.steps.platformStatesVerification.failures.some(
-        (f) => f.code === "responseTimeExpired"
+        (f) => f.code === "asyncExchangeResponseTimeExceeded"
       )
     ).toBe(true);
   });
