@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   Purpose,
   MaintenancePurposeRiskAnalysisSetTenantKindV2,
@@ -34,9 +34,7 @@ import {
 
 describe("fixPurposeRiskAnalysisTenantKind", () => {
   it("should use consumer's kind for deliver-mode eservices", async () => {
-    vi.useFakeTimers();
     const baseTime = new Date("2024-01-10T10:00:00.000Z");
-    vi.setSystemTime(baseTime);
 
     const consumerKind: TenantKind = tenantKind.PA;
     const consumer = getMockTenant();
@@ -98,28 +96,33 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    vi.useRealTimers();
   });
 
   it("should use producer's kind for receive-mode eservices", async () => {
-    vi.useFakeTimers();
     const baseTime = new Date("2024-01-10T10:00:00.000Z");
-    vi.setSystemTime(baseTime);
 
     const producerKind: TenantKind = tenantKind.PRIVATE;
     const producer = getMockTenant();
-    const eservice: EService = {
-      ...getMockEService(),
-      mode: eserviceMode.receive,
-      producerId: producer.id,
-      personalData: false,
-    };
-
     const riskAnalysisId = generateId<RiskAnalysisId>();
     const riskAnalysisForm = {
       ...getMockValidRiskAnalysisForm(producerKind),
       riskAnalysisId,
       tenantKind: undefined,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+      producerId: producer.id,
+      personalData: false,
+      riskAnalysis: [
+        {
+          id: riskAnalysisId,
+          name: "risk analysis",
+          riskAnalysisForm: getMockValidRiskAnalysisForm(producerKind),
+          createdAt: new Date("2024-01-05T00:00:00.000Z"),
+        },
+      ],
     };
 
     const purpose: Purpose = {
@@ -166,8 +169,6 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-
-    vi.useRealTimers();
   });
 
   it("Should throw tenantKindNotFound when history is empty", async () => {
