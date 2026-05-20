@@ -365,9 +365,32 @@ export function purposeServiceBuilder(
           ? purpose.data.consumerId
           : eservice.producerId;
 
+      const firstPublishedAt = eservice.descriptors
+        .map((d) => d.publishedAt)
+        .filter((d): d is Date => d !== undefined)
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      const matchingRiskAnalysisCreatedAt = riskAnalysisForm.riskAnalysisId
+        ? eservice.riskAnalysis.find(
+            (ra) => ra.id === riskAnalysisForm.riskAnalysisId
+          )?.createdAt
+        : undefined;
+
+      const referenceDate = match(eservice.mode)
+        .with(eserviceMode.deliver, () => purpose.data.createdAt)
+        .with(
+          eserviceMode.receive,
+          () => matchingRiskAnalysisCreatedAt ?? firstPublishedAt
+        )
+        .exhaustive();
+
+      if (!referenceDate) {
+        throw tenantKindNotFound(tenantId);
+      }
+
       const historyKind = await readModelService.getTenantKindAt(
         tenantId,
-        purpose.data.createdAt
+        referenceDate
       );
       if (!historyKind) {
         throw tenantKindNotFound(tenantId);
