@@ -557,7 +557,7 @@ function assertAttributeGroupsUnchanged(
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-        descriptorAttr.explicitAttributeVerification
+          descriptorAttr.explicitAttributeVerification
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
@@ -688,7 +688,8 @@ export function assertDescriptorIsNotAlreadyArchived(
 
 export function assertEServiceIsInArchiving(eservice: EService): void {
   const hasEServiceScopeArchiving =
-    getLatestDescriptor(eservice).archivingSchedule?.scope === archivingScope.eservice;
+    getLatestDescriptor(eservice).archivingSchedule?.scope ===
+    archivingScope.eservice;
 
   const hasDescriptorInWrongState = eservice.descriptors.some(
     (d) =>
