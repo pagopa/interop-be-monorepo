@@ -172,6 +172,7 @@ export const createEServiceDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -185,6 +186,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -257,6 +259,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "invalidContentTypeDetected",
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceFile",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
