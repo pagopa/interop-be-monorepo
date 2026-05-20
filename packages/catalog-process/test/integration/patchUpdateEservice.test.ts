@@ -110,6 +110,17 @@ describe("patch update eService", () => {
       isClientAccessDelegable: true,
       personalData: true,
     },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+      personalData: true,
+      archivingReason: "archiving reason",
+    },
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
