@@ -557,7 +557,7 @@ function assertAttributeGroupsUnchanged(
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
+        descriptorAttr.explicitAttributeVerification
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
@@ -687,18 +687,17 @@ export function assertDescriptorIsNotAlreadyArchived(
 }
 
 export function assertEServiceIsInArchiving(eservice: EService): void {
-  const latestDescriptorScope =
-    getLatestDescriptor(eservice).archivingSchedule?.scope ===
-    archivingScope.eservice;
+  const hasEServiceScopeArchiving =
+    getLatestDescriptor(eservice).archivingSchedule?.scope === archivingScope.eservice;
 
-  const descriptorsInWrongStates = eservice.descriptors.filter(
+  const hasDescriptorInWrongState = eservice.descriptors.some(
     (d) =>
       d.state !== descriptorState.archiving &&
       d.state !== descriptorState.archivingSuspended &&
       d.state !== descriptorState.archived
   );
 
-  if (!latestDescriptorScope || descriptorsInWrongStates) {
+  if (!hasEServiceScopeArchiving || hasDescriptorInWrongState) {
     throw eserviceNotInArchiving(eservice.id);
   }
 }
