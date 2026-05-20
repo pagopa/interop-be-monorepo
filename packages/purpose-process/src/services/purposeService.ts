@@ -89,8 +89,6 @@ import {
   tenantNotFound,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInDraftState,
-  requesterIsNotTheWriter,
   reviewerWorkflowNotInPendingSignatureState,
   requesterIsNotTheSigner,
   reviewerWorkflowNotFound,
@@ -613,12 +611,27 @@ export function purposeServiceBuilder(
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        throw reviewerWorkflowNotFound(purposeId);
       }
 
-      if (workflow.signingState !== riskAnalysisSigningState.pendingSignature) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
-      }
+      match(workflow)
+        .with(
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.submitted,
+          },
+          () => void 0
+        )
+        .with(
+          {
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.assigned,
+          },
+          () => void 0
+        )
+        .otherwise(() => {
+          throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
         throw requesterIsNotTheSigner(purposeId);

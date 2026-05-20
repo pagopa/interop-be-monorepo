@@ -560,9 +560,9 @@ export function reviewerWorkflowNotInPendingSignatureState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow is not in PendingSignature state`,
+    detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
     code: "reviewerWorkflowNotInPendingSignatureState",
-    title: "Reviewer workflow not in pending signature state",
+    title: "Reviewer workflow not in signable state",
   });
 }
 

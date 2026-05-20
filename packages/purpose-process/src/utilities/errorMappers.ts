@@ -386,6 +386,11 @@ export const signRiskAnalysisErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
+      "riskAnalysisValidationFailed",
+      "missingRiskAnalysis",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
       "requesterIsNotTheSigner",
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegatedConsumer",
