@@ -9277,8 +9277,13 @@ paths:
       parameters:
         - in: query
           name: signingState
+          description: comma separated sequence of risk analysis signing states
           schema:
-            $ref: "#/components/schemas/RiskAnalysisSigningState"
+            type: array
+            items:
+              $ref: "#/components/schemas/RiskAnalysisSigningState"
+            default: []
+          explode: false
         - in: query
           name: offset
           required: true
@@ -28682,9 +28687,10 @@ components:
       type: string
       description: Risk analysis signing state
       enum:
-        - DRAFT
-        - PENDING_SIGNATURE
+        - ASSIGNED
+        - SUBMITTED
         - SIGNED
+        - REJECTED
     PurposeVersionSignedDocument:
       type: object
       additionalProperties: false

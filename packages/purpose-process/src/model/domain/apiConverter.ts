@@ -285,7 +285,8 @@ export const apiSigningStateToSigningState = (
   apiSigningState: purposeApi.RiskAnalysisSigningState
 ): RiskAnalysisSigningState =>
   match(apiSigningState)
-    .with("DRAFT", () => riskAnalysisSigningState.draft)
-    .with("PENDING_SIGNATURE", () => riskAnalysisSigningState.pendingSignature)
+    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
+    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
     .with("SIGNED", () => riskAnalysisSigningState.signed)
+    .with("REJECTED", () => riskAnalysisSigningState.rejected)
     .exhaustive();

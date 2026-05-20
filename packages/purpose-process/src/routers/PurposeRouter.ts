@@ -120,9 +120,7 @@ const purposeRouter = (
             reviewerId: reviewerId
               ? unsafeBrandId<UserId>(reviewerId)
               : undefined,
-            signingState: signingState
-              ? apiSigningStateToSigningState(signingState)
-              : undefined,
+            signingStates: signingState?.map(apiSigningStateToSigningState),
           },
           { offset, limit },
           ctx

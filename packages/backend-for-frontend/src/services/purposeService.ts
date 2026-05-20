@@ -318,7 +318,7 @@ export function purposeServiceBuilder(
       states?: purposeApi.PurposeVersionState[];
       excludeDraft?: boolean | undefined;
       reviewerId?: string | undefined;
-      signingState?: purposeApi.RiskAnalysisSigningState | undefined;
+      signingState?: purposeApi.RiskAnalysisSigningState[] | undefined;
       offset: number;
       limit: number;
     },
@@ -611,21 +611,28 @@ export function purposeServiceBuilder(
     },
     async getRiskAnalysisAssignments(
       filters: {
-        signingState?: bffApi.RiskAnalysisSigningState | undefined;
+        signingState?: bffApi.RiskAnalysisSigningState[] | undefined;
       },
       offset: number,
       limit: number,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       const { authData, logger } = ctx;
+      const signingState =
+        filters.signingState && filters.signingState.length > 0
+          ? filters.signingState
+          : [
+              bffApi.RiskAnalysisSigningState.Values.ASSIGNED,
+              bffApi.RiskAnalysisSigningState.Values.SUBMITTED,
+            ];
       logger.info(
-        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${filters.signingState} offset ${offset}, limit ${limit}`
+        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingState.join(",")}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData,
         {
-          ...filters,
           reviewerId: authData.userId,
+          signingState,
           excludeDraft: true,
           offset,
           limit,

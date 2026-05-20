@@ -78,7 +78,7 @@ export type GetPurposesFilters = {
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
   reviewerId?: UserId;
-  signingState?: RiskAnalysisSigningState;
+  signingStates?: RiskAnalysisSigningState[];
 };
 
 const activeProducerDelegations = alias(
@@ -165,6 +165,9 @@ const getReviewerIdFilter = (
           .from(purposeReviewerInReadmodelPurpose)
           .where(
             and(
+              isNotNull(
+                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+              ),
               eq(
                 purposeReviewerInReadmodelPurpose.purposeId,
                 purposeInReadmodelPurpose.id
@@ -176,10 +179,13 @@ const getReviewerIdFilter = (
     : undefined;
 
 const getSigningStateFilter = (
-  signingState: RiskAnalysisSigningState | undefined
+  signingStates: RiskAnalysisSigningState[] | undefined
 ): SQL | undefined =>
-  signingState
-    ? eq(purposeInReadmodelPurpose.reviewerWorkflowSigningState, signingState)
+  signingStates && signingStates.length > 0
+    ? inArray(
+        purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+        signingStates
+      )
     : undefined;
 
 const getPurposesFilters = (
@@ -191,7 +197,7 @@ const getPurposesFilters = (
     | "states"
     | "excludeDraft"
     | "reviewerId"
-    | "signingState"
+    | "signingStates"
   >
 ): Array<SQL | undefined> => {
   const {
@@ -200,7 +206,7 @@ const getPurposesFilters = (
     states,
     excludeDraft,
     reviewerId,
-    signingState,
+    signingStates,
   } = filters;
   const titleFilter = title
     ? ilikeEscaped(purposeInReadmodelPurpose.title, `%${escapeSqlLike(title)}%`)
@@ -249,7 +255,7 @@ const getPurposesFilters = (
     : undefined;
 
   const reviewerIdFilter = getReviewerIdFilter(db, reviewerId);
-  const signingStateFilter = getSigningStateFilter(signingState);
+  const signingStateFilter = getSigningStateFilter(signingStates);
 
   return [
     titleFilter,
