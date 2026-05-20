@@ -36,9 +36,10 @@ export const RiskAnalysisReviewMode = z.enum([
 export type RiskAnalysisReviewMode = z.infer<typeof RiskAnalysisReviewMode>;
 
 export const riskAnalysisSigningState = {
-  draft: "Draft",
-  pendingSignature: "PendingSignature",
+  assigned: "Assigned",
+  submitted: "Submitted",
   signed: "Signed",
+  rejected: "Rejected",
 } as const;
 export const RiskAnalysisSigningState = z.enum([
   Object.values(riskAnalysisSigningState)[0],
@@ -100,6 +101,7 @@ export const ReviewerWorkflow = z.object({
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
   rejectionReason: z.string().optional(),
+  sentToReviewerAt: z.coerce.date().optional(),
 });
 export type ReviewerWorkflow = z.infer<typeof ReviewerWorkflow>;
 

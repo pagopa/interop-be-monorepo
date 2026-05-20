@@ -77,9 +77,10 @@ enum RiskAnalysisReviewModeV2 {
 }
 
 enum RiskAnalysisSigningStateV2 {
-  SIGNING_STATE_DRAFT = 0;
-  PENDING_SIGNATURE = 1;
-  SIGNED = 2;
+  RISK_ANALYSIS_ASSIGNED = 0;
+  RISK_ANALYSIS_SUBMITTED = 1;
+  RISK_ANALYSIS_SIGNED = 2;
+  RISK_ANALYSIS_REJECTED = 3;
 }
 
 message ReviewerWorkflowV2 {
@@ -88,4 +89,5 @@ message ReviewerWorkflowV2 {
   RiskAnalysisSigningStateV2 signingState = 3;
   optional string signedBy = 4;
   optional string rejectionReason = 5;
+  optional int64 sentToReviewerAt = 6;
 }

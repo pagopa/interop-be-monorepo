@@ -249,6 +249,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   reviewer_workflow_signing_state VARCHAR(2048),
   reviewer_workflow_signed_by VARCHAR(36),
   reviewer_workflow_rejection_reason VARCHAR(2048),
+  reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
