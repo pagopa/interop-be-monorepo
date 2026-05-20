@@ -3,10 +3,12 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockTenant,
   getMockVerifiedTenantAttribute,
   randomArrayItem,
@@ -20,6 +22,7 @@ import {
   AgreementSetDraftByPlatformV2,
   AgreementSuspendedByPlatformV2,
   AgreementUnsuspendedByPlatformV2,
+  AgreementSuspensionReasonV2,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -28,6 +31,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeCertifiedDiscreteComparator,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -118,6 +122,89 @@ describe("compute Agreements state by attribute", () => {
           })
         ),
       });
+    });
+
+    it("suspends an active Agreement with certified discrete suspension reason when the threshold is no longer satisfied", async () => {
+      const invalidCertifiedDiscreteAttribute = {
+        ...getMockCertifiedDiscreteTenantAttribute(),
+        discreteValue: 42,
+      };
+      const discreteConsumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          invalidCertifiedDiscreteAttribute,
+          getMockDeclaredTenantAttribute(),
+          getMockVerifiedTenantAttribute(),
+        ],
+      };
+
+      const certifiedDiscreteDescriptorAttribute = {
+        ...getMockEServiceAttributeCertifiedDiscrete(
+          invalidCertifiedDiscreteAttribute.id
+        ),
+        discreteConfig: {
+          threshold: 100,
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+        },
+      };
+      const discreteDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [[certifiedDiscreteDescriptorAttribute]],
+          declared: [
+            [getMockEServiceAttribute(discreteConsumer.attributes[1].id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(discreteConsumer.attributes[2].id)],
+          ],
+        },
+      };
+      const discreteEService: EService = {
+        ...getMockEService(),
+        producerId: generateId(),
+        descriptors: [discreteDescriptor],
+      };
+
+      await addOneEService(discreteEService);
+
+      const updatableActiveAgreement: Agreement = {
+        ...getMockAgreement(
+          discreteEService.id,
+          discreteConsumer.id,
+          agreementState.active
+        ),
+        descriptorId: discreteEService.descriptors[0].id,
+        producerId: discreteEService.producerId,
+        suspendedByPlatform: false,
+      };
+
+      await addOneAgreement(updatableActiveAgreement);
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        invalidCertifiedDiscreteAttribute.id,
+        discreteConsumer,
+        getMockContextInternal({})
+      );
+
+      const agreementStateUpdateEvent = await readLastAgreementEvent(
+        updatableActiveAgreement.id
+      );
+
+      expect(agreementStateUpdateEvent).toMatchObject({
+        type: "AgreementSuspendedByPlatform",
+        event_version: 2,
+        version: "1",
+        stream_id: updatableActiveAgreement.id,
+      });
+
+      const agreementStateUpdateEventData = decodeProtobufPayload({
+        messageType: AgreementSuspendedByPlatformV2,
+        payload: agreementStateUpdateEvent.data,
+      });
+
+      expect(agreementStateUpdateEventData.suspensionReason).toBe(
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE
+      );
     });
 
     it.each([agreementState.draft, agreementState.pending])(

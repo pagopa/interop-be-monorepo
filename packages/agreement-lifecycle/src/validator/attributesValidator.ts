@@ -1,6 +1,8 @@
 import {
   AttributeCertifiedDiscreteComparator,
+  AgreementSuspensionReason,
   attributeCertifiedDiscreteComparator,
+  agreementSuspensionReason,
   Descriptor,
   EServiceAttribute,
   EServiceAttributeCertified,
@@ -82,6 +84,29 @@ export const certifiedAttributesSatisfied = (
       matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
     )
   );
+};
+
+export const certifiedAttributesFailureReason = (
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
+): AgreementSuspensionReason | undefined => {
+  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
+    return undefined;
+  }
+
+  const failedCertifiedGroups = descriptorAttributes.certified.filter(
+    (attributeList) =>
+      attributeList.length > 0 &&
+      !attributeList.some((attr) =>
+        matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
+      )
+  );
+
+  return failedCertifiedGroups.some((attributeList) =>
+    attributeList.some((attr) => "discreteConfig" in attr)
+  )
+    ? agreementSuspensionReason.certifiedDiscreteAttribute
+    : agreementSuspensionReason.certifiedAttribute;
 };
 
 export const declaredAttributesSatisfied = (

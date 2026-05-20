@@ -56,8 +56,15 @@ message AgreementSuspendedByConsumerV2 {
   AgreementV2 agreement = 1;
 }
 
+enum AgreementSuspensionReasonV2 {
+  AGREEMENT_SUSPENSION_REASON_UNSPECIFIED = 0;
+  AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE = 1;
+  AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE = 2;
+}
+
 message AgreementSuspendedByPlatformV2 {
   AgreementV2 agreement = 1;
+  optional AgreementSuspensionReasonV2 suspensionReason = 2;
 }
 
 message AgreementRejectedV2 {

@@ -53,6 +53,9 @@ async function processMessage({
         type: P.union(
           "TenantCertifiedAttributeRevoked",
           "TenantCertifiedAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
