@@ -76,6 +76,8 @@ export function riskAnalysisProcessingServiceBuilder(
           headers,
           params: {
             purposeId: singlePurpose.id,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            riskAnalysisId: singlePurpose.riskAnalysisForm!.id,
           },
         });
       }
