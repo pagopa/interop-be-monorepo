@@ -40,6 +40,7 @@ export function toEserviceCatalogProcessQueryParams(
   return {
     ...queryParams,
     eservicesIds: [],
+    consumersIds: [],
     name: queryParams.q,
     templatesIds: [],
   };
@@ -85,6 +86,7 @@ export function toBffCatalogApiEService(
             version: activeDescriptor.version,
             audience: activeDescriptor.audience,
             state: activeDescriptor.state,
+            archivableOn: activeDescriptor.archivingSchedule?.archivableOn,
           },
         }
       : {}),
@@ -406,6 +408,7 @@ export function toCompactDescriptor(
     state: descriptor.state,
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 

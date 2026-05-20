@@ -7,8 +7,11 @@ import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
+  agreementNotFound,
+  eserviceNotFound,
   purposeNotFound,
   tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
 } from "../../src/model/domain/errors.js";
 import { remainingDailyCallsToApiRemainingDailyCalls } from "../../src/model/domain/apiConverter.js";
 
@@ -79,6 +82,18 @@ describe("API GET /purposes/{purposeId}/remainingDailyCalls test", () => {
     {
       error: tenantIsNotTheConsumer(generateId(), undefined),
       expectedStatus: 403,
+    },
+    {
+      error: agreementNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantIsNotTheDelegatedConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceNotFound(generateId()),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",
