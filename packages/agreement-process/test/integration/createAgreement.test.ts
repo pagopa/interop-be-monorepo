@@ -21,6 +21,7 @@ import {
   AgreementAddedV2,
   AgreementId,
   AgreementV2,
+  AttributeCertifiedDiscreteComparator,
   AttributeId,
   DelegationId,
   Descriptor,
@@ -759,129 +760,258 @@ describe("create agreement", () => {
     );
   });
 
-  it("should succeed when the consumer has a certified discrete attribute matching descriptor threshold", async () => {
-    const eserviceProducer: Tenant = getMockTenant();
-    const certifiedDiscreteDescriptorAttribute =
-      getMockEServiceAttributeCertifiedDiscrete();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(generateId<DescriptorId>()),
-      attributes: {
-        certified: [
-          [
-            {
-              ...certifiedDiscreteDescriptorAttribute,
-              discreteConfig: {
-                threshold: 40,
-                comparator: attributeCertifiedDiscreteComparator.GTE,
+  describe("certified discrete attributes verification", () => {
+    const buildDiscreteScenario = ({
+      threshold,
+      comparator,
+      value,
+      revoked = false,
+    }: {
+      threshold: number;
+      comparator: AttributeCertifiedDiscreteComparator;
+      value: number;
+      revoked?: boolean;
+    }) => {
+      const producer = getMockTenant();
+      const descriptorAttribute = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [
+              {
+                ...descriptorAttribute,
+                discreteConfig: { threshold, comparator },
               },
-            },
+            ],
           ],
-        ],
-        declared: [],
-        verified: [],
-      },
-    };
-
-    const consumer = {
-      ...getMockTenant(),
-      attributes: [
-        {
-          ...getMockCertifiedDiscreteTenantAttribute(
-            certifiedDiscreteDescriptorAttribute.id
-          ),
-          discreteValue: 42,
+          declared: [],
+          verified: [],
         },
-      ],
-    };
-
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
-
-    await addOneTenant(eserviceProducer);
-    await addOneTenant(consumer);
-    await addOneEService(eservice);
-
-    const authData = getMockAuthData(consumer.id);
-    const createdAgreementResponse = await agreementService.createAgreement(
-      {
-        eserviceId: eservice.id,
-        descriptorId: eservice.descriptors[0].id,
-      },
-      getMockContext({ authData })
-    );
-
-    await expectedAgreementCreation(
-      createdAgreementResponse,
-      eservice.id,
-      descriptor.id,
-      eserviceProducer.id,
-      consumer.id
-    );
-  });
-
-  it("should throw a missingCertifiedAttributesError when the consumer has a certified discrete attribute below descriptor threshold", async () => {
-    const eserviceProducer: Tenant = getMockTenant();
-    const certifiedDiscreteDescriptorAttribute =
-      getMockEServiceAttributeCertifiedDiscrete();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(generateId<DescriptorId>()),
-      attributes: {
-        certified: [
-          [
-            {
-              ...certifiedDiscreteDescriptorAttribute,
-              discreteConfig: {
-                threshold: 100,
-                comparator: attributeCertifiedDiscreteComparator.GTE,
-              },
-            },
-          ],
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            ...getMockCertifiedDiscreteTenantAttribute(descriptorAttribute.id),
+            discreteValue: value,
+            revocationTimestamp: revoked ? new Date() : undefined,
+          },
         ],
-        declared: [],
-        verified: [],
-      },
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+      return { producer, descriptor, consumer, eservice };
     };
 
-    const consumer = {
-      ...getMockTenant(),
-      attributes: [
-        {
-          ...getMockCertifiedDiscreteTenantAttribute(
-            certifiedDiscreteDescriptorAttribute.id
-          ),
-          discreteValue: 42,
-        },
-      ],
-    };
-
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      eserviceProducer.id,
-      [descriptor]
-    );
-
-    await addOneTenant(eserviceProducer);
-    await addOneTenant(consumer);
-    await addOneEService(eservice);
-
-    const authData = getMockAuthData(consumer.id);
-    await expect(
+    const createAgreementForScenario = async (
+      eservice: ReturnType<typeof getMockEService>,
+      consumer: Tenant
+    ) =>
       agreementService.createAgreement(
         {
           eserviceId: eservice.id,
           descriptorId: eservice.descriptors[0].id,
         },
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(
-      missingCertifiedAttributesError(descriptor.id, consumer.id)
+        getMockContext({ authData: getMockAuthData(consumer.id) })
+      );
+
+    const comparatorCases: Array<{
+      comparator: AttributeCertifiedDiscreteComparator;
+      threshold: number;
+      value: number;
+      shouldSatisfy: boolean;
+    }> = [
+      // GT
+      { comparator: attributeCertifiedDiscreteComparator.GT, threshold: 40, value: 42, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.GT, threshold: 40, value: 40, shouldSatisfy: false },
+      // LT
+      { comparator: attributeCertifiedDiscreteComparator.LT, threshold: 100, value: 99, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.LT, threshold: 100, value: 100, shouldSatisfy: false },
+      // EQ
+      { comparator: attributeCertifiedDiscreteComparator.EQ, threshold: 42, value: 42, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.EQ, threshold: 42, value: 43, shouldSatisfy: false },
+      // GTE
+      { comparator: attributeCertifiedDiscreteComparator.GTE, threshold: 42, value: 42, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.GTE, threshold: 42, value: 41, shouldSatisfy: false },
+      // LTE
+      { comparator: attributeCertifiedDiscreteComparator.LTE, threshold: 42, value: 42, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.LTE, threshold: 42, value: 43, shouldSatisfy: false },
+      // NE
+      { comparator: attributeCertifiedDiscreteComparator.NE, threshold: 42, value: 41, shouldSatisfy: true },
+      { comparator: attributeCertifiedDiscreteComparator.NE, threshold: 42, value: 42, shouldSatisfy: false },
+    ];
+
+    it.each(comparatorCases)(
+      "comparator $comparator with threshold $threshold and value $value -> shouldSatisfy=$shouldSatisfy",
+      async ({ comparator, threshold, value, shouldSatisfy }) => {
+        const { producer, descriptor, consumer, eservice } =
+          buildDiscreteScenario({ threshold, comparator, value });
+
+        await addOneTenant(producer);
+        await addOneTenant(consumer);
+        await addOneEService(eservice);
+
+        if (shouldSatisfy) {
+          const response = await createAgreementForScenario(eservice, consumer);
+          await expectedAgreementCreation(
+            response,
+            eservice.id,
+            descriptor.id,
+            producer.id,
+            consumer.id
+          );
+        } else {
+          await expect(
+            createAgreementForScenario(eservice, consumer)
+          ).rejects.toThrowError(
+            missingCertifiedAttributesError(descriptor.id, consumer.id)
+          );
+        }
+      }
     );
+
+    it("should fail when the consumer's certified discrete attribute is revoked even if the value would satisfy the threshold", async () => {
+      const { producer, descriptor, consumer, eservice } =
+        buildDiscreteScenario({
+          threshold: 40,
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+          value: 42,
+          revoked: true,
+        });
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      await expect(
+        createAgreementForScenario(eservice, consumer)
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
+
+    it("should succeed when, within a single OR group, at least one alternative (the traditional) matches even if the discrete one is below threshold", async () => {
+      const producer = getMockTenant();
+      const traditional = getMockEServiceAttribute();
+      const discrete = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [
+              traditional,
+              { ...discrete, discreteConfig: { threshold: 100, comparator: attributeCertifiedDiscreteComparator.GTE } },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
+          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
+      );
+    });
+
+    it("should succeed when ANDed groups are all satisfied: one group with a traditional and another group with a passing discrete", async () => {
+      const producer = getMockTenant();
+      const traditional = getMockEServiceAttribute();
+      const discrete = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [traditional],
+            [{ ...discrete, discreteConfig: { threshold: 40, comparator: attributeCertifiedDiscreteComparator.GTE } }],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
+          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
+      );
+    });
+
+    it("should fail when ANDed groups are not all satisfied: the discrete group is below threshold even though the traditional group matches", async () => {
+      const producer = getMockTenant();
+      const traditional = getMockEServiceAttribute();
+      const discrete = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [traditional],
+            [{ ...discrete, discreteConfig: { threshold: 100, comparator: attributeCertifiedDiscreteComparator.GTE } }],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
+          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      await expect(
+        createAgreementForScenario(eservice, consumer)
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
   });
+
   it("should throw tenantIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getMockAuthData();
 
