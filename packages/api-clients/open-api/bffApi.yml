@@ -26646,6 +26646,8 @@ components:
           $ref: "#/components/schemas/EServiceTemplateRef"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -27084,6 +27086,9 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        archivableOn:
+          type: string
+          format: date-time
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
