@@ -1,13 +1,15 @@
 import {
-  AttributeCertifiedDiscreteComparator,
   AgreementSuspensionReason,
-  attributeCertifiedDiscreteComparator,
-  agreementSuspensionReason,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
+  CertifiedDiscreteAttributeFailure,
   Descriptor,
   EServiceAttribute,
   EServiceAttributeCertified,
   EServiceAttributeCertifiedDiscrete,
   TenantAttribute,
+  agreementSuspensionReason,
+  attributeCertifiedDiscreteComparator,
   tenantAttributeType,
   TenantId,
 } from "pagopa-interop-models";
@@ -52,7 +54,6 @@ export const matchesCertifiedDescriptorAttribute = (
     if (tenantAttribute.id !== descriptorAttribute.id) {
       return false;
     }
-
     if ("discreteConfig" in descriptorAttribute) {
       return (
         tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
@@ -74,39 +75,70 @@ export const matchesCertifiedDescriptorAttribute = (
 export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[]
-): boolean => {
-  const nonEmptyCertifiedGroups = descriptorAttributes.certified.filter(
-    (group) => group.length > 0
-  );
-
-  return nonEmptyCertifiedGroups.every((group) =>
-    group.some((attribute) =>
-      matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
-    )
-  );
-};
-
-export const certifiedAttributesFailureReason = (
-  descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[]
-): AgreementSuspensionReason | undefined => {
-  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
-    return undefined;
-  }
-
-  const failedCertifiedGroups = descriptorAttributes.certified.filter(
-    (attributeList) =>
-      attributeList.length > 0 &&
-      !attributeList.some((attr) =>
+): boolean =>
+  descriptorAttributes.certified
+    .filter((attGroup) => attGroup.length > 0)
+    .every((attributeList) =>
+      attributeList.some((attr) =>
         matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
       )
-  );
+    );
 
-  return failedCertifiedGroups.some((attributeList) =>
-    attributeList.some((attr) => "discreteConfig" in attr)
-  )
-    ? agreementSuspensionReason.certifiedDiscreteAttribute
-    : agreementSuspensionReason.certifiedAttribute;
+/*
+ * Returns the suspension reason and (when applicable) the discrete attribute
+ * failure detail for a recompute triggered by `triggeringAttributeId`.
+ *
+ * Policy: the triggering attribute is the one whose change caused the
+ * recompute, so it is treated as the failure cause. The detail is populated
+ * only when the triggering descriptor entry is discrete and the tenant still
+ * carries the discrete attribute (so we can capture its value at the moment
+ * of suspension).
+ */
+export const certifiedAttributesFailure = (
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[],
+  triggeringAttributeId: AttributeId
+): {
+  suspensionReason: AgreementSuspensionReason | undefined;
+  discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined;
+} => {
+  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
+    return {
+      suspensionReason: undefined,
+      discreteAttributeFailure: undefined,
+    };
+  }
+
+  const triggeringDescriptorAttribute = descriptorAttributes.certified
+    .flat()
+    .find((attr) => attr.id === triggeringAttributeId);
+
+  if (
+    triggeringDescriptorAttribute &&
+    "discreteConfig" in triggeringDescriptorAttribute
+  ) {
+    const triggeringTenantAttribute = tenantAttributes.find(
+      (attr) => attr.id === triggeringAttributeId
+    );
+    const discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined =
+      triggeringTenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE
+        ? {
+            attributeId: triggeringAttributeId,
+            tenantValue: triggeringTenantAttribute.discreteValue,
+            threshold: triggeringDescriptorAttribute.discreteConfig.threshold,
+            comparator: triggeringDescriptorAttribute.discreteConfig.comparator,
+          }
+        : undefined;
+    return {
+      suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
+      discreteAttributeFailure,
+    };
+  }
+
+  return {
+    suspensionReason: agreementSuspensionReason.certifiedAttribute,
+    discreteAttributeFailure: undefined,
+  };
 };
 
 export const declaredAttributesSatisfied = (

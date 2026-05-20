@@ -9,6 +9,7 @@ import {
   TenantId,
   UserId,
 } from "./../brandedIds.js";
+import { AttributeCertifiedDiscreteComparator } from "../eservice/eservice.js";
 
 export const agreementState = {
   draft: "Draft",
@@ -37,6 +38,16 @@ export const AgreementSuspensionReason = z.enum([
 
 export type AgreementSuspensionReason = z.infer<
   typeof AgreementSuspensionReason
+>;
+
+export const CertifiedDiscreteAttributeFailure = z.object({
+  attributeId: AttributeId,
+  tenantValue: z.number().int().min(1).max(1000000000),
+  threshold: z.number().int().min(1).max(1000000000),
+  comparator: AttributeCertifiedDiscreteComparator,
+});
+export type CertifiedDiscreteAttributeFailure = z.infer<
+  typeof CertifiedDiscreteAttributeFailure
 >;
 
 export const AgreementAttribute = z.object({ id: AttributeId });
