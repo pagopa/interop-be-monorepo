@@ -25747,6 +25747,10 @@ components:
           type: string
         grant_type:
           type: string
+        is_async:
+          type: boolean
+          default: false
+          description: Set to true to validate the client assertion as an async token generation request
         dpop_proof:
           type: string
           format: jws
@@ -26587,12 +26591,12 @@ components:
             type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
-        delegation:
-          $ref: "#/components/schemas/DelegationWithCompactTenants"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
           $ref: "#/components/schemas/EServiceDoc"
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -28557,41 +28561,6 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
-    AsyncExchangeProperties:
-      type: object
-      required:
-        - responseTime
-        - resourceAvailableTime
-        - confirmation
-        - bulk
-        - maxResultSet
-      properties:
-        responseTime:
-          type: integer
-          format: int32
-        resourceAvailableTime:
-          type: integer
-          format: int32
-        confirmation:
-          type: boolean
-        bulk:
-          type: boolean
-        maxResultSet:
-          type: integer
-          format: int32
-    AsyncExchangePropertiesInstanceSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        responseTime:
-          type: integer
-          format: int32
-        resourceAvailableTime:
-          type: integer
-          format: int32
-        maxResultSet:
-          type: integer
-          format: int32
     EServiceTechnology:
       type: string
       description: EService Descriptor State
@@ -29659,6 +29628,42 @@ components:
           type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+    AsyncExchangeProperties:
+      type: object
+      additionalProperties: false
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false
@@ -29782,8 +29787,6 @@ components:
           type: boolean
         personalData:
           type: boolean
-        asyncExchange:
-          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -29832,6 +29835,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchange:
+          type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan

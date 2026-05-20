@@ -3,6 +3,7 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  GSIPKInteractionId,
   InteractionId,
   InteractionsPK,
   PurposeId,
@@ -24,6 +25,7 @@ export type InteractionState = z.infer<typeof InteractionState>;
 
 export const Interaction = z.object({
   PK: InteractionsPK,
+  GSIPK_interactionId: GSIPKInteractionId.optional(),
   interactionId: InteractionId,
   clientId: ClientId,
   purposeId: PurposeId,

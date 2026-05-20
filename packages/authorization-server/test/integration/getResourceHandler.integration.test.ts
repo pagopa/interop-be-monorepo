@@ -131,6 +131,7 @@ const setupGetResourceScenario = async (overrides?: {
   tokenGenStatesAgreementStateOverride?: ItemState;
   tokenGenStatesPurposeStateOverride?: ItemState;
   tokenGenStatesDescriptorStateOverride?: ItemState;
+  catalogEntryStateOverride?: ItemState;
   interactionStateOverride?: (typeof interactionState)[keyof typeof interactionState];
 }): Promise<{
   consumerJws: string;
@@ -311,6 +312,23 @@ const setupGetResourceScenario = async (overrides?: {
     };
   }
   await overrideTokenGenStatesFields(tokenClientKidPurposePK, stateOverrides);
+
+  // The catalog entry state must be overridden after start_interaction —
+  // setting it before would make start_interaction itself fail on the same
+  // pinned-descriptor check.
+  if (overrides?.catalogEntryStateOverride) {
+    await dynamoDBClient.send(
+      new UpdateItemCommand({
+        TableName: config.platformStatesTable,
+        Key: { PK: { S: catalogPK } },
+        UpdateExpression: "SET #state = :state",
+        ExpressionAttributeNames: { "#state": "state" },
+        ExpressionAttributeValues: {
+          ":state": { S: overrides.catalogEntryStateOverride },
+        },
+      })
+    );
+  }
 
   // Step 5: fresh assertion for get_resource (new keypair); align token-gen-states publicKey.
   //         get_resource does not require purposeId in the claims; the handler
@@ -646,6 +664,22 @@ describe("async token service - get_resource", () => {
     await expect(
       callAsyncTokenService(consumerJws, consumerClientId)
     ).rejects.toThrowError(/E-Service state is: INACTIVE/);
+  });
+
+  it("should throw platformStateValidationFailed when pinned descriptor catalog state is INACTIVE", async () => {
+    mockProducer.send.mockImplementation(async () => [
+      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+
+    const { consumerJws, consumerClientId } = await setupGetResourceScenario({
+      catalogEntryStateOverride: itemState.inactive,
+    });
+
+    await expect(
+      callAsyncTokenService(consumerJws, consumerClientId)
+    ).rejects.toThrowError(
+      /E-Service state for pinned descriptor .* is: INACTIVE/
+    );
   });
 
   it("should throw catalogEntryNotFound when catalog entry is absent", async () => {

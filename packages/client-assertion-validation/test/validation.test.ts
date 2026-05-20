@@ -1396,6 +1396,235 @@ describe("validation test", async () => {
     });
   });
 
+  describe("verifyAsyncClientAssertion", async () => {
+    it("should succeed with valid scope", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.startInteraction);
+    });
+
+    it("should succeed with scope and interactionId", async () => {
+      const interactionId = generateId<InteractionId>();
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          interactionId,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.callbackInvocation);
+      expect(data!.payload.interactionId).toBe(interactionId);
+    });
+
+    it("should succeed with all async claims", async () => {
+      const interactionId = generateId<InteractionId>();
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          interactionId,
+          urlCallback: "https://example.com/callback",
+          entityNumber: 5,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.callbackInvocation);
+      expect(data!.payload.interactionId).toBe(interactionId);
+      expect(data!.payload.urlCallback).toBe("https://example.com/callback");
+      expect(data!.payload.entityNumber).toBe(5);
+    });
+
+    it("scopeNotProvided when scope is missing", async () => {
+      const { jws } = await getMockClientAssertion();
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(scopeNotProvided());
+    });
+
+    it("invalidScopeClaimFormat", async () => {
+      const invalidScope = "not_a_valid_scope";
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: invalidScope,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidScopeClaimFormat(JSON.stringify(invalidScope))
+      );
+    });
+
+    it("invalidInteractionIdClaimFormat", async () => {
+      const invalidId = "not-a-uuid";
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.getResource,
+          interactionId: invalidId,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidInteractionIdClaimFormat(JSON.stringify(invalidId))
+      );
+    });
+
+    it("invalidUrlCallbackClaimFormat", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: 12345,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("12345"));
+    });
+
+    it("invalidUrlCallbackClaimFormat - invalid URL format", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: "not-a-url",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("not-a-url"));
+    });
+
+    it("invalidEntityNumberClaimFormat - not a number", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: "not-a-number",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidEntityNumberClaimFormat("not-a-number")
+      );
+    });
+
+    it("should succeed with entityNumber zero", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: 0,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.entityNumber).toBe(0);
+    });
+
+    it("invalidEntityNumberClaimFormat - negative", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: -1,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidEntityNumberClaimFormat("-1"));
+    });
+
+    it("should not affect base verifyClientAssertion", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          interactionId: generateId<InteractionId>(),
+        },
+      });
+      // Base verifyClientAssertion should still work (ignores async claims)
+      const { data, errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      // scope and interactionId are NOT in the base result
+      expect((data!.payload as Record<string, unknown>).scope).toBeUndefined();
+    });
+  });
+
   describe("validateAudience", () => {
     describe("expectedAudiences is a one item array", () => {
       it("should succeed if the expected audiences contain the received audience (string)", () => {

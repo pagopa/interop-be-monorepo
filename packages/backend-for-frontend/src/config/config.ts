@@ -3,11 +3,12 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
-  FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagAsyncExchangeConfig,
+  FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagPurposeTemplateConfig,
+  FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -16,6 +17,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
+import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConfig.js";
 
 const TenantProcessServerConfig = z
   .object({
@@ -343,6 +345,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagAsyncExchangeConfig)
   .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagUseSignedDocumentConfig)
+  .and(TokenGenerationValidationConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(
     z
