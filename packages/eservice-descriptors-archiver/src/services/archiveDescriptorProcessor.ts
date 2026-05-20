@@ -106,9 +106,8 @@ export async function archiveDescriptorForArchivedAgreement(
       descriptorState.archiving,
       descriptorState.archivingSuspended,
       async () => {
-        const targetVersion = Number(descriptor.version);
         const newerDescriptorExists = eservice.descriptors.some((d) =>
-          isNewerActiveDescriptor(d, targetVersion)
+          isNewerActiveDescriptor(d, Number(descriptor.version))
         );
         if (newerDescriptorExists) {
           const token = (await refreshableToken.get()).serialized;
