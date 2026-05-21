@@ -233,6 +233,13 @@ export const handleGetResource = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId: interaction.interactionId,
+      state: interactionState.getResource,
+      startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
+      callbackInvocationTokenIssuedAt:
+        interaction.callbackInvocationTokenIssuedAt,
+    },
   });
 
   logTokenGenerationInfo({

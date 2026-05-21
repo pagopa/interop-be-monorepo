@@ -11,6 +11,7 @@ import {
   EServiceId,
   FullTokenGenerationStatesConsumerClient,
   GeneratedTokenAuditDetails,
+  InteractionAuditDetails,
   generateId,
   genericInternalError,
   GSIPKEServiceIdDescriptorId,
@@ -233,6 +234,7 @@ const buildAuditMessageBody = ({
   descriptorId,
   purposeId,
   purposeVersionId,
+  interaction,
 }: {
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
   clientAssertion: ClientAssertion | AsyncClientAssertion;
@@ -244,6 +246,7 @@ const buildAuditMessageBody = ({
   descriptorId: DescriptorId;
   purposeId: string;
   purposeVersionId: string;
+  interaction?: InteractionAuditDetails;
 }): GeneratedTokenAuditDetails => ({
   jwtId: generatedToken.payload.jti,
   correlationId,
@@ -285,6 +288,7 @@ const buildAuditMessageBody = ({
         },
       }
     : {}),
+  ...(interaction ? { interaction } : {}),
 });
 
 const sendAuditMessage = async ({
@@ -331,6 +335,7 @@ export const publishAudit = async ({
   correlationId,
   fileManager,
   logger,
+  interaction,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropConsumerToken | InteropAsyncConsumerToken;
@@ -345,6 +350,7 @@ export const publishAudit = async ({
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
+  interaction?: InteractionAuditDetails;
 }): Promise<void> => {
   const messageBody = buildAuditMessageBody({
     generatedToken,
@@ -357,6 +363,7 @@ export const publishAudit = async ({
     descriptorId,
     purposeId: key.GSIPK_purposeId,
     purposeVersionId: key.purposeVersionId,
+    interaction,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });
@@ -405,6 +412,7 @@ export const publishProducerAudit = async ({
   correlationId,
   fileManager,
   logger,
+  interaction,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
   generatedToken: InteropAsyncConsumerToken;
@@ -419,6 +427,7 @@ export const publishProducerAudit = async ({
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
+  interaction?: InteractionAuditDetails;
 }): Promise<void> => {
   const messageBody = buildAuditMessageBody({
     generatedToken,
@@ -431,6 +440,7 @@ export const publishProducerAudit = async ({
     descriptorId,
     purposeId,
     purposeVersionId,
+    interaction,
   });
 
   await sendAuditMessage({ messageBody, producer, fileManager, logger });

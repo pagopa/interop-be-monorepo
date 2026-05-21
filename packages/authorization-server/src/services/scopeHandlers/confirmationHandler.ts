@@ -240,6 +240,16 @@ export const handleConfirmation = async (
     correlationId,
     fileManager,
     logger,
+    interaction: {
+      interactionId: interaction.interactionId,
+      state: interactionState.confirmation,
+      startInteractionTokenIssuedAt: interaction.startInteractionTokenIssuedAt,
+      callbackInvocationTokenIssuedAt:
+        interaction.callbackInvocationTokenIssuedAt,
+      confirmationTokenIssuedAt: new Date(
+        token.payload.iat * 1000
+      ).toISOString(),
+    },
   });
 
   logTokenGenerationInfo({
