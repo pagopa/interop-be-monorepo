@@ -723,6 +723,22 @@ export function eserviceServiceBuilder(
       await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
+    async scheduleArchiveEService(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceArchiving(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.EServiceDelegationUpdateSeed,

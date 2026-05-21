@@ -623,6 +623,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -732,6 +733,19 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
     )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceArchivingStatusErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "operationForbidden",
+      "notValidEServiceState",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceResetEServicePersonalDataFlagErrorMapper = (

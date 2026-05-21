@@ -988,3 +988,20 @@ export const toCreateEventEServiceDescriptorArchivingCompleted = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceArchivingScheduled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingScheduled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

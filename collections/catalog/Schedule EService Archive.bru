@@ -1,0 +1,26 @@
+meta {
+  name: Schedule EService Archive
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/scheduleArchive
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "archivingReason": "EService eservice no longer necessary"
+  }
+}
