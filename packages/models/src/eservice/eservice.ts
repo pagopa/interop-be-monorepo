@@ -90,6 +90,11 @@ export type EServiceCertifiedAttribute =
   | EServiceAttributeCertified
   | EServiceAttributeCertifiedDiscrete;
 
+export const getEServiceAttributeDiscreteConfig = (
+  attribute: EServiceCertifiedAttribute
+): EServiceAttributeCertifiedDiscreteConfig | undefined =>
+  "discreteConfig" in attribute ? attribute.discreteConfig : undefined;
+
 export const EServiceAttributes = z.object({
   certified: z.array(
     z.array(

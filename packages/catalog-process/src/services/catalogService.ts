@@ -42,6 +42,7 @@ import {
   EServiceAttribute,
   EserviceAttributes,
   EServiceCertifiedAttribute,
+  getEServiceAttributeDiscreteConfig,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -1938,14 +1939,19 @@ export function catalogServiceBuilder(
       );
 
       const currentDate = new Date();
-      const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
+      const suffix = ` - clone - ${dateAtRomeZone(
+        currentDate
+      )} ${timeAtRomeZone(currentDate)}`;
       const dots = "...";
       const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
       const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
       const clonedEServiceName =
         eservice.data.name.length + suffix.length <= maxNameLength
           ? `${eservice.data.name}${suffix}`
-          : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
+          : `${eservice.data.name.slice(
+              0,
+              prefixLengthAllowance
+            )}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -4231,32 +4237,18 @@ function hasCertifiedAttributeConfigurationChanged(
         (attribute) => attribute.id === descriptorAttribute.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttribute);
       return (
         seedAttribute?.dailyCallsPerConsumer !==
           descriptorAttribute.dailyCallsPerConsumer ||
         seedAttribute?.discreteConfig?.threshold !==
-          getCertifiedDiscreteThreshold(descriptorAttribute) ||
+          descriptorDiscreteConfig?.threshold ||
         seedAttribute?.discreteConfig?.comparator !==
-          getCertifiedDiscreteComparator(descriptorAttribute)
+          descriptorDiscreteConfig?.comparator
       );
     });
   });
-}
-
-function getCertifiedDiscreteThreshold(
-  attribute: EServiceCertifiedAttribute
-): number | undefined {
-  return "discreteConfig" in attribute
-    ? attribute.discreteConfig.threshold
-    : undefined;
-}
-
-function getCertifiedDiscreteComparator(
-  attribute: EServiceCertifiedAttribute
-): string | undefined {
-  return "discreteConfig" in attribute
-    ? attribute.discreteConfig.comparator
-    : undefined;
 }
 
 function evaluateTemplateVersionRef(

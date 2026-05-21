@@ -27,6 +27,7 @@ import {
   EServiceTemplateId,
   type EServiceCertifiedAttribute,
   type EserviceAttributes,
+  getEServiceAttributeDiscreteConfig,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -475,22 +476,6 @@ function assertAttributeGroupsUnchanged(
   descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
-  function getCertifiedDiscreteThreshold(
-    attribute: EServiceCertifiedAttribute
-  ): number | undefined {
-    return "discreteConfig" in attribute
-      ? attribute.discreteConfig.threshold
-      : undefined;
-  }
-
-  function getCertifiedDiscreteComparator(
-    attribute: EServiceCertifiedAttribute
-  ): string | undefined {
-    return "discreteConfig" in attribute
-      ? attribute.discreteConfig.comparator
-      : undefined;
-  }
-
   if (descriptorGroups.length !== seedGroups.length) {
     throw templateInstanceNotAllowed(eserviceId, templateId);
   }
@@ -513,15 +498,19 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
+
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
           descriptorAttr.explicitAttributeVerification ||
         seedAttr.discreteConfig?.threshold !==
-          getCertifiedDiscreteThreshold(descriptorAttr) ||
+          descriptorDiscreteConfig?.threshold ||
         seedAttr.discreteConfig?.comparator !==
-          getCertifiedDiscreteComparator(descriptorAttr) ||
-        Boolean(seedAttr.discreteConfig) !== "discreteConfig" in descriptorAttr
+          descriptorDiscreteConfig?.comparator ||
+        Boolean(seedAttr.discreteConfig) !==
+          (descriptorDiscreteConfig !== undefined)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
