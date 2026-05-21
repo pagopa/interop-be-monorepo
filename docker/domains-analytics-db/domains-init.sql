@@ -120,6 +120,8 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
   daily_calls_per_consumer INTEGER,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -635,6 +637,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, version_id, group_id)
 );
