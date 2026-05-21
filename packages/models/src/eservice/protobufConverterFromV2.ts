@@ -130,22 +130,21 @@ export const fromCertifiedDiscreteConfigV2 = (
 
 export const fromEServiceAttributeCertifiedV2 = (
   input: EServiceAttributeV2
-): (EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified)[] =>
+): Array<EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified> =>
   input.values.map((attribute) => {
-    const base: EServiceAttributeCertified = {
+    const common: EServiceAttributeCertified = {
       id: unsafeBrandId(attribute.id),
       explicitAttributeVerification: attribute.explicitAttributeVerification,
       dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
-      ...(attribute.discreteConfig != null
-        ? {
-            discreteConfig: fromCertifiedDiscreteConfigV2(
-              attribute.discreteConfig
-            ),
-          }
-        : undefined),
     };
-
-    return base;
+    return attribute.discreteConfig != null
+      ? {
+          ...common,
+          discreteConfig: fromCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
+          ),
+        }
+      : common;
   });
 
 export function fromDocumentV2(input: EServiceDocumentV2): Document {

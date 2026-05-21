@@ -9,6 +9,7 @@ import {
   fromRiskAnalysisFormV2,
 } from "../eservice/protobufConverterFromV2.js";
 import {
+  EServiceTemplateAttributeV2,
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
@@ -26,26 +27,25 @@ import {
   EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
 
-const fromEServiceTemplateAttributeGroupV2 = (input: {
-  values: Array<{
-    id: string;
-    explicitAttributeVerification: boolean;
-    discreteConfig?: { threshold: number; comparator: number } | null;
-  }>;
-}): Array<
+const fromEServiceTemplateAttributeGroupV2 = (
+  input: EServiceTemplateAttributeV2
+): Array<
   EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
 > =>
-  input.values.map((attribute) => ({
-    id: unsafeBrandId(attribute.id),
-    explicitAttributeVerification: attribute.explicitAttributeVerification,
-    ...(attribute.discreteConfig != null
+  input.values.map((attribute) => {
+    const common: EServiceTemplateAttribute = {
+      id: unsafeBrandId(attribute.id),
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+    };
+    return attribute.discreteConfig != null
       ? {
+          ...common,
           discreteConfig: fromCertifiedDiscreteConfigV2(
             attribute.discreteConfig
           ),
         }
-      : undefined),
-  }));
+      : common;
+  });
 
 export const fromEServiceTemplateVersionStateV2 = (
   input: EServiceTemplateVersionStateV2
