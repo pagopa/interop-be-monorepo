@@ -81,7 +81,14 @@ describe("handlePurposeTemplateEvent test", async () => {
                 })),
             ]
           )
-          .with("RiskAnalysisTemplateDocumentGenerated", async () => [])
+          .with(
+            P.union(
+              "RiskAnalysisTemplateDocumentGenerated",
+              "PurposeTemplateEServiceTemplateLinked",
+              "PurposeTemplateEServiceTemplateUnlinked"
+            ),
+            async () => []
+          )
           .exhaustive();
 
         for (const { state, expectedVisibility } of testCasesData) {
