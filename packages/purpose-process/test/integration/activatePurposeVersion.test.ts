@@ -1488,6 +1488,84 @@ describe("activatePurposeVersion", () => {
     );
   });
 
+  it("should activate the purpose if it is in draft state and the tenant kind is GSP and risk analysis tenant kind is PRIVATE", async () => {
+    const consumer: Tenant = {
+      ...mockConsumer,
+      id: generateId(),
+      kind: tenantKind.GSP,
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      id: generateId(),
+      consumerId: consumer.id,
+    };
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockValidRiskAnalysisForm(tenantKind.PRIVATE);
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      consumerId: consumer.id,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(agreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(consumer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updatedVersion.riskAnalysis).toBeDefined();
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
+  });
+
   it("should throw riskAnalysisTenantKindMismatch if the purpose is in waitingForApproval state and has a mismatching tenantKind", async () => {
     const riskAnalysisForm = getMockValidRiskAnalysisForm("PRIVATE");
 
@@ -1523,6 +1601,87 @@ describe("activatePurposeVersion", () => {
         riskAnalysisForm.id
       )
     );
+  });
+
+  it("should activate the purpose if it is in waitingForApproval state and the tenant kind and risk analysis tenant kind are both non-PA", async () => {
+    const consumer: Tenant = {
+      ...mockConsumer,
+      id: generateId(),
+      kind: tenantKind.GSP,
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      id: generateId(),
+      consumerId: consumer.id,
+    };
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockValidRiskAnalysisForm(tenantKind.PRIVATE);
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      consumerId: consumer.id,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(agreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updatedVersion.riskAnalysis).toBeDefined();
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {

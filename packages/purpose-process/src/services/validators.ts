@@ -76,7 +76,16 @@ export const assertRiskAnalysisTenantKindMatch = ({
   // if (actualKind === undefined) {
   //   throw missingTenantKindError();
   // }
-  if (actualKind && actualKind !== currentTenantKind) {
+
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
       currentTenantKind,
