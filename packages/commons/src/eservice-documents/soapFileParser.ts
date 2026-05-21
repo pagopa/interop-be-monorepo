@@ -4,7 +4,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import {
   buildingSoapFileError,
   interfaceExtractingInfoError,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   parsingSoapFileError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -38,10 +38,10 @@ const extractAddress = (parsedXml: any): string[] => {
           )
       )
       .otherwise(() => {
-        throw interfaceExtractingSoapFiledError("soap:address");
+        throw interfaceExtractingSoapFieldError("soap:address");
       });
   } catch (e) {
-    throw interfaceExtractingSoapFiledError("soap:address");
+    throw interfaceExtractingSoapFieldError("soap:address");
   }
 };
 
@@ -76,10 +76,10 @@ const extractEndpoints = (parsedXml: any): string[] => {
           )
       )
       .otherwise(() => {
-        throw interfaceExtractingSoapFiledError("soap:operation");
+        throw interfaceExtractingSoapFieldError("soap:operation");
       });
   } catch (e) {
-    throw interfaceExtractingSoapFiledError("soap:operation");
+    throw interfaceExtractingSoapFieldError("soap:operation");
   }
 };
 

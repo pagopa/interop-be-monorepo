@@ -771,7 +771,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function interfaceExtractingSoapFiledError(
+export function interfaceExtractingSoapFieldError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({

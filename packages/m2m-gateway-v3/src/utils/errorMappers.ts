@@ -177,6 +177,10 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
     .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
+      "interfaceExtractingSoapFieldValueError",
+      "interfaceExtractingInfoError",
+      "soapFileParsingError",
+      "openapiVersionNotRecognized",
       "invalidServerUrl",
       () => HTTP_STATUS_BAD_REQUEST
     )
