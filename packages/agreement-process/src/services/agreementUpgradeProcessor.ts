@@ -152,7 +152,7 @@ export async function createUpgradeOrNewDraft({
       contract: undefined,
       verifiedAttributes: [],
       certifiedAttributes: [],
-      certifiedDiscreteAttributes: agreement.data.certifiedDiscreteAttributes,
+      certifiedDiscreteAttributes: [],
       declaredAttributes: [],
       /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
       the corresponding stamps, even if this is a Draft Agreement and suspension
