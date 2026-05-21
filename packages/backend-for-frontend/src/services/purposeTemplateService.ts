@@ -322,8 +322,6 @@ export function purposeTemplateServiceBuilder(
       body: bffApi.LinkableResourceRequest,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.LinkedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       return await match(body)
         .with(
           { resourceKind: "ESERVICE" },
@@ -372,8 +370,6 @@ export function purposeTemplateServiceBuilder(
       body: bffApi.LinkableResourceRequest,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       await match(body)
         .with({ resourceKind: "ESERVICE" }, async ({ eserviceId }) => {
           logger.info(
@@ -607,8 +603,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.LinkableResources> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
