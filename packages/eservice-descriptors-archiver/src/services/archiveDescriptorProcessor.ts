@@ -139,7 +139,7 @@ export async function archiveDescriptorForArchivedAgreement(
       descriptorState.archived,
       () => {
         logger.info(
-          `Skipping descriptor archiving for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
+          `Skipping descriptor archiving for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not in relevant state (state: ${descriptor.state})`
         );
       }
     )

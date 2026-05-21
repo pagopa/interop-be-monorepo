@@ -282,7 +282,7 @@ describe("EService Descriptors Archiver", async () => {
           ).includes(s)
       )
     )(
-      "should not call archive Descriptor when the Descriptor not in a valid state (%s)",
+      "should not call archive Descriptor when the Descriptor is not in a valid state (%s)",
       async (state) => {
         const producerId: TenantId = generateId();
         const descriptor = {
