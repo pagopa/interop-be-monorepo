@@ -27,6 +27,7 @@ import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import { getMockReversePurposeSeed } from "../mockUtils.js";
 
@@ -115,6 +116,10 @@ describe("API POST /reverse/purposes test", () => {
     {
       error: duplicatedPurposeTitle(mockReversePurposeSeed.title),
       expectedStatus: 409,
+    },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",
