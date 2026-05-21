@@ -211,6 +211,7 @@ export async function createServices(
       clients.purposeTemplateProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
+      clients.eserviceTemplateProcessClient,
       fileManager
     ),
     selfcareService: selfcareServiceBuilder(clients),

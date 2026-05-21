@@ -640,6 +640,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

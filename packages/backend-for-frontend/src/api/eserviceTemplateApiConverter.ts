@@ -12,7 +12,7 @@ import {
 } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
-function toBffCompactEServiceTemplateVersion(
+export function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
 ): bffApi.CompactEServiceTemplateVersion {
   return {

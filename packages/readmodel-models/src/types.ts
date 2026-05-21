@@ -41,6 +41,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -332,6 +333,9 @@ export type PurposeTemplateSQL = InferSelectModel<
 export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
   typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
+export type EServiceTemplateVersionPurposeTemplateSQL = InferSelectModel<
+  typeof eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+>;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
 >;
@@ -366,6 +370,7 @@ export type PurposeTemplateItemsSQL = {
 };
 export const purposeTemplateChildTables = [
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
