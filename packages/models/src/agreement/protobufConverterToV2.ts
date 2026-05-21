@@ -57,21 +57,21 @@ export const toAgreementStampV2 = (
 export const toAgreementStampsV2 = (
   input: AgreementStamps
 ): AgreementStampsV2 => ({
-  ...(input.submission && {
-    submission: toAgreementStampV2(input.submission),
-  }),
-  ...(input.activation && {
-    activation: toAgreementStampV2(input.activation),
-  }),
-  ...(input.rejection && { rejection: toAgreementStampV2(input.rejection) }),
-  ...(input.suspensionByProducer && {
-    suspensionByProducer: toAgreementStampV2(input.suspensionByProducer),
-  }),
-  ...(input.upgrade && { upgrade: toAgreementStampV2(input.upgrade) }),
-  ...(input.archiving && { archiving: toAgreementStampV2(input.archiving) }),
-  ...(input.suspensionByConsumer && {
-    suspensionByConsumer: toAgreementStampV2(input.suspensionByConsumer),
-  }),
+  submission: input.submission
+    ? toAgreementStampV2(input.submission)
+    : undefined,
+  activation: input.activation
+    ? toAgreementStampV2(input.activation)
+    : undefined,
+  rejection: input.rejection ? toAgreementStampV2(input.rejection) : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? toAgreementStampV2(input.suspensionByProducer)
+    : undefined,
+  upgrade: input.upgrade ? toAgreementStampV2(input.upgrade) : undefined,
+  archiving: input.archiving ? toAgreementStampV2(input.archiving) : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? toAgreementStampV2(input.suspensionByConsumer)
+    : undefined,
 });
 
 export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
