@@ -7,14 +7,12 @@ import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { bffApi } from "pagopa-interop-api-clients";
-import {
-  getMockBffEServiceArchivingReasonSeed,
-  getMockCatalogApiEService,
-} from "../../mockUtils.js";
+import { getMockCatalogApiEService } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
-  const mockEServiceArchivingReasonSeed =
-    getMockBffEServiceArchivingReasonSeed();
+  const mockEServiceArchivingReasonSeed: bffApi.EServiceArchivingReasonSeed = {
+    archivingReason: "Generic archiving reason",
+  };
   const mockEService = getMockCatalogApiEService();
 
   beforeEach(() => {
