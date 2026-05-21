@@ -174,7 +174,7 @@ services:
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - AWS_REGION=eu-south-1
-      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states,dpop-cache
+      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states,interactions,dpop-cache,producer-keychain-platform-states
     entrypoint: ./dynamo-migrations.sh
 
   # Web GUI for PostgreSQL

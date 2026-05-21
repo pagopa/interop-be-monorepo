@@ -145,8 +145,9 @@ export async function createServices(
     [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
     [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
   ]);
+  const dynamoDBClient = new DynamoDBClient();
   const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
-    new DynamoDBClient(),
+    dynamoDBClient,
     config.privacyNoticesDynamoTableName,
     config.privacyNoticesUsersDynamoTableName
   );
@@ -171,6 +172,7 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.agreementProcessClient,
       clients.attributeProcessClient,
+      clients.authorizationClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
@@ -218,7 +220,10 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.selfcareV2InstitutionClient
     ),
-    toolsService: toolsServiceBuilder(clients),
+    toolsService: toolsServiceBuilder(clients, {
+      dynamoDBClient,
+      interactionsTable: config.interactionsTable,
+    }),
   };
 }
 

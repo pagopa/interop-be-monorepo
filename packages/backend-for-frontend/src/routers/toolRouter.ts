@@ -20,6 +20,7 @@ const toolRouter = (
   const toolRouter = ctx.router(bffApi.toolsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
   toolRouter.post("/tools/validateTokenGeneration", async (req, res) => {
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -35,6 +36,7 @@ const toolRouter = (
         req.body.client_assertion,
         req.body.client_assertion_type,
         req.body.grant_type,
+        req.body.is_async ?? false,
         req.body.dpop_proof,
         ctx
       );

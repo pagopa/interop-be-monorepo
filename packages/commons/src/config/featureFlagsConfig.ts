@@ -92,6 +92,21 @@ export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
   typeof FeatureFlagDpopClientAssertionDebuggerConfig
 >;
 
+export const FeatureFlagAsyncExchangeConfig = z
+  .object({
+    FEATURE_FLAG_ASYNC_EXCHANGE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAsyncExchange: c.FEATURE_FLAG_ASYNC_EXCHANGE ?? false,
+  }));
+export type FeatureFlagAsyncExchangeConfig = z.infer<
+  typeof FeatureFlagAsyncExchangeConfig
+>;
+
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
   .object({
     FEATURE_FLAG_DELEGATIONS_CONTRACT_BUILDER: z
@@ -175,6 +190,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagAsyncExchangeConfig &
   FeatureFlagDpopClientAssertionDebuggerConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &

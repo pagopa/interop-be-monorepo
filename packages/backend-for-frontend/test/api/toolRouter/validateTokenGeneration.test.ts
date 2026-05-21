@@ -15,10 +15,15 @@ describe("API POST /tools/validateTokenGeneration", () => {
     client_assertion_type:
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     grant_type: "client_credentials",
+    is_async: false,
   };
   const mockRequestWithDPoP: bffApi.AccessTokenRequest = {
     ...mockRequest,
     dpop_proof: "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0In0...",
+  };
+  const mockAsyncRequest: bffApi.AccessTokenRequest = {
+    ...mockRequest,
+    is_async: true,
   };
   const mockResult: bffApi.TokenGenerationValidationResult = {
     clientKind: "CONSUMER",
@@ -91,6 +96,30 @@ describe("API POST /tools/validateTokenGeneration", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should default to sync validation when is_async is not provided", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const requestWithoutAsyncFlag = {
+      client_id: mockRequest.client_id,
+      client_assertion: mockRequest.client_assertion,
+      client_assertion_type: mockRequest.client_assertion_type,
+      grant_type: mockRequest.grant_type,
+    };
+    const res = await makeRequest(
+      token,
+      requestWithoutAsyncFlag as bffApi.AccessTokenRequest
+    );
+    expect(res.status).toBe(200);
+    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
+      mockRequest.client_id,
+      mockRequest.client_assertion,
+      mockRequest.client_assertion_type,
+      mockRequest.grant_type,
+      false,
+      undefined,
+      expect.anything()
+    );
+  });
+
   it("Should return 200 with DPoP validation steps when dpop_proof is provided", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     services.toolsService.validateTokenGeneration = vi
@@ -101,6 +130,21 @@ describe("API POST /tools/validateTokenGeneration", () => {
     expect(res.body).toEqual(mockResultWithDPoP);
   });
 
+  it("Should pass async validation mode to the service when is_async is true", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockAsyncRequest);
+    expect(res.status).toBe(200);
+    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
+      mockAsyncRequest.client_id,
+      mockAsyncRequest.client_assertion,
+      mockAsyncRequest.client_assertion_type,
+      mockAsyncRequest.grant_type,
+      true,
+      undefined,
+      expect.anything()
+    );
+  });
+
   it.each([
     { body: {} },
     { body: { client_id: "invalid" } },
@@ -108,6 +152,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
     { body: { ...mockRequest, client_assertion: 123 } },
     { body: { ...mockRequest, client_assertion_type: 123 } },
     { body: { ...mockRequest, grant_type: 123 } },
+    { body: { ...mockRequest, is_async: "invalid" } },
     { body: { ...mockRequest, dpop_proof: 123 } },
   ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);

@@ -58,6 +58,7 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_descriptor_attribute,
   CatalogDbTable.eservice_risk_analysis,
   CatalogDbTable.eservice_risk_analysis_answer,
+  CatalogDbTable.eservice_descriptor_async_exchange_properties,
 ];
 
 export const agreementTables: AgreementDbTable[] = [
@@ -105,6 +106,7 @@ export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
   EserviceTemplateDbTable.eservice_template_version_interface,
   EserviceTemplateDbTable.eservice_template_risk_analysis,
   EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+  EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
 ];
 
 export const clientTables: ClientDbTable[] = [
