@@ -95,6 +95,9 @@ import {
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
   rejectNotAllowedInCurrentMode,
+  editNotAllowedForReviewMode,
+  reviewerWorkflowNotEditable,
+  requesterIsNotTheWriter,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -123,6 +126,7 @@ import {
   toCreateEventPurposeRiskAnalysisSubmitted,
   toCreateEventPurposeRiskAnalysisSigned,
   toCreateEventPurposeRiskAnalysisRejected,
+  toCreateEventPurposeRiskAnalysisFormEdited,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -715,6 +719,81 @@ export function purposeServiceBuilder(
 
       return {
         data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        metadata: { version: event.newVersion },
+      };
+    },
+    async editRiskAnalysisForm(
+      purposeId: PurposeId,
+      riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed,
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
+      logger.info(
+        `Editing risk analysis form for Purpose ${purposeId} by reviewer`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      const workflow = purpose.data.reviewerWorkflow;
+
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
+      }
+
+      if (
+        workflow.reviewMode !==
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns
+      ) {
+        throw editNotAllowedForReviewMode(purposeId);
+      }
+
+      if (workflow.signingState !== riskAnalysisSigningState.assigned) {
+        throw reviewerWorkflowNotEditable(purposeId);
+      }
+
+      if (!workflow.reviewerIds.includes(authData.userId)) {
+        throw requesterIsNotTheWriter(purposeId);
+      }
+
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const validatedFormSeed = validateAndTransformRiskAnalysis(
+        riskAnalysisFormSeed,
+        true,
+        tenantKind,
+        new Date(),
+        eservice.personalData
+      );
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: validatedFormSeed,
+        updatedAt: new Date(),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisFormEdited({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
+      );
+
+      return {
+        data: {
+          purpose: updatedPurpose,
+          isRiskAnalysisValid: validatedFormSeed !== undefined,
+        },
         metadata: { version: event.newVersion },
       };
     },

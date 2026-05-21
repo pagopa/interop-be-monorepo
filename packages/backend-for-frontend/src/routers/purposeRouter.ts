@@ -285,100 +285,109 @@ const purposeRouter = (
         }
       }
     )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/assign",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    .post("/purposes/:purposeId/riskAnalysis/assign", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const result = await purposeService.assignRiskAnalysisReviewer(
-            unsafeBrandId(req.params.purposeId),
-            req.body,
-            ctx
-          );
+      try {
+        const result = await purposeService.assignRiskAnalysisReviewer(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
 
-          return res.status(200).send(bffApi.CreatedResource.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error assigning risk analysis reviewer to purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error assigning risk analysis reviewer to purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/submit",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    })
+    .post("/purposes/:purposeId/riskAnalysis/submit", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const result = await purposeService.submitRiskAnalysis(
-            unsafeBrandId(req.params.purposeId),
-            ctx
-          );
+      try {
+        const result = await purposeService.submitRiskAnalysis(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(200).send(bffApi.CreatedResource.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error submitting risk analysis for purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error submitting risk analysis for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/sign",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    })
+    .post("/purposes/:purposeId/riskAnalysis/sign", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const result = await purposeService.signRiskAnalysis(
-            unsafeBrandId(req.params.purposeId),
-            ctx
-          );
+      try {
+        const result = await purposeService.signRiskAnalysis(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(200).send(bffApi.CreatedResource.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error signing risk analysis for purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error signing risk analysis for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes/:purposeId/riskAnalysis/reject",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    })
+    .post("/purposes/:purposeId/riskAnalysis/reject", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const result = await purposeService.rejectRiskAnalysis(
-            unsafeBrandId(req.params.purposeId),
-            req.body,
-            ctx
-          );
+      try {
+        const result = await purposeService.rejectRiskAnalysis(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
 
-          return res.status(200).send(bffApi.CreatedResource.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error rejecting risk analysis for purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error rejecting risk analysis for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
+    .put("/purposes/:purposeId/riskAnalysis/form", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await purposeService.editRiskAnalysisForm(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error editing risk analysis form for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       async (req, res) => {

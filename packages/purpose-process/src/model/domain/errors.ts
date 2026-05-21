@@ -66,6 +66,8 @@ const errorCodes = {
   reviewerWorkflowNotInPendingSignatureState: "0047",
   requesterIsNotTheSigner: "0048",
   rejectNotAllowedInCurrentMode: "0049",
+  editNotAllowedForReviewMode: "0050",
+  reviewerWorkflowNotEditable: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -584,5 +586,25 @@ export function rejectNotAllowedInCurrentMode(
     detail: `Rejection is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
     code: "rejectNotAllowedInCurrentMode",
     title: "Reject not allowed in current mode",
+  });
+}
+
+export function editNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Editing the risk analysis form is not allowed for purpose ${purposeId} because the review mode is not ReviewerWritesReviewerSigns`,
+    code: "editNotAllowedForReviewMode",
+    title: "Edit not allowed for review mode",
+  });
+}
+
+export function reviewerWorkflowNotEditable(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in an editable state (must be Assigned)`,
+    code: "reviewerWorkflowNotEditable",
+    title: "Reviewer workflow not editable",
   });
 }

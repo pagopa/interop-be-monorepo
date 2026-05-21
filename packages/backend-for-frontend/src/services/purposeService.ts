@@ -486,6 +486,21 @@ export function purposeServiceBuilder(
       });
       return { id: result.id };
     },
+    async editRiskAnalysisForm(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisFormSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+      logger.info(
+        `Editing risk analysis form for purpose ${purposeId} by reviewer`
+      );
+      const result = await purposeProcessClient.editRiskAnalysisForm(seed, {
+        params: { purposeId },
+        headers,
+      });
+      return { id: result.id };
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
