@@ -2044,6 +2044,8 @@ components:
           format: uuid
         version:
           type: string
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         singleAnswers:
           type: array
           items:

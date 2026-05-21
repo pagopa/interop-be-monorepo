@@ -170,6 +170,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
       riskAnalysisForm: {
         id: riskAnalysis.riskAnalysisForm.id,
         version: riskAnalysis.riskAnalysisForm.version,
+        tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
         singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
         multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
       },

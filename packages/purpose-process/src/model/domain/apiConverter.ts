@@ -62,6 +62,7 @@ const riskAnalysisFormToApiRiskAnalysisForm = (
     version: riskAnalysisForm.version,
     answers: { ...apiSingleAnswersMap, ...apiMultiAnswersMap },
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+    tenantKind: riskAnalysisForm.tenantKind,
   };
 };
 
