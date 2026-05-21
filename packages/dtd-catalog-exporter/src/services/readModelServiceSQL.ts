@@ -20,18 +20,22 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   DrizzleReturnType,
   TenantCertifiedAttributeSQL,
+  TenantCertifiedDiscreteAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -195,33 +199,37 @@ export function readModelServiceBuilderSQL(
           tenantsSQL,
           mailsSQL,
           certifiedAttributesSQL,
+          certifiedDiscreteAttributesSQL,
           declaredAttributesSQL,
           verifiedAttributesSQL,
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL,
         ] = await Promise.all([
           readAllTenantsSQL(tx),
           readAllTenantMailsSQL(tx),
           readAllTenantCertifiedAttributesSQL(tx),
+          readAllTenantCertifiedDiscreteAttributesSQL(tx),
           readAllTenantDeclaredAttributesSQL(tx),
           readAllTenantVerifiedAttributesSQL(tx),
           readAllTenantVerifiedAttributeVerifiersSQL(tx),
           readAllTenantVerifiedAttributeRevokersSQL(tx),
           readAllTenantFeaturesSQL(tx),
+          readAllTenantRemoteIdsSQL(tx),
         ]);
 
         const tenantsWithMetadata = aggregateTenantArray({
           tenantsSQL,
           mailsSQL,
           certifiedAttributesSQL,
-          certifiedDiscreteAttributesSQL: [],
+          certifiedDiscreteAttributesSQL,
           declaredAttributesSQL,
           verifiedAttributesSQL,
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
-          remoteIdsSQL: [],
+          remoteIdsSQL,
         });
 
         return tenantsWithMetadata.map((tenant) => tenant.data);
@@ -250,6 +258,11 @@ const readAllTenantCertifiedAttributesSQL = async (
 ): Promise<TenantCertifiedAttributeSQL[]> =>
   await tx.select().from(tenantCertifiedAttributeInReadmodelTenant);
 
+const readAllTenantCertifiedDiscreteAttributesSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantCertifiedDiscreteAttributeSQL[]> =>
+  await tx.select().from(tenantCertifiedDiscreteAttributeInReadmodelTenant);
+
 const readAllTenantDeclaredAttributesSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantDeclaredAttributeSQL[]> =>
@@ -274,3 +287,8 @@ const readAllTenantFeaturesSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantFeatureSQL[]> =>
   await tx.select().from(tenantFeatureInReadmodelTenant);
+
+const readAllTenantRemoteIdsSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantRemoteIdSQL[]> =>
+  await tx.select().from(tenantRemoteIdInReadmodelTenant);
