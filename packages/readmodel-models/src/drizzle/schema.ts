@@ -76,6 +76,7 @@ export const eserviceTemplateInReadmodelEserviceTemplate =
       mode: varchar().notNull(),
       isSignalHubEnabled: boolean("is_signal_hub_enabled"),
       personalData: boolean("personal_data"),
+      asyncExchange: boolean("async_exchange"),
     },
     (table) => [
       unique("eservice_template_id_metadata_version_unique").on(
@@ -249,6 +250,7 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
       eserviceTemplateId: uuid("eservice_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
+      kind: varchar().notNull(),
       name: varchar().notNull(),
       contentType: varchar("content_type").notNull(),
       prettyName: varchar("pretty_name").notNull(),
@@ -278,8 +280,9 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
         ],
         name: "eservice_template_version_int_eservice_template_id_metadat_fkey",
       }),
-      unique("eservice_template_version_interface_version_id_key").on(
-        table.versionId
+      unique("eservice_template_version_interface_version_id_kind_key").on(
+        table.versionId,
+        table.kind
       ),
     ]
   );
@@ -408,6 +411,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    asyncExchange: boolean("async_exchange"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -513,6 +517,7 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
+      kind: varchar().notNull(),
       name: varchar().notNull(),
       contentType: varchar("content_type").notNull(),
       prettyName: varchar("pretty_name").notNull(),
@@ -542,8 +547,9 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
         ],
         name: "eservice_descriptor_interface_eservice_id_metadata_version_fkey",
       }),
-      unique("eservice_descriptor_interface_descriptor_id_key").on(
-        table.descriptorId
+      unique("eservice_descriptor_interface_descriptor_id_kind_key").on(
+        table.descriptorId,
+        table.kind
       ),
     ]
   );
@@ -1600,6 +1606,45 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
     ]
   );
 
+export const eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate =
+  readmodelEserviceTemplate.table(
+    "eservice_template_version_async_exchange_properties",
+    {
+      eserviceTemplateId: uuid("eservice_template_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      versionId: uuid("version_id").notNull(),
+      responseTime: integer("response_time").notNull(),
+      resourceAvailableTime: integer("resource_available_time").notNull(),
+      confirmation: boolean("confirmation").notNull(),
+      bulk: boolean("bulk").notNull(),
+      maxResultSet: integer("max_result_set").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceTemplateId],
+        foreignColumns: [eserviceTemplateInReadmodelEserviceTemplate.id],
+        name: "eservice_template_ver_async_exch_prop_eservice_template_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.versionId],
+        foreignColumns: [eserviceTemplateVersionInReadmodelEserviceTemplate.id],
+        name: "eservice_template_ver_async_exch_prop_version_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceTemplateId, table.metadataVersion],
+        foreignColumns: [
+          eserviceTemplateInReadmodelEserviceTemplate.id,
+          eserviceTemplateInReadmodelEserviceTemplate.metadataVersion,
+        ],
+        name: "eservice_template_ver_async_exch_prop_tmpl_id_metadata_ver_fkey",
+      }),
+      primaryKey({
+        columns: [table.versionId],
+        name: "eservice_template_version_async_exchange_properties_pkey",
+      }),
+    ]
+  );
+
 export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_descriptor_template_version_ref",
@@ -1635,6 +1680,45 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
       primaryKey({
         columns: [table.eserviceTemplateVersionId, table.descriptorId],
         name: "eservice_descriptor_template_version_ref_pkey",
+      }),
+    ]
+  );
+
+export const eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_async_exchange_properties",
+    {
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      responseTime: integer("response_time").notNull(),
+      resourceAvailableTime: integer("resource_available_time").notNull(),
+      confirmation: boolean("confirmation").notNull(),
+      bulk: boolean("bulk").notNull(),
+      maxResultSet: integer("max_result_set").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_async_exchange_properties_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_async_exchange_properties_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_async_exch_prop_eservice_id_metadata_ver_fkey",
+      }),
+      primaryKey({
+        columns: [table.descriptorId],
+        name: "eservice_descriptor_async_exchange_properties_pkey",
       }),
     ]
   );

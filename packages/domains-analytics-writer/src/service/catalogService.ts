@@ -10,6 +10,7 @@ import { eserviceDescriptorDocumentRepository } from "../repository/catalog/eser
 import { eserviceDescriptorInterfaceRepository } from "../repository/catalog/eserviceDescriptorInterface.repository.js";
 import { eserviceDescriptorRejectionRepository } from "../repository/catalog/eserviceDescriptorRejection.repository.js";
 import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/catalog/eserviceDescriptorTemplateVersionRef.repository.js";
+import { eserviceDescriptorAsyncExchangePropertiesRepository } from "../repository/catalog/eserviceDescriptorAsyncExchangeProperties.repository.js";
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
@@ -49,6 +50,8 @@ export function catalogServiceBuilder(db: DBContext) {
   const attributeRepo = eserviceDescriptorAttributeRepository(db.conn);
   const riskAnalysisRepo = eserviceRiskAnalysisRepository(db.conn);
   const riskAnalysisAnswerRepo = eserviceRiskAnalysisAnswerRepository(db.conn);
+  const asyncExchangePropertiesRepo =
+    eserviceDescriptorAsyncExchangePropertiesRepository(db.conn);
 
   return {
     async upsertBatchEService(
@@ -75,6 +78,9 @@ export function catalogServiceBuilder(db: DBContext) {
             ),
             templateVersionRefsSQL: batch.flatMap(
               (item) => item.templateVersionRefsSQL
+            ),
+            asyncExchangePropertiesSQL: batch.flatMap(
+              (item) => item.asyncExchangePropertiesSQL
             ),
           };
           if (batchItems.eserviceSQL.length) {
@@ -136,6 +142,13 @@ export function catalogServiceBuilder(db: DBContext) {
               batchItems.templateVersionRefsSQL
             );
           }
+          if (batchItems.asyncExchangePropertiesSQL.length) {
+            await asyncExchangePropertiesRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.asyncExchangePropertiesSQL
+            );
+          }
 
           genericLogger.info(
             `Staging data inserted for Eservice batch: ${batch
@@ -153,6 +166,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisAnswerRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await asyncExchangePropertiesRepo.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -160,6 +174,7 @@ export function catalogServiceBuilder(db: DBContext) {
           t,
           "eserviceId",
           [
+            CatalogDbTable.eservice_descriptor_async_exchange_properties,
             CatalogDbTable.eservice_descriptor_template_version_ref,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_interface,
@@ -186,6 +201,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await riskAnalysisAnswerRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await asyncExchangePropertiesRepo.clean();
 
       genericLogger.info(`Staging data cleaned`);
     },
@@ -202,15 +218,18 @@ export function catalogServiceBuilder(db: DBContext) {
           const batchItems = {
             descriptorSQL: batch.map((item) => item.descriptorSQL),
             attributesSQL: batch.flatMap((item) => item.attributesSQL),
-            interfaceSQL: batch.flatMap((item) =>
-              item.interfaceSQL ? [item.interfaceSQL] : []
-            ),
+            interfacesSQL: batch.flatMap((item) => item.interfacesSQL),
             documentsSQL: batch.flatMap((item) => item.documentsSQL),
             rejectionReasonsSQL: batch.flatMap(
               (item) => item.rejectionReasonsSQL
             ),
             templateVersionRefSQL: batch.flatMap((item) =>
               item.templateVersionRefSQL ? [item.templateVersionRefSQL] : []
+            ),
+            asyncExchangePropertiesSQL: batch.flatMap((item) =>
+              item.asyncExchangePropertiesSQL
+                ? [item.asyncExchangePropertiesSQL]
+                : []
             ),
           };
 
@@ -230,11 +249,11 @@ export function catalogServiceBuilder(db: DBContext) {
             );
           }
 
-          if (batchItems.interfaceSQL.length > 0) {
+          if (batchItems.interfacesSQL.length > 0) {
             await interfaceRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.interfaceSQL
+              batchItems.interfacesSQL
             );
           }
 
@@ -262,6 +281,14 @@ export function catalogServiceBuilder(db: DBContext) {
             );
           }
 
+          if (batchItems.asyncExchangePropertiesSQL.length > 0) {
+            await asyncExchangePropertiesRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.asyncExchangePropertiesSQL
+            );
+          }
+
           genericLogger.info(
             `Staging data inserted for EserviceDescriptor batch: ${batch
               .map((item) => item.descriptorSQL.id)
@@ -275,12 +302,14 @@ export function catalogServiceBuilder(db: DBContext) {
         await documentRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await asyncExchangePropertiesRepo.merge(t);
 
         await dbContext.conn.tx(async (t) => {
           await cleaningTargetTables(
             t,
             "descriptorId",
             [
+              CatalogDbTable.eservice_descriptor_async_exchange_properties,
               CatalogDbTable.eservice_descriptor_template_version_ref,
               CatalogDbTable.eservice_descriptor_rejection_reason,
               CatalogDbTable.eservice_descriptor_interface,
@@ -302,6 +331,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await documentRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await asyncExchangePropertiesRepo.clean();
     },
 
     async upsertBatchEServiceDocument(
@@ -424,6 +454,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_async_exchange_properties,
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
           ],
@@ -464,6 +495,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_async_exchange_properties,
           ],
           DeletingDbTable.catalog_deleting_table,
           true

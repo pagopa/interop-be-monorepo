@@ -56,6 +56,7 @@ export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  asyncExchange: eserviceTemplate.asyncExchange,
 });
 
 export const buildUpdateVersionSeed = (
@@ -102,6 +103,18 @@ export const buildInterfaceSeed =
     serverUrls: ["pagopa.it"],
     documentId: generateId(),
     kind: "INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
+export const buildAsyncExchangeCallbackInterfaceSeed =
+  (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
     filePath: "filePath",
     fileName: "fileName",
     checksum: "checksum",

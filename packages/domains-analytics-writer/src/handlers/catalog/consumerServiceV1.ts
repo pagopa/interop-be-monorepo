@@ -127,6 +127,7 @@ export async function handleCatalogMessageV1(
               eserviceId: msg.data.eserviceId,
               descriptorId: msg.data.descriptorId,
               metadataVersion: msg.version,
+              kind: "INTERFACE",
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
@@ -161,6 +162,7 @@ export async function handleCatalogMessageV1(
               eserviceId: msg.data.eserviceId,
               descriptorId: msg.data.descriptorId,
               metadataVersion: msg.version,
+              kind: "INTERFACE",
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
@@ -212,7 +214,7 @@ export async function handleCatalogMessageV1(
             EserviceDescriptorItemsSchema.parse({
               descriptorSQL: splitResult.descriptorSQL,
               attributesSQL: splitResult.attributesSQL,
-              interfaceSQL: splitResult.interfaceSQL,
+              interfacesSQL: splitResult.interfacesSQL,
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefSQL: splitResult.templateVersionRefSQL,
