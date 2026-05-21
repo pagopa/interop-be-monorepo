@@ -96,8 +96,11 @@ const getAttributesData = async (
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
-        tenantAttributeType.CERTIFIED_DISCRETE,
         () => agreement.certifiedAttributes || []
+      )
+      .with(
+        tenantAttributeType.CERTIFIED_DISCRETE,
+        () => agreement.certifiedDiscreteAttributes || []
       )
       .with(
         tenantAttributeType.DECLARED,
@@ -111,11 +114,7 @@ const getAttributesData = async (
       .map((attribute) => attribute.id);
 
     const tenantAttributes = consumer.attributes.filter(
-      (a) =>
-        (a.type === type ||
-          (type === tenantAttributeType.CERTIFIED &&
-            a.type === tenantAttributeType.CERTIFIED_DISCRETE)) &&
-        seedAttributes.includes(a.id)
+      (a) => a.type === type && seedAttributes.includes(a.id)
     );
 
     return Promise.all(
