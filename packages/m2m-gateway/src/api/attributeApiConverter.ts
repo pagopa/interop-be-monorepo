@@ -2,7 +2,7 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { ApiError, genericInternalError } from "pagopa-interop-models";
+import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
@@ -34,7 +34,12 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  // TODO(PIN-10074): remove this exclusion when the future M2M work item adds
+  // CERTIFIED_DISCRETE support to the M2M contract.
+  attributeKind: Exclude<
+    attributeRegistryApi.AttributeKind,
+    "CERTIFIED_DISCRETE"
+  >,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):
@@ -63,14 +68,6 @@ function convertAttribute(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,
         () => baseFields
-      )
-      .with(
-        attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
-        () => {
-          throw genericInternalError(
-            `Unsupported attribute kind ${attribute.kind} for m2m-api-gateway`
-          );
-        }
       )
       .exhaustive();
   } catch (error) {
