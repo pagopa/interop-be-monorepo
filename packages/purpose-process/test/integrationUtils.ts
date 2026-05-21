@@ -54,7 +54,7 @@ import {
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
-const { cleanup, postgresDB, fileManager, readModelDB, tenantKindHistoryDB } =
+const { cleanup, postgresDB, readModelDB, tenantKindHistoryDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
@@ -68,7 +68,7 @@ const { cleanup, postgresDB, fileManager, readModelDB, tenantKindHistoryDB } =
     inject("tenantKindHistoryDBConfig")
   );
 
-export { postgresDB, fileManager };
+export { postgresDB };
 
 afterEach(cleanup);
 
