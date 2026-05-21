@@ -138,6 +138,61 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
     vi.useRealTimers();
   });
 
+  it("should deduplicate repeated eserviceTemplateIds and emit a single link event", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const template = makeTemplate();
+
+    const pt: PurposeTemplate = {
+      ...purposeTemplate,
+      id: generateId<PurposeTemplateId>(),
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(pt);
+    await addOneEServiceTemplate(template);
+
+    const linkResponse =
+      await purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
+        pt.id,
+        [template.id, template.id, template.id],
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
+
+    expect(linkResponse).toHaveLength(1);
+    expect(linkResponse[0]).toMatchObject({
+      data: {
+        purposeTemplateId: pt.id,
+        eserviceTemplateId: template.id,
+        eserviceTemplateVersionId: template.versions[0].id,
+        createdAt: new Date(),
+      },
+      metadata: { version: 1 },
+    });
+
+    const lastEvent = await readLastPurposeTemplateEvent(pt.id);
+    expect(lastEvent.type).toBe("PurposeTemplateEServiceTemplateLinked");
+    expect(lastEvent).toMatchObject({
+      stream_id: pt.id,
+      version: "1",
+      event_version: 2,
+    });
+
+    const eventPayload = decodeProtobufPayload({
+      messageType: PurposeTemplateEServiceTemplateLinkedV2,
+      payload: lastEvent.data,
+    });
+    expect(eventPayload.eserviceTemplate).toEqual(
+      toEServiceTemplateV2(template)
+    );
+    expect(eventPayload.eserviceTemplateVersionId).toBe(
+      template.versions[0].id
+    );
+
+    vi.useRealTimers();
+  });
+
   it("should throw purposeTemplateNotFound if the purpose template does not exist", async () => {
     const notExistingId = generateId<PurposeTemplateId>();
     const template = makeTemplate();
