@@ -190,9 +190,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -286,9 +290,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -370,9 +378,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -446,9 +458,13 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
@@ -557,9 +573,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -704,9 +724,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {

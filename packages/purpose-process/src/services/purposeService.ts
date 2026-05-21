@@ -17,7 +17,6 @@ import {
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
-  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -56,7 +55,6 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
-import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceNotFound,
@@ -1081,10 +1079,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
-        purpose.data.purposeTemplateId
-      ) {
+      if (purpose.data.purposeTemplateId) {
         await retrievePublishedPurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService
@@ -2061,7 +2056,7 @@ const performUpdatePurpose = async (
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
-  // eslint-disable-next-line max-params
+  // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
 ): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertRequesterCanActAsConsumer(
@@ -2126,16 +2121,52 @@ const performUpdatePurpose = async (
         )
       : purpose.data.riskAnalysisForm;
 
+  const updatedPurposeIsFreeOfCharge =
+    isFreeOfCharge ?? purpose.data.isFreeOfCharge;
+
+  function updateFreeOfChargeReason(): string | undefined {
+    function normalizeFreeOfChargeReason(
+      freeOfChargeReason: string | null | undefined
+    ): string | null | undefined {
+      if (typeof freeOfChargeReason === "string") {
+        const trimmedFreeOfChargeReason = freeOfChargeReason.trim();
+        return trimmedFreeOfChargeReason.length > 0
+          ? trimmedFreeOfChargeReason
+          : null;
+      }
+
+      return freeOfChargeReason;
+    }
+    const normalizedSeedFreeOfChargeReason =
+      normalizeFreeOfChargeReason(freeOfChargeReason);
+
+    // Return the seed freeOfChargeReason if defined and not empty
+    if (
+      normalizedSeedFreeOfChargeReason !== undefined &&
+      normalizedSeedFreeOfChargeReason !== null
+    ) {
+      return normalizedSeedFreeOfChargeReason;
+    }
+
+    // Return undefined if the updated isFreeOfCharge is false or the seed freeOfChargeReason is explicitly set to null or empty string.
+    // A purpose should only have a freeOfChargeReason when isFreeOfCharge is true.
+    if (
+      !updatedPurposeIsFreeOfCharge ||
+      normalizedSeedFreeOfChargeReason === null
+    ) {
+      return undefined;
+    }
+
+    // Fallback to the existing freeOfChargeReason in the purpose
+    return purpose.data.freeOfChargeReason;
+  }
+
   const updatedPurpose: Purpose = {
     ...purpose.data,
     title: title ?? purpose.data.title,
     description: description ?? purpose.data.description,
-    isFreeOfCharge: isFreeOfCharge ?? purpose.data.isFreeOfCharge,
-    freeOfChargeReason:
-      freeOfChargeReason ??
-      (freeOfChargeReason === null
-        ? undefined
-        : purpose.data.freeOfChargeReason),
+    isFreeOfCharge: updatedPurposeIsFreeOfCharge,
+    freeOfChargeReason: updateFreeOfChargeReason(),
     versions: [
       {
         ...purpose.data.versions[0],

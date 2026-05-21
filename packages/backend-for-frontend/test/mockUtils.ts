@@ -666,7 +666,7 @@ export const getMockBffApiEServiceTemplateSeed =
   (): bffApi.EServiceTemplateSeed => ({
     name: generateMock(z.string().min(5).max(45)),
     intendedTarget: generateMock(z.string().min(10).max(250)),
-    description: generateMock(z.string().min(10).max(250)),
+    description: generateMock(z.string().min(10).max(400)),
     technology: generateMock(bffApi.EServiceTechnology),
     mode: generateMock(bffApi.EServiceMode),
     version: generateMock(
@@ -730,7 +730,7 @@ export const getMockBffApiEServiceTemplateUpdateSeed =
   (): bffApi.UpdateEServiceTemplateSeed => ({
     name: generateMock(z.string().min(5).max(45)),
     intendedTarget: generateMock(z.string().min(10).max(250)),
-    description: generateMock(z.string().min(10).max(250)),
+    description: generateMock(z.string().min(10).max(400)),
     technology: generateMock(bffApi.EServiceTechnology),
     mode: generateMock(bffApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean()),
@@ -1147,6 +1147,26 @@ export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAn
     eservice: generateMock(bffApi.CompactPurposeTemplateEService),
     descriptor: generateMock(bffApi.CompactDescriptor),
   });
+
+export const getMockBffApiLinkableEService = (
+  purposeTemplateId: PurposeTemplateId = generateId()
+): bffApi.LinkableEService => ({
+  resourceKind: "ESERVICE",
+  purposeTemplateId,
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  eservice: generateMock(bffApi.CompactPurposeTemplateEService),
+  descriptor: generateMock(bffApi.CompactDescriptor),
+});
+
+export const getMockBffApiLinkableEServiceTemplate = (
+  purposeTemplateId: PurposeTemplateId = generateId()
+): bffApi.LinkableEServiceTemplate => ({
+  resourceKind: "ESERVICE_TEMPLATE",
+  purposeTemplateId,
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  eserviceTemplate: generateMock(bffApi.CompactPurposeTemplateEServiceTemplate),
+  eserviceTemplateVersion: generateMock(bffApi.CompactEServiceTemplateVersion),
+});
 
 export const getMockBffApiPurposeTemplateWithCompactCreator =
   (): bffApi.PurposeTemplateWithCompactCreator & {
