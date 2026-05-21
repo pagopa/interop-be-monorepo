@@ -96,10 +96,7 @@ export async function createUpgradeOrNewDraft({
         consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
-      // TODO(PIN-9889, Work Item 5): recompute and carry
-      // certifiedDiscreteAttributes during upgrade once certified discrete
-      // agreement validation is implemented.
-      certifiedDiscreteAttributes: [],
+      certifiedDiscreteAttributes: agreement.data.certifiedDiscreteAttributes,
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByProducer: agreement.data.suspendedByProducer,
@@ -155,7 +152,7 @@ export async function createUpgradeOrNewDraft({
       contract: undefined,
       verifiedAttributes: [],
       certifiedAttributes: [],
-      certifiedDiscreteAttributes: [],
+      certifiedDiscreteAttributes: agreement.data.certifiedDiscreteAttributes,
       declaredAttributes: [],
       /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
       the corresponding stamps, even if this is a Draft Agreement and suspension

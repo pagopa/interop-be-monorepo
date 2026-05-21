@@ -830,7 +830,6 @@ export function agreementServiceBuilder(
         id,
         verifiedAttributes: [],
         certifiedAttributes: [],
-        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         state: agreementState.draft,
         createdAt: new Date(),

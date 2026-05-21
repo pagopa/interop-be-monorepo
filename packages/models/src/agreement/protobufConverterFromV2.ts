@@ -41,22 +41,30 @@ export const fromAgreementStampV2 = (
     ? {
         who: unsafeBrandId(input.who),
         when: bigIntToDate(input.when),
-        delegationId: input.delegationId
-          ? unsafeBrandId<DelegationId>(input.delegationId)
-          : undefined,
+        ...(input.delegationId && {
+          delegationId: unsafeBrandId<DelegationId>(input.delegationId),
+        }),
       }
     : undefined;
 
 export const fromAgreementStampsV2 = (
   input: AgreementStampsV2 | undefined
 ): AgreementStamps => ({
-  submission: fromAgreementStampV2(input?.submission),
-  activation: fromAgreementStampV2(input?.activation),
-  rejection: fromAgreementStampV2(input?.rejection),
-  suspensionByProducer: fromAgreementStampV2(input?.suspensionByProducer),
-  suspensionByConsumer: fromAgreementStampV2(input?.suspensionByConsumer),
-  upgrade: fromAgreementStampV2(input?.upgrade),
-  archiving: fromAgreementStampV2(input?.archiving),
+  ...(input?.submission && {
+    submission: fromAgreementStampV2(input.submission),
+  }),
+  ...(input?.activation && {
+    activation: fromAgreementStampV2(input.activation),
+  }),
+  ...(input?.rejection && { rejection: fromAgreementStampV2(input.rejection) }),
+  ...(input?.suspensionByProducer && {
+    suspensionByProducer: fromAgreementStampV2(input.suspensionByProducer),
+  }),
+  ...(input?.suspensionByConsumer && {
+    suspensionByConsumer: fromAgreementStampV2(input.suspensionByConsumer),
+  }),
+  ...(input?.upgrade && { upgrade: fromAgreementStampV2(input.upgrade) }),
+  ...(input?.archiving && { archiving: fromAgreementStampV2(input.archiving) }),
 });
 
 export const fromAgreementStateV2 = (
