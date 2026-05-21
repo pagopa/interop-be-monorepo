@@ -50,40 +50,78 @@ export const toAgreementSignedContractV2 = (
 export const toAgreementStampV2 = (
   input: AgreementStamp
 ): AgreementStampV2 => ({
-  ...input,
+  who: input.who,
   when: dateToBigInt(input.when),
+  ...(input.delegationId !== undefined && {
+    delegationId: input.delegationId,
+  }),
 });
 
 export const toAgreementStampsV2 = (
   input: AgreementStamps
 ): AgreementStampsV2 => ({
-  submission: input.submission
-    ? toAgreementStampV2(input.submission)
-    : undefined,
-  activation: input.activation
-    ? toAgreementStampV2(input.activation)
-    : undefined,
-  rejection: input.rejection ? toAgreementStampV2(input.rejection) : undefined,
-  suspensionByProducer: input.suspensionByProducer
-    ? toAgreementStampV2(input.suspensionByProducer)
-    : undefined,
-  upgrade: input.upgrade ? toAgreementStampV2(input.upgrade) : undefined,
-  archiving: input.archiving ? toAgreementStampV2(input.archiving) : undefined,
-  suspensionByConsumer: input.suspensionByConsumer
-    ? toAgreementStampV2(input.suspensionByConsumer)
-    : undefined,
+  ...(input.submission !== undefined && {
+    submission: toAgreementStampV2(input.submission),
+  }),
+  ...(input.activation !== undefined && {
+    activation: toAgreementStampV2(input.activation),
+  }),
+  ...(input.rejection !== undefined && {
+    rejection: toAgreementStampV2(input.rejection),
+  }),
+  ...(input.suspensionByProducer !== undefined && {
+    suspensionByProducer: toAgreementStampV2(input.suspensionByProducer),
+  }),
+  ...(input.upgrade !== undefined && {
+    upgrade: toAgreementStampV2(input.upgrade),
+  }),
+  ...(input.archiving !== undefined && {
+    archiving: toAgreementStampV2(input.archiving),
+  }),
+  ...(input.suspensionByConsumer !== undefined && {
+    suspensionByConsumer: toAgreementStampV2(input.suspensionByConsumer),
+  }),
 });
 
 export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
-  ...input,
+  id: input.id,
+  eserviceId: input.eserviceId,
+  descriptorId: input.descriptorId,
+  producerId: input.producerId,
+  consumerId: input.consumerId,
   state: toAgreementStateV2(input.state),
+  verifiedAttributes: input.verifiedAttributes,
+  certifiedAttributes: input.certifiedAttributes,
+  certifiedDiscreteAttributes: input.certifiedDiscreteAttributes,
+  declaredAttributes: input.declaredAttributes,
+  ...(input.suspendedByConsumer !== undefined && {
+    suspendedByConsumer: input.suspendedByConsumer,
+  }),
+  ...(input.suspendedByProducer !== undefined && {
+    suspendedByProducer: input.suspendedByProducer,
+  }),
   createdAt: dateToBigInt(input.createdAt),
-  updatedAt: dateToBigInt(input.updatedAt),
-  suspendedAt: dateToBigInt(input.suspendedAt),
+  ...(input.updatedAt !== undefined && {
+    updatedAt: dateToBigInt(input.updatedAt),
+  }),
+  ...(input.suspendedByPlatform !== undefined && {
+    suspendedByPlatform: input.suspendedByPlatform,
+  }),
   consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
-  contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
+  ...(input.consumerNotes !== undefined && {
+    consumerNotes: input.consumerNotes,
+  }),
+  ...(input.contract !== undefined && {
+    contract: toAgreementDocumentV2(input.contract),
+  }),
   stamps: toAgreementStampsV2(input.stamps),
-  signedContract: input.signedContract
-    ? toAgreementSignedContractV2(input.signedContract)
-    : undefined,
+  ...(input.rejectionReason !== undefined && {
+    rejectionReason: input.rejectionReason,
+  }),
+  ...(input.suspendedAt !== undefined && {
+    suspendedAt: dateToBigInt(input.suspendedAt),
+  }),
+  ...(input.signedContract !== undefined && {
+    signedContract: toAgreementSignedContractV2(input.signedContract),
+  }),
 });
