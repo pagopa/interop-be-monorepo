@@ -88,14 +88,14 @@ export const aggregateDescriptor = ({
     .reduce(
       (acc, attributeSQL) =>
         match(AttributeKind.parse(attributeSQL.kind))
-          .with(attributeKind.certified, () => ({
-            ...acc,
-            certified: [...acc.certified, attributeSQL],
-          }))
-          .with(attributeKind.certifiedDiscrete, () => ({
-            ...acc,
-            certified: [...acc.certified, attributeSQL],
-          }))
+          .with(
+            attributeKind.certified,
+            attributeKind.certifiedDiscrete,
+            () => ({
+              ...acc,
+              certified: [...acc.certified, attributeSQL],
+            })
+          )
           .with(attributeKind.declared, () => ({
             ...acc,
             declared: [...acc.declared, attributeSQL],

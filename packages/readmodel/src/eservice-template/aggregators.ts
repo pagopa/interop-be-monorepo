@@ -68,14 +68,14 @@ export const aggregateEServiceTemplateVersion = ({
   } = attributesSQL.reduce(
     (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, () => ({
-          ...acc,
-          certified: [...acc.certified, attributeSQL],
-        }))
-        .with(attributeKind.certifiedDiscrete, () => ({
-          ...acc,
-          certified: [...acc.certified, attributeSQL],
-        }))
+        .with(
+          attributeKind.certified,
+          attributeKind.certifiedDiscrete,
+          () => ({
+            ...acc,
+            certified: [...acc.certified, attributeSQL],
+          })
+        )
         .with(attributeKind.declared, () => ({
           ...acc,
           declared: [...acc.declared, attributeSQL],
@@ -109,10 +109,10 @@ export const aggregateEServiceTemplateVersion = ({
     voucherLifespan: versionSQL.voucherLifespan,
     ...(versionSQL.dailyCallsPerConsumer
       ? { dailyCallsPerConsumer: versionSQL.dailyCallsPerConsumer }
-      : undefined),
+      : {}),
     ...(versionSQL.dailyCallsTotal
       ? { dailyCallsTotal: versionSQL.dailyCallsTotal }
-      : undefined),
+      : {}),
     createdAt: stringToDate(versionSQL.createdAt),
     attributes: {
       certified: certifiedAttributes,

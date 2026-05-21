@@ -132,7 +132,10 @@ const templateAttributeToTemplateAttributeSQL = ({
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind: "discreteConfig" in attribute ? attributeKind.certifiedDiscrete : kind,
+  kind:
+    kind === attributeKind.certified && "discreteConfig" in attribute
+      ? attributeKind.certifiedDiscrete
+      : kind,
   groupId,
   threshold:
     "discreteConfig" in attribute ? attribute.discreteConfig.threshold : null,
