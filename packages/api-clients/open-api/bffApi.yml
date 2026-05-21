@@ -29035,6 +29035,8 @@ components:
           type: string
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
+        asyncExchange:
+          type: boolean
       required:
         - id
         - name
