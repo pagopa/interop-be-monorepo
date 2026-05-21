@@ -31,7 +31,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
-        .leftJoin(
+        .innerJoin(
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -70,7 +70,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeRiskAnalysisAnswerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
-        .leftJoin(
+        .innerJoin(
           purposeRiskAnalysisFormInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,

@@ -1,4 +1,4 @@
-import { CorrelationId, EServiceTemplate } from "pagopa-interop-models";
+import { CorrelationId, EServiceTemplateId } from "pagopa-interop-models";
 import type {
   catalogApi,
   eserviceTemplateApi,
@@ -85,7 +85,7 @@ export function riskAnalysisProcessingServiceBuilder(
       return { processed: { riskAnalyses: purposes.length } };
     },
     async processEServiceTemplateRiskAnalyses(
-      templates: EServiceTemplate["id"][]
+      templates: EServiceTemplateId[]
     ): Promise<{
       processed: {
         eserviceTemplates: number;

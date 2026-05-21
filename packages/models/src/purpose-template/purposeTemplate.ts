@@ -2,6 +2,8 @@ import { z } from "zod";
 import {
   DescriptorId,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   PurposeTemplateId,
   TenantId,
 } from "../brandedIds.js";
@@ -37,6 +39,16 @@ export const EServiceDescriptorPurposeTemplate = z.object({
 });
 export type EServiceDescriptorPurposeTemplate = z.infer<
   typeof EServiceDescriptorPurposeTemplate
+>;
+
+export const EServiceTemplateVersionPurposeTemplate = z.object({
+  purposeTemplateId: PurposeTemplateId,
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  createdAt: z.coerce.date(),
+});
+export type EServiceTemplateVersionPurposeTemplate = z.infer<
+  typeof EServiceTemplateVersionPurposeTemplate
 >;
 
 export const PurposeTemplate = z.object({
