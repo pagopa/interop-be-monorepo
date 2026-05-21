@@ -49,7 +49,7 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  purposeIdNotFoundInClientAssertion,
+  purposeIdNotProvided,
   purposeNotFound,
   tenantNotAllowed,
 } from "../model/errors.js";
@@ -716,7 +716,7 @@ async function retrieveKeyAndEservice(
   if (!jwt.payload.purposeId) {
     return {
       data: undefined,
-      errors: [purposeIdNotFoundInClientAssertion()],
+      errors: [purposeIdNotProvided()],
     };
   }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);

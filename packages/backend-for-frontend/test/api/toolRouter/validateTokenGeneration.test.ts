@@ -80,20 +80,20 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 with validation result for valid request", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+  it.each([authRole.ADMIN_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "Should return 200 with validation result for valid request (role %s)",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResult);
+    }
+  );
+
+  it("Should return 403 for a user role that is not allowed (api)", async () => {
+    const token = generateToken(authRole.API_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockResult);
-    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
-      mockRequest.client_id,
-      mockRequest.client_assertion,
-      mockRequest.client_assertion_type,
-      mockRequest.grant_type,
-      false,
-      undefined,
-      expect.anything()
-    );
+    expect(res.status).toBe(403);
   });
 
   it("Should default to sync validation when is_async is not provided", async () => {
@@ -148,6 +148,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
   it.each([
     { body: {} },
     { body: { client_id: "invalid" } },
+    { body: { ...mockRequest, client_id: "not-a-uuid" } },
     { body: { ...mockRequest, client_assertion: 123 } },
     { body: { ...mockRequest, client_assertion_type: 123 } },
     { body: { ...mockRequest, grant_type: 123 } },

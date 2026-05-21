@@ -333,7 +333,7 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
-    it("unexpectedClientAssertionPayload", async () => {
+    it("unexpectedClientAssertion", async () => {
       const { keySet } = generateKeySet();
       const options: jsonwebtoken.SignOptions = {
         header: {
@@ -660,6 +660,21 @@ describe("validation test", async () => {
     it("InvalidKidFormat", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: { kid: "not a valid kid" },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat());
+    });
+
+    it("InvalidKidFormat when kid is not a JWK thumbprint", async () => {
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: "not-a-valid-kid-format" },
       });
       const { errors } = verifyClientAssertion(
         jws,

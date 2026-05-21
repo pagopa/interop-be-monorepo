@@ -148,6 +148,62 @@ describe("validateTokenGeneration", () => {
   });
 
   describe("Failure cases", () => {
+    it("should return invalidKidFormat in client assertion validation and skip public key retrieve", async () => {
+      const invalidKidFormatError =
+        clientAssertionValidation.invalidKidFormat();
+
+      vi.spyOn(
+        clientAssertionValidation,
+        "verifyClientAssertion"
+      ).mockReturnValue({
+        errors: [invalidKidFormatError],
+        data: undefined,
+      });
+      const getKeyWithClientByKeyIdMock = vi.mocked(
+        mockClients.authorizationClient.token.getKeyWithClientByKeyId
+      );
+      getKeyWithClientByKeyIdMock.mockClear();
+
+      const validationResult = await toolService.validateTokenGeneration(
+        MOCK_CLIENT_ID,
+        MOCK_CLIENT_ASSERTION,
+        MOCK_CLIENT_ASSERTION_TYPE,
+        MOCK_GRANT_TYPE,
+        false,
+        undefined,
+        bffMockContext
+      );
+
+      expect(validationResult).toEqual({
+        clientKind: undefined,
+        eservice: undefined,
+        steps: {
+          clientAssertionValidation: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
+            failures: [
+              {
+                code: "invalidKidFormat",
+                reason: invalidKidFormatError.message,
+              },
+            ],
+          },
+          publicKeyRetrieve: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+          clientAssertionSignatureVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+          platformStatesVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+        },
+      });
+      expect(getKeyWithClientByKeyIdMock).not.toHaveBeenCalled();
+    });
+
     it("should handle parameters validation errors", async () => {
       const parameterValidationError: ApiError<"invalidAssertionType"> = {
         code: "invalidAssertionType",
@@ -416,6 +472,81 @@ describe("validateTokenGeneration", () => {
                 reason: expect.stringContaining(
                   `Public key with kid ${MOCK_KID} not found for client ${MOCK_CLIENT_ID}`
                 ),
+              },
+            ],
+          },
+          clientAssertionSignatureVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+          platformStatesVerification: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.SKIPPED,
+            failures: [],
+          },
+        },
+      });
+    });
+
+    it("should return purposeIdNotProvided when a consumer client assertion has no purposeId", async () => {
+      const clientsWithConsumerClient = {
+        authorizationClient: {
+          token: {
+            getKeyWithClientByKeyId: vi.fn().mockResolvedValue({
+              client: {
+                id: MOCK_CLIENT_ID,
+                consumerId: mockAuthData.organizationId,
+                kind: authorizationApi.ClientKind.enum.CONSUMER,
+              },
+            }),
+          },
+          client: {
+            getClientKeyById: vi
+              .fn()
+              .mockResolvedValue({ encodedPem: "encoded-pem" }),
+          },
+        },
+      } as unknown as PagoPAInteropBeClients;
+
+      vi.spyOn(
+        clientAssertionValidation,
+        "verifyClientAssertion"
+      ).mockReturnValue({
+        errors: undefined,
+        data: {
+          header: { kid: MOCK_KID, alg: "RS256", typ: "JWT" },
+          payload: {
+            ...MOCK_JWT_PAYLOAD,
+            purposeId: undefined,
+          },
+        },
+      });
+
+      const validationResult = await toolsServiceBuilder(
+        clientsWithConsumerClient
+      ).validateTokenGeneration(
+        MOCK_CLIENT_ID,
+        MOCK_CLIENT_ASSERTION,
+        MOCK_CLIENT_ASSERTION_TYPE,
+        MOCK_GRANT_TYPE,
+        false,
+        undefined,
+        bffMockContext
+      );
+
+      expect(validationResult).toEqual({
+        clientKind: undefined,
+        eservice: undefined,
+        steps: {
+          clientAssertionValidation: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.PASSED,
+            failures: [],
+          },
+          publicKeyRetrieve: {
+            result: bffApi.TokenGenerationValidationStepResult.Enum.FAILED,
+            failures: [
+              {
+                code: "purposeIdNotProvided",
+                reason: "Claim purposeId does not exist in this assertion",
               },
             ],
           },
