@@ -7,6 +7,7 @@ import {
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagDelegationConstraintSkipConfig,
+  FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -342,6 +343,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagDpopClientAssertionDebuggerConfig)
   .and(FrontendBaseURLConfig)
   .and(FeatureFlagAsyncExchangeConfig)
+  .and(FeatureFlagUseSignedDocumentConfig)
+  .and(TokenGenerationValidationConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(
     z
