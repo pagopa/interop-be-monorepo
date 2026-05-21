@@ -2807,7 +2807,7 @@ paths:
       tags:
         - eservices
       summary: Schedule the archiving process for an E-Service
-      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.        
+      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.  
       operationId: scheduleArchiveEservice
       parameters:
         - name: eserviceId
@@ -2850,7 +2850,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
-          $ref: "#/components/responses/TooManyRequests"   
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
     parameters:
       - name: eserviceId
@@ -13174,6 +13174,8 @@ components:
       properties:
         archivingReason:
           type: string
+          minLength: 10
+          maxLength: 250
       required:
         - archivingReason
     Tenant:

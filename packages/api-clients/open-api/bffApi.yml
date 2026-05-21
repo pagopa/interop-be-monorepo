@@ -5312,7 +5312,7 @@ paths:
               $ref: "#/components/schemas/EServiceArchivingReasonSeed"
       responses:
         "204":
-          description: E-Service Descriptor scheduled for archiving
+          description: E-Service scheduled for archiving
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -30482,6 +30482,8 @@ components:
       properties:
         archivingReason:
           type: string
+          minLength: 10
+          maxLength: 250
       required:
         - archivingReason
     NotificationsCountBySection:
