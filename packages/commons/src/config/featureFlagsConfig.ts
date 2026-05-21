@@ -92,21 +92,6 @@ export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
   typeof FeatureFlagDpopClientAssertionDebuggerConfig
 >;
 
-export const FeatureFlagPurposeTemplateConfig = z
-  .object({
-    FEATURE_FLAG_PURPOSE_TEMPLATE: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
-  }));
-export type FeatureFlagPurposeTemplateConfig = z.infer<
-  typeof FeatureFlagPurposeTemplateConfig
->;
-
 export const FeatureFlagAsyncExchangeConfig = z
   .object({
     FEATURE_FLAG_ASYNC_EXCHANGE: z
@@ -207,7 +192,6 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
   FeatureFlagAsyncExchangeConfig &
   FeatureFlagDpopClientAssertionDebuggerConfig &
-  FeatureFlagPurposeTemplateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
