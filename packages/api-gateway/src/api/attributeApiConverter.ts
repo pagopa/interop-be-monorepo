@@ -5,8 +5,6 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, removeDuplicateObjectsById } from "pagopa-interop-commons";
-import { genericInternalError } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   verifiedAttributeToAttributeValidityState,
   certifiedAttributeToAttributeValidityState,
@@ -54,15 +52,6 @@ export function toApiGatewayAttribute(
   return {
     id: attribute.id,
     name: attribute.name,
-    kind: match(attribute.kind)
-      .with("CERTIFIED", "DECLARED", "VERIFIED", (kind) => kind)
-      .with("CERTIFIED_DISCRETE", () => {
-        // TODO(PIN-10074): add CERTIFIED_DISCRETE support when the future M2M
-        // contract work item extends API Gateway/M2M surfaces.
-        throw genericInternalError(
-          `Unsupported attribute kind ${attribute.kind} for api-gateway`
-        );
-      })
-      .exhaustive(),
+    kind: attribute.kind,
   };
 }
