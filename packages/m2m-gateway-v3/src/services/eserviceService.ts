@@ -1043,14 +1043,16 @@ export function eserviceServiceBuilder(
     ): Promise<m2mGatewayApiV3.EService> {
       logger.info(`Canceling archiving for eservice with id ${eserviceId}`);
 
-      const response =
-        await clients.catalogProcessClient.cancelEServiceArchiving(undefined, {
+      await clients.catalogProcessClient.cancelScheduleArchiveEservice(
+        undefined,
+        {
           params: { eServiceId: eserviceId },
           headers,
-        });
-      const polled = await pollEService(response, headers);
+        }
+      );
+      const eservice = await retrieveEServiceById(headers, eserviceId);
 
-      return toM2MGatewayApiEService(polled.data);
+      return toM2MGatewayApiEService(eservice.data);
     },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,

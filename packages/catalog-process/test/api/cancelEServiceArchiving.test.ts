@@ -12,7 +12,6 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
-  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -20,7 +19,6 @@ import {
   eServiceNotFound,
   eserviceNotInArchiving,
 } from "../../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/${eServiceId}/scheduleArchive DELETE authorization test", () => {
   const descriptor = {
@@ -33,12 +31,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive DELETE authorization test
     descriptors: [descriptor],
   };
 
-  const mockApiEservice = eServiceToApiEService(mockEService);
-  const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
-
-  catalogService.cancelEServiceArchiving = vi
-    .fn()
-    .mockResolvedValue(mockEserviceWithMetadata);
+  catalogService.cancelEServiceArchiving = vi.fn().mockResolvedValue(undefined);
 
   const makeRequest = async (token: string, eServiceId: EServiceId) =>
     request(api)
@@ -53,16 +46,12 @@ describe("API /eservices/${eServiceId}/scheduleArchive DELETE authorization test
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id);
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockApiEservice);
-      expect(res.headers["x-metadata-version"]).toBe(
-        mockEserviceWithMetadata.metadata.version.toString()
-      );
+      expect(res.status).toBe(204);
     }
   );
 

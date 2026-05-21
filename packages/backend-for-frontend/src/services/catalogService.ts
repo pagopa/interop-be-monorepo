@@ -1385,7 +1385,7 @@ export function catalogServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Canceling archiving for EService ${eServiceId}`);
-      await catalogProcessClient.cancelEServiceArchiving(undefined, {
+      await catalogProcessClient.cancelScheduleArchiveEservice(undefined, {
         headers,
         params: {
           eServiceId,

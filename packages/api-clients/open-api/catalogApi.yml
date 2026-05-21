@@ -445,39 +445,68 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Cancel e-service archiving process
-      operationId: cancelEServiceArchiving
-      description: Cancels the global archiving process of an E-Service, restoring all descriptors to their previous operational state
+      summary: Cancel an ongoing archiving process of an E-Service
+      operationId: cancelScheduleArchiveEservice
+      description: Cancels the ongoing archiving process of an E-Service, restoring Descriptors to its previous operational state.
       responses:
-        "200":
-          description: E-service archiving process canceled.
+        "204":
+          description: Archiving process of an E-Service canceled successfully.
           headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
-          content:
-            application/json:
+            "X-Rate-Limit-Limit":
               schema:
-                $ref: "#/components/schemas/EService"
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input or e-service is not in archiving state
-          content:
-            application/problem+json:
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
               schema:
-                $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
               schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/problem+json:
               schema:

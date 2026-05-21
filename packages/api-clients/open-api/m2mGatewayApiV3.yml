@@ -2854,9 +2854,9 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Cancel the archiving process for an E-Service
-      description: Cancels the global archiving process of an E-Service, restoring all descriptors to their previous operational state.
-      operationId: cancelEServiceArchiving
+      summary: Cancel an ongoing archiving process of an E-Service
+      description: "Cancels the ongoing archiving process of an E-Service that is in Archiving or ArchivingSuspended state, restoring it to its previous operational state: Deprecated or Suspended state (if state was ArchivingSuspended)"
+      operationId: cancelScheduleArchiveEservice
       responses:
         "200":
           description: Archiving process of an E-Service canceled successfully

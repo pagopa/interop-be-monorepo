@@ -4016,26 +4016,68 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Cancel the archiving process for an E-Service
-      description: Cancel the global archiving process for an E-Service
-      operationId: cancelEServiceArchiving
+      summary: Cancel an ongoing archiving process of an E-Service
+      description: Cancels the ongoing archiving process of an E-Service, restoring Descriptors to its previous operational state.
+      operationId: cancelScheduleArchiveEservice
       responses:
         "204":
-          description: E-Service archiving canceled
+          description: Archiving process of an E-Service canceled successfully.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Invalid input
-          content:
-            application/problem+json:
+          headers:
+            "X-Rate-Limit-Limit":
               schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/problem+json:
               schema:

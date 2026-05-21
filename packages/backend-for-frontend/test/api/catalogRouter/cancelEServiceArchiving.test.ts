@@ -11,7 +11,7 @@ describe("API DELETE /eservices/:eServiceId/scheduleArchive", () => {
   const eServiceId = "5497bf2b-168d-44d5-abce-35ac390f32d4" as EServiceId;
 
   beforeEach(() => {
-    clients.catalogProcessClient.cancelEServiceArchiving = vi
+    clients.catalogProcessClient.cancelScheduleArchiveEservice = vi
       .fn()
       .mockResolvedValue(undefined);
   });
