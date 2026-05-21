@@ -227,9 +227,6 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
         ? fromTenantUnitTypeV2(input.subUnitType)
         : undefined,
     selfcareInstitutionType: input.selfcareInstitutionType,
-    remoteIds:
-      input.remoteIds.length > 0
-        ? input.remoteIds.map(fromRemoteIdsV2)
-        : undefined,
+    remoteIds: input.remoteIds.map(fromRemoteIdsV2),
   };
 };
