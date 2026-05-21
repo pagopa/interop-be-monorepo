@@ -398,6 +398,16 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS domains.tenant_remote_id (
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  origin VARCHAR(2048) NOT NULL,
+  value VARCHAR(2048) NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (tenant_id, origin)
+);
+
 CREATE TABLE IF NOT EXISTS domains.tenant_mail (
   id VARCHAR(2048),
   tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
@@ -436,6 +446,17 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
   tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_certified_discrete_attribute (
+  attribute_id VARCHAR(36) NOT NULL,
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  certified_discrete_value INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id)
 );
