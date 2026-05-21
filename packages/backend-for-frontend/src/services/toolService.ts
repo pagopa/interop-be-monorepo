@@ -45,7 +45,7 @@ import {
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
   tenantNotAllowed,
-  purposeIdNotFoundInClientAssertion,
+  purposeIdNotProvided,
   purposeNotFound,
 } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -318,7 +318,7 @@ async function retrieveKeyAndEservice(
   if (!jwt.payload.purposeId) {
     return {
       data: undefined,
-      errors: [purposeIdNotFoundInClientAssertion()],
+      errors: [purposeIdNotProvided()],
     };
   }
   const purposeId = unsafeBrandId<PurposeId>(jwt.payload.purposeId);
