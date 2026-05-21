@@ -1,4 +1,5 @@
 import {
+  AsyncExchangePropertiesV2,
   EServiceDocumentV2,
   EServiceTemplateEventEnvelopeV2,
   EServiceTemplateV2,
@@ -7,6 +8,7 @@ import {
 import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
 import {
+  AsyncExchangePropertiesV2 as OutboundAsyncExchangePropertiesV2,
   EServiceTemplateEvent as OutboundEServiceTemplateEvent,
   EServiceTemplateV2 as OutboundEServiceTemplateV2,
   EServiceTemplateVersionV2 as OutboundEServiceTemplateVersionV2,
@@ -22,6 +24,12 @@ function toOuboundEServiceDocumentV2(
   };
 }
 
+function toOutboundAsyncExchangePropertiesV2(
+  properties: AsyncExchangePropertiesV2
+): Exact<OutboundAsyncExchangePropertiesV2, AsyncExchangePropertiesV2> {
+  return { ...properties };
+}
+
 function toOutboundEServiceTemplateVersionV2(
   template: EServiceTemplateVersionV2
 ): Exact<OutboundEServiceTemplateVersionV2, EServiceTemplateVersionV2> {
@@ -30,8 +38,12 @@ function toOutboundEServiceTemplateVersionV2(
     docs: template.docs.map(toOuboundEServiceDocumentV2),
     interface:
       template.interface && toOuboundEServiceDocumentV2(template.interface),
-    asyncExchangeCallbackInterface: undefined,
-    asyncExchangeProperties: undefined,
+    asyncExchangeCallbackInterface:
+      template.asyncExchangeCallbackInterface &&
+      toOuboundEServiceDocumentV2(template.asyncExchangeCallbackInterface),
+    asyncExchangeProperties:
+      template.asyncExchangeProperties &&
+      toOutboundAsyncExchangePropertiesV2(template.asyncExchangeProperties),
   };
 }
 
@@ -42,7 +54,6 @@ function toOutboundEServiceTemplateV2(
     ...template,
     versions: template.versions.map(toOutboundEServiceTemplateVersionV2),
     riskAnalysis: undefined,
-    asyncExchange: undefined,
   };
 }
 
@@ -101,6 +112,9 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateVersionInterfaceAdded" },
       { type: "EServiceTemplateVersionInterfaceDeleted" },
       { type: "EServiceTemplateVersionInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -134,9 +148,6 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       () => undefined
     )
     .exhaustive();
