@@ -25,6 +25,7 @@ import {
   toBffApiCompactTenant,
   toBffApiRequesterCertifiedAttributes,
   toBffApiCertifiedTenantAttributes,
+  toBffApiCertifiedDiscreteTenantAttribute,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
@@ -565,24 +566,12 @@ function getCertifiedDiscreteTenantAttribute(
   attribute: tenantApi.TenantAttribute,
   registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
 ): bffApi.CertifiedDiscreteTenantAttribute | undefined {
-  if (!attribute.certifiedDiscrete) {
-    return undefined;
-  }
-  const registryAttribute = registryAttributeMap.get(
-    attribute.certifiedDiscrete.id
-  );
-  if (!registryAttribute) {
-    return undefined;
-  }
-
-  return {
-    id: attribute.certifiedDiscrete.id,
-    name: registryAttribute.name,
-    description: registryAttribute.description,
-    assignmentTimestamp: attribute.certifiedDiscrete.assignmentTimestamp,
-    revocationTimestamp: attribute.certifiedDiscrete.revocationTimestamp,
-    discreteValue: attribute.certifiedDiscrete.discreteValue,
-  };
+  return attribute.certifiedDiscrete
+    ? toBffApiCertifiedDiscreteTenantAttribute(
+        attribute.certifiedDiscrete,
+        registryAttributeMap
+      )
+    : undefined;
 }
 
 function toApiVerifiedTenantAttribute(

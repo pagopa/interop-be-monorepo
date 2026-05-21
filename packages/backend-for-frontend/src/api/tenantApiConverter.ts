@@ -118,7 +118,7 @@ const toBffApiCertifiedTenantAttribute = (
     : undefined;
 };
 
-const toBffApiCertifiedDiscreteTenantAttribute = (
+export const toBffApiCertifiedDiscreteTenantAttribute = (
   tenantAttribute: tenantApi.CertifiedDiscreteTenantAttribute,
   registryAttributesMap: RegistryAttributesMap
 ): bffApi.CertifiedDiscreteTenantAttribute | undefined => {
