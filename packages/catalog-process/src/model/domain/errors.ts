@@ -68,6 +68,7 @@ const errorCodes = {
   eserviceInArchivingOrArchivedState: "0050",
   descriptorArchivingNotCancelableByScope: "0051",
   descriptorAlreadyArchived: "0052",
+  notValidEServiceState: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -145,6 +146,16 @@ export function notValidDescriptorState(
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function notValidEServiceState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in an invalid state for this operation`,
+    code: "notValidEServiceState",
+    title: "Not valid EService",
   });
 }
 

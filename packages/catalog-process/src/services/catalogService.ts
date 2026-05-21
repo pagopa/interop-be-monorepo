@@ -155,6 +155,7 @@ import {
   toCreateEventEServiceDescriptorArchivingScheduled,
   toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
+  toCreateEventEServiceArchivingScheduled,
   toCreateEventEServiceDescriptorArchivingCompleted,
 } from "../model/domain/toEvent.js";
 import {
@@ -197,6 +198,7 @@ import {
   assertDescriptorInRequiredStates,
   assertDescriptorCancelArchivable,
   assertDescriptorArchivingIsNotEserviceScoped,
+  assertEServiceArchivable,
   assertDescriptorIsNotAlreadyArchived,
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
@@ -1094,16 +1096,12 @@ export function catalogServiceBuilder(
         );
         await repository.createEvent(eserviceDeletionEvent);
       } else {
-        await deleteDescriptorInterfaceAndDocs(
+        const eserviceWithoutDescriptors = await deleteInactiveDescriptorLogic(
+          eservice.data,
           eservice.data.descriptors[0],
           fileManager,
           logger
         );
-
-        const eserviceWithoutDescriptors: EService = {
-          ...eservice.data,
-          descriptors: [],
-        };
         const descriptorDeletionEvent =
           toCreateEventEServiceDraftDescriptorDeleted(
             eservice.metadata.version,
@@ -1123,6 +1121,40 @@ export function catalogServiceBuilder(
       }
     },
 
+    async scheduleEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.EServiceArchivingReasonSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(`Archiving EService ${eserviceId}`);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertEServiceArchivable(eservice.data);
+
+      const updatedEService = await processEserviceArchiving(
+        eservice.data,
+        body,
+        fileManager,
+        logger
+      );
+
+      const event = toCreateEventEServiceArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1519,14 +1551,13 @@ export function catalogServiceBuilder(
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
-      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
-
-      const eserviceAfterDescriptorDeletion: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d: Descriptor) => d.id !== descriptorId
-        ),
-      };
+      const eserviceAfterDescriptorDeletion =
+        await deleteInactiveDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -3917,13 +3948,94 @@ export function catalogServiceBuilder(
   };
 }
 
+async function processEserviceArchiving(
+  eservice: EService,
+  body: catalogApi.EServiceArchivingReasonSeed,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  const draftOrWaiting = eservice.descriptors.find(
+    (d) =>
+      d.state === descriptorState.draft ||
+      d.state === descriptorState.waitingForApproval
+  );
+
+  const eserviceAfterCleanup = draftOrWaiting
+    ? await deleteInactiveDescriptorLogic(
+        eservice,
+        draftOrWaiting,
+        fileManager,
+        logger
+      )
+    : eservice;
+
+  const requestDate = new Date();
+  const descriptors = await Promise.all(
+    eserviceAfterCleanup.descriptors.map((descriptor) =>
+      match(descriptor.state)
+        .with(
+          descriptorState.archived,
+          descriptorState.archivingSuspended,
+          descriptorState.archiving,
+          () => descriptor
+        )
+        .with(descriptorState.published, descriptorState.deprecated, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archiving,
+            archivingScope.eservice,
+            requestDate
+          )
+        )
+        .with(descriptorState.suspended, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archivingSuspended,
+            archivingScope.eservice,
+            requestDate
+          )
+        )
+        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
+          //Should never happen since we already deleted draft/waiting descriptors, but we put it here for type safety reasons
+          throw notValidDescriptorState(descriptor.id, descriptor.state);
+        })
+        .exhaustive()
+    )
+  );
+
+  return {
+    ...eservice,
+    archivingReason: body.archivingReason,
+    descriptors,
+  };
+}
+
+async function deleteInactiveDescriptorLogic(
+  eservice: EService,
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
+
+  const eserviceAfterDescriptorDeletion: EService = {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptor.id
+    ),
+  };
+
+  return eserviceAfterDescriptorDeletion;
+}
+
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
-  scope: ArchivingScope = archivingScope.descriptor
+  scope: ArchivingScope = archivingScope.descriptor,
+  requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(new Date(), config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
     scope,
   };
 

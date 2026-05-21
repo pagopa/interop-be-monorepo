@@ -53,11 +53,15 @@ import {
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
+  notValidEServiceState,
   descriptorAlreadyArchived,
   eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestDescriptor,
+} from "../utilities/versionGenerator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -122,6 +126,22 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       descriptorState.draft,
       descriptorState.waitingForApproval,
       descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
+
+function isEserviceArchivable(eservice: EService): boolean {
+  const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+  return match(latestActiveDescriptor.state)
+    .with(descriptorState.published, descriptorState.suspended, () => true)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      descriptorState.draft,
       () => false
     )
     .exhaustive();
@@ -566,6 +586,12 @@ export function assertDescriptorArchivable(
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEServiceArchivable(eservice: EService): void {
+  if (!isEserviceArchivable(eservice)) {
+    throw notValidEServiceState(eservice.id);
   }
 }
 

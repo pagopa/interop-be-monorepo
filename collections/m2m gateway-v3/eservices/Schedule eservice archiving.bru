@@ -1,0 +1,26 @@
+meta {
+  name: Schedule eservice archiving
+  type: http
+  seq: 43
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId/scheduleArchive
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "archivingReason": "EService eservice no longer necessary"
+  }
+}
