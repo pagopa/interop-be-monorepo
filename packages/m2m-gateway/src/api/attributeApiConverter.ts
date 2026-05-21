@@ -2,7 +2,7 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, genericInternalError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
@@ -63,6 +63,14 @@ function convertAttribute(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,
         () => baseFields
+      )
+      .with(
+        attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+        () => {
+          throw genericInternalError(
+            `Unsupported attribute kind ${attribute.kind} for m2m-api-gateway`
+          );
+        }
       )
       .exhaustive();
   } catch (error) {
