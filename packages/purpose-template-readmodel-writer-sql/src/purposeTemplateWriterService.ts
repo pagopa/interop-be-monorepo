@@ -2,17 +2,22 @@ import {
   DescriptorId,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  EServiceTemplateVersionPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
 } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
   splitPurposeTemplateIntoObjectsSQL,
+  toEServiceTemplateVersionPurposeTemplateSQL,
   toPurposeTemplateEServiceDescriptorSQL,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateChildTables,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -71,7 +76,9 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
         for (const table of purposeTemplateChildTables) {
           if (
             table !==
-            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate &&
+            table !==
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
           ) {
             await tx
               .delete(table)
@@ -152,7 +159,10 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
           tx,
           purposeTemplate.id,
           metadataVersion,
-          [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+          [
+            purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+          ]
         );
       });
     },
@@ -203,6 +213,101 @@ export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {
         await updateMetadataVersionInPurposeTemplateTables(
           tx,
           purposeTemplateEServiceDescriptor.purposeTemplateId,
+          metadataVersion
+        );
+      });
+    },
+    async upsertPurposeTemplateEServiceTemplateVersion(
+      eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate,
+      metadataVersion: number
+    ): Promise<void> {
+      await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeTemplateInReadmodelPurposeTemplate,
+          metadataVersion,
+          eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+          )
+          .where(
+            and(
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+                eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+              ),
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+                eserviceTemplateVersionPurposeTemplate.eserviceTemplateId
+              )
+            )
+          );
+
+        await tx
+          .insert(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+          )
+          .values(
+            toEServiceTemplateVersionPurposeTemplateSQL(
+              eserviceTemplateVersionPurposeTemplate,
+              metadataVersion
+            )
+          );
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          eserviceTemplateVersionPurposeTemplate.purposeTemplateId,
+          metadataVersion
+        );
+      });
+    },
+    async deletePurposeTemplateEServiceTemplateVersion({
+      purposeTemplateId,
+      eserviceTemplateId,
+      eserviceTemplateVersionId,
+      metadataVersion,
+    }: {
+      purposeTemplateId: PurposeTemplateId;
+      eserviceTemplateId: EServiceTemplateId;
+      eserviceTemplateVersionId: EServiceTemplateVersionId;
+      metadataVersion: number;
+    }): Promise<void> {
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+          )
+          .where(
+            and(
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+                eserviceTemplateId
+              ),
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateVersionId,
+                eserviceTemplateVersionId
+              ),
+              lte(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
+
+        await updateMetadataVersionInPurposeTemplateTables(
+          tx,
+          purposeTemplateId,
           metadataVersion
         );
       });
