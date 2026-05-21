@@ -127,6 +127,7 @@ describe("getAgreementById", () => {
 
     const service = agreementServiceBuilder(clients, {} as never);
 
+    const correlationId = generateId<CorrelationId>();
     const authData = {
       ...getMockAuthData(consumerId),
       organizationId: consumerId,
@@ -135,11 +136,11 @@ describe("getAgreementById", () => {
     const ctx = {
       ...getMockContext({
         authData,
-        correlationId: generateId<CorrelationId>(),
+        correlationId,
       }),
       headers: {
         Authorization: "Bearer token",
-        "X-Correlation-Id": generateId<CorrelationId>(),
+        "X-Correlation-Id": correlationId,
         "X-Forwarded-For": "127.0.0.1",
       },
     };
