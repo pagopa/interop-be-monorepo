@@ -39,6 +39,9 @@ catalogs:
     '@pagopa/eslint-config':
       specifier: 5.1.2
       version: 5.1.2
+    '@pagopa/interop-outbound-models':
+      specifier: 1.8.18-attributi.certificati.discreti.0
+      version: 1.8.18-attributi.certificati.discreti.0
     '@protobuf-ts/plugin':
       specifier: 2.9.4
       version: 2.9.4
@@ -304,9 +307,6 @@ catalogs:
       specifier: 3.3.0
       version: 3.3.0
 
-overrides:
-  '@pagopa/interop-outbound-models': link:../interop-outbound-models
-
 importers:
 
   .:
@@ -349,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1376,8 +1376,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2284,8 +2284,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3041,8 +3041,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4894,8 +4894,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5123,8 +5123,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5542,8 +5542,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: link:../../../interop-outbound-models
-        version: link:../../../interop-outbound-models
+        specifier: 'catalog:'
+        version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7207,6 +7207,9 @@ packages:
     resolution: {integrity: sha512-7Byb+K51xcWKjk9oWDU0GeHPpdRm3Y1zgLSP0NZ0wnijxmD4GGe3DNLMhbu3q7MOCrHbbJXWR4jqR3BqE6P7dw==}
     peerDependencies:
       eslint: ^9.39.2
+
+  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.0':
+    resolution: {integrity: sha512-evYXuuSqLDv/h9Em0ia2Cm/ZE9Oh1FdZyb6uEQrCdtcxNFRGkQNyh26aDA+vEDVqOQVyxDAiAlpayrkUesFYZg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13693,6 +13696,12 @@ snapshots:
       - prettier
       - supports-color
       - vitest
+
+  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.0':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 3.23.8
 
   '@pkgjs/parseargs@0.11.0':
     optional: true

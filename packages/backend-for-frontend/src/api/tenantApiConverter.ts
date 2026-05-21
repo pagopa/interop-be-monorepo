@@ -206,7 +206,7 @@ export function toBffApiVerifiedTenantAttributes(
     .filter(isDefined);
 }
 
-export function toBffApiCertifiedDiscreteTenantAttributes(
+function toBffApiCertifiedDiscreteTenantAttributes(
   certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[],
   registryAttributesMap: RegistryAttributesMap
 ): bffApi.CertifiedDiscreteTenantAttribute[] {
@@ -227,9 +227,10 @@ export function toBffApiTenant(
   verifiedAttributes: tenantApi.VerifiedTenantAttribute[],
   registryAttributesMap: RegistryAttributesMap
 ): bffApi.Tenant {
-  const certifiedDiscreteAttributes = tenant.attributes.flatMap((attribute) =>
-    attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
-  );
+  const certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[] =
+    tenant.attributes.flatMap((attribute) =>
+      attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
+    );
 
   return {
     id: tenant.id,
