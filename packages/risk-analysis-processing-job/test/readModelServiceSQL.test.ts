@@ -123,6 +123,20 @@ describe("eservices", () => {
     expect(RAs).toHaveLength(1);
     expect(RAs[0].riskAnalysis).toHaveLength(1);
   });
+
+  it("does not retrieve eservices with no risk analysis", async () => {
+    const mockEService: EService = {
+      ...getMockEService(),
+      riskAnalysis: [],
+    };
+
+    await addOneEService(mockEService);
+
+    const RAs =
+      await readModelService.getAllReadModelEServicesWithEmptyTenantKindRAs();
+
+    expect(RAs).toHaveLength(0);
+  });
 });
 
 describe("purposes", () => {
@@ -157,5 +171,19 @@ describe("purposes", () => {
       await readModelService.getAllReadModelPurposesWithoutTenantKind();
 
     expect(RAs).toHaveLength(1);
+  });
+
+  it("does not retrieve draft purposes with no risk analysis form", async () => {
+    const draftPurpose: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: undefined,
+    };
+
+    await addOnePurpose(draftPurpose);
+
+    const RAs =
+      await readModelService.getAllReadModelPurposesWithoutTenantKind();
+
+    expect(RAs).toHaveLength(0);
   });
 });

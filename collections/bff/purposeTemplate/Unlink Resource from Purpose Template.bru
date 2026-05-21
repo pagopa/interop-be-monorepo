@@ -1,0 +1,27 @@
+meta {
+  name: Unlink Resource from Purpose Template
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId/unlinkResource
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "resourceKind": "ESERVICE_TEMPLATE",
+    "eserviceTemplateId": "{{eserviceTemplateId}}"
+  }
+}

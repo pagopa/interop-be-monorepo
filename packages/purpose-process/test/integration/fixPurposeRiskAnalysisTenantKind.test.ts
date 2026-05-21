@@ -34,8 +34,6 @@ import {
 
 describe("fixPurposeRiskAnalysisTenantKind", () => {
   it("should use consumer's kind for deliver-mode eservices", async () => {
-    const baseTime = new Date("2024-01-10T10:00:00.000Z");
-
     const consumerKind: TenantKind = tenantKind.PA;
     const consumer = getMockTenant();
     const eservice: EService = {
@@ -56,7 +54,7 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
       eserviceId: eservice.id,
       consumerId: consumer.id,
       riskAnalysisForm,
-      createdAt: baseTime,
+      createdAt: new Date("2024-01-10T10:00:00.000Z"),
     };
 
     await addOneEService(eservice);
@@ -99,8 +97,6 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
   });
 
   it("should use producer's kind for receive-mode eservices", async () => {
-    const baseTime = new Date("2024-01-10T10:00:00.000Z");
-
     const producerKind: TenantKind = tenantKind.PRIVATE;
     const producer = getMockTenant();
     const riskAnalysisId = generateId<RiskAnalysisId>();
@@ -129,7 +125,7 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       riskAnalysisForm,
-      createdAt: baseTime,
+      createdAt: new Date("2024-01-10T10:00:00.000Z"),
     };
 
     await addOneEService(eservice);

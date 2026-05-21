@@ -112,8 +112,18 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose_template.purpose_template_risk_anal
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   signed_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  
+
   PRIMARY KEY (id),
-  
+
+  FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_purpose_template.eservice_template_version_purpose_template (
+  metadata_version INTEGER NOT NULL,
+  purpose_template_id UUID NOT NULL REFERENCES readmodel_purpose_template.purpose_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL,
+  eservice_template_version_id UUID NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (purpose_template_id, eservice_template_id),
   FOREIGN KEY (purpose_template_id, metadata_version) REFERENCES readmodel_purpose_template.purpose_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
