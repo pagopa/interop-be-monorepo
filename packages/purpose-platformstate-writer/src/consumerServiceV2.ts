@@ -179,6 +179,7 @@ export async function handleMessageV2(
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
+      { type: "PurposeRiskAnalysisFormEdited" },
       () => Promise.resolve()
     )
     .exhaustive();

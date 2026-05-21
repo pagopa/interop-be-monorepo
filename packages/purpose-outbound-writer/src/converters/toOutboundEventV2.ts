@@ -87,6 +87,7 @@ export function toOutboundEventV2(
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
+      { type: "PurposeRiskAnalysisFormEdited" },
       (msg) =>
         ({
           event_version: msg.event_version,
