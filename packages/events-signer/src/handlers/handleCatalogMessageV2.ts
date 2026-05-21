@@ -82,7 +82,6 @@ export const handleCatalogMessageV2 = async (
             "EServiceDraftDescriptorDeleted",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorDocumentAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorDocumentUpdated",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorDocumentDeleted",

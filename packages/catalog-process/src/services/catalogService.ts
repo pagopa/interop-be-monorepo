@@ -135,7 +135,6 @@ import {
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
-  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceIsClientAccessDelegableDisabled,
   toCreateEventEServiceIsClientAccessDelegableEnabled,
   toCreateEventEServiceIsConsumerDelegableDisabled,
@@ -1303,27 +1302,16 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceInterfaceUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
-            correlationId
-          )
-        : toCreateEventEServiceDocumentUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            {
-              descriptorId,
-              documentId,
-              eservice: newEservice,
-            },
-            correlationId
-          );
+      const event = toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        },
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;

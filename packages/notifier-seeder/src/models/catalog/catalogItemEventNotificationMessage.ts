@@ -60,7 +60,6 @@ const eventV2TypeMapper = (
       () => "catalog_item_document_added"
     )
     .with(
-      "EServiceDescriptorInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
       "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
       () => "catalog_item_document_updated"

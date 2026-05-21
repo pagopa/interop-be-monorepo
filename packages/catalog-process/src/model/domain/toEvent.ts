@@ -136,34 +136,6 @@ export const toCreateEventEServiceUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceInterfaceUpdated = (
-  streamId: string,
-  version: number,
-  {
-    descriptorId,
-    documentId,
-    eservice,
-  }: {
-    descriptorId: DescriptorId;
-    documentId: EServiceDocumentId;
-    eservice: EService;
-  },
-  correlationId: CorrelationId
-): CreateEvent<EServiceEvent> => ({
-  streamId,
-  version,
-  event: {
-    type: "EServiceDescriptorInterfaceUpdated",
-    event_version: 2,
-    data: {
-      descriptorId,
-      documentId,
-      eservice: toEServiceV2(eservice),
-    },
-  },
-  correlationId,
-});
-
 export const toCreateEventEServiceDocumentUpdated = (
   streamId: string,
   version: number,

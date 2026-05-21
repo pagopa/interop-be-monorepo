@@ -117,10 +117,6 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_INTERFACE_ADDED"
     )
     .with(
-      "EServiceDescriptorInterfaceUpdated",
-      () => "ESERVICE_DESCRIPTOR_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceDescriptorInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
     )

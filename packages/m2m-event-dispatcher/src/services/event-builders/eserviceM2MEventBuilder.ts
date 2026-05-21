@@ -104,7 +104,6 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorSubmittedByDelegate",
         "EServiceDescriptorRejectedByDelegator",
         "EServiceDescriptorInterfaceAdded",
-        "EServiceDescriptorInterfaceUpdated",
         "EServiceDescriptorInterfaceDeleted"
       ),
       () => m2mEventVisibility.owner
