@@ -94,6 +94,10 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
             agreementInReadmodelAgreement.id,
             agreementSignedContractInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          agreementAttributeInReadmodelAgreement.attributeId,
+          agreementConsumerDocumentInReadmodelAgreement.id
         );
 
       if (queryResult.length === 0) {
@@ -154,6 +158,10 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
             agreementInReadmodelAgreement.id,
             agreementSignedContractInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          agreementAttributeInReadmodelAgreement.attributeId,
+          agreementConsumerDocumentInReadmodelAgreement.id
         );
 
       return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));

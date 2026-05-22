@@ -111,6 +111,10 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .orderBy(
+          purposeRiskAnalysisAnswerInReadmodelPurpose.id,
+          purposeVersionInReadmodelPurpose.id
         );
 
       if (queryResult.length === 0) {
@@ -187,6 +191,10 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .orderBy(
+          purposeRiskAnalysisAnswerInReadmodelPurpose.id,
+          purposeVersionInReadmodelPurpose.id
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));

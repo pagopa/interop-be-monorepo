@@ -14,7 +14,6 @@ import {
   getMockAuthData,
   randomArrayItem,
   getMockDescriptorPublished,
-  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   AgreementAddedV2,
@@ -201,12 +200,12 @@ describe("clone agreement", () => {
       clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
 
-    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
-      sortAgreementV2(expectedAgreementCloned)
-    );
-    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
-      sortAgreementV2(toAgreementV2(returnedAgreement))
-    );
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: expectedAgreementCloned,
+    });
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: toAgreementV2(returnedAgreement),
+    });
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -328,12 +327,12 @@ describe("clone agreement", () => {
       clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
 
-    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
-      sortAgreementV2(expectedAgreementCloned)
-    );
-    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
-      sortAgreementV2(toAgreementV2(returnedAgreement))
-    );
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: expectedAgreementCloned,
+    });
+    expect(agreementClonedEventPayload).toEqual({
+      agreement: toAgreementV2(returnedAgreement),
+    });
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
