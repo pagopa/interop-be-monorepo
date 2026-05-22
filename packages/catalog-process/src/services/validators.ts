@@ -33,6 +33,7 @@ import {
   type EServiceAttribute,
   type EserviceAttributes,
   TenantKind,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -300,7 +301,15 @@ function assertRiskAnalysisTenantKindMatch({
   eserviceId: EServiceId;
   riskAnalysisId: RiskAnalysisId;
 }): void {
-  if (actualKind && actualKind !== currentTenantKind) {
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
       currentTenantKind,
