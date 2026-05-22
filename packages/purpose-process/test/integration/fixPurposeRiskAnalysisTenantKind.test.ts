@@ -19,6 +19,7 @@ import {
   getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysisForm,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   purposeNotFound,
@@ -94,7 +95,11 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect({
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
   });
 
   it("should use producer's kind for receive-mode eservices", async () => {
@@ -165,7 +170,11 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect({
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
   });
 
   it("Should throw tenantKindNotFound when history is empty", async () => {
