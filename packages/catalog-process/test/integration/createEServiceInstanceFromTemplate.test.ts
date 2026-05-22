@@ -389,11 +389,6 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPA1 } =
-      validEServiceTemplateRiskAnalysisPA1;
-    const { tenantKind: _tenantKind2, ...validRiskAnalysisPA2 } =
-      validEServiceTemplateRiskAnalysisPA2;
-
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
       description: eserviceTemplate.description,
@@ -405,7 +400,10 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
+      riskAnalysis: [
+        validEServiceTemplateRiskAnalysisPA1,
+        validEServiceTemplateRiskAnalysisPA2,
+      ],
       personalData: eserviceTemplate.personalData,
       asyncExchange: undefined,
       descriptors: [
@@ -478,9 +476,6 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPrivate } =
-      validEServiceTemplateRiskAnalysisPrivate;
-
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
       description: eserviceTemplate.description,
@@ -492,7 +487,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [validRiskAnalysisPrivate],
+      riskAnalysis: [validEServiceTemplateRiskAnalysisPrivate],
       personalData: eserviceTemplate.personalData,
       asyncExchange: undefined,
       descriptors: [

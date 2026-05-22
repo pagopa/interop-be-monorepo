@@ -1,12 +1,13 @@
-import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
@@ -21,7 +22,6 @@ import {
   Technology,
   Tenant,
   TenantId,
-  TenantKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -29,10 +29,14 @@ import {
   operationForbidden,
   technology,
   EServiceTemplateId,
+  RiskAnalysisId,
   type EServiceAttribute,
   type EserviceAttributes,
+  TenantKind,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
@@ -55,10 +59,12 @@ import {
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
+  riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -226,15 +232,15 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -260,6 +266,14 @@ export function assertRiskAnalysisIsValidForPublication(
   const dateForRiskAnalysisValidation = firstPublishedAt ?? new Date();
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
+        currentTenantKind: tenantKind,
+        eserviceId: eservice.id,
+        riskAnalysisId: riskAnalysis.id,
+      });
+    }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
         riskAnalysis.riskAnalysisForm
@@ -274,6 +288,35 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+function assertRiskAnalysisTenantKindMatch({
+  actualKind,
+  currentTenantKind,
+  eserviceId,
+  riskAnalysisId,
+}: {
+  actualKind: TenantKind | undefined;
+  currentTenantKind: TenantKind;
+  eserviceId: EServiceId;
+  riskAnalysisId: RiskAnalysisId;
+}): void {
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentTenantKind,
+      eserviceId,
+      riskAnalysisId
+    );
+  }
 }
 
 export function assertInterfaceDeletableDescriptorState(

@@ -4,7 +4,7 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV2(
@@ -19,66 +19,58 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "EServiceAdded" },
-      { type: "DraftEServiceUpdated" },
-      { type: "EServiceCloned" },
-      { type: "EServiceDescriptorAdded" },
-      { type: "EServiceDraftDescriptorDeleted" },
-      { type: "EServiceDraftDescriptorUpdated" },
-      { type: "EServiceDescriptorQuotasUpdated" },
-      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
-      { type: "EServiceDescriptorActivated" },
-      { type: "EServiceDescriptorArchived" },
-      { type: "EServiceDescriptorPublished" },
-      { type: "EServiceDescriptorSuspended" },
-      { type: "EServiceDescriptorInterfaceAdded" },
-      { type: "EServiceDescriptorDocumentAdded" },
-      { type: "EServiceDescriptorInterfaceUpdated" },
-      { type: "EServiceDescriptorDocumentUpdated" },
-      { type: "EServiceDescriptorInterfaceDeleted" },
-      { type: "EServiceDescriptorDocumentDeleted" },
-      { type: "EServiceRiskAnalysisAdded" },
-      { type: "EServiceRiskAnalysisUpdated" },
-      { type: "EServiceRiskAnalysisDeleted" },
-      { type: "EServiceDescriptionUpdated" },
-      async (message) => {
-        const eservice = message.data.eservice;
-        if (!eservice) {
-          throw missingKafkaMessageDataError("eservice", message.type);
-        }
-
-        return await catalogWriterService.upsertEService(
-          fromEServiceV2(eservice),
-          message.version
-        );
-      }
-    )
-    .with(
-      { type: "EServiceIsConsumerDelegableEnabled" },
-      { type: "EServiceIsConsumerDelegableDisabled" },
-      { type: "EServiceIsClientAccessDelegableEnabled" },
-      { type: "EServiceIsClientAccessDelegableDisabled" },
-      { type: "EServiceDescriptorSubmittedByDelegate" },
-      { type: "EServiceDescriptorApprovedByDelegator" },
-      { type: "EServiceDescriptorRejectedByDelegator" },
-      { type: "EServiceDescriptorAttributesUpdated" },
-      { type: "EServiceNameUpdated" },
-      { type: "EServiceNameUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
-      { type: "EServiceSignalHubEnabled" },
-      { type: "EServiceSignalHubDisabled" },
-      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
-      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
-      { type: "EServiceInstanceLabelUpdated" },
-      { type: "MaintenanceEServicePersonalDataFlagReset" },
+      {
+        type: P.union(
+          "EServiceAdded",
+          "DraftEServiceUpdated",
+          "EServiceCloned",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorArchived",
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptionUpdated",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorApprovedByDelegator",
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceNameUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+        ),
+      },
       async (message) => {
         const eservice = message.data.eservice;
         if (!eservice) {

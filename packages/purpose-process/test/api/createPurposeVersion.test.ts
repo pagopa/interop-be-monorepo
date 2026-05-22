@@ -30,15 +30,13 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
   const mockPurpose: Purpose = getMockPurpose([mockPurposeVersion]);
   const defaultBody: purposeApi.PurposeVersionSeed = { dailyCalls: 10 };
-  const isRiskAnalysisValid = true;
   const serviceResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
     createdVersionId: mockPurposeVersion.id,
   });
 
   const apiResponse = purposeApi.CreatedPurposeVersion.parse({
-    purpose: purposeToApiPurpose(mockPurpose, isRiskAnalysisValid),
+    purpose: purposeToApiPurpose(mockPurpose),
     createdVersionId: mockPurposeVersion.id,
   });
 

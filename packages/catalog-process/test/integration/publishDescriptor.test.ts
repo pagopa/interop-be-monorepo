@@ -45,6 +45,7 @@ import {
   missingPersonalDataFlag,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
+  riskAnalysisTenantKindMismatch,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -716,6 +717,113 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(riskAnalysisNotValid());
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the eService has mode Receive and a risk analysis has a mismatching tenantKind", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        eservice.id,
+        riskAnalysis.id
+      )
+    );
+  });
+
+  it("should write on event-store for the publication of a descriptor with mode Receive when producer is GSP and risk analysis tenant kind is PRIVATE", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: tenantKind.GSP,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor],
+      riskAnalysis: [riskAnalysis],
+      personalData: true,
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    const publishDescriptorResponse = await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorPublished",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorPublishedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    expect(publishDescriptorResponse).toEqual({
+      data: expectedEservice,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should throw audienceCannotBeEmpty if the descriptor audience is an empty array", async () => {

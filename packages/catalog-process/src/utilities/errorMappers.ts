@@ -302,6 +302,7 @@ export const publishDescriptorErrorMapper = (
       "eServiceDescriptorWithoutInterface",
       "eServiceRiskAnalysisIsRequired",
       "riskAnalysisNotValid",
+      "riskAnalysisTenantKindMismatch",
       "notValidDescriptor",
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
@@ -378,6 +379,7 @@ export const createRiskAnalysisErrorMapper = (
       "eserviceNotInDraftState",
       "eserviceNotInReceiveMode",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
@@ -421,6 +423,18 @@ export const deleteRiskAnalysisErrorMapper = (
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceRiskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceDescriptionErrorMapper = (

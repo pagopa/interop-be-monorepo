@@ -8,7 +8,10 @@ import {
   PurposeVersionStampV2,
   PurposeVersionV2,
 } from "../gen/v2/purpose/purpose.js";
+import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
+import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import {
   Purpose,
   PurposeVersion,
@@ -81,9 +84,19 @@ export const toPurposeVersionV2 = (
     : undefined,
 });
 
+export const toPurposeRiskAnalysisFormV2 = (
+  input: PurposeRiskAnalysisForm
+): PurposeRiskAnalysisFormV2 => ({
+  ...input,
+  tenantKind: input.tenantKind ? toTenantKindV2(input.tenantKind) : undefined,
+});
+
 export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV2),
   createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigInt(input.updatedAt),
+  riskAnalysisForm: input.riskAnalysisForm
+    ? toPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
 });

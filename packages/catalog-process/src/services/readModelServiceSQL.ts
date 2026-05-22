@@ -35,6 +35,7 @@ import {
   EServiceDocumentId,
   stringToDate,
   AttributeKind,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -75,6 +76,7 @@ import {
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import {
   and,
   asc,
@@ -86,6 +88,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lte,
   notExists,
   or,
   SQL,
@@ -122,7 +125,8 @@ export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
   catalogReadModelService: CatalogReadModelService,
   tenantReadModelService: TenantReadModelService,
-  eserviceTemplateReadModelService: EServiceTemplateReadModelService
+  eserviceTemplateReadModelService: EServiceTemplateReadModelService,
+  tenantKindHistoryDB: DrizzleReturnType
 ) {
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -585,6 +589,23 @@ export function readModelServiceBuilderSQL(
       id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceById(id);
+    },
+    async getTenantKindAt(
+      tenantId: TenantId,
+      date: Date
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(
+          and(
+            eq(tenantKindHistory.tenantId, tenantId),
+            lte(tenantKindHistory.modifiedAt, date.toISOString())
+          )
+        )
+        .orderBy(desc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
     async getEServiceConsumers(
       eserviceId: EServiceId,

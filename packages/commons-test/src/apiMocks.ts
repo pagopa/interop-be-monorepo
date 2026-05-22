@@ -59,7 +59,6 @@ export function getMockedApiPurpose({
     title: generateMock(z.string().length(10)),
     description: generateMock(z.string().length(10)),
     createdAt: new Date().toISOString(),
-    isRiskAnalysisValid: true,
     isFreeOfCharge: true,
     freeOfChargeReason: generateMock(z.string()),
     purposeTemplateId: generateMock(z.string().uuid().optional()),
