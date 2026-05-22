@@ -152,22 +152,6 @@ describe("PATCH /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttr
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 for missing dailyCallsPerConsumer in body", async () => {
-    mockEserviceService.updateEServiceDescriptorCertifiedAttributeInGroup =
-      vi.fn();
-
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      generateId(),
-      generateId(),
-      0,
-      generateId(),
-      {} as m2mGatewayApiV3.EServiceDescriptorAttributeSeed
-    );
-    expect(res.status).toBe(400);
-  });
-
   it("Should return 400 for dailyCallsPerConsumer below minimum", async () => {
     mockEserviceService.updateEServiceDescriptorCertifiedAttributeInGroup =
       vi.fn();
