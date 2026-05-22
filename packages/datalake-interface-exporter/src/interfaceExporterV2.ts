@@ -85,7 +85,10 @@ export async function exportInterfaceV2(
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
           "EServiceArchivingCompleted",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => undefined

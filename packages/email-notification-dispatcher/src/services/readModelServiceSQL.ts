@@ -4,6 +4,7 @@ import {
   delegationKind,
   delegationState,
   NotificationType,
+  ProducerKeychainId,
   TenantNotificationConfig,
   UserRole,
 } from "pagopa-interop-models";
@@ -28,6 +29,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  ProducerKeychainReadModelService,
   PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
@@ -49,6 +51,7 @@ export function readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
   notificationTypeBlocklist = [],
+  producerKeychainReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -59,6 +62,7 @@ export function readModelServiceBuilderSQL({
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
   notificationTypeBlocklist?: NotificationType[];
+  producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
 }) {
   return {
     notificationTypeBlocklist,
@@ -158,6 +162,17 @@ export function readModelServiceBuilderSQL({
     ): Promise<EService[]> {
       return await catalogReadModelServiceSQL.getEServicesByFilter(
         eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
+    },
+    async eserviceExistsInOtherProducerKeychains(
+      eserviceId: EServiceId,
+      producerId: TenantId,
+      excludeKeychainId: ProducerKeychainId
+    ): Promise<boolean> {
+      return producerKeychainReadModelServiceSQL.eserviceExistsInOtherProducerKeychains(
+        eserviceId,
+        producerId,
+        excludeKeychainId
       );
     },
   };

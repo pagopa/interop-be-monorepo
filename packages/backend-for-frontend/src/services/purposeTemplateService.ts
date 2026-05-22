@@ -4,11 +4,11 @@ import { randomUUID } from "crypto";
 import {
   bffApi,
   catalogApi,
+  eserviceTemplateApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
-  assertFeatureFlagEnabled,
   FileManager,
   validateAndStorePDFDocument,
   WithLogger,
@@ -19,6 +19,7 @@ import {
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { config } from "../config/config.js";
@@ -28,15 +29,38 @@ import {
   toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
   toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
+  toBffLinkableEService,
+  toBffLinkableEServiceTemplate,
   toCompactPurposeTemplateEService,
+  toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
-import { eserviceDescriptorNotFound, tenantNotFound } from "../model/errors.js";
+import {
+  eserviceDescriptorNotFound,
+  eServiceNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
+  tenantNotFound,
+} from "../model/errors.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
+import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+
+const FETCH_ALL_PAGE = 50;
+
+type LinkableResourceRow =
+  | {
+      kind: "ESERVICE";
+      link: purposeTemplateApi.EServiceDescriptorPurposeTemplate;
+    }
+  | {
+      kind: "ESERVICE_TEMPLATE";
+      link: purposeTemplateApi.EServiceTemplateVersionPurposeTemplate;
+    };
 
 export function purposeTemplateServiceBuilder(
   purposeTemplateClient: purposeTemplateApi.PurposeTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   catalogProcessClient: catalogApi.CatalogProcessClient,
+  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   fileManager: FileManager
 ) {
   async function getTenantsFromPurposeTemplates(
@@ -57,12 +81,191 @@ export function purposeTemplateServiceBuilder(
     return new Map(tenants.map((t) => [t.id, t]));
   }
 
+  async function fetchAllConcreteLinks(
+    purposeTemplateId: string,
+    publisherIds: string[],
+    q: string | undefined,
+    headers: BffAppContext["headers"]
+  ): Promise<purposeTemplateApi.EServiceDescriptorPurposeTemplate[]> {
+    const acc: purposeTemplateApi.EServiceDescriptorPurposeTemplate[] = [];
+    // eslint-disable-next-line functional/no-let
+    let offset = 0;
+    while (true) {
+      const data = await purposeTemplateClient.getPurposeTemplateEServices({
+        params: { id: purposeTemplateId },
+        queries: {
+          producerIds: publisherIds,
+          eserviceName: q,
+          offset,
+          limit: FETCH_ALL_PAGE,
+        },
+        headers,
+      });
+      acc.push(...data.results);
+      if (
+        data.results.length < FETCH_ALL_PAGE ||
+        acc.length >= data.totalCount
+      ) {
+        break;
+      }
+      offset += FETCH_ALL_PAGE;
+    }
+    return acc;
+  }
+
+  async function fetchAllTemplateLinks(
+    purposeTemplateId: string,
+    publisherIds: string[],
+    q: string | undefined,
+    headers: BffAppContext["headers"]
+  ): Promise<purposeTemplateApi.EServiceTemplateVersionPurposeTemplate[]> {
+    const acc: purposeTemplateApi.EServiceTemplateVersionPurposeTemplate[] = [];
+    // eslint-disable-next-line functional/no-let
+    let offset = 0;
+    while (true) {
+      const data =
+        await purposeTemplateClient.getPurposeTemplateEServiceTemplates({
+          params: { id: purposeTemplateId },
+          queries: {
+            creatorIds: publisherIds,
+            eserviceTemplateName: q,
+            offset,
+            limit: FETCH_ALL_PAGE,
+          },
+          headers,
+        });
+      acc.push(...data.results);
+      if (
+        data.results.length < FETCH_ALL_PAGE ||
+        acc.length >= data.totalCount
+      ) {
+        break;
+      }
+      offset += FETCH_ALL_PAGE;
+    }
+    return acc;
+  }
+
+  async function enrichLinkableResourcePage(
+    page: LinkableResourceRow[],
+    headers: BffAppContext["headers"]
+  ): Promise<bffApi.LinkableResource[]> {
+    const eserviceIds = Array.from(
+      new Set(
+        page.flatMap((p) => (p.kind === "ESERVICE" ? [p.link.eserviceId] : []))
+      )
+    );
+    const eserviceTemplateIds = Array.from(
+      new Set(
+        page.flatMap((p) =>
+          p.kind === "ESERVICE_TEMPLATE" ? [p.link.eserviceTemplateId] : []
+        )
+      )
+    );
+
+    const [eservices, eserviceTemplates] = await Promise.all([
+      eserviceIds.length === 0
+        ? Promise.resolve([] as catalogApi.EService[])
+        : catalogProcessClient
+            .getEServices({
+              headers,
+              queries: {
+                eservicesIds: eserviceIds,
+                offset: 0,
+                limit: eserviceIds.length,
+              },
+            })
+            .then(({ results }) => results),
+      eserviceTemplateIds.length === 0
+        ? Promise.resolve([] as eserviceTemplateApi.EServiceTemplate[])
+        : eserviceTemplateProcessClient
+            .getEServiceTemplates({
+              headers,
+              queries: {
+                eserviceTemplatesIds: eserviceTemplateIds,
+                offset: 0,
+                limit: eserviceTemplateIds.length,
+              },
+            })
+            .then(({ results }) => results),
+    ]);
+
+    const eserviceById = new Map(eservices.map((e) => [e.id, e]));
+    const eserviceTemplateById = new Map(
+      eserviceTemplates.map((t) => [t.id, t])
+    );
+
+    const tenantIds = Array.from(
+      new Set([
+        ...eservices.map((e) => e.producerId),
+        ...eserviceTemplates.map((t) => t.creatorId),
+      ])
+    );
+    const tenants = await Promise.all(
+      tenantIds.map((id) =>
+        tenantProcessClient.tenant.getTenant({ headers, params: { id } })
+      )
+    );
+    const tenantById = new Map(tenants.map((t) => [t.id, t]));
+
+    return page.map((entry) =>
+      match(entry)
+        .with({ kind: "ESERVICE" }, ({ link }) => {
+          const eservice = eserviceById.get(link.eserviceId);
+          if (!eservice) {
+            throw eServiceNotFound(link.eserviceId);
+          }
+          const descriptor = eservice.descriptors.find(
+            (d) => d.id === link.descriptorId
+          );
+          if (!descriptor) {
+            throw eserviceDescriptorNotFound(eservice.id, link.descriptorId);
+          }
+          const producer = tenantById.get(eservice.producerId);
+          if (!producer) {
+            throw tenantNotFound(eservice.producerId);
+          }
+          return toBffLinkableEService(
+            link,
+            toCompactPurposeTemplateEService(eservice, producer),
+            toCompactDescriptor(descriptor)
+          );
+        })
+        .with({ kind: "ESERVICE_TEMPLATE" }, ({ link }) => {
+          const eserviceTemplate = eserviceTemplateById.get(
+            link.eserviceTemplateId
+          );
+          if (!eserviceTemplate) {
+            throw eserviceTemplateNotFound(link.eserviceTemplateId);
+          }
+          const version = eserviceTemplate.versions.find(
+            (v) => v.id === link.eserviceTemplateVersionId
+          );
+          if (!version) {
+            throw eserviceTemplateVersionNotFound(
+              link.eserviceTemplateId,
+              link.eserviceTemplateVersionId
+            );
+          }
+          const creator = tenantById.get(eserviceTemplate.creatorId);
+          if (!creator) {
+            throw tenantNotFound(eserviceTemplate.creatorId);
+          }
+          return toBffLinkableEServiceTemplate(
+            link,
+            toCompactPurposeTemplateEServiceTemplate(eserviceTemplate, creator),
+            toBffCompactEServiceTemplateVersion(version)
+          );
+        })
+        .exhaustive()
+    );
+  }
+
   return {
     async createPurposeTemplate(
       seed: bffApi.PurposeTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(`Creating purpose template`);
       const result = await purposeTemplateClient.createPurposeTemplate(seed, {
         headers,
@@ -78,8 +281,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
       );
-
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
         {
@@ -104,8 +305,6 @@ export function purposeTemplateServiceBuilder(
         `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
       );
 
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
         {
           eserviceIds: [eserviceId],
@@ -117,6 +316,83 @@ export function purposeTemplateServiceBuilder(
           headers,
         }
       );
+    },
+    async linkResourceToPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.LinkableResourceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.LinkedResource> {
+      return await match(body)
+        .with(
+          { resourceKind: "ESERVICE" },
+          async ({ eserviceId }): Promise<bffApi.LinkedResource> => {
+            logger.info(
+              `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServicesToPurposeTemplate(
+                { eserviceIds: [eserviceId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE", ...link };
+          }
+        )
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({ eserviceTemplateId }): Promise<bffApi.LinkedResource> => {
+            logger.info(
+              `Linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+            );
+            const result =
+              await purposeTemplateClient.linkEServiceTemplatesToPurposeTemplate(
+                { eserviceTemplateIds: [eserviceTemplateId] },
+                { params: { id: purposeTemplateId }, headers }
+              );
+            const link = result[0];
+            if (!link) {
+              throw new Error(
+                `Unexpected empty response from purpose-template-process while linking e-service template ${eserviceTemplateId} to purpose template ${purposeTemplateId}`
+              );
+            }
+            return { resourceKind: "ESERVICE_TEMPLATE", ...link };
+          }
+        )
+        .exhaustive();
+    },
+    async unlinkResourceFromPurposeTemplate(
+      purposeTemplateId: PurposeTemplateId,
+      body: bffApi.LinkableResourceRequest,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await match(body)
+        .with({ resourceKind: "ESERVICE" }, async ({ eserviceId }) => {
+          logger.info(
+            `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
+          );
+          await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
+            { eserviceIds: [eserviceId] },
+            { params: { id: purposeTemplateId }, headers }
+          );
+        })
+        .with(
+          { resourceKind: "ESERVICE_TEMPLATE" },
+          async ({ eserviceTemplateId }) => {
+            logger.info(
+              `Unlinking e-service template ${eserviceTemplateId} from purpose template ${purposeTemplateId}`
+            );
+            await purposeTemplateClient.unlinkEServiceTemplatesFromPurposeTemplate(
+              { eserviceTemplateIds: [eserviceTemplateId] },
+              { params: { id: purposeTemplateId }, headers }
+            );
+          }
+        )
+        .exhaustive();
     },
     async getCreatorPurposeTemplates({
       purposeTitle,
@@ -133,8 +409,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CreatorPurposeTemplates> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, authData, logger } = ctx;
 
       logger.info(
@@ -186,7 +460,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.CatalogPurposeTemplates> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const { headers, logger } = ctx;
 
       logger.info(
@@ -251,8 +524,6 @@ export function purposeTemplateServiceBuilder(
       limit: number;
       ctx: WithLogger<BffAppContext>;
     }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -317,6 +588,63 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
+    async getPurposeTemplateLinkableResources({
+      purposeTemplateId,
+      publisherIds,
+      q,
+      offset,
+      limit,
+      ctx,
+    }: {
+      purposeTemplateId: string;
+      publisherIds: string[];
+      q?: string;
+      offset: number;
+      limit: number;
+      ctx: WithLogger<BffAppContext>;
+    }): Promise<bffApi.LinkableResources> {
+      const { headers, logger } = ctx;
+
+      logger.info(
+        `Retrieving linkable resources (concrete + templates) for purpose template ${purposeTemplateId} with q ${q}, publisherIds ${publisherIds.toString()}, offset ${offset}, limit ${limit}`
+      );
+
+      // Multi round-trip pagination is not snapshot-isolated: concurrent
+      // writes during the iteration may cause individual links to be skipped
+      // (a delete shifts subsequent items into offsets we already fetched)
+      // or missed (an insert lands past the loop's bound). Accepted at the
+      // target dimension (<200 links per purpose template, ~100ms total);
+      // subsequent client calls converge.
+      const [concreteLinks, templateLinks] = await Promise.all([
+        fetchAllConcreteLinks(purposeTemplateId, publisherIds, q, headers),
+        fetchAllTemplateLinks(purposeTemplateId, publisherIds, q, headers),
+      ]);
+
+      const merged: LinkableResourceRow[] = [
+        ...concreteLinks.map(
+          (link): LinkableResourceRow => ({ kind: "ESERVICE", link })
+        ),
+        ...templateLinks.map(
+          (link): LinkableResourceRow => ({ kind: "ESERVICE_TEMPLATE", link })
+        ),
+      ];
+
+      // eslint-disable-next-line functional/immutable-data
+      merged.sort((a, b) => b.link.createdAt.localeCompare(a.link.createdAt));
+
+      const pageLinks = merged.slice(offset, offset + limit);
+
+      const results = await enrichLinkableResourcePage(pageLinks, headers);
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: merged.length,
+        },
+      };
+    },
     async getRiskAnalysisTemplateAnswerAnnotationDocument({
       purposeTemplateId,
       answerId,
@@ -328,8 +656,6 @@ export function purposeTemplateServiceBuilder(
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<Buffer> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -356,8 +682,6 @@ export function purposeTemplateServiceBuilder(
       id: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplateWithCompactCreator> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Retrieving Purpose Template ${id}`);
 
       const result = await purposeTemplateClient.getPurposeTemplate({
@@ -395,8 +719,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Publishing purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.publishPurposeTemplate(undefined, {
         params: {
@@ -409,8 +731,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Unsuspending purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.unsuspendPurposeTemplate(undefined, {
         params: {
@@ -423,8 +743,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Suspending purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.suspendPurposeTemplate(undefined, {
         params: {
@@ -437,8 +755,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Archiving purpose template ${purposeTemplateId}`);
       await purposeTemplateClient.archivePurposeTemplate(undefined, {
         params: {
@@ -453,7 +769,6 @@ export function purposeTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeTemplate> {
       logger.info(`Updating purpose template ${id}`);
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       const updatedPurposeTemplate =
         await purposeTemplateClient.updatePurposeTemplate(seed, {
           headers,
@@ -471,7 +786,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Adding annotation document to purpose template ${purposeTemplateId} and answer ${answerId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const documentId = randomUUID();
 
@@ -518,7 +832,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Downloading risk analysis template document from purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const unsignedDocument =
         await purposeTemplateClient.getRiskAnalysisTemplateDocument({
@@ -541,7 +854,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Downloading signed risk analysis template document from purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
 
       const signedDocument =
         await purposeTemplateClient.getRiskAnalysisTemplateSignedDocument({
@@ -565,7 +877,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Creating risk analysis answer for purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.addRiskAnalysisAnswerForPurposeTemplate(
         seed,
         {
@@ -585,7 +896,6 @@ export function purposeTemplateServiceBuilder(
       logger.info(
         `Adding risk analysis answer annotation for purpose template ${purposeTemplateId}`
       );
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       return await purposeTemplateClient.addRiskAnalysisAnswerAnnotationForPurposeTemplate(
         seed,
         {
@@ -601,8 +911,6 @@ export function purposeTemplateServiceBuilder(
       purposeTemplateId: PurposeTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       logger.info(`Deleting purpose template ${purposeTemplateId}`);
 
       await purposeTemplateClient.deletePurposeTemplate(undefined, {
@@ -621,8 +929,6 @@ export function purposeTemplateServiceBuilder(
       answerId: PurposeTemplateId;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -651,8 +957,6 @@ export function purposeTemplateServiceBuilder(
       documentId: string;
       ctx: WithLogger<BffAppContext>;
     }): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(
@@ -678,8 +982,6 @@ export function purposeTemplateServiceBuilder(
       body: bffApi.UpdateRiskAnalysisTemplateAnswerAnnotationDocumentSeed,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisTemplateAnswerAnnotationDocument> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
-
       const { headers, logger } = ctx;
 
       logger.info(

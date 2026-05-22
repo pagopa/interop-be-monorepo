@@ -145,6 +145,12 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         ),
       }
     : undefined,
+  asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface
+    ? toDocumentV2(input.asyncExchangeCallbackInterface)
+    : undefined,
+  asyncExchangeProperties: input.asyncExchangeProperties
+    ? { ...input.asyncExchangeProperties }
+    : undefined,
 });
 
 export const toRiskAnalysisV2 = (

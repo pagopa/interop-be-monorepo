@@ -22,6 +22,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -45,6 +46,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceRiskAnalysisInReadmodelCatalog,
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
       eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     ];
 
     for (const table of catalogTables) {
@@ -117,6 +119,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           rejectionReasonsSQL,
           templateVersionRefsSQL,
           archivingSchedulesSQL,
+          asyncExchangePropertiesSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -173,6 +176,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
             .values(archivingScheduleSQL);
+        }
+
+        for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+          await tx
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropsSQL);
         }
       });
     },
@@ -289,12 +298,15 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             )
           );
 
-        const interfaceSQL = documentToDocumentSQL(
-          descriptorInterface,
-          descriptorId,
-          eserviceId,
-          metadataVersion
-        );
+        const interfaceSQL = {
+          ...documentToDocumentSQL(
+            descriptorInterface,
+            descriptorId,
+            eserviceId,
+            metadataVersion
+          ),
+          kind: "INTERFACE",
+        };
 
         await tx
           .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
@@ -479,10 +491,11 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
         const {
           descriptorSQL,
           attributesSQL,
-          interfaceSQL,
+          interfacesSQL,
           documentsSQL,
           rejectionReasonsSQL,
           archivingScheduleSQL,
+          asyncExchangePropertiesSQL,
         } = splitDescriptorIntoObjectsSQL(
           eserviceId,
           descriptor,
@@ -493,7 +506,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           .insert(eserviceDescriptorInReadmodelCatalog)
           .values(descriptorSQL);
 
-        if (interfaceSQL) {
+        for (const interfaceSQL of interfacesSQL) {
           await tx
             .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
             .values(interfaceSQL);
@@ -521,6 +534,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
             .values(archivingScheduleSQL);
+        }
+
+        if (asyncExchangePropertiesSQL) {
+          await tx
+            .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+            .values(asyncExchangePropertiesSQL);
         }
 
         await updateMetadataVersionInCatalogTables(

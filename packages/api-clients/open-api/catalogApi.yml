@@ -3017,6 +3017,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -3046,6 +3048,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -3069,6 +3073,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     UpdateEServiceTemplateInstanceSeed:
@@ -3171,6 +3178,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3253,6 +3262,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3288,6 +3299,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3319,6 +3332,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3564,6 +3579,8 @@ components:
           type: boolean
         archivingReason:
           type: string
+        asyncExchange:
+          type: boolean
 
     CreatedEServiceRiskAnalysis:
       type: object
@@ -3933,6 +3950,10 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
     ArchivingSchedule:
@@ -4017,6 +4038,41 @@ components:
         - certified
         - declared
         - verified
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTechnology:
       type: string
       description: API Technology
@@ -4041,6 +4097,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     AgreementState:
       type: string
       description: Agreement State
@@ -4119,6 +4176,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     EServiceInstanceLabelUpdateSeed:
       type: object
       additionalProperties: false

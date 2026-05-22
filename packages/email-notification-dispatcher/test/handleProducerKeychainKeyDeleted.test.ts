@@ -3,6 +3,7 @@ import {
   getMockContext,
   getMockKey,
   getMockProducerKeychain,
+  getMockTenantMail,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
@@ -64,7 +65,10 @@ describe("handleProducerKeychainKeyDeleted", async () => {
     users: [userId1, userId2, userId3],
   };
 
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = {
+    ...getMockTenant(producerId),
+    mails: [getMockTenantMail()],
+  };
   const users = [
     getMockUser(producerTenant.id, userId1),
     getMockUser(producerTenant.id, userId2),
@@ -161,8 +165,8 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Should send to userId2 and userId3 (remaining users), not userId1 (deleted key)
-    expect(messages.length).toEqual(2);
+    // Should send to userId2 and userId3 (remaining users), plus tenant contact email
+    expect(messages.length).toEqual(3);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -178,6 +182,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
         (message) => message.type === "User" && message.userId === users[2].id
       )
     ).toBe(true);
+    expect(messages.some((message) => message.type === "Tenant")).toBe(true);
   });
 
   it("should not generate a message if the user disabled this email notification", async () => {
@@ -210,8 +215,8 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    // Only userId3 has notifications enabled and still is part of producerKeychain
-    expect(messages.length).toEqual(1);
+    // Only userId3 has notifications enabled and still is part of producerKeychain, plus tenant contact email
+    expect(messages.length).toEqual(2);
     expect(
       messages.some(
         (message) => message.type === "User" && message.userId === users[0].id
@@ -227,6 +232,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
         (message) => message.type === "User" && message.userId === users[2].id
       )
     ).toBe(true);
+    expect(messages.some((message) => message.type === "Tenant")).toBe(true);
   });
 
   it("should generate a complete and correct message", async () => {
@@ -248,7 +254,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    expect(messages.length).toBe(2);
+    expect(messages.length).toBe(3);
     messages.forEach((message) => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");

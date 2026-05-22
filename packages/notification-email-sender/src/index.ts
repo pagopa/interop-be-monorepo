@@ -153,6 +153,10 @@ export async function handleCatalogMessage(
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          // TODO: Handle async exchange callback interface events if notification is needed
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceInstanceLabelUpdated",
           // FIXME these events will be managed with "WORK ITEM 10"
           "EServiceDescriptorArchivingScheduled",

@@ -18,7 +18,8 @@ message EServiceV2 {
   optional string templateId = 13;
   optional bool personalData = 14;
   optional string instanceLabel = 15;
-  optional string archivingReason = 16;
+  optional bool asyncExchange = 16;
+  optional string archivingReason = 17;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -89,7 +90,9 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
-  optional ArchivingScheduleV2 archivingSchedule = 21;
+  optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
+  optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
+  optional ArchivingScheduleV2 archivingSchedule = 23;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -102,6 +105,14 @@ message TemplateInstanceInterfaceMetadataV2 {
 message EServiceTemplateVersionRefV2 {
   string id = 1;
   optional TemplateInstanceInterfaceMetadataV2 interfaceMetadata = 2;
+}
+
+message AsyncExchangePropertiesV2 {
+  int32 responseTime = 1;
+  int32 resourceAvailableTime = 2;
+  bool confirmation = 3;
+  bool bulk = 4;
+  int32 maxResultSet = 5;
 }
 
 message EServiceDocumentV2 {

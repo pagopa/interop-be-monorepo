@@ -300,6 +300,20 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getPurposeTemplateLinkableResourcesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const addPurposeTemplateAnnotationDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

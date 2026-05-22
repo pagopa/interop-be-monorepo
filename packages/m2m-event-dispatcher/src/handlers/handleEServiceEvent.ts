@@ -131,7 +131,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingCanceled",
-            "EServiceDescriptorArchivingCompleted"
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
           ),
         },
         async (event) => {
