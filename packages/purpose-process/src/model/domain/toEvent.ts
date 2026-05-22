@@ -6,7 +6,6 @@ import {
   PurposeEventV2,
   PurposeId,
   PurposeVersionId,
-  RiskAnalysisId,
   toPurposeV2,
 } from "pagopa-interop-models";
 
@@ -75,12 +74,10 @@ export const toCreateEventDraftPurposeUpdated = ({
 
 export const toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind = ({
   purpose,
-  riskAnalysisId,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  riskAnalysisId: RiskAnalysisId;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -89,7 +86,7 @@ export const toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind = ({
   event: {
     type: "MaintenancePurposeRiskAnalysisSetTenantKind",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), riskAnalysisId },
+    data: { purpose: toPurposeV2(purpose) },
   },
   correlationId,
 });

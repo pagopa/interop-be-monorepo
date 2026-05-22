@@ -193,8 +193,7 @@ describe("riskAnalysisProcessingService", () => {
         RAids.some(
           (couple) =>
             // [0]body, [1]params
-            couple.purpose === call[1].params.purposeId &&
-            couple.riskAnalysis === call[1].params.riskAnalysisId
+            couple.purpose === call[1].params.purposeId
         )
       ).toBeTruthy();
     });

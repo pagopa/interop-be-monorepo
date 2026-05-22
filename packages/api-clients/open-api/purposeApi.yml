@@ -1355,20 +1355,13 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /maintenance/purposes/{purposeId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+  /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: purposeId
           in: path
           description: the purpose id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: riskAnalysisId
-          in: path
-          description: the risk analysis id
           required: true
           schema:
             type: string

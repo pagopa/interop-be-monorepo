@@ -447,7 +447,7 @@ const purposeRouter = (
       }
     )
     .post(
-      "/maintenance/purposes/:purposeId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      "/maintenance/purposes/:purposeId/riskAnalysis/tenantKind/fix",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -457,7 +457,6 @@ const purposeRouter = (
           const { data, metadata } =
             await purposeService.fixPurposeRiskAnalysisTenantKind(
               unsafeBrandId(req.params.purposeId),
-              unsafeBrandId(req.params.riskAnalysisId),
               ctx
             );
 
