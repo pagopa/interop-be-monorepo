@@ -65,17 +65,21 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertRiskAnalysisTenantKindMatch = ({
   actualKind,
-  expectedKind,
+  currentTenantKind,
   riskAnalysisFormId,
 }: {
   actualKind: TenantKind | undefined;
-  expectedKind: TenantKind;
+  currentTenantKind: TenantKind;
   riskAnalysisFormId: RiskAnalysisFormId;
 }): void => {
-  if (actualKind && actualKind !== expectedKind) {
+  // TODO after the fix
+  // if (actualKind === undefined) {
+  //   throw missingTenantKindError();
+  // }
+  if (actualKind && actualKind !== currentTenantKind) {
     throw riskAnalysisTenantKindMismatch(
       actualKind,
-      expectedKind,
+      currentTenantKind,
       riskAnalysisFormId
     );
   }
@@ -134,17 +138,20 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
+  fallbackTenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
   riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
+  fallbackTenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -159,6 +166,7 @@ export function validateRiskAnalysisOrThrow({
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -168,6 +176,7 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -793,6 +802,7 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
   return validateAndTransformRiskAnalysis(
     formToValidate,
     false,
+    tenantKind,
     createdAt,
     eservicePersonalData
   );

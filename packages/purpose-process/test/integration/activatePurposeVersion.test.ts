@@ -1430,6 +1430,7 @@ describe("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
+      undefined,
       new Date(),
       undefined
     );

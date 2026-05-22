@@ -102,6 +102,7 @@ export async function toM2MGatewayApiPurpose(
           ? validateRiskAnalysis(
               { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind },
               false,
+              consumer.data.kind,
               new Date(),
               eservice.data.personalData
             ).type === "valid"

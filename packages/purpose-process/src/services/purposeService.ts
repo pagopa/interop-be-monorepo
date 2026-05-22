@@ -1123,10 +1123,16 @@ export function purposeServiceBuilder(
         }
         // the validation for receive mode is redundant because the same one has been already performed when the risk analysis has been added to the eservice
         if (eservice.mode === eserviceMode.deliver) {
+          const tenantKind = await retrieveTenantKind(
+            purpose.data.consumerId,
+            readModelService
+          );
+
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
+            fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1375,6 +1381,7 @@ export function purposeServiceBuilder(
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         riskAnalysisFormToValidate,
         false,
+        tenantKindToWriteInRA,
         createdAt,
         eservice.personalData
       );
@@ -2156,6 +2163,7 @@ const performUpdatePurpose = async (
           const validated = validateAndTransformRiskAnalysis(
             riskAnalysisFormToValidate,
             true,
+            tenantKind,
             new Date(),
             eservice.personalData
           );
@@ -2354,7 +2362,7 @@ async function activatePurposeLogic({
       );
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysisForm.tenantKind,
-        expectedKind: tenantKind,
+        currentTenantKind: tenantKind,
         riskAnalysisFormId: riskAnalysisForm.id,
       });
     }
