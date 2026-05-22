@@ -60,7 +60,9 @@ describe("Agreement queries", () => {
         agreement.data.id
       );
 
-      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(agreement));
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(
+        sortAgreement(agreement)
+      );
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
@@ -98,7 +100,9 @@ describe("Agreement queries", () => {
         agreement.data.id
       );
 
-      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(agreement));
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(
+        sortAgreement(agreement)
+      );
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
@@ -172,7 +176,9 @@ describe("Agreement queries", () => {
         updatedAgreement.data.id
       );
 
-      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(updatedAgreement));
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(
+        sortAgreement(updatedAgreement)
+      );
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         updatedAgreement.data.certifiedAttributes.length +
