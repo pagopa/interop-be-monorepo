@@ -5,14 +5,11 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import {
-  eventMailTemplateType,
-  retrieveHTMLTemplate,
-  retrieveTenant,
-} from "../../services/utils.js";
+import { eventMailTemplateType, retrieveTenant } from "../../services/utils.js";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
+  retrieveHTMLTemplate,
 } from "pagopa-interop-notification-commons";
 import { config } from "../../config/config.js";
 import { ProducerKeychainKeyHandlerParams } from "../../models/handlerParams.js";
