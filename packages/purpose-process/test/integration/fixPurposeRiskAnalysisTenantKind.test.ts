@@ -22,6 +22,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   purposeNotFound,
+  unableToDetermineTenantKind,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -197,6 +198,41 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
         getMockContextInternal({})
       )
     ).rejects.toThrowError(tenantKindNotFound(purpose.consumerId));
+  });
+
+  it("Should throw unableToDetermineTenantKind when receive-mode has no reference date", async () => {
+    const producer = getMockTenant();
+    const riskAnalysisId = generateId<RiskAnalysisId>();
+    const riskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PRIVATE),
+      riskAnalysisId,
+      tenantKind: undefined,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+      producerId: producer.id,
+      personalData: false,
+      descriptors: [],
+      riskAnalysis: [],
+    };
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      riskAnalysisForm,
+    };
+
+    await addOneEService(eservice);
+    await addOnePurpose(purpose);
+
+    expect(
+      purposeService.fixPurposeRiskAnalysisTenantKind(
+        purpose.id,
+        getMockContextInternal({})
+      )
+    ).rejects.toThrowError(unableToDetermineTenantKind(producer.id));
   });
 
   it("Should throw purposeNotFound when purpose doesn't exist", async () => {

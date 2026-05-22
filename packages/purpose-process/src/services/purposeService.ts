@@ -81,6 +81,7 @@ import {
   tenantKindNotFound,
   tenantNotAllowed,
   tenantNotFound,
+  unableToDetermineTenantKind,
   unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import {
@@ -385,7 +386,7 @@ export function purposeServiceBuilder(
         .exhaustive();
 
       if (!referenceDate) {
-        throw tenantKindNotFound(tenantId);
+        throw unableToDetermineTenantKind(tenantId);
       }
 
       const historyKind = await readModelService.getTenantKindAt(
