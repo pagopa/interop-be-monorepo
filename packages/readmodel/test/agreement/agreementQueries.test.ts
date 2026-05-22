@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Agreement, WithMetadata } from "pagopa-interop-models";
-import { getMockAgreement } from "pagopa-interop-commons-test";
+import { getMockAgreement, sortAgreement } from "pagopa-interop-commons-test";
 import { upsertAgreement } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { agreementReadModelService } from "./agreementUtils.js";
@@ -27,7 +27,9 @@ describe("Agreement queries", () => {
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
 
-      expect(retrievedAgreement).toStrictEqual(agreement);
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(
+        sortAgreement(agreement)
+      );
     });
 
     it("agreement NOT found", async () => {

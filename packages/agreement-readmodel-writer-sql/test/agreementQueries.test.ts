@@ -3,6 +3,7 @@ import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
   getMockAgreementDocument,
   getMockAgreementStamp,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   agreementReadModelService,
@@ -59,7 +60,7 @@ describe("Agreement queries", () => {
         agreement.data.id
       );
 
-      expect(retrievedAgreement).toStrictEqual(agreement);
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(agreement));
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
@@ -97,7 +98,7 @@ describe("Agreement queries", () => {
         agreement.data.id
       );
 
-      expect(retrievedAgreement).toStrictEqual(agreement);
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(agreement));
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
@@ -171,7 +172,7 @@ describe("Agreement queries", () => {
         updatedAgreement.data.id
       );
 
-      expect(retrievedAgreement).toStrictEqual(updatedAgreement);
+      expect(sortAgreement(retrievedAgreement)).toStrictEqual(sortAgreement(updatedAgreement));
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         updatedAgreement.data.certifiedAttributes.length +

@@ -113,7 +113,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .orderBy(
-          purposeRiskAnalysisAnswerInReadmodelPurpose.id,
+          purposeRiskAnalysisAnswerInReadmodelPurpose.key,
           purposeVersionInReadmodelPurpose.id
         );
 
@@ -193,7 +193,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .orderBy(
-          purposeRiskAnalysisAnswerInReadmodelPurpose.id,
+          purposeRiskAnalysisAnswerInReadmodelPurpose.key,
           purposeVersionInReadmodelPurpose.id
         );
 

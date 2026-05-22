@@ -19,6 +19,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreement,
   sortAgreementV2,
   getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
@@ -314,7 +315,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
+      expect(sortAgreement(actualAgreementUpgraded)).toEqual(sortAgreement(expectedUpgradedAgreement));
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
         metadata: { version: 0 },
@@ -522,7 +523,7 @@ describe("upgrade Agreement", () => {
         updatedAt: undefined,
         rejectionReason: undefined,
       };
-      expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
+      expect(sortAgreement(actualAgreementUpgraded)).toEqual(sortAgreement(expectedUpgradedAgreement));
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
         metadata: { version: 0 },
@@ -762,7 +763,7 @@ describe("upgrade Agreement", () => {
             updatedAt: undefined,
             rejectionReason: undefined,
           };
-          expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
+          expect(sortAgreement(actualAgreementUpgraded)).toEqual(sortAgreement(expectedUpgradedAgreement));
           expect(upgradeAgreementResponse).toEqual({
             data: actualAgreementUpgraded,
             metadata: { version: 0 },

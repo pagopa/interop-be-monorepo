@@ -349,13 +349,17 @@ describe("activate agreement", () => {
           contract: actualAgreementActivated.contract,
         };
 
-        expect(actualAgreementActivated).toEqual(expectedActivatedAgreement);
+        expect(sortAgreement(actualAgreementActivated)).toEqual(
+          sortAgreement(expectedActivatedAgreement)
+        );
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(activateAgreementReturnValue).toEqual({
-          data: expectedActivatedAgreement,
-          metadata: { version: 1 },
-        });
+        expect(sortAgreement(activateAgreementReturnValue)).toEqual(
+          sortAgreement({
+            data: expectedActivatedAgreement,
+            metadata: { version: 1 },
+          })
+        );
       }
     );
 

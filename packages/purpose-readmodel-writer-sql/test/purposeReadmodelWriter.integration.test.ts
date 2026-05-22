@@ -3,6 +3,7 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionStamps,
+  sortPurpose,
   toPurposeV1,
   toPurposeVersionV1,
 } from "pagopa-interop-commons-test";
@@ -70,10 +71,12 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: mockPurpose,
         metadata: { version: 1 },
-      });
+      })
+    );
     });
 
     it("PurposeVersionCreated", async () => {
@@ -102,12 +105,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeUpdated", async () => {
@@ -135,12 +140,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionActivated", async () => {
@@ -174,12 +181,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionSuspended", async () => {
@@ -213,12 +222,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionArchived", async () => {
@@ -252,12 +263,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionWaitedForApproval", async () => {
@@ -294,12 +307,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
-        data: updatedPurpose,
-        metadata: {
-          version: 2,
-        },
-      });
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+        sortPurpose({
+          data: updatedPurpose,
+          metadata: {
+            version: 2,
+          },
+        })
+      );
     });
 
     it("PurposeVersionRejected", async () => {
@@ -337,12 +352,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionUpdated", async () => {
@@ -379,12 +396,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeDeleted", async () => {
@@ -459,12 +478,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
   });
 
@@ -513,12 +534,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: mockPurpose,
         metadata: {
           version: 1,
         },
-      });
+      })
+    );
     });
 
     it("DraftPurposeUpdated", async () => {
@@ -546,12 +569,14 @@ describe("Integration tests", async () => {
         mockPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("NewPurposeVersionActivated", async () => {
@@ -601,12 +626,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("NewPurposeVersionWaitingForApproval", async () => {
@@ -649,12 +676,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeActivated", async () => {
@@ -699,12 +728,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeArchived", async () => {
@@ -743,12 +774,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionOverQuotaUnsuspended", async () => {
@@ -793,12 +826,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
-        data: updatedPurpose,
-        metadata: {
-          version: 2,
-        },
-      });
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+        sortPurpose({
+          data: updatedPurpose,
+          metadata: {
+            version: 2,
+          },
+        })
+      );
     });
 
     it("PurposeVersionRejected", async () => {
@@ -839,12 +874,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionSuspendedByConsumer", async () => {
@@ -889,12 +926,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionSuspendedByProducer", async () => {
@@ -939,12 +978,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionUnsuspendedByConsumer", async () => {
@@ -999,12 +1040,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionUnsuspendedByProducer", async () => {
@@ -1058,12 +1101,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeWaitingForApproval", async () => {
@@ -1105,12 +1150,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("WaitingForApprovalPurposeVersionDeleted", async () => {
@@ -1155,12 +1202,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeVersionActivated", async () => {
@@ -1205,12 +1254,14 @@ describe("Integration tests", async () => {
         updatedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: updatedPurpose,
         metadata: {
           version: 2,
         },
-      });
+      })
+    );
     });
 
     it("PurposeCloned", async () => {
@@ -1247,12 +1298,14 @@ describe("Integration tests", async () => {
         clonedPurpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual({
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual(
+      sortPurpose({
         data: clonedPurpose,
         metadata: {
           version: 1,
         },
-      });
+      })
+    );
     });
   });
 });

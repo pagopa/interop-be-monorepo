@@ -3,7 +3,7 @@
 /* eslint-disable fp/no-delete */
 
 import { generateMock } from "@anatine/zod-mock";
-import { getMockAgreement } from "pagopa-interop-commons-test";
+import { getMockAgreement, sortAgreement } from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementActivatedV1,
@@ -174,13 +174,15 @@ describe("events V1", async () => {
 
     expect(updatedActualAgreement).not.toBeNull();
 
-    expect(updatedActualAgreement?.data).toStrictEqual({
-      ...agreement,
-      consumerDocuments: [
-        ...agreement.consumerDocuments,
-        agreementConsumerDocument,
-      ],
-    });
+    expect(sortAgreement(updatedActualAgreement?.data)).toStrictEqual(
+      sortAgreement({
+        ...agreement,
+        consumerDocuments: [
+          ...agreement.consumerDocuments,
+          agreementConsumerDocument,
+        ],
+      })
+    );
   });
 
   it("should remove a consumer document from an agreement", async () => {
@@ -258,10 +260,12 @@ describe("events V1", async () => {
 
     expect(updatedActualAgreement).not.toBeNull();
 
-    expect(updatedActualAgreement?.data).toStrictEqual({
-      ...agreement,
-      contract: agreementContract,
-    });
+    expect(sortAgreement(updatedActualAgreement?.data)).toStrictEqual(
+      sortAgreement({
+        ...agreement,
+        contract: agreementContract,
+      })
+    );
   });
 
   it("should activate an agreement", async () => {
@@ -307,7 +311,9 @@ describe("events V1", async () => {
 
     expect(updatedRetrievedAgreement).not.toBeNull();
 
-    expect(updatedRetrievedAgreement?.data).toStrictEqual(activatedAgreement);
+    expect(sortAgreement(updatedRetrievedAgreement?.data)).toStrictEqual(
+      sortAgreement(activatedAgreement)
+    );
   });
 
   it("should suspend an agreement", async () => {
@@ -351,7 +357,9 @@ describe("events V1", async () => {
     };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
-    expect(updatedRetrievedAgreement?.data).toStrictEqual(suspendedAgreement);
+    expect(sortAgreement(updatedRetrievedAgreement?.data)).toStrictEqual(
+      sortAgreement(suspendedAgreement)
+    );
   });
 
   it("should deactivate an agreement", async () => {
@@ -395,7 +403,9 @@ describe("events V1", async () => {
 
     expect(updatedRetrievedAgreement).not.toBeNull();
 
-    expect(updatedRetrievedAgreement?.data).toStrictEqual(deactivatedAgreement);
+    expect(sortAgreement(updatedRetrievedAgreement?.data)).toStrictEqual(
+      sortAgreement(deactivatedAgreement)
+    );
   });
 
   it("should update the verified attributes of an agreement", async () => {
@@ -436,6 +446,8 @@ describe("events V1", async () => {
     };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
-    expect(updatedRetrievedAgreement?.data).toStrictEqual(updatedAgreement);
+    expect(sortAgreement(updatedRetrievedAgreement?.data)).toStrictEqual(
+      sortAgreement(updatedAgreement)
+    );
   });
 });
