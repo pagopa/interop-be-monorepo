@@ -7,6 +7,7 @@ import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface
 import { EserviceDescriptorRejectionReasonSchema } from "./eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptorTemplateVersionRef.js";
 import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 
 export const EserviceDescriptorSchema = createSelectSchema(
   eserviceDescriptorInReadmodelCatalog
@@ -48,11 +49,13 @@ export type EserviceDescriptorDeletingSchema = z.infer<
 export const EserviceDescriptorItemsSchema = z.object({
   descriptorSQL: EserviceDescriptorSchema,
   attributesSQL: z.array(EserviceDescriptorAttributeSchema),
-  interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),
+  interfacesSQL: z.array(EserviceDescriptorInterfaceSchema),
   documentsSQL: z.array(EserviceDescriptorDocumentSchema),
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefSQL: EserviceDescriptorTemplateVersionRefSchema.optional(),
   archivingScheduleSQL: EserviceDescriptorArchivingSchema.optional(),
+  asyncExchangePropertiesSQL:
+    EserviceDescriptorAsyncExchangePropertiesSchema.optional(),
 });
 export type EserviceDescriptorItemsSchema = z.infer<
   typeof EserviceDescriptorItemsSchema

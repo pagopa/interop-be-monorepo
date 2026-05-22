@@ -22,6 +22,7 @@ import {
   checkCompleteEService,
   readModelDB,
   retrieveEServiceArchivingSchedulesSQLById,
+  retrieveEserviceAsyncExchangePropertiesSQLById,
   retrieveEserviceDescriptorAttributesSQLById,
   retrieveEserviceDescriptorsSQLById,
   retrieveEserviceDocumentsSQLById,
@@ -93,6 +94,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -106,6 +108,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -164,6 +167,11 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const asyncExchangePropertiesSQL =
+        await retrieveEserviceAsyncExchangePropertiesSQLById(
+          eservice.id,
+          readModelDB
+        );
 
       expect(eserviceSQL).toBeDefined();
       expect(descriptorsSQL).toHaveLength(0);
@@ -186,6 +194,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -255,6 +264,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -268,6 +278,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({

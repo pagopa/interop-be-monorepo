@@ -62,6 +62,9 @@ import {
   EServiceSignalHubDisabledV2,
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2,
   EServiceInstanceLabelUpdatedV2,
   EServiceArchivingScheduledV2,
   EServiceArchivingCanceledV2,
@@ -272,6 +275,21 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       ({ data }) =>
         EServicePersonalDataFlagUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      ({ data }) =>
+        EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      ({ data }) =>
+        EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
+      ({ data }) =>
+        EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2.toBinary(data)
     )
     .with({ type: "EServiceInstanceLabelUpdated" }, ({ data }) =>
       EServiceInstanceLabelUpdatedV2.toBinary(data)
@@ -591,6 +609,27 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServicePersonalDataFlagUpdatedByTemplateUpdate"),
     data: protobufDecoder(EServicePersonalDataFlagUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"),
+    data: protobufDecoder(
+      EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"),
+    data: protobufDecoder(
+      EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"),
+    data: protobufDecoder(
+      EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2
+    ),
   }),
   z.object({
     event_version: z.literal(2),

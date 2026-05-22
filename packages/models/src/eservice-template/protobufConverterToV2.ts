@@ -84,6 +84,13 @@ export const toEServiceTemplateVersionV2 = (
   state: toEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? toDocumentV2(input.interface) : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? toDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
+  asyncExchangeProperties: input.asyncExchangeProperties
+    ? { ...input.asyncExchangeProperties }
+    : undefined,
   agreementApprovalPolicy: input.agreementApprovalPolicy
     ? toAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
     : undefined,

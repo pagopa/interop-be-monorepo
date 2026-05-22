@@ -70,7 +70,10 @@ export async function handleMessageV2(
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
           "EServiceArchivingCompleted",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       async (message) => {

@@ -92,6 +92,7 @@ export function toBffCatalogApiEService(
       : {}),
     hasUnreadNotifications: hasNotifications,
     personalData: eservice.personalData,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 
@@ -101,7 +102,9 @@ export async function toBffCatalogDescriptorEService(
   producerTenant: tenantApi.Tenant,
   agreements: agreementApi.Agreement[],
   requesterTenant: tenantApi.Tenant,
-  consumerDelegators: tenantApi.Tenant[]
+  consumerDelegators: tenantApi.Tenant[],
+  hasProducerKeychain: boolean,
+  hasProducerKeychainKeys: boolean
 ): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
@@ -142,10 +145,13 @@ export async function toBffCatalogDescriptorEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
+    asyncExchange: eservice.asyncExchange,
+    hasProducerKeychain,
+    hasProducerKeychainKeys,
   };
 }
 
-export function toBffCatalogApiDescriptorAttribute(
+function toBffCatalogApiDescriptorAttribute(
   attributes: attributeRegistryApi.Attribute[],
   attribute: catalogApi.Attribute
 ): bffApi.DescriptorAttribute {
@@ -262,7 +268,9 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
 
 export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
+  producer: tenantApi.Tenant,
+  hasProducerKeychain: boolean,
+  hasProducerKeychainKeys: boolean
 ): Promise<bffApi.ProducerDescriptorEService> {
   const producerMail = getLatestTenantContactEmail(producer);
 
@@ -294,11 +302,14 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
       producer.kind
     ),
     descriptors: notDraftDecriptors,
+    hasProducerKeychain,
+    hasProducerKeychainKeys,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
+    asyncExchange: eservice.asyncExchange,
   };
 }
 
@@ -317,7 +328,7 @@ export async function enhanceEServiceRiskAnalysisArray(
   );
 }
 
-export function toEserviceAttribute(
+function toEserviceAttribute(
   attributes: catalogApi.Attribute[]
 ): EServiceAttribute[] {
   return attributes.map((attribute) => ({

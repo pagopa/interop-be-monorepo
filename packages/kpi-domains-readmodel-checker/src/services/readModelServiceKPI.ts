@@ -106,6 +106,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange_properties
+      );
 
       const archivingSchedulesSQL = await getManyFromDb(
         dbContext,
@@ -130,6 +134,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         })),
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
     },
 
@@ -175,6 +180,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
+        asyncExchangePropertiesSQL: [],
       });
     },
 

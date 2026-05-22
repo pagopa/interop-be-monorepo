@@ -6,6 +6,7 @@ import AdmZip from "adm-zip";
 import {
   agreementApi,
   attributeRegistryApi,
+  authorizationApi,
   bffApi,
   catalogApi,
   delegationApi,
@@ -33,6 +34,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -300,11 +302,28 @@ const getAllEserviceConsumers = async (
     })
   );
 
+const getProducerKeychainFlagsByEService = async (
+  authorizationClient: AuthorizationProcessClient,
+  headers: Headers,
+  eServiceId: EServiceId,
+  producerId: TenantId
+): Promise<authorizationApi.ProducerKeychainEServiceFlags> =>
+  await authorizationClient.producerKeychain.getProducerKeychainEServiceFlags({
+    headers,
+    params: {
+      eserviceId: eServiceId,
+    },
+    queries: {
+      producerId,
+    },
+  });
+
 export function catalogServiceBuilder(
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
+  authorizationClient: AuthorizationProcessClient,
   delegationProcessClient: DelegationProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
@@ -384,11 +403,22 @@ export function catalogServiceBuilder(
 
       const descriptorAttributeIds = getAttributeIds(descriptor);
 
-      const attributes = await getAllBulkAttributes(
-        attributeProcessClient,
-        headers,
-        descriptorAttributeIds
-      );
+      const [attributes, producerKeychainFlags] = await Promise.all([
+        getAllBulkAttributes(
+          attributeProcessClient,
+          headers,
+          descriptorAttributeIds
+        ),
+        getProducerKeychainFlagsByEService(
+          authorizationClient,
+          headers,
+          eserviceId,
+          requesterId
+        ),
+      ]);
+
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        producerKeychainFlags;
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -439,6 +469,14 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
+      const producerDescriptorEService =
+        await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
+          eservice,
+          producerTenant,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
+        );
+
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -454,11 +492,7 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         attributes: descriptorAttributes,
-        eservice:
-          await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
-            eservice,
-            producerTenant
-          ),
+        eservice: producerDescriptorEService,
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
@@ -480,6 +514,12 @@ export function catalogServiceBuilder(
             eserviceTemplateVersion?.dailyCallsPerConsumer,
           templateDailyCallsTotal: eserviceTemplateVersion?.dailyCallsTotal,
         },
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        asyncExchangeCallbackInterface:
+          descriptor.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            descriptor.asyncExchangeCallbackInterface
+          ),
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
@@ -546,6 +586,8 @@ export function catalogServiceBuilder(
         isConsumerDelegable: eservice.isConsumerDelegable,
         isClientAccessDelegable: eservice.isClientAccessDelegable,
         personalData: eservice.personalData,
+        asyncExchange: eservice.asyncExchange,
+        latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
     },
     updateEServiceDescription: async (
@@ -895,11 +937,18 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
       const attributeIds = getAttributeIds(descriptor);
-      const attributes = await getAllBulkAttributes(
-        attributeProcessClient,
-        headers,
-        attributeIds
-      );
+      const [attributes, producerKeychainFlags] = await Promise.all([
+        getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
+        getProducerKeychainFlagsByEService(
+          authorizationClient,
+          headers,
+          eserviceId,
+          unsafeBrandId<TenantId>(eservice.producerId)
+        ),
+      ]);
+
+      const { hasProducerKeychain, hasProducerKeychainKeys } =
+        producerKeychainFlags;
 
       const descriptorAttributes = toBffCatalogApiDescriptorAttributes(
         attributes,
@@ -963,13 +1012,21 @@ export function catalogServiceBuilder(
           descriptor.interface &&
           toBffCatalogApiDescriptorDoc(descriptor.interface),
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        asyncExchangeCallbackInterface:
+          descriptor.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            descriptor.asyncExchangeCallbackInterface
+          ),
         eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,
           producerTenant,
           agreements,
           requesterTenant,
-          consumerDelegators
+          consumerDelegators,
+          hasProducerKeychain,
+          hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
       };
@@ -1198,6 +1255,7 @@ export function catalogServiceBuilder(
           agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
           attributes: previousDescriptor.attributes,
           docs: clonedDocuments,
+          asyncExchangeProperties: previousDescriptor.asyncExchangeProperties,
         },
         {
           headers,
@@ -1684,7 +1742,7 @@ export function catalogServiceBuilder(
         fileName: string,
         filePath: string,
         prettyName: string,
-        kind: "INTERFACE" | "DOCUMENT",
+        kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
         serverUrls: string[],
         contentType: string,
         checksum: string

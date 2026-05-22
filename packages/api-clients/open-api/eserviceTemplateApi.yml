@@ -1534,6 +1534,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1564,6 +1566,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -1587,6 +1591,9 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     VersionSeedForEServiceTemplateCreation:
@@ -1687,6 +1694,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceTemplateVersionSeed:
       type: object
       additionalProperties: false
@@ -1718,6 +1727,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceTemplateVersionQuotasSeed:
       type: object
       additionalProperties: false
@@ -1936,6 +1947,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -2150,6 +2163,10 @@ components:
           maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
         docs:
           type: array
           items:
@@ -2226,6 +2243,29 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     CompactOrganization:
       type: object
       additionalProperties: false
