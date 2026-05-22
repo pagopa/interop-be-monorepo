@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   attributeRegistryApi,
+  bffApi,
   catalogApi,
   agreementApi,
   eserviceTemplateApi,
@@ -23,7 +24,11 @@ import type {
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { config } from "../src/config/config.js";
 import { fileManager, getBffMockContext } from "./utils.js";
-import { getMockDelegationApiDelegation } from "./mockUtils.js";
+import {
+  getMockCatalogApiEServiceDoc,
+  getMockDelegationApiDelegation,
+  toApiEServiceDoc,
+} from "./mockUtils.js";
 
 describe("getProducerEServiceDescriptor", () => {
   const tenantId: TenantId = generateId<TenantId>();
@@ -171,6 +176,33 @@ describe("getProducerEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(false);
     expect(result.eservice.hasProducerKeychainKeys).toBe(false);
+  });
+
+  it("should convert the async exchange callback interface to the BFF document shape", async () => {
+    const asyncExchangeCallbackInterface = getMockCatalogApiEServiceDoc();
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        descriptors: [
+          {
+            ...descriptor,
+            asyncExchangeCallbackInterface,
+          },
+        ],
+      }
+    );
+    mockProducerKeychainEServiceFlagsResponse(false, false);
+
+    const result = await catalogService.getProducerEServiceDescriptor(
+      eServiceId,
+      descriptorId,
+      bffMockContext
+    );
+
+    expect(result.asyncExchangeCallbackInterface).toEqual(
+      toApiEServiceDoc(asyncExchangeCallbackInterface)
+    );
+    expect(() => bffApi.ProducerEServiceDescriptor.parse(result)).not.toThrow();
   });
 
   it("should distinguish a producer keychain without keys", async () => {

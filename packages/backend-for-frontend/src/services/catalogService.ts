@@ -516,7 +516,10 @@ export function catalogServiceBuilder(
         },
         asyncExchangeProperties: descriptor.asyncExchangeProperties,
         asyncExchangeCallbackInterface:
-          descriptor.asyncExchangeCallbackInterface,
+          descriptor.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            descriptor.asyncExchangeCallbackInterface
+          ),
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
@@ -997,7 +1000,10 @@ export function catalogServiceBuilder(
         docs: descriptor.docs.map(toBffCatalogApiDescriptorDoc),
         asyncExchangeProperties: descriptor.asyncExchangeProperties,
         asyncExchangeCallbackInterface:
-          descriptor.asyncExchangeCallbackInterface,
+          descriptor.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            descriptor.asyncExchangeCallbackInterface
+          ),
         eservice: await toBffCatalogDescriptorEService(
           eservice,
           descriptor,

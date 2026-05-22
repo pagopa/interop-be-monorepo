@@ -29,6 +29,7 @@ import * as delegationService from "../src/services/delegationService.js";
 import * as agreementService from "../src/services/agreementService.js";
 import * as catalogApiConverter from "../src/api/catalogApiConverter.js";
 import { fileManager, getBffMockContext } from "./utils.js";
+import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
 
 describe("getCatalogEServiceDescriptor", () => {
   const eServiceId: EServiceId = generateId<EServiceId>();
@@ -357,6 +358,34 @@ describe("getCatalogEServiceDescriptor", () => {
       true,
       true
     );
+  });
+
+  it("should convert the async exchange callback interface to the BFF document shape", async () => {
+    const asyncExchangeCallbackInterface = getMockCatalogApiEServiceDoc();
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        descriptors: [
+          {
+            ...eServiceDescriptor,
+            asyncExchangeCallbackInterface,
+          },
+        ],
+      }
+    );
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.asyncExchangeCallbackInterface).toEqual(
+      toApiEServiceDoc(asyncExchangeCallbackInterface)
+    );
+    expect(() =>
+      bffApi.EServiceDoc.parse(result.asyncExchangeCallbackInterface)
+    ).not.toThrow();
   });
 
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {
