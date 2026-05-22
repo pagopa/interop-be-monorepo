@@ -19,7 +19,10 @@ import {
   CatalogItemRiskAnalysisNotification,
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
-import { toCatalogItemV1 } from "./catalogItemEventNotificationMappers.js";
+import {
+  toCatalogDocumentV1,
+  toCatalogItemV1,
+} from "./catalogItemEventNotificationMappers.js";
 
 const getCatalogItem = (
   event: EServiceEventEnvelopeV2
@@ -80,6 +83,41 @@ const getCatalogItemInterface = (
   }
 
   return descriptor.interface;
+};
+
+const getAsyncExchangeCallbackInterface = (
+  event: EServiceEventEnvelopeV2,
+  descriptorId: string,
+  documentId: string
+): CatalogDocumentV1Notification => {
+  if (!event.data.eservice) {
+    throw missingKafkaMessageDataError("eservice", event.type);
+  }
+
+  const eservice = fromEServiceV2(event.data.eservice);
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+
+  if (!descriptor) {
+    throw eventV1ConversionError(
+      `Expected descriptor ${descriptorId} in eservice ${eservice.id} during eventV1 conversion`
+    );
+  }
+
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (!asyncExchangeCallbackInterface) {
+    throw eventV1ConversionError(
+      `Expected async exchange callback interface ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+    );
+  }
+
+  if (asyncExchangeCallbackInterface.id !== documentId) {
+    throw eventV1ConversionError(
+      `Expected async exchange callback interface with same ID ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+    );
+  }
+
+  return toCatalogDocumentV1(asyncExchangeCallbackInterface);
 };
 
 export const toCatalogItemEventNotification = (
@@ -174,7 +212,6 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceAdded" }, // CatalogItemDocumentAddedV1
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       (e): CatalogItemDocumentAddedNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
@@ -192,6 +229,28 @@ export const toCatalogItemEventNotification = (
           document: catalogItemInterface,
           isInterface: true,
           serverUrls: catalogItemDescriptor.serverUrls,
+        };
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      (e): CatalogItemDocumentAddedNotification => {
+        const catalogItem = getCatalogItem(e);
+        const catalogItemDescriptor = getCatalogItemDescriptor(
+          catalogItem,
+          e.data.descriptorId
+        );
+
+        return {
+          eServiceId: catalogItem.id,
+          descriptorId: catalogItemDescriptor.id,
+          document: getAsyncExchangeCallbackInterface(
+            e,
+            e.data.descriptorId,
+            e.data.documentId
+          ),
+          isInterface: true,
+          serverUrls: [],
         };
       }
     )
@@ -214,7 +273,6 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       (e): CatalogItemDocumentUpdateNotification => {
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(
@@ -232,6 +290,30 @@ export const toCatalogItemEventNotification = (
           documentId: interfaceV1.id,
           updatedDocument: interfaceV1,
           serverUrls: descriptorV1.serverUrls,
+        };
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      (e): CatalogItemDocumentUpdateNotification => {
+        const eserviceV1 = getCatalogItem(e);
+        const descriptorV1 = getCatalogItemDescriptor(
+          eserviceV1,
+          e.data.descriptorId
+        );
+        const asyncExchangeCallbackInterface =
+          getAsyncExchangeCallbackInterface(
+            e,
+            e.data.descriptorId,
+            e.data.documentId
+          );
+
+        return {
+          eServiceId: eserviceV1.id,
+          descriptorId: descriptorV1.id,
+          documentId: asyncExchangeCallbackInterface.id,
+          updatedDocument: asyncExchangeCallbackInterface,
+          serverUrls: [],
         };
       }
     )
