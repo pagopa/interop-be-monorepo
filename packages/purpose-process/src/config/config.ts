@@ -5,7 +5,6 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagPurposeTemplateConfig,
   TenantKindHistoryDBConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
 } from "pagopa-interop-commons";
@@ -26,9 +25,7 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
-
+  .and(ApplicationAuditProducerConfig);
 type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
 export const config: PurposeProcessConfig = PurposeProcessConfig.parse(

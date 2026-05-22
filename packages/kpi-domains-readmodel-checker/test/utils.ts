@@ -161,6 +161,10 @@ export const addOneEServiceTemplate = async (
     EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
     splitResult.riskAnalysisAnswersSQL
   );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
+    splitResult.asyncExchangePropertiesSQL
+  );
 };
 
 export const addOneAttribute = async (

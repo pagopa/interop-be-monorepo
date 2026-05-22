@@ -9,9 +9,11 @@ import {
   operationForbidden,
   Document,
   EServiceTemplateVersionDocumentAddedV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
   EServiceTemplateVersionState,
   generateId,
   EServiceTemplateVersionId,
+  featureFlagNotEnabled,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -29,13 +31,21 @@ import {
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
   notValidEServiceTemplateVersionState,
+  eserviceTemplateAsyncExchangeNotEnabled,
+  asyncExchangeCallbackInterfaceAlreadyExists,
+  missingAsyncExchangeProperties,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
 } from "../integrationUtils.js";
-import { buildDocumentSeed, buildInterfaceSeed } from "../mockUtils.js";
+import {
+  buildDocumentSeed,
+  buildInterfaceSeed,
+  buildAsyncExchangeCallbackInterfaceSeed,
+} from "../mockUtils.js";
 
 describe("upload Document", () => {
   const mockVersion = getMockEServiceTemplateVersion();
@@ -404,5 +414,239 @@ describe("upload Document", () => {
     ).rejects.toThrowError(
       checksumDuplicate(eserviceTemplate.id, mockVersion.id)
     );
+  });
+
+  it("should write on event-store for the upload of an asyncExchangeCallbackInterface when version state is draft", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 3600,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const returnedDocument =
+      await eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDocument: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.id
+      ),
+      checksum:
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.checksum,
+      uploadDate: new Date(
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.uploadDate
+      ),
+    };
+
+    const expectedEserviceTemplate = toEServiceTemplateV2({
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...version,
+          asyncExchangeCallbackInterface: expectedDocument,
+        },
+      ],
+    });
+
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      documentId: expectedDocument.id,
+      eserviceTemplate: expectedEserviceTemplate,
+    });
+    expect(returnedDocument).toEqual({
+      data: expectedDocument,
+      metadata: {
+        version: 1,
+      },
+    });
+  });
+
+  it("should throw eserviceTemplateAsyncExchangeNotEnabled when uploading asyncExchangeCallbackInterface with asyncExchange=false", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: false,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateAsyncExchangeNotEnabled(eserviceTemplate.id)
+    );
+  });
+
+  it("should throw asyncExchangeCallbackInterfaceAlreadyExists when one already exists", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeCallbackInterface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 3600,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeCallbackInterfaceAlreadyExists(version.id)
+    );
+  });
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.draft
+    )
+  )(
+    "should throw notValidEServiceTemplateVersionState when uploading asyncExchangeCallbackInterface in %s state",
+    async (state) => {
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        asyncExchange: true,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+
+      await expect(
+        eserviceTemplateService.createEServiceTemplateDocument(
+          eserviceTemplate.id,
+          version.id,
+          buildAsyncExchangeCallbackInterfaceSeed(),
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        notValidEServiceTemplateVersionState(version.id, state)
+      );
+    }
+  );
+
+  it("should throw missingAsyncExchangeProperties when uploading asyncExchangeCallbackInterface without asyncExchangeProperties configured", async () => {
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      asyncExchangeProperties: undefined,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeProperties(eserviceTemplate.id, version.id)
+    );
+  });
+
+  it("should throw featureFlagNotEnabled when uploading asyncExchangeCallbackInterface with feature flag disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        version.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(featureFlagNotEnabled("featureFlagAsyncExchange"));
+
+    config.featureFlagAsyncExchange = true;
   });
 });
