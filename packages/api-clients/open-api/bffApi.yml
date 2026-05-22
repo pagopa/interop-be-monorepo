@@ -4516,6 +4516,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -23717,6 +23718,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -26135,6 +26137,10 @@ components:
           type: string
         grant_type:
           type: string
+        is_async:
+          type: boolean
+          default: false
+          description: Set to true to validate the client assertion as an async token generation request
         dpop_proof:
           type: string
           format: jws
@@ -26339,6 +26345,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -26377,6 +26385,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -26470,6 +26480,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -26499,6 +26511,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     Mail:
       type: object
       additionalProperties: false
@@ -26638,6 +26652,10 @@ components:
         archivedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     Client:
       description: Models Client details
       type: object
@@ -26711,6 +26729,8 @@ components:
         - hasCertifiedAttributes
         - isSubscribed
         - agreements
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26748,6 +26768,10 @@ components:
                 the delegator has the certified attributes required to consume the eservice
         isSubscribed:
           type: boolean
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
@@ -26759,6 +26783,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     ProducerEServiceDetails:
       type: object
@@ -26794,6 +26820,11 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
+        latestActiveDescriptorId:
+          type: string
+          format: uuid
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -26950,6 +26981,10 @@ components:
             type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
@@ -26964,6 +26999,8 @@ components:
         - mode
         - riskAnalysis
         - descriptors
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26986,6 +27023,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         draftDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
@@ -27000,6 +27041,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+        asyncExchange:
+          type: boolean
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -27282,6 +27325,8 @@ components:
           description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -27490,6 +27535,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object
@@ -30065,8 +30112,46 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+    AsyncExchangeProperties:
+      type: object
+      additionalProperties: false
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false
@@ -30117,6 +30202,10 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:
@@ -30218,6 +30307,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     InstanceEServiceSeed:
       type: object
       additionalProperties: false
@@ -30232,6 +30323,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchange:
+          type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
@@ -30445,6 +30538,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceTemplateAttributesSeed:
       properties:
         certified:

@@ -14,9 +14,12 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  AsyncExchangeProperties,
   Descriptor,
+  DescriptorId,
   EService,
   EServiceId,
+  Technology,
   Tenant,
   TenantId,
   delegationKind,
@@ -24,6 +27,7 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  technology,
   EServiceTemplateId,
   RiskAnalysisId,
   type EServiceAttribute,
@@ -51,6 +55,9 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
+  asyncExchangeBulkNotAllowedForSoap,
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   eserviceInDraftState,
@@ -457,6 +464,35 @@ export function hasRoleToAccessInactiveDescriptors(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export function assertAsyncExchangeReadyForPublication(
+  descriptor: Descriptor,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
+  if (descriptor.asyncExchangeProperties === undefined) {
+    throw missingAsyncExchangeProperties(eserviceId, descriptorId);
+  }
+
+  if (descriptor.asyncExchangeCallbackInterface === undefined) {
+    throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
+  }
+}
+
+export function assertAsyncExchangeBulkAllowedForDescriptor(
+  eserviceTechnology: Technology,
+  asyncExchangeProperties: AsyncExchangeProperties | undefined,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
+  if (
+    asyncExchangeProperties !== undefined &&
+    eserviceTechnology === technology.soap &&
+    asyncExchangeProperties.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+  }
 }
 
 export function assertDailyCallsForCertifiedAttributesOnly(
