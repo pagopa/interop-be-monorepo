@@ -18,6 +18,7 @@ import {
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
+  isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
@@ -55,6 +56,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
+import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceNotFound,
