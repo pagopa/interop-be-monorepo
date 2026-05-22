@@ -95,9 +95,7 @@ const getAsyncExchangeCallbackInterface = (
   }
 
   const eservice = fromEServiceV2(event.data.eservice);
-  const descriptor = eservice.descriptors.find(
-    (d) => d.id === descriptorId
-  );
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
 
   if (!descriptor) {
     throw eventV1ConversionError(
