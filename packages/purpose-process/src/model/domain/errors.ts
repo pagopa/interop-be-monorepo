@@ -60,6 +60,7 @@ const errorCodes = {
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
   riskAnalysisTenantKindMismatch: "0042",
+  unableToDetermineTenantKind: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -107,6 +108,16 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function unableToDetermineTenantKind(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unable to determine tenant kind for tenant ${tenantId}`,
+    code: "unableToDetermineTenantKind",
+    title: "Unable to determine tenant kind",
   });
 }
 
