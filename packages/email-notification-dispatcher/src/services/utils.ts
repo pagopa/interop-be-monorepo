@@ -1,13 +1,26 @@
-import { EmailNotificationMessagePayload } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
-  activeProducerDelegationNotFound,
-  eServiceNotFound,
-  eserviceWithoutDescriptors,
-  htmlTemplateNotFound,
-  tenantNotFound,
-} from "../models/errors.js";
+  Delegation,
+  Descriptor,
+  descriptorState,
+  EmailNotificationMessagePayload,
+  EService,
+  EServiceId,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  tenantNotFound,
+  activeProducerDelegationNotFound,
+  htmlTemplateNotFound,
+  eserviceWithoutDescriptors,
+  eserviceNotFound,
+} from "pagopa-interop-notification-commons";
+import path from "path";
+import { fileURLToPath } from "url";
+import { z } from "zod";
+import fs from "fs/promises";
 
 export const eventMailTemplateType = {
   agreementActivatedToConsumerMailTemplate:
@@ -131,7 +144,7 @@ export const retrieveEService = async (
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
-    throw eServiceNotFound(eserviceId);
+    throw eserviceNotFound(eserviceId);
   }
   return eservice;
 };

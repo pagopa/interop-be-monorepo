@@ -443,7 +443,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
     | EServiceDescriptorTemplateVersionRefSQL
-    | EServiceDescriptorArchivingScheduleSQL,
+    | EServiceDescriptorArchivingScheduleSQL
     | EServiceDescriptorAsyncExchangePropertiesSQL,
 >(
   items: T[]

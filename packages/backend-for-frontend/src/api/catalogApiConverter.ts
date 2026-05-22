@@ -9,6 +9,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   Descriptor,
+  descriptorState,
+  DescriptorState,
   EServiceAttribute,
   Technology,
   technology,
