@@ -318,9 +318,9 @@ export const updateEServiceDescriptorAttributeInGroupErrorMapper = (
       "notValidDescriptor",
       "templateInstanceNotAllowed",
       "inconsistentDailyCalls",
-      "unchangedAttributes",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
