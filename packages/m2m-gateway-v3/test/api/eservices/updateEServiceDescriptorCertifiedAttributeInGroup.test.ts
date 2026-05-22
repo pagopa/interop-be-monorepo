@@ -351,7 +351,7 @@ describe("PATCH /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttr
         title: "Unchanged attributes",
         detail: "Unchanged attributes",
       }),
-      status: 400,
+      status: 409,
     },
     {
       error: new ApiError({
