@@ -17,7 +17,7 @@ import { riskAnalysisProcessingServiceBuilder } from "./services/riskAnalysisPro
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
-  serviceName: "risk-analysis-processing-job",
+  serviceName: "risk-analysis-processing",
   correlationId: correlationId,
 });
 

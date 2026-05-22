@@ -11,7 +11,7 @@ COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
-COPY ./packages/risk-analysis-processing-job/package.json /app/packages/risk-analysis-processing-job/package.json
+COPY ./packages/risk-analysis-processing/package.json /app/packages/risk-analysis-processing/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
@@ -22,7 +22,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/risk-analysis-processing-job /app/packages/risk-analysis-processing-job/
+COPY ./packages/risk-analysis-processing /app/packages/risk-analysis-processing/
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/readmodel /app/packages/readmodel
@@ -35,14 +35,14 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
   cp -a --parents -t /out \
-  node_modules packages/risk-analysis-processing-job/node_modules \
-  package*.json packages/risk-analysis-processing-job/package*.json \
+  node_modules packages/risk-analysis-processing/node_modules \
+  package*.json packages/risk-analysis-processing/package*.json \
   packages/commons/ \
   packages/models/ \
   packages/readmodel/ \
   packages/readmodel-models/ \
   packages/api-clients/ \
-  packages/risk-analysis-processing-job/dist && \
+  packages/risk-analysis-processing/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
@@ -53,7 +53,7 @@ RUN groupadd -r app && useradd -rm -g app app
 RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
-WORKDIR /app/packages/risk-analysis-processing-job
+WORKDIR /app/packages/risk-analysis-processing
 EXPOSE 3000
 
 CMD [ "node", "." ]
