@@ -243,11 +243,6 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
           sortBy<CertifiedAttributeV2>((att) => att.id)
         )
       : [],
-    certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
-      ? [...agreement.certifiedDiscreteAttributes].sort(
-          sortBy<CertifiedAttributeV2>((att) => att.id)
-        )
-      : [],
     declaredAttributes: agreement.declaredAttributes
       ? [...agreement.declaredAttributes].sort(
           sortBy<DeclaredAttributeV2>((att) => att.id)

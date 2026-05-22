@@ -194,8 +194,8 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
-      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
+    expect(actualAgreementSuspended).toEqual(
+      toAgreementV2(expectedAgreementSuspended)
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),
@@ -311,8 +311,8 @@ describe("suspend agreement", () => {
         },
       },
     };
-    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
-      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
+    expect(actualAgreementSuspended).toEqual(
+      toAgreementV2(expectedAgreementSuspended)
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),
