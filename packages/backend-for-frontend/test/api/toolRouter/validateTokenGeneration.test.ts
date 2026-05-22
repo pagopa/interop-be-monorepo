@@ -15,7 +15,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
     client_assertion_type:
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     grant_type: "client_credentials",
-    is_async: false,
+    is_async: "false",
   };
   const mockRequestWithDPoP: bffApi.AccessTokenRequest = {
     ...mockRequest,
@@ -23,7 +23,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
   };
   const mockAsyncRequest: bffApi.AccessTokenRequest = {
     ...mockRequest,
-    is_async: true,
+    is_async: "true",
   };
   const mockResult: bffApi.TokenGenerationValidationResult = {
     clientKind: "CONSUMER",
@@ -79,6 +79,15 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const makeFormRequest = async (token: string, body: Record<string, string>) =>
+    request(api)
+      .post(`${appBasePath}/tools/validateTokenGeneration`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send(new URLSearchParams(body).toString());
 
   it.each([authRole.ADMIN_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
     "Should return 200 with validation result for valid request (role %s)",
@@ -144,6 +153,35 @@ describe("API POST /tools/validateTokenGeneration", () => {
       expect.anything()
     );
   });
+
+  it.each([
+    { isAsync: "true", expectedIsAsync: true },
+    { isAsync: "false", expectedIsAsync: false },
+  ])(
+    "Should parse async validation mode $isAsync from form-urlencoded body",
+    async ({ isAsync, expectedIsAsync }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeFormRequest(token, {
+        client_id: mockAsyncRequest.client_id ?? "",
+        client_assertion: mockAsyncRequest.client_assertion,
+        client_assertion_type: mockAsyncRequest.client_assertion_type,
+        grant_type: mockAsyncRequest.grant_type,
+        is_async: isAsync,
+      });
+      expect(res.status).toBe(200);
+      expect(
+        services.toolsService.validateTokenGeneration
+      ).toHaveBeenCalledWith(
+        mockAsyncRequest.client_id,
+        mockAsyncRequest.client_assertion,
+        mockAsyncRequest.client_assertion_type,
+        mockAsyncRequest.grant_type,
+        expectedIsAsync,
+        undefined,
+        expect.anything()
+      );
+    }
+  );
 
   it.each([
     { body: {} },

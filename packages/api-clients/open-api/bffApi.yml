@@ -26363,8 +26363,11 @@ components:
         grant_type:
           type: string
         is_async:
-          type: boolean
-          default: false
+          type: string
+          enum:
+            - "true"
+            - "false"
+          default: "false"
           description: Set to true to validate the client assertion as an async token generation request
         dpop_proof:
           type: string
