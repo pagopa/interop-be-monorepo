@@ -39,9 +39,6 @@ catalogs:
     '@pagopa/eslint-config':
       specifier: 5.1.2
       version: 5.1.2
-    '@pagopa/interop-outbound-models':
-      specifier: 1.8.18-attributi.certificati.discreti.0
-      version: 1.8.18-attributi.certificati.discreti.0
     '@protobuf-ts/plugin':
       specifier: 2.9.4
       version: 2.9.4
@@ -349,7 +346,7 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -1376,7 +1373,7 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -2284,7 +2281,7 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -3041,7 +3038,7 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -4894,7 +4891,7 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -5123,7 +5120,7 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
@@ -5542,7 +5539,7 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 'catalog:'
+        specifier: 1.8.18-attributi.certificati.discreti.0
         version: 1.8.18-attributi.certificati.discreti.0
       dotenv-flow:
         specifier: 'catalog:'
