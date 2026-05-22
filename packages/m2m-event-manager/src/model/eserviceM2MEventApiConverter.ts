@@ -74,8 +74,7 @@ function toApiEServiceM2MEventType(
     )
     .with(
       "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
-      () =>
-        "ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED"
+      () => "ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED"
     )
     .with(
       "EServiceDescriptorSubmittedByDelegate",
