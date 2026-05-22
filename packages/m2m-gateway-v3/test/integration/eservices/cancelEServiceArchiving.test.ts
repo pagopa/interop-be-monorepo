@@ -15,10 +15,12 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("cancelEServiceArchiving", () => {
-  const mockApiEservice = getMockWithMetadata(getMockedApiEservice());
+  const mockApiEservice = getMockWithMetadata(getMockedApiEservice(), 1);
   const mockM2MEserviceResponse = toM2MGatewayApiEService(mockApiEservice.data);
 
-  const mockCancelArchiving = vi.fn().mockResolvedValue(undefined);
+  const mockCancelArchiving = vi
+    .fn()
+    .mockResolvedValue({ data: undefined, metadata: { version: 0 } });
   const mockGetEservice = vi.fn().mockResolvedValue(mockApiEservice);
 
   mockInteropBeClients.catalogProcessClient = {

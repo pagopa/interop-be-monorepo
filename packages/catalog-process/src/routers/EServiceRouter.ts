@@ -1668,11 +1668,12 @@ const eservicesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        await catalogService.cancelEServiceArchiving(
+        const { metadata } = await catalogService.cancelEServiceArchiving(
           unsafeBrandId(req.params.eServiceId),
           ctx
         );
 
+        setMetadataVersionHeader(res, metadata);
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(

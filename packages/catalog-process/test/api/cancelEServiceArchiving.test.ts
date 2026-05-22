@@ -31,7 +31,9 @@ describe("API /eservices/${eServiceId}/scheduleArchive DELETE authorization test
     descriptors: [descriptor],
   };
 
-  catalogService.cancelEServiceArchiving = vi.fn().mockResolvedValue(undefined);
+  catalogService.cancelEServiceArchiving = vi
+    .fn()
+    .mockResolvedValue({ data: mockEService, metadata: { version: 1 } });
 
   const makeRequest = async (token: string, eServiceId: EServiceId) =>
     request(api)

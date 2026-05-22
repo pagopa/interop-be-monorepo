@@ -4154,9 +4154,9 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceIsInArchiving(eservice.data);
-
       await assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertEServiceIsInArchiving(eservice.data);
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
