@@ -7,7 +7,7 @@ import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { ApiError, generateId, unsafeBrandId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
@@ -303,4 +303,97 @@ describe("PATCH /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttr
     );
     expect(res.status).toBe(404);
   });
+
+  it.each([
+    {
+      error: new ApiError({
+        code: "eServiceNotFound",
+        title: "EService not found",
+        detail: "EService not found",
+      }),
+      status: 404,
+    },
+    {
+      error: new ApiError({
+        code: "eServiceDescriptorNotFound",
+        title: "EService descriptor not found",
+        detail: "EService descriptor not found",
+      }),
+      status: 404,
+    },
+    {
+      error: new ApiError({
+        code: "attributeNotFound",
+        title: "Attribute not found",
+        detail: "Attribute not found",
+      }),
+      status: 404,
+    },
+    {
+      error: new ApiError({
+        code: "certifiedAttributeGroupNotFoundInSeed",
+        title: "Certified attribute group not found in seed",
+        detail: "Certified attribute group not found in seed",
+      }),
+      status: 404,
+    },
+    {
+      error: new ApiError({
+        code: "notValidDescriptor",
+        title: "Not valid descriptor",
+        detail: "Not valid descriptor",
+      }),
+      status: 400,
+    },
+    {
+      error: new ApiError({
+        code: "templateInstanceNotAllowed",
+        title: "Template instance not allowed",
+        detail: "Template instance not allowed",
+      }),
+      status: 400,
+    },
+    {
+      error: new ApiError({
+        code: "inconsistentDailyCalls",
+        title: "Inconsistent daily calls",
+        detail: "Inconsistent daily calls",
+      }),
+      status: 400,
+    },
+    {
+      error: new ApiError({
+        code: "unchangedAttributes",
+        title: "Unchanged attributes",
+        detail: "Unchanged attributes",
+      }),
+      status: 400,
+    },
+    {
+      error: new ApiError({
+        code: "operationForbidden",
+        title: "Operation forbidden",
+        detail: "Operation forbidden",
+      }),
+      status: 403,
+    },
+  ])(
+    "Should return $status for mapped catalog-process error $error.code",
+    async ({ error, status }) => {
+      mockEserviceService.updateEServiceDescriptorCertifiedAttributeInGroup = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        generateId(),
+        generateId(),
+        0,
+        generateId(),
+        mockSeed
+      );
+      expect(res.status).toBe(status);
+    }
+  );
 });

@@ -13,13 +13,19 @@ import {
   descriptorState,
   EService,
   EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2,
+  EServiceTemplateId,
+  generateId,
+  operationForbidden,
   toEServiceV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   attributeNotFound,
   certifiedAttributeGroupNotFoundInSeed,
   inconsistentDailyCalls,
+  notValidDescriptorState,
+  templateInstanceNotAllowed,
   unchangedAttributes,
 } from "../../src/model/domain/errors.js";
 import {
@@ -272,5 +278,132 @@ describe("update descriptor certified attribute", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(attributeNotFound(otherAttribute.id));
+  });
+
+  it("should throw operationForbidden if the requester is not the producer", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    await addOneAttribute(certifiedAttribute);
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 200,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 50,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDescriptorCertifiedAttribute(
+        eservice.id,
+        descriptor.id,
+        0,
+        certifiedAttribute.id,
+        { dailyCallsPerConsumer: 100 },
+        getMockContext({})
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it.each([descriptorState.waitingForApproval, descriptorState.archived])(
+    "should throw notValidDescriptorState if the descriptor is in %s state",
+    async (state) => {
+      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      await addOneAttribute(certifiedAttribute);
+
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state,
+        dailyCallsTotal: 200,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 50,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.updateDescriptorCertifiedAttribute(
+          eservice.id,
+          descriptor.id,
+          0,
+          certifiedAttribute.id,
+          { dailyCallsPerConsumer: 100 },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        notValidDescriptorState(descriptor.id, state.toString())
+      );
+    }
+  );
+
+  it("should throw templateInstanceNotAllowed if the e-service is a template instance", async () => {
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    await addOneAttribute(certifiedAttribute);
+
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      dailyCallsTotal: 200,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 50,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      templateId,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDescriptorCertifiedAttribute(
+        eservice.id,
+        descriptor.id,
+        0,
+        certifiedAttribute.id,
+        { dailyCallsPerConsumer: 100 },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });
