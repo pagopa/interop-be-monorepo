@@ -266,10 +266,7 @@ export function assertRiskAnalysisIsValidForPublication(
   const dateForRiskAnalysisValidation = firstPublishedAt ?? new Date();
 
   eservice.riskAnalysis.forEach((riskAnalysis) => {
-    if (
-      isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis") &&
-      !firstPublishedAt
-    ) {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
       assertRiskAnalysisTenantKindMatch({
         actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
         currentTenantKind: tenantKind,
