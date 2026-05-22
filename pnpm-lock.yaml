@@ -5392,7 +5392,7 @@ importers:
         specifier: 'catalog:'
         version: 5.4.5
 
-  packages/risk-analysis-processing-job:
+  packages/risk-analysis-processing:
     dependencies:
       dotenv-flow:
         specifier: 'catalog:'

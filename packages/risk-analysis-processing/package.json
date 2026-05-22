@@ -1,9 +1,9 @@
 {
-  "name": "pagopa-interop-risk-analysis-processing-job",
+  "name": "pagopa-interop-risk-analysis-processing",
   "private": true,
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability risk-analysis-processing-job job",
+  "description": "PagoPA Interoperability risk-analysis-processing job",
   "main": "dist",
   "type": "module",
   "scripts": {
