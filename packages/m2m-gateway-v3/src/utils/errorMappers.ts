@@ -10,10 +10,21 @@ type AgreementProcessErrorCodes =
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
 
+type CatalogProcessErrorCodes =
+  | "eServiceNotFound"
+  | "eServiceDescriptorNotFound"
+  | "certifiedAttributeGroupNotFoundInSeed"
+  | "notValidDescriptor"
+  | "templateInstanceNotAllowed"
+  | "inconsistentDailyCalls"
+  | "unchangedAttributes"
+  | "operationForbidden";
+
 type ErrorCodes =
   | M2MGatewayErrorCodes
   | CommonErrorCodes
-  | AgreementProcessErrorCodes;
+  | AgreementProcessErrorCodes
+  | CatalogProcessErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -297,8 +308,20 @@ export const updateEServiceDescriptorAttributeInGroupErrorMapper = (
       "eserviceDescriptorNotFound",
       "eserviceDescriptorAttributeGroupNotFound",
       "eserviceDescriptorAttributeNotFound",
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      "unchangedAttributes",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
