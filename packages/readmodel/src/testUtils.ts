@@ -32,6 +32,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -53,6 +54,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -280,6 +282,7 @@ export const upsertEService = async (
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -330,6 +333,12 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+        .values(asyncExchangePropsSQL);
     }
   });
 };
@@ -498,6 +507,7 @@ export const upsertEServiceTemplate = async (
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
 
     await tx
@@ -538,6 +548,14 @@ export const upsertEServiceTemplate = async (
       await tx
         .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
         .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+        )
+        .values(asyncExchangePropsSQL);
     }
   });
 };

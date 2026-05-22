@@ -128,6 +128,14 @@ const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   interface: eserviceTemplateVersion.interface
     ? documentToApiDocument(eserviceTemplateVersion.interface)
     : undefined,
+  ...(eserviceTemplateVersion.asyncExchangeCallbackInterface
+    ? {
+        asyncExchangeCallbackInterface: documentToApiDocument(
+          eserviceTemplateVersion.asyncExchangeCallbackInterface
+        ),
+      }
+    : {}),
+  asyncExchangeProperties: eserviceTemplateVersion.asyncExchangeProperties,
   docs: eserviceTemplateVersion.docs.map(documentToApiDocument),
   state: eserviceTemplateVersionStateToApiEServiceTemplateVersionState(
     eserviceTemplateVersion.state
@@ -181,6 +189,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
   personalData: eserviceTemplate.personalData,
+  asyncExchange: eserviceTemplate.asyncExchange,
 });
 
 export const compactOrganizationToApi = (

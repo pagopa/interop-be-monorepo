@@ -97,7 +97,10 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
           "EServiceTemplateVersionActivated",
-          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {

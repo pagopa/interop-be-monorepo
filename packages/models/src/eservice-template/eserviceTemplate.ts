@@ -10,6 +10,7 @@ import {
   AgreementApprovalPolicy,
   Technology,
   EServiceMode,
+  AsyncExchangeProperties,
 } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
@@ -56,6 +57,8 @@ export const EServiceTemplateVersion = z.object({
   // Values to be set in all e-service descriptor instances created from this template, not editable by the user
   description: z.string().optional(),
   interface: Document.optional(),
+  asyncExchangeCallbackInterface: Document.optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),
   attributes: EServiceTemplateAttributes,
@@ -80,6 +83,7 @@ export const EServiceTemplate = z.object({
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   personalData: z.boolean().optional(),
+  asyncExchange: z.boolean().optional(),
 
   // Default values to be set in all e-service instances created from this template, unless the user provides a custom value
   isSignalHubEnabled: z.boolean().optional(),

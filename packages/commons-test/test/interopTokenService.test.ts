@@ -19,6 +19,8 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  InteractionId,
+  interactionState,
   PurposeId,
   TenantId,
   UserId,
@@ -479,6 +481,124 @@ describe("Token Generator", () => {
           jkt: calculateKid(dpopProofJWT?.header.jwk),
         },
       });
+    });
+  });
+
+  describe("Async Consumer JWT Token", () => {
+    it("should include digest when provided", async () => {
+      const subClientId: ClientId = generateId();
+      const audience = ["Audience1", "Audience2"];
+      const purposeId = generateId<PurposeId>();
+      const consumerId: TenantId = generateId();
+      const producerId: TenantId = generateId();
+      const eserviceId: EServiceId = generateId();
+      const descriptorId: DescriptorId = generateId();
+      const interactionId = generateId<InteractionId>();
+      const tokenDurationInSeconds = 1000;
+
+      const digest: ClientAssertionDigest = {
+        alg: "SHA256",
+        value: "a".repeat(64),
+      };
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken =
+        await interopTokenGenerator.generateInteropAsyncConsumerToken({
+          sub: subClientId,
+          audience,
+          purposeId,
+          tokenDurationInSeconds,
+          digest,
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+          interactionId,
+          urlCallback: "https://callback.example.com",
+          scope: interactionState.startInteraction,
+        });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toEqual({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: audience.join(","),
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp: mockTimeStamp + tokenDurationInSeconds,
+        client_id: subClientId,
+        sub: subClientId,
+        purposeId,
+        digest,
+        producerId,
+        consumerId,
+        eserviceId,
+        descriptorId,
+        interactionId,
+        urlCallback: "https://callback.example.com",
+        scope: interactionState.startInteraction,
+      });
+    });
+
+    it("should not include digest when not provided", async () => {
+      const subClientId: ClientId = generateId();
+      const audience = ["Audience1", "Audience2"];
+      const purposeId = generateId<PurposeId>();
+      const consumerId: TenantId = generateId();
+      const producerId: TenantId = generateId();
+      const eserviceId: EServiceId = generateId();
+      const descriptorId: DescriptorId = generateId();
+      const interactionId = generateId<InteractionId>();
+      const tokenDurationInSeconds = 1000;
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken =
+        await interopTokenGenerator.generateInteropAsyncConsumerToken({
+          sub: subClientId,
+          audience,
+          purposeId,
+          tokenDurationInSeconds,
+          digest: undefined,
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+          interactionId,
+          urlCallback: "https://callback.example.com",
+          scope: interactionState.startInteraction,
+        });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toEqual({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: audience.join(","),
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp: mockTimeStamp + tokenDurationInSeconds,
+        client_id: subClientId,
+        sub: subClientId,
+        purposeId,
+        producerId,
+        consumerId,
+        eserviceId,
+        descriptorId,
+        interactionId,
+        urlCallback: "https://callback.example.com",
+        scope: interactionState.startInteraction,
+      });
+
+      expect(decodedActualToken).not.toHaveProperty("digest");
     });
   });
 

@@ -81,6 +81,7 @@ import {
   tenantKindNotFound,
   tenantNotAllowed,
   tenantNotFound,
+  unableToDetermineTenantKind,
   unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import {
@@ -385,7 +386,7 @@ export function purposeServiceBuilder(
         .exhaustive();
 
       if (!referenceDate) {
-        throw tenantKindNotFound(tenantId);
+        throw unableToDetermineTenantKind(tenantId);
       }
 
       const historyKind = await readModelService.getTenantKindAt(
@@ -1130,10 +1131,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
-        purpose.data.purposeTemplateId
-      ) {
+      if (purpose.data.purposeTemplateId) {
         await retrievePublishedPurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService
