@@ -9,8 +9,6 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   Descriptor,
-  descriptorState,
-  DescriptorState,
   EServiceAttribute,
   Technology,
   technology,
@@ -472,20 +470,5 @@ export function apiTechnologyToTechnology(
   return match<catalogApi.EServiceTechnology, Technology>(input)
     .with("REST", () => technology.rest)
     .with("SOAP", () => technology.soap)
-    .exhaustive();
-}
-
-export function apiDescriptorStateToDescriptorState(
-  input: catalogApi.EServiceDescriptorState
-): DescriptorState {
-  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
-    .with("DRAFT", () => descriptorState.draft)
-    .with("PUBLISHED", () => descriptorState.published)
-    .with("SUSPENDED", () => descriptorState.suspended)
-    .with("DEPRECATED", () => descriptorState.deprecated)
-    .with("ARCHIVED", () => descriptorState.archived)
-    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
-    .with("ARCHIVING", () => descriptorState.archiving)
-    .with("ARCHIVING_SUSPENDED", () => descriptorState.archivingSuspended)
     .exhaustive();
 }
