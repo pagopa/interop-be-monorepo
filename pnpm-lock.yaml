@@ -5146,6 +5146,9 @@ importers:
       pagopa-interop-tenant-kind-history-db-models:
         specifier: workspace:*
         version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
