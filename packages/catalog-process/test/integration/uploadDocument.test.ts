@@ -688,6 +688,75 @@ describe("upload Document", () => {
       });
     });
 
+    it("should write on event-store for the upload of an async exchange callback interface even when the descriptor has no asyncExchangeProperties set yet", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.draft),
+        serverUrls: [],
+        asyncExchangeProperties: undefined,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        asyncExchange: true,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const returnedDocument = await catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildAsyncExchangeCallbackInterfaceSeed(),
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedDocument: Document = {
+        ...mockDocument,
+        prettyName: "callbackInterfacePrettyName",
+        id: unsafeBrandId(
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.id
+        ),
+        checksum:
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.checksum,
+        uploadDate: new Date(
+          writtenPayload.eservice!.descriptors[0]!
+            .asyncExchangeCallbackInterface!.uploadDate
+        ),
+      };
+
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            asyncExchangeCallbackInterface: expectedDocument,
+          },
+        ],
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(returnedDocument).toEqual({
+        data: expectedDocument,
+        metadata: {
+          version: 1,
+        },
+      });
+    });
+
     it("should write on event-store for the upload of an async exchange callback interface when descriptor state is draft (delegate)", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.draft),
