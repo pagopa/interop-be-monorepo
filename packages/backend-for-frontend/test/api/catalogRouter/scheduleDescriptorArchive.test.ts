@@ -34,8 +34,14 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/scheduleArch
   });
 
   it.each([
-    { eServiceId: "invalid" as EServiceId },
-    { descriptorId: "invalid" as DescriptorId },
+    {
+      eServiceId: "invalid" as EServiceId,
+      descriptorId: generateId<DescriptorId>(),
+    },
+    {
+      eServiceId: generateId<EServiceId>(),
+      descriptorId: "invalid" as DescriptorId,
+    },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ eServiceId, descriptorId }) => {

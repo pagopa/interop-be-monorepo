@@ -29,18 +29,18 @@ describe("scheduleArchiveEServiceDescriptor", () => {
     state: "DEPRECATED",
   };
 
-  const mockApiEservice = getMockWithMetadata(
-    getMockedApiEservice({
-      descriptors: [mockApiDescriptor],
-    })
-  );
+  const mockApiEservice = getMockedApiEservice({
+    descriptors: [mockApiDescriptor],
+  });
 
   const mockEServiceProcessPostResponse = getMockWithMetadata(mockApiEservice);
 
   const mockScheduleEServiceDescriptorArchive = vi
     .fn()
-    .mockResolvedValue(mockApiEservice);
-  const mockGetEService = vi.fn(mockPollingResponse(mockApiEservice, 2));
+    .mockResolvedValue(mockEServiceProcessPostResponse);
+  const mockGetEService = vi.fn(
+    mockPollingResponse(mockEServiceProcessPostResponse, 2)
+  );
 
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,
@@ -54,7 +54,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
 
   it("Should succeed and perform service calls", async () => {
     const result = await eserviceService.scheduleArchiveEserviceDescriptor(
-      unsafeBrandId(mockApiEservice.data.id),
+      unsafeBrandId(mockApiEservice.id),
       unsafeBrandId(mockApiDescriptor.id),
       getMockM2MAdminAppContext()
     );
@@ -68,18 +68,18 @@ describe("scheduleArchiveEServiceDescriptor", () => {
         mockInteropBeClients.catalogProcessClient
           .scheduleEServiceDescriptorArchiving,
       params: {
-        eServiceId: mockApiEservice.data.id,
+        eServiceId: mockApiEservice.id,
         descriptorId: mockApiDescriptor.id,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: { eServiceId: mockApiEservice.data.id },
+      params: { eServiceId: mockApiEservice.id },
     });
     expectApiClientGetToHaveBeenNthCalledWith({
       nthCall: 2,
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: { eServiceId: mockApiEservice.data.id },
+      params: { eServiceId: mockApiEservice.id },
     });
     expect(
       mockInteropBeClients.catalogProcessClient.getEServiceById
@@ -94,7 +94,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
 
     await expect(
       eserviceService.scheduleArchiveEserviceDescriptor(
-        unsafeBrandId(mockApiEservice.data.id),
+        unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
         getMockM2MAdminAppContext()
       )
@@ -103,13 +103,13 @@ describe("scheduleArchiveEServiceDescriptor", () => {
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce({
-      data: mockApiEservice.data,
+      data: mockApiEservice,
       metadata: undefined,
     });
 
     await expect(
       eserviceService.scheduleArchiveEserviceDescriptor(
-        unsafeBrandId(mockApiEservice.data.id),
+        unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
         getMockM2MAdminAppContext()
       )
@@ -118,12 +118,15 @@ describe("scheduleArchiveEServiceDescriptor", () => {
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetEService.mockImplementation(
-      mockPollingResponse(mockApiEservice, config.defaultPollingMaxRetries + 1)
+      mockPollingResponse(
+        mockEServiceProcessPostResponse,
+        config.defaultPollingMaxRetries + 1
+      )
     );
 
     await expect(
       eserviceService.scheduleArchiveEserviceDescriptor(
-        unsafeBrandId(mockApiEservice.data.id),
+        unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
         getMockM2MAdminAppContext()
       )
