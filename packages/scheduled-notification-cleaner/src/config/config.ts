@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const ScheduledNotificationCleanerConfig = ScheduledNotificationDBConfig.and(
   z.object({
-    DELETE_OLDER_THAN_DAYS: z.coerce.number().default(90),
+    DELETE_OLDER_THAN_DAYS: z.coerce.number().positive().default(90),
   })
 );
 

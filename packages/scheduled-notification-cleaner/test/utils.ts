@@ -45,12 +45,12 @@ interface MockNotification {
   correlationId: string;
   sendAt: Date;
   sentAt: Date | null;
-  attemps: number;
+  attempts: number;
   lastError: string | null;
   createdAt: Date;
 }
 
-export const addNotifications = async (
+export const addScheduledNotifications = async (
   notifications: MockNotification[]
 ): Promise<void> => {
   await scheduledNotificationDB
@@ -66,7 +66,7 @@ export const getMockNotification = ({
   correlationId = generateId(),
   sendAt = new Date(),
   sentAt = null,
-  attemps = 0,
+  attempts = 0,
   lastError = null,
   createdAt = new Date(),
 }: {
@@ -77,7 +77,7 @@ export const getMockNotification = ({
   correlationId?: string;
   sendAt?: Date;
   sentAt?: Date | null;
-  attemps?: number;
+  attempts?: number;
   lastError?: string | null;
   createdAt?: Date;
 }): MockNotification => ({
@@ -88,7 +88,7 @@ export const getMockNotification = ({
   correlationId,
   sendAt,
   sentAt,
-  attemps,
+  attempts,
   lastError,
   createdAt,
 });

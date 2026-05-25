@@ -3,7 +3,7 @@ import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-
 import { logger } from "pagopa-interop-commons";
 import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 import {
-  addNotifications,
+  addScheduledNotifications,
   getMockNotification,
   scheduledNotificationDB,
 } from "./utils.js";
@@ -27,7 +27,7 @@ describe("deleteOldNotifications", () => {
       sentAt: new Date("2023-12-01T10:00:00Z"), // 45 days old
     });
 
-    await addNotifications([
+    await addScheduledNotifications([
       oldNotification1,
       oldNotification2,
       recentNotification,
@@ -62,7 +62,7 @@ describe("deleteOldNotifications", () => {
       sentAt: new Date("2023-02-01T10:00:00Z"),
     });
 
-    await addNotifications([oldNotification1, oldNotification2]);
+    await addScheduledNotifications([oldNotification1, oldNotification2]);
 
     const deletedCount = await deleteOldNotifications(
       scheduledNotificationDB,
@@ -90,7 +90,7 @@ describe("deleteOldNotifications", () => {
       sentAt: new Date("2024-01-10T10:00:00Z"), // 5 days old
     });
 
-    await addNotifications([recentNotification1, recentNotification2]);
+    await addScheduledNotifications([recentNotification1, recentNotification2]);
 
     const deletedCount = await deleteOldNotifications(
       scheduledNotificationDB,
@@ -132,7 +132,7 @@ describe("deleteOldNotifications", () => {
       sentAt: new Date("2023-09-17T10:00:00Z"), // 120 days old
     });
 
-    await addNotifications([
+    await addScheduledNotifications([
       notification30DaysOld,
       notification60DaysOld,
       notification120DaysOld,
@@ -155,7 +155,7 @@ describe("deleteOldNotifications", () => {
     expect(remainingNotifications[0].id).toBe(notification30DaysOld.id);
   });
 
-  it("should delete notifications regardless of read status", async () => {
+  it("should delete notifications regardless of send at", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
     const oldReadNotification = getMockNotification({
@@ -168,7 +168,10 @@ describe("deleteOldNotifications", () => {
       sendAt: undefined,
     });
 
-    await addNotifications([oldReadNotification, oldUnreadNotification]);
+    await addScheduledNotifications([
+      oldReadNotification,
+      oldUnreadNotification,
+    ]);
 
     const deletedCount = await deleteOldNotifications(
       scheduledNotificationDB,
@@ -203,7 +206,7 @@ describe("deleteOldNotifications", () => {
       sentAt: new Date("2023-10-18T10:00:00Z"), // 89 days
     });
 
-    await addNotifications([
+    await addScheduledNotifications([
       notificationAtCutoff,
       notificationBeyondCutoff,
       notificationBeforeCutoff,
