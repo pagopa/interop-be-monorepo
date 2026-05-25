@@ -177,6 +177,46 @@ describe("cancel eservice archiving", () => {
     expect(result.data).toEqual(expectedEService);
   });
 
+  it("should not modify descriptors already in archived state", async () => {
+    const archivedDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.archived,
+      version: "1",
+    };
+    const archivingDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.archiving,
+      version: "2",
+      archivingSchedule: archivingScheduleEService,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      archivingReason: "some reason",
+      descriptors: [archivedDescriptor, archivingDescriptor],
+    };
+    await addOneEService(eservice);
+
+    const result = await catalogService.cancelEServiceArchiving(
+      eservice.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        archivedDescriptor,
+        {
+          ...archivingDescriptor,
+          state: descriptorState.published,
+          archivingSchedule: undefined,
+        },
+      ],
+      archivingReason: undefined,
+    };
+
+    expect(result.data).toEqual(expectedEService);
+  });
+
   it("should throw eServiceNotFound if the eservice does not exist", async () => {
     await expect(
       catalogService.cancelEServiceArchiving(

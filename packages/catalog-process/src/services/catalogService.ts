@@ -4154,14 +4154,17 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      await assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       assertEServiceIsInArchiving(eservice.data);
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
       const updatedDescriptors = eservice.data.descriptors.map((descriptor) => {
-        if (descriptor.archivingSchedule?.scope === archivingScope.descriptor) {
+        if (
+          descriptor.archivingSchedule?.scope === archivingScope.descriptor ||
+          descriptor.state === descriptorState.archived
+        ) {
           return descriptor;
         }
 
