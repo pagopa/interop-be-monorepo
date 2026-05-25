@@ -3,7 +3,6 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockEService,
-  randomArrayItem,
   toEServiceV1,
 } from "pagopa-interop-commons-test";
 import {
@@ -75,6 +74,16 @@ describe("handleEServiceEvent test", async () => {
 
             const testCasesData = await match(eventType)
               .with(
+                "MaintenanceEServiceRiskAnalysisSetTenantKind",
+                async () => [
+                  {
+                    descriptors: [getMockDescriptor(descriptorState.draft)],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: undefined,
+                  },
+                ]
+              )
+              .with(
                 P.union(
                   // Draft E-Service events, owner visibility
                   "EServiceAdded",
@@ -88,12 +97,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -111,17 +116,16 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorRejectedByDelegator",
                   "EServiceDescriptorInterfaceAdded",
                   "EServiceDescriptorInterfaceUpdated",
-                  "EServiceDescriptorInterfaceDeleted"
+                  "EServiceDescriptorInterfaceDeleted",
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
                 ),
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -148,12 +152,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -176,12 +176,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -300,6 +296,15 @@ describe("handleEServiceEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+              if (
+                eventType === "MaintenanceEServiceRiskAnalysisSetTenantKind"
+              ) {
+                expect(
+                  testM2mEventWriterService.insertEServiceM2MEvent
+                ).not.toHaveBeenCalled();
+                continue;
+              }
+
               expect(
                 testM2mEventWriterService.insertEServiceM2MEvent
               ).toHaveBeenCalledTimes(1);

@@ -2,10 +2,14 @@ import { match } from "ts-pattern";
 import {
   clientKindTokenGenStates,
   ClientAssertion,
+  AsyncClientAssertion,
+  AsyncClientAssertionPayload,
   ClientAssertionHeader,
   ClientAssertionPayload,
   ClientAssertionPayloadStrict,
   ClientAssertionHeaderStrict,
+  InteractionState,
+  interactionState,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -32,6 +36,10 @@ import {
   validateIss,
   validateKid,
   validatePurposeId,
+  validateScope,
+  validateInteractionId,
+  validateUrlCallback,
+  validateEntityNumber,
   validateSub,
   validatePlatformState,
   ALLOWED_ALGORITHM,
@@ -43,14 +51,19 @@ import {
 } from "./types.js";
 import {
   unexpectedClientAssertionSignatureVerificationError,
+  asyncExchangeNotAllowed,
   invalidAssertionType,
   invalidClientAssertionFormat,
   invalidGrantType,
   jsonWebTokenError,
   notBeforeError,
   purposeIdNotProvided,
+  urlCallbackNotProvided,
+  interactionIdNotProvided,
+  entityNumberNotProvided,
+  invalidEntityNumber,
   tokenExpiredError,
-  unexpectedClientAssertionPayload,
+  unexpectedClientAssertion,
   invalidSignature,
   clientAssertionInvalidClaims,
   algorithmNotAllowed,
@@ -232,13 +245,119 @@ export const verifyClientAssertion = (
       return failedValidation([invalidClientAssertionFormat(error.message)]);
     }
     const message = error instanceof Error ? error.message : "generic error";
-    return failedValidation([unexpectedClientAssertionPayload(message)]);
+    return failedValidation([unexpectedClientAssertion(message)]);
   }
+};
+
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity
+export const verifyAsyncClientAssertion = (
+  clientAssertionJws: string,
+  clientId: string | undefined,
+  expectedAudiences: string[],
+  logger: Logger
+): ValidationResult<AsyncClientAssertion> => {
+  // Run base validation with strict=false to avoid rejecting async-specific claims
+  const baseResult = verifyClientAssertion(
+    clientAssertionJws,
+    clientId,
+    expectedAudiences,
+    logger,
+    false
+  );
+
+  // Re-decode JWT to access async claims (stripped by base non-strict parse)
+  const decodedPayload = jose.decodeJwt(clientAssertionJws);
+
+  // Validate async-specific claims (format only)
+  const { errors: scopeErrors, data: validatedScope } = validateScope(
+    decodedPayload.scope
+  );
+  const { errors: interactionIdErrors, data: validatedInteractionId } =
+    validateInteractionId(decodedPayload.interactionId);
+  const { errors: urlCallbackErrors, data: validatedUrlCallback } =
+    validateUrlCallback(decodedPayload.urlCallback);
+  const { errors: entityNumberErrors, data: validatedEntityNumber } =
+    validateEntityNumber(decodedPayload.entityNumber);
+
+  if (
+    !baseResult.errors &&
+    !scopeErrors &&
+    !interactionIdErrors &&
+    !urlCallbackErrors &&
+    !entityNumberErrors
+  ) {
+    // Strict validation with async schema (always enforced for new async feature).
+    // Only runs when individual field validations pass — catches unknown extra fields.
+    const payloadStrictParseResult =
+      AsyncClientAssertionPayload.safeParse(decodedPayload);
+    if (!payloadStrictParseResult.success) {
+      return failedValidation([
+        clientAssertionInvalidClaims(
+          payloadStrictParseResult.error.message,
+          "payload"
+        ),
+      ]);
+    }
+
+    return successfulValidation({
+      header: baseResult.data.header,
+      payload: {
+        ...baseResult.data.payload,
+        scope: validatedScope,
+        interactionId: validatedInteractionId,
+        urlCallback: validatedUrlCallback,
+        entityNumber: validatedEntityNumber,
+      },
+    });
+  }
+
+  return failedValidation([
+    baseResult.errors,
+    scopeErrors,
+    interactionIdErrors,
+    urlCallbackErrors,
+    entityNumberErrors,
+  ]);
+};
+
+// Validates that the claims required for a specific async scope are present
+// and valid. Each scope requires a distinct subset of async claims; this
+// validator aggregates the missing/invalid ones so callers can surface them
+// together (useful for the BFF tools debug endpoint).
+export const validateAsyncClaimsForScope = (
+  payload: AsyncClientAssertionPayload,
+  scope: InteractionState
+): ValidationResult<AsyncClientAssertionPayload> => {
+  const errors = match(scope)
+    .with(interactionState.startInteraction, () => [
+      payload.purposeId ? undefined : purposeIdNotProvided(payload.sub),
+      payload.urlCallback ? undefined : urlCallbackNotProvided(payload.sub),
+    ])
+    .with(interactionState.callbackInvocation, () => {
+      const interactionIdError = payload.interactionId
+        ? undefined
+        : interactionIdNotProvided(payload.sub);
+      const entityNumberError =
+        payload.entityNumber === undefined || payload.entityNumber === null
+          ? entityNumberNotProvided(payload.sub)
+          : payload.entityNumber <= 0
+            ? invalidEntityNumber(payload.sub, payload.entityNumber)
+            : undefined;
+      return [interactionIdError, entityNumberError];
+    })
+    .with(interactionState.getResource, interactionState.confirmation, () => [
+      payload.interactionId ? undefined : interactionIdNotProvided(payload.sub),
+    ])
+    .exhaustive();
+
+  return errors.some((e) => e !== undefined)
+    ? failedValidation([errors])
+    : successfulValidation(payload);
 };
 
 export const verifyClientAssertionSignature = async (
   clientAssertionJws: string,
-  key: TokenGenerationStatesGenericClient,
+  key: { publicKey: string },
   clientAssertionAlgorithm: string
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
@@ -308,11 +427,18 @@ export const validateClientKindAndPlatformState = (
       const purposeIdError = jwt.payload.purposeId
         ? undefined
         : purposeIdNotProvided();
+      const asyncExchangeError = key.asyncExchange
+        ? asyncExchangeNotAllowed()
+        : undefined;
 
-      if (!platformStateErrors && !purposeIdError) {
+      if (!platformStateErrors && !purposeIdError && !asyncExchangeError) {
         return successfulValidation(jwt);
       }
 
-      return failedValidation([platformStateErrors, purposeIdError]);
+      return failedValidation([
+        platformStateErrors,
+        purposeIdError,
+        asyncExchangeError,
+      ]);
     })
     .exhaustive();

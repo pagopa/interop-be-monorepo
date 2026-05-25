@@ -18,8 +18,10 @@ import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
   EServiceTemplateSQL,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
+  EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
@@ -41,6 +43,7 @@ describe("E-service template splitter", () => {
     const deprecatedAt = new Date();
     const isSignalHubEnabled = true;
     const personalData = true;
+    const asyncExchange = true;
 
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -66,6 +69,7 @@ describe("E-service template splitter", () => {
       riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
       isSignalHubEnabled,
       personalData,
+      asyncExchange,
     };
 
     const {
@@ -76,6 +80,7 @@ describe("E-service template splitter", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const expectedEServiceTemplateSQL: EServiceTemplateSQL = {
@@ -90,6 +95,7 @@ describe("E-service template splitter", () => {
       mode: eserviceTemplate.mode,
       isSignalHubEnabled,
       personalData,
+      asyncExchange,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
@@ -100,7 +106,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPA.tenantKind,
+      tenantKind: riskAnalysisPA.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -111,7 +117,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPrivate.tenantKind,
+      tenantKind: riskAnalysisPrivate.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -157,12 +163,13 @@ describe("E-service template splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceTemplateVersionDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceTemplateVersionInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceTemplateId: eserviceTemplate.id,
       versionId: version.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     expect(eserviceTemplateSQL).toStrictEqual(expectedEServiceTemplateSQL);
@@ -181,6 +188,7 @@ describe("E-service template splitter", () => {
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])
     );
+    expect(asyncExchangePropertiesSQL).toHaveLength(0);
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -225,6 +233,7 @@ describe("E-service template splitter", () => {
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, 1);
 
     const expectedEServiceTemplateSQL: EServiceTemplateSQL = {
@@ -239,6 +248,7 @@ describe("E-service template splitter", () => {
       mode: eserviceTemplate.mode,
       isSignalHubEnabled: null,
       personalData: null,
+      asyncExchange: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
@@ -249,7 +259,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPA.tenantKind,
+      tenantKind: riskAnalysisPA.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -260,7 +270,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
-      tenantKind: riskAnalysisPrivate.tenantKind,
+      tenantKind: riskAnalysisPrivate.riskAnalysisForm.tenantKind!,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -310,6 +320,80 @@ describe("E-service template splitter", () => {
     expect(interfacesSQL).toHaveLength(0);
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])
+    );
+    expect(asyncExchangePropertiesSQL).toHaveLength(0);
+  });
+
+  it("should convert an e-service template with asyncExchangeProperties into SQL objects", () => {
+    const certifiedAttribute = getMockEServiceTemplateAttribute();
+    const doc = getMockDocument();
+    const interfaceDoc = getMockDocument();
+    const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
+    const riskAnalysisPrivate = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
+    const publishedAt = new Date();
+    const suspendedAt = new Date();
+    const deprecatedAt = new Date();
+    const isSignalHubEnabled = true;
+    const personalData = true;
+
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      attributes: {
+        certified: [[certifiedAttribute]],
+        declared: [],
+        verified: [],
+      },
+      docs: [doc],
+      interface: interfaceDoc,
+      description: "description test",
+      publishedAt,
+      suspendedAt,
+      deprecatedAt,
+      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 10,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [version],
+      riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
+      isSignalHubEnabled,
+      personalData,
+      asyncExchange: true,
+    };
+
+    const { asyncExchangePropertiesSQL } = splitEServiceTemplateIntoObjectsSQL(
+      eserviceTemplate,
+      1
+    );
+
+    const expectedAsyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL =
+      {
+        eserviceTemplateId: eserviceTemplate.id,
+        metadataVersion: 1,
+        versionId: version.id,
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      };
+
+    expect(asyncExchangePropertiesSQL).toHaveLength(1);
+    expect(asyncExchangePropertiesSQL[0]).toStrictEqual(
+      expectedAsyncExchangePropertiesSQL
     );
   });
 });

@@ -16,6 +16,7 @@ import {
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { bigIntToDate } from "../utils.js";
+import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import {
   Purpose,
   PurposeVersion,
@@ -115,6 +116,8 @@ export const fromPurposeRiskAnalysisFormV2 = (
     ...a,
     id: unsafeBrandId(a.id),
   })),
+  tenantKind:
+    input.tenantKind != null ? fromTenantKindV2(input.tenantKind) : undefined,
 });
 
 export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
