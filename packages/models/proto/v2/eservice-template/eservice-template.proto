@@ -3,7 +3,6 @@ syntax = "proto3";
 package eservice.template.v2;
 
 import "v2/eservice/eservice.proto";
-import "v2/tenant/tenant.proto";
 
 enum EServiceTemplateVersionStateV2 {
   DRAFT = 0;
