@@ -44,6 +44,7 @@
     "pagopa-interop-tenant-kind-history-db-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "pg": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }
