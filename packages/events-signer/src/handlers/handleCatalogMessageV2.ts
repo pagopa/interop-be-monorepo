@@ -94,6 +94,7 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
+            "MaintenanceEServiceRiskAnalysisSetTenantKind",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorAttributesUpdated",

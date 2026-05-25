@@ -78,6 +78,7 @@ import {
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
   updateEserviceDescriptorArchivingStatusErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
   maintenanceResetEServicePersonalDataFlagErrorMapper,
   updateEServiceArchivingStatusErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -1139,6 +1140,37 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/eservices/:eServiceId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data: updatedEService, metadata } =
+            await catalogService.fixEServiceRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

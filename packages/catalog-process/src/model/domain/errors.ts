@@ -73,10 +73,11 @@ const errorCodes = {
   asyncExchangeNotAllowedForReceiveMode: "0055",
   missingAsyncExchangeCallbackInterface: "0056",
   templateVersionMissingAsyncExchangeProperties: "0057",
-  eserviceInArchivingOrArchivedState: "0058",
-  descriptorArchivingNotCancelableByScope: "0059",
-  descriptorAlreadyArchived: "0060",
-  notValidEServiceState: "0061",
+  riskAnalysisTenantKindMismatch: "0058",
+  eserviceInArchivingOrArchivedState: "0059",
+  descriptorArchivingNotCancelableByScope: "0060",
+  descriptorAlreadyArchived: "0061",
+  notValidEServiceState: "0062",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -537,6 +538,19 @@ export function missingPersonalDataFlag(
     detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because personalData flag must be set for the eservice`,
     code: "missingPersonalDataFlag",
     title: "EService personalData flag must be set before publication",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  currentTenantKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${currentTenantKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 

@@ -57,6 +57,7 @@ export async function exportInterfaceV2(
           "EServiceDescriptorDocumentDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",

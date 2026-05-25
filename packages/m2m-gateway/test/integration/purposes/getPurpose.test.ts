@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
@@ -13,6 +12,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
   testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
@@ -31,27 +31,14 @@ describe("getPurpose", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const purposeVersion = mockApiPurposeResponse.data.versions[0];
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurposeResponse.data.consumerId,
-      createdAt: mockApiPurposeResponse.data.createdAt,
-      description: mockApiPurposeResponse.data.description,
-      eserviceId: mockApiPurposeResponse.data.eserviceId,
-      id: mockApiPurposeResponse.data.id,
-      isFreeOfCharge: mockApiPurposeResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurposeResponse.data.isRiskAnalysisValid,
-      title: mockApiPurposeResponse.data.title,
-      currentVersion: purposeVersion
-        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
-        : undefined,
-      delegationId: mockApiPurposeResponse.data.delegationId,
-      freeOfChargeReason: mockApiPurposeResponse.data.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockApiPurposeResponse.data.updatedAt,
-      waitingForApprovalVersion: undefined,
-      purposeTemplateId: mockApiPurposeResponse.data.purposeTemplateId,
-    };
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+      mockApiPurposeResponse.data,
+      {
+        currentVersion: purposeVersion
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+          : undefined,
+      }
+    );
 
     const result = await purposeService.getPurpose(
       unsafeBrandId(expectedM2MPurpose.id),

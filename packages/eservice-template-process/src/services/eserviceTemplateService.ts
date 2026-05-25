@@ -9,11 +9,13 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
-  riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
+  InternalAuthData,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   assertFeatureFlagEnabled,
   Logger,
+  RiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -29,13 +31,11 @@ import {
   unsafeBrandId,
   WithMetadata,
   RiskAnalysisId,
-  TenantKind,
   eserviceMode,
   generateId,
   ListResult,
   Document,
   EServiceDocumentId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
   AttributeKind,
   attributeKind,
@@ -44,6 +44,7 @@ import {
   EServiceTemplateEvent,
   CompactOrganization,
   technology,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -57,6 +58,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
@@ -88,6 +90,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
@@ -145,7 +148,7 @@ const retrieveEServiceTemplate = async (
 const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
-): EServiceTemplateRiskAnalysis => {
+): RiskAnalysis => {
   const riskAnalysis = eserviceTemplate.riskAnalysis.find(
     (ra) => ra.id === riskAnalysisId
   );
@@ -260,15 +263,14 @@ const replaceEServiceTemplateVersion = (
 };
 
 function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
+    riskAnalysisForm.tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -992,18 +994,21 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...createRiskAnalysis.riskAnalysisForm,
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        createRiskAnalysis.riskAnalysisForm,
-        createRiskAnalysis.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
 
-      const newRiskAnalysis: EServiceTemplateRiskAnalysis =
-        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          createRiskAnalysis.name,
-          createRiskAnalysis.tenantKind
+          createRiskAnalysis.name
         );
 
       const newTemplate: EServiceTemplate = {
@@ -1097,9 +1102,13 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysisId
       );
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...updateRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
+      };
+
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
-        updateRiskAnalysisSeed.riskAnalysisForm,
-        updateRiskAnalysisSeed.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
@@ -1115,13 +1124,13 @@ export function eserviceTemplateServiceBuilder(
           ...a,
           id: generateId(),
         })),
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
       };
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         id: riskAnalysisToUpdate.id,
         createdAt: riskAnalysisToUpdate.createdAt,
         name: updateRiskAnalysisSeed.name,
-        tenantKind: updateRiskAnalysisSeed.tenantKind,
         riskAnalysisForm: updatedRiskAnalysisForm,
       };
 
@@ -1141,6 +1150,49 @@ export function eserviceTemplateServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async fixEServiceTemplateRiskAnalysisTenantKind(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      logger.info(
+        `Fixing risk analysis ${riskAnalysisId} for EService template ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+
+      const riskAnalysisToFix = retrieveEServiceTemplateRiskAnalysis(
+        template.data,
+        riskAnalysisId
+      );
+
+      const existingTenantKind = riskAnalysisToFix.riskAnalysisForm.tenantKind;
+      if (!existingTenantKind) {
+        throw tenantKindNotFound(template.data.creatorId);
+      }
+
+      const updatedTemplate: EServiceTemplate = {
+        ...template.data,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          updatedTemplate,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateVersionAttributes(
       eserviceTemplateId: EServiceTemplateId,

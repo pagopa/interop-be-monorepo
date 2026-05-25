@@ -22,6 +22,7 @@ import {
   EServiceTemplateId,
   RiskAnalysisForm,
   ArchivingScope,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingScheduleSQL,
@@ -499,6 +500,9 @@ export const aggregateRiskAnalysisForm = (
   return {
     version: riskAnalysisSQL.riskAnalysisFormVersion,
     id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
+    tenantKind: riskAnalysisSQL.tenantKind
+      ? TenantKind.parse(riskAnalysisSQL.tenantKind)
+      : undefined,
     singleAnswers,
     multiAnswers,
   };

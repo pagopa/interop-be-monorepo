@@ -137,6 +137,7 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       () => undefined
     )
     .exhaustive();

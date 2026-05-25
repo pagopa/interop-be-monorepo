@@ -23,7 +23,7 @@ import {
   tenantKind,
   EServiceTemplateVersionId,
   eserviceMode,
-  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
@@ -305,7 +305,7 @@ describe("publishEServiceTemplateVersion", () => {
     const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
       tenant.kind
     );
-    const invalidRiskAnalysis: EServiceTemplateRiskAnalysis = {
+    const invalidRiskAnalysis: RiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,
