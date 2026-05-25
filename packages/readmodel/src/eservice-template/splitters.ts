@@ -5,9 +5,10 @@ import {
   Document,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  genericInternalError,
+  RiskAnalysis,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
 } from "pagopa-interop-models";
@@ -39,7 +40,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
           riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: EServiceTemplateRiskAnalysis
+        currentRiskAnalysis: RiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
@@ -270,13 +271,18 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 };
 
 const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: EServiceTemplateRiskAnalysis,
+  riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): {
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
 } => {
+  if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+    throw genericInternalError(
+      `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} in eservice template ${eserviceTemplateId} is missing tenantKind`
+    );
+  }
   const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion,
@@ -285,7 +291,7 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    tenantKind: riskAnalysis.tenantKind,
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =

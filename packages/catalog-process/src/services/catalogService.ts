@@ -23,6 +23,7 @@ import {
   authRole,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  RiskAnalysisFormToValidate,
   MaintenanceAuthData,
 } from "pagopa-interop-commons";
 import {
@@ -98,6 +99,7 @@ import {
   originNotCompliant,
   riskAnalysisDuplicated,
   descriptorTemplateVersionNotFound,
+  tenantKindNotFound,
   tenantNotFound,
   unchangedAttributes,
   templateMissingRequiredRiskAnalysis,
@@ -151,6 +153,7 @@ import {
   toCreateEventEServiceNameUpdated,
   toCreateEventEServiceNameUpdatedByTemplateUpdate,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventMaintenanceEServiceRiskAnalysisSetTenantKind,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
@@ -2525,8 +2528,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        formToValidate,
         tenant.kind,
         new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
@@ -2611,8 +2619,13 @@ export function catalogServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: tenant.kind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        formToValidate,
         tenant.kind,
         new Date(), // drawback: the date of the risk analysis is replaced below in the function riskAnalysisValidatedFormToNewRiskAnalysis
         eservice.data.personalData
@@ -2692,6 +2705,54 @@ export function catalogServiceBuilder(
       return {
         data: eserviceWithRiskAnalysisDeleted,
         metadata: { version: event.newVersion },
+      };
+    },
+    async fixEServiceRiskAnalysisTenantKind(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Fixing Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const riskAnalysisToFix = retrieveRiskAnalysis(riskAnalysisId, eservice);
+
+      const historyKind = await readModelService.getTenantKindAt(
+        eservice.data.producerId,
+        riskAnalysisToFix.createdAt
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(eservice.data.producerId);
+      }
+
+      const fixedRiskAnalysis: RiskAnalysis = {
+        ...riskAnalysisToFix,
+        riskAnalysisForm: {
+          ...riskAnalysisToFix.riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const updatedEService = replaceRiskAnalysis(
+        eservice.data,
+        fixedRiskAnalysis
+      );
+
+      const event = toCreateEventMaintenanceEServiceRiskAnalysisSetTenantKind(
+        eservice.data.id,
+        eservice.metadata.version,
+        fixedRiskAnalysis.id,
+        updatedEService,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async updateEServiceDescription(
@@ -4783,15 +4844,18 @@ async function extractEServiceRiskAnalysisFromTemplate(
   const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
     .filter((r) =>
       match(tenant.kind)
-        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.PA,
+          () => r.riskAnalysisForm.tenantKind === tenantKind.PA
+        )
         .with(
           tenantKind.GSP,
           tenantKind.PRIVATE,
           tenantKind.SCP,
           () =>
-            r.tenantKind === tenantKind.GSP ||
-            r.tenantKind === tenantKind.PRIVATE ||
-            r.tenantKind === tenantKind.SCP
+            r.riskAnalysisForm.tenantKind === tenantKind.GSP ||
+            r.riskAnalysisForm.tenantKind === tenantKind.PRIVATE ||
+            r.riskAnalysisForm.tenantKind === tenantKind.SCP
           /**
            * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
            * This may change in the future.

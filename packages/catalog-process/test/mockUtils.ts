@@ -69,12 +69,18 @@ export const buildUpdateDescriptorSeed = (
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): catalogApi.EServiceRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+): catalogApi.EServiceRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-});
+  );
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: {
+      version,
+      answers,
+    },
+  };
+};
 
 export const buildInterfaceSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({

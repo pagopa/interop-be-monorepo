@@ -5,6 +5,8 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
+  TenantKindHistoryDBConfig,
+  FeatureFlagTenantKindInRiskAnalysisConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -12,6 +14,8 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(S3Config)
+  .and(TenantKindHistoryDBConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
     z
       .object({

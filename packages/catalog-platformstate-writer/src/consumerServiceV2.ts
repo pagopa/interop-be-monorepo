@@ -335,6 +335,7 @@ export async function handleMessageV2(
           "EServiceDescriptorDocumentDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",
