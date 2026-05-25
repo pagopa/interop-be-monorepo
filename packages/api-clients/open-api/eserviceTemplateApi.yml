@@ -1471,6 +1471,60 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/templates/{templateId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Fix an e-service template risk analysis tenant kind
+      operationId: fixEServiceTemplateRiskAnalysisTenantKind
+      description: Fixes the tenant kind for the specified risk analysis in an e-service template
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService Template Risk Analysis fixed.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplate"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService Template or Risk Analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1523,7 +1577,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -1533,6 +1587,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceTemplateSeed:
       type: object
@@ -1555,7 +1611,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -1563,6 +1619,8 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     PatchUpdateEServiceTemplateSeed:
       type: object
@@ -1579,7 +1637,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -1587,6 +1645,9 @@ components:
         isSignalHubEnabled:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     VersionSeedForEServiceTemplateCreation:
@@ -1687,6 +1748,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceTemplateVersionSeed:
       type: object
       additionalProperties: false
@@ -1718,6 +1781,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceTemplateVersionQuotasSeed:
       type: object
       additionalProperties: false
@@ -1936,6 +2001,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -2078,7 +2145,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceTemplateIntendedTargetUpdateSeed:
@@ -2150,6 +2217,10 @@ components:
           maximum: 1000000000
         interface:
           $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
         docs:
           type: array
           items:
@@ -2226,6 +2297,29 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     CompactOrganization:
       type: object
       additionalProperties: false

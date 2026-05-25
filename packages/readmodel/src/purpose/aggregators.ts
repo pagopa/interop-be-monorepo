@@ -20,6 +20,7 @@ import {
   RiskAnalysisSingleAnswer,
   RiskAnalysisSingleAnswerId,
   stringToDate,
+  TenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -323,6 +324,9 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   return {
     id: unsafeBrandId(riskAnalysisFormSQL.id),
     version: riskAnalysisFormSQL.version,
+    tenantKind: riskAnalysisFormSQL.tenantKind
+      ? TenantKind.parse(riskAnalysisFormSQL.tenantKind)
+      : undefined,
     singleAnswers,
     multiAnswers,
     ...(riskAnalysisFormSQL.riskAnalysisId

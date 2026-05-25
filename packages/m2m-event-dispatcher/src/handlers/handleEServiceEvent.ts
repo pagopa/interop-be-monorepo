@@ -131,7 +131,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingCanceled",
-            "EServiceDescriptorArchivingCompleted"
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
           ),
         },
         async (event) => {
@@ -154,6 +157,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      })
       .exhaustive()
   );
 }

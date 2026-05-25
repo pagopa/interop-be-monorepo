@@ -61,18 +61,21 @@ const eventV2TypeMapper = (
     )
     .with(
       "EServiceDescriptorInterfaceAdded",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
       "EServiceDescriptorDocumentAdded",
       "EServiceDescriptorDocumentAddedByTemplateUpdate",
       () => "catalog_item_document_added"
     )
     .with(
       "EServiceDescriptorInterfaceUpdated",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
       "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
       () => "catalog_item_document_updated"
     )
     .with(
       "EServiceDescriptorInterfaceDeleted",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
       "EServiceDescriptorDocumentDeleted",
       "EServiceDescriptorDocumentDeletedByTemplateUpdate",
       () => "catalog_item_document_deleted"
@@ -80,6 +83,7 @@ const eventV2TypeMapper = (
     .with("EServiceRiskAnalysisAdded", () => "catalog_item_risk_analysis_added")
     .with(
       "EServiceRiskAnalysisUpdated",
+      "MaintenanceEServiceRiskAnalysisSetTenantKind",
       () => "catalog_item_risk_analysis_updated"
     )
     .with(

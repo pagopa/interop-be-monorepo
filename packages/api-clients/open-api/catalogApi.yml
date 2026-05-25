@@ -92,6 +92,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: consumersIds
+          description: comma separated sequence of consumer IDs; restricts the result to e-services that have at least one agreement with one of the listed consumers
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: mode
           description: mode
           schema:
@@ -362,6 +372,64 @@ paths:
           description: EService deleted
         "400":
           description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/scheduleArchive:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Schedule e-service archiving process
+      operationId: scheduleEServiceArchiving
+      description: Schedules the archiving process for the specified E-Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+      responses:
+        "200":
+          description: E-service archiving process started.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -1080,9 +1148,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     post:
       security:
         - bearerAuth: []
@@ -1092,6 +1158,7 @@ paths:
       operationId: archiveDescriptor
       description: Archives the specified descriptor
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId
           in: path
           description: the eservice id
@@ -1106,6 +1173,13 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArchivingKindSeed"
       responses:
         "204":
           description: E-Service Descriptor archived
@@ -1115,8 +1189,20 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
-          description: Not found
+          description: E-Service or Descriptor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -2869,6 +2955,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+
+  /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Fix tenant kind for a risk analysis
+      operationId: fixEServiceRiskAnalysisTenantKind
+      description: Fixes the tenant kind of a specific risk analysis on the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService Risk Analysis Fixed
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: EService or Risk Analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+             
   /status:
     get:
       security: []
@@ -2916,7 +3052,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -2930,6 +3066,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceSeed:
       type: object
@@ -2947,7 +3085,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -2959,6 +3097,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     PatchUpdateEServiceSeed:
       type: object
@@ -2971,7 +3111,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -2983,6 +3123,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     UpdateEServiceTemplateInstanceSeed:
@@ -3085,6 +3228,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3167,6 +3312,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3202,6 +3349,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3231,6 +3380,10 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3270,6 +3423,8 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
@@ -3474,6 +3629,8 @@ components:
           type: boolean
         archivingReason:
           type: string
+        asyncExchange:
+          type: boolean
 
     CreatedEServiceRiskAnalysis:
       type: object
@@ -3726,7 +3883,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceDelegationFlagsUpdateSeed:
@@ -3843,6 +4000,10 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
     ArchivingSchedule:
@@ -3856,13 +4017,37 @@ components:
           type: string
           format: date-time
         scope:
-          $ref: "#/components/schemas/ArchivingScope"      
+          $ref: "#/components/schemas/ArchivingScope"
     ArchivingScope:
       type: string
       description: Archiving Scope
       enum:
         - ESERVICE
         - DESCRIPTOR
+        
+    ArchivingKindSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Kind Seed
+      properties:
+        kind:
+          type: string
+          enum:
+            - AUTOMATIC
+            - MANUAL
+      required:
+        - kind
+    EServiceArchivingReasonSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Reason
+      properties:
+        archivingReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - archivingReason
     Attribute:
       type: object
       additionalProperties: false
@@ -3903,6 +4088,41 @@ components:
         - certified
         - declared
         - verified
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTechnology:
       type: string
       description: API Technology
@@ -3927,6 +4147,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     AgreementState:
       type: string
       description: Agreement State
@@ -4005,6 +4226,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     EServiceInstanceLabelUpdateSeed:
       type: object
       additionalProperties: false

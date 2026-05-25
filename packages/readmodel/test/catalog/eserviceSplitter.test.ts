@@ -21,8 +21,10 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   EServiceDescriptorArchivingScheduleSQL,
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   EServiceDescriptorTemplateVersionRefSQL,
@@ -56,6 +58,7 @@ describe("E-service splitter", () => {
       archivableOn: new Date(),
       startedAt: new Date(),
     };
+    const asyncExchangeFlag = true;
 
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -85,6 +88,13 @@ describe("E-service splitter", () => {
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
       archivingSchedule,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 500,
+      },
     };
 
     const eservice: EService = {
@@ -98,6 +108,7 @@ describe("E-service splitter", () => {
       personalData,
       instanceLabel,
       archivingReason: "archiving reason",
+      asyncExchange: asyncExchangeFlag,
     };
 
     const {
@@ -111,6 +122,7 @@ describe("E-service splitter", () => {
       rejectionReasonsSQL,
       templateVersionRefsSQL,
       archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -129,6 +141,7 @@ describe("E-service splitter", () => {
       personalData,
       instanceLabel,
       archivingReason: eservice.archivingReason ?? null,
+      asyncExchange: asyncExchangeFlag,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -139,6 +152,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisSQL2: EServiceRiskAnalysisSQL = {
@@ -149,6 +163,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
@@ -178,6 +193,18 @@ describe("E-service splitter", () => {
       serverUrls: descriptor.serverUrls,
     };
 
+    const expectedAsyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL =
+      {
+        eserviceId: eservice.id,
+        metadataVersion: 1,
+        descriptorId: descriptor.id,
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 500,
+      };
+
     const expectedAttributeSQL: EServiceDescriptorAttributeSQL = {
       metadataVersion: 1,
       eserviceId: eservice.id,
@@ -198,12 +225,13 @@ describe("E-service splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceDescriptorDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceDescriptorInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
+      kind: "INTERFACE",
     };
 
     const expectedRejectionReasonSQL: EServiceDescriptorRejectionReasonSQL = {
@@ -266,6 +294,9 @@ describe("E-service splitter", () => {
           : []
       )
     );
+    expect(asyncExchangePropertiesSQL).toStrictEqual([
+      expectedAsyncExchangePropertiesSQL,
+    ]);
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -299,6 +330,7 @@ describe("E-service splitter", () => {
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
       personalData: undefined,
+      asyncExchange: undefined,
     };
 
     const {
@@ -311,6 +343,7 @@ describe("E-service splitter", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -329,6 +362,7 @@ describe("E-service splitter", () => {
       personalData: null,
       instanceLabel: null,
       archivingReason: null,
+      asyncExchange: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -339,6 +373,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisSQL2: EServiceRiskAnalysisSQL = {
@@ -349,6 +384,7 @@ describe("E-service splitter", () => {
       eserviceId: eservice.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.riskAnalysisForm.tenantKind ?? null,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
@@ -404,5 +440,6 @@ describe("E-service splitter", () => {
     );
     expect(rejectionReasonsSQL).toHaveLength(0);
     expect(templateVersionRefsSQL).toHaveLength(0);
+    expect(asyncExchangePropertiesSQL).toHaveLength(0);
   });
 });

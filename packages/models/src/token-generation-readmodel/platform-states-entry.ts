@@ -7,11 +7,14 @@ import {
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
   PlatformStatesPurposePK,
+  ProducerKeychainId,
+  ProducerKeychainPlatformStatesPK,
   PurposeId,
   PurposeVersionId,
   TenantId,
   UserId,
 } from "../brandedIds.js";
+import { AsyncExchangeProperties } from "../eservice/eservice.js";
 import { ClientKindTokenGenStates } from "./commons.js";
 
 export const itemState = {
@@ -35,9 +38,20 @@ export const PlatformStatesCatalogEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesEServiceDescriptorPK,
   descriptorAudience: z.array(z.string()),
   descriptorVoucherLifespan: z.number(),
+  asyncExchange: z.boolean().optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
 });
 export type PlatformStatesCatalogEntry = z.infer<
   typeof PlatformStatesCatalogEntry
+>;
+
+export const AsyncPlatformStatesCatalogEntry =
+  PlatformStatesCatalogEntry.extend({
+    asyncExchange: z.literal(true),
+    asyncExchangeProperties: AsyncExchangeProperties,
+  });
+export type AsyncPlatformStatesCatalogEntry = z.infer<
+  typeof AsyncPlatformStatesCatalogEntry
 >;
 
 export const PlatformStatesPurposeEntry = PlatformStatesBaseEntry.extend({
@@ -79,4 +93,18 @@ export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
   .or(PlatformStatesClientEntry);
 export type PlatformStatesGenericEntry = z.infer<
   typeof PlatformStatesGenericEntry
+>;
+
+export const ProducerKeychainPlatformStateEntry = z.object({
+  PK: ProducerKeychainPlatformStatesPK,
+  publicKey: z.string(),
+  producerKeychainId: ProducerKeychainId,
+  producerId: TenantId,
+  kid: z.string(),
+  eServiceId: EServiceId,
+  version: z.number(),
+  updatedAt: z.string(),
+});
+export type ProducerKeychainPlatformStateEntry = z.infer<
+  typeof ProducerKeychainPlatformStateEntry
 >;

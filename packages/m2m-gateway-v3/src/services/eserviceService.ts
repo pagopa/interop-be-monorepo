@@ -28,6 +28,7 @@ import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -589,6 +590,34 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving async exchange callback interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      if (!descriptor.asyncExchangeCallbackInterface) {
+        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+          eserviceId,
+          descriptorId
+        );
+      }
+
+      return downloadDocument(
+        descriptor.asyncExchangeCallbackInterface,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
+    },
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: m2mGatewayApiV3.EServiceDescriptorSeed,
@@ -721,6 +750,22 @@ export function eserviceServiceBuilder(
         headers,
       });
       await pollEserviceUntilDeletion(eserviceId, headers);
+    },
+
+    async scheduleArchiveEService(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceArchiving(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
     },
 
     async updatePublishedEServiceDelegation(

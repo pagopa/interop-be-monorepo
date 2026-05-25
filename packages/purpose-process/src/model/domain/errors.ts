@@ -9,6 +9,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -57,6 +58,9 @@ const errorCodes = {
   invalidPersonalData: "0038",
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
+  invalidFreeOfChargeReason: "0041",
+  riskAnalysisTenantKindMismatch: "0042",
+  unableToDetermineTenantKind: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,6 +72,18 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  expectedKind: TenantKind,
+  riskAnalysisFormId: RiskAnalysisFormId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 
@@ -92,6 +108,16 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function unableToDetermineTenantKind(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unable to determine tenant kind for tenant ${tenantId}`,
+    code: "unableToDetermineTenantKind",
+    title: "Unable to determine tenant kind",
   });
 }
 
@@ -484,5 +510,16 @@ export function purposeFromTemplateCannotBeModified(
     detail: `Purpose ${purposeId} created from template ${purposeTemplateId} cannot be modified entirely`,
     code: "purposeFromTemplateCannotBeModified",
     title: "Purpose from template cannot be modified",
+  });
+}
+
+export function invalidFreeOfChargeReason(
+  isFreeOfCharge: boolean,
+  freeOfChargeReason: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
+    code: "invalidFreeOfChargeReason",
+    title: "Invalid free of charge reason",
   });
 }

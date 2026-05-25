@@ -6,6 +6,9 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
+  FeatureFlagAsyncExchangeConfig,
+  FeatureFlagTenantKindInRiskAnalysisConfig,
+  TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -25,15 +28,23 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(S3Config)
   .and(EventStoreConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
+  .and(TenantKindHistoryDBConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
     z
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
+        MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+        MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce
+          .number()
+          .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
         GRACE_PERIOD_ARCHIVING_ESERVICE: z.coerce.number().int().positive(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
+        maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
+        maxInterfaceFileSizeBytes: c.MAX_INTERFACE_FILE_SIZE_BYTES,
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
@@ -41,6 +52,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
+  .and(FeatureFlagAsyncExchangeConfig)
   .and(ApplicationAuditProducerConfig);
 
 type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;

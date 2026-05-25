@@ -16,16 +16,14 @@ import { match, P } from "ts-pattern";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { HandlerCommonParams } from "../../models/handlerParams.js";
-import { config } from "../../config/config.js";
-import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import { descriptorNotFound } from "../../models/errors.js";
+  descriptorNotFound,
+} from "pagopa-interop-notification-commons";
+import { HandlerCommonParams } from "../../models/handlerParams.js";
+import { config } from "../../config/config.js";
 
 /* These events have been grouped under
  * a single handler because of their shared

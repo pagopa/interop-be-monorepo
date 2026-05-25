@@ -66,6 +66,8 @@ const errorCodes = {
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0047",
+  clientNotFound: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -236,6 +238,18 @@ export function eserviceDescriptorInterfaceNotFound(
     title: "Eservice descriptor interface not found",
   });
 }
+
+export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange callback interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+    title: "Eservice descriptor async exchange callback interface not found",
+  });
+}
+
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
   versionId: PurposeVersionId
@@ -265,6 +279,16 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+
+export function clientNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
 

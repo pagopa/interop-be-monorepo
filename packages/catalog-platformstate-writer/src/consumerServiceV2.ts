@@ -7,6 +7,7 @@ import {
   EServiceEventEnvelopeV2,
   EServiceV2,
   fromEServiceV2,
+  genericInternalError,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   missingKafkaMessageDataError,
@@ -14,7 +15,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -26,12 +27,18 @@ import {
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
+import { config } from "./config/config.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> {
+  const isAsyncExchangeEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAsyncExchange"
+  );
+
   await match(message)
     .with(
       { type: "EServiceDescriptorPublished" },
@@ -72,6 +79,12 @@ export async function handleMessageV2(
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience,
               descriptorVoucherLifespan: descriptor.voucherLifespan,
+              ...(isAsyncExchangeEnabled
+                ? {
+                    asyncExchange: eservice.asyncExchange,
+                    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+                  }
+                : {}),
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
@@ -230,10 +243,9 @@ export async function handleMessageV2(
           await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
           // token-generation-states
-          const descriptorId = descriptor.id;
           const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
             eserviceId: eservice.id,
-            descriptorId,
+            descriptorId: descriptor.id,
           });
           await updateDescriptorStateInTokenGenerationStatesTable(
             eserviceId_descriptorId,
@@ -317,9 +329,13 @@ export async function handleMessageV2(
           "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",
@@ -366,7 +382,9 @@ const parseEServiceAndDescriptor = (
 
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
+    throw genericInternalError(
+      `Descriptor ${descriptorId} not found in e-service ${eservice.id} while processing event ${eventType}`
+    );
   }
   return { eservice, descriptor };
 };

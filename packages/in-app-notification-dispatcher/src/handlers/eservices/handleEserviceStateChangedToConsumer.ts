@@ -11,12 +11,12 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 type EServiceStateChangedEventType =
   | "EServiceNameUpdated"

@@ -141,6 +141,11 @@ message EServiceRiskAnalysisUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
+message MaintenanceEServiceRiskAnalysisSetTenantKindV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceRiskAnalysisDeletedV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;
@@ -244,6 +249,24 @@ message EServicePersonalDataFlagUpdatedAfterPublicationV2 {
 
 message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
   EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
 }
 
 message EServiceInstanceLabelUpdatedV2 {
