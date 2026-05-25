@@ -36,7 +36,7 @@ const toolRouter = (
         req.body.client_assertion,
         req.body.client_assertion_type,
         req.body.grant_type,
-        req.body.is_async ?? false,
+        req.body.is_async === "true",
         req.body.dpop_proof,
         ctx
       );
