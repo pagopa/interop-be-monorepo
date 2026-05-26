@@ -247,8 +247,8 @@ catalogs:
       specifier: 22.11.2
       version: 22.11.2
     qs:
-      specifier: 6.14.2
-      version: 6.14.2
+      specifier: 6.15.2
+      version: 6.15.2
     rate-limiter-flexible:
       specifier: 5.0.5
       version: 5.0.5
@@ -661,7 +661,7 @@ importers:
         version: link:../commons
       qs:
         specifier: 'catalog:'
-        version: 6.14.2
+        version: 6.15.2
       zod:
         specifier: 'catalog:'
         version: 3.23.8
@@ -4198,7 +4198,7 @@ importers:
         version: link:../models
       qs:
         specifier: 'catalog:'
-        version: 6.14.2
+        version: 6.15.2
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -10927,6 +10927,10 @@ packages:
 
   qs@6.14.2:
     resolution: {integrity: sha512-V/yCWTTF7VJ9hIh18Ugr2zhJMP01MY7c5kh4J870L7imm6/DIzBsNLTXzMwUA3yZ5b/KBqLx8Kp3uRvd7xSe3Q==}
+    engines: {node: '>=0.6'}
+
+  qs@6.15.2:
+    resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
     engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
@@ -18105,6 +18109,10 @@ snapshots:
       side-channel: 1.1.0
 
   qs@6.14.2:
+    dependencies:
+      side-channel: 1.1.0
+
+  qs@6.15.2:
     dependencies:
       side-channel: 1.1.0
 
