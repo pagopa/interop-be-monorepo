@@ -7,7 +7,10 @@ import {
   generateId,
   PurposeTemplateAddedV2,
   PurposeTemplateArchivedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   toPurposeTemplateV2,
+  toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import {
   FileManager,
@@ -22,6 +25,7 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockPurposeTemplate,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils/utils.js";
@@ -158,6 +162,75 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       data: {
         purposeTemplate: toPurposeTemplateV2(mockTemplate),
       } as any,
+      log_date: new Date(),
+    };
+
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
+
+    const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
+
+    await handlePurposeTemplateMessageV2(
+      eventsWithTimestamp,
+      fileManager,
+      signatureService,
+      safeStorageService
+    );
+
+    expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
+  });
+
+  it("should not process a PurposeTemplateEServiceTemplateLinked event", async () => {
+    const mockTemplate = getMockPurposeTemplate();
+    const mockEServiceTemplate = getMockEServiceTemplate();
+
+    const message: PurposeTemplateEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockTemplate.id,
+      version: 1,
+      event_version: 2,
+      type: "PurposeTemplateEServiceTemplateLinked",
+      data: {
+        purposeTemplate: toPurposeTemplateV2(mockTemplate),
+        eserviceTemplate: toEServiceTemplateV2(mockEServiceTemplate),
+        eserviceTemplateVersionId: mockEServiceTemplate.versions[0].id,
+        createdAt: BigInt(Date.now()),
+      } as PurposeTemplateEServiceTemplateLinkedV2,
+      log_date: new Date(),
+    };
+
+    const eventsWithTimestamp = [
+      { purposeTemplateV2: message, timestamp: new Date() },
+    ];
+
+    const safeStorageCreateFileSpy = vi.spyOn(safeStorageService, "createFile");
+
+    await handlePurposeTemplateMessageV2(
+      eventsWithTimestamp,
+      fileManager,
+      signatureService,
+      safeStorageService
+    );
+
+    expect(safeStorageCreateFileSpy).not.toHaveBeenCalled();
+  });
+
+  it("should not process a PurposeTemplateEServiceTemplateUnlinked event", async () => {
+    const mockTemplate = getMockPurposeTemplate();
+    const mockEServiceTemplate = getMockEServiceTemplate();
+
+    const message: PurposeTemplateEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockTemplate.id,
+      version: 1,
+      event_version: 2,
+      type: "PurposeTemplateEServiceTemplateUnlinked",
+      data: {
+        purposeTemplate: toPurposeTemplateV2(mockTemplate),
+        eserviceTemplate: toEServiceTemplateV2(mockEServiceTemplate),
+        eserviceTemplateVersionId: mockEServiceTemplate.versions[0].id,
+      } as PurposeTemplateEServiceTemplateUnlinkedV2,
       log_date: new Date(),
     };
 
