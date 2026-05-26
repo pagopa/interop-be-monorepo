@@ -67,6 +67,7 @@ export async function exportInterfaceV2(
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorRejectedByDelegator",
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceNameUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",

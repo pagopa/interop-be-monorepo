@@ -265,59 +265,75 @@ export const verifyAsyncClientAssertion = (
     false
   );
 
-  // Re-decode JWT to access async claims (stripped by base non-strict parse)
-  const decodedPayload = jose.decodeJwt(clientAssertionJws);
+  // Re-decode JWT to access async claims (stripped by base non-strict parse).
+  // decodeJwt throws on a malformed JWS (e.g. random input in the token
+  // debugger); in that case the base validation has already captured the format
+  // error, so we surface those errors instead of letting it bubble up as an
+  // unexpected 500.
+  try {
+    const decodedPayload = jose.decodeJwt(clientAssertionJws);
 
-  // Validate async-specific claims (format only)
-  const { errors: scopeErrors, data: validatedScope } = validateScope(
-    decodedPayload.scope
-  );
-  const { errors: interactionIdErrors, data: validatedInteractionId } =
-    validateInteractionId(decodedPayload.interactionId);
-  const { errors: urlCallbackErrors, data: validatedUrlCallback } =
-    validateUrlCallback(decodedPayload.urlCallback);
-  const { errors: entityNumberErrors, data: validatedEntityNumber } =
-    validateEntityNumber(decodedPayload.entityNumber);
+    // Validate async-specific claims (format only)
+    const { errors: scopeErrors, data: validatedScope } = validateScope(
+      decodedPayload.scope
+    );
+    const { errors: interactionIdErrors, data: validatedInteractionId } =
+      validateInteractionId(decodedPayload.interactionId);
+    const { errors: urlCallbackErrors, data: validatedUrlCallback } =
+      validateUrlCallback(decodedPayload.urlCallback);
+    const { errors: entityNumberErrors, data: validatedEntityNumber } =
+      validateEntityNumber(decodedPayload.entityNumber);
 
-  if (
-    !baseResult.errors &&
-    !scopeErrors &&
-    !interactionIdErrors &&
-    !urlCallbackErrors &&
-    !entityNumberErrors
-  ) {
-    // Strict validation with async schema (always enforced for new async feature).
-    // Only runs when individual field validations pass — catches unknown extra fields.
-    const payloadStrictParseResult =
-      AsyncClientAssertionPayload.safeParse(decodedPayload);
-    if (!payloadStrictParseResult.success) {
-      return failedValidation([
-        clientAssertionInvalidClaims(
-          payloadStrictParseResult.error.message,
-          "payload"
-        ),
-      ]);
+    if (
+      !baseResult.errors &&
+      !scopeErrors &&
+      !interactionIdErrors &&
+      !urlCallbackErrors &&
+      !entityNumberErrors
+    ) {
+      // Strict validation with async schema (always enforced for new async feature).
+      // Only runs when individual field validations pass — catches unknown extra fields.
+      const payloadStrictParseResult =
+        AsyncClientAssertionPayload.safeParse(decodedPayload);
+      if (!payloadStrictParseResult.success) {
+        return failedValidation([
+          clientAssertionInvalidClaims(
+            payloadStrictParseResult.error.message,
+            "payload"
+          ),
+        ]);
+      }
+
+      return successfulValidation({
+        header: baseResult.data.header,
+        payload: {
+          ...baseResult.data.payload,
+          scope: validatedScope,
+          interactionId: validatedInteractionId,
+          urlCallback: validatedUrlCallback,
+          entityNumber: validatedEntityNumber,
+        },
+      });
     }
 
-    return successfulValidation({
-      header: baseResult.data.header,
-      payload: {
-        ...baseResult.data.payload,
-        scope: validatedScope,
-        interactionId: validatedInteractionId,
-        urlCallback: validatedUrlCallback,
-        entityNumber: validatedEntityNumber,
-      },
-    });
+    return failedValidation([
+      baseResult.errors,
+      scopeErrors,
+      interactionIdErrors,
+      urlCallbackErrors,
+      entityNumberErrors,
+    ]);
+  } catch (error) {
+    if (error instanceof JWTInvalid) {
+      return failedValidation([
+        baseResult.errors ?? [invalidClientAssertionFormat(error.message)],
+      ]);
+    }
+    const message = error instanceof Error ? error.message : "generic error";
+    return failedValidation([
+      baseResult.errors ?? [unexpectedClientAssertion(message)],
+    ]);
   }
-
-  return failedValidation([
-    baseResult.errors,
-    scopeErrors,
-    interactionIdErrors,
-    urlCallbackErrors,
-    entityNumberErrors,
-  ]);
 };
 
 // Validates that the claims required for a specific async scope are present

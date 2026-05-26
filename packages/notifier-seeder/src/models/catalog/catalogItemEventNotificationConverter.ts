@@ -170,6 +170,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
       // FIXME these events will be managed with "WORK ITEM 10"
       { type: "EServiceDescriptorArchivingScheduled" },
