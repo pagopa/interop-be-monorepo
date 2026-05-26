@@ -102,6 +102,7 @@ export async function handleEServiceEvent(
           "EServiceNameUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAdded",
           "EServiceDescriptorDocumentUpdated",

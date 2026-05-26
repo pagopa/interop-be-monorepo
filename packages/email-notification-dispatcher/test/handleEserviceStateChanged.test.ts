@@ -11,6 +11,7 @@ import {
 import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
+  AttributeId,
   agreementState,
   CorrelationId,
   Descriptor,
@@ -284,6 +285,23 @@ describe("handleEserviceStateChanged", async () => {
         },
         event_version: 2,
         type: "EServiceDescriptorQuotasUpdated",
+      },
+      expected: {
+        entityId: `${eservice.id}/${eservice.descriptors[0].id}`,
+        title: `Modifiche alla versione di "${eservice.name}"`,
+        tokens: [producerTenant.name, descriptor.version, eservice.name],
+      },
+    },
+    {
+      payload: {
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          attributeId: generateId<AttributeId>(),
+          dailyCallsPerConsumer: 10,
+        },
+        event_version: 2,
+        type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
       },
       expected: {
         entityId: `${eservice.id}/${eservice.descriptors[0].id}`,
