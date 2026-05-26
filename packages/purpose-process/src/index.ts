@@ -24,7 +24,9 @@ const tenantKindHistoryDB = drizzle({
     database: config.tenantKindHistoryDBName,
     user: config.tenantKindHistoryDBUsername,
     password: config.tenantKindHistoryDBPassword,
-    ssl: config.tenantKindHistoryDBUseSSL,
+    ssl: config.tenantKindHistoryDBUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
   }),
 });
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);

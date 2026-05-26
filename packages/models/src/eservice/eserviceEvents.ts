@@ -26,6 +26,7 @@ import {
   EServiceDescriptorActivatedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorArchivedV2,
+  EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorDocumentDeletedV2,
   EServiceDescriptorDocumentUpdatedV2,
@@ -296,6 +297,11 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "MaintenanceEServicePersonalDataFlagReset" }, ({ data }) =>
       MaintenanceEServicePersonalDataFlagResetV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
+      ({ data }) =>
+        EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -627,6 +633,13 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("MaintenanceEServicePersonalDataFlagReset"),
     data: protobufDecoder(MaintenanceEServicePersonalDataFlagResetV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"),
+    data: protobufDecoder(
+      EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2
+    ),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
