@@ -76,12 +76,12 @@ describe("verified attribute creation", () => {
         creationTime: new Date(writtenPayload.attribute!.creationTime),
       };
 
-      expect(writtenPayload.attribute).toEqual(
-        toAttributeV1(expectedAttribute)
-      );
-      expect(writtenPayload.attribute).toEqual(
-        toAttributeV1(createVerifiedAttributeResponse.data)
-      );
+      expect(writtenPayload).toEqual({
+        attribute: toAttributeV1(expectedAttribute),
+      });
+      expect(writtenPayload).toEqual({
+        attribute: toAttributeV1(createVerifiedAttributeResponse.data),
+      });
       expect(createVerifiedAttributeResponse).toEqual({
         data: expectedAttribute,
         metadata: {

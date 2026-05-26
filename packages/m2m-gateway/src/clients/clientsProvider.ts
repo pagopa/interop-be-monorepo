@@ -9,10 +9,10 @@ import {
   eserviceTemplateApi,
   m2mEventApi,
   purposeTemplateApi,
+  createZodiosClientEnhancedWithMetadata,
+  ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
-import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
-import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
 type TenantProcessClient = Pick<
   tenantApi.TenantProcessClient,

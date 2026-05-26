@@ -156,7 +156,11 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         messageType: EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(updatedEService),
+      });
     }
   );
 

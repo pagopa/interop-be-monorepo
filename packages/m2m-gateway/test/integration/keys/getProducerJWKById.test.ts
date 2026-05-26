@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { getMockProducerJWKKey } from "pagopa-interop-commons-test/index.js";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   keyService,
@@ -12,7 +15,6 @@ import {
   getMockM2MAdminAppContext,
   testToM2MProducerKey,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getProducerJWKByKid", () => {
   const mockKey = getMockProducerJWKKey();

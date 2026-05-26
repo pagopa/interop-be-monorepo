@@ -1,6 +1,5 @@
 import {
   ApiError,
-  Delegation,
   EServiceId,
   makeApiProblemBuilder,
   TenantId,
@@ -164,16 +163,6 @@ export function delegationContractNotFound(
     detail: `Contract ${contractId} of delegation ${delegationId} not found`,
     code: "delegationContractNotFound",
     title: "Delegation contract not found",
-  });
-}
-
-export function delegationStampNotFound(
-  stamp: keyof Delegation["stamps"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Delegation ${stamp} stamp not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
   });
 }
 
