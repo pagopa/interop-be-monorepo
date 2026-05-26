@@ -781,6 +781,15 @@ export const updateEServiceArchivingStatusErrorMapper = (
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const cancelEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceNotInArchiving", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const maintenanceResetEServicePersonalDataFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

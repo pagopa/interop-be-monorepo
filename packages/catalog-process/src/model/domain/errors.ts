@@ -78,6 +78,7 @@ const errorCodes = {
   descriptorArchivingNotCancelableByScope: "0060",
   descriptorAlreadyArchived: "0061",
   notValidEServiceState: "0062",
+  eserviceNotInArchiving: "0063",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -717,5 +718,15 @@ export function descriptorAlreadyArchived(
     detail: `Descriptor ${descriptorId} is already archived`,
     code: "descriptorAlreadyArchived",
     title: "Descriptor already archived",
+  });
+}
+
+export function eserviceNotInArchiving(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have an ongoing global archiving orchestration`,
+    code: "eserviceNotInArchiving",
+    title: "EService not in archiving",
   });
 }
