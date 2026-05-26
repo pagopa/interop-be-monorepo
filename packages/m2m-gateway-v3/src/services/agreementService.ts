@@ -419,7 +419,7 @@ export function agreementServiceBuilder(
         `Adding consumer document ${fileUpload.file.name} to agreement with id ${agreementId}`
       );
 
-      if (!isValidFile(fileUpload.file)) {
+      if (!(await isValidFile(fileUpload.file))) {
         throw invalidFileUploadError();
       }
 

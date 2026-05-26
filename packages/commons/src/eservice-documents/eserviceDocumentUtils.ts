@@ -402,7 +402,7 @@ export async function verifyAndCreateDocument<T>(
     );
   }
 
-  if (!isValidFile(doc)) {
+  if (!(await isValidFile(doc))) {
     throw invalidFileUploadError();
   }
 

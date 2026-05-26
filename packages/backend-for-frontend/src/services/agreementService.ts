@@ -200,7 +200,7 @@ export function agreementServiceBuilder(
     ): Promise<Buffer> {
       logger.info(`Adding consumer document to agreement ${agreementId}`);
 
-      if (!isValidFile(doc.doc)) {
+      if (!(await isValidFile(doc.doc))) {
         throw invalidFileUploadError();
       }
 
