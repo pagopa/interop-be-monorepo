@@ -1434,8 +1434,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-soglie.differenziate.0
-        version: 1.8.18-soglie.differenziate.0
+        specifier: 1.8.19
+        version: 1.8.19
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5802,8 +5802,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-soglie.differenziate.0
-        version: 1.8.18-soglie.differenziate.0
+        specifier: 1.8.19
+        version: 1.8.19
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7474,8 +7474,8 @@ packages:
   '@pagopa/interop-outbound-models@1.8.10':
     resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
 
-  '@pagopa/interop-outbound-models@1.8.18-soglie.differenziate.0':
-    resolution: {integrity: sha512-uHw/li3E6jrSCHBSxBVBA+vyj2CuIE4o5acfLNkH2DCTj9mW936a4AKCK/0Yy3sJiUrB7ZoSpk+wz+B6PEAaNQ==}
+  '@pagopa/interop-outbound-models@1.8.19':
+    resolution: {integrity: sha512-XbyzI0SFMMZy7W0oDXU4nGj2iJRhizfb8NBFfnQcqp6vl2dgIexQHhR7tSmJvG2Re+9Y4KyHhuKGggBRXI+F6g==}
 
   '@pagopa/interop-outbound-models@1.8.8':
     resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
@@ -13984,7 +13984,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.18-soglie.differenziate.0':
+  '@pagopa/interop-outbound-models@1.8.19':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
