@@ -4374,7 +4374,6 @@ async function processEserviceArchiving(
           )
         )
         .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
-          //Should never happen since we already deleted draft/waiting descriptors, but we put it here for type safety reasons
           throw notValidDescriptorState(descriptor.id, descriptor.state);
         })
         .exhaustive()
