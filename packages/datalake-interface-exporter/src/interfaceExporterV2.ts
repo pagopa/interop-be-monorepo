@@ -71,6 +71,7 @@ export async function exportInterfaceV2(
       { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceNameUpdated" },
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptionUpdatedByTemplateUpdate" },

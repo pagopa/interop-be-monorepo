@@ -2300,6 +2300,82 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update e-service descriptor certified attribute
+      operationId: updateDescriptorCertifiedAttribute
+      description: Updates properties of a certified attribute in the specified E-Service descriptor attribute group
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: groupIndex
+          in: path
+          description: the certified attribute group index
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - name: attributeId
+          in: path
+          description: the certified attribute id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the certified attribute properties to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      responses:
+        "200":
+          description: EService descriptor certified attribute updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService, descriptor, group, or attribute not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/templates/eservices/{eServiceId}/name/update:
     post:
       parameters:
@@ -3364,6 +3440,17 @@ components:
       required:
         - id
         - explicitAttributeVerification
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer that has the related certified attribute
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     AgreementApprovalPolicy:
       type: string
       description: |
