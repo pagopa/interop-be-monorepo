@@ -129,7 +129,6 @@ export const documentCreateErrorMapper = (
     )
     .with(
       "eServiceAsyncExchangeNotEnabled",
-      "descriptorAsyncExchangeNotConfigured",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )

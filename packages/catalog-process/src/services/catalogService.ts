@@ -111,7 +111,6 @@ import {
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
-  descriptorAsyncExchangeNotConfigured,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
@@ -718,10 +717,6 @@ async function innerAddDocumentToEserviceEvent(
 
     if (eService.data.asyncExchange !== true) {
       throw eServiceAsyncExchangeNotEnabled(eService.data.id);
-    }
-
-    if (descriptor.asyncExchangeProperties == null) {
-      throw descriptorAsyncExchangeNotConfigured(descriptor.id);
     }
 
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
