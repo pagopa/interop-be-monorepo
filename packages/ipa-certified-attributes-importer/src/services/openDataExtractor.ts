@@ -55,7 +55,7 @@ type CategoriesFields = (typeof categoriesFields)[number];
 
 function fieldExtractor<K>(
   record: unknown[],
-  fields: Map<K, number>,
+  fields: Map<K, number>
 ): <T>(key: K, decoder: z.ZodSchema<T>) => T | undefined {
   return (key, decoder) => {
     const valueIndex = fields.get(key);
@@ -77,7 +77,7 @@ function isCategoryField(field: string): field is CategoriesFields {
 }
 
 export async function getAllCategories(
-  openDataConfig: OpenDataConfig,
+  openDataConfig: OpenDataConfig
 ): Promise<Category[]> {
   const response = await axios.get(openDataConfig.institutionsCategoriesUrl);
   const responseFields = response.data.fields as Array<{ id: string }>;
@@ -87,8 +87,8 @@ export async function getAllCategories(
     responseFields
       .map<[string, number]>((f, index) => [f.id, index])
       .filter((data): data is [CategoriesFields, number] =>
-        isCategoryField(data[0]),
-      ),
+        isCategoryField(data[0])
+      )
   );
 
   return responseRecords.reduce<Category[]>((accumulator, record: any[]) => {
@@ -128,7 +128,7 @@ function isInstitutionsField(field: string): field is InstitutionsFields {
 export async function getAllInstitutions(
   institutionKind: InstitutionKind,
   institutionsDetails: Map<string, { category: string; kind: string }>,
-  openDataConfig: OpenDataConfig,
+  openDataConfig: OpenDataConfig
 ): Promise<Institution[]> {
   const url = match(institutionKind)
     .with("Agency", () => openDataConfig.institutionsUrl)
@@ -148,8 +148,8 @@ export async function getAllInstitutions(
     responseFields
       .map<[string, number]>((f, index) => [f.id, index])
       .filter((data): data is [InstitutionsFields, number] =>
-        isInstitutionsField(data[0]),
-      ),
+        isInstitutionsField(data[0])
+      )
   );
 
   return responseRecords.reduce<Institution[]>((accumulator, record: any[]) => {
@@ -166,7 +166,7 @@ export async function getAllInstitutions(
         .with("AOO", () => "Codice_uni_aoo")
         .with("UO", () => "Codice_uni_uo")
         .exhaustive(),
-      z.string(),
+      z.string()
     );
     if (!originId) {
       return accumulator;

@@ -79,7 +79,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
-      genericLogger,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
@@ -181,7 +181,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
-      genericLogger,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
@@ -233,7 +233,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       [],
       tenantSeed,
-      genericLogger,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
@@ -299,7 +299,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
-      genericLogger,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
