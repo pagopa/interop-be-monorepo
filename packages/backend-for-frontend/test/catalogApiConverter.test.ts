@@ -49,14 +49,14 @@ describe("catalogApiConverter", () => {
             {
               id: certifiedAttributeId,
               explicitAttributeVerification: false,
-              discreteConfig: {
-                comparator: "GTE",
-                threshold: 1,
-              },
             },
             {
               id: certifiedDiscreteAttributeId,
               explicitAttributeVerification: false,
+              discreteConfig: {
+                comparator: "GTE",
+                threshold: 1,
+              },
             },
           ],
         ],
@@ -89,10 +89,6 @@ describe("catalogApiConverter", () => {
         description: "certified description",
         explicitAttributeVerification: false,
         kind: "CERTIFIED",
-        discreteConfig: {
-          comparator: "GTE",
-          threshold: 1,
-        },
       });
       expect(result.certified[0][1]).toEqual({
         id: certifiedDiscreteAttributeId,
@@ -100,9 +96,25 @@ describe("catalogApiConverter", () => {
         description: "certified discrete description",
         explicitAttributeVerification: false,
         kind: "CERTIFIED_DISCRETE",
+        discreteConfig: {
+          comparator: "GTE",
+          threshold: 1,
+        },
       });
-      expect(result.declared[0][0].kind).toBe("DECLARED");
-      expect(result.verified[0][0].kind).toBe("VERIFIED");
+      expect(result.declared[0][0]).toEqual({
+        id: declaredAttributeId,
+        name: "declared attribute",
+        description: "declared description",
+        explicitAttributeVerification: false,
+        kind: "DECLARED",
+      });
+      expect(result.verified[0][0]).toEqual({
+        id: verifiedAttributeId,
+        name: "verified attribute",
+        description: "verified description",
+        explicitAttributeVerification: true,
+        kind: "VERIFIED",
+      });
     });
 
     it("should throw attributeNotExists when registry data is missing", () => {
