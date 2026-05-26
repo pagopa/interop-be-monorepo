@@ -412,9 +412,10 @@ export function tokenGenerationError(
 
 export function hyperlinkDetectionError(
   text: string
-): InternalError<CommonErrorCodes> {
-  return new InternalError({
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
     code: "hyperlinkDetectionError",
+    title: "Hyperlink detection error",
     detail: `Hyperlink detection error for text ${text}`,
   });
 }
@@ -487,7 +488,11 @@ export function pdfGenerationError(
 
 const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
-    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "badRequestError",
+      "hyperlinkDetectionError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(

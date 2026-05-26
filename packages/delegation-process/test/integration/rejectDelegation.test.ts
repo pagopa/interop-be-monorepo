@@ -12,6 +12,7 @@ import {
   DelegationId,
   delegationKind,
   generateId,
+  hyperlinkDetectionError,
   ProducerDelegationRejectedV2,
   TenantId,
   toDelegationV2,
@@ -161,4 +162,20 @@ describe.each([
       );
     }
   );
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const delegate = getMockTenant();
+    const authData = getMockAuthData(delegate.id);
+    const delegation = getMockDelegation({
+      kind,
+      state: delegationState.waitingForApproval,
+      delegateId: delegate.id,
+    });
+    await addOneDelegation(delegation);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      rejectFn(delegation.id, rejectionReason, getMockContext({ authData }))
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
+  });
 });

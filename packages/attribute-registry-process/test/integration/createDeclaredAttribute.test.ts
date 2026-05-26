@@ -14,6 +14,7 @@ import {
   toAttributeV1,
   generateId,
   TenantId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -140,5 +141,46 @@ describe("declared attribute creation", () => {
         getMockContextM2MAdmin({ organizationId: notExistingTenantId })
       )
     ).rejects.toThrowError(tenantNotFound(notExistingTenantId));
+  });
+  it.each([
+    {
+      label: "name",
+      seed: () => ({
+        name: "Foo https://evil.example.com",
+        description: mockAttribute.description,
+      }),
+      text: "Foo https://evil.example.com",
+    },
+    {
+      label: "description",
+      seed: () => ({
+        name: mockAttribute.name,
+        description: "See www.evil.example.com for details",
+      }),
+      text: "See www.evil.example.com for details",
+    },
+  ])(
+    "should throw hyperlinkDetectionError if $label contains a hyperlink",
+    async ({ seed, text }) => {
+      await addOneTenant(mockTenant);
+      await expect(
+        attributeRegistryService.createDeclaredAttribute(
+          seed(),
+          getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
+  it("should NOT throw hyperlinkDetectionError when a field contains a bare domain", async () => {
+    await addOneTenant(mockTenant);
+    await expect(
+      attributeRegistryService.createDeclaredAttribute(
+        {
+          name: mockAttribute.name,
+          description: "The company test-www.example is involved",
+        },
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      )
+    ).resolves.toBeDefined();
   });
 });

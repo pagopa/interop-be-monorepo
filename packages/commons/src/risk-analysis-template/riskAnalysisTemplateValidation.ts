@@ -18,6 +18,7 @@ import {
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
 } from "./riskAnalysisFormTemplate.js";
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   invalidTemplateResult,
   malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
@@ -29,6 +30,7 @@ import {
   unexpectedRiskAnalysisTemplateDependencyEditableError,
   unexpectedRiskAnalysisTemplateDependencyValueError,
   unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldHyperlinkError,
   unexpectedRiskAnalysisTemplateFieldValueError,
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
@@ -279,14 +281,18 @@ function validateAnswerValue(
   const hasValues = answer.values.length > 0;
 
   return match(rule)
-    .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(
+    .with({ dataType: "freeText" }, (freeTextRule) => [
+      ...validateFreeTextAnswer(
         freeTextRule,
         hasValues,
         hasSuggestions,
         answer.editable
-      )
-    )
+      ),
+      ...validateFreeTextAnswerSuggestionsHaveNoHyperlinks(
+        freeTextRule,
+        answer.suggestedValues
+      ),
+    ])
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
       validateNonFreeTextAnswer(
@@ -327,6 +333,15 @@ function validateFreeTextAnswer(
 
   // Free text answers must have suggested values, not be editable and not have values
   return [];
+}
+
+function validateFreeTextAnswerSuggestionsHaveNoHyperlinks(
+  rule: ValidationRule,
+  suggestedValues: string[]
+): RiskAnalysisTemplateValidationIssue[] {
+  return suggestedValues.some(containsHyperlink)
+    ? [unexpectedRiskAnalysisTemplateFieldHyperlinkError(rule.fieldName)]
+    : [];
 }
 
 function validateNonFreeTextAnswer(

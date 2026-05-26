@@ -38,6 +38,7 @@ import {
   M2MAuthData,
   UIAuthData,
   userRole,
+  validateNoHyperlinksSafe,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -268,6 +269,9 @@ export function authorizationServiceBuilder(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
 
+      validateNoHyperlinksSafe(clientSeed.name);
+      validateNoHyperlinksSafe(clientSeed.description);
+
       assertMembersAreUnique(clientSeed.members);
 
       const client: Client = {
@@ -304,6 +308,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      validateNoHyperlinksSafe(clientSeed.name);
+      validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
 
@@ -880,6 +887,9 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for client ${clientId}`);
+
+      validateNoHyperlinksSafe(keySeed.name);
+
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
       assertClientKeysCountIsBelowThreshold(
@@ -1011,6 +1021,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
+
+      validateNoHyperlinksSafe(producerKeychainSeed.name);
+      validateNoHyperlinksSafe(producerKeychainSeed.description);
 
       assertMembersAreUnique(producerKeychainSeed.members);
 
@@ -1338,6 +1351,9 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
+
+      validateNoHyperlinksSafe(keySeed.name);
+
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
         readModelService

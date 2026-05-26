@@ -5,22 +5,48 @@ export function escapeRegExp(str: string): string {
 }
 
 /**
- * Validates that a text does not contain hyperlinks or URLs
- * The intent is only to prevent the insertion of clickable hyperlinks that lead out of context,
- * so it is sufficient to focus on http(s) and www.
- * Keep in mind that the text should be limited to 250 characters.
- * Regular expression to match explicit hyperlinks (http/https or www.).
- * - https?:\/\/[^\s]+ -> Matches 'http://...' or 'https://...'
- * - (?<![a-zA-Z0-9])www\. -> Matches 'www.' only if not preceded by an alphanumeric character (e.g., 'test-www.com' is not matched)
+ * Regular expression that matches an explicit hyperlink in free text:
+ * - `https?:\/\/...`   — matches `http://...` or `https://...`
+ * - `(?<![a-zA-Z0-9])www\.` — matches `www.` only when not preceded by an
+ *   alphanumeric character (so e.g. `test-www.com` is NOT considered a link)
  *
- * @param text - The text to validate
- * @param customError - Optional custom error to throw if hyperlinks are found
- * @throws Error or custom error if hyperlinks are detected
+ * The trailing token is bounded with `{1,N}` (instead of `+`) and the `g` flag
+ * is omitted so that the pattern is ReDoS-safe and stateless on long inputs.
+ *
+ * The intent is to prevent the insertion of clickable links that lead out of
+ * context (UI/email vectors); we deliberately do NOT try to match every URL
+ * shape — bare domains like `example.com` are allowed.
  */
-export function validateNoHyperlinks(text: string, customError?: Error): void {
-  const urlPattern = /(https?:\/\/|(?<![a-zA-Z0-9])www\.)[^\s]+/gi;
+const HYPERLINK_MAX_TOKEN_LENGTH = 2048;
+const HYPERLINK_PATTERN = new RegExp(
+  `(https?:\\/\\/|(?<![a-zA-Z0-9])www\\.)[^\\s]{1,${HYPERLINK_MAX_TOKEN_LENGTH}}`,
+  "i"
+);
 
-  if (urlPattern.test(text)) {
+/**
+ * Returns true if `text` contains a hyperlink as defined by
+ * {@link HYPERLINK_PATTERN}. Safe to call on optional fields.
+ */
+export function containsHyperlink(text: string | undefined): boolean {
+  if (!text) {
+    return false;
+  }
+  return HYPERLINK_PATTERN.test(text);
+}
+
+/**
+ * Throws when `text` contains a hyperlink. No-op when `text` is undefined or
+ * empty, so callers don't need to guard optional inputs.
+ *
+ * @param text - The text to validate (no-op when undefined or empty)
+ * @param customError - Optional error to throw instead of the default
+ *                      {@link hyperlinkDetectionError}
+ */
+export function validateNoHyperlinksSafe(
+  text: string | undefined,
+  customError?: Error
+): void {
+  if (containsHyperlink(text) && text) {
     throw customError || hyperlinkDetectionError(text);
   }
 }

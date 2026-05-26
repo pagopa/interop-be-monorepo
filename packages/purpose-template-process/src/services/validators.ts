@@ -9,7 +9,7 @@ import {
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   systemRole,
   UIAuthData,
-  validateNoHyperlinks,
+  validateNoHyperlinksSafe,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
@@ -255,7 +255,7 @@ export function validateAndTransformRiskAnalysisTemplate(
 export function validateRiskAnalysisAnswerAnnotationOrThrow(
   text: string
 ): void {
-  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+  validateNoHyperlinksSafe(text, hyperlinkDetectionError(text));
 }
 
 export function validateRiskAnalysisTemplateOrThrow({

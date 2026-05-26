@@ -18,6 +18,7 @@ import {
   DescriptorRejectionReason,
   EServiceDescriptorRejectedByDelegatorV2,
   delegationKind,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -206,4 +207,25 @@ describe("reject descriptor", () => {
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.waitingForApproval,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    const rejectionReason = "see https://evil.example.com";
+    await expect(
+      catalogService.rejectDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        { rejectionReason },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
+  });
 });

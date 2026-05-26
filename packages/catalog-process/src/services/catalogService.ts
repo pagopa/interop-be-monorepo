@@ -13,6 +13,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  validateNoHyperlinksSafe,
   verifyAndCreateDocument,
   WithLogger,
   dateAtRomeZone,
@@ -542,6 +543,9 @@ async function innerCreateEService(
   eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
 }> {
+  validateNoHyperlinksSafe(seed.name);
+  validateNoHyperlinksSafe(seed.description);
+
   const origin = await retrieveOriginFromAuthData(
     authData,
     readModelService,
@@ -1042,6 +1046,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} template instance`);
 
+      validateNoHyperlinksSafe(eserviceSeed.instanceLabel);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1170,6 +1176,9 @@ export function catalogServiceBuilder(
           document.filePath
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
+
+      validateNoHyperlinksSafe(document.fileName);
+      validateNoHyperlinksSafe(document.prettyName);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -1311,6 +1320,10 @@ export function catalogServiceBuilder(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
+      validateNoHyperlinksSafe(
+        apiEServiceDescriptorDocumentUpdateSeed.prettyName
+      );
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -1427,6 +1440,12 @@ export function catalogServiceBuilder(
       }>
     > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(eserviceDescriptorSeed.description);
+      eserviceDescriptorSeed.docs.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2692,6 +2711,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} description`);
+
+      validateNoHyperlinksSafe(description);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -2829,6 +2851,8 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating name of EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -3033,6 +3057,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
+
+      validateNoHyperlinksSafe(body.rejectionReason);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
@@ -4038,6 +4065,8 @@ export function catalogServiceBuilder(
         `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
       );
 
+      validateNoHyperlinksSafe(instanceLabel);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -4639,6 +4668,9 @@ async function updateDraftEService(
     isClientAccessDelegable,
   } = typeAndSeed.seed;
 
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+
   if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
       name,
@@ -4815,6 +4847,8 @@ async function updateDraftDescriptor(
   } = seed;
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields
+
+  validateNoHyperlinksSafe(description);
 
   const updatedDailyCallsPerConsuemer =
     dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;
