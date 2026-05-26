@@ -362,8 +362,6 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingCanceled",
           "MaintenanceEServicePersonalDataFlagReset",
-          "EServiceDescriptorArchivingCompleted",
-          "EServiceArchivingCompleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
