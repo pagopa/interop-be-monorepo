@@ -99,6 +99,10 @@ describe("enrichAgreement", () => {
             {
               id: agreementCertifiedDiscreteAttributeId,
               explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 1,
+                comparator: "GTE",
+              },
             },
           ],
         ],
