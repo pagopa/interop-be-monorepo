@@ -1065,6 +1065,29 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
+
+    async cancelEServiceArchiving(
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Canceling archiving for eservice with id ${eserviceId}`);
+
+      const { metadata } =
+        await clients.catalogProcessClient.cancelScheduleArchiveEservice(
+          undefined,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledEService = await pollEServiceById(
+        eserviceId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiEService(polledEService.data);
+    },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,

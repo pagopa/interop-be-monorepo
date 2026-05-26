@@ -393,6 +393,24 @@ const catalogRouter = (
         }
       }
     )
+    .delete("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.cancelEServiceArchiving(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error canceling archiving for eservice ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
