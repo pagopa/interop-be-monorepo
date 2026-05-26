@@ -67,7 +67,6 @@ const errorCodes = {
   certifiedAttributeGroupNotFoundInSeed: "0049",
   asyncExchangeCallbackInterfaceAlreadyExists: "0050",
   eServiceAsyncExchangeNotEnabled: "0051",
-  descriptorAsyncExchangeNotConfigured: "0052",
   missingAsyncExchangeProperties: "0053",
   asyncExchangeBulkNotAllowedForSoap: "0054",
   asyncExchangeNotAllowedForReceiveMode: "0055",
@@ -638,16 +637,6 @@ export function eServiceAsyncExchangeNotEnabled(
     detail: `EService ${eServiceId} does not have async exchange enabled`,
     code: "eServiceAsyncExchangeNotEnabled",
     title: "EService does not have async exchange enabled",
-  });
-}
-
-export function descriptorAsyncExchangeNotConfigured(
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Descriptor ${descriptorId} does not have async exchange configured`,
-    code: "descriptorAsyncExchangeNotConfigured",
-    title: "Descriptor does not have async exchange configured",
   });
 }
 

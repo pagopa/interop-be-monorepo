@@ -111,7 +111,6 @@ import {
   eServiceTemplateWithoutPersonalDataFlag,
   asyncExchangeCallbackInterfaceAlreadyExists,
   eServiceAsyncExchangeNotEnabled,
-  descriptorAsyncExchangeNotConfigured,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
 } from "../model/domain/errors.js";
@@ -127,6 +126,7 @@ import {
   toCreateEventEServiceDescriptorApprovedByDelegator,
   toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated,
   toCreateEventEServiceDescriptorArchived,
+  toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdated,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate,
   toCreateEventEServiceDescriptorDocumentAddedByTemplateUpdate,
@@ -747,10 +747,6 @@ async function innerAddDocumentToEserviceEvent(
 
     if (eService.data.asyncExchange !== true) {
       throw eServiceAsyncExchangeNotEnabled(eService.data.id);
-    }
-
-    if (descriptor.asyncExchangeProperties == null) {
-      throw descriptorAsyncExchangeNotConfigured(descriptor.id);
     }
 
     if (descriptor.asyncExchangeCallbackInterface !== undefined) {
@@ -3217,7 +3213,6 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-
       const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
         eserviceId,
         descriptor,
@@ -3262,6 +3257,118 @@ export function catalogServiceBuilder(
       return {
         data: updatedEService,
         metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async updateDescriptorCertifiedAttribute(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      seed: catalogApi.EServiceDescriptorAttributeSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Updating certified attribute ${attributeId} of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateId
+      );
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eserviceId,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      if (descriptor.state !== descriptorState.draft) {
+        assertDescriptorUpdatableAfterPublish(descriptor);
+      }
+
+      const certifiedAttributes = descriptor.attributes.certified;
+      const attributeGroup = certifiedAttributes.at(groupIndex);
+      if (attributeGroup === undefined) {
+        throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptorId);
+      }
+
+      const attributeIndex = attributeGroup.findIndex(
+        (attribute) => attribute.id === attributeId
+      );
+      if (attributeIndex === -1) {
+        throw attributeNotFound(attributeId);
+      }
+
+      const currentAttribute = attributeGroup[attributeIndex];
+
+      if (
+        seed.dailyCallsPerConsumer === undefined ||
+        seed.dailyCallsPerConsumer === currentAttribute.dailyCallsPerConsumer
+      ) {
+        throw unchangedAttributes(eserviceId, descriptorId);
+      }
+
+      assertConsistentDailyCalls({
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+      });
+
+      const updatedAttribute = {
+        ...currentAttribute,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+      };
+
+      const updatedAttributeGroup = [
+        ...attributeGroup.slice(0, attributeIndex),
+        updatedAttribute,
+        ...attributeGroup.slice(attributeIndex + 1),
+      ];
+
+      const updatedCertifiedAttributes = [
+        ...certifiedAttributes.slice(0, groupIndex),
+        updatedAttributeGroup,
+        ...certifiedAttributes.slice(groupIndex + 1),
+      ];
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        attributes: {
+          ...descriptor.attributes,
+          certified: updatedCertifiedAttributes,
+        },
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const createdEvents = await repository.createEvents([
+        toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdated(
+          eservice.metadata.version,
+          descriptor.id,
+          attributeId,
+          seed.dailyCallsPerConsumer,
+          updatedEService,
+          correlationId
+        ),
+      ]);
+
+      return {
+        data: updatedEService,
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedEService.id) ??
+            eservice.metadata.version,
+        },
       };
     },
     async internalUpdateTemplateInstanceName(

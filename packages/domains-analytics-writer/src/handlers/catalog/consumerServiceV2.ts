@@ -61,6 +61,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorApprovedByDelegator",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceNameUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",

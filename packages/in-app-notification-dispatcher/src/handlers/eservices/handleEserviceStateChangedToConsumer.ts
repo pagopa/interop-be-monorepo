@@ -22,6 +22,7 @@ type EServiceStateChangedEventType =
   | "EServiceNameUpdated"
   | "EServiceDescriptionUpdated"
   | "EServiceDescriptorAttributesUpdated"
+  | "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
   | "EServiceDescriptorPublished"
   | "EServiceDescriptorSuspended"
   | "EServiceDescriptorActivated"
@@ -156,6 +157,7 @@ function getBodyAndDescriptorId(
       {
         type: P.union(
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
         ),
       },
