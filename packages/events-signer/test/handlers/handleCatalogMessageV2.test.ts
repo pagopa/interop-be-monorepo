@@ -26,6 +26,7 @@ import {
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
+  getMockDescriptorArchiving,
   getMockDescriptorPublished,
   getMockEService,
 } from "pagopa-interop-commons-test";
