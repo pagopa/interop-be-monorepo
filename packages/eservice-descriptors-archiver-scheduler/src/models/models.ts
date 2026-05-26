@@ -6,29 +6,35 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 
-const RefsToBeArchived = z.object({
+const ArchivableDescriptorRef = z.object({
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
 });
-export type RefsToBeArchived = z.infer<typeof RefsToBeArchived>;
+export type ArchivableDescriptorRef = z.infer<typeof ArchivableDescriptorRef>;
 
-const WrongDescriptor = z.object({
+const UnarchivableDescriptor = z.object({
   id: DescriptorId,
   state: DescriptorState,
   scope: ArchivingScope.nullable(),
 });
-export type WrongDescriptor = z.infer<typeof WrongDescriptor>;
+export type UnarchivableDescriptor = z.infer<typeof UnarchivableDescriptor>;
 
-const WrongEService = z.object({
+const EServiceWithUnarchivableDescriptors = z.object({
   eserviceId: EServiceId,
-  wrongDescriptors: z
-    .array(WrongDescriptor)
+  unarchivableDescriptors: z
+    .array(UnarchivableDescriptor)
     .nullish()
-    .transform((value): WrongDescriptor[] => value ?? []),
+    .transform((value): UnarchivableDescriptor[] => value ?? []),
 });
 
-type WrongEService = z.infer<typeof WrongEService>;
+type EServiceWithUnarchivableDescriptors = z.infer<
+  typeof EServiceWithUnarchivableDescriptors
+>;
 
-export const WrongEServices = z.array(WrongEService);
+export const EServiceWithUnarchivableDescriptors = z.array(
+  EServiceWithUnarchivableDescriptors
+);
 
-export type WrongEServices = z.infer<typeof WrongEServices>;
+export type EServiceWithUnarchivableDescriptors = z.infer<
+  typeof EServiceWithUnarchivableDescriptors
+>;

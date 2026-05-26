@@ -26,7 +26,7 @@ import {
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { addOneEService, readModelService } from "./utils.js";
-import { RefsToBeArchived } from "../src/models/models.js";
+import { ArchivableDescriptorRef } from "../src/models/models.js";
 
 describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
   let catalogProcessClient: CatalogProcessZodiosClient;
@@ -64,10 +64,10 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
 
         const numberOfArchivableDescriptors = 5;
 
-        const expectedRefs: RefsToBeArchived[] = await Promise.all(
+        const expectedRefs: ArchivableDescriptorRef[] = await Promise.all(
           Array.from(
             { length: numberOfArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -116,7 +116,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         await Promise.all(
           Array.from(
             { length: numberOfNonArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -159,7 +159,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         await Promise.all(
           Array.from(
             { length: numberOfNonArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -204,10 +204,10 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         const numberOfArchivableDescriptors = 5;
         const numberOfNonArchivableDescriptors = 5;
 
-        const archivableRefs: RefsToBeArchived[] = await Promise.all(
+        const archivableRefs: ArchivableDescriptorRef[] = await Promise.all(
           Array.from(
             { length: numberOfArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -239,7 +239,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         await Promise.all(
           Array.from(
             { length: numberOfNonArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state: descriptorState.published,
@@ -270,7 +270,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
     );
   });
 
-  describe("getExpiredArchivableEserviceRefs", async () => {
+  describe("getArchivableEserviceRefs", async () => {
     it.each(
       [0, 1, 2, 365].flatMap((daysBefore) =>
         archivingStates.map((state) => [state, daysBefore] as const)
@@ -310,8 +310,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
 
         await addOneEService(eservice);
 
-        const eserviceIds =
-          await readModelService.getExpiredArchivableEserviceRefs();
+        const eserviceIds = await readModelService.getArchivableEserviceRefs();
 
         expect(eserviceIds).toEqual([eservice.id]);
       }
@@ -365,15 +364,14 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         await addOneEService(nonExpiredEservice);
         await addOneEService(nonArchivingEservice);
 
-        const eserviceIds =
-          await readModelService.getExpiredArchivableEserviceRefs();
+        const eserviceIds = await readModelService.getArchivableEserviceRefs();
 
         expect(eserviceIds.length).toEqual(0);
       }
     );
   });
 
-  describe("getWrongEservices", async () => {
+  describe("getEServiceWithUnarchivableDescriptors", async () => {
     it("should return an empty array when all eservices have the correct states", async () => {
       const producerId: TenantId = generateId();
 
@@ -407,7 +405,10 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
 
       await addOneEService(eservice);
 
-      const testQuery = await readModelService.getWrongEservices([eservice.id]);
+      const testQuery =
+        await readModelService.getEServiceWithUnarchivableDescriptors([
+          eservice.id,
+        ]);
 
       expect(testQuery.length).toEqual(0);
     });
@@ -444,7 +445,7 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
         })
       );
 
-      const expectedWrongDescriptors: Descriptor[] = [];
+      const expectedUnarchivableDescriptors: Descriptor[] = [];
 
       await Promise.all(
         Array.from({ length: numberOfNonArchivableDescriptors }, async () => {
@@ -461,25 +462,28 @@ describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
           };
 
           eservice.descriptors.push(descriptor);
-          expectedWrongDescriptors.push(descriptor);
+          expectedUnarchivableDescriptors.push(descriptor);
         })
       );
 
       await addOneEService(eservice);
 
-      const testQuery = await readModelService.getWrongEservices([eservice.id]);
+      const testQuery =
+        await readModelService.getEServiceWithUnarchivableDescriptors([
+          eservice.id,
+        ]);
 
       expect(testQuery).toEqual([
         {
           eserviceId: eservice.id,
-          wrongDescriptors: expectedWrongDescriptors.map((d) => ({
+          UnarchivableDescriptors: expectedUnarchivableDescriptors.map((d) => ({
             id: d.id,
             state: d.state,
             scope: d.archivingSchedule?.scope,
           })),
         },
       ]);
-      expect(testQuery[0].wrongDescriptors.length).toEqual(
+      expect(testQuery[0].unarchivableDescriptors.length).toEqual(
         numberOfNonArchivableDescriptors
       );
     });

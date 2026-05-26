@@ -16,9 +16,9 @@ import {
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 import {
-  RefsToBeArchived,
-  WrongDescriptor,
-  WrongEServices,
+  ArchivableDescriptorRef,
+  UnarchivableDescriptor,
+  EServiceWithUnarchivableDescriptors,
 } from "../models/models.js";
 
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
@@ -30,7 +30,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The array of expired archivable descriptor references
      */
-    async getExpiredArchivableDescriptorRefs(): Promise<RefsToBeArchived[]> {
+    async getExpiredArchivableDescriptorRefs(): Promise<
+      ArchivableDescriptorRef[]
+    > {
       const queryResult: {
         descriptor: EServiceDescriptorSQL;
         archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
@@ -67,11 +69,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       const refs = queryResult.map((row) => row.descriptor);
 
-      const refsToBeArchived: RefsToBeArchived[] = refs.map((descriptor) => ({
-        eserviceId: unsafeBrandId(descriptor.eserviceId),
-        descriptorId: unsafeBrandId(descriptor.id),
-      }));
-      return refsToBeArchived;
+      const ArchivableDescriptorRef: ArchivableDescriptorRef[] = refs.map(
+        (descriptor) => ({
+          eserviceId: unsafeBrandId(descriptor.eserviceId),
+          descriptorId: unsafeBrandId(descriptor.id),
+        })
+      );
+      return ArchivableDescriptorRef;
     },
     /**
      * Fetches all expired archivable e-service references from the database.
@@ -80,7 +84,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The array of expired archivable e-service references
      */
-    async getExpiredArchivableEserviceRefs(): Promise<EServiceId[]> {
+    async getArchivableEserviceRefs(): Promise<EServiceId[]> {
       const queryResult: {
         eservice: EServiceSQL;
       }[] = await readModelDB
@@ -127,23 +131,23 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The list of e-services with wrong descriptors
      **/
-    async getWrongEservices(
+    async getEServiceWithUnarchivableDescriptors(
       eserviceIds: EServiceId[]
-    ): Promise<WrongEServices> {
+    ): Promise<EServiceWithUnarchivableDescriptors[]> {
       if (eserviceIds.length === 0) {
         return [];
       }
       const queryResult = await readModelDB
         .select({
           eserviceId: eserviceDescriptorInReadmodelCatalog.eserviceId,
-          wrongDescriptors: sql<WrongDescriptor[]>`
+          unarchivableDescriptors: sql<UnarchivableDescriptor[]>`
         array_agg(json_build_object(
           'id', ${eserviceDescriptorInReadmodelCatalog.id},
           'state', ${eserviceDescriptorInReadmodelCatalog.state},
           'scope', ${eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope}
         ))
         filter (where ${eserviceDescriptorInReadmodelCatalog.state} not in ('Archiving', 'ArchivingSuspended', 'Archived'))
-      `.as("wrong_descriptors"),
+      `.as("unarchivable_descriptors"),
         })
         .from(eserviceDescriptorInReadmodelCatalog)
         .leftJoin(
@@ -158,8 +162,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .groupBy(eserviceDescriptorInReadmodelCatalog.eserviceId);
 
-      return WrongEServices.parse(queryResult).filter(
-        (report) => report.wrongDescriptors.length > 0
+      return EServiceWithUnarchivableDescriptors.parse(queryResult).filter(
+        (report) => report.unarchivableDescriptors.length > 0
       );
     },
   };

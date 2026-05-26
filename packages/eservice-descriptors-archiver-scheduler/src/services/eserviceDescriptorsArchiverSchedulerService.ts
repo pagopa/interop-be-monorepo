@@ -57,30 +57,36 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
       loggerInstance.info(
         "Getting expired archivable e-services references from read-model...\n"
       );
-      const eserviceIds =
-        await readModelService.getExpiredArchivableEserviceRefs();
-      const wrongEservices =
-        await readModelService.getWrongEservices(eserviceIds);
-
-      if (wrongEservices.length > 0) {
-        loggerInstance.warn(
-          `Found ${wrongEservices.length} e-services with wrong descriptors to be archived...`
+      const eserviceIds = await readModelService.getArchivableEserviceRefs();
+      const EServiceWithUnarchivableDescriptors =
+        await readModelService.getEServiceWithUnarchivableDescriptors(
+          eserviceIds
         );
-        wrongEservices.forEach((wrongEservice) => {
-          loggerInstance.warn(
-            `e-service with id ${wrongEservice.eserviceId} has wrong descriptors: ${JSON.stringify(
-              wrongEservice.wrongDescriptors
-            )}`
-          );
-        });
+
+      if (EServiceWithUnarchivableDescriptors.length > 0) {
+        loggerInstance.warn(
+          `Found ${EServiceWithUnarchivableDescriptors.length} e-services with wrong descriptors to be archived...`
+        );
+        EServiceWithUnarchivableDescriptors.forEach(
+          (EServiceWithUnarchivableDescriptors) => {
+            loggerInstance.warn(
+              `e-service with id ${EServiceWithUnarchivableDescriptors.eserviceId} has wrong descriptors: ${JSON.stringify(
+                EServiceWithUnarchivableDescriptors.unarchivableDescriptors
+              )}`
+            );
+          }
+        );
       }
 
-      const wrongEservicesIds = wrongEservices.map(
-        (wrongEservice) => wrongEservice.eserviceId
-      );
+      const EServiceWithUnarchivableDescriptorsIds =
+        EServiceWithUnarchivableDescriptors.map(
+          (EServiceWithUnarchivableDescriptors) =>
+            EServiceWithUnarchivableDescriptors.eserviceId
+        );
 
       const correctEservicesIds = eserviceIds.filter(
-        (eserviceId) => !wrongEservicesIds.includes(eserviceId)
+        (eserviceId) =>
+          !EServiceWithUnarchivableDescriptorsIds.includes(eserviceId)
       );
 
       Promise.all(

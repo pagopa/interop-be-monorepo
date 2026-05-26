@@ -30,7 +30,7 @@ import {
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { eserviceDescriptorsArchiverSchedulerServiceBuilder } from "../src/services/eserviceDescriptorsArchiverSchedulerService.js";
-import { RefsToBeArchived } from "../src/models/models.js";
+import { ArchivableDescriptorRef } from "../src/models/models.js";
 import { addOneEService, readModelService } from "./utils.js";
 
 describe("EService Descriptors Archiver Scheduler", async () => {
@@ -82,15 +82,15 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
         const numberOfArchivableDescriptors = 5;
 
-        const refs: RefsToBeArchived[] = await Promise.all(
+        const refs: ArchivableDescriptorRef[] = await Promise.all(
           Array.from(
             { length: numberOfArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
                 archivingSchedule: {
-                  archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                  archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
                 },
@@ -149,10 +149,10 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
         const numberOfNonArchivableDescriptors = 5;
 
-        const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+        const nonArchivableRefs: ArchivableDescriptorRef[] = await Promise.all(
           Array.from(
             { length: numberOfNonArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -210,15 +210,15 @@ describe("EService Descriptors Archiver Scheduler", async () => {
 
         const numberOfNonArchivableDescriptors = 5;
 
-        const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+        const nonArchivableRefs: ArchivableDescriptorRef[] = await Promise.all(
           Array.from(
             { length: numberOfNonArchivableDescriptors },
-            async (): Promise<RefsToBeArchived> => {
+            async (): Promise<ArchivableDescriptorRef> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
                 archivingSchedule: {
-                  archivableOn: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+                  archivableOn: new Date(toUTCMidnight(new Date(), 1)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
                 },
@@ -273,15 +273,15 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       const numberOfArchivableDescriptors = 5;
       const numberOfNonArchivableDescriptors = 5;
 
-      const archivableRefs: RefsToBeArchived[] = await Promise.all(
+      const archivableRefs: ArchivableDescriptorRef[] = await Promise.all(
         Array.from(
           { length: numberOfArchivableDescriptors },
-          async (): Promise<RefsToBeArchived> => {
+          async (): Promise<ArchivableDescriptorRef> => {
             const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.archiving,
               archivingSchedule: {
-                archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "Descriptor",
               },
@@ -303,10 +303,10 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         )
       );
 
-      const nonArchivableRefs: RefsToBeArchived[] = await Promise.all(
+      const nonArchivableRefs: ArchivableDescriptorRef[] = await Promise.all(
         Array.from(
           { length: numberOfNonArchivableDescriptors },
-          async (): Promise<RefsToBeArchived> => {
+          async (): Promise<ArchivableDescriptorRef> => {
             const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.published,
@@ -400,7 +400,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
               state,
               version: i.toString(),
               archivingSchedule: {
-                archivableOn: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
               },
