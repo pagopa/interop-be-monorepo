@@ -47,11 +47,11 @@ type PollingConfig = {
 };
 
 export function createTenantProcessClient(
-  tenantProcessUrl: string
+  tenantProcessUrl: string,
 ): TenantProcessClient {
   return createZodiosClientEnhancedWithMetadata(
     tenantApi.createInternalApiClient,
-    tenantProcessUrl
+    tenantProcessUrl,
   );
 }
 
@@ -60,6 +60,7 @@ export type TenantSeed = {
   originId: string;
   description: string;
   attributes: Array<{ origin: string; code: string }>;
+  istatCode?: string;
 };
 
 function toTenantKey(key: {
@@ -78,21 +79,21 @@ function toAttributeKey(key: {
 
 async function checkAttributesPresence(
   readModelService: ReadModelServiceSQL,
-  newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[]
+  newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[],
 ): Promise<boolean> {
   const attributes = await readModelService.getAttributes();
 
   const certifiedAttributeIndex = new Map(
     attributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
-      .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
+      .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a]),
   );
 
   const missingAttributes = newAttributes.filter(
     (i) =>
       !certifiedAttributeIndex.get(
-        toAttributeKey({ origin: i.origin, code: i.code })
-      )
+        toAttributeKey({ origin: i.origin, code: i.code }),
+      ),
   );
 
   return missingAttributes.length === 0;
@@ -101,13 +102,13 @@ async function checkAttributesPresence(
 export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenants: Tenant[],
-  economicAccountCompaniesAllowlist: string[]
+  economicAccountCompaniesAllowlist: string[],
 ): TenantSeed[] {
   // Create a set of all existing tenant external IDs for quick lookup.
   // This is used to filter out institutions from the registry that don't
   // have a corresponding tenant in the platform.
   const platformTenantsIndex = new Set(
-    platformTenants.map((t) => toTenantKey(t.externalId))
+    platformTenants.map((t) => toTenantKey(t.externalId)),
   );
 
   // Filter the full list of institutions from the registry to only include those
@@ -116,8 +117,8 @@ export function getTenantUpsertData(
     (i) =>
       i.id.length > 0 &&
       platformTenantsIndex.has(
-        toTenantKey({ origin: i.origin, value: i.originId })
-      )
+        toTenantKey({ origin: i.origin, value: i.originId }),
+      ),
   );
 
   // Map each institution to a "TenantSeed" object, which contains all the attributes
@@ -135,7 +136,7 @@ export function getTenantUpsertData(
             origin: i.origin,
             code: i.originId,
           },
-        ]
+        ],
       )
       // SCEC - AOO/UO -> Assign nothing
       .with(
@@ -143,7 +144,7 @@ export function getTenantUpsertData(
           category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
           classification: P.not(AGENCY_CLASSIFICATION),
         },
-        () => []
+        () => [],
       )
       // Agency - any -> Assign institution name attribute + category attribute
       .with({ classification: AGENCY_CLASSIFICATION }, () => [
@@ -173,7 +174,7 @@ export function getTenantUpsertData(
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           originId: P.when((originId) =>
-            economicAccountCompaniesAllowlist.includes(originId)
+            economicAccountCompaniesAllowlist.includes(originId),
           ),
         },
         // 3. If the institution is a new SCEC with the S01G category from IPA.
@@ -186,7 +187,7 @@ export function getTenantUpsertData(
             origin: i.origin,
             code: PUBLIC_SERVICES_MANAGERS,
           },
-        ]
+        ],
       )
       .otherwise(() => []);
 
@@ -209,6 +210,7 @@ export function getTenantUpsertData(
       originId: i.originId,
       description: i.description,
       attributes,
+      istatCode: i.istatCode,
     };
   });
 }
@@ -219,14 +221,14 @@ export async function createNewAttributes(
   headers: InteropHeaders,
   loggerInstance: Logger,
   attributeRegistryUrl: string,
-  attributeCreationWaitTime: number
+  attributeCreationWaitTime: number,
 ): Promise<void> {
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
   for (const attribute of newAttributes) {
     loggerInstance.info(
-      `Creating attribute ${attribute.origin}/${attribute.code}`
+      `Creating attribute ${attribute.origin}/${attribute.code}`,
     );
     await client.createInternalCertifiedAttribute(attribute, {
       headers,
@@ -243,31 +245,31 @@ export async function createNewAttributes(
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
-  attributes: Attribute[]
+  attributes: Attribute[],
 ): InternalCertifiedAttribute[] {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
     attributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
-      .map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
+      .map((a) => toAttributeKey({ origin: a.origin, code: a.code })),
   );
 
   const newAttributesIndex = new Set(
     tenantUpsertData.flatMap((t) =>
       t.attributes.map((a) =>
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-    )
+        toAttributeKey({ origin: a.origin, code: a.code }),
+      ),
+    ),
   );
 
   return registryData.attributes.filter(
     (a) =>
       newAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
+        toAttributeKey({ origin: a.origin, code: a.code }),
       ) &&
       !platformAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
+        toAttributeKey({ origin: a.origin, code: a.code }),
+      ),
   );
 }
 
@@ -275,20 +277,20 @@ export async function getAttributesToAssign(
   platformTenants: Tenant[],
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
-  loggerInstance: Logger
+  loggerInstance: Logger,
 ): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantsIndex = new Map(
-    platformTenants.map((t) => [toTenantKey(t.externalId), t])
+    platformTenants.map((t) => [toTenantKey(t.externalId), t]),
   );
 
   const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
-      .map((a) => [a.id, a])
+      .map((a) => [a.id, a]),
   );
 
   return tenantSeeds
-    .map((seed) => {
+    .map((seed): tenantApi.InternalTenantSeed | undefined => {
       const externalId = { origin: seed.origin, value: seed.originId };
 
       const tenant = tenantsIndex.get(toTenantKey(externalId));
@@ -298,16 +300,30 @@ export async function getAttributesToAssign(
         return undefined;
       }
 
+      const remoteIds: tenantApi.TenantRemoteId[] = [];
+      if (seed.istatCode) {
+        const hasIstat = tenant.remoteIds?.some(
+          (r) => r.origin === "ISTAT" && r.value === seed.istatCode,
+        );
+        if (!hasIstat) {
+          remoteIds.push({
+            origin: "ISTAT",
+            value: seed.istatCode,
+            assignmentTimestamp: new Date().toISOString(),
+          });
+        }
+      }
+
       const tenantCurrentAttributes = new Map(
         tenant.attributes
           .filter(
             (attribute) =>
               attribute.type === tenantAttributeType.CERTIFIED &&
-              !attribute.revocationTimestamp
+              !attribute.revocationTimestamp,
           )
           .map((attribute) => certifiedAttributes.get(attribute.id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined)
-          .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
+          .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a]),
       );
 
       return {
@@ -320,18 +336,21 @@ export async function getAttributesToAssign(
                 toAttributeKey({
                   origin: a.origin,
                   code: a.code,
-                })
-              )
+                }),
+              ),
           )
           .map((a) => ({
             origin: a.origin,
             code: a.code,
           })),
+        remoteIds: remoteIds.length > 0 ? remoteIds : undefined,
       };
     })
     .filter(
       (t): t is tenantApi.InternalTenantSeed =>
-        t !== undefined && t.certifiedAttributes.length > 0
+        t !== undefined &&
+        (t.certifiedAttributes.length > 0 ||
+          (t.remoteIds !== undefined && t.remoteIds.length > 0)),
     );
 }
 
@@ -341,7 +360,7 @@ export async function assignNewAttributes(
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger,
-  pollingConfig: PollingConfig
+  pollingConfig: PollingConfig,
 ): Promise<void> {
   for (const attributeToAssign of attributesToAssign) {
     loggerInstance.info(
@@ -349,19 +368,19 @@ export async function assignNewAttributes(
         attributeToAssign.externalId.value
       }. Adding attributes [${attributeToAssign.certifiedAttributes
         .map((a) => a.code)
-        .join(", ")}]`
+        .join(", ")}]`,
     );
     const response = await tenantClient.internalUpsertTenant(
       attributeToAssign,
       {
         headers,
-      }
+      },
     );
 
     const metadata = response.metadata;
     if (!metadata) {
       loggerInstance.warn(
-        `Missing metadata version for tenant ${attributeToAssign.externalId.value}. Skipping polling.`
+        `Missing metadata version for tenant ${attributeToAssign.externalId.value}. Skipping polling.`,
       );
       continue;
     }
@@ -369,10 +388,10 @@ export async function assignNewAttributes(
     await waitForReadModelMetadataVersion(
       () =>
         readModelServiceSQL.getTenantByExternalIdWithMetadata(
-          attributeToAssign.externalId
+          attributeToAssign.externalId,
         ),
       metadata.version,
-      pollingConfig
+      pollingConfig,
     );
   }
 }
@@ -380,7 +399,7 @@ export async function assignNewAttributes(
 export async function getAttributesToRevoke(
   tenantSeeds: TenantSeed[],
   platformTenants: Tenant[],
-  platformAttributes: Attribute[]
+  platformAttributes: Attribute[],
 ): Promise<
   Array<{
     tOrigin: string;
@@ -394,16 +413,16 @@ export async function getAttributesToRevoke(
       toTenantKey({ origin: t.origin, value: t.originId }),
       new Set(
         t.attributes.map((a) =>
-          toAttributeKey({ origin: a.origin, code: a.code })
-        )
+          toAttributeKey({ origin: a.origin, code: a.code }),
+        ),
       ),
-    ])
+    ]),
   );
 
   const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
-      .map((a) => [a.id, a])
+      .map((a) => [a.id, a]),
   );
 
   const canBeRevoked = (
@@ -411,21 +430,21 @@ export async function getAttributesToRevoke(
       origin: string;
       code: string;
     },
-    tenantExternalId: { origin: string; value: string }
+    tenantExternalId: { origin: string; value: string },
   ): boolean => {
     if (attribute.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
       return false;
     }
 
     const registryAttributes = tenantSeedsIndex.get(
-      toTenantKey(tenantExternalId)
+      toTenantKey(tenantExternalId),
     );
     if (!registryAttributes) {
       return true;
     }
 
     return !registryAttributes.has(
-      toAttributeKey({ origin: attribute.origin, code: attribute.code })
+      toAttributeKey({ origin: attribute.origin, code: attribute.code }),
     );
   };
 
@@ -434,12 +453,12 @@ export async function getAttributesToRevoke(
       .filter(
         (attribute) =>
           attribute.type === tenantAttributeType.CERTIFIED &&
-          !attribute.revocationTimestamp
+          !attribute.revocationTimestamp,
       )
       .map((attribute) => certifiedAttributes.get(attribute.id))
       .filter(
         (a): a is NonNullable<typeof a & { origin: string; code: string }> =>
-          a?.origin !== undefined && a?.code !== undefined
+          a?.origin !== undefined && a?.code !== undefined,
       )
       .filter((a) =>
         canBeRevoked(
@@ -447,15 +466,15 @@ export async function getAttributesToRevoke(
             origin: a.origin,
             code: a.code,
           },
-          t.externalId
-        )
+          t.externalId,
+        ),
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
         tExternalId: t.externalId.value,
         aOrigin: a.origin,
         aCode: a.code,
-      }))
+      })),
   );
 }
 
@@ -470,11 +489,11 @@ export async function revokeAttributes(
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger,
-  pollingConfig: PollingConfig
+  pollingConfig: PollingConfig,
 ): Promise<void> {
   for (const a of attributesToRevoke) {
     loggerInstance.info(
-      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
+      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`,
     );
     const response = await tenantClient.internalRevokeCertifiedAttribute(
       undefined,
@@ -486,13 +505,13 @@ export async function revokeAttributes(
           aExternalId: a.aCode,
         },
         headers,
-      }
+      },
     );
 
     const metadata = response.metadata;
     if (!metadata) {
       loggerInstance.warn(
-        `Missing metadata version for tenant ${a.tExternalId}. Skipping polling.`
+        `Missing metadata version for tenant ${a.tExternalId}. Skipping polling.`,
       );
       continue;
     }
@@ -504,7 +523,7 @@ export async function revokeAttributes(
           value: a.tExternalId,
         }),
       metadata.version,
-      pollingConfig
+      pollingConfig,
     );
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   TenantSeed,
@@ -10,6 +10,17 @@ import {
 import { attributes } from "./expectation.js";
 
 describe("GetAttributesToAssign", async () => {
+  const mockedDate = new Date("2024-01-01T00:00:00.000Z");
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockedDate);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it("assign attribute only to tenant already present in the platform", async () => {
     const tenantSeed: TenantSeed[] = [
       {
@@ -68,7 +79,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
-      genericLogger
+      genericLogger,
     );
 
     expect(attributesToAssign).toEqual([
@@ -79,6 +90,7 @@ describe("GetAttributesToAssign", async () => {
           { origin: attributes[3].origin, code: attributes[3].code },
         ],
         externalId: { origin: "IPA", value: "2" },
+        remoteIds: undefined,
       },
     ]);
   });
@@ -169,7 +181,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
-      genericLogger
+      genericLogger,
     );
 
     expect(attributesToAssign).toEqual([
@@ -179,6 +191,7 @@ describe("GetAttributesToAssign", async () => {
           { origin: attributes[1].origin, code: attributes[1].code },
         ],
         externalId: { origin: "IPA", value: "1" },
+        remoteIds: undefined,
       },
       {
         name: "tenant 2",
@@ -186,6 +199,115 @@ describe("GetAttributesToAssign", async () => {
           { origin: attributes[3].origin, code: attributes[3].code },
         ],
         externalId: { origin: "IPA", value: "2" },
+        remoteIds: undefined,
+      },
+    ]);
+  });
+
+  it("should assign remoteId (ISTAT) if present in seed and not in tenant", async () => {
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [],
+        istatCode: "001234",
+      },
+    ];
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [],
+        remoteIds: [],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToAssign = await getAttributesToAssign(
+      ipaTenants,
+      [],
+      tenantSeed,
+      genericLogger,
+    );
+
+    expect(attributesToAssign).toEqual([
+      {
+        name: "tenant 1",
+        certifiedAttributes: [],
+        externalId: { origin: "IPA", value: "1" },
+        remoteIds: [
+          {
+            origin: "ISTAT",
+            value: "001234",
+            assignmentTimestamp: mockedDate.toISOString(),
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("should NOT assign remoteId (ISTAT) if already present in tenant with same value", async () => {
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [{ origin: "IPA", code: "NEW-ATTR" }],
+        istatCode: "001234",
+      },
+    ];
+
+    const platformAttributes: Attribute[] = [
+      {
+        id: unsafeBrandId(randomUUID()),
+        name: "NEW-ATTR",
+        code: "NEW-ATTR",
+        origin: "IPA",
+        kind: "Certified",
+        description: "",
+        creationTime: new Date(),
+      },
+    ];
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [],
+        remoteIds: [
+          {
+            origin: "ISTAT",
+            value: "001234",
+            assignmentTimestamp: new Date("2023-01-01T00:00:00.000Z"),
+          },
+        ],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToAssign = await getAttributesToAssign(
+      ipaTenants,
+      platformAttributes,
+      tenantSeed,
+      genericLogger,
+    );
+
+    expect(attributesToAssign).toEqual([
+      {
+        name: "tenant 1",
+        certifiedAttributes: [{ origin: "IPA", code: "NEW-ATTR" }],
+        externalId: { origin: "IPA", value: "1" },
+        remoteIds: undefined,
       },
     ]);
   });
