@@ -313,6 +313,7 @@ export const commonErrorCodes = {
   invalidJWKClaim: "10030",
   contentTooLargeError: "10031",
   invalidPdfSignatureError: "10032",
+  invalidFileUploadError: "10033",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -491,6 +492,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with(
       "badRequestError",
       "invalidPdfSignatureError",
+      "invalidFileUploadError",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
@@ -561,6 +563,17 @@ export function invalidPdfSignatureError(
     code: "invalidPdfSignatureError",
     title: "Invalid file",
     detail: "File is not a valid PDF",
+    errors,
+  });
+}
+
+export function invalidFileUploadError(
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "invalidFileUploadError",
+    title: "Invalid file",
+    detail: `File is not an allowed format or extension}`,
     errors,
   });
 }

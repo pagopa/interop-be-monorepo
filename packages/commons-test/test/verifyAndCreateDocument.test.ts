@@ -8,7 +8,7 @@ import {
   contentTooLargeError,
   generateId,
   invalidContentTypeDetected,
-  invalidPdfSignatureError,
+  invalidFileUploadError,
   technology,
 } from "pagopa-interop-models";
 import {
@@ -115,7 +115,7 @@ describe("verifyAndCreateDocument", async () => {
       invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
-  it("should throw invalidPdfSignatureError if kind is DOCUMENT and file is not a valid pdf", async () => {
+  it("should throw invalidFileUploadError on wrong file format", async () => {
     const invalidFile = new File([file], "file.pdf", {
       type: "application/pdf",
       lastModified: file.lastModified,
@@ -135,9 +135,9 @@ describe("verifyAndCreateDocument", async () => {
         noLimitFileSizePolicy,
         genericLogger
       )
-    ).rejects.toThrowError(invalidPdfSignatureError());
+    ).rejects.toThrowError(invalidFileUploadError());
   });
-  it("should throw invalidPdfSignatureError if kind is DOCUMENT and file doesn't have .pdf extension", async () => {
+  it("should throw invalidFileUploadError if extension is not allowed", async () => {
     const invalidFile = new File([file], "empty.exe", {
       type: "application/pdf",
       lastModified: file.lastModified,
@@ -157,7 +157,7 @@ describe("verifyAndCreateDocument", async () => {
         noLimitFileSizePolicy,
         genericLogger
       )
-    ).rejects.toThrowError(invalidPdfSignatureError());
+    ).rejects.toThrowError(invalidFileUploadError());
   });
 
   it("should not throw with a valid PDF file", async () => {
