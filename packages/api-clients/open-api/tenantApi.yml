@@ -1676,24 +1676,28 @@ components:
         - value
         - assignmentTimestamp
     InternalTenantSeed:
-      description: Tenant Seed model
-      type: object
-      additionalProperties: false
-      properties:
-        externalId:
-          $ref: "#/components/schemas/ExternalId"
-        certifiedAttributes:
-          type: array
-          items:
-            $ref: "#/components/schemas/InternalAttributeSeed"
-        name:
-          type: string
-          minLength: 1
-          maxLength: 1000
-      required:
-        - externalId
-        - certifiedAttributes
-        - name
+          description: Tenant Seed model
+          type: object
+          additionalProperties: false
+          properties:
+            externalId:
+              $ref: "#/components/schemas/ExternalId"
+            certifiedAttributes:
+              type: array
+              items:
+                $ref: "#/components/schemas/InternalAttributeSeed"
+            name:
+              type: string
+              minLength: 1
+              maxLength: 1000
+            remoteIds:
+              type: array
+              items:
+                $ref: "#/components/schemas/TenantRemoteId"
+          required:
+            - externalId
+            - certifiedAttributes
+            - name
     M2MTenantSeed:
       description: Tenant Seed model
       type: object

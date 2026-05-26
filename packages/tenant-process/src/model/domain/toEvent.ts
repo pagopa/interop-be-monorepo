@@ -371,3 +371,22 @@ export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
   },
   correlationId,
 });
+
+export function toCreateEventTenantRemoteIdAssigned(
+  version: number,
+  tenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> {
+  return {
+    streamId: tenant.id,
+    version,
+    event: {
+      type: "TenantRemoteIdAssigned",
+      event_version: 2,
+      data: {
+        tenant: toTenantV2(tenant),
+      },
+    },
+    correlationId,
+  };
+}
