@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { AxiosError } from "axios";
+import pLimit from "p-limit";
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
-
+import { CorrelationId, generateId } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
-import { CorrelationId, generateId } from "pagopa-interop-models";
+import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const getHeaders = (correlationId: CorrelationId, token: string) => ({
   "X-Correlation-Id": correlationId,
   Authorization: `Bearer ${token}`,
 });
+
+const limit = pLimit(config.catalogApiConcurrency);
 
 export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
   readModelService,
@@ -27,35 +31,53 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
     async archiveDescriptors(): Promise<void> {
       loggerInstance.info("Archiving descriptors from read-model...");
       loggerInstance.info(
-        "Getting expired archivable descriptors references from read-model...\n"
+        "Getting archivable descriptors references from read-model...\n"
       );
-      const refs = await readModelService.getExpiredArchivableDescriptorRefs();
+      const descriptorRefs =
+        await readModelService.getArchivableDescriptorRefs();
 
-      Promise.all(
-        refs.map(async (ref) => {
-          loggerInstance.info(
-            `Archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}...`
-          );
-          const token = (await refreshableToken.get()).serialized;
-          const correlationId: CorrelationId = generateId();
-          const headers = getHeaders(correlationId, token);
-          catalogProcessClient.archiveDescriptor(
-            { kind: "MANUAL" },
-            {
-              params: {
-                eServiceId: ref.eserviceId,
-                descriptorId: ref.descriptorId,
-              },
-              headers,
+      await Promise.all(
+        descriptorRefs.map(
+          await limit(() => async (ref) => {
+            loggerInstance.info(
+              `Archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}...`
+            );
+            try {
+              const token = (await refreshableToken.get()).serialized;
+              const correlationId: CorrelationId = generateId();
+              const headers = getHeaders(correlationId, token);
+              await catalogProcessClient.archiveDescriptor(
+                { kind: "MANUAL" },
+                {
+                  params: {
+                    eServiceId: ref.eserviceId,
+                    descriptorId: ref.descriptorId,
+                  },
+                  headers,
+                }
+              );
+            } catch (error) {
+              if (
+                error instanceof AxiosError &&
+                error.response?.status === 409
+              ) {
+                loggerInstance.warn(
+                  `Descriptor ${ref.descriptorId} is already archived`
+                );
+              } else {
+                loggerInstance.error(
+                  `Error while archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}: ${error}`
+                );
+              }
             }
-          );
-        })
+          })
+        )
       );
     },
     async archiveEServices(): Promise<void> {
       loggerInstance.info("Archiving e-services from read-model...");
       loggerInstance.info(
-        "Getting expired archivable e-services references from read-model...\n"
+        "Getting archivable e-services references from read-model...\n"
       );
       const eserviceIds = await readModelService.getArchivableEserviceRefs();
       const EServiceWithUnarchivableDescriptors =
@@ -65,12 +87,12 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
 
       if (EServiceWithUnarchivableDescriptors.length > 0) {
         loggerInstance.warn(
-          `Found ${EServiceWithUnarchivableDescriptors.length} e-services with wrong descriptors to be archived...`
+          `Found ${EServiceWithUnarchivableDescriptors.length} e-services with unarchivable descriptors to be archived...`
         );
         EServiceWithUnarchivableDescriptors.forEach(
           (EServiceWithUnarchivableDescriptors) => {
             loggerInstance.warn(
-              `e-service with id ${EServiceWithUnarchivableDescriptors.eserviceId} has wrong descriptors: ${JSON.stringify(
+              `e-service with id ${EServiceWithUnarchivableDescriptors.eserviceId} has unarchivable descriptors: ${JSON.stringify(
                 EServiceWithUnarchivableDescriptors.unarchivableDescriptors
               )}`
             );
@@ -89,19 +111,36 @@ export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
           !EServiceWithUnarchivableDescriptorsIds.includes(eserviceId)
       );
 
-      Promise.all(
-        correctEservicesIds.map(async (eServiceId) => {
-          loggerInstance.info(`Archiving e-service with id ${eServiceId}...`);
-          const token = (await refreshableToken.get()).serialized;
-          const correlationId: CorrelationId = generateId();
-          const headers = getHeaders(correlationId, token);
-          catalogProcessClient.archiveEService(undefined, {
-            params: {
-              eServiceId,
-            },
-            headers,
-          });
-        })
+      await Promise.all(
+        correctEservicesIds.map(
+          await limit(() => async (eServiceId) => {
+            loggerInstance.info(`Archiving e-service with id ${eServiceId}...`);
+            try {
+              const token = (await refreshableToken.get()).serialized;
+              const correlationId: CorrelationId = generateId();
+              const headers = getHeaders(correlationId, token);
+              await catalogProcessClient.archiveEService(undefined, {
+                params: {
+                  eServiceId,
+                },
+                headers,
+              });
+            } catch (error) {
+              if (
+                error instanceof AxiosError &&
+                error.response?.status === 409
+              ) {
+                loggerInstance.warn(
+                  `e-service ${eServiceId} is already archived`
+                );
+              } else {
+                loggerInstance.error(
+                  `Error while archiving e-service with id ${eServiceId}: ${error}`
+                );
+              }
+            }
+          })
+        )
       );
     },
   };

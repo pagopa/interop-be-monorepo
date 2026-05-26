@@ -20,3 +20,6 @@ export const readModelService = readModelServiceBuilderSQL(readModelDB);
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
 };
+
+export const toUTCMidnight = (d: Date, offsetDays: number = 0): number =>
+  Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + offsetDays);

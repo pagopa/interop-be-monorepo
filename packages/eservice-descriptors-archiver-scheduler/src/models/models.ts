@@ -31,10 +31,10 @@ type EServiceWithUnarchivableDescriptors = z.infer<
   typeof EServiceWithUnarchivableDescriptors
 >;
 
-export const EServiceWithUnarchivableDescriptors = z.array(
+export const EServicesWithUnarchivableDescriptors = z.array(
   EServiceWithUnarchivableDescriptors
 );
 
-export type EServiceWithUnarchivableDescriptors = z.infer<
-  typeof EServiceWithUnarchivableDescriptors
+export type EServicesWithUnarchivableDescriptors = z.infer<
+  typeof EServicesWithUnarchivableDescriptors
 >;

@@ -17,6 +17,11 @@ const loggerInstance = logger({
   correlationId: generateId<CorrelationId>(),
 });
 
+const processExit = async (exitCode: number) => {
+  await cleanup();
+  process.exit(exitCode);
+};
+
 try {
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
@@ -29,12 +34,10 @@ try {
   });
   await archiverService.archiveDescriptors();
   await archiverService.archiveEServices();
-  process.exit(0);
+  await processExit(0);
 } catch (error) {
   loggerInstance.error(
     `Error handling EService Descriptors Archiver Scheduler: ${error}`
   );
-  process.exit(1);
-} finally {
-  await cleanup();
+  processExit(1);
 }

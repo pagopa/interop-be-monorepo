@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { and, eq, inArray, lte, sql } from "drizzle-orm";
+import { match } from "ts-pattern";
 import {
   descriptorState,
   unsafeBrandId,
   archivingScope,
   EServiceId,
+  DescriptorState,
 } from "pagopa-interop-models";
 import {
   eserviceDescriptorInReadmodelCatalog,
@@ -13,29 +15,46 @@ import {
   EServiceDescriptorSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   EServiceDescriptorArchivingScheduleSQL,
-  EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   ArchivableDescriptorRef,
   UnarchivableDescriptor,
-  EServiceWithUnarchivableDescriptors,
+  EServicesWithUnarchivableDescriptors,
 } from "../models/models.js";
+
+const getArchivingStates = (withArchived: boolean): DescriptorState[] =>
+  Object.values(descriptorState).filter((state) =>
+    match(state)
+      .with(
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+        () => true
+      )
+      .with(descriptorState.archived, () => withArchived)
+      .with(
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.waitingForApproval,
+        descriptorState.draft,
+        () => false
+      )
+      .exhaustive()
+  );
 
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
     /**
-     * Fetches all expired archivable descriptor references from the database.
-     * A descriptor is considered expired and archivable if it has a state of "archiving" or "archivingSuspended"
+     * Fetches all archivable descriptor references from the database.
+     * A descriptor is considered archivable if it has a state of "archiving" or "archivingSuspended"
      * and its archivableOn date is in the past.
      *
-     * @returns The array of expired archivable descriptor references
+     * @returns The array of archivable descriptor references
      */
-    async getExpiredArchivableDescriptorRefs(): Promise<
-      ArchivableDescriptorRef[]
-    > {
+    async getArchivableDescriptorRefs(): Promise<ArchivableDescriptorRef[]> {
       const queryResult: {
         descriptor: EServiceDescriptorSQL;
-        archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
+        archivingSchedule: EServiceDescriptorArchivingScheduleSQL;
       }[] = await readModelDB
         .select({
           descriptor: eserviceDescriptorInReadmodelCatalog,
@@ -43,7 +62,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
         })
         .from(eserviceDescriptorInReadmodelCatalog)
-        .leftJoin(
+        .innerJoin(
           eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -52,10 +71,10 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .where(
           and(
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.archiving,
-              descriptorState.archivingSuspended,
-            ]),
+            inArray(
+              eserviceDescriptorInReadmodelCatalog.state,
+              getArchivingStates(false)
+            ),
             lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
               new Date().toISOString()
@@ -67,29 +86,24 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         );
 
-      const refs = queryResult.map((row) => row.descriptor);
-
-      const ArchivableDescriptorRef: ArchivableDescriptorRef[] = refs.map(
-        (descriptor) => ({
-          eserviceId: unsafeBrandId(descriptor.eserviceId),
-          descriptorId: unsafeBrandId(descriptor.id),
-        })
-      );
-      return ArchivableDescriptorRef;
+      return queryResult.map((row) => ({
+        eserviceId: unsafeBrandId(row.descriptor.eserviceId),
+        descriptorId: unsafeBrandId(row.descriptor.id),
+      }));
     },
     /**
-     * Fetches all expired archivable e-service references from the database.
-     * An e-service is considered expired and archivable if its descriptors have a state of "archiving" or "archivingSuspended"
+     * Fetches all archivable e-service references from the database.
+     * An e-service is considered archivable if its descriptors have a state of "archiving" or "archivingSuspended"
      * and its archivableOn date is in the past.
      *
-     * @returns The array of expired archivable e-service references
+     * @returns The array of archivable e-service references
      */
     async getArchivableEserviceRefs(): Promise<EServiceId[]> {
       const queryResult: {
-        eservice: EServiceSQL;
+        id: string;
       }[] = await readModelDB
         .selectDistinct({
-          eservice: eserviceInReadmodelCatalog,
+          id: eserviceInReadmodelCatalog.id,
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -99,7 +113,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceDescriptorInReadmodelCatalog.eserviceId
           )
         )
-        .leftJoin(
+        .innerJoin(
           eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -108,10 +122,10 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .where(
           and(
-            inArray(eserviceDescriptorInReadmodelCatalog.state, [
-              descriptorState.archiving,
-              descriptorState.archivingSuspended,
-            ]),
+            inArray(
+              eserviceDescriptorInReadmodelCatalog.state,
+              getArchivingStates(false)
+            ),
             lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
               new Date().toISOString()
@@ -122,7 +136,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             )
           )
         );
-      return queryResult.map((row) => unsafeBrandId(row.eservice.id));
+      return queryResult.map((row) => unsafeBrandId(row.id));
     },
     /**
      * This query checks that all the descriptors in a given set of e-services are in the correct state.
@@ -133,7 +147,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      **/
     async getEServiceWithUnarchivableDescriptors(
       eserviceIds: EServiceId[]
-    ): Promise<EServiceWithUnarchivableDescriptors[]> {
+    ): Promise<EServicesWithUnarchivableDescriptors> {
       if (eserviceIds.length === 0) {
         return [];
       }
@@ -146,7 +160,10 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           'state', ${eserviceDescriptorInReadmodelCatalog.state},
           'scope', ${eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope}
         ))
-        filter (where ${eserviceDescriptorInReadmodelCatalog.state} not in ('Archiving', 'ArchivingSuspended', 'Archived'))
+        filter (where ${eserviceDescriptorInReadmodelCatalog.state} not in (${sql.join(
+          getArchivingStates(true).map((state) => sql`${state}`),
+          sql`, `
+        )}))
       `.as("unarchivable_descriptors"),
         })
         .from(eserviceDescriptorInReadmodelCatalog)
@@ -162,7 +179,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .groupBy(eserviceDescriptorInReadmodelCatalog.eserviceId);
 
-      return EServiceWithUnarchivableDescriptors.parse(queryResult).filter(
+      return EServicesWithUnarchivableDescriptors.parse(queryResult).filter(
         (report) => report.unarchivableDescriptors.length > 0
       );
     },
