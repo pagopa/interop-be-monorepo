@@ -21,6 +21,7 @@ export async function handleMessageV2(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceAdded",
           "DraftEServiceUpdated",
           "EServiceCloned",

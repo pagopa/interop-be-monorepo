@@ -52,6 +52,7 @@ const eventV2TypeMapper = (
       "EServiceDescriptorApprovedByDelegator",
       "EServiceDescriptorRejectedByDelegator",
       "EServiceDescriptorAttributesUpdated",
+      "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       "EServiceDescriptorArchivingScheduled",
