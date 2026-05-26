@@ -101,6 +101,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import {
   GetClientsFilters,
+  ProducerKeychainEServiceFlags,
   GetProducerKeychainsFilters,
 } from "./readModelService.js";
 import {
@@ -1095,6 +1096,27 @@ export function authorizationServiceBuilder(
           offset,
           limit,
         }
+      );
+    },
+    async getProducerKeychainEServiceFlags(
+      {
+        producerId,
+        eserviceId,
+      }: {
+        producerId: TenantId;
+        eserviceId: EServiceId;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ProducerKeychainEServiceFlags> {
+      logger.info(
+        `Retrieving producer keychain flags for producerId ${producerId} and eserviceId ${eserviceId}`
+      );
+
+      return await readModelService.getProducerKeychainEServiceFlags(
+        producerId,
+        eserviceId
       );
     },
     async getProducerKeychainById(
