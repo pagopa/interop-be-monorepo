@@ -82,6 +82,7 @@ import {
   maintenanceResetEServicePersonalDataFlagErrorMapper,
   updateEServiceArchivingStatusErrorMapper,
   cancelEServiceArchivingErrorMapper,
+  archiveEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -860,6 +861,22 @@ const eservicesRouter = (
         }
       }
     )
+    .post("/internal/eservices/:eServiceId/archive", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        await catalogService.archiveEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, archiveEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       async (req, res) => {

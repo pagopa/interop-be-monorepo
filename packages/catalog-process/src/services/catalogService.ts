@@ -171,6 +171,7 @@ import {
   toCreateEventEServiceArchivingScheduled,
   toCreateEventEServiceDescriptorArchivingCompleted,
   toCreateEventEServiceArchivingCanceled,
+  toCreateEventEServiceArchivingCompleted,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -219,6 +220,7 @@ import {
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
+  assertEServiceIsNotAlreadyArchived,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -2240,6 +2242,36 @@ export function catalogServiceBuilder(
               correlationId
             );
 
+      await repository.createEvent(event);
+    },
+    async archiveEService(
+      eserviceId: EServiceId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Archiving EService ${eserviceId}`);
+
+      const { data: eservice, metadata } = await retrieveEService(
+        eserviceId,
+        readModelService
+      );
+
+      assertEServiceIsNotAlreadyArchived(eservice);
+
+      const descriptors = eservice.descriptors.map((d) =>
+        d.state === descriptorState.archived
+          ? d
+          : updateDescriptorState(d, descriptorState.archived)
+      );
+      const updatedEservice: EService = {
+        ...eservice,
+        descriptors,
+      };
+
+      const event = toCreateEventEServiceArchivingCompleted(
+        metadata.version,
+        updatedEservice,
+        correlationId
+      );
       await repository.createEvent(event);
     },
 
@@ -4342,7 +4374,6 @@ async function processEserviceArchiving(
           )
         )
         .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
-          //Should never happen since we already deleted draft/waiting descriptors, but we put it here for type safety reasons
           throw notValidDescriptorState(descriptor.id, descriptor.state);
         })
         .exhaustive()

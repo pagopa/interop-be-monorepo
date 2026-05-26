@@ -69,6 +69,7 @@ import {
   descriptorAlreadyArchived,
   eserviceInDraftState,
   eserviceNotInArchiving,
+  eServiceAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -779,5 +780,12 @@ export function assertEServiceIsInArchiving(eservice: EService): void {
 
   if (!hasEServiceScopeArchiving || hasDescriptorInWrongState) {
     throw eserviceNotInArchiving(eservice.id);
+  }
+}
+
+export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  if (latestDescriptor.state === descriptorState.archived) {
+    throw eServiceAlreadyArchived(eservice.id);
   }
 }
