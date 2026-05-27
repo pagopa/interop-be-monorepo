@@ -39,5 +39,5 @@ try {
   loggerInstance.error(
     `Error handling EService Descriptors Archiver Scheduler: ${error}`
   );
-  processExit(1);
+  await processExit(1);
 }
