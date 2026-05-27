@@ -1,6 +1,7 @@
 import {
   bffApi,
   catalogApi,
+  eserviceTemplateApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -53,6 +54,46 @@ export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDesc
     eservice,
     descriptor,
     createdAt: eserviceDescriptorPurposeTemplate.createdAt,
+  };
+}
+
+export function toCompactPurposeTemplateEServiceTemplate(
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  creator: tenantApi.Tenant
+): bffApi.CompactPurposeTemplateEServiceTemplate {
+  return {
+    id: eserviceTemplate.id,
+    name: eserviceTemplate.name,
+    description: eserviceTemplate.description,
+    creator: toBffCompactOrganization(creator),
+  };
+}
+
+export function toBffLinkableEService(
+  link: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
+  eservice: bffApi.CompactPurposeTemplateEService,
+  descriptor: bffApi.CompactDescriptor
+): bffApi.LinkableEService {
+  return {
+    resourceKind: "ESERVICE",
+    purposeTemplateId: link.purposeTemplateId,
+    eservice,
+    descriptor,
+    createdAt: link.createdAt,
+  };
+}
+
+export function toBffLinkableEServiceTemplate(
+  link: purposeTemplateApi.EServiceTemplateVersionPurposeTemplate,
+  eserviceTemplate: bffApi.CompactPurposeTemplateEServiceTemplate,
+  eserviceTemplateVersion: bffApi.CompactEServiceTemplateVersion
+): bffApi.LinkableEServiceTemplate {
+  return {
+    resourceKind: "ESERVICE_TEMPLATE",
+    purposeTemplateId: link.purposeTemplateId,
+    eserviceTemplate,
+    eserviceTemplateVersion,
+    createdAt: link.createdAt,
   };
 }
 
