@@ -19,7 +19,7 @@ import {
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
-import { handleEserviceStateChangedReminderInApp } from "../../src/handlers/eservices/handleEserviceStateChangedReminderInApp.js";
+import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "../../src/handlers/eservices/handleEserviceDescriptorArchivingScheduledReminderInApp.js";
 
 const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
   id: generateId<DescriptorId>(),
@@ -81,7 +81,7 @@ const buildRow = (entityId: string): ScheduledNotificationRow => ({
   createdAt: new Date(),
 });
 
-describe("handleEserviceStateChangedReminderInApp", () => {
+describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
   it("returns no notifications when the eservice is missing from the readmodel", async () => {
     const row = buildRow(
       formatEServiceIdDescriptorId(
@@ -92,11 +92,12 @@ describe("handleEserviceStateChangedReminderInApp", () => {
     const readModelService = {
       getEServiceById: vi.fn().mockResolvedValue(undefined),
     } as any;
-    const result = await handleEserviceStateChangedReminderInApp(
-      row,
-      readModelService,
-      genericLogger
-    );
+    const result =
+      await handleEserviceDescriptorArchivingScheduledReminderInApp(
+        row,
+        readModelService,
+        genericLogger
+      );
     expect(result).toEqual([]);
   });
 
@@ -110,11 +111,12 @@ describe("handleEserviceStateChangedReminderInApp", () => {
     const readModelService = {
       getEServiceById: vi.fn().mockResolvedValue(eservice),
     } as any;
-    const result = await handleEserviceStateChangedReminderInApp(
-      row,
-      readModelService,
-      genericLogger
-    );
+    const result =
+      await handleEserviceDescriptorArchivingScheduledReminderInApp(
+        row,
+        readModelService,
+        genericLogger
+      );
     expect(result).toEqual([]);
   });
 
@@ -129,9 +131,13 @@ describe("handleEserviceStateChangedReminderInApp", () => {
       notificationTypeBlocklist: [],
       getEServiceById: vi.fn().mockResolvedValue(eservice),
       getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
-      getAgreementsByEserviceId: vi
-        .fn()
-        .mockResolvedValue([{ consumerId, eserviceId: eservice.id }]),
+      getAgreementsByEserviceId: vi.fn().mockResolvedValue([
+        {
+          consumerId,
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        },
+      ]),
       getTenantUsersWithNotificationEnabled: vi
         .fn()
         .mockImplementation(
@@ -159,11 +165,12 @@ describe("handleEserviceStateChangedReminderInApp", () => {
         ),
     } as any;
 
-    const result = await handleEserviceStateChangedReminderInApp(
-      buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
-      readModelService,
-      genericLogger
-    );
+    const result =
+      await handleEserviceDescriptorArchivingScheduledReminderInApp(
+        buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
+        readModelService,
+        genericLogger
+      );
 
     expect(result).toHaveLength(2);
     const producer = result.find(
@@ -204,11 +211,12 @@ describe("handleEserviceStateChangedReminderInApp", () => {
       ]),
     } as any;
 
-    const result = await handleEserviceStateChangedReminderInApp(
-      buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
-      readModelService,
-      genericLogger
-    );
+    const result =
+      await handleEserviceDescriptorArchivingScheduledReminderInApp(
+        buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
+        readModelService,
+        genericLogger
+      );
     expect(result).toHaveLength(1);
     // daysRemaining=0 → renders "fra 0 giorni" (we don't render "domani" for 0)
     expect(result[0].body).toContain("fra 0 giorni");

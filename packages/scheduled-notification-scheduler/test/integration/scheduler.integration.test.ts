@@ -8,6 +8,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import {
+  formatEServiceEntityId,
   formatEServiceIdDescriptorId,
   schedulableEventType,
   scheduledNotification,
@@ -123,27 +124,50 @@ describe("scheduledNotificationScheduler integration", () => {
     );
   });
 
-  it("eservice-scope DELETE removes all descriptors of the same eservice (prefix match)", async () => {
+  it("inserts a single row-set (one entityId = eserviceId) for an eservice-scope event", async () => {
     const eserviceId = generateId<EServiceId>();
-    const descriptorA = generateId<DescriptorId>();
-    const descriptorB = generateId<DescriptorId>();
+    const archivableOn = new Date("2027-01-01T00:00:00Z");
+    const reminderDays = [7, 3, 1];
+
+    const inserted = await schedulerService.scheduleReminders(
+      {
+        eserviceId,
+        archivableOn,
+        eventType: schedulableEventType.eserviceArchivingScheduled,
+        reminderDays,
+        sendAtHour: 9,
+        tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
+      },
+      genericLogger
+    );
+    expect(inserted).toBe(reminderDays.length * 2);
+
+    const stored = await scheduledNotificationDB
+      .select()
+      .from(scheduledNotification);
+    expect(stored).toHaveLength(reminderDays.length * 2);
+    expect(
+      stored.every((r) => r.entityId === formatEServiceEntityId(eserviceId))
+    ).toBe(true);
+  });
+
+  it("eservice-scope DELETE removes the eservice-scope row(s) (entityId = eserviceId)", async () => {
+    const eserviceId = generateId<EServiceId>();
     const archivableOn = new Date("2027-01-01T00:00:00Z");
 
-    for (const descriptorId of [descriptorA, descriptorB]) {
-      await schedulerService.scheduleReminders(
-        {
-          eserviceId,
-          descriptorId,
-          archivableOn,
-          eventType: schedulableEventType.eserviceArchivingScheduled,
-          reminderDays: [7, 3, 1],
-          sendAtHour: 9,
-          tz: "Europe/Rome",
-          correlationId: generateId<CorrelationId>(),
-        },
-        genericLogger
-      );
-    }
+    await schedulerService.scheduleReminders(
+      {
+        eserviceId,
+        archivableOn,
+        eventType: schedulableEventType.eserviceArchivingScheduled,
+        reminderDays: [7, 3, 1],
+        sendAtHour: 9,
+        tz: "Europe/Rome",
+        correlationId: generateId<CorrelationId>(),
+      },
+      genericLogger
+    );
 
     await schedulerService.deletePendingByEserviceScope({
       eserviceId,
