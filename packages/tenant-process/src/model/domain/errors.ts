@@ -39,6 +39,7 @@ const errorCodes = {
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
   invalidTenantFeature: "0031",
+  tenantNotAllowedForDelegation: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -74,6 +75,17 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
     title: "Tenant not found",
+  });
+}
+
+export function tenantNotAllowedForDelegation(
+  tenantId: TenantId,
+  origin: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} with external origin ${origin} is not allowed for delegation`,
+    code: "tenantNotAllowedForDelegation",
+    title: "Tenant not allowed for delegation",
   });
 }
 
