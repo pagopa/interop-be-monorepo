@@ -38,6 +38,9 @@ async function handleTenantEventV2(
           "TenantOnboardDetailsUpdated",
           "TenantCertifiedAttributeAssigned",
           "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
@@ -77,16 +80,6 @@ async function handleTenantEventV2(
           toTenantM2MEventSQL(m2mEvent)
         );
       }
-    )
-    .with(
-      {
-        type: P.union(
-          "TenantCertifiedDiscreteAttributeAssigned",
-          "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated"
-        ),
-      },
-      () => Promise.resolve()
     )
     .exhaustive();
 }
