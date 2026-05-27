@@ -1,9 +1,8 @@
-import { differenceInDays } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { Logger } from "pagopa-interop-commons";
 import {
-  Descriptor,
   EService,
-  EServiceIdDescriptorId,
+  EServiceId,
   NewNotification,
   TenantId,
 } from "pagopa-interop-models";
@@ -13,18 +12,16 @@ import {
 } from "pagopa-interop-notification-commons";
 import {
   ScheduledNotificationRow,
-  parseEServiceIdDescriptorId,
+  parseEServiceEntityId,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
-export async function handleEserviceStateChangedReminderInApp(
+export async function handleEserviceArchivingScheduledReminderInApp(
   row: ScheduledNotificationRow,
   readModelService: ReadModelServiceSQL,
   log: Logger
 ): Promise<NewNotification[]> {
-  const { eserviceId, descriptorId } = parseEServiceIdDescriptorId(
-    row.entityId
-  );
+  const eserviceId = parseEServiceEntityId(row.entityId);
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     log.warn(
@@ -32,43 +29,40 @@ export async function handleEserviceStateChangedReminderInApp(
     );
     return [];
   }
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
+  const targets = eservice.descriptors.filter(
+    (d) => d.archivingSchedule?.scope === "EService"
+  );
+  if (targets.length === 0) {
     log.warn(
-      `Skipping scheduled in-app reminder: descriptor ${descriptorId} not found in eservice ${eserviceId} (row ${row.id})`
+      `Skipping scheduled in-app reminder: eservice ${eserviceId} has no descriptors with archivingSchedule.scope === "EService" (row ${row.id})`
     );
     return [];
   }
-  if (!descriptor.archivingSchedule) {
-    log.warn(
-      `Skipping scheduled in-app reminder: descriptor ${descriptorId} has no archivingSchedule (row ${row.id})`
-    );
-    return [];
-  }
-
-  const archivableOn = descriptor.archivingSchedule.archivableOn;
-  const daysRemaining = Math.max(differenceInDays(archivableOn, new Date()), 0);
-
-  const entityId = EServiceIdDescriptorId.parse(
-    `${eservice.id}/${descriptor.id}`
+  const archivableOns = targets
+    .map((d) => d.archivingSchedule?.archivableOn)
+    .filter((d): d is Date => d !== undefined);
+  const archivableOn = new Date(
+    Math.min(...archivableOns.map((d) => d.getTime()))
+  );
+  const daysRemaining = Math.max(
+    differenceInCalendarDays(archivableOn, new Date()),
+    0
   );
 
   const producerNotifications = await buildProducerNotifications({
     eservice,
-    descriptor,
     daysRemaining,
     archivableOn,
-    entityId,
+    entityId: eserviceId,
     readModelService,
     log,
   });
 
   const consumerNotifications = await buildConsumerNotifications({
     eservice,
-    descriptor,
     daysRemaining,
     archivableOn,
-    entityId,
+    entityId: eserviceId,
     readModelService,
     log,
   });
@@ -78,17 +72,15 @@ export async function handleEserviceStateChangedReminderInApp(
 
 type BuilderParams = {
   eservice: EService;
-  descriptor: Descriptor;
   daysRemaining: number;
   archivableOn: Date;
-  entityId: EServiceIdDescriptorId;
+  entityId: EServiceId;
   readModelService: ReadModelServiceSQL;
   log: Logger;
 };
 
 async function buildProducerNotifications({
   eservice,
-  descriptor,
   daysRemaining,
   archivableOn,
   entityId,
@@ -104,9 +96,8 @@ async function buildProducerNotifications({
   return recipients.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
-    body: inAppTemplates.eserviceStateChangedToProducerScheduledReminder(
+    body: inAppTemplates.eserviceArchivingScheduledReminderToProducer(
       eservice.name,
-      descriptor.version,
       daysRemaining,
       archivableOn
     ),
@@ -117,7 +108,6 @@ async function buildProducerNotifications({
 
 async function buildConsumerNotifications({
   eservice,
-  descriptor,
   daysRemaining,
   archivableOn,
   entityId,
@@ -149,9 +139,8 @@ async function buildConsumerNotifications({
   return recipients.map(({ userId, tenantId }) => ({
     userId,
     tenantId,
-    body: inAppTemplates.eserviceStateChangedToConsumerScheduledReminder(
+    body: inAppTemplates.eserviceArchivingScheduledReminderToConsumer(
       eservice.name,
-      descriptor.version,
       daysRemaining,
       archivableOn,
       producerName

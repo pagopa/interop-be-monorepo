@@ -10,7 +10,8 @@ import {
 } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { handleEserviceStateChangedReminderInApp } from "./eservices/handleEserviceStateChangedReminderInApp.js";
+import { handleEserviceArchivingScheduledReminderInApp } from "./eservices/handleEserviceArchivingScheduledReminderInApp.js";
+import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderInApp.js";
 
 const SERVICE_NAME = "scheduled-in-app-notification-dispatcher";
 
@@ -19,15 +20,19 @@ export const dispatchInAppDeliveryBuilder =
   async (row: ScheduledNotificationRow): Promise<NewNotification[]> => {
     const rowLog = loggerForRow(row);
     return match(row.eventType)
-      .with(
-        schedulableEventType.eserviceArchivingScheduled,
-        schedulableEventType.eserviceDescriptorArchivingScheduled,
-        () =>
-          handleEserviceStateChangedReminderInApp(
-            row,
-            deps.readModelService,
-            rowLog
-          )
+      .with(schedulableEventType.eserviceArchivingScheduled, () =>
+        handleEserviceArchivingScheduledReminderInApp(
+          row,
+          deps.readModelService,
+          rowLog
+        )
+      )
+      .with(schedulableEventType.eserviceDescriptorArchivingScheduled, () =>
+        handleEserviceDescriptorArchivingScheduledReminderInApp(
+          row,
+          deps.readModelService,
+          rowLog
+        )
       )
       .otherwise(() => {
         deps.rootLog.warn(
