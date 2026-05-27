@@ -15,7 +15,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -27,12 +27,18 @@ import {
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
+import { config } from "./config/config.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> {
+  const isAsyncExchangeEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAsyncExchange"
+  );
+
   await match(message)
     .with(
       { type: "EServiceDescriptorPublished" },
@@ -73,6 +79,12 @@ export async function handleMessageV2(
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience,
               descriptorVoucherLifespan: descriptor.voucherLifespan,
+              ...(isAsyncExchangeEnabled
+                ? {
+                    asyncExchange: eservice.asyncExchange,
+                    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+                  }
+                : {}),
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
@@ -284,9 +296,13 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorInterfaceUpdated" },
       { type: "EServiceDescriptorDocumentUpdated" },
       { type: "EServiceDescriptorInterfaceDeleted" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisUpdated" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
       { type: "EServiceIsConsumerDelegableEnabled" },
@@ -296,6 +312,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceNameUpdated" },
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptionUpdatedByTemplateUpdate" },

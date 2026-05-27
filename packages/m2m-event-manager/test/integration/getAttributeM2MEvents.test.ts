@@ -15,10 +15,13 @@ describe("getAttributeM2MEvents", () => {
       getMockedAttributeM2MEvent(type),
       getMockedAttributeM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockAttributeM2MEvents.map(writeAttributeM2MEvent));
+    for (const event of mockAttributeM2MEvents) {
+      await writeAttributeM2MEvent(event);
+    }
   });
 
   it("should list all attribute M2M events", async () => {

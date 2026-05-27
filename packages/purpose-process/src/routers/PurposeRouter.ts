@@ -59,6 +59,7 @@ import {
   updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -119,7 +120,7 @@ const purposeRouter = (
         return res.status(200).send(
           purposeApi.Purposes.parse({
             results: purposes.results.map((purpose) =>
-              purposeToApiPurpose(purpose, false)
+              purposeToApiPurpose(purpose)
             ),
             totalCount: purposes.totalCount,
           })
@@ -135,20 +136,16 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.createPurpose(req.body, ctx);
+        const { data: purpose, metadata } = await purposeService.createPurpose(
+          req.body,
+          ctx
+        );
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -160,20 +157,14 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.createReversePurpose(req.body, ctx);
+        const { data: purpose, metadata } =
+          await purposeService.createReversePurpose(req.body, ctx);
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -190,7 +181,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
         } = await purposeService.updateReversePurpose(
           unsafeBrandId(req.params.id),
           req.body,
@@ -198,11 +189,7 @@ const purposeRouter = (
         );
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -219,7 +206,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.patchUpdateReversePurpose(
           unsafeBrandId(req.params.id),
@@ -231,11 +218,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -285,10 +268,7 @@ const purposeRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.getPurposeById(
+        const { data: purpose, metadata } = await purposeService.getPurposeById(
           unsafeBrandId(req.params.id),
           ctx
         );
@@ -297,11 +277,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -314,7 +290,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
         } = await purposeService.updatePurpose(
           unsafeBrandId(req.params.id),
           req.body,
@@ -323,11 +299,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -340,7 +312,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.patchUpdatePurpose(
           unsafeBrandId(req.params.id),
@@ -352,11 +324,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -402,7 +370,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid, createdVersionId },
+          data: { purpose, createdVersionId },
           metadata,
         } = await purposeService.createPurposeVersion(
           unsafeBrandId(req.params.purposeId),
@@ -414,7 +382,7 @@ const purposeRouter = (
 
         return res.status(200).send(
           purposeApi.CreatedPurposeVersion.parse({
-            purpose: purposeToApiPurpose(purpose, isRiskAnalysisValid),
+            purpose: purposeToApiPurpose(purpose),
             createdVersionId,
           })
         );
@@ -478,6 +446,34 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/purposes/:purposeId/riskAnalysis/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data, metadata } =
+            await purposeService.fixPurposeRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.purposeId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(purposeApi.Purpose.parse(purposeToApiPurpose(data)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -689,19 +685,14 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.clonePurpose({
-            purposeId: unsafeBrandId(req.params.purposeId),
-            seed: req.body,
-            ctx,
-          });
+        const { purpose } = await purposeService.clonePurpose({
+          purposeId: unsafeBrandId(req.params.purposeId),
+          seed: req.body,
+          ctx,
+        });
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, clonePurposeErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -881,24 +872,18 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.createPurposeFromTemplate(
-          unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
-          req.body,
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.createPurposeFromTemplate(
+            unsafeBrandId<PurposeTemplateId>(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -982,9 +967,7 @@ const purposeRouter = (
           return res
             .status(200)
             .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(updatedPurpose.data, true)
-              )
+              purposeApi.Purpose.parse(purposeToApiPurpose(updatedPurpose.data))
             );
         } catch (error) {
           const errorRes = makeApiProblem(

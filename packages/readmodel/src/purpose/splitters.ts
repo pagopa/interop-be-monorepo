@@ -163,6 +163,7 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
     singleAnswers,
     multiAnswers,
     riskAnalysisId,
+    tenantKind,
     ...rest
   } = riskAnalysisForm;
   void (rest satisfies Record<string, never>);
@@ -173,6 +174,7 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
     purposeId,
     version,
     riskAnalysisId: riskAnalysisId || null,
+    tenantKind: tenantKind ?? null,
   };
 
   const riskAnalysisSingleAnswers: PurposeRiskAnalysisAnswerSQL[] =
