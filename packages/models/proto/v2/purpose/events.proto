@@ -109,10 +109,16 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   PurposeV2 purpose = 2;
 }
 
-message PurposeRiskAnalysisWorkflowCreatedV2 {
+message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
   PurposeV2 purpose = 1;
 }
 
+<<<<<<< PIN-10120_enpoint-submit-risk-analysis
 message PurposeRiskAnalysisSubmittedV2 {
   PurposeV2 purpose = 1;
 }
+=======
+message PurposeRiskAnalysisWorkflowCreatedV2 {
+  PurposeV2 purpose = 1;
+}
+>>>>>>> PIN-10015_endpoint-assign-review-mode

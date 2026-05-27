@@ -9,6 +9,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -63,6 +64,13 @@ const errorCodes = {
   reviewerWorkflowNotSubmittable: "0044",
   requesterIsNotTheWriter: "0045",
   submitNotAllowedForReviewMode: "0046",
+  riskAnalysisTenantKindMismatch: "0042",
+  unableToDetermineTenantKind: "0043",
+  reviewerWorkflowConflict: "0044",
+  reviewerWorkflowNotFound: "0044",
+  reviewerWorkflowNotSubmittable: "0045",
+  requesterIsNotTheWriter: "0046",
+  submitNotAllowedForReviewMode: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -74,6 +82,18 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  expectedKind: TenantKind,
+  riskAnalysisFormId: RiskAnalysisFormId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 
@@ -98,6 +118,16 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function unableToDetermineTenantKind(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unable to determine tenant kind for tenant ${tenantId}`,
+    code: "unableToDetermineTenantKind",
+    title: "Unable to determine tenant kind",
   });
 }
 

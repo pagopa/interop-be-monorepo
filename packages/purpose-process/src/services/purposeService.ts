@@ -11,6 +11,7 @@ import {
   M2MAuthData,
   Ownership,
   RiskAnalysisFormRules,
+  RiskAnalysisFormToValidate,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -21,7 +22,6 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -87,6 +87,7 @@ import {
   tenantKindNotFound,
   tenantNotAllowed,
   tenantNotFound,
+  unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
   reviewerWorkflowNotFound,
@@ -105,6 +106,7 @@ import {
   toCreateEventPurposeDeletedByRevokedDelegation,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -145,7 +147,6 @@ import {
   isDeletableVersion,
   isOverQuota,
   isRejectable,
-  isRiskAnalysisFormValid,
   isSuspendable,
   purposeIsArchived,
   purposeIsDraft,
@@ -154,6 +155,7 @@ import {
   validateRiskAnalysisOrThrow,
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
+  assertRiskAnalysisTenantKindMatch,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -334,16 +336,14 @@ export function purposeServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       await assertRequesterCanRetrievePurpose(
         purpose.data,
@@ -352,19 +352,82 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
-        ? isRiskAnalysisFormValid(
-            purpose.data.riskAnalysisForm,
-            false,
-            tenantKind,
-            purpose.data.createdAt,
-            eservice.personalData
-          )
-        : true;
+      return purpose;
+    },
+    async fixPurposeRiskAnalysisTenantKind(
+      purposeId: PurposeId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(`Fixing Risk Analysis for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+
+      const eservice = await readModelService.getEServiceById(
+        purpose.data.eserviceId
+      );
+      if (!eservice) {
+        throw eserviceNotFound(purpose.data.eserviceId);
+      }
+
+      const tenantId =
+        eservice.mode === eserviceMode.deliver
+          ? purpose.data.consumerId
+          : eservice.producerId;
+
+      const firstPublishedAt = eservice.descriptors
+        .map((d) => d.publishedAt)
+        .filter((d): d is Date => d !== undefined)
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      const matchingRiskAnalysisCreatedAt = riskAnalysisForm.riskAnalysisId
+        ? eservice.riskAnalysis.find(
+            (ra) => ra.id === riskAnalysisForm.riskAnalysisId
+          )?.createdAt
+        : undefined;
+
+      const referenceDate = match(eservice.mode)
+        .with(eserviceMode.deliver, () => purpose.data.createdAt)
+        .with(
+          eserviceMode.receive,
+          () => matchingRiskAnalysisCreatedAt ?? firstPublishedAt
+        )
+        .exhaustive();
+
+      if (!referenceDate) {
+        throw unableToDetermineTenantKind(tenantId);
+      }
+
+      const historyKind = await readModelService.getTenantKindAt(
+        tenantId,
+        referenceDate
+      );
+      if (!historyKind) {
+        throw tenantKindNotFound(tenantId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: {
+          ...riskAnalysisForm,
+          tenantKind: historyKind,
+        },
+      };
+
+      const event = toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      const createdEvent = await repository.createEvent(event);
 
       return {
-        data: { purpose: purpose.data, isRiskAnalysisValid },
-        metadata: purpose.metadata,
+        data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async getRiskAnalysisDocument({
@@ -1046,7 +1109,6 @@ export function purposeServiceBuilder(
     ): Promise<
       WithMetadata<{
         purpose: Purpose;
-        isRiskAnalysisValid: boolean;
         createdVersionId: PurposeVersionId;
       }>
     > {
@@ -1091,20 +1153,10 @@ export function purposeServiceBuilder(
         );
       }
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
-
-      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
-        ? isRiskAnalysisFormValid(
-            purpose.data.riskAnalysisForm,
-            false,
-            tenantKind,
-            new Date(),
-            eservice.personalData
-          )
-        : true;
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
       const deltaDailyCalls =
@@ -1149,7 +1201,6 @@ export function purposeServiceBuilder(
         return {
           data: {
             purpose: updatedPurpose,
-            isRiskAnalysisValid,
             createdVersionId: newPurposeVersion.id,
           },
           metadata: { version: event.newVersion },
@@ -1199,7 +1250,6 @@ export function purposeServiceBuilder(
       return {
         data: {
           purpose: updatedPurpose,
-          isRiskAnalysisValid,
           createdVersionId: newPurposeVersion.id,
         },
         metadata: { version: event.newVersion },
@@ -1235,10 +1285,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (
-        isFeatureFlagEnabled(config, "featureFlagPurposeTemplate") &&
-        purpose.data.purposeTemplateId
-      ) {
+      if (purpose.data.purposeTemplateId) {
         await retrievePublishedPurposeTemplate(
           purpose.data.purposeTemplateId,
           readModelService
@@ -1257,11 +1304,12 @@ export function purposeServiceBuilder(
             purpose.data.consumerId,
             readModelService
           );
+
           validateRiskAnalysisOrThrow({
             riskAnalysisForm:
               riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
             schemaOnlyValidation: false,
-            tenantKind,
+            fallbackTenantKind: tenantKind,
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
@@ -1309,6 +1357,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               correlationId,
               authData,
+              eservice,
+              readModelService,
             });
           }
         )
@@ -1345,6 +1395,8 @@ export function purposeServiceBuilder(
               purposeVersion,
               correlationId,
               authData,
+              eservice,
+              readModelService,
             })
         )
         .with(
@@ -1467,9 +1519,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
@@ -1492,10 +1542,23 @@ export function purposeServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      const tenantKindToWriteInRA = await retrieveTenantKind(
+        unsafeBrandId<TenantId>(purposeSeed.consumerId),
+        readModelService
+      );
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeSeed.riskAnalysisForm
+          ? {
+              ...purposeSeed.riskAnalysisForm,
+              tenantKind: tenantKindToWriteInRA,
+            }
+          : undefined;
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        purposeSeed.riskAnalysisForm,
+        riskAnalysisFormToValidate,
         false,
-        await retrieveTenantKind(authData.organizationId, readModelService),
+        tenantKindToWriteInRA,
         createdAt,
         eservice.personalData
       );
@@ -1534,7 +1597,7 @@ export function purposeServiceBuilder(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
       return {
-        data: { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        data: purpose,
         metadata: {
           version: event.newVersion,
         },
@@ -1547,9 +1610,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
@@ -1614,10 +1675,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: {
-          purpose,
-          isRiskAnalysisValid: true,
-        },
+        data: purpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -1629,15 +1687,10 @@ export function purposeServiceBuilder(
       purposeId: PurposeId;
       seed: purposeApi.PurposeCloneSeed;
       ctx: WithLogger<AppContext<UIAuthData>>;
-    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    }): Promise<{ purpose: Purpose }> {
       const organizationId = authData.organizationId;
 
       logger.info(`Cloning Purpose ${purposeId}`);
-
-      const tenantKind = await retrieveTenantKind(
-        organizationId,
-        readModelService
-      );
 
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
@@ -1717,20 +1770,6 @@ export function purposeServiceBuilder(
         delegationId: purposeToClone.data.delegationId,
       };
 
-      const eservice = await retrieveEService(eserviceId, readModelService);
-
-      const isRiskAnalysisValid = clonedRiskAnalysisForm
-        ? validateRiskAnalysis(
-            riskAnalysisFormToRiskAnalysisFormToValidate(
-              clonedRiskAnalysisForm
-            ),
-            false,
-            tenantKind,
-            currentDate,
-            eservice.personalData
-          ).type === "valid"
-        : false;
-
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
         sourcePurposeId: purposeToClone.data.id,
@@ -1740,7 +1779,6 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return {
         purpose: clonedPurpose,
-        isRiskAnalysisValid,
       };
     },
     async retrieveRiskAnalysisConfigurationByVersion({
@@ -1809,9 +1847,7 @@ export function purposeServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Creating Purpose from Template ${purposeTemplateId}`);
 
       const consumerId = unsafeBrandId<TenantId>(body.consumerId);
@@ -1856,9 +1892,17 @@ export function purposeServiceBuilder(
 
       const createdAt = new Date();
 
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        body.riskAnalysisForm
+          ? {
+              ...body.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
       const validatedFormSeed = validateRiskAnalysisAgainstTemplateOrThrow(
         purposeTemplate,
-        body.riskAnalysisForm,
+        formToValidate,
         tenantKind,
         createdAt,
         eservicePersonalData
@@ -1893,7 +1937,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        data: purpose,
         metadata: {
           version: event.newVersion,
         },
@@ -2031,10 +2075,24 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const updatedRiskAnalysisForm = purposeUpdateContent.riskAnalysisForm
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      const formToValidate: RiskAnalysisFormToValidate | undefined =
+        purposeUpdateContent.riskAnalysisForm
+          ? {
+              ...purposeUpdateContent.riskAnalysisForm,
+              tenantKind,
+            }
+          : undefined;
+
+      const updatedRiskAnalysisForm = formToValidate
         ? validateRiskAnalysisAgainstTemplateOrThrow(
             purposeTemplate,
-            purposeUpdateContent.riskAnalysisForm,
+            formToValidate,
             purposeTemplate.targetTenantKind,
             purpose.data.createdAt,
             eservice.personalData
@@ -2194,7 +2252,6 @@ const archiveActiveAndSuspendedPurposeVersions = (
 
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
-  isRiskAnalysisValid: boolean;
 }>;
 const performUpdatePurpose = async (
   purposeId: PurposeId,
@@ -2269,15 +2326,26 @@ const performUpdatePurpose = async (
     readModelService
   );
 
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? validateAndTransformRiskAnalysis(
-          riskAnalysisForm,
-          true,
-          tenantKind,
-          new Date(),
-          eservice.personalData
-        )
+      ? (() => {
+          const validated = validateAndTransformRiskAnalysis(
+            riskAnalysisFormToValidate,
+            true,
+            tenantKind,
+            new Date(),
+            eservice.personalData
+          );
+          return validated;
+        })()
       : purpose.data.riskAnalysisForm;
 
   const updatedPurposeIsFreeOfCharge =
@@ -2352,13 +2420,6 @@ const performUpdatePurpose = async (
   return {
     data: {
       purpose: updatedPurpose,
-      isRiskAnalysisValid: isRiskAnalysisFormValid(
-        updatedPurpose.riskAnalysisForm,
-        false,
-        tenantKind,
-        new Date(),
-        eservice.personalData
-      ),
     },
     metadata: { version: createdEvent.newVersion },
   };
@@ -2452,6 +2513,8 @@ async function activatePurposeLogic({
   purposeVersion,
   correlationId,
   authData,
+  eservice,
+  readModelService,
 }: {
   fromState:
     | typeof purposeVersionState.draft
@@ -2460,10 +2523,28 @@ async function activatePurposeLogic({
   purposeVersion: PurposeVersion;
   correlationId: CorrelationId;
   authData: UIAuthData | M2MAdminAuthData;
+  eservice: EService;
+  readModelService: ReadModelServiceSQL;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
 }> {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+    const riskAnalysisForm = purpose.data.riskAnalysisForm;
+    if (riskAnalysisForm) {
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
+        eservice,
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysisForm.tenantKind,
+        currentTenantKind: tenantKind,
+        riskAnalysisFormId: riskAnalysisForm.id,
+      });
+    }
+  }
+
   // We generate the stamp in the transition draft -> active.
   // Instead, the transition waiting_for_approval -> active is performed by the producer,
   // so in this case the stamp doesn't have to be regenerated

@@ -26,6 +26,12 @@ export async function handlePurposeTemplateEvent(
       {
         type: "RiskAnalysisTemplateDocumentGenerated",
       },
+      {
+        type: "PurposeTemplateEServiceTemplateLinked",
+      },
+      {
+        type: "PurposeTemplateEServiceTemplateUnlinked",
+      },
       () => Promise.resolve(void 0)
     )
     .with(

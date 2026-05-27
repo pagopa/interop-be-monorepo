@@ -23,6 +23,7 @@ import {
   RiskAnalysisReviewMode,
   RiskAnalysisSigningState,
   stringToDate,
+  TenantKind,
   unsafeBrandId,
   UserId,
   WithMetadata,
@@ -364,6 +365,9 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   return {
     id: unsafeBrandId(riskAnalysisFormSQL.id),
     version: riskAnalysisFormSQL.version,
+    tenantKind: riskAnalysisFormSQL.tenantKind
+      ? TenantKind.parse(riskAnalysisFormSQL.tenantKind)
+      : undefined,
     singleAnswers,
     multiAnswers,
     ...(riskAnalysisFormSQL.riskAnalysisId
