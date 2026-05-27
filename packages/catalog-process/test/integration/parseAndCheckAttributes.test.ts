@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   AttributeId,
   attributeCertifiedDiscreteComparator,
+  featureFlagNotEnabled,
   generateId,
 } from "pagopa-interop-models";
 import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
@@ -12,6 +13,7 @@ import {
   attributeDuplicatedInGroup,
   attributeNotFound,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 
 describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");
@@ -30,6 +32,7 @@ describe("parseAndCheckAttributes", () => {
   const nonExistingAttributeId = generateId<AttributeId>();
 
   beforeEach(async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
     await addOneAttribute(certified1);
     await addOneAttribute(certified2);
     await addOneAttribute(certified3);
@@ -70,6 +73,32 @@ describe("parseAndCheckAttributes", () => {
     const result = await parseAndCheckAttributes(seed, readModelService);
 
     expect(result).toEqual(seed);
+  });
+
+  it("should throw featureFlagNotEnabled when certified discrete attributes are used and the feature flag is disabled", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: certifiedDiscrete1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 42,
+              comparator: attributeCertifiedDiscreteComparator.GTE,
+            },
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    await expect(
+      parseAndCheckAttributes(seed, readModelService)
+    ).rejects.toThrowError(
+      featureFlagNotEnabled("featureFlagAttributeCertifiedDiscrete")
+    );
   });
 
   it("should parse and check certified discrete attributes when discrete config is set", async () => {

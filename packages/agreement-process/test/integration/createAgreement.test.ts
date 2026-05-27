@@ -41,7 +41,15 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { agreementCreationConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -61,6 +69,7 @@ import {
   agreementService,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -138,6 +147,10 @@ const expectedAgreementCreation = async (
 };
 
 describe("create agreement", () => {
+  beforeEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+  });
+
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -761,6 +774,10 @@ describe("create agreement", () => {
   });
 
   describe("certified discrete attributes verification", () => {
+    beforeEach(() => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+    });
+
     const buildDiscreteScenario = ({
       threshold,
       comparator,
@@ -824,23 +841,83 @@ describe("create agreement", () => {
       shouldSatisfy: boolean;
     }> = [
       // GT
-      { comparator: attributeCertifiedDiscreteComparator.GT, threshold: 40, value: 42, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.GT, threshold: 40, value: 40, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.GT,
+        threshold: 40,
+        value: 42,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.GT,
+        threshold: 40,
+        value: 40,
+        shouldSatisfy: false,
+      },
       // LT
-      { comparator: attributeCertifiedDiscreteComparator.LT, threshold: 100, value: 99, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.LT, threshold: 100, value: 100, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.LT,
+        threshold: 100,
+        value: 99,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.LT,
+        threshold: 100,
+        value: 100,
+        shouldSatisfy: false,
+      },
       // EQ
-      { comparator: attributeCertifiedDiscreteComparator.EQ, threshold: 42, value: 42, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.EQ, threshold: 42, value: 43, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.EQ,
+        threshold: 42,
+        value: 42,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.EQ,
+        threshold: 42,
+        value: 43,
+        shouldSatisfy: false,
+      },
       // GTE
-      { comparator: attributeCertifiedDiscreteComparator.GTE, threshold: 42, value: 42, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.GTE, threshold: 42, value: 41, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.GTE,
+        threshold: 42,
+        value: 42,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.GTE,
+        threshold: 42,
+        value: 41,
+        shouldSatisfy: false,
+      },
       // LTE
-      { comparator: attributeCertifiedDiscreteComparator.LTE, threshold: 42, value: 42, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.LTE, threshold: 42, value: 43, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.LTE,
+        threshold: 42,
+        value: 42,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.LTE,
+        threshold: 42,
+        value: 43,
+        shouldSatisfy: false,
+      },
       // NE
-      { comparator: attributeCertifiedDiscreteComparator.NE, threshold: 42, value: 41, shouldSatisfy: true },
-      { comparator: attributeCertifiedDiscreteComparator.NE, threshold: 42, value: 42, shouldSatisfy: false },
+      {
+        comparator: attributeCertifiedDiscreteComparator.NE,
+        threshold: 42,
+        value: 41,
+        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.NE,
+        threshold: 42,
+        value: 42,
+        shouldSatisfy: false,
+      },
     ];
 
     it.each(comparatorCases)(
@@ -902,7 +979,13 @@ describe("create agreement", () => {
           certified: [
             [
               traditional,
-              { ...discrete, discreteConfig: { threshold: 100, comparator: attributeCertifiedDiscreteComparator.GTE } },
+              {
+                ...discrete,
+                discreteConfig: {
+                  threshold: 100,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
             ],
           ],
           declared: [],
@@ -912,8 +995,15 @@ describe("create agreement", () => {
       const consumer: Tenant = {
         ...getMockTenant(),
         attributes: [
-          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
-          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+          {
+            ...getMockCertifiedTenantAttribute(traditional.id),
+            revocationTimestamp: undefined,
+          },
+          {
+            ...getMockCertifiedDiscreteTenantAttribute(discrete.id),
+            discreteValue: 42,
+            revocationTimestamp: undefined,
+          },
         ],
       };
       const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
@@ -943,7 +1033,15 @@ describe("create agreement", () => {
         attributes: {
           certified: [
             [traditional],
-            [{ ...discrete, discreteConfig: { threshold: 40, comparator: attributeCertifiedDiscreteComparator.GTE } }],
+            [
+              {
+                ...discrete,
+                discreteConfig: {
+                  threshold: 40,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
           ],
           declared: [],
           verified: [],
@@ -952,8 +1050,15 @@ describe("create agreement", () => {
       const consumer: Tenant = {
         ...getMockTenant(),
         attributes: [
-          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
-          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+          {
+            ...getMockCertifiedTenantAttribute(traditional.id),
+            revocationTimestamp: undefined,
+          },
+          {
+            ...getMockCertifiedDiscreteTenantAttribute(discrete.id),
+            discreteValue: 42,
+            revocationTimestamp: undefined,
+          },
         ],
       };
       const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
@@ -983,7 +1088,15 @@ describe("create agreement", () => {
         attributes: {
           certified: [
             [traditional],
-            [{ ...discrete, discreteConfig: { threshold: 100, comparator: attributeCertifiedDiscreteComparator.GTE } }],
+            [
+              {
+                ...discrete,
+                discreteConfig: {
+                  threshold: 100,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
           ],
           declared: [],
           verified: [],
@@ -992,8 +1105,15 @@ describe("create agreement", () => {
       const consumer: Tenant = {
         ...getMockTenant(),
         attributes: [
-          { ...getMockCertifiedTenantAttribute(traditional.id), revocationTimestamp: undefined },
-          { ...getMockCertifiedDiscreteTenantAttribute(discrete.id), discreteValue: 42, revocationTimestamp: undefined },
+          {
+            ...getMockCertifiedTenantAttribute(traditional.id),
+            revocationTimestamp: undefined,
+          },
+          {
+            ...getMockCertifiedDiscreteTenantAttribute(discrete.id),
+            discreteValue: 42,
+            revocationTimestamp: undefined,
+          },
         ],
       };
       const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
@@ -1008,6 +1128,29 @@ describe("create agreement", () => {
         createAgreementForScenario(eservice, consumer)
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
+
+    it("should ignore certified discrete comparator when the feature flag is disabled", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const { producer, descriptor, consumer, eservice } =
+        buildDiscreteScenario({
+          threshold: 100,
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+          value: 42,
+        });
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
       );
     });
   });

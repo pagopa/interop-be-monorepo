@@ -18,6 +18,7 @@ import {
   dateAtRomeZone,
   timeAtRomeZone,
   assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   interpolateTemplateApiSpec,
   authRole,
@@ -477,6 +478,24 @@ async function parseAndCheckAttributesOfKind(
   });
 
   if (kind === attributeKind.certified) {
+    if (
+      !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+    ) {
+      const hasCertifiedDiscreteConfig = parsedAttributesSeed
+        .flat()
+        .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+      const hasCertifiedDiscreteAttribute = attributes.some(
+        (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+      );
+
+      if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+        assertFeatureFlagEnabled(
+          config,
+          "featureFlagAttributeCertifiedDiscrete"
+        );
+      }
+    }
+
     const attributesById = new Map(
       attributes.map((attribute) => [attribute.id, attribute])
     );

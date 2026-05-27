@@ -34,6 +34,7 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
+import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   agreementActivationFailed,
@@ -445,7 +446,9 @@ export const validateCertifiedAttributes = ({
   consumer: Tenant;
 }): void => {
   if (
-    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes)
+    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes, {
+      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+    })
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -545,6 +548,10 @@ export const matchingCertifiedDiscreteAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedDiscreteAgreementAttribute[] => {
+  if (!config.featureFlagAttributeCertifiedDiscrete) {
+    return [];
+  }
+
   const matched = new Set<AttributeId>();
 
   for (const group of descriptor.attributes.certified) {

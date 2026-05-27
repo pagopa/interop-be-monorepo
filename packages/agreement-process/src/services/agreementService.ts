@@ -1493,7 +1493,11 @@ export function agreementServiceBuilder(
           eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
           certifiedAttributesSatisfied(
             descriptor.attributes,
-            consumer.attributes
+            consumer.attributes,
+            {
+              certifiedDiscreteEnabled:
+                config.featureFlagAttributeCertifiedDiscrete,
+            }
           ),
       };
     },

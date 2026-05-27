@@ -27,6 +27,7 @@ import {
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { retrieveEService } from "./agreementService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -48,7 +49,11 @@ const nextStateFromDraft = (
   if (agreement.consumerId === agreement.producerId) {
     return active;
   }
-  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+    })
+  ) {
     return missingCertifiedAttributes;
   }
 
@@ -74,7 +79,11 @@ const nextStateFromPending = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+    })
+  ) {
     return missingCertifiedAttributes;
   }
   if (!declaredAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
@@ -101,7 +110,9 @@ const nextStateFromActiveOrSuspended = (
     return active;
   }
   if (
-    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
+    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+    }) &&
     declaredAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
     verifiedAttributesSatisfied(
       agreement.producerId,
@@ -118,7 +129,11 @@ const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+    })
+  ) {
     return draft;
   }
   return missingCertifiedAttributes;
@@ -261,7 +276,10 @@ function updateAgreementState(
   ) {
     const attributesFailure = certifiedAttributesFailure(
       descriptor.attributes,
-      consumer.attributes
+      consumer.attributes,
+      {
+        certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      }
     );
 
     return match([finalState, newSuspendedByPlatform])

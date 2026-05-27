@@ -18,6 +18,10 @@ import {
   filterVerifiedAttributes,
 } from "../filters/attributesFilter.js";
 
+type CertifiedDiscreteValidationOptions = {
+  certifiedDiscreteEnabled?: boolean;
+};
+
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
   tenantAttributes: Array<TenantAttribute["id"]>
@@ -47,13 +51,17 @@ export const matchesCertifiedDescriptorAttribute = (
   descriptorAttribute:
     | EServiceAttributeCertified
     | EServiceAttributeCertifiedDiscrete,
-  tenantAttributes: TenantAttribute[]
+  tenantAttributes: TenantAttribute[],
+  options: CertifiedDiscreteValidationOptions = {}
 ): boolean =>
   tenantAttributes.some((tenantAttribute) => {
     if (tenantAttribute.id !== descriptorAttribute.id) {
       return false;
     }
-    if ("discreteConfig" in descriptorAttribute) {
+    if (
+      "discreteConfig" in descriptorAttribute &&
+      (options.certifiedDiscreteEnabled ?? true)
+    ) {
       return (
         tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
         !tenantAttribute.revocationTimestamp &&
@@ -73,13 +81,14 @@ export const matchesCertifiedDescriptorAttribute = (
 
 export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[]
+  tenantAttributes: TenantAttribute[],
+  options: CertifiedDiscreteValidationOptions = {}
 ): boolean =>
   descriptorAttributes.certified
     .filter((attGroup) => attGroup.length > 0)
     .every((attributeList) =>
       attributeList.some((attr) =>
-        matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
+        matchesCertifiedDescriptorAttribute(attr, tenantAttributes, options)
       )
     );
 
@@ -95,12 +104,19 @@ export const certifiedAttributesSatisfied = (
  */
 export const certifiedAttributesFailure = (
   descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[]
+  tenantAttributes: TenantAttribute[],
+  options: CertifiedDiscreteValidationOptions = {}
 ): {
   suspensionReason: AgreementSuspensionReason | undefined;
   discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined;
 } => {
-  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
+  if (
+    certifiedAttributesSatisfied(
+      descriptorAttributes,
+      tenantAttributes,
+      options
+    )
+  ) {
     return {
       suspensionReason: undefined,
       discreteAttributeFailure: undefined,
@@ -112,7 +128,11 @@ export const certifiedAttributesFailure = (
     .find(
       (group) =>
         !group.some((attribute) =>
-          matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
+          matchesCertifiedDescriptorAttribute(
+            attribute,
+            tenantAttributes,
+            options
+          )
         )
     );
 
@@ -123,31 +143,36 @@ export const certifiedAttributesFailure = (
     };
   }
 
-  for (const descriptorAttribute of failingGroup) {
-    if (!("discreteConfig" in descriptorAttribute)) {
-      continue;
+  const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
+
+  if (discreteEnabled) {
+    for (const descriptorAttribute of failingGroup) {
+      if (!("discreteConfig" in descriptorAttribute)) {
+        continue;
+      }
+      const tenantAttribute = tenantAttributes.find(
+        (attribute) => attribute.id === descriptorAttribute.id
+      );
+      if (tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE) {
+        return {
+          suspensionReason:
+            agreementSuspensionReason.certifiedDiscreteAttribute,
+          discreteAttributeFailure: {
+            attributeId: descriptorAttribute.id,
+            tenantValue: tenantAttribute.discreteValue,
+            threshold: descriptorAttribute.discreteConfig.threshold,
+            comparator: descriptorAttribute.discreteConfig.comparator,
+          },
+        };
+      }
     }
-    const tenantAttribute = tenantAttributes.find(
-      (attribute) => attribute.id === descriptorAttribute.id
-    );
-    if (tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE) {
+
+    if (failingGroup.some((attr) => "discreteConfig" in attr)) {
       return {
         suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
-        discreteAttributeFailure: {
-          attributeId: descriptorAttribute.id,
-          tenantValue: tenantAttribute.discreteValue,
-          threshold: descriptorAttribute.discreteConfig.threshold,
-          comparator: descriptorAttribute.discreteConfig.comparator,
-        },
+        discreteAttributeFailure: undefined,
       };
     }
-  }
-
-  if (failingGroup.some((attr) => "discreteConfig" in attr)) {
-    return {
-      suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
-      discreteAttributeFailure: undefined,
-    };
   }
 
   return {
