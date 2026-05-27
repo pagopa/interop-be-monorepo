@@ -545,7 +545,7 @@ export const matchingCertifiedDiscreteAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedDiscreteAgreementAttribute[] => {
-  const matched: AttributeId[] = [];
+  const matched = new Set<AttributeId>();
 
   for (const group of descriptor.attributes.certified) {
     for (const descriptorAttribute of group) {
@@ -563,13 +563,15 @@ export const matchingCertifiedDiscreteAttributes = (
         );
 
         if (tenantAttribute) {
-          matched.push(descriptorAttribute.id);
+          matched.add(descriptorAttribute.id);
         }
       }
     }
   }
 
-  return matched.map((id) => ({ id }) as CertifiedDiscreteAgreementAttribute);
+  return Array.from(matched).map(
+    (id) => ({ id }) as CertifiedDiscreteAgreementAttribute
+  );
 };
 
 export const matchingDeclaredAttributes = (
