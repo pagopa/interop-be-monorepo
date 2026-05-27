@@ -345,6 +345,7 @@ export async function handleMessageV2(
           "EServiceDescriptorRejectedByDelegator",
           "EServiceDescriptorSubmittedByDelegate",
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceNameUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",

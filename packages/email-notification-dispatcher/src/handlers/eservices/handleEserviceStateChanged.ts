@@ -34,6 +34,7 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptionUpdated"
   | "EServiceNameUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdated"
+  | "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAdded"
   | "EServiceDescriptorDocumentUpdated"
@@ -174,6 +175,7 @@ function getCopyAndDescriptorId(
       {
         type: P.union(
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
         ),
       },

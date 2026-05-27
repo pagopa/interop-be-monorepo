@@ -233,5 +233,23 @@ export function toOutboundEventV2(
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       () => undefined
     )
+    .with(
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
+      (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          descriptorId: msg.data.descriptorId,
+          attributeId: msg.data.attributeId,
+          dailyCallsPerConsumer: msg.data.dailyCallsPerConsumer,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        streamVersion: msg.version,
+        timestamp: new Date(),
+      })
+    )
     .exhaustive();
 }
