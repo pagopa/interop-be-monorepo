@@ -55,7 +55,11 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantCertifiedDiscreteAttributeAssigned", // TODO: handle implementation in PIN-10185
+          "TenantCertifiedDiscreteAttributeRevoked", // TODO: handle implementation in PIN-10185
+          "TenantCertifiedDiscreteAttributeUpdated", // TODO: handle implementation in PIN-10185
+          "TenantRemoteIdAssigned"
         ),
       },
       () => {

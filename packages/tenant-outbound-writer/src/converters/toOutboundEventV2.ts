@@ -50,6 +50,7 @@ export function toOutboundEventV2(
       { type: "TenantDelegatedProducerFeatureRemoved" },
       { type: "TenantDelegatedConsumerFeatureAdded" },
       { type: "TenantDelegatedConsumerFeatureRemoved" },
+      { type: "TenantRemoteIdAssigned" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -73,6 +74,9 @@ export function toOutboundEventV2(
       { type: "TenantVerifiedAttributeRevoked" },
       { type: "TenantVerifiedAttributeExpirationUpdated" },
       { type: "TenantVerifiedAttributeExtensionUpdated" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

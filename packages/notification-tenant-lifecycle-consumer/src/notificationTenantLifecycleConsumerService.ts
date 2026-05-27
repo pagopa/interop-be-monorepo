@@ -159,7 +159,11 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
               "TenantDelegatedProducerFeatureAdded",
               "TenantDelegatedProducerFeatureRemoved",
               "TenantDelegatedConsumerFeatureAdded",
-              "TenantDelegatedConsumerFeatureRemoved"
+              "TenantDelegatedConsumerFeatureRemoved",
+              "TenantCertifiedDiscreteAttributeAssigned",
+              "TenantCertifiedDiscreteAttributeRevoked",
+              "TenantCertifiedDiscreteAttributeUpdated",
+              "TenantRemoteIdAssigned"
             ),
           },
           async (message) => {

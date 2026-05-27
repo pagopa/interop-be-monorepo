@@ -56,7 +56,10 @@ async function processMessage({
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
-          "TenantVerifiedAttributeRevoked"
+          "TenantVerifiedAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
         ),
       },
       async ({ data: { tenant, attributeId } }) => {
@@ -100,7 +103,8 @@ async function processMessage({
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned"
         ),
       },
       () => Promise.resolve()

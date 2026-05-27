@@ -55,7 +55,11 @@ export async function handleTenantMessageV2(
             "TenantDelegatedProducerFeatureAdded",
             "TenantDelegatedProducerFeatureRemoved",
             "TenantDelegatedConsumerFeatureAdded",
-            "TenantDelegatedConsumerFeatureRemoved"
+            "TenantDelegatedConsumerFeatureRemoved",
+            "TenantCertifiedDiscreteAttributeAssigned",
+            "TenantCertifiedDiscreteAttributeRevoked",
+            "TenantCertifiedDiscreteAttributeUpdated",
+            "TenantRemoteIdAssigned"
           ),
         },
         (msg) => {

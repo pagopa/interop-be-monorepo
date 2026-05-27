@@ -28,6 +28,7 @@ export async function handleTenantEvent(
     })
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeAssigned({
           tenantV2Msg: tenant,
@@ -40,6 +41,7 @@ export async function handleTenantEvent(
     )
     .with(
       { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeRevoked({
           tenantV2Msg: tenant,
@@ -49,6 +51,11 @@ export async function handleTenantEvent(
           templateService,
           correlationId,
         })
+    )
+    .with(
+      // TODO: handle implementation in PIN-10185
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      () => []
     )
     .with(
       { type: "TenantVerifiedAttributeAssigned" },
@@ -92,7 +99,8 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned"
         ),
       },
       () => {
