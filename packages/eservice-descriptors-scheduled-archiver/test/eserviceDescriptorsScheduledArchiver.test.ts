@@ -27,11 +27,11 @@ import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
-import { eserviceDescriptorsArchiverSchedulerServiceBuilder } from "../src/services/eserviceDescriptorsArchiverSchedulerService.js";
+import { eserviceDescriptorsScheduledArchiverServiceBuilder } from "../src/services/eserviceDescriptorsScheduledArchiverService.js";
 import { ArchivableDescriptorRef } from "../src/models/models.js";
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
 
-describe("EService Descriptors Archiver Scheduler", async () => {
+describe("EService Descriptors Scheduled Archiver Service", async () => {
   const testCorrelationId: CorrelationId = generateId();
   const testToken = "mockToken";
   const testHeaders = {
@@ -118,7 +118,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         );
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: genericLogger,
@@ -181,7 +181,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         );
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: genericLogger,
@@ -246,7 +246,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         );
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: genericLogger,
@@ -335,7 +335,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       );
 
       const archiverService =
-        eserviceDescriptorsArchiverSchedulerServiceBuilder({
+        eserviceDescriptorsScheduledArchiverServiceBuilder({
           readModelService,
           catalogProcessClient: catalogProcessClient,
           loggerInstance: genericLogger,
@@ -445,7 +445,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       });
 
       const archiverService =
-        eserviceDescriptorsArchiverSchedulerServiceBuilder({
+        eserviceDescriptorsScheduledArchiverServiceBuilder({
           readModelService,
           catalogProcessClient: catalogProcessClient,
           loggerInstance: mockLogger,
@@ -521,7 +521,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         await addOneEService(eservice);
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: genericLogger,
@@ -584,7 +584,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         await addOneEService(nonArchivingEservice);
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: genericLogger,
@@ -663,7 +663,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
       });
 
       const archiverService =
-        eserviceDescriptorsArchiverSchedulerServiceBuilder({
+        eserviceDescriptorsScheduledArchiverServiceBuilder({
           readModelService,
           catalogProcessClient: catalogProcessClient,
           loggerInstance: mockLogger,
@@ -770,7 +770,7 @@ describe("EService Descriptors Archiver Scheduler", async () => {
         await addOneEService(unarchivableEservice);
 
         const archiverService =
-          eserviceDescriptorsArchiverSchedulerServiceBuilder({
+          eserviceDescriptorsScheduledArchiverServiceBuilder({
             readModelService,
             catalogProcessClient: catalogProcessClient,
             loggerInstance: mockLogger,

@@ -6,7 +6,7 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
-import { eserviceDescriptorsArchiverSchedulerServiceBuilder } from "./services/eserviceDescriptorsArchiverSchedulerService.js";
+import { eserviceDescriptorsScheduledArchiverServiceBuilder } from "./services/eserviceDescriptorsScheduledArchiverService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 
@@ -26,7 +26,7 @@ try {
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
   await refreshableToken.init();
-  const archiverService = eserviceDescriptorsArchiverSchedulerServiceBuilder({
+  const archiverService = eserviceDescriptorsScheduledArchiverServiceBuilder({
     readModelService: readModelServiceSQL,
     catalogProcessClient: catalogProcessClientBuilder(config.catalogProcessUrl),
     loggerInstance,

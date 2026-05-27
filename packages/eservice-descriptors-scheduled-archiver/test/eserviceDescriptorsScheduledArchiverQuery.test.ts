@@ -27,7 +27,7 @@ import {
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
 import { ArchivableDescriptorRef } from "../src/models/models.js";
 
-describe("eserviceDescriptorsArchiverSchedulerQuery", async () => {
+describe("EService Descriptors Scheduled Archiver Queries", async () => {
   let catalogProcessClient: CatalogProcessZodiosClient;
 
   beforeAll(async () => {

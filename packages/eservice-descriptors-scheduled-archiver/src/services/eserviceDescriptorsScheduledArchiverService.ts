@@ -16,7 +16,7 @@ const getHeaders = (correlationId: CorrelationId, token: string) => ({
 
 const limit = pLimit(config.catalogApiConcurrency);
 
-export function eserviceDescriptorsArchiverSchedulerServiceBuilder({
+export function eserviceDescriptorsScheduledArchiverServiceBuilder({
   readModelService,
   loggerInstance,
   catalogProcessClient,

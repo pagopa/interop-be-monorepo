@@ -1,4 +1,4 @@
-# EService Descriptors Archiver Scheduler
+# EService Descriptors Scheduled Archiver
 
 This process retrieves all the descriptors and E-Services that need to be archived today because the grace period of the archiving process is completed.
 

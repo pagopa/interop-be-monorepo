@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const EServiceDescriptorsArchiverSchedulerConfig = ReadModelSQLDbConfig.and(
+const EServiceDescriptorsScheduledArchiverConfig = ReadModelSQLDbConfig.and(
   TokenGenerationConfig
 )
   .and(LoggerConfig)
@@ -20,8 +20,8 @@ const EServiceDescriptorsArchiverSchedulerConfig = ReadModelSQLDbConfig.and(
         catalogApiConcurrency: c.CATALOG_API_CONCURRENCY,
       }))
   );
-type EServiceDescriptorsArchiverSchedulerConfig = z.infer<
-  typeof EServiceDescriptorsArchiverSchedulerConfig
+type EServiceDescriptorsScheduledArchiverConfig = z.infer<
+  typeof EServiceDescriptorsScheduledArchiverConfig
 >;
-export const config: EServiceDescriptorsArchiverSchedulerConfig =
-  EServiceDescriptorsArchiverSchedulerConfig.parse(process.env);
+export const config: EServiceDescriptorsScheduledArchiverConfig =
+  EServiceDescriptorsScheduledArchiverConfig.parse(process.env);

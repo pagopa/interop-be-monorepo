@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-eservice-descriptors-archiver-scheduler",
+  "name": "pagopa-interop-eservice-descriptors-scheduled-archiver",
   "version": "1.0.0",
   "license": "MPL-2.0",
   "private": true,
