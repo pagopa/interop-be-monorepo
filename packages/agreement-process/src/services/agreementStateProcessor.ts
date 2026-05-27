@@ -218,7 +218,6 @@ function updateAgreementState(
   agreement: WithMetadata<Agreement>,
   consumer: CompactTenant,
   eservices: EService[],
-  triggeringAttributeId: AttributeId,
   correlationId: CorrelationId,
   logger: Logger
 ): CreateEvent<AgreementEvent> | undefined {
@@ -262,8 +261,7 @@ function updateAgreementState(
   ) {
     const attributesFailure = certifiedAttributesFailure(
       descriptor.attributes,
-      consumer.attributes,
-      triggeringAttributeId
+      consumer.attributes
     );
 
     return match([finalState, newSuspendedByPlatform])
@@ -362,7 +360,6 @@ export async function computeAgreementsStateByAttribute(
         agreement,
         consumer,
         eservicesWithAttribute,
-        attributeId,
         correlationId,
         logger
       )

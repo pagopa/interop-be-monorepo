@@ -221,6 +221,104 @@ describe("compute Agreements state by attribute", () => {
       });
     });
 
+    it("reports the failing certified group, not the triggering discrete attribute, when the discrete one is still satisfied", async () => {
+      const satisfiedDiscreteAttribute = {
+        ...getMockCertifiedDiscreteTenantAttribute(),
+        discreteValue: 200,
+      };
+      const revokedCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+      const mixedConsumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          satisfiedDiscreteAttribute,
+          revokedCertifiedAttribute,
+          getMockDeclaredTenantAttribute(),
+          getMockVerifiedTenantAttribute(),
+        ],
+      };
+
+      const discreteDescriptorAttribute = {
+        ...getMockEServiceAttributeCertifiedDiscrete(
+          satisfiedDiscreteAttribute.id
+        ),
+        discreteConfig: {
+          threshold: 100,
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+        },
+      };
+
+      const mixedDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [
+            [discreteDescriptorAttribute],
+            [getMockEServiceAttribute(revokedCertifiedAttribute.id)],
+          ],
+          declared: [
+            [getMockEServiceAttribute(mixedConsumer.attributes[2].id)],
+          ],
+          verified: [
+            [getMockEServiceAttribute(mixedConsumer.attributes[3].id)],
+          ],
+        },
+      };
+      const mixedEService: EService = {
+        ...getMockEService(),
+        producerId: generateId(),
+        descriptors: [mixedDescriptor],
+      };
+
+      await addOneEService(mixedEService);
+
+      const updatableActiveAgreement: Agreement = {
+        ...getMockAgreement(
+          mixedEService.id,
+          mixedConsumer.id,
+          agreementState.active
+        ),
+        descriptorId: mixedEService.descriptors[0].id,
+        producerId: mixedEService.producerId,
+        suspendedByPlatform: false,
+      };
+
+      await addOneAgreement(updatableActiveAgreement);
+
+      // The recompute is triggered by the still-satisfied discrete attribute.
+      // The actual failure lies in the second certified group (revoked regular
+      // attribute), so the event must reflect that, not the triggering one.
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        satisfiedDiscreteAttribute.id,
+        mixedConsumer,
+        getMockContextInternal({})
+      );
+
+      const agreementStateUpdateEvent = await readLastAgreementEvent(
+        updatableActiveAgreement.id
+      );
+
+      expect(agreementStateUpdateEvent).toMatchObject({
+        type: "AgreementSuspendedByPlatform",
+        event_version: 2,
+        version: "1",
+        stream_id: updatableActiveAgreement.id,
+      });
+
+      const agreementStateUpdateEventData = decodeProtobufPayload({
+        messageType: AgreementSuspendedByPlatformV2,
+        payload: agreementStateUpdateEvent.data,
+      });
+
+      expect(agreementStateUpdateEventData.suspensionReason).toBe(
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE
+      );
+      expect(
+        agreementStateUpdateEventData.discreteAttributeFailure
+      ).toBeUndefined();
+    });
+
     it.each([agreementState.draft, agreementState.pending])(
       "updates the state of an updatable Agreement from %s to MissingCertifiedAttributes",
       async (state) => {
