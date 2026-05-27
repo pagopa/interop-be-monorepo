@@ -13,7 +13,7 @@ import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js"
 const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
 const readModelServiceSQL = readModelServiceBuilderSQL(db);
 const loggerInstance = logger({
-  serviceName: "eservice-descriptors-archiver-scheduler",
+  serviceName: "eservice-descriptors-scheduled-archiver",
   correlationId: generateId<CorrelationId>(),
 });
 
@@ -37,7 +37,7 @@ try {
   await processExit(0);
 } catch (error) {
   loggerInstance.error(
-    `Error handling EService Descriptors Archiver Scheduler: ${error}`
+    `Error handling eservice-descriptors-scheduled-archiver: ${error}`
   );
   await processExit(1);
 }
