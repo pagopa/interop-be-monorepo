@@ -476,6 +476,25 @@ async function parseAndCheckAttributesOfKind(
     }
   });
 
+  if (kind === attributeKind.certified) {
+    const attributesById = new Map(
+      attributes.map((attribute) => [attribute.id, attribute])
+    );
+
+    parsedAttributesSeed.flat().forEach((seedAttribute) => {
+      const attribute = attributesById.get(seedAttribute.id);
+
+      if (
+        (attribute?.kind === attributeKind.certifiedDiscrete &&
+          seedAttribute.discreteConfig === undefined) ||
+        (attribute?.kind === attributeKind.certified &&
+          seedAttribute.discreteConfig !== undefined)
+      ) {
+        throw attributeNotFound(seedAttribute.id);
+      }
+    });
+  }
+
   return parsedAttributesSeed;
 }
 
