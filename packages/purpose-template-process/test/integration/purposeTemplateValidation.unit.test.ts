@@ -144,9 +144,7 @@ describe("Purpose Template Validation", () => {
       const errorMessage = "Database connection failed";
       const dbError = new Error(errorMessage);
 
-      mockReadModelService.getEServiceById = vi
-        .fn()
-        .mockRejectedValue(dbError);
+      mockReadModelService.getEServiceById = vi.fn().mockRejectedValue(dbError);
 
       await expect(
         validateEservicesAssociations(
