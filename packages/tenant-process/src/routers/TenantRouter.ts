@@ -195,7 +195,6 @@ const tenantsRouter = (
         );
 
         setMetadataVersionHeader(res, metadata);
-        console.log("Tenant: ", tenant);
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
