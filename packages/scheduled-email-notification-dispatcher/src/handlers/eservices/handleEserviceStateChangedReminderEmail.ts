@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import {
   CorrelationId,
   EmailNotificationMessagePayload,
@@ -69,7 +69,10 @@ export async function handleEserviceStateChangedReminderEmail(
   }
 
   const archivableOn = descriptor.archivingSchedule.archivableOn;
-  const daysRemaining = Math.max(differenceInDays(archivableOn, new Date()), 0);
+  const daysRemaining = Math.max(
+    differenceInCalendarDays(archivableOn, new Date()),
+    0
+  );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
   const isLastDay = daysRemaining === 1;
   const entityId = `${eservice.id}/${descriptor.id}`;
