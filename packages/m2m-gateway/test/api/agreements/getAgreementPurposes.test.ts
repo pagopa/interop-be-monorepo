@@ -8,8 +8,8 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
+import { testToM2mGatewayApiPurpose as toM2MGatewayApiPurpose } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /agreement/:agreementId/purposes router test", () => {
   const authorizedRoles: AuthRole[] = [
