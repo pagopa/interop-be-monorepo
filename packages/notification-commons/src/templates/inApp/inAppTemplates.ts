@@ -432,25 +432,46 @@ export const inAppTemplates = {
   ): string =>
     `Il portachiavi "${producerKeychainName}" non ha chiavi associate. Gli e-service asincroni collegati (${eserviceNames}) non potranno contattare PDND per scambiare dati con i fruitori. Aggiungi una nuova chiave al portachiavi.`,
 
-  eserviceStateChangedToProducerScheduledReminder: (
+  eserviceArchivingScheduledReminderToProducer: (
+    eserviceName: string,
+    daysRemaining: number,
+    archivableOn: Date | undefined
+  ): string =>
+    `Promemoria: il tuo e-service "${eserviceName}" verrà archiviato ${
+      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
+    }${
+      archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
+    }. Dopo questa data l'e-service sarà archiviato definitivamente e non risulterà più attivo.`,
+  eserviceArchivingScheduledReminderToConsumer: (
+    eserviceName: string,
+    daysRemaining: number,
+    archivableOn: Date | undefined,
+    producerName: string
+  ): string =>
+    `Promemoria: l'ente erogatore ${producerName} archivierà l'e-service "${eserviceName}" a cui sei iscritto ${
+      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
+    }${
+      archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
+    }. Dopo questa data l'e-service sarà rimosso dal catalogo e non potrai più scambiare dati con questo e-service.`,
+  eserviceDescriptorArchivingScheduledReminderToProducer: (
     eserviceName: string,
     descriptorVersion: string,
     daysRemaining: number,
     archivableOn: Date | undefined
   ): string =>
-    `Promemoria: la versione ${descriptorVersion} dell'e-service ${eserviceName} verrà archiviata ${
+    `Promemoria: la versione ${descriptorVersion} del tuo e-service "${eserviceName}" verrà archiviata ${
       daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
     }${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
-  eserviceStateChangedToConsumerScheduledReminder: (
+  eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     daysRemaining: number,
     archivableOn: Date | undefined,
     producerName: string
   ): string =>
-    `Promemoria: l'ente erogatore ${producerName} archivierà la versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto ${
+    `Promemoria: l'ente erogatore ${producerName} archivierà la versione ${descriptorVersion} dell'e-service "${eserviceName}" a cui sei iscritto ${
       daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
     }${
       archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
-    }. Concludi ordinatamente le chiamate prima di tale data.`,
+    }. La versione non sarà più disponibile da quel momento.`,
 };
