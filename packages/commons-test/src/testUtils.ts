@@ -295,7 +295,7 @@ export const getMockTenant = (
   },
   features: [],
   mails: [],
-  selfcareInstitutionType: "SCP",
+  selfcareInstitutionType: undefined,
 });
 
 export const getMockTenantMail = (
