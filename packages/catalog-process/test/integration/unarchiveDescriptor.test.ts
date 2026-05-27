@@ -136,7 +136,7 @@ describe("unarchive descriptor", () => {
     );
   });
 
-  it("should throw descriptorNotInExpectedState if the descriptor is not ARCHIVED", async () => {
+  it("should throw notValidDescriptorState if the descriptor is not ARCHIVED", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.published,

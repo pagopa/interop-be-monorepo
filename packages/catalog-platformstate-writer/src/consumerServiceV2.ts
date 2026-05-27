@@ -153,6 +153,7 @@ export async function handleMessageV2(
     .with(
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorSuspended" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       async (msg) => {
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
@@ -362,8 +363,7 @@ export async function handleMessageV2(
           "EServiceArchivingCanceled",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingCanceled",
-          "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
       () => Promise.resolve()
