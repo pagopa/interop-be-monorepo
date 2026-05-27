@@ -2,6 +2,7 @@ import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceId,
+  EServiceTemplateId,
   makeApiProblemBuilder,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -42,6 +43,12 @@ const errorCodes = {
   missingRiskAnalysisFormTemplate: "0026",
   eServiceDescriptorPurposeTemplateNotFound: "0027",
   invalidFreeOfChargeReason: "0028",
+  associationEServiceTemplatesForPurposeTemplateFailed: "0029",
+  associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists: "0030",
+  tooManyEServiceTemplatesForPurposeTemplate: "0031",
+  disassociationEServiceTemplatesFromPurposeTemplateFailed: "0032",
+  associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist: "0033",
+  eServiceTemplateVersionPurposeTemplateNotFound: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -223,6 +230,67 @@ export function tooManyEServicesForPurposeTemplate(
   });
 }
 
+export function associationEServiceTemplatesForPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceTemplateIds: EServiceTemplateId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association of e-service templates to purpose template failed. Reasons: ${reasons} EserviceTemplates: ${eserviceTemplateIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationEServiceTemplatesForPurposeTemplateFailed",
+    title: "Association of e-service templates to purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceTemplateIds: EServiceTemplateId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-service templates and purpose template failed. Reasons: ${reasons} EserviceTemplates: ${eserviceTemplateIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists",
+    title:
+      "Association between e-service template and purpose template already exists",
+  });
+}
+
+export function tooManyEServiceTemplatesForPurposeTemplate(
+  actualCount: number,
+  maxCount: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Too many e-service templates provided. Maximum allowed: ${maxCount}, provided: ${actualCount}`,
+    code: "tooManyEServiceTemplatesForPurposeTemplate",
+    title: "Too Many E-Service Templates for Purpose Template",
+  });
+}
+
+export function disassociationEServiceTemplatesFromPurposeTemplateFailed(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceTemplateIds: EServiceTemplateId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Disassociation of e-service templates from purpose template failed. Reasons: ${reasons} EserviceTemplates: ${eserviceTemplateIds} Purpose template: ${purposeTemplateId}`,
+    code: "disassociationEServiceTemplatesFromPurposeTemplateFailed",
+    title: "Disassociation of e-service templates from purpose template failed",
+  });
+}
+
+export function associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist(
+  reasons: PurposeTemplateValidationIssue[],
+  eserviceTemplateIds: EServiceTemplateId[],
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Association between e-service templates and purpose template does not exist. Reasons: ${reasons} EserviceTemplates: ${eserviceTemplateIds} Purpose template: ${purposeTemplateId}`,
+    code: "associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist",
+    title:
+      "Association between e-service template and purpose template does not exist",
+  });
+}
+
 export function disassociationEServicesFromPurposeTemplateFailed(
   reasons: PurposeTemplateValidationIssue[],
   eserviceIds: EServiceId[],
@@ -305,6 +373,17 @@ export function eServiceDescriptorPurposeTemplateNotFound(
     detail: `No e-service descriptor found for purpose template ${purposeTemplateId} and e-service id ${eServiceId}`,
     code: "eServiceDescriptorPurposeTemplateNotFound",
     title: "E-Service Descriptor Purpose Template not found",
+  });
+}
+
+export function eServiceTemplateVersionPurposeTemplateNotFound(
+  purposeTemplateId: PurposeTemplateId,
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No e-service template link found for purpose template ${purposeTemplateId} and e-service template id ${eserviceTemplateId}`,
+    code: "eServiceTemplateVersionPurposeTemplateNotFound",
+    title: "E-Service Template Version Purpose Template link not found",
   });
 }
 

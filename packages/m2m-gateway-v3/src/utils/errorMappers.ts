@@ -10,10 +10,21 @@ type AgreementProcessErrorCodes =
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
 
+type CatalogProcessErrorCodes =
+  | "eServiceNotFound"
+  | "eServiceDescriptorNotFound"
+  | "certifiedAttributeGroupNotFoundInSeed"
+  | "notValidDescriptor"
+  | "templateInstanceNotAllowed"
+  | "inconsistentDailyCalls"
+  | "unchangedAttributes"
+  | "operationForbidden";
+
 type ErrorCodes =
   | M2MGatewayErrorCodes
   | CommonErrorCodes
-  | AgreementProcessErrorCodes;
+  | AgreementProcessErrorCodes
+  | CatalogProcessErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -84,6 +95,16 @@ export const downloadEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -178,6 +199,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -276,6 +298,30 @@ export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
       "eserviceDescriptorAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateEServiceDescriptorAttributeInGroupErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorNotFound",
+      "eserviceDescriptorAttributeGroupNotFound",
+      "eserviceDescriptorAttributeNotFound",
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (

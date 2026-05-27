@@ -109,11 +109,15 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   PurposeV2 purpose = 2;
 }
 
-message PurposeRiskAnalysisWorkflowCreatedV2 {
+message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
   PurposeV2 purpose = 1;
 }
 
 message PurposeRiskAnalysisSubmittedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisWorkflowCreatedV2 {
   PurposeV2 purpose = 1;
 }
 

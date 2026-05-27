@@ -28,6 +28,7 @@ import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
@@ -584,6 +585,34 @@ export function eserviceServiceBuilder(
 
       return downloadDocument(
         descriptor.interface,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
+    },
+    async downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving async exchange callback interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      if (!descriptor.asyncExchangeCallbackInterface) {
+        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+          eserviceId,
+          descriptorId
+        );
+      }
+
+      return downloadDocument(
+        descriptor.asyncExchangeCallbackInterface,
         fileManager,
         config.eserviceDocumentsContainer,
         logger
@@ -1468,6 +1497,35 @@ export function eserviceServiceBuilder(
         "certified",
         ctx
       );
+    },
+
+    async updateEServiceDescriptorCertifiedAttributeInGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      seed: m2mGatewayApiV3.EServiceDescriptorAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating Certified Attribute ${attributeId} in group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateDescriptorCertifiedAttribute(
+          seed,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              groupIndex,
+              attributeId,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
     },
   };
 }
