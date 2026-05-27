@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { randomInt } from "crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getMockClient,
@@ -268,7 +267,7 @@ describe("handleAuthorizationEvent test", async () => {
   describe("cascading key deletion tests", () => {
     describe("ClientDeleted event", () => {
       it("should create cascading KeyDeleted M2M events when client is deleted", async () => {
-        const numKeys = randomInt(1, 20);
+        const numKeys = 5;
         const keys = Array.from({ length: numKeys }, getMockKey);
 
         const client: Client = getMockClient({
@@ -340,7 +339,7 @@ describe("handleAuthorizationEvent test", async () => {
 
     describe("ProducerKeychainDeleted event", () => {
       it("should create cascading ProducerKeyDeleted M2M events when producer keychain is deleted", async () => {
-        const numKeys = randomInt(1, 20);
+        const numKeys = 5;
         const keys = Array.from({ length: numKeys }, getMockKey);
 
         const producerKeychain: ProducerKeychain = {

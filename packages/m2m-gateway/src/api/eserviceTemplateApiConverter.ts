@@ -32,6 +32,7 @@ export function toM2MGatewayEServiceTemplateVersion(
     description: version.description,
     publishedAt: version.publishedAt,
     suspendedAt: version.suspendedAt,
+    asyncExchangeProperties: version.asyncExchangeProperties,
   };
 }
 

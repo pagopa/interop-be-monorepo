@@ -34,6 +34,7 @@ import {
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
 } from "./eservice.js";
+import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2
@@ -148,6 +149,21 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.templateVersionRef != null
       ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? fromDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
+  asyncExchangeProperties:
+    input.asyncExchangeProperties != null
+      ? {
+          responseTime: input.asyncExchangeProperties.responseTime,
+          resourceAvailableTime:
+            input.asyncExchangeProperties.resourceAvailableTime,
+          confirmation: input.asyncExchangeProperties.confirmation,
+          bulk: input.asyncExchangeProperties.bulk,
+          maxResultSet: input.asyncExchangeProperties.maxResultSet,
+        }
+      : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
 });
 
@@ -165,6 +181,8 @@ export const fromRiskAnalysisFormV2 = (
   return {
     ...input,
     id: unsafeBrandId(input.id),
+    tenantKind:
+      input.tenantKind != null ? fromTenantKindV2(input.tenantKind) : undefined,
     singleAnswers: input.singleAnswers.map((a) => ({
       ...a,
       id: unsafeBrandId(a.id),

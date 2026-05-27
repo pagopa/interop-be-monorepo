@@ -73,6 +73,7 @@ describe("createEServiceTemplateVersion", () => {
         deprecatedAt: mockVersion.deprecatedAt,
         publishedAt: mockVersion.publishedAt,
         suspendedAt: mockVersion.suspendedAt,
+        asyncExchangeProperties: mockVersion.asyncExchangeProperties,
       };
 
     const result = await eserviceTemplateService.createEServiceTemplateVersion(

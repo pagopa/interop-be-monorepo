@@ -207,6 +207,8 @@ export const getMockBffApiProducerEServiceDetails =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     isConsumerDelegable: generateMock(z.boolean().optional()),
     isClientAccessDelegable: generateMock(z.boolean().optional()),
+    asyncExchange: generateMock(z.boolean().optional()),
+    latestActiveDescriptorId: generateId(),
   });
 
 export const getMockBffApiCatalogEServiceDescriptor =
@@ -670,7 +672,20 @@ export const getMockBffApiEServiceTemplateSeed =
     technology: generateMock(bffApi.EServiceTechnology),
     mode: generateMock(bffApi.EServiceMode),
     version: generateMock(
-      bffApi.VersionSeedForEServiceTemplateCreation.optional()
+      z
+        .object({
+          description: z.string().min(10).max(250).optional(),
+          voucherLifespan: z.number().int().min(60).max(86400),
+          dailyCallsPerConsumer: z
+            .number()
+            .int()
+            .min(1)
+            .max(1000000000)
+            .optional(),
+          dailyCallsTotal: z.number().int().min(1).max(1000000000).optional(),
+          agreementApprovalPolicy: bffApi.AgreementApprovalPolicy.optional(),
+        })
+        .optional()
     ),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
   });
@@ -1134,6 +1149,26 @@ export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAn
     eservice: generateMock(bffApi.CompactPurposeTemplateEService),
     descriptor: generateMock(bffApi.CompactDescriptor),
   });
+
+export const getMockBffApiLinkableEService = (
+  purposeTemplateId: PurposeTemplateId = generateId()
+): bffApi.LinkableEService => ({
+  resourceKind: "ESERVICE",
+  purposeTemplateId,
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  eservice: generateMock(bffApi.CompactPurposeTemplateEService),
+  descriptor: generateMock(bffApi.CompactDescriptor),
+});
+
+export const getMockBffApiLinkableEServiceTemplate = (
+  purposeTemplateId: PurposeTemplateId = generateId()
+): bffApi.LinkableEServiceTemplate => ({
+  resourceKind: "ESERVICE_TEMPLATE",
+  purposeTemplateId,
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  eserviceTemplate: generateMock(bffApi.CompactPurposeTemplateEServiceTemplate),
+  eserviceTemplateVersion: generateMock(bffApi.CompactEServiceTemplateVersion),
+});
 
 export const getMockBffApiPurposeTemplateWithCompactCreator =
   (): bffApi.PurposeTemplateWithCompactCreator & {
