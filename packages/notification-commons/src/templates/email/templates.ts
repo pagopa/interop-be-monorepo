@@ -128,10 +128,14 @@ export const eventMailTemplateType = {
     "eservice-archiving-canceled-eservice-to-producer-mail",
   asyncEserviceWithoutKeychainMailTemplate:
     "async-eservice-without-keychain-mail",
-  eserviceStateChangedToProducerScheduledReminderMailTemplate:
-    "eservice-state-changed-to-producer-scheduled-reminder-mail",
-  eserviceStateChangedToConsumerScheduledReminderMailTemplate:
-    "eservice-state-changed-to-consumer-scheduled-reminder-mail",
+  eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToProducerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-eservice-mail",
+  eserviceStateChangedToConsumerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-eservice-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
