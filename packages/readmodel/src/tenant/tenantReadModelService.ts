@@ -33,10 +33,10 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async getTenantById(
       tenantId: TenantId,
-      tx?: DrizzleTransactionType
+      tx?: DrizzleTransactionType,
     ): Promise<WithMetadata<Tenant> | undefined> {
       const executeInTransaction = async (
-        tx: DrizzleTransactionType
+        tx: DrizzleTransactionType,
       ): Promise<WithMetadata<Tenant> | undefined> => {
         const [
           tenantSQL,
@@ -51,37 +51,37 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           readTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), tx),
           readTenantMailsSQL(
             eq(tenantMailInReadmodelTenant.tenantId, tenantId),
-            tx
+            tx,
           ),
           readTenantCertifiedAttributesSQL(
             eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
-            tx
+            tx,
           ),
           readTenantDeclaredAttributesSQL(
             eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
-            tx
+            tx,
           ),
           readTenantVerifiedAttributesSQL(
             eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId),
-            tx
+            tx,
           ),
           readTenantVerifiedAttributeVerifiersSQL(
             eq(
               tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantId
+              tenantId,
             ),
-            tx
+            tx,
           ),
           readTenantVerifiedAttributeRevokersSQL(
             eq(
               tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantId
+              tenantId,
             ),
-            tx
+            tx,
           ),
           readTenantFeaturesSQL(
             eq(tenantFeatureInReadmodelTenant.tenantId, tenantId),
-            tx
+            tx,
           ),
         ]);
 
@@ -105,7 +105,7 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getTenantsByIds(
       tenantIds: string[],
-      tx: DrizzleTransactionType
+      tx: DrizzleTransactionType,
     ): Promise<Array<WithMetadata<Tenant>>> {
       const [
         tenantsSQL,
@@ -120,40 +120,40 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
         readTenantMailsSQL(
           inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
-          tx
+          tx,
         ),
         readTenantCertifiedAttributesSQL(
           inArray(
             tenantCertifiedAttributeInReadmodelTenant.tenantId,
-            tenantIds
+            tenantIds,
           ),
-          tx
+          tx,
         ),
         readTenantDeclaredAttributesSQL(
           inArray(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantIds),
-          tx
+          tx,
         ),
         readTenantVerifiedAttributesSQL(
           inArray(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantIds),
-          tx
+          tx,
         ),
         readTenantVerifiedAttributeVerifiersSQL(
           inArray(
             tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-            tenantIds
+            tenantIds,
           ),
-          tx
+          tx,
         ),
         readTenantVerifiedAttributeRevokersSQL(
           inArray(
             tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-            tenantIds
+            tenantIds,
           ),
-          tx
+          tx,
         ),
         readTenantFeaturesSQL(
           inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
-          tx
+          tx,
         ),
       ]);
 
@@ -169,12 +169,12 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
       });
     },
     async getTenantByCertifierId(
-      certifierId: string
+      certifierId: string,
     ): Promise<WithMetadata<Tenant> | undefined> {
       return db.transaction(async (tx) => {
         const feature = await readTenantFeaturesSQL(
           eq(tenantFeatureInReadmodelTenant.certifierId, certifierId),
-          tx
+          tx,
         );
         if (feature.length === 0) {
           return undefined;
@@ -192,7 +192,7 @@ export type TenantReadModelService = ReturnType<
 // these are used for getTenantByid with await Promise.all.
 const readTenantSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantSQL | undefined> => {
   const result = await tx.select().from(tenantInReadmodelTenant).where(filter);
   return result[0];
@@ -200,7 +200,7 @@ const readTenantSQL = async (
 
 const readTenantsSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantSQL[]> =>
   await tx
     .select()
@@ -210,13 +210,13 @@ const readTenantsSQL = async (
 
 const readTenantMailsSQL = async (
   filter: SQL | undefined,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantMailSQL[]> =>
   await tx.select().from(tenantMailInReadmodelTenant).where(filter);
 
 const readTenantCertifiedAttributesSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantCertifiedAttributeSQL[]> =>
   await tx
     .select()
@@ -225,7 +225,7 @@ const readTenantCertifiedAttributesSQL = async (
 
 const readTenantDeclaredAttributesSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantDeclaredAttributeSQL[]> =>
   await tx
     .select()
@@ -234,7 +234,7 @@ const readTenantDeclaredAttributesSQL = async (
 
 const readTenantVerifiedAttributesSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantVerifiedAttributeSQL[]> =>
   await tx
     .select()
@@ -243,7 +243,7 @@ const readTenantVerifiedAttributesSQL = async (
 
 const readTenantVerifiedAttributeVerifiersSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
   await tx
     .select()
@@ -252,7 +252,7 @@ const readTenantVerifiedAttributeVerifiersSQL = async (
 
 const readTenantVerifiedAttributeRevokersSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
   await tx
     .select()
@@ -261,6 +261,6 @@ const readTenantVerifiedAttributeRevokersSQL = async (
 
 const readTenantFeaturesSQL = async (
   filter: SQL,
-  tx: DrizzleTransactionType
+  tx: DrizzleTransactionType,
 ): Promise<TenantFeatureSQL[]> =>
   await tx.select().from(tenantFeatureInReadmodelTenant).where(filter);
