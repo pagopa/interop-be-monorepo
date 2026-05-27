@@ -7,6 +7,7 @@ import { EserviceDescriptorDocumentSchema } from "./eserviceDescriptorDocument.j
 import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface.js";
 import { EserviceDescriptorRejectionReasonSchema } from "./eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptorTemplateVersionRef.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceRiskAnalysisSchema } from "./eserviceRiskAnalysis.js";
 import { EserviceRiskAnalysisAnswerSchema } from "./eserviceRiskAnalysisAnswer.js";
 import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
@@ -29,5 +30,8 @@ export const EserviceItemsSchema = z.object({
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefsSQL: z.array(EserviceDescriptorTemplateVersionRefSchema),
   archivingSchedulesSQL: z.array(EserviceDescriptorArchivingSchema),
+  asyncExchangePropertiesSQL: z.array(
+    EserviceDescriptorAsyncExchangePropertiesSchema
+  ),
 });
 export type EserviceItemsSchema = z.infer<typeof EserviceItemsSchema>;

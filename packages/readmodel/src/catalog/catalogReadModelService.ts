@@ -14,6 +14,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -33,7 +34,10 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
-                  ->7 risk analysis ->8 answers ->9 archiving schedule
+                      descriptor ->7 async exchange
+                      descriptor ->8 risk analysis 
+                      descriptor ->9 answers 
+                      descriptor ->10 archiving schedule
   */
   return db
     .select({
@@ -48,6 +52,8 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       templateVersionRef:
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
       archivingSchedule: eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+      asyncExchangeProperties:
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     })
     .from(eserviceInReadmodelCatalog)
     .where(filter)
@@ -101,6 +107,14 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
     )
     .leftJoin(
       // 7
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
+      )
+    )
+    .leftJoin(
+      // 8
       eserviceRiskAnalysisInReadmodelCatalog,
       eq(
         eserviceInReadmodelCatalog.id,
@@ -108,7 +122,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       )
     )
     .leftJoin(
-      // 8
+      // 9
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
       and(
         eq(
@@ -122,7 +136,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       )
     )
     .leftJoin(
-      // 9
+      // 10
       eserviceDescriptorArchivingScheduleInReadmodelCatalog,
       eq(
         eserviceDescriptorInReadmodelCatalog.id,

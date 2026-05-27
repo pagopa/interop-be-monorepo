@@ -284,6 +284,23 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     {
       msg: {
         event_version: 2,
+        type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          attributeId: generateId<AttributeId>(),
+          dailyCallsPerConsumer: 10,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+          eservice.name,
+          producerTenant.name
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
         type: "EServiceDescriptorSuspended",
         data: {
           eservice: toEServiceV2(eservice),

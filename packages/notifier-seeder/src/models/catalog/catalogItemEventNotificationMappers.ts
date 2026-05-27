@@ -65,7 +65,9 @@ const toCatalogAttributeValueV1 = (
   return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];
 };
 
-const toCatalogDocumentV1 = (doc: Document): CatalogDocumentV1Notification => ({
+export const toCatalogDocumentV1 = (
+  doc: Document
+): CatalogDocumentV1Notification => ({
   id: doc.id,
   name: doc.name,
   contentType: doc.contentType,

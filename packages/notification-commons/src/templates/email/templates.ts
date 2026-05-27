@@ -89,6 +89,8 @@ export const eventMailTemplateType = {
   clientUserDeletedMailTemplate: "client-user-deleted-mail",
   producerKeychainUserDeletedMailTemplate:
     "producer-keychain-user-deleted-mail",
+  producerKeychainNoKeysForAsyncEserviceMailTemplate:
+    "producer-keychain-no-keys-for-async-eservice-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:
@@ -124,6 +126,8 @@ export const eventMailTemplateType = {
     "eservice-archiving-canceled-eservice-to-consumer-mail",
   eserviceArchivingCanceledEserviceToProducerMailTemplate:
     "eservice-archiving-canceled-eservice-to-producer-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

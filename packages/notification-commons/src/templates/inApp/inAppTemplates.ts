@@ -424,4 +424,11 @@ export const inAppTemplates = {
     producerName: string
   ): string =>
     `Ti informiamo che l'ente erogatore ${producerName} ha annullato il processo di archiviazione per l'e-service "${eserviceName}". Il servizio continuerà ad essere disponibile come in precedenza.`,
+  asyncEserviceWithoutKeychainToProducer: (eserviceName: string): string =>
+    `All'e-service asincrono "${eserviceName}" non è collegato nessun portachiavi. Per scambiare i dati in modalità asincrona con i fruitori, è necessario collegare almeno un portachiavi con una chiave.`,
+  producerKeychainNoKeysForAsyncEserviceToProducerUsers: (
+    producerKeychainName: string,
+    eserviceNames: string
+  ): string =>
+    `Il portachiavi "${producerKeychainName}" non ha chiavi associate. Gli e-service asincroni collegati (${eserviceNames}) non potranno contattare PDND per scambiare dati con i fruitori. Aggiungi una nuova chiave al portachiavi.`,
 };

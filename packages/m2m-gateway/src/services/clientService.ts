@@ -83,6 +83,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving client with id ${clientId}`);
 
       const client = await retrieveClientById(clientId, headers);
+
       if (client.data.kind === authorizationApi.ClientKind.Values.API) {
         throw clientNotFound(client.data);
       }
@@ -181,7 +182,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           offset,
           totalCount,
         },
-        results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+        results: await Promise.all(
+          paginatedPurposes.map((purpose) =>
+            toM2MGatewayApiPurpose(purpose, clients, headers)
+          )
+        ),
       };
     },
     async removeClientPurpose(

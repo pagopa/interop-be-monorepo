@@ -80,6 +80,7 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
+          "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
           "EServiceTemplateDraftVersionUpdated",
           "EServiceTemplateDraftUpdated",
           "EServiceTemplateDraftVersionDeleted",
@@ -96,7 +97,10 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
           "EServiceTemplateVersionActivated",
-          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {

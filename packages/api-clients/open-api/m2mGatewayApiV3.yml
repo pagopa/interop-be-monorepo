@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.0.0"
+  version: "3.1.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -2802,6 +2802,89 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/scheduleArchive:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eservices
+      summary: Schedule the archiving process for an E-Service
+      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
+      operationId: scheduleArchiveEservice
+      requestBody:
+        description: A payload containing archiving reason that describes the motivation about archiving
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+      responses:
+        "200":
+          description: Archiving process of an E-Service scheduled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel an ongoing archiving process of an E-Service
+      description: "Cancels the ongoing archiving process of an E-Service that is in Archiving or ArchivingSuspended state, restoring it to its previous operational state: Deprecated or Suspended state (if state was ArchivingSuspended)"
+      operationId: cancelScheduleArchiveEservice
+      responses:
+        "200":
+          description: Archiving process of an E-Service canceled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
     parameters:
       - name: eserviceId
@@ -3633,6 +3716,53 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/asyncExchangeCallbackInterface:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor for which to download the async exchange callback interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eservices
+      summary: Download an E-Service Descriptor async exchange callback interface
+      description: Download the async exchange callback interface document of an E-Service Descriptor
+      operationId: downloadEServiceDescriptorAsyncExchangeCallbackInterface
+      responses:
+        "200":
+          description: E-Service Descriptor async exchange callback interface retrieved, a multipart containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/FileDownloadMultipart"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "429":
@@ -4524,6 +4654,49 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/AttributeId"
+    patch:
+      tags:
+        - eservices
+      summary: Update an E-Service Descriptor Certified Attribute in a specific Attribute Group
+      description: |
+        Update a specific Certified Attribute (identified by attributeId) within the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        Currently the only supported property is dailyCallsPerConsumer.
+      operationId: updateEServiceDescriptorCertifiedAttributeInGroup
+      requestBody:
+        description: A seed object containing the properties to update for the Certified Attribute
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Attribute updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
     delete:
       tags:
         - eservices
@@ -7671,6 +7844,10 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
         "400":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -9060,6 +9237,152 @@ paths:
       responses:
         "200":
           description: E-Service unlinked from Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/eserviceTemplates:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeTemplateId"
+    get:
+      tags:
+        - purposeTemplates
+      summary: List E-Service Templates linked to a Purpose Template
+      description: Retrieve a list of E-Service Templates linked to a specific Purpose Template, enriched with full template metadata
+      operationId: getPurposeTemplateEServiceTemplates
+      parameters:
+        - in: query
+          name: creatorIds
+          description: Filter Purpose Template linked E-Service Templates by Creator IDs. If not specified, return linked E-Service Templates for any Creator.
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: eserviceTemplateName
+          description: Filter Purpose Template linked E-Service Templates by name. If not specified, return linked E-Service Templates for any name.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Purpose Template E-Service Templates retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplates"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Link an E-Service Template to a Purpose Template
+      description: Link an E-Service Template to a Purpose Template that is in Draft or Active state
+      operationId: addPurposeTemplateEServiceTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateLinkEServiceTemplate"
+        required: true
+      responses:
+        "200":
+          description: E-Service Template linked to Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/eserviceTemplates/{eserviceTemplateId}:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeTemplateId"
+      - name: eserviceTemplateId
+        in: path
+        description: The E-Service Template ID to unlink
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceTemplateId"
+    delete:
+      tags:
+        - purposeTemplates
+      summary: Unlink an E-Service Template From Purpose Template
+      description: Unlink an E-Service Template From a Purpose Template that is in Draft or Active state
+      operationId: removePurposeTemplateEServiceTemplate
+      responses:
+        "200":
+          description: E-Service Template unlinked from Purpose Template
           content:
             application/json:
               schema:
@@ -10543,6 +10866,9 @@ components:
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
             - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
             - ESERVICE_RISK_ANALYSIS_DELETED
@@ -10555,6 +10881,7 @@ components:
             - ESERVICE_SIGNAL_HUB_ENABLED
             - ESERVICE_SIGNAL_HUB_DISABLED
             - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
             - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
             - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -10630,6 +10957,9 @@ components:
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_PUBLISHED
             - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
             - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -11154,6 +11484,17 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer that has the related certified attribute
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     DeclaredAttributeSeed:
       type: object
       additionalProperties: false
@@ -11776,6 +12117,8 @@ components:
           type: boolean
         archivingReason:
           type: string
+        asyncExchange:
+          type: boolean
       required:
         - id
         - producerId
@@ -11795,7 +12138,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -11807,6 +12150,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     EServiceDescriptor:
@@ -11865,6 +12211,8 @@ components:
           format: uuid
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -11956,6 +12304,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - audience
         - voucherLifespan
@@ -11997,6 +12347,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -12038,6 +12390,28 @@ components:
       required:
         - results
         - pagination
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTechnology:
       type: string
       description: API Technology
@@ -12105,7 +12479,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceTemplateIntendedTargetUpdateSeed:
@@ -12169,6 +12543,8 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -12218,7 +12594,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12293,7 +12669,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12331,6 +12707,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
@@ -12362,6 +12740,8 @@ components:
           nullable: true
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -12379,7 +12759,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12393,6 +12773,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceNameUpdateSeed:
       type: object
@@ -12421,7 +12803,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
@@ -12477,6 +12859,8 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     JWK:
       description: JSON Web Key
       type: object
@@ -13008,6 +13392,14 @@ components:
           $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
+    PurposeTemplateLinkEServiceTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceTemplateId:
+          $ref: "#/components/schemas/EServiceTemplateId"
+      required:
+        - eserviceTemplateId
     RemainingDailyCallsResponse:
       type: object
       additionalProperties: false
@@ -13115,6 +13507,16 @@ components:
         createdAt:
           type: string
           format: date-time
+    EServiceArchivingReasonSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        archivingReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - archivingReason
     Tenant:
       description: Tenant model
       type: object

@@ -113,6 +113,14 @@ export const ArchivingSchedule = z.object({
 });
 
 export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;
+export const AsyncExchangeProperties = z.object({
+  responseTime: z.number().int(),
+  resourceAvailableTime: z.number().int(),
+  confirmation: z.boolean(),
+  bulk: z.boolean(),
+  maxResultSet: z.number().int(),
+});
+export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -136,6 +144,8 @@ export const Descriptor = z.object({
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
   archivingSchedule: ArchivingSchedule.optional(),
+  asyncExchangeCallbackInterface: Document.optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -167,6 +177,7 @@ export const EService = z.object({
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
+  asyncExchange: z.boolean().optional(),
 });
 
 export type EService = z.infer<typeof EService>;

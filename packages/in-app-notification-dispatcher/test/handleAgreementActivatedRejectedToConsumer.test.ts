@@ -22,7 +22,6 @@ import {
   eserviceNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 
 import {
   addOneAgreement,
@@ -30,6 +29,7 @@ import {
   addOneTenant,
   readModelService,
 } from "./utils.js";
+import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 
 describe("handleAgreementActivatedRejectedToConsumer", () => {
   const consumerId = generateId<TenantId>();
