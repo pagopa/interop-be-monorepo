@@ -10,7 +10,8 @@ import {
 } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { handleEserviceStateChangedReminderEmail } from "./eservices/handleEserviceStateChangedReminderEmail.js";
+import { handleEserviceArchivingScheduledReminderEmail } from "./eservices/handleEserviceArchivingScheduledReminderEmail.js";
+import { handleEserviceDescriptorArchivingScheduledReminderEmail } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderEmail.js";
 
 const SERVICE_NAME = "scheduled-email-notification-dispatcher";
 
@@ -31,18 +32,22 @@ export const dispatchEmailDeliveryBuilder =
       eventType: row.eventType,
       streamId: row.entityId,
     });
+    const handlerDeps = {
+      readModelService: deps.readModelService,
+      templateService: deps.templateService,
+      bffUrl: deps.bffUrl,
+      correlationId: rowCorrelationId,
+      log: rowLog,
+    };
     return match(row.eventType)
-      .with(
-        schedulableEventType.eserviceArchivingScheduled,
-        schedulableEventType.eserviceDescriptorArchivingScheduled,
-        () =>
-          handleEserviceStateChangedReminderEmail(row, {
-            readModelService: deps.readModelService,
-            templateService: deps.templateService,
-            bffUrl: deps.bffUrl,
-            correlationId: rowCorrelationId,
-            log: rowLog,
-          })
+      .with(schedulableEventType.eserviceArchivingScheduled, () =>
+        handleEserviceArchivingScheduledReminderEmail(row, handlerDeps)
+      )
+      .with(schedulableEventType.eserviceDescriptorArchivingScheduled, () =>
+        handleEserviceDescriptorArchivingScheduledReminderEmail(
+          row,
+          handlerDeps
+        )
       )
       .otherwise(() => {
         deps.rootLog.warn(

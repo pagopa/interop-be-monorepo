@@ -20,7 +20,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import {
   ScheduledNotificationRow,
-  parseEServiceIdDescriptorId,
+  parseEServiceEntityId,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
@@ -37,16 +37,14 @@ type EmailReminderHandlerDeps = {
   log: Logger;
 };
 
-export async function handleEserviceStateChangedReminderEmail(
+export async function handleEserviceArchivingScheduledReminderEmail(
   row: ScheduledNotificationRow,
   deps: EmailReminderHandlerDeps
 ): Promise<EmailNotificationMessagePayload[]> {
   const { readModelService, templateService, bffUrl, correlationId, log } =
     deps;
 
-  const { eserviceId, descriptorId } = parseEServiceIdDescriptorId(
-    row.entityId
-  );
+  const eserviceId = parseEServiceEntityId(row.entityId);
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
     log.warn(
@@ -54,36 +52,36 @@ export async function handleEserviceStateChangedReminderEmail(
     );
     return [];
   }
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
+  const targets = eservice.descriptors.filter(
+    (d) => d.archivingSchedule?.scope === "EService"
+  );
+  if (targets.length === 0) {
     log.warn(
-      `Skipping scheduled email reminder: descriptor ${descriptorId} not found in eservice ${eserviceId} (row ${row.id})`
+      `Skipping scheduled email reminder: eservice ${eserviceId} has no descriptors with archivingSchedule.scope === "EService" (row ${row.id})`
     );
     return [];
   }
-  if (!descriptor.archivingSchedule) {
-    log.warn(
-      `Skipping scheduled email reminder: descriptor ${descriptorId} has no archivingSchedule (row ${row.id})`
-    );
-    return [];
-  }
-
-  const archivableOn = descriptor.archivingSchedule.archivableOn;
+  const archivableOns = targets
+    .map((d) => d.archivingSchedule?.archivableOn)
+    .filter((d): d is Date => d !== undefined);
+  const archivableOn = new Date(
+    Math.min(...archivableOns.map((d) => d.getTime()))
+  );
   const daysRemaining = Math.max(
     differenceInCalendarDays(archivableOn, new Date()),
     0
   );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
   const isLastDay = daysRemaining === 1;
-  const entityId = `${eservice.id}/${descriptor.id}`;
+  const entityId = eservice.id;
 
   const [producerTemplate, consumerTemplate, producerTenant] =
     await Promise.all([
       retrieveHTMLTemplate(
-        eventMailTemplateType.eserviceStateChangedToProducerScheduledReminderMailTemplate
+        eventMailTemplateType.eserviceStateChangedToProducerScheduledReminderEserviceMailTemplate
       ),
       retrieveHTMLTemplate(
-        eventMailTemplateType.eserviceStateChangedToConsumerScheduledReminderMailTemplate
+        eventMailTemplateType.eserviceStateChangedToConsumerScheduledReminderEserviceMailTemplate
       ),
       retrieveTenant(eservice.producerId, readModelService),
     ]);
@@ -106,7 +104,6 @@ export async function handleEserviceStateChangedReminderEmail(
         entityId,
         ...(t.type === "Tenant" ? { recipientName: producerTenant.name } : {}),
         eserviceName: eservice.name,
-        eserviceVersion: descriptor.version,
         daysRemaining,
         archivableOn: archivableOnFormatted,
         isLastDay,
@@ -154,7 +151,6 @@ export async function handleEserviceStateChangedReminderEmail(
               ? { recipientName: consumerTenant.name }
               : {}),
             eserviceName: eservice.name,
-            eserviceVersion: descriptor.version,
             producerName: producerTenant.name,
             daysRemaining,
             archivableOn: archivableOnFormatted,
