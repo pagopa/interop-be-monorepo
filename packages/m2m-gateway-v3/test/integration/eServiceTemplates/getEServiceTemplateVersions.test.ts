@@ -76,6 +76,7 @@ describe("getEServiceTemplateVersions", () => {
     description: template.description,
     publishedAt: template.publishedAt,
     suspendedAt: template.suspendedAt,
+    asyncExchangeProperties: template.asyncExchangeProperties,
   });
 
   const expectedM2MTemplateVersion1 =
@@ -137,6 +138,8 @@ describe("getEServiceTemplateVersions", () => {
         description: mockApiTemplateVersion2.description,
         publishedAt: mockApiTemplateVersion2.publishedAt,
         suspendedAt: mockApiTemplateVersion2.suspendedAt,
+        asyncExchangeProperties:
+          mockApiTemplateVersion2.asyncExchangeProperties,
       };
     const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
       pagination: {
