@@ -50,7 +50,7 @@ import { TenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext,
-  tenantService: TenantService,
+  tenantService: TenantService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
@@ -84,14 +84,14 @@ const tenantsRouter = (
             offset,
             limit,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
             results: consumers.results.map(toApiTenant),
             totalCount: consumers.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -116,14 +116,14 @@ const tenantsRouter = (
             offset,
             limit,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
             results: producers.results.map(toApiTenant),
             totalCount: producers.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -160,14 +160,14 @@ const tenantsRouter = (
             offset,
             limit,
           },
-          ctx,
+          ctx
         );
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
             results: tenants.results.map(toApiTenant),
             totalCount: tenants.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -191,7 +191,7 @@ const tenantsRouter = (
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
           unsafeBrandId(req.params.id),
-          ctx,
+          ctx
         );
 
         setMetadataVersionHeader(res, metadata);
@@ -223,7 +223,7 @@ const tenantsRouter = (
             value: code,
             origin,
           },
-          ctx,
+          ctx
         );
         return res
           .status(200)
@@ -232,7 +232,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           getTenantByExternalIdErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -251,20 +251,20 @@ const tenantsRouter = (
               offset,
               limit,
             },
-            ctx,
+            ctx
           );
 
         return res.status(200).send(
           tenantApi.CertifiedAttributes.parse({
             results: results satisfies tenantApi.CertifiedAttribute[],
             totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getCertifiedAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -284,7 +284,7 @@ const tenantsRouter = (
               attributeId: unsafeBrandId(attributeId),
               updateVerifiedTenantAttributeSeed: req.body,
             },
-            ctx,
+            ctx
           );
           return res
             .status(200)
@@ -293,11 +293,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTenantVerifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
@@ -313,7 +313,7 @@ const tenantsRouter = (
               unsafeBrandId(tenantId),
               unsafeBrandId(attributeId),
               verifierId,
-              ctx,
+              ctx
             );
           return res
             .status(200)
@@ -322,11 +322,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/maintenance/tenants/:tenantId/certifier", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -339,7 +339,7 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(req.params.tenantId),
             certifierId: req.body.certifierId,
           },
-          ctx,
+          ctx
         );
         return res
           .status(200)
@@ -348,7 +348,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           maintenanceTenantPromotedToCertifierErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -364,7 +364,7 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(req.params.tenantId),
             mailSeed: req.body,
           },
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
@@ -383,14 +383,14 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(req.params.tenantId),
             version: req.body.currentVersion,
           },
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           maintenanceTenantDeletedErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -407,14 +407,14 @@ const tenantsRouter = (
             version: req.body.currentVersion,
             tenantUpdate: req.body.tenant,
           },
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           maintenanceTenantUpdatedErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -431,14 +431,14 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(tenantId),
             mailId,
           },
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           deleteTenantMailErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -453,14 +453,14 @@ const tenantsRouter = (
           {
             tenantFeatures: req.body,
           },
-          ctx,
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           updateTenantDelegatedFeaturesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -482,23 +482,23 @@ const tenantsRouter = (
                 offset,
                 limit,
               },
-              ctx,
+              ctx
             );
           return res.status(200).send(
             tenantApi.TenantVerifiers.parse({
               results: result.results.map(toApiTenantVerifier),
               totalCount: result.totalCount,
-            }),
+            })
           );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getTenantVerifiedAttributeVerifiersErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .get(
       "/tenants/:tenantId/attributes/verified/:attributeId/revokers",
@@ -515,23 +515,23 @@ const tenantsRouter = (
               offset,
               limit,
             },
-            ctx,
+            ctx
           );
           return res.status(200).send(
             tenantApi.TenantRevokers.parse({
               results: result.results.map(toApiTenantRevoker),
               totalCount: result.totalCount,
-            }),
+            })
           );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             getTenantVerifiedAttributeRevokersErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
@@ -568,18 +568,18 @@ const tenantsRouter = (
               tenantExternalId: externalId,
               attributeExternalId: code,
             },
-            ctx,
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             m2mRevokeCertifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   const selfcareRouter = ctx.router(tenantApi.selfcareApi.api, {
@@ -601,7 +601,7 @@ const tenantsRouter = (
 
         const tenant = await tenantService.getTenantBySelfcareId(
           req.params.selfcareId,
-          ctx,
+          ctx
         );
 
         return res
@@ -611,7 +611,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           getTenantBySelfcareIdErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -633,7 +633,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           selfcareUpsertTenantErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -659,7 +659,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           internalUpsertTenantErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -680,7 +680,7 @@ const tenantsRouter = (
               attributeOrigin: aOrigin,
               attributeExternalId: aExternalId,
             },
-            ctx,
+            ctx
           );
           setMetadataVersionHeader(res, metadata);
           return res.status(204).send();
@@ -688,11 +688,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalAddCertifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
@@ -710,7 +710,7 @@ const tenantsRouter = (
               attributeOrigin: aOrigin,
               attributeExternalId: aExternalId,
             },
-            ctx,
+            ctx
           );
           setMetadataVersionHeader(res, metadata);
           return res.status(204).send();
@@ -718,11 +718,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalRevokeCertifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     );
 
   const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
@@ -742,7 +742,7 @@ const tenantsRouter = (
               tenantId: unsafeBrandId(tenantId),
               tenantAttributeSeed: req.body,
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -754,7 +754,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           addCertifiedAttributeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -770,7 +770,7 @@ const tenantsRouter = (
             {
               tenantAttributeSeed: req.body,
             },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -782,7 +782,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           addDeclaredAttributeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -804,7 +804,7 @@ const tenantsRouter = (
                 agreementId: unsafeBrandId(req.body.agreementId),
                 expirationDate: req.body.expirationDate,
               },
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -816,11 +816,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
@@ -837,7 +837,7 @@ const tenantsRouter = (
                 attributeId: unsafeBrandId(req.params.attributeId),
                 agreementId: unsafeBrandId(req.body.agreementId),
               },
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -849,11 +849,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeVerifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .delete(
       "/tenants/:tenantId/attributes/certified/:attributeId",
@@ -870,7 +870,7 @@ const tenantsRouter = (
                 tenantId: unsafeBrandId(tenantId),
                 attributeId: unsafeBrandId(attributeId),
               },
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -882,11 +882,11 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeCertifiedAttributeErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .delete("/tenants/attributes/declared/:attributeId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -897,7 +897,7 @@ const tenantsRouter = (
         const { data: tenant, metadata } =
           await tenantService.revokeDeclaredAttribute(
             { attributeId: unsafeBrandId(req.params.attributeId) },
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -909,7 +909,7 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           revokeDeclaredAttributeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
