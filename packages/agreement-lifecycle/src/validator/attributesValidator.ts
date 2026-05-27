@@ -1,7 +1,6 @@
 import {
   AgreementSuspensionReason,
   AttributeCertifiedDiscreteComparator,
-  AttributeId,
   CertifiedDiscreteAttributeFailure,
   Descriptor,
   EServiceAttribute,
@@ -86,18 +85,17 @@ export const certifiedAttributesSatisfied = (
 
 /*
  * Returns the suspension reason and (when applicable) the discrete attribute
- * failure detail for a recompute triggered by `triggeringAttributeId`.
+ * failure detail when the tenant does not satisfy the descriptor certified
+ * attributes.
  *
- * Policy: the triggering attribute is the one whose change caused the
- * recompute, so it is treated as the failure cause. The detail is populated
- * only when the triggering descriptor entry is discrete and the tenant still
- * carries the discrete attribute (so we can capture its value at the moment
- * of suspension).
+ * Policy: the reason reflects the first descriptor group that fails
+ * (top-down). Within that group, a discrete entry is preferred for the
+ * reason and the detail is populated from the tenant's current discrete
+ * attribute value when available.
  */
 export const certifiedAttributesFailure = (
   descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[],
-  triggeringAttributeId: AttributeId
+  tenantAttributes: TenantAttribute[]
 ): {
   suspensionReason: AgreementSuspensionReason | undefined;
   discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined;
@@ -109,29 +107,46 @@ export const certifiedAttributesFailure = (
     };
   }
 
-  const triggeringDescriptorAttribute = descriptorAttributes.certified
-    .flat()
-    .find((attr) => attr.id === triggeringAttributeId);
-
-  if (
-    triggeringDescriptorAttribute &&
-    "discreteConfig" in triggeringDescriptorAttribute
-  ) {
-    const triggeringTenantAttribute = tenantAttributes.find(
-      (attr) => attr.id === triggeringAttributeId
+  const failingGroup = descriptorAttributes.certified
+    .filter((group) => group.length > 0)
+    .find(
+      (group) =>
+        !group.some((attribute) =>
+          matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
+        )
     );
-    const discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined =
-      triggeringTenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE
-        ? {
-            attributeId: triggeringAttributeId,
-            tenantValue: triggeringTenantAttribute.discreteValue,
-            threshold: triggeringDescriptorAttribute.discreteConfig.threshold,
-            comparator: triggeringDescriptorAttribute.discreteConfig.comparator,
-          }
-        : undefined;
+
+  if (!failingGroup) {
+    return {
+      suspensionReason: agreementSuspensionReason.certifiedAttribute,
+      discreteAttributeFailure: undefined,
+    };
+  }
+
+  for (const descriptorAttribute of failingGroup) {
+    if (!("discreteConfig" in descriptorAttribute)) {
+      continue;
+    }
+    const tenantAttribute = tenantAttributes.find(
+      (attribute) => attribute.id === descriptorAttribute.id
+    );
+    if (tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE) {
+      return {
+        suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
+        discreteAttributeFailure: {
+          attributeId: descriptorAttribute.id,
+          tenantValue: tenantAttribute.discreteValue,
+          threshold: descriptorAttribute.discreteConfig.threshold,
+          comparator: descriptorAttribute.discreteConfig.comparator,
+        },
+      };
+    }
+  }
+
+  if (failingGroup.some((attr) => "discreteConfig" in attr)) {
     return {
       suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
-      discreteAttributeFailure,
+      discreteAttributeFailure: undefined,
     };
   }
 
