@@ -114,24 +114,29 @@ const scheduleForEserviceScope = async (
     );
     return;
   }
-  for (const descriptor of targets) {
-    if (!descriptor.archivingSchedule) {
-      continue;
-    }
-    await schedulerService.scheduleReminders(
-      {
-        eserviceId: domain.id,
-        descriptorId: descriptor.id,
-        archivableOn: descriptor.archivingSchedule.archivableOn,
-        eventType: schedulableEventType.eserviceArchivingScheduled,
-        correlationId,
-        reminderDays: cfg.eserviceReminderDays,
-        sendAtHour: cfg.sendAtHour,
-        tz: cfg.tz,
-      },
-      log
+  const archivableOns = targets
+    .map((d) => d.archivingSchedule?.archivableOn)
+    .filter((d): d is Date => d !== undefined);
+  const archivableOn = new Date(
+    Math.min(...archivableOns.map((d) => d.getTime()))
+  );
+  if (archivableOns.some((d) => d.getTime() !== archivableOn.getTime())) {
+    log.warn(
+      `EServiceArchivingScheduled for ${domain.id} had descriptors with diverging archivingSchedule.archivableOn; using the earliest (${archivableOn.toISOString()})`
     );
   }
+  await schedulerService.scheduleReminders(
+    {
+      eserviceId: domain.id,
+      archivableOn,
+      eventType: schedulableEventType.eserviceArchivingScheduled,
+      correlationId,
+      reminderDays: cfg.eserviceReminderDays,
+      sendAtHour: cfg.sendAtHour,
+      tz: cfg.tz,
+    },
+    log
+  );
 };
 
 const scheduleForDescriptorScope = async (

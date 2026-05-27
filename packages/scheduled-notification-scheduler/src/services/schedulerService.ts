@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { addMinutes } from "date-fns";
-import { and, eq, isNull, like, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { Logger } from "pagopa-interop-commons";
 import { CorrelationId, DescriptorId, EServiceId } from "pagopa-interop-models";
 import {
@@ -8,8 +8,8 @@ import {
   SchedulableEventType,
   ScheduledNotificationChannel,
   ScheduledNotificationDrizzleReturnType,
+  formatEServiceEntityId,
   formatEServiceIdDescriptorId,
-  eServiceIdDescriptorIdPrefix,
   scheduledNotification,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
@@ -19,7 +19,7 @@ const SEND_AT_MARGIN_MINUTES = 5;
 
 type ScheduleRemindersParams = {
   eserviceId: EServiceId;
-  descriptorId: DescriptorId;
+  descriptorId?: DescriptorId;
   archivableOn: Date;
   eventType: SchedulableEventType;
   correlationId: CorrelationId;
@@ -54,7 +54,9 @@ export const schedulerServiceBuilder = (
     tz,
     now,
   }: ScheduleRemindersParams): NewScheduledNotificationRow[] => {
-    const entityId = formatEServiceIdDescriptorId(eserviceId, descriptorId);
+    const entityId = descriptorId
+      ? formatEServiceIdDescriptorId(eserviceId, descriptorId)
+      : formatEServiceEntityId(eserviceId);
     const cutoff = addMinutes(now ?? new Date(), SEND_AT_MARGIN_MINUTES);
     const channels: ScheduledNotificationChannel[] = [
       scheduledNotificationChannel.inApp,
@@ -92,7 +94,7 @@ export const schedulerServiceBuilder = (
       const rows = buildRowsForChannels(params);
       if (rows.length === 0) {
         log.info(
-          `No reminders to schedule for ${params.eventType} (eservice=${params.eserviceId}, descriptor=${params.descriptorId}): all thresholds already past`
+          `No reminders to schedule for ${params.eventType} (${describeScope(params)}): all thresholds already past`
         );
         return 0;
       }
@@ -108,7 +110,7 @@ export const schedulerServiceBuilder = (
           ],
         });
       log.info(
-        `Scheduled ${rows.length} reminder rows for ${params.eventType} (eservice=${params.eserviceId}, descriptor=${params.descriptorId})`
+        `Scheduled ${rows.length} reminder rows for ${params.eventType} (${describeScope(params)})`
       );
       return rows.length;
     },
@@ -122,9 +124,9 @@ export const schedulerServiceBuilder = (
         .where(
           and(
             eq(scheduledNotification.eventType, eventType),
-            like(
+            eq(
               scheduledNotification.entityId,
-              `${eServiceIdDescriptorIdPrefix(eserviceId)}%`
+              formatEServiceEntityId(eserviceId)
             ),
             isNull(scheduledNotification.sentAt)
           )
@@ -161,3 +163,8 @@ export const schedulerServiceBuilder = (
 };
 
 export type SchedulerService = ReturnType<typeof schedulerServiceBuilder>;
+
+const describeScope = (params: ScheduleRemindersParams): string =>
+  params.descriptorId
+    ? `eservice=${params.eserviceId}, descriptor=${params.descriptorId}`
+    : `eservice=${params.eserviceId}`;
