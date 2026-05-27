@@ -119,6 +119,9 @@ export function toOutboundEventV2(
     .with(
       { type: "TenantMailAdded" },
       { type: "TenantMailDeleted" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
       () => undefined
     )
     .exhaustive();

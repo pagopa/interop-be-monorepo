@@ -78,5 +78,15 @@ async function handleTenantEventV2(
         );
       }
     )
+    .with(
+      {
+        type: P.union(
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      () => Promise.resolve()
+    )
     .exhaustive();
 }
