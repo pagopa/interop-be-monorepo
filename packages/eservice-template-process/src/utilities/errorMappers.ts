@@ -294,7 +294,6 @@ export const createEServiceTemplateDocumentErrorMapper = (
       "interfaceAlreadyExists",
       "asyncExchangeCallbackInterfaceAlreadyExists",
       "eserviceTemplateAsyncExchangeNotEnabled",
-      "missingAsyncExchangeProperties",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
