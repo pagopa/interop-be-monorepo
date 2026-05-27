@@ -71,7 +71,7 @@ export async function handleEserviceArchivingScheduledToProducer(
   const archivableOn = dateAtRomeZone(
     descriptor.archivingSchedule.archivableOn
   );
-  const subject = `Avvio archiviazione per un tuo e-service`;
+  const subject = `Un tuo e-service è in fase di archiviazione`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
