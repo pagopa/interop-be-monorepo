@@ -13,7 +13,6 @@ import {
   retrieveOriginFromAuthData,
   Logger,
   assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -317,10 +316,7 @@ async function parseAndCheckAttributesOfKind(
     }
   });
 
-  if (
-    kind === attributeKind.certified &&
-    !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
-  ) {
+  if (kind === attributeKind.certified) {
     const hasCertifiedDiscreteConfig = parsedAttributesSeed
       .flat()
       .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
