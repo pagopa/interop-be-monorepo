@@ -82,7 +82,7 @@ export async function handleEserviceDescriptorArchivingScheduledToConsumer(
   const archivableOn = dateAtRomeZone(
     descriptor.archivingSchedule.archivableOn
   );
-  const subject = `Avvio archiviazione della versione ${descriptor.version} dell'e-service "${eservice.name}"`;
+  const subject = `Avviso di archiviazione per l'e-service "${eservice.name}"`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);

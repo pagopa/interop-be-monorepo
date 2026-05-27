@@ -72,7 +72,7 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
     return [];
   }
 
-  const subject = `Archiviazione conclusa per la versione ${descriptor.version} dell'e-service "${eservice.name}"`;
+  const subject = `Una versione di "${eservice.name}" è stata archiviata`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);

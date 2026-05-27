@@ -18,6 +18,7 @@ import {
   M2MEventSQLDbConfig,
   DynamoDBClientConfig,
   ScheduledNotificationDBConfig,
+  TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
@@ -44,6 +45,8 @@ import {
   TEST_M2M_EVENT_DB_PORT,
   scheduledNotificationDBContainer,
   TEST_SCHEDULED_NOTIFICATION_DB_PORT,
+  tenantKindHistoryDBContainer,
+  TEST_TENANT_KIND_HISTORY_DB_PORT,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
@@ -67,6 +70,7 @@ declare module "vitest" {
     m2mEventDbConfig?: M2MEventSQLDbConfig;
     dynamoDBClientConfig?: EnhancedDynamoDBClientConfig;
     scheduledNotificationDbConfig?: ScheduledNotificationDBConfig;
+    tenantKindHistoryDBConfig?: TenantKindHistoryDBConfig;
   }
 }
 
@@ -95,7 +99,9 @@ export function setupTestContainersVitestGlobal() {
   );
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
-  const scheduledNotificationDbConfig = ScheduledNotificationDBConfig.safeParse(
+  const scheduledNotificationDbConfig =
+    ScheduledNotificationDBConfig.safeParse(process.env);
+  const tenantKindHistoryDBConfig = TenantKindHistoryDBConfig.safeParse(
     process.env
   );
 
@@ -113,6 +119,7 @@ export function setupTestContainersVitestGlobal() {
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
     let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
     let startedScheduledNotificationContainer: StartedTestContainer | undefined;
+    let startedTenantKindHistoryDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -284,6 +291,19 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (tenantKindHistoryDBConfig.success) {
+      startedTenantKindHistoryDbContainer = await tenantKindHistoryDBContainer(
+        tenantKindHistoryDBConfig.data
+      ).start();
+      provide("tenantKindHistoryDBConfig", {
+        ...tenantKindHistoryDBConfig.data,
+        tenantKindHistoryDBPort:
+          startedTenantKindHistoryDbContainer.getMappedPort(
+            TEST_TENANT_KIND_HISTORY_DB_PORT
+          ),
+      });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
@@ -296,6 +316,7 @@ export function setupTestContainersVitestGlobal() {
       await startedInAppNotificationContainer?.stop();
       await startedM2MEventSQLDbContainer?.stop();
       await startedScheduledNotificationContainer?.stop();
+      await startedTenantKindHistoryDbContainer?.stop();
     };
   };
 }

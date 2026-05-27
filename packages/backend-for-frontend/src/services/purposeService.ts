@@ -3,7 +3,6 @@ import {
   FileManager,
   removeDuplicates,
   UIAuthData,
-  assertFeatureFlagEnabled,
   getRulesetExpiration,
 } from "pagopa-interop-commons";
 import {
@@ -266,6 +265,7 @@ export function purposeServiceBuilder(
           state: currentDescriptor.state,
           version: currentDescriptor.version,
           audience: currentDescriptor.audience,
+          archivableOn: currentDescriptor.archivingSchedule?.archivableOn,
         },
         mode: eservice.mode,
         personalData: eservice.personalData,
@@ -462,7 +462,6 @@ export function purposeServiceBuilder(
       seed: bffApi.PurposeFromTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(
         `Creating purpose from template ${templateId} and consumer ${seed.consumerId}`
       );
@@ -770,7 +769,6 @@ export function purposeServiceBuilder(
       body: bffApi.PatchPurposeUpdateFromTemplateContent,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(
         `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
       );

@@ -89,6 +89,8 @@ export const eventMailTemplateType = {
   clientUserDeletedMailTemplate: "client-user-deleted-mail",
   producerKeychainUserDeletedMailTemplate:
     "producer-keychain-user-deleted-mail",
+  producerKeychainNoKeysForAsyncEserviceMailTemplate:
+    "producer-keychain-no-keys-for-async-eservice-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:
@@ -118,6 +120,14 @@ export const eventMailTemplateType = {
     "eservice-archiving-early-archived-to-producer-mail",
   eserviceArchivingEarlyArchivedToConsumerMailTemplate:
     "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
+    "eservice-archiving-canceled-descriptor-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToConsumerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToProducerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-producer-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
   eserviceStateChangedToProducerScheduledReminderMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-mail",
   eserviceStateChangedToConsumerScheduledReminderMailTemplate:

@@ -9,6 +9,7 @@ import {
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { EserviceSchema } from "../catalog/eservice.js";
 import { EserviceDescriptorSchema } from "../catalog/eserviceDescriptor.js";
@@ -20,6 +21,7 @@ import { EserviceDescriptorTemplateVersionRefSchema } from "../catalog/eserviceD
 import { EserviceRiskAnalysisSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { EserviceRiskAnalysisAnswerSchema } from "../catalog/eserviceRiskAnalysisAnswer.js";
 import { EserviceDescriptorArchivingSchema } from "../catalog/eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "../catalog/eserviceDescriptorAsyncExchangeProperties.js";
 
 export const CatalogDbTableConfig = {
   eservice: EserviceSchema,
@@ -33,6 +35,8 @@ export const CatalogDbTableConfig = {
   eservice_risk_analysis: EserviceRiskAnalysisSchema,
   eservice_risk_analysis_answer: EserviceRiskAnalysisAnswerSchema,
   eservice_descriptor_archiving_schedule: EserviceDescriptorArchivingSchema,
+  eservice_descriptor_async_exchange_properties:
+    EserviceDescriptorAsyncExchangePropertiesSchema,
 } as const;
 export type CatalogDbTableConfig = typeof CatalogDbTableConfig;
 
@@ -50,6 +54,8 @@ export const CatalogDbTableReadModel = {
   eservice_risk_analysis_answer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eservice_descriptor_archiving_schedule:
     eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eservice_descriptor_async_exchange_properties:
+    eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } as const;
 export const CatalogDbPartialTableConfig = {
   descriptor_server_urls: EserviceDescriptorSchema,

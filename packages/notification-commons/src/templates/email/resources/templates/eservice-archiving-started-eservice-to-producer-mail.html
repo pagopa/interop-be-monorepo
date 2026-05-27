@@ -74,8 +74,7 @@
         color: #17324d;
       "
     >
-      <p>Ti confermiamo che hai avviato il processo di archiviazione dell'e-service "{{ eserviceName }}".</p>
-        {{#if archivableOn}}<p>L'archiviazione sarà completata il <strong>{{ archivableOn }}</strong>, salvo annullamento.</p>{{/if}}
+      <p>L'e-service "{{ eserviceName }}" è in fase di archiviazione ma è ancora attivo. L'archiviazione avverrà il giorno <strong>{{ archivableOn }}</strong>. Dopo questa data, l'e-service sarà archiviato definitivamente e non risulterà più attivo. Puoi annullare l'archiviazione solo entro questo periodo di preavviso.</p>
     </div>
   </td>
 </tr>

@@ -7,6 +7,7 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiClient } from "../../mockUtils.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /clients/:clientId", () => {
   const mockApiClient = getMockBffApiClient();
@@ -37,5 +38,16 @@ describe("API GET /clients/:clientId", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 if client is not visible to the caller", async () => {
+    services.clientService.getClientById = vi
+      .fn()
+      .mockRejectedValue(clientNotFound(mockApiClient.id));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(404);
   });
 });

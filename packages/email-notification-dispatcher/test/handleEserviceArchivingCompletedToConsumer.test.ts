@@ -40,12 +40,13 @@ describe("handleEserviceArchivingCompletedToConsumer", () => {
   const consumerTenant = { ...getMockTenant(consumerId), name: "Consumer T" };
 
   const archivingDescriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor(descriptorState.archived),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
     },
+    archivedAt: new Date("2026-12-31T00:00:00.000Z"),
   };
   const eservice: EService = {
     ...getMockEService(),
@@ -109,7 +110,7 @@ describe("handleEserviceArchivingCompletedToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Archiviazione conclusa dell'e-service"
+      "L'e-service con cui stai scambiando dati è stato archiviato"
     );
   });
 

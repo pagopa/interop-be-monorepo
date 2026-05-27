@@ -71,7 +71,7 @@ export async function handleEserviceArchivingScheduledToProducer(
   const archivableOn = dateAtRomeZone(
     descriptor.archivingSchedule.archivableOn
   );
-  const subject = `Avvio archiviazione dell'e-service "${eservice.name}"`;
+  const subject = `Un tuo e-service è in fase di archiviazione`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -84,7 +84,7 @@ export async function handleEserviceArchivingScheduledToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         archivableOn,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

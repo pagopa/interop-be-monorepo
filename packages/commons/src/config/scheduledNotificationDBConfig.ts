@@ -6,7 +6,7 @@ export const ScheduledNotificationDBConfig = z
     SCHEDULED_NOTIFICATION_DB_NAME: z.string().default("root"),
     SCHEDULED_NOTIFICATION_DB_USERNAME: z.string().default("root"),
     SCHEDULED_NOTIFICATION_DB_PASSWORD: z.string().default("root"),
-    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001).default(6008),
+    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001).default(6009),
     SCHEDULED_NOTIFICATION_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true")

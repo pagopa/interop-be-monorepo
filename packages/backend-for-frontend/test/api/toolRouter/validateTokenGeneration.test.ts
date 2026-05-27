@@ -1,7 +1,7 @@
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { describe, beforeEach, vi, it, expect } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { featureFlagNotEnabled, generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -15,6 +15,15 @@ describe("API POST /tools/validateTokenGeneration", () => {
     client_assertion_type:
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     grant_type: "client_credentials",
+    is_async: "false",
+  };
+  const mockRequestWithDPoP: bffApi.AccessTokenRequest = {
+    ...mockRequest,
+    dpop_proof: "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0In0...",
+  };
+  const mockAsyncRequest: bffApi.AccessTokenRequest = {
+    ...mockRequest,
+    is_async: "true",
   };
   const mockResult: bffApi.TokenGenerationValidationResult = {
     clientKind: "CONSUMER",
@@ -43,6 +52,16 @@ describe("API POST /tools/validateTokenGeneration", () => {
       name: "My eService",
     },
   };
+  const mockResultWithDPoP: bffApi.TokenGenerationValidationResult = {
+    ...mockResult,
+    steps: {
+      ...mockResult.steps,
+      dpopValidation: {
+        result: "PASSED",
+        failures: [],
+      },
+    },
+  };
 
   beforeEach(() => {
     services.toolsService.validateTokenGeneration = vi
@@ -61,19 +80,118 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 with validation result for valid request", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const makeFormRequest = async (token: string, body: Record<string, string>) =>
+    request(api)
+      .post(`${appBasePath}/tools/validateTokenGeneration`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send(new URLSearchParams(body).toString());
+
+  it.each([authRole.ADMIN_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "Should return 200 with validation result for valid request (role %s)",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResult);
+    }
+  );
+
+  it("Should return 403 for a user role that is not allowed (api)", async () => {
+    const token = generateToken(authRole.API_ROLE);
     const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockResult);
+    expect(res.status).toBe(403);
   });
+
+  it("Should default to sync validation when is_async is not provided", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const requestWithoutAsyncFlag = {
+      client_id: mockRequest.client_id,
+      client_assertion: mockRequest.client_assertion,
+      client_assertion_type: mockRequest.client_assertion_type,
+      grant_type: mockRequest.grant_type,
+    };
+    const res = await makeRequest(
+      token,
+      requestWithoutAsyncFlag as bffApi.AccessTokenRequest
+    );
+    expect(res.status).toBe(200);
+    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
+      mockRequest.client_id,
+      mockRequest.client_assertion,
+      mockRequest.client_assertion_type,
+      mockRequest.grant_type,
+      false,
+      undefined,
+      expect.anything()
+    );
+  });
+
+  it("Should return 200 with DPoP validation steps when dpop_proof is provided", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.toolsService.validateTokenGeneration = vi
+      .fn()
+      .mockResolvedValue(mockResultWithDPoP);
+    const res = await makeRequest(token, mockRequestWithDPoP);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockResultWithDPoP);
+  });
+
+  it("Should pass async validation mode to the service when is_async is true", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockAsyncRequest);
+    expect(res.status).toBe(200);
+    expect(services.toolsService.validateTokenGeneration).toHaveBeenCalledWith(
+      mockAsyncRequest.client_id,
+      mockAsyncRequest.client_assertion,
+      mockAsyncRequest.client_assertion_type,
+      mockAsyncRequest.grant_type,
+      true,
+      undefined,
+      expect.anything()
+    );
+  });
+
+  it.each([
+    { isAsync: "true", expectedIsAsync: true },
+    { isAsync: "false", expectedIsAsync: false },
+  ])(
+    "Should parse async validation mode $isAsync from form-urlencoded body",
+    async ({ isAsync, expectedIsAsync }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeFormRequest(token, {
+        client_id: mockAsyncRequest.client_id ?? "",
+        client_assertion: mockAsyncRequest.client_assertion,
+        client_assertion_type: mockAsyncRequest.client_assertion_type,
+        grant_type: mockAsyncRequest.grant_type,
+        is_async: isAsync,
+      });
+      expect(res.status).toBe(200);
+      expect(
+        services.toolsService.validateTokenGeneration
+      ).toHaveBeenCalledWith(
+        mockAsyncRequest.client_id,
+        mockAsyncRequest.client_assertion,
+        mockAsyncRequest.client_assertion_type,
+        mockAsyncRequest.grant_type,
+        expectedIsAsync,
+        undefined,
+        expect.anything()
+      );
+    }
+  );
 
   it.each([
     { body: {} },
     { body: { client_id: "invalid" } },
+    { body: { ...mockRequest, client_id: "not-a-uuid" } },
     { body: { ...mockRequest, client_assertion: 123 } },
     { body: { ...mockRequest, client_assertion_type: 123 } },
     { body: { ...mockRequest, grant_type: 123 } },
+    { body: { ...mockRequest, is_async: "invalid" } },
+    { body: { ...mockRequest, dpop_proof: 123 } },
   ])("Should return 400 for invalid input: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as bffApi.AccessTokenRequest);
@@ -88,5 +206,16 @@ describe("API POST /tools/validateTokenGeneration", () => {
       .mockRejectedValue(tenantNotAllowed(mockRequest.client_id!));
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("should return 501 if DPoP proof is provided while the feature flag is disabled", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.toolsService.validateTokenGeneration = vi
+      .fn()
+      .mockRejectedValue(
+        featureFlagNotEnabled("featureFlagDpopClientAssertionDebugger")
+      );
+    const res = await makeRequest(token, mockRequestWithDPoP);
+    expect(res.status).toBe(501);
   });
 });

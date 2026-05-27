@@ -115,7 +115,7 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Archiviazione anticipata della versione"
+      'Archiviazione anticipata di una versione di "Test E-service"'
     );
   });
 

@@ -1,35 +1,44 @@
-import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  isFeatureFlagEnabled,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  AsyncExchangeProperties,
   Descriptor,
+  DescriptorId,
   EService,
   EServiceId,
+  Technology,
   Tenant,
   TenantId,
   TenantKind,
+  tenantKind,
   archivingScope,
   delegationKind,
   delegationState,
   descriptorState,
   eserviceMode,
   operationForbidden,
+  technology,
   EServiceTemplateId,
+  RiskAnalysisId,
+  type EServiceAttribute,
   type EserviceAttributes,
   DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNameDuplicateForProducer,
@@ -49,14 +58,25 @@ import {
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
-  eserviceInDraftState,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
+  asyncExchangeBulkNotAllowedForSoap,
+  riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
+  notValidEServiceState,
   descriptorAlreadyArchived,
+  eserviceInDraftState,
+  eserviceNotInArchiving,
+  eServiceAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { getLatestDescriptor } from "../utilities/versionGenerator.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestDescriptor,
+} from "../utilities/versionGenerator.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -121,6 +141,22 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       descriptorState.draft,
       descriptorState.waitingForApproval,
       descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
+
+function isEserviceArchivable(eservice: EService): boolean {
+  const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+  return match(latestActiveDescriptor.state)
+    .with(descriptorState.published, descriptorState.suspended, () => true)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      descriptorState.draft,
       () => false
     )
     .exhaustive();
@@ -253,15 +289,15 @@ export function assertHasNoDraftOrWaitingForApprovalDescriptor(
 }
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -280,14 +316,28 @@ export function assertRiskAnalysisIsValidForPublication(
     throw eServiceRiskAnalysisIsRequired(eservice.id);
   }
 
+  const firstPublishedAt = eservice.descriptors.find(
+    (d) => d.publishedAt !== undefined
+  )?.publishedAt;
+
+  const dateForRiskAnalysisValidation = firstPublishedAt ?? new Date();
+
   eservice.riskAnalysis.forEach((riskAnalysis) => {
+    if (isFeatureFlagEnabled(config, "featureFlagTenantKindInRiskAnalysis")) {
+      assertRiskAnalysisTenantKindMatch({
+        actualKind: riskAnalysis.riskAnalysisForm.tenantKind,
+        currentTenantKind: tenantKind,
+        eserviceId: eservice.id,
+        riskAnalysisId: riskAnalysis.id,
+      });
+    }
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(
         riskAnalysis.riskAnalysisForm
       ),
       false,
       tenantKind,
-      new Date(),
+      dateForRiskAnalysisValidation,
       eservice.personalData
     );
 
@@ -295,6 +345,35 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+function assertRiskAnalysisTenantKindMatch({
+  actualKind,
+  currentTenantKind,
+  eserviceId,
+  riskAnalysisId,
+}: {
+  actualKind: TenantKind | undefined;
+  currentTenantKind: TenantKind;
+  eserviceId: EServiceId;
+  riskAnalysisId: RiskAnalysisId;
+}): void {
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentTenantKind,
+      eserviceId,
+      riskAnalysisId
+    );
+  }
 }
 
 export function assertInterfaceDeletableDescriptorState(
@@ -457,6 +536,35 @@ export function hasRoleToAccessInactiveDescriptors(
   );
 }
 
+export function assertAsyncExchangeReadyForPublication(
+  descriptor: Descriptor,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
+  if (descriptor.asyncExchangeProperties === undefined) {
+    throw missingAsyncExchangeProperties(eserviceId, descriptorId);
+  }
+
+  if (descriptor.asyncExchangeCallbackInterface === undefined) {
+    throw missingAsyncExchangeCallbackInterface(eserviceId, descriptorId);
+  }
+}
+
+export function assertAsyncExchangeBulkAllowedForDescriptor(
+  eserviceTechnology: Technology,
+  asyncExchangeProperties: AsyncExchangeProperties | undefined,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): void {
+  if (
+    asyncExchangeProperties !== undefined &&
+    eserviceTechnology === technology.soap &&
+    asyncExchangeProperties.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(eserviceId, descriptorId);
+  }
+}
+
 export function assertDailyCallsForCertifiedAttributesOnly(
   attributes: EserviceAttributes
 ): void {
@@ -464,6 +572,75 @@ export function assertDailyCallsForCertifiedAttributesOnly(
   for (const attribute of attributesToCheck) {
     if (attribute.dailyCallsPerConsumer !== undefined) {
       throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertTemplateInstanceAttributeStructureUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined,
+  descriptorAttributes: EserviceAttributes,
+  seedAttributes: catalogApi.AttributesSeed
+): void {
+  if (templateId === undefined) {
+    return;
+  }
+
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.certified,
+    seedAttributes.certified
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.declared,
+    seedAttributes.declared
+  );
+  assertAttributeGroupsUnchanged(
+    eserviceId,
+    templateId,
+    descriptorAttributes.verified,
+    seedAttributes.verified
+  );
+}
+
+function assertAttributeGroupsUnchanged(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId,
+  descriptorGroups: EServiceAttribute[][],
+  seedGroups: catalogApi.AttributeSeed[][]
+): void {
+  if (descriptorGroups.length !== seedGroups.length) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+
+  for (const descriptorGroup of descriptorGroups) {
+    const matchingSeedGroup = seedGroups.find(
+      (seedGroup) =>
+        seedGroup.length === descriptorGroup.length &&
+        descriptorGroup.every((descriptorAttr) =>
+          seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
+        )
+    );
+
+    if (!matchingSeedGroup) {
+      throw templateInstanceNotAllowed(eserviceId, templateId);
+    }
+
+    for (const descriptorAttr of descriptorGroup) {
+      const seedAttr = matchingSeedGroup.find(
+        (attr) => attr.id === descriptorAttr.id
+      );
+
+      if (
+        !seedAttr ||
+        seedAttr.explicitAttributeVerification !==
+          descriptorAttr.explicitAttributeVerification
+      ) {
+        throw templateInstanceNotAllowed(eserviceId, templateId);
+      }
     }
   }
 }
@@ -490,6 +667,12 @@ export function assertDescriptorArchivable(
 ): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEServiceArchivable(eservice: EService): void {
+  if (!isEserviceArchivable(eservice)) {
+    throw notValidEServiceState(eservice.id);
   }
 }
 
@@ -580,5 +763,29 @@ export function assertDescriptorIsNotAlreadyArchived(
 ): void {
   if (descriptor.state === descriptorState.archived) {
     throw descriptorAlreadyArchived(descriptor.id);
+  }
+}
+
+export function assertEServiceIsInArchiving(eservice: EService): void {
+  const hasEServiceScopeArchiving =
+    getLatestDescriptor(eservice).archivingSchedule?.scope ===
+    archivingScope.eservice;
+
+  const hasDescriptorInWrongState = eservice.descriptors.some(
+    (d) =>
+      d.state !== descriptorState.archiving &&
+      d.state !== descriptorState.archivingSuspended &&
+      d.state !== descriptorState.archived
+  );
+
+  if (!hasEServiceScopeArchiving || hasDescriptorInWrongState) {
+    throw eserviceNotInArchiving(eservice.id);
+  }
+}
+
+export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  if (latestDescriptor.state === descriptorState.archived) {
+    throw eServiceAlreadyArchived(eservice.id);
   }
 }

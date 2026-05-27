@@ -40,7 +40,7 @@ export const notificationAdmittedRoles = {
   },
   eserviceStateChangedToProducer: {
     [ADMIN_ROLE]: true,
-    [API_ROLE]: false,
+    [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
   },

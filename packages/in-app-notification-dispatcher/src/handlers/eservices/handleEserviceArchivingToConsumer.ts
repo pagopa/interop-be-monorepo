@@ -186,5 +186,32 @@ function bodyAndDescriptorForConsumer(
         };
       }
     )
+    .with(
+      { type: "EServiceDescriptorArchivingCanceled" },
+      ({ data: { descriptorId } }) => {
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
+        return {
+          body: inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
+            eservice.name,
+            descriptor.version,
+            producerName
+          ),
+          descriptor,
+        };
+      }
+    )
+    .with({ type: "EServiceArchivingCanceled" }, () => {
+      const descriptor = retrieveLatestDescriptor(eservice);
+      return {
+        body: inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(
+          eservice.name,
+          producerName
+        ),
+        descriptor,
+      };
+    })
     .exhaustive();
 }

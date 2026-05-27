@@ -203,6 +203,19 @@ export const descriptorToApiDescriptor = (
         ),
       }
     : undefined,
+  asyncExchangeProperties: descriptor.asyncExchangeProperties
+    ? {
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined,
+  asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface
+    ? documentToApiDocument(descriptor.asyncExchangeCallbackInterface)
+    : undefined,
 });
 
 export const eServiceToApiEService = (
@@ -233,4 +246,5 @@ export const eServiceToApiEService = (
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
+  asyncExchange: eservice.asyncExchange,
 });
