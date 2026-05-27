@@ -51,11 +51,45 @@ async function processMessage({
       {
         event_version: 2,
         type: P.union(
-          "TenantCertifiedAttributeRevoked",
-          "TenantCertifiedAttributeAssigned",
           "TenantCertifiedDiscreteAttributeAssigned",
           "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      async ({ data: { tenant, attributeId } }) => {
+        if (!config.featureFlagAttributeCertifiedDiscrete) {
+          return;
+        }
+
+        if (tenant) {
+          loggerInstance.info(
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
+          );
+          const token = (await refreshableToken.get()).serialized;
+
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
+            {
+              attributeId: unsafeBrandId(attributeId),
+              consumer: toApiCompactTenant(fromTenantV2(tenant)),
+            },
+            {
+              headers: {
+                "X-Correlation-Id": correlationId,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        } else {
+          throw missingKafkaMessageDataError("tenant", decodedMsg.type);
+        }
+      }
+    )
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedAttributeAssigned",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
