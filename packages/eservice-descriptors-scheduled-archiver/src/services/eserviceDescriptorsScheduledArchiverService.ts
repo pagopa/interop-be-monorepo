@@ -90,10 +90,10 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
           `Found ${eservicesWithUnarchivableDescriptors.length} e-services with unarchivable descriptors to be archived...`
         );
         eservicesWithUnarchivableDescriptors.forEach(
-          (EServiceWithUnarchivableDescriptors) => {
+          (eserviceWithUnarchivableDescriptors) => {
             loggerInstance.warn(
-              `e-service with id ${EServiceWithUnarchivableDescriptors.eserviceId} has unarchivable descriptors: ${JSON.stringify(
-                EServiceWithUnarchivableDescriptors.unarchivableDescriptors
+              `e-service with id ${eserviceWithUnarchivableDescriptors.eserviceId} has unarchivable descriptors: ${JSON.stringify(
+                eserviceWithUnarchivableDescriptors.unarchivableDescriptors
               )}`
             );
           }
@@ -102,8 +102,8 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
 
       const eservicesWithUnarchivableDescriptorsIds =
         eservicesWithUnarchivableDescriptors.map(
-          (EServiceWithUnarchivableDescriptors) =>
-            EServiceWithUnarchivableDescriptors.eserviceId
+          (eserviceWithUnarchivableDescriptors) =>
+            eserviceWithUnarchivableDescriptors.eserviceId
         );
 
       const correctEservicesIds = eserviceIds.filter(
