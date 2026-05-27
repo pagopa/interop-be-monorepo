@@ -4,6 +4,7 @@ import {
   unsafeBrandId,
   badRequestError,
   CompactTenant,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
@@ -29,6 +30,14 @@ describe("fromApiCompactTenant API converter", () => {
         getMockApiTenantCertifiedAttribute(),
         getMockApiTenantDeclaredAttribute(),
         getMockApiTenantVerifiedAttribute(),
+        {
+          certifiedDiscrete: {
+            id: generateId(),
+            assignmentTimestamp: new Date().toISOString(),
+            revocationTimestamp: new Date().toISOString(),
+            discreteValue: 42,
+          },
+        },
       ],
     };
 
@@ -121,6 +130,25 @@ describe("fromApiCompactTenant API converter", () => {
                 : undefined,
             },
           ],
+        },
+        {
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          id: unsafeBrandId(
+            apiCompactTenant.attributes[3].certifiedDiscrete!.id
+          ),
+          assignmentTimestamp: new Date(
+            apiCompactTenant.attributes[3].certifiedDiscrete!
+              .assignmentTimestamp
+          ),
+          revocationTimestamp: apiCompactTenant.attributes[3].certifiedDiscrete!
+            .revocationTimestamp
+            ? new Date(
+                apiCompactTenant.attributes[3].certifiedDiscrete!
+                  .revocationTimestamp
+              )
+            : undefined,
+          discreteValue:
+            apiCompactTenant.attributes[3].certifiedDiscrete!.discreteValue,
         },
       ],
     };
