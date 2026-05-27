@@ -76,6 +76,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEServiceTemplate(eserviceTemplate);
 
       const retrievedEServiceTemplate = aggregateEServiceTemplate({
@@ -86,6 +87,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({
@@ -156,6 +158,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL: [],
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({
@@ -216,6 +219,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEServiceTemplate(eserviceTemplate);
 
       const retrievedEServiceTemplate = aggregateEServiceTemplate({
@@ -226,6 +230,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({

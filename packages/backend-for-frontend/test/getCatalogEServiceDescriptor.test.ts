@@ -17,6 +17,7 @@ import {
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import type {
+  AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -28,6 +29,7 @@ import * as delegationService from "../src/services/delegationService.js";
 import * as agreementService from "../src/services/agreementService.js";
 import * as catalogApiConverter from "../src/api/catalogApiConverter.js";
 import { fileManager, getBffMockContext } from "./utils.js";
+import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
 
 describe("getCatalogEServiceDescriptor", () => {
   const eServiceId: EServiceId = generateId<EServiceId>();
@@ -126,6 +128,8 @@ describe("getCatalogEServiceDescriptor", () => {
     isSignalHubEnabled: eService.isSignalHubEnabled,
     isConsumerDelegable: eService.isConsumerDelegable,
     isClientAccessDelegable: eService.isClientAccessDelegable,
+    hasProducerKeychain: false,
+    hasProducerKeychainKeys: false,
   };
 
   const expectedResult: bffApi.CatalogEServiceDescriptor = {
@@ -205,6 +209,17 @@ describe("getCatalogEServiceDescriptor", () => {
     }),
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
+  const mockProducerKeychainEServiceFlags = vi.fn().mockResolvedValue({
+    hasProducerKeychain: false,
+    hasProducerKeychainKeys: false,
+  });
+
+  const mockAuthorizationClient = {
+    producerKeychain: {
+      getProducerKeychainEServiceFlags: mockProducerKeychainEServiceFlags,
+    },
+  } as unknown as AuthorizationProcessClient;
+
   const mockDelegationProcessClient = {
     producer: {},
     consumer: {},
@@ -279,6 +294,7 @@ describe("getCatalogEServiceDescriptor", () => {
     mockTenantProcessClient,
     mockAgreementProcessClient,
     mockAttributeProcessClient,
+    mockAuthorizationClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
     mockInAppNotificationManagerClient,
@@ -300,6 +316,76 @@ describe("getCatalogEServiceDescriptor", () => {
       bffMockContext.headers,
       [certifiedAttributeId, declaredAttributeId, verifiedAttributeId]
     );
+  });
+
+  it("should expose producer keychain flags on the catalog descriptor eservice", async () => {
+    mockProducerKeychainEServiceFlags.mockResolvedValueOnce({
+      hasProducerKeychain: true,
+      hasProducerKeychainKeys: true,
+    });
+    vi.mocked(
+      catalogApiConverter.toBffCatalogDescriptorEService
+    ).mockResolvedValueOnce({
+      ...catalogDescriptorEService,
+      hasProducerKeychain: true,
+      hasProducerKeychainKeys: true,
+    });
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.eservice.hasProducerKeychain).toBe(true);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(true);
+    expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
+      headers: bffMockContext.headers,
+      params: { eserviceId: eServiceId },
+      queries: {
+        producerId: eService.producerId,
+      },
+    });
+    expect(
+      catalogApiConverter.toBffCatalogDescriptorEService
+    ).toHaveBeenCalledWith(
+      eService,
+      eServiceDescriptor,
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      true,
+      true
+    );
+  });
+
+  it("should convert the async exchange callback interface to the BFF document shape", async () => {
+    const asyncExchangeCallbackInterface = getMockCatalogApiEServiceDoc();
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        descriptors: [
+          {
+            ...eServiceDescriptor,
+            asyncExchangeCallbackInterface,
+          },
+        ],
+      }
+    );
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.asyncExchangeCallbackInterface).toEqual(
+      toApiEServiceDoc(asyncExchangeCallbackInterface)
+    );
+    expect(() =>
+      bffApi.EServiceDoc.parse(result.asyncExchangeCallbackInterface)
+    ).not.toThrow();
   });
 
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {

@@ -4516,6 +4516,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -11035,6 +11036,272 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/linkResource:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates
+      summary: Link a resource to a purpose template
+      description: |
+        Link a single resource (concrete e-service or e-service template) to a purpose template.
+        The kind of resource is specified by the `resourceKind` discriminator in the request body.
+        Symmetric to the unified retrieval endpoint `/linkableResources`.
+        Returns the created link with its `resourceKind` discriminator (raw link, no enrichment).
+      operationId: linkResourceToPurposeTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkableResourceRequest"
+      responses:
+        "200":
+          description: Resource linked to purpose template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkedResource"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/unlinkResource:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: the purpose template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposeTemplates
+      summary: Unlink a resource from a purpose template
+      description: |
+        Unlink a single resource (concrete e-service or e-service template) from a purpose template.
+        The kind of resource is specified by the `resourceKind` discriminator in the request body.
+      operationId: unlinkResourceFromPurposeTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkableResourceRequest"
+      responses:
+        "204":
+          description: Resource unlinked from purpose template
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposeTemplates/{purposeTemplateId}/linkEservice:
     parameters:
       - name: purposeTemplateId
@@ -11289,6 +11556,129 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposeTemplates/{purposeTemplateId}/linkableResources:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: q
+        description: |
+          Fuzzy match on resource name (e-service name for concrete entries,
+          e-service template name for template entries). If not provided,
+          linkable resources match any name.
+        schema:
+          type: string
+      - in: query
+        name: publisherIds
+        description: |
+          Filter by tenant ID. Matches the publisher of each linkable resource:
+          the producer of a concrete e-service, or the creator of an e-service template.
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - purposeTemplates
+      summary: Get Purpose Template Linkable Resources
+      operationId: getPurposeTemplateLinkableResources
+      description: |
+        Retrieve the unified list of resources linkable to a purpose template, currently associated with it.
+        Each entry is either a concrete e-service (`resourceKind=ESERVICE`) or an
+        e-service template (`resourceKind=ESERVICE_TEMPLATE`).
+        Results are sorted by `createdAt` DESC (most recent links first), unified across both kinds.
+        `totalCount` reflects the real total of linkable entries (concrete + templates).
+        Behavior on missing referenced resources is fail-fast: if any link points to a removed
+        e-service, descriptor, e-service template, version or tenant, the request returns 404.
+      responses:
+        "200":
+          description: Purpose Template Linkable Resources retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkableResources"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Template Not Found
           content:
             application/problem+json:
               schema:
@@ -23395,6 +23785,7 @@ paths:
                   enum:
                     - INTERFACE
                     - DOCUMENT
+                    - ASYNC_EXCHANGE_CALLBACK_INTERFACE
                 prettyName:
                   type: string
                 doc:
@@ -25826,6 +26217,7 @@ components:
       properties:
         client_id:
           type: string
+          format: uuid
           example: e58035ce-c753-4f72-b613-46f8a17b71cc
         client_assertion:
           type: string
@@ -25834,6 +26226,13 @@ components:
           type: string
         grant_type:
           type: string
+        is_async:
+          type: string
+          enum:
+            - "true"
+            - "false"
+          default: "false"
+          description: Set to true to validate the client assertion as an async token generation request
         dpop_proof:
           type: string
           format: jws
@@ -26038,6 +26437,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
@@ -26076,6 +26477,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
@@ -26169,6 +26572,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -26198,6 +26603,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     Mail:
       type: object
       additionalProperties: false
@@ -26337,6 +26744,10 @@ components:
         archivedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     Client:
       description: Models Client details
       type: object
@@ -26410,6 +26821,8 @@ components:
         - hasCertifiedAttributes
         - isSubscribed
         - agreements
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26447,6 +26860,10 @@ components:
                 the delegator has the certified attributes required to consume the eservice
         isSubscribed:
           type: boolean
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
@@ -26458,6 +26875,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     ProducerEServiceDetails:
       type: object
@@ -26493,6 +26912,11 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
+        latestActiveDescriptorId:
+          type: string
+          format: uuid
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -26649,6 +27073,10 @@ components:
             type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
@@ -26663,6 +27091,8 @@ components:
         - mode
         - riskAnalysis
         - descriptors
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
       properties:
         id:
           type: string
@@ -26685,6 +27115,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
         draftDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         mail:
@@ -26699,6 +27133,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+        asyncExchange:
+          type: boolean
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -26981,6 +27417,8 @@ components:
           description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     ClientKind:
       type: string
       enum:
@@ -27189,6 +27627,8 @@ components:
         mode:
           $ref: "#/components/schemas/EServiceMode"
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     CompactPurposeTemplateEService:
       type: object
@@ -27961,6 +28401,104 @@ components:
         - eserviceId
         - descriptorId
         - createdAt
+    LinkableEServiceRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - eserviceId
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        eserviceId:
+          type: string
+          format: uuid
+    LinkableEServiceTemplateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - eserviceTemplateId
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        eserviceTemplateId:
+          type: string
+          format: uuid
+    LinkableResourceRequest:
+      oneOf:
+        - $ref: "#/components/schemas/LinkableEServiceRequest"
+        - $ref: "#/components/schemas/LinkableEServiceTemplateRequest"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkableEServiceRequest"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplateRequest"
+    LinkedEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceId
+        - descriptorId
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceId:
+          type: string
+          format: uuid
+        descriptorId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    LinkedEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceTemplateId
+        - eserviceTemplateVersionId
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplateVersionId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    LinkedResource:
+      oneOf:
+        - $ref: "#/components/schemas/LinkedEService"
+        - $ref: "#/components/schemas/LinkedEServiceTemplate"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkedEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkedEServiceTemplate"
     CreatorPurposeTemplate:
       type: object
       additionalProperties: false
@@ -29666,8 +30204,46 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
         draftVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+    AsyncExchangeProperties:
+      type: object
+      additionalProperties: false
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+        resourceAvailableTime:
+          type: integer
+          format: int32
+        maxResultSet:
+          type: integer
+          format: int32
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false
@@ -29718,6 +30294,10 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         hasRequesterRiskAnalysis:
           type: boolean
         personalData:
@@ -29819,6 +30399,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     InstanceEServiceSeed:
       type: object
       additionalProperties: false
@@ -29833,6 +30415,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchange:
+          type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
@@ -30046,6 +30630,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceTemplateAttributesSeed:
       properties:
         certified:
@@ -30311,6 +30897,93 @@ components:
         - eservice
         - descriptor
         - createdAt
+    CompactPurposeTemplateEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - creator
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        creator:
+          $ref: "#/components/schemas/CompactOrganization"
+        description:
+          type: string
+    LinkableEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eservice
+        - descriptor
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eservice:
+          $ref: "#/components/schemas/CompactPurposeTemplateEService"
+        descriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        createdAt:
+          type: string
+          format: date-time
+    LinkableEServiceTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - resourceKind
+        - purposeTemplateId
+        - eserviceTemplate
+        - eserviceTemplateVersion
+        - createdAt
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - ESERVICE_TEMPLATE
+        purposeTemplateId:
+          type: string
+          format: uuid
+        eserviceTemplate:
+          $ref: "#/components/schemas/CompactPurposeTemplateEServiceTemplate"
+        eserviceTemplateVersion:
+          $ref: "#/components/schemas/CompactEServiceTemplateVersion"
+        createdAt:
+          type: string
+          format: date-time
+    LinkableResource:
+      oneOf:
+        - $ref: "#/components/schemas/LinkableEService"
+        - $ref: "#/components/schemas/LinkableEServiceTemplate"
+      discriminator:
+        propertyName: resourceKind
+        mapping:
+          ESERVICE: "#/components/schemas/LinkableEService"
+          ESERVICE_TEMPLATE: "#/components/schemas/LinkableEServiceTemplate"
+    LinkableResources:
+      type: object
+      additionalProperties: false
+      required:
+        - results
+        - pagination
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinkableResource"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
     NotificationsCountBySection:
       type: object
       additionalProperties: false

@@ -1407,6 +1407,41 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: purposeId
+          in: path
+          description: the purpose id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - purpose
+      operationId: fixPurposeRiskAnalysisTenantKind
+      summary: Fix tenant kind for a purpose risk analysis
+      description: Fixes the tenant kind of a specific risk analysis on the specified Purpose
+      responses:
+        "200":
+          description: Purpose Risk Analysis Fixed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or tenant kind not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1622,8 +1657,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        isRiskAnalysisValid:
-          type: boolean
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -1642,7 +1675,6 @@ components:
         - title
         - description
         - createdAt
-        - isRiskAnalysisValid
         - isFreeOfCharge
       description: business representation of a purpose
     Purposes:
