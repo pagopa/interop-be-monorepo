@@ -26,8 +26,6 @@ import {
   invalidDescriptorStateError,
   missingDescriptorError,
   purposeTemplateEServicePersonalDataFlagMismatch,
-  unexpectedAssociationEServiceError,
-  unexpectedEServiceError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION,
@@ -141,13 +139,14 @@ describe("Purpose Template Validation", () => {
       );
     });
 
-    it("should throw associationEServicesForPurposeTemplateFailed when eservice retrieval fails (unexpectedEServiceError)", async () => {
+    it("should propagate the original error when eservice retrieval fails (infra error -> default mapper -> 500)", async () => {
       const eserviceIds = [eserviceId1];
       const errorMessage = "Database connection failed";
+      const dbError = new Error(errorMessage);
 
       mockReadModelService.getEServiceById = vi
         .fn()
-        .mockRejectedValue(new Error(errorMessage));
+        .mockRejectedValue(dbError);
 
       await expect(
         validateEservicesAssociations(
@@ -155,13 +154,7 @@ describe("Purpose Template Validation", () => {
           purposeTemplate,
           mockReadModelService
         )
-      ).rejects.toThrow(
-        associationEServicesForPurposeTemplateFailed(
-          [unexpectedEServiceError(errorMessage, eserviceId1)],
-          eserviceIds,
-          purposeTemplate.id
-        )
-      );
+      ).rejects.toThrow(dbError);
     });
 
     it("should throw associationBetweenEServiceAndPurposeTemplateAlreadyExists when eservice is already associated (eserviceAlreadyAssociatedError)", async () => {
@@ -196,15 +189,16 @@ describe("Purpose Template Validation", () => {
       );
     });
 
-    it("should throw associationBetweenEServiceAndPurposeTemplateAlreadyExists when association check fails (unexpectedAssociationEServiceError)", async () => {
+    it("should propagate the original error when association check fails (infra error -> default mapper -> 500)", async () => {
       const eserviceIds = [eserviceId1];
       const errorMessage = "Association check failed";
+      const dbError = new Error(errorMessage);
 
       mockReadModelService.getEServiceById = vi
         .fn()
         .mockResolvedValue(mockEService1);
       mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
-        vi.fn().mockRejectedValue(new Error(errorMessage));
+        vi.fn().mockRejectedValue(dbError);
 
       await expect(
         validateEservicesAssociations(
@@ -212,9 +206,7 @@ describe("Purpose Template Validation", () => {
           purposeTemplate,
           mockReadModelService
         )
-      ).rejects.toThrow(
-        unexpectedAssociationEServiceError(errorMessage, eserviceId1)
-      );
+      ).rejects.toThrow(dbError);
     });
 
     it("should return invalid result when eservice has no descriptors (validateEServiceDescriptors)", async () => {
