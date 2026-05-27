@@ -28,3 +28,15 @@ export const parseEServiceIdDescriptorId = (
 
 export const eServiceIdDescriptorIdPrefix = (eserviceId: EServiceId): string =>
   `${eserviceId}${SEPARATOR}`;
+
+export const formatEServiceEntityId = (eserviceId: EServiceId): EServiceId =>
+  eserviceId;
+
+export const parseEServiceEntityId = (value: string): EServiceId => {
+  if (value.includes(SEPARATOR)) {
+    throw new Error(
+      `Invalid scheduled notification entity_id for eservice scope: ${value}`
+    );
+  }
+  return unsafeBrandId<EServiceId>(value);
+};
