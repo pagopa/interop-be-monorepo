@@ -111,7 +111,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      'Annullata l\'archiviazione di "Test E-service"'
+      "Un e-service con cui stai scambiando dati non è più in fase di archiviazione"
     );
   });
 

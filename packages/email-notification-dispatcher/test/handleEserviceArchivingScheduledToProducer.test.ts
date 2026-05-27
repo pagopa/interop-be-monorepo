@@ -89,7 +89,7 @@ describe("handleEserviceArchivingScheduledToProducer", () => {
     });
     expect(messages).toHaveLength(users.length);
     expect(messages[0].email.subject).toContain(
-      "Avvio archiviazione per un tuo e-service"
+      "Un tuo e-service è in fase di archiviazione"
     );
   });
 });
