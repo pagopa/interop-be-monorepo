@@ -342,7 +342,7 @@ describe("internalUpsertTenant", async () => {
     const expectedRemoteId = {
       origin: "ISTAT",
       value: "12345",
-      assignment_timestamp: new Date(remoteIdSeed.assignmentTimestamp),
+      assignmentTimestamp: new Date(remoteIdSeed.assignmentTimestamp),
     };
 
     expect(returnedTenant.data.remoteIds).toBeDefined();
@@ -386,7 +386,7 @@ describe("internalUpsertTenant", async () => {
       getMockContextInternal({})
     );
 
-    expect(returnedTenant.metadata.version).toBe(0);
+    expect(returnedTenant.metadata.version).toBe(1);
     expect(returnedTenant.data.remoteIds).toHaveLength(1);
   });
 });
