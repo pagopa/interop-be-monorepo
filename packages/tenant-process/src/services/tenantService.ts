@@ -1495,9 +1495,11 @@ export function tenantServiceBuilder(
       );
 
       const existingAttributes =
-        await readModelService.getAttributesByExternalIds(
-          attributesExternalIds
-        );
+        attributesExternalIds.length > 0
+          ? await readModelService.getAttributesByExternalIds(
+              attributesExternalIds
+            )
+          : [];
 
       attributesExternalIds.forEach((attributeToAssign) => {
         if (
