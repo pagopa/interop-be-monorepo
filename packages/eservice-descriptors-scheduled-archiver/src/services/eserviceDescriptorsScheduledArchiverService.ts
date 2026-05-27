@@ -34,7 +34,7 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
         "Getting archivable descriptors references from read-model...\n"
       );
       const descriptorRefs =
-        await readModelService.getArchivableDescriptorRefs();
+        await readModelService.getArchivableDescriptorsRefs();
 
       await Promise.all(
         descriptorRefs.map(
@@ -79,17 +79,17 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
       loggerInstance.info(
         "Getting archivable e-services references from read-model...\n"
       );
-      const eserviceIds = await readModelService.getArchivableEserviceRefs();
-      const EServiceWithUnarchivableDescriptors =
-        await readModelService.getEServiceWithUnarchivableDescriptors(
+      const eserviceIds = await readModelService.getArchivableEservicesRefs();
+      const eservicesWithUnarchivableDescriptors =
+        await readModelService.getEServicesWithUnarchivableDescriptors(
           eserviceIds
         );
 
-      if (EServiceWithUnarchivableDescriptors.length > 0) {
+      if (eservicesWithUnarchivableDescriptors.length > 0) {
         loggerInstance.warn(
-          `Found ${EServiceWithUnarchivableDescriptors.length} e-services with unarchivable descriptors to be archived...`
+          `Found ${eservicesWithUnarchivableDescriptors.length} e-services with unarchivable descriptors to be archived...`
         );
-        EServiceWithUnarchivableDescriptors.forEach(
+        eservicesWithUnarchivableDescriptors.forEach(
           (EServiceWithUnarchivableDescriptors) => {
             loggerInstance.warn(
               `e-service with id ${EServiceWithUnarchivableDescriptors.eserviceId} has unarchivable descriptors: ${JSON.stringify(
@@ -100,15 +100,15 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
         );
       }
 
-      const EServiceWithUnarchivableDescriptorsIds =
-        EServiceWithUnarchivableDescriptors.map(
+      const eservicesWithUnarchivableDescriptorsIds =
+        eservicesWithUnarchivableDescriptors.map(
           (EServiceWithUnarchivableDescriptors) =>
             EServiceWithUnarchivableDescriptors.eserviceId
         );
 
       const correctEservicesIds = eserviceIds.filter(
         (eserviceId) =>
-          !EServiceWithUnarchivableDescriptorsIds.includes(eserviceId)
+          !eservicesWithUnarchivableDescriptorsIds.includes(eserviceId)
       );
 
       await Promise.all(

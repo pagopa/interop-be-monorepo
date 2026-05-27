@@ -51,7 +51,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The array of archivable descriptor references
      */
-    async getArchivableDescriptorRefs(): Promise<ArchivableDescriptorRef[]> {
+    async getArchivableDescriptorsRefs(): Promise<ArchivableDescriptorRef[]> {
       const queryResult: {
         descriptor: EServiceDescriptorSQL;
         archivingSchedule: EServiceDescriptorArchivingScheduleSQL;
@@ -98,7 +98,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The array of archivable e-service references
      */
-    async getArchivableEserviceRefs(): Promise<EServiceId[]> {
+    async getArchivableEservicesRefs(): Promise<EServiceId[]> {
       const queryResult: {
         id: string;
       }[] = await readModelDB
@@ -145,7 +145,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
      *
      * @returns The list of e-services with wrong descriptors
      **/
-    async getEServiceWithUnarchivableDescriptors(
+    async getEServicesWithUnarchivableDescriptors(
       eserviceIds: EServiceId[]
     ): Promise<EServicesWithUnarchivableDescriptors> {
       if (eserviceIds.length === 0) {

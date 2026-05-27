@@ -51,7 +51,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
   const notArchivingStates = Object.values(descriptorState).filter(
     (state) => !archivingStates.includes(state)
   );
-  describe("getArchivableDescriptorRefs", async () => {
+  describe("getArchivableDescriptorsRefs", async () => {
     it.each(
       [0, 1, 2, 365].flatMap((daysBefore) =>
         archivingStates.map((state) => [state, daysBefore] as const)
@@ -97,7 +97,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
           )
         );
 
-        const refs = await readModelService.getArchivableDescriptorRefs();
+        const refs = await readModelService.getArchivableDescriptorsRefs();
 
         expect(refs).toEqual(expect.arrayContaining(expectedRefs));
         expect(expectedRefs).toEqual(expect.arrayContaining(refs));
@@ -137,7 +137,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
           )
         );
 
-        const refs = await readModelService.getArchivableDescriptorRefs();
+        const refs = await readModelService.getArchivableDescriptorsRefs();
         expect(refs.length).toEqual(0);
       }
     );
@@ -183,7 +183,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
           )
         );
 
-        const refs = await readModelService.getArchivableDescriptorRefs();
+        const refs = await readModelService.getArchivableDescriptorsRefs();
         expect(refs.length).toEqual(0);
       }
     );
@@ -258,14 +258,14 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
           )
         );
 
-        const refs = await readModelService.getArchivableDescriptorRefs();
+        const refs = await readModelService.getArchivableDescriptorsRefs();
         expect(refs).toEqual(expect.arrayContaining(archivableRefs));
         expect(archivableRefs).toEqual(expect.arrayContaining(refs));
       }
     );
   });
 
-  describe("getArchivableEserviceRefs", async () => {
+  describe("getArchivableEservicesRefs", async () => {
     it.each(
       [0, 1, 2, 365].flatMap((daysBefore) =>
         archivingStates.map((state) => [state, daysBefore] as const)
@@ -305,7 +305,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
 
         await addOneEService(eservice);
 
-        const eserviceIds = await readModelService.getArchivableEserviceRefs();
+        const eserviceIds = await readModelService.getArchivableEservicesRefs();
 
         expect(eserviceIds).toEqual([eservice.id]);
       }
@@ -359,7 +359,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
         await addOneEService(nonArchivableEservice);
         await addOneEService(nonArchivingEservice);
 
-        const eserviceIds = await readModelService.getArchivableEserviceRefs();
+        const eserviceIds = await readModelService.getArchivableEservicesRefs();
 
         expect(eserviceIds.length).toEqual(0);
       }
@@ -401,7 +401,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
       await addOneEService(eservice);
 
       const testQuery =
-        await readModelService.getEServiceWithUnarchivableDescriptors([
+        await readModelService.getEServicesWithUnarchivableDescriptors([
           eservice.id,
         ]);
 
@@ -477,7 +477,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
         await addOneEService(eservice);
 
         const testQuery =
-          await readModelService.getEServiceWithUnarchivableDescriptors([
+          await readModelService.getEServicesWithUnarchivableDescriptors([
             eservice.id,
           ]);
 
