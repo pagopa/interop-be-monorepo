@@ -33,7 +33,6 @@ import {
   notValidEServiceTemplateVersionState,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
-  missingAsyncExchangeProperties,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -595,7 +594,7 @@ describe("upload Document", () => {
     }
   );
 
-  it("should throw missingAsyncExchangeProperties when uploading asyncExchangeCallbackInterface without asyncExchangeProperties configured", async () => {
+  it("should write on event-store for the upload of an asyncExchangeCallbackInterface even when the version has no asyncExchangeProperties set yet", async () => {
     const version: EServiceTemplateVersion = {
       ...mockVersion,
       state: eserviceTemplateVersionState.draft,
@@ -608,18 +607,69 @@ describe("upload Document", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await expect(
-      eserviceTemplateService.createEServiceTemplateDocument(
+    const returnedDocument =
+      await eserviceTemplateService.createEServiceTemplateDocument(
         eserviceTemplate.id,
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
-      )
-    ).rejects.toThrowError(
-      missingAsyncExchangeProperties(eserviceTemplate.id, version.id)
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      eserviceTemplate.id
     );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: eserviceTemplate.id,
+      version: "1",
+      type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDocument: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.id
+      ),
+      checksum:
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.checksum,
+      uploadDate: new Date(
+        writtenPayload.eserviceTemplate!.versions[0]!
+          .asyncExchangeCallbackInterface!.uploadDate
+      ),
+    };
+
+    const expectedEserviceTemplate = toEServiceTemplateV2({
+      ...eserviceTemplate,
+      versions: [
+        {
+          ...version,
+          asyncExchangeCallbackInterface: expectedDocument,
+        },
+      ],
+    });
+
+    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: version.id,
+      documentId: expectedDocument.id,
+      eserviceTemplate: expectedEserviceTemplate,
+    });
+    expect(returnedDocument).toEqual({
+      data: expectedDocument,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should throw featureFlagNotEnabled when uploading asyncExchangeCallbackInterface with feature flag disabled", async () => {
