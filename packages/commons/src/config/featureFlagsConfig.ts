@@ -92,19 +92,35 @@ export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
   typeof FeatureFlagDpopClientAssertionDebuggerConfig
 >;
 
-export const FeatureFlagPurposeTemplateConfig = z
+export const FeatureFlagAsyncExchangeConfig = z
   .object({
-    FEATURE_FLAG_PURPOSE_TEMPLATE: z
+    FEATURE_FLAG_ASYNC_EXCHANGE: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
+    featureFlagAsyncExchange: c.FEATURE_FLAG_ASYNC_EXCHANGE ?? false,
   }));
-export type FeatureFlagPurposeTemplateConfig = z.infer<
-  typeof FeatureFlagPurposeTemplateConfig
+export type FeatureFlagAsyncExchangeConfig = z.infer<
+  typeof FeatureFlagAsyncExchangeConfig
+>;
+
+export const FeatureFlagTenantKindInRiskAnalysisConfig = z
+  .object({
+    FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagTenantKindInRiskAnalysis:
+      c.FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS ?? false,
+  }));
+export type FeatureFlagTenantKindInRiskAnalysisConfig = z.infer<
+  typeof FeatureFlagTenantKindInRiskAnalysisConfig
 >;
 
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
@@ -205,13 +221,14 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
+  FeatureFlagAsyncExchangeConfig &
   FeatureFlagDpopClientAssertionDebuggerConfig &
-  FeatureFlagPurposeTemplateConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
   FeatureFlagUseSignedDocumentConfig &
   FeatureFlagDelegationConstraintSkipConfig &
+  FeatureFlagTenantKindInRiskAnalysisConfig;
   FeatureFlagNewOperatorsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;

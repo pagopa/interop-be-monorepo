@@ -90,6 +90,8 @@ export async function handlePurposeTemplateMessageV2(
           "PurposeTemplateDraftDeleted",
           "PurposeTemplateDraftUpdated",
           "PurposeTemplateEServiceLinked",
+          "PurposeTemplateEServiceTemplateLinked",
+          "PurposeTemplateEServiceTemplateUnlinked",
           "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateSuspended",
           "PurposeTemplateUnsuspended",
