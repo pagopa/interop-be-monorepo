@@ -67,6 +67,12 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
     );
     return [];
   }
+  if (descriptor.archivingSchedule.scope !== "Descriptor") {
+    log.warn(
+      `Skipping scheduled email reminder: descriptor ${descriptorId} has archivingSchedule.scope="${descriptor.archivingSchedule.scope}", expected "Descriptor" (row ${row.id})`
+    );
+    return [];
+  }
 
   const archivableOn = descriptor.archivingSchedule.archivableOn;
   const daysRemaining = Math.max(
