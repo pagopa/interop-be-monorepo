@@ -2,7 +2,6 @@ import {
   DescriptorId,
   EServiceId,
   EServiceIdDescriptorId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 
 const SEPARATOR = "/";
@@ -21,8 +20,8 @@ export const parseEServiceIdDescriptorId = (
     throw new Error(`Invalid scheduled notification entity_id: ${value}`);
   }
   return {
-    eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-    descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
+    eserviceId: EServiceId.parse(eserviceId),
+    descriptorId: DescriptorId.parse(descriptorId),
   };
 };
 
@@ -38,5 +37,5 @@ export const parseEServiceEntityId = (value: string): EServiceId => {
       `Invalid scheduled notification entity_id for eservice scope: ${value}`
     );
   }
-  return unsafeBrandId<EServiceId>(value);
+  return EServiceId.parse(value);
 };
