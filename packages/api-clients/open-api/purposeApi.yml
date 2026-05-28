@@ -1702,7 +1702,6 @@ components:
       type: string
       description: Risk analysis signing state
       enum:
-        - DRAFT
         - ASSIGNED
         - SUBMITTED
         - SIGNED
@@ -1743,32 +1742,6 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
         - riskAnalysisForm
-    ReviewerWorkflow:
-      type: object
-      additionalProperties: false
-      description: Reviewer workflow state for a purpose risk analysis
-      properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        signingState:
-          $ref: "#/components/schemas/RiskAnalysisSigningState"
-        signedBy:
-          type: string
-          format: uuid
-        rejectionReason:
-          type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
-      required:
-        - reviewMode
-        - reviewerIds
-        - signingState
     TenantKind:
       type: string
       description: Tenant Kind
@@ -1938,8 +1911,6 @@ components:
         purposeTemplateId:
           type: string
           format: uuid
-        reviewerWorkflow:
-          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - eserviceId
