@@ -40,6 +40,7 @@ const scheduledDb = makeScheduledNotificationDrizzleConnection(config);
 const readModelDb = makeDrizzleConnection(config);
 
 const readModelService = readModelServiceBuilderSQL({
+  readModelDb,
   agreementReadModelServiceSQL: agreementReadModelServiceBuilder(readModelDb),
   attributeReadModelServiceSQL: attributeReadModelServiceBuilder(readModelDb),
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDb),

@@ -50,6 +50,7 @@ const inAppDb = drizzle({
 });
 
 const readModelService = readModelServiceBuilderSQL({
+  readModelDb,
   agreementReadModelServiceSQL: agreementReadModelServiceBuilder(readModelDb),
   attributeReadModelServiceSQL: attributeReadModelServiceBuilder(readModelDb),
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDb),

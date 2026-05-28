@@ -3,7 +3,6 @@ import {
   CorrelationId,
   EmailNotificationMessagePayload,
   NotificationType,
-  Tenant,
   TenantId,
 } from "pagopa-interop-models";
 import {
@@ -140,9 +139,15 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
 
   let consumerPayloads: EmailNotificationMessagePayload[] = [];
   if (consumerIds.length > 0) {
-    const consumerTenants: Tenant[] = await Promise.all(
-      consumerIds.map((id) => retrieveTenant(id, readModelService))
-    );
+    const consumerTenants = await readModelService.getTenantsByIds(consumerIds);
+    if (consumerTenants.length < consumerIds.length) {
+      const missing = consumerIds.filter(
+        (id) => !consumerTenants.some((t) => t.id === id)
+      );
+      log.warn(
+        `Skipping ${missing.length} missing consumer tenants for descriptor ${descriptor.id} of eservice ${eservice.id} (row ${row.id}): ${missing.join(", ")}`
+      );
+    }
     const consumerTargets = await getRecipientsForTenants({
       tenants: consumerTenants,
       notificationType: CONSUMER_NOTIFICATION,
@@ -168,8 +173,8 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
             eserviceVersion: descriptor.version,
             producerName: producerTenant.name,
             daysRemaining,
+            daysRemainingText,
             archivableOn: archivableOnFormatted,
-            isLastDay,
             ctaLabel: "Visualizza e-service",
             selfcareId: t.selfcareId,
             bffUrl,
