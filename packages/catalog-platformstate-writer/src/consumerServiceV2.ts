@@ -153,7 +153,6 @@ export async function handleMessageV2(
     .with(
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorSuspended" },
-      { type: "MaintenanceEServiceDescriptorUnarchived" },
       async (msg) => {
         const { eservice, descriptor } = parseEServiceAndDescriptor(
           msg.data.eservice,
@@ -199,6 +198,61 @@ export async function handleMessageV2(
         }
       }
     )
+    .with({ type: "MaintenanceEServiceDescriptorUnarchived" }, async (msg) => {
+      const { eservice, descriptor } = parseEServiceAndDescriptor(
+        msg.data.eservice,
+        unsafeBrandId(msg.data.descriptorId),
+        message.type
+      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+
+      if (catalogEntry && catalogEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
+        );
+
+        return Promise.resolve();
+      }
+
+      const restoredCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: descriptorStateToItemState(descriptor.state),
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        ...(isAsyncExchangeEnabled
+          ? {
+              asyncExchange: eservice.asyncExchange,
+              asyncExchangeProperties: descriptor.asyncExchangeProperties,
+            }
+          : {}),
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await upsertPlatformStatesCatalogEntry(
+        restoredCatalogEntry,
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      await updateDescriptorInfoInTokenGenerationStatesTable(
+        eserviceId_descriptorId,
+        descriptorStateToItemState(descriptor.state),
+        descriptor.voucherLifespan,
+        descriptor.audience,
+        dynamoDBClient,
+        logger
+      );
+    })
     .with(
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorArchivingCompleted" },
