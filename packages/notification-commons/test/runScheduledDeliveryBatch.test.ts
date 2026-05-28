@@ -21,6 +21,7 @@ const buildRow = (
   channel: scheduledNotificationChannel.inApp,
   eventType: schedulableEventType.eserviceDescriptorArchivingScheduled,
   entityId: "eservice-1/descriptor-1",
+  correlationId: "00000000-0000-0000-0000-000000000002",
   sendAt: new Date(),
   sentAt: null,
   attempts: 0,
