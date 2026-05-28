@@ -218,7 +218,6 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
         genericLogger
       );
     expect(result).toHaveLength(1);
-    // daysRemaining=0 → renders "fra 0 giorni" (we don't render "domani" for 0)
-    expect(result[0].body).toContain("fra 0 giorni");
+    expect(result[0].body).toContain("oggi");
   });
 });
