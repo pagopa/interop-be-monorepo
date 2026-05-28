@@ -581,6 +581,9 @@ export function purposeServiceBuilder(
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
+      seed: {
+        riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+      },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
@@ -604,7 +607,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.signingState !== riskAnalysisSigningState.assigned &&
+        workflow.signingState !== riskAnalysisSigningState.draft &&
         workflow.signingState !== riskAnalysisSigningState.rejected
       ) {
         throw reviewerWorkflowNotSubmittable(purposeId);
@@ -617,9 +620,6 @@ export function purposeServiceBuilder(
       );
 
       const riskAnalysisForm = purpose.data.riskAnalysisForm;
-      if (!riskAnalysisForm) {
-        throw missingRiskAnalysis(purposeId);
-      }
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -632,17 +632,27 @@ export function purposeServiceBuilder(
 
       const now = new Date();
 
-      validateRiskAnalysisOrThrow({
-        riskAnalysisForm:
-          riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation: false,
+      const riskAnalysisFormToValidate = {
+        ...seed.riskAnalysisForm,
         tenantKind,
-        dateForExpirationValidation: now,
-        personalDataInEService: eservice.personalData,
-      });
+      };
+
+      const validatedRiskAnalysisForm = validateAndTransformRiskAnalysis(
+        riskAnalysisFormToValidate,
+        false,
+        tenantKind,
+        now,
+        eservice.personalData
+      );
 
       const updatedPurpose: Purpose = {
         ...purpose.data,
+        riskAnalysisForm: validatedRiskAnalysisForm
+          ? {
+              ...validatedRiskAnalysisForm,
+              riskAnalysisId: riskAnalysisForm?.riskAnalysisId,
+            }
+          : purpose.data.riskAnalysisForm,
         reviewerWorkflow: {
           ...workflow,
           signingState: riskAnalysisSigningState.submitted,

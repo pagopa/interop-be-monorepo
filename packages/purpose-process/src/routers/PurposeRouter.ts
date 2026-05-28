@@ -551,6 +551,9 @@ const purposeRouter = (
           metadata,
         } = await purposeService.submitRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
+          {
+            riskAnalysisForm: req.body.riskAnalysisForm,
+          },
           ctx
         );
 

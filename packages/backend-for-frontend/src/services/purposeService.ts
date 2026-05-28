@@ -448,11 +448,12 @@ export function purposeServiceBuilder(
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSubmissionSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       logger.info(`Submitting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.submitRiskAnalysis(undefined, {
+      const result = await purposeProcessClient.submitRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
