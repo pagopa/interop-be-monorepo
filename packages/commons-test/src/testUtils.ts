@@ -167,7 +167,7 @@ export function randomBoolean(): boolean {
 }
 
 export const getTenantCertifierFeatures = (
-  tenant: Tenant
+  tenant: Tenant,
 ): TenantFeatureCertifier[] =>
   tenant.features.reduce(
     (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
@@ -179,11 +179,11 @@ export const getTenantCertifierFeatures = (
         .with("DelegatedProducer", () => acc)
         .with("DelegatedConsumer", () => acc)
         .exhaustive(),
-    []
+    [],
   );
 
 export const getTenantOneCertifierFeature = (
-  tenant: Tenant
+  tenant: Tenant,
 ): TenantFeatureCertifier => {
   const certifiedFeatures = getTenantCertifierFeatures(tenant);
   if (certifiedFeatures.length === 0) {
@@ -196,7 +196,7 @@ export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
   declaredAttributes: EServiceAttribute[][] = [],
-  verifiedAttributes: EServiceAttribute[][] = []
+  verifiedAttributes: EServiceAttribute[][] = [],
 ): Descriptor => ({
   ...getMockDescriptor(descriptorState.published),
   id: descriptorId,
@@ -213,7 +213,7 @@ export const getMockDescriptorPublished = (
 });
 
 export const getMockEServiceAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
@@ -221,14 +221,14 @@ export const getMockEServiceAttribute = (
 });
 
 export const getMockEServiceTemplateAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): EServiceTemplateAttribute => ({
   ...generateMock(EServiceTemplateAttribute),
   id: attributeId,
 });
 
 export const getMockAgreementAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): AgreementAttribute => ({
   id: attributeId,
 });
@@ -243,7 +243,7 @@ export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = [],
-  templateId?: EServiceTemplateId | undefined
+  templateId?: EServiceTemplateId | undefined,
 ): EService => ({
   id: eserviceId,
   name: "eService name",
@@ -259,21 +259,21 @@ export const getMockEService = (
 });
 
 export const getMockVerifiedTenantAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): VerifiedTenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
 
 export const getMockCertifiedTenantAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
 });
 
 export const getMockDeclaredTenantAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
+  attributeId: AttributeId = generateId<AttributeId>(),
 ): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
@@ -281,7 +281,7 @@ export const getMockDeclaredTenantAttribute = (
 
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
-  attributes: TenantAttribute[] = []
+  attributes: TenantAttribute[] = [],
 ): Tenant => ({
   name: "A tenant",
   id: tenantId,
@@ -298,7 +298,7 @@ export const getMockTenant = (
 });
 
 export const getMockTenantMail = (
-  kind: TenantMailKind = tenantMailKind.ContactEmail
+  kind: TenantMailKind = tenantMailKind.ContactEmail,
 ): Tenant["mails"][number] => ({
   id: generateId(),
   createdAt: new Date(),
@@ -328,7 +328,7 @@ export const getMockAgreementStamps = (): AgreementStamps => {
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
-  state: AgreementState = agreementState.draft
+  state: AgreementState = agreementState.draft,
 ): Agreement => ({
   ...generateMock(Agreement),
   eserviceId,
@@ -339,7 +339,7 @@ export const getMockAgreement = (
 
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
-  id: AttributeId = generateId()
+  id: AttributeId = generateId(),
 ): Attribute => {
   if (kind === attributeKind.certified) {
     return getMockCertifiedAttribute(kind, id);
@@ -355,7 +355,7 @@ export const getMockAttribute = (
 
 export const getMockCertifiedAttribute = (
   kind: AttributeKind = attributeKind.certified,
-  id: AttributeId = generateId()
+  id: AttributeId = generateId(),
 ): Attribute => ({
   id,
   name: `${generateMock(z.string())}-${generateId()}`,
@@ -381,7 +381,7 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
 export const getMockPurposeTemplate = (
   creatorId: TenantId = generateId<TenantId>(),
   state: PurposeTemplateState = purposeTemplateState.draft,
-  handlesPersonalData: boolean = true
+  handlesPersonalData: boolean = true,
 ): PurposeTemplate => ({
   id: generateId(),
   targetDescription: "Purpose template target description",
@@ -397,7 +397,7 @@ export const getMockPurposeTemplate = (
 
 export const getMockPurposeVersion = (
   state?: PurposeVersionState,
-  stamps?: PurposeVersionStamps
+  stamps?: PurposeVersionStamps,
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
@@ -552,36 +552,36 @@ export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
   }).publicKey;
 
   const base64Key = Buffer.from(
-    key.export({ type: "pkcs1", format: "pem" })
+    key.export({ type: "pkcs1", format: "pem" }),
   ).toString("base64url");
 
   return keyToClientJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    clientId || generateId()
+    clientId || generateId(),
   );
 };
 
 export const getMockProducerJWKKey = (
-  producerKeychainId?: ProducerKeychainId
+  producerKeychainId?: ProducerKeychainId,
 ): ProducerJWKKey => {
   const key = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
   }).publicKey;
 
   const base64Key = Buffer.from(
-    key.export({ type: "pkcs1", format: "pem" })
+    key.export({ type: "pkcs1", format: "pem" }),
   ).toString("base64url");
 
   return keyToProducerJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    producerKeychainId || generateId()
+    producerKeychainId || generateId(),
   );
 };
 
 export const getMockAuthData = (
   organizationId?: TenantId,
   userId?: UserId,
-  userRoles?: UserRole[]
+  userRoles?: UserRole[],
 ): UIAuthData => ({
   systemRole: undefined,
   organizationId: organizationId || generateId(),
@@ -652,7 +652,7 @@ export const getMockDelegation = ({
 };
 
 export const getMockDelegationDocument = (
-  id?: DelegationContractId
+  id?: DelegationContractId,
 ): DelegationContractDocument => ({
   id: id ?? generateId(),
   name: "Test document",
@@ -663,7 +663,7 @@ export const getMockDelegationDocument = (
 });
 
 export const getMockDelegationSignedDocument = (
-  id?: DelegationContractId
+  id?: DelegationContractId,
 ): DelegationSignedContractDocument => ({
   id: id ?? generateId(),
   name: "Test document",
@@ -677,7 +677,7 @@ export const getMockDelegationSignedDocument = (
 export const getMockTokenGenStatesConsumerClient = (
   tokenGenStatesEntryPK?:
     | TokenGenerationStatesClientKidPurposePK
-    | TokenGenerationStatesClientKidPK
+    | TokenGenerationStatesClientKidPK,
 ): TokenGenerationStatesConsumerClient => {
   const clientId = tokenGenStatesEntryPK
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
@@ -747,7 +747,7 @@ export const getMockTokenGenStatesConsumerClient = (
 
 export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
-  agreementId: AgreementId
+  agreementId: AgreementId,
 ): PlatformStatesAgreementEntry => ({
   PK: primaryKey,
   state: itemState.inactive,
@@ -760,7 +760,7 @@ export const getMockPlatformStatesAgreementEntry = (
 });
 
 export const getMockTokenGenStatesApiClient = (
-  tokenGenStatesEntryPK?: TokenGenerationStatesClientKidPK
+  tokenGenStatesEntryPK?: TokenGenerationStatesClientKidPK,
 ): TokenGenerationStatesApiClient => {
   const clientId = tokenGenStatesEntryPK
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
@@ -786,7 +786,7 @@ export const getMockTokenGenStatesApiClient = (
 };
 
 export const getMockPlatformStatesClientEntry = (
-  pk?: PlatformStatesClientPK
+  pk?: PlatformStatesClientPK,
 ): PlatformStatesClientEntry => ({
   PK: pk || makePlatformStatesClientPK(generateId<ClientId>()),
   version: 0,
@@ -857,7 +857,7 @@ export const getMockDPoPProof = async (
     customPayload?: Record<string, unknown>;
     customHeader?: Record<string, unknown>;
   },
-  alg: Algorithm = algorithm.ES256
+  alg: Algorithm = algorithm.ES256,
 ): Promise<{
   dpopProofJWS: string;
   dpopProofJWT: DPoPProof;
@@ -911,7 +911,7 @@ export const getMockDescriptorRejectionReason =
   });
 
 export const generateKeySet = (
-  alg: Algorithm = algorithm.RS256
+  alg: Algorithm = algorithm.RS256,
 ): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
@@ -920,12 +920,12 @@ export const generateKeySet = (
     .with(algorithm.RS256, () =>
       crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,
-      })
+      }),
     )
     .with(algorithm.ES256, () =>
       crypto.generateKeyPairSync("ec", {
         namedCurve: "P-256", // This is the curve for ES256
-      })
+      }),
     )
     .exhaustive();
 
@@ -967,7 +967,7 @@ export const addSomeRandomDelegations = async <
   T extends { eserviceId: EServiceId },
 >(
   domainObject: T,
-  addOneDelegation: (delegation: Delegation) => Promise<void>
+  addOneDelegation: (delegation: Delegation) => Promise<void>,
 ): Promise<void> => {
   const states = [delegationState.rejected, delegationState.revoked];
   const kinds = [
@@ -982,7 +982,7 @@ export const addSomeRandomDelegations = async <
           eserviceId: domainObject.eserviceId,
           kind,
           state,
-        })
+        }),
       );
     }
   }
@@ -990,7 +990,7 @@ export const addSomeRandomDelegations = async <
 
 export const getMockEServiceTemplateVersion = (
   eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
-  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft,
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
@@ -1010,7 +1010,7 @@ export const getMockEServiceTemplateVersion = (
 export const getMockEServiceTemplate = (
   eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
   creatorId: TenantId = generateId<TenantId>(),
-  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()],
 ): EServiceTemplate => ({
   id: eserviceTemplateId,
   creatorId,
@@ -1058,7 +1058,7 @@ export const sortBy =
   };
 
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
-  tenant: T
+  tenant: T,
 ): T => {
   if (tenant === undefined) {
     return tenant;
@@ -1079,7 +1079,7 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
 export const sortAgreement = <
   T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
-  agreement: T
+  agreement: T,
 ): T => {
   if (!agreement) {
     return agreement;
@@ -1093,22 +1093,22 @@ export const sortAgreement = <
       ...agreement,
       verifiedAttributes: agreement.verifiedAttributes
         ? [...agreement.verifiedAttributes].sort(
-            sortBy<AgreementAttribute>((attr) => attr.id)
+            sortBy<AgreementAttribute>((attr) => attr.id),
           )
         : [],
       certifiedAttributes: agreement.certifiedAttributes
         ? [...agreement.certifiedAttributes].sort(
-            sortBy<AgreementAttribute>((att) => att.id)
+            sortBy<AgreementAttribute>((att) => att.id),
           )
         : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
-            sortBy<AgreementAttribute>((att) => att.id)
+            sortBy<AgreementAttribute>((att) => att.id),
           )
         : [],
       consumerDocuments: agreement.consumerDocuments
         ? [...agreement.consumerDocuments].sort(
-            sortBy<AgreementDocument>((doc) => doc.id)
+            sortBy<AgreementDocument>((doc) => doc.id),
           )
         : [],
     };
@@ -1118,7 +1118,7 @@ export const sortAgreement = <
 export const sortPurpose = <
   T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined,
 >(
-  purpose: T
+  purpose: T,
 ): T => {
   if (!purpose) {
     return purpose;
@@ -1136,10 +1136,10 @@ export const sortPurpose = <
             riskAnalysisForm: {
               ...purpose.riskAnalysisForm,
               singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
-                sortBy((answer) => answer.key)
+                sortBy((answer) => answer.key),
               ),
               multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
-                sortBy((answer) => answer.key)
+                sortBy((answer) => answer.key),
               ),
             },
           }
@@ -1155,7 +1155,7 @@ const sortRiskAnalysisTemplateAnswers = <
     | RiskAnalysisTemplateMultiAnswer
     | RiskAnalysisTemplateMultiAnswerV2,
 >(
-  answers: T[]
+  answers: T[],
 ): T[] =>
   [...answers]
     .map((answer) => ({
@@ -1180,7 +1180,7 @@ export const sortPurposeTemplate = <
     | WithMetadata<PurposeTemplate>
     | undefined,
 >(
-  purposeTemplate: T
+  purposeTemplate: T,
 ): T => {
   if (!purposeTemplate) {
     return purposeTemplate;
@@ -1200,15 +1200,15 @@ export const sortPurposeTemplate = <
                 purposeTemplate.purposeRiskAnalysisForm.singleAnswers.map(
                   (answer) => ({
                     ...answer,
-                  })
-                )
+                  }),
+                ),
               ),
               multiAnswers: sortRiskAnalysisTemplateAnswers(
                 purposeTemplate.purposeRiskAnalysisForm.multiAnswers.map(
                   (answer) => ({
                     ...answer,
-                  })
-                )
+                  }),
+                ),
               ),
             },
           }
@@ -1218,7 +1218,7 @@ export const sortPurposeTemplate = <
 };
 
 export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
-  client: T
+  client: T,
 ): T => {
   if (!client) {
     return client;
@@ -1240,7 +1240,7 @@ export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
 export const sortProducerKeychain = <
   T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined,
 >(
-  producerKeychain: T
+  producerKeychain: T,
 ): T => {
   if (!producerKeychain) {
     return producerKeychain;
@@ -1255,34 +1255,34 @@ export const sortProducerKeychain = <
       eservices: [...producerKeychain.eservices].sort(),
       users: [...producerKeychain.users].sort(),
       keys: [...producerKeychain.keys].sort(
-        sortBy((k) => k.createdAt.toISOString())
+        sortBy((k) => k.createdAt.toISOString()),
       ),
     };
   }
 };
 
 export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
-  agreement: T
+  agreement: T,
 ): T => ({
   ...agreement,
   verifiedAttributes: agreement?.verifiedAttributes
     ? [...agreement.verifiedAttributes].sort(
-        sortBy<VerifiedAttributeV2>((attr) => attr.id)
+        sortBy<VerifiedAttributeV2>((attr) => attr.id),
       )
     : [],
   certifiedAttributes: agreement?.certifiedAttributes
     ? [...agreement.certifiedAttributes].sort(
-        sortBy<CertifiedAttributeV2>((att) => att.id)
+        sortBy<CertifiedAttributeV2>((att) => att.id),
       )
     : [],
   declaredAttributes: agreement?.declaredAttributes
     ? [...agreement.declaredAttributes].sort(
-        sortBy<DeclaredAttributeV2>((att) => att.id)
+        sortBy<DeclaredAttributeV2>((att) => att.id),
       )
     : [],
   consumerDocuments: agreement?.consumerDocuments
     ? [...agreement.consumerDocuments].sort(
-        sortBy<AgreementDocumentV2>((doc) => doc.id)
+        sortBy<AgreementDocumentV2>((doc) => doc.id),
       )
     : [],
 });
@@ -1290,7 +1290,7 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
 export const sortAgreements = <
   T extends Agreement | WithMetadata<Agreement> | undefined,
 >(
-  agreements: T[]
+  agreements: T[],
 ): T[] => agreements.map(sortAgreement);
 
 export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
@@ -1300,15 +1300,15 @@ export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
   attributes: {
     certified: descriptor.attributes.certified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id)),
     ),
     declared: descriptor.attributes.declared.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id)),
     ),
     verified: descriptor.attributes.verified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id)),
     ),
   },
 });
@@ -1316,7 +1316,7 @@ export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
 export const sortEService = <
   T extends EService | WithMetadata<EService> | undefined,
 >(
-  eservice: T
+  eservice: T,
 ): T => {
   if (!eservice) {
     return eservice;
@@ -1411,7 +1411,7 @@ export const getMockContextM2MAdmin = ({
 
 export const getMockSessionClaims = (
   roles: UserRole[] = [userRole.ADMIN_ROLE],
-  organizationId: SelfcareId = generateId()
+  organizationId: SelfcareId = generateId(),
 ): UIClaims => ({
   uid: generateId(),
   organization: {
@@ -1433,7 +1433,7 @@ export const getMockSessionClaims = (
 
 export const getMockWithMetadata = <T>(
   data: T,
-  version?: number
+  version?: number,
 ): WithMetadata<T> => ({
   data,
   metadata: { version: version ?? generateMock(z.number().int()) },
