@@ -552,63 +552,11 @@ components:
         - description
         - name
         - code
-    CertifiedDiscreteAttributeSeed:
-      title: CertifiedDiscreteAttributeSeed
-      type: object
-      additionalProperties: false
-      description: Models the certified discrete attribute registry entry as payload
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 500
-        description:
-          type: string
-          minLength: 1
-          maxLength: 500
-        code:
-          type: string
-          minLength: 1
-          maxLength: 64
-          description: identifies the unique code of this attribute on the registry
-      required:
-        - description
-        - name
-        - code
     InternalCertifiedAttributeSeed:
       title: AttributeSeed
       type: object
       additionalProperties: false
       description: Models the attribute registry entry as payload response
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 500
-        description:
-          type: string
-          minLength: 1
-          maxLength: 500
-        origin:
-          type: string
-          minLength: 1
-          maxLength: 64
-          description: "represents the origin of this attribute (e.g.: IPA, Normattiva, etc.)"
-        code:
-          type: string
-          minLength: 1
-          maxLength: 64
-          description: identifies the unique code of this attribute on the registry
-      required:
-        - description
-        - name
-        - origin
-        - code
-    InternalCertifiedDiscreteAttributeSeed:
-      title: InternalCertifiedDiscreteAttributeSeed
-      type: object
-      additionalProperties: false
-      description: Models the certified discrete attribute registry entry as payload for internal use
       properties:
         name:
           type: string
