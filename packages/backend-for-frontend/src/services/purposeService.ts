@@ -304,6 +304,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      reviewerWorkflow: purpose.reviewerWorkflow,
     };
   };
 
