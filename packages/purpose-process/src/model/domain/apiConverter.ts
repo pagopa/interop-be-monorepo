@@ -6,6 +6,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionSignedDocument,
   PurposeVersionState,
+  ReviewerWorkflow,
   RiskAnalysisMultiAnswer,
   RiskAnalysisReviewMode,
   RiskAnalysisSingleAnswer,
@@ -149,6 +150,9 @@ export const purposeToApiPurpose = (purpose: Purpose): purposeApi.Purpose => ({
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   purposeTemplateId: purpose.purposeTemplateId,
+  reviewerWorkflow: purpose.reviewerWorkflow
+    ? reviewerWorkflowToApiReviewerWorkflow(purpose.reviewerWorkflow)
+    : undefined,
 });
 
 const localizedTextToApiLocalizedText = (
@@ -274,3 +278,65 @@ export const apiReviewModeToReviewMode = (
       () => riskAnalysisReviewMode.adminWritesReviewerSigns
     )
     .exhaustive();
+
+export const apiSigningStateToSigningState = (
+  apiSigningState: purposeApi.RiskAnalysisSigningState
+): RiskAnalysisSigningState =>
+  match(apiSigningState)
+    .with("DRAFT", () => riskAnalysisSigningState.draft)
+    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
+    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
+    .with("SIGNED", () => riskAnalysisSigningState.signed)
+    .with("REJECTED", () => riskAnalysisSigningState.rejected)
+    .exhaustive();
+
+export const reviewModeToApiReviewMode = (
+  mode: RiskAnalysisReviewMode
+): purposeApi.RiskAnalysisReviewMode =>
+  match(mode)
+    .with(
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      (): purposeApi.RiskAnalysisReviewMode => "REVIEWER_WRITES_REVIEWER_SIGNS"
+    )
+    .with(
+      riskAnalysisReviewMode.adminWritesReviewerSigns,
+      (): purposeApi.RiskAnalysisReviewMode => "ADMIN_WRITES_REVIEWER_SIGNS"
+    )
+    .exhaustive();
+
+export const signingStateToApiSigningState = (
+  state: RiskAnalysisSigningState
+): purposeApi.RiskAnalysisSigningState =>
+  match(state)
+    .with(
+      riskAnalysisSigningState.draft,
+      (): purposeApi.RiskAnalysisSigningState => "DRAFT"
+    )
+    .with(
+      riskAnalysisSigningState.assigned,
+      (): purposeApi.RiskAnalysisSigningState => "ASSIGNED"
+    )
+    .with(
+      riskAnalysisSigningState.submitted,
+      (): purposeApi.RiskAnalysisSigningState => "SUBMITTED"
+    )
+    .with(
+      riskAnalysisSigningState.signed,
+      (): purposeApi.RiskAnalysisSigningState => "SIGNED"
+    )
+    .with(
+      riskAnalysisSigningState.rejected,
+      (): purposeApi.RiskAnalysisSigningState => "REJECTED"
+    )
+    .exhaustive();
+
+export const reviewerWorkflowToApiReviewerWorkflow = (
+  workflow: ReviewerWorkflow
+): purposeApi.ReviewerWorkflow => ({
+  reviewMode: reviewModeToApiReviewMode(workflow.reviewMode),
+  reviewerIds: workflow.reviewerIds,
+  signingState: signingStateToApiSigningState(workflow.signingState),
+  signedBy: workflow.signedBy,
+  rejectionReason: workflow.rejectionReason,
+  sentToReviewerAt: workflow.sentToReviewerAt?.toJSON(),
+});
