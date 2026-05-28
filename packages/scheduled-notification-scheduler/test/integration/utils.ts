@@ -13,6 +13,7 @@ export const { scheduledNotificationDB, cleanup } =
     undefined,
     undefined,
     undefined,
+    undefined,
     inject("scheduledNotificationDbConfig")
   );
 
