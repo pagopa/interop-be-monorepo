@@ -18,6 +18,7 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
@@ -25,11 +26,13 @@ import {
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
+  ReviewerWorkflow,
   TenantId,
   tenantKind,
   TenantKind,
   tenantAttributeType,
   RiskAnalysisFormId,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -47,6 +50,8 @@ import {
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
+  riskAnalysisFormEditNotAllowed,
+  reviewerWorkflowNotInSignedState,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegate,
@@ -208,6 +213,42 @@ export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
       purpose.id,
       purpose.purposeTemplateId
     );
+  }
+}
+
+export function assertReviewerWorkflowIsSigned({
+  purposeId,
+  reviewerWorkflow,
+}: {
+  purposeId: PurposeId;
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+}): void {
+  if (
+    reviewerWorkflow &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.signed
+  ) {
+    throw reviewerWorkflowNotInSignedState(purposeId);
+  }
+}
+
+export function assertRiskAnalysisFormCanBeUpdated({
+  purposeId,
+  reviewerWorkflow,
+  riskAnalysisFormChanged,
+}: {
+  purposeId: PurposeId;
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+  riskAnalysisFormChanged: boolean;
+}): void {
+  if (!reviewerWorkflow || !riskAnalysisFormChanged) {
+    return;
+  }
+
+  if (
+    reviewerWorkflow.signingState === riskAnalysisSigningState.submitted ||
+    reviewerWorkflow.signingState === riskAnalysisSigningState.signed
+  ) {
+    throw riskAnalysisFormEditNotAllowed(purposeId);
   }
 }
 

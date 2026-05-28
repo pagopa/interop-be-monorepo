@@ -1,6 +1,7 @@
 import {
   WithLogger,
   FileManager,
+  assertFeatureFlagEnabled,
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,

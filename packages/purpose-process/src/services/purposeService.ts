@@ -134,6 +134,7 @@ type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
 import {
+  assertRiskAnalysisFormCanBeUpdated,
   assertConsistentFreeOfCharge,
   assertEserviceMode,
   assertPersonalDataCompliant,
@@ -143,6 +144,7 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertReviewerWorkflowIsSigned,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -696,20 +698,20 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      match(workflow)
+      const isReviewerWritesSignable = match(workflow)
         .with(
           {
             reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
             signingState: riskAnalysisSigningState.submitted,
           },
-          () => void 0
+          () => false
         )
         .with(
           {
             reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
             signingState: riskAnalysisSigningState.assigned,
           },
-          () => void 0
+          () => true
         )
         .otherwise(() => {
           throw reviewerWorkflowNotInPendingSignatureState(purposeId);
@@ -717,6 +719,28 @@ export function purposeServiceBuilder(
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
         throw requesterIsNotTheSigner(purposeId);
+      }
+
+      if (isReviewerWritesSignable) {
+        const riskAnalysisForm = purpose.data.riskAnalysisForm;
+
+        if (!riskAnalysisForm) {
+          throw missingRiskAnalysis(purposeId);
+        }
+
+        const [tenantKind, eservice] = await Promise.all([
+          retrieveTenantKind(purpose.data.consumerId, readModelService),
+          retrieveEService(purpose.data.eserviceId, readModelService),
+        ]);
+
+        validateRiskAnalysisOrThrow({
+          riskAnalysisForm:
+            riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+          schemaOnlyValidation: false,
+          fallbackTenantKind: tenantKind,
+          dateForExpirationValidation: new Date(),
+          personalDataInEService: eservice.personalData,
+        });
       }
 
       const updatedPurpose: Purpose = {
@@ -1400,6 +1424,13 @@ export function purposeServiceBuilder(
             personalDataInEService: eservice.personalData,
           });
         }
+      }
+
+      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
+        assertReviewerWorkflowIsSigned({
+          purposeId,
+          reviewerWorkflow: purpose.data.reviewerWorkflow,
+        });
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -2390,6 +2421,17 @@ const performUpdatePurpose = async (
   // ^ To make sure we extract all the updated fields, even optional ones
 
   const { mode } = modeAndUpdateContent;
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators")
+  ) {
+    assertRiskAnalysisFormCanBeUpdated({
+      purposeId,
+      reviewerWorkflow: purpose.data.reviewerWorkflow,
+      riskAnalysisFormChanged: riskAnalysisForm !== undefined,
+    });
+  }
 
   if (title && title !== purpose.data.title) {
     await assertPurposeTitleIsNotDuplicated({
