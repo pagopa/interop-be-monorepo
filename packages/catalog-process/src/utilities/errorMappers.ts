@@ -129,7 +129,6 @@ export const documentCreateErrorMapper = (
     )
     .with(
       "eServiceAsyncExchangeNotEnabled",
-      "descriptorAsyncExchangeNotConfigured",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -508,6 +507,27 @@ export const updateDescriptorAttributesErrorMapper = (
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDescriptorCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const approveDelegatedEServiceDescriptorErrorMapper = (

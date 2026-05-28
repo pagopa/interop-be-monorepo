@@ -38,6 +38,7 @@ const asyncInteractionStateAllowedByScope: Record<
     interactionState.getResource,
   ],
   [interactionState.confirmation]: [
+    interactionState.callbackInvocation,
     interactionState.getResource,
     interactionState.confirmation,
   ],
