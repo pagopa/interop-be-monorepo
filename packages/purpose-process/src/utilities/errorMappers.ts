@@ -91,6 +91,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "duplicatedPurposeTitle",
       "purposeFromTemplateCannotBeModified",
+      "riskAnalysisFormEditNotAllowed",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -284,6 +285,10 @@ export const activatePurposeVersionErrorMapper = (
       "riskAnalysisValidationFailed",
       "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "reviewerWorkflowNotInSignedState",
+      () => HTTP_STATUS_CONFLICT
     )
     .with(
       "tenantIsNotTheConsumer",

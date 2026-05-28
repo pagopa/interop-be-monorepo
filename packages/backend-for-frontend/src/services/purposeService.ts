@@ -1,6 +1,7 @@
 import {
   WithLogger,
   FileManager,
+  assertFeatureFlagEnabled,
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
@@ -450,11 +451,12 @@ export function purposeServiceBuilder(
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSubmissionSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       logger.info(`Submitting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.submitRiskAnalysis(undefined, {
+      const result = await purposeProcessClient.submitRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
@@ -631,6 +633,7 @@ export function purposeServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       const { authData, logger } = ctx;
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       const signingState =
         filters.signingState && filters.signingState.length > 0
           ? filters.signingState
