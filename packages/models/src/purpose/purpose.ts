@@ -36,6 +36,7 @@ export const RiskAnalysisReviewMode = z.enum([
 export type RiskAnalysisReviewMode = z.infer<typeof RiskAnalysisReviewMode>;
 
 export const riskAnalysisSigningState = {
+  draft: "Draft",
   assigned: "Assigned",
   submitted: "Submitted",
   signed: "Signed",
