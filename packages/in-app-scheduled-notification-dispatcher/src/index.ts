@@ -28,7 +28,7 @@ import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
 const log = logger({
-  serviceName: "scheduled-in-app-notification-dispatcher",
+  serviceName: "in-app-scheduled-notification-dispatcher",
   correlationId,
 });
 

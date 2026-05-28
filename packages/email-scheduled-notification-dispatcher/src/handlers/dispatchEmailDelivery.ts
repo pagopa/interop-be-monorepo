@@ -13,7 +13,7 @@ import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleEserviceArchivingScheduledReminderEmail } from "./eservices/handleEserviceArchivingScheduledReminderEmail.js";
 import { handleEserviceDescriptorArchivingScheduledReminderEmail } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderEmail.js";
 
-const SERVICE_NAME = "scheduled-email-notification-dispatcher";
+const SERVICE_NAME = "email-scheduled-notification-dispatcher";
 
 export const dispatchEmailDeliveryBuilder =
   (deps: {

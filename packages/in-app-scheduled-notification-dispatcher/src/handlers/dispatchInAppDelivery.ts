@@ -13,7 +13,7 @@ import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleEserviceArchivingScheduledReminderInApp } from "./eservices/handleEserviceArchivingScheduledReminderInApp.js";
 import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderInApp.js";
 
-const SERVICE_NAME = "scheduled-in-app-notification-dispatcher";
+const SERVICE_NAME = "in-app-scheduled-notification-dispatcher";
 
 export const dispatchInAppDeliveryBuilder =
   (deps: { readModelService: ReadModelServiceSQL; rootLog: Logger }) =>
