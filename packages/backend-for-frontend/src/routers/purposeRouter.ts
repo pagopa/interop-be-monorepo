@@ -150,6 +150,7 @@ const purposeRouter = (
       try {
         const result = await purposeService.getRiskAnalysisAssignments(
           {
+            eservicesIds: req.query.eservicesIds,
             signingState: req.query.signingState,
           },
           req.query.offset,
@@ -163,7 +164,7 @@ const purposeRouter = (
           error,
           getRiskAnalysisAssignmentsErrorMapper,
           ctx,
-          `Error retrieving risk analysis assignments for signingState ${req.query.signingState}, offset ${req.query.offset}, limit ${req.query.limit}`
+          `Error retrieving risk analysis assignments for signingState ${req.query.signingState}, EServices ${req.query.eservicesIds}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

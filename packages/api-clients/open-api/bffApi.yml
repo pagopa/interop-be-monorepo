@@ -9277,6 +9277,16 @@ paths:
       description: Retrieve purposes with reviewer workflow assignments
       parameters:
         - in: query
+          name: eservicesIds
+          description: comma separated sequence of EService IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: signingState
           description: comma separated sequence of risk analysis signing states
           schema:
