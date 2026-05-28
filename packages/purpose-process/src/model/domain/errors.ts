@@ -59,21 +59,18 @@ const errorCodes = {
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
-  reviewerWorkflowConflict: "0042",
-  reviewerWorkflowNotFound: "0043",
-  reviewerWorkflowNotSubmittable: "0044",
-  requesterIsNotTheWriter: "0045",
-  submitNotAllowedForReviewMode: "0046",
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  reviewerWorkflowNotFound: "0044",
-  reviewerWorkflowNotSubmittable: "0045",
-  requesterIsNotTheWriter: "0046",
-  submitNotAllowedForReviewMode: "0047",
-  reviewerWorkflowNotInPendingSignatureState: "0048",
-  requesterIsNotTheSigner: "0049"
-  rejectNotAllowedInCurrentMode: "0050",
+  reviewerWorkflowNotFound: "0045",
+  reviewerWorkflowNotSubmittable: "0046",
+  requesterIsNotTheWriter: "0047",
+  submitNotAllowedForReviewMode: "0048",
+  reviewerWorkflowNotInPendingSignatureState: "0049",
+  requesterIsNotTheSigner: "0050",
+  reviewerWorkflowNotInSignedState: "0051",
+  riskAnalysisFormEditNotAllowed: "0052",
+  rejectNotAllowedInCurrentMode: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -604,6 +601,26 @@ export function requesterIsNotTheSigner(
     detail: `Requester is not authorized to sign the risk analysis for purpose ${purposeId}`,
     code: "requesterIsNotTheSigner",
     title: "Requester is not the signer",
+  });
+}
+
+export function reviewerWorkflowNotInSignedState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow must be in Signed state before activation`,
+    code: "reviewerWorkflowNotInSignedState",
+    title: "Reviewer workflow not in signed state",
+  });
+}
+
+export function riskAnalysisFormEditNotAllowed(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis form cannot be edited for purpose ${purposeId} while reviewer workflow is in Submitted or Signed state`,
+    code: "riskAnalysisFormEditNotAllowed",
+    title: "Risk analysis form edit not allowed",
   });
 }
 

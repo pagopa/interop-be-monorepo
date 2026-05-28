@@ -523,7 +523,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.assignRiskAnalysisReviewer(
           unsafeBrandId(req.params.purposeId),
@@ -539,9 +539,7 @@ const purposeRouter = (
         return res
           .status(200)
           .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
+            purposeApi.Purpose.parse(purposeToApiPurpose(purpose))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -559,10 +557,13 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.submitRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
+          {
+            riskAnalysisForm: req.body.riskAnalysisForm,
+          },
           ctx
         );
 
@@ -571,9 +572,7 @@ const purposeRouter = (
         return res
           .status(200)
           .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
+            purposeApi.Purpose.parse(purposeToApiPurpose(purpose))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -591,7 +590,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [REVIEWER_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.signRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
@@ -603,9 +602,7 @@ const purposeRouter = (
         return res
           .status(200)
           .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
+            purposeApi.Purpose.parse(purposeToApiPurpose(purpose))
           );
       } catch (error) {
         const errorRes = makeApiProblem(

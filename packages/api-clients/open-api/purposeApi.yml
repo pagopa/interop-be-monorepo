@@ -1004,6 +1004,12 @@ paths:
     post:
       summary: Submit risk analysis for signing
       operationId: submitRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
+        required: true
       responses:
         "200":
           description: Risk analysis submitted for signing
@@ -1180,6 +1186,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1672,6 +1684,15 @@ components:
           maxLength: 250
       required:
         - rejectionReason
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
     TenantKind:
       type: string
       description: Tenant Kind

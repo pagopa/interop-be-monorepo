@@ -118,6 +118,10 @@ export const toRiskAnalysisSigningStateV2 = (
 ): RiskAnalysisSigningStateV2 =>
   match(input)
     .with(
+      riskAnalysisSigningState.draft,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_DRAFT
+    )
+    .with(
       riskAnalysisSigningState.assigned,
       () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED
     )

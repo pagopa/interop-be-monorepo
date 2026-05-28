@@ -317,6 +317,7 @@ const purposeRouter = (
         try {
           const result = await purposeService.submitRiskAnalysis(
             unsafeBrandId(req.params.purposeId),
+            req.body,
             ctx
           );
 

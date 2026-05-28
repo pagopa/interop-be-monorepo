@@ -40,6 +40,7 @@ import {
   RiskAnalysisSignedDocumentGeneratedV2,
   MaintenancePurposeRiskAnalysisSetTenantKindV2,
   PurposeRiskAnalysisWorkflowCreatedV2,
+  PurposeRiskAnalysisAssignedV2,
   PurposeRiskAnalysisSubmittedV2,
   PurposeRiskAnalysisSignedV2,
   PurposeRiskAnalysisRejectedV2,
@@ -161,6 +162,9 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     )
     .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, ({ data }) =>
       PurposeRiskAnalysisWorkflowCreatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeRiskAnalysisAssigned" }, ({ data }) =>
+      PurposeRiskAnalysisAssignedV2.toBinary(data)
     )
     .with({ type: "PurposeRiskAnalysisSubmitted" }, ({ data }) =>
       PurposeRiskAnalysisSubmittedV2.toBinary(data)
@@ -353,6 +357,11 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("PurposeRiskAnalysisWorkflowCreated"),
     data: protobufDecoder(PurposeRiskAnalysisWorkflowCreatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisAssigned"),
+    data: protobufDecoder(PurposeRiskAnalysisAssignedV2),
   }),
   z.object({
     event_version: z.literal(2),
