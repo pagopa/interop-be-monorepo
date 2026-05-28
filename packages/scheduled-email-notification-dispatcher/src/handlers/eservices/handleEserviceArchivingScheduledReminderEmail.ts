@@ -64,6 +64,12 @@ export async function handleEserviceArchivingScheduledReminderEmail(
   const archivableOns = targets
     .map((d) => d.archivingSchedule?.archivableOn)
     .filter((d): d is Date => d !== undefined);
+  if (archivableOns.length === 0) {
+    log.warn(
+      `Skipping scheduled email reminder: eservice ${eserviceId} has eservice-scope descriptors with no archivableOn (row ${row.id})`
+    );
+    return [];
+  }
   const archivableOn = new Date(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );

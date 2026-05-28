@@ -117,6 +117,12 @@ const scheduleForEserviceScope = async (
   const archivableOns = targets
     .map((d) => d.archivingSchedule?.archivableOn)
     .filter((d): d is Date => d !== undefined);
+  if (archivableOns.length === 0) {
+    log.warn(
+      `EServiceArchivingScheduled for ${domain.id} had eservice-scope descriptors with no archivableOn; nothing to schedule`
+    );
+    return;
+  }
   const archivableOn = new Date(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
