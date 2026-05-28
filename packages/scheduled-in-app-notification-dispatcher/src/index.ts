@@ -62,7 +62,7 @@ const readModelService = readModelServiceBuilderSQL({
     config.notificationTypeBlocklist as NotificationType[],
 });
 
-const inAppSink = inAppNotificationSinkBuilder(inAppDb);
+const inAppSink = inAppNotificationSinkBuilder(inAppDb, log);
 const dispatch = dispatchInAppDeliveryBuilder({
   readModelService,
   rootLog: log,
