@@ -45,6 +45,8 @@ export function visibilityFilter<
     | typeof purposeInM2MEvent
     | typeof clientInM2MEvent
     | typeof producerKeychainInM2MEvent
+    | typeof keyInM2MEvent
+    | typeof producerKeyInM2MEvent
     | typeof purposeTemplateInM2MEvent,
 >(
   table: T,

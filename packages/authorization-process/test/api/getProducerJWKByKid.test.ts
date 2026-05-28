@@ -9,7 +9,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerJwkNotFound } from "../../src/model/domain/errors.js";
+import {
+  producerJwkNotFound,
+  tenantNotAllowedOnProducerKeychain,
+} from "../../src/model/domain/errors.js";
 
 describe("API /producerKeys/{keyId} authorization test", () => {
   const mockKey = getMockProducerJWKKey();
@@ -66,6 +69,20 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for tenantNotAllowedOnProducerKeychain", async () => {
+    authorizationService.getProducerJWKByKid = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotAllowedOnProducerKeychain(
+          generateId(),
+          mockKey.producerKeychainId
+        )
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockKey.kid);
+    expect(res.status).toBe(403);
   });
 
   it.each([

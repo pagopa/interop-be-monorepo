@@ -18,6 +18,13 @@ describe("getProducerKeyEvents integration", () => {
       producerKeychainId: generateId(),
       kid: generateId(),
     },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PRODUCER_KEYCHAIN_KEY_DELETED",
+      producerKeychainId: generateId(),
+      kid: generateId(),
+    },
   ];
 
   const mockEventManagerResponse: m2mEventApi.ProducerKeyM2MEvents = {
@@ -37,7 +44,7 @@ describe("getProducerKeyEvents integration", () => {
   });
 
   it.each([generateId(), undefined])(
-    "Should succeed and perform API clients calls",
+    "Should return producer key events from the event manager",
     async (lastEventId) => {
       const expectedResponse: m2mGatewayApiV3.ProducerKeyEvents = {
         events,
