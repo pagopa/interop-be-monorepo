@@ -119,6 +119,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
+  toCreateEventPurposeRiskAnalysisAssigned,
   toCreateEventPurposeRiskAnalysisSubmitted,
 } from "../model/domain/toEvent.js";
 import {
@@ -541,14 +542,16 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowConflict(purposeId);
       }
 
+      const isReviewerWrites =
+        seed.reviewMode === "ReviewerWritesReviewerSigns";
+
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
         reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
-        signingState: RiskAnalysisSigningState.Values.Assigned,
-        sentToReviewerAt:
-          seed.reviewMode === "ReviewerWritesReviewerSigns"
-            ? new Date()
-            : undefined,
+        signingState: isReviewerWrites
+          ? RiskAnalysisSigningState.Values.Assigned
+          : RiskAnalysisSigningState.Values.Draft,
+        sentToReviewerAt: isReviewerWrites ? new Date() : undefined,
       };
 
       const updatedPurpose: Purpose = {
@@ -558,11 +561,17 @@ export function purposeServiceBuilder(
       };
 
       const event = await repository.createEvent(
-        toCreateEventPurposeRiskAnalysisWorkflowCreated({
-          purpose: updatedPurpose,
-          version: purpose.metadata.version,
-          correlationId,
-        })
+        isReviewerWrites
+          ? toCreateEventPurposeRiskAnalysisAssigned({
+              purpose: updatedPurpose,
+              version: purpose.metadata.version,
+              correlationId,
+            })
+          : toCreateEventPurposeRiskAnalysisWorkflowCreated({
+              purpose: updatedPurpose,
+              version: purpose.metadata.version,
+              correlationId,
+            })
       );
 
       return {
