@@ -98,7 +98,7 @@ export const schedulerServiceBuilder = (
         );
         return 0;
       }
-      await db
+      const inserted = await db
         .insert(scheduledNotification)
         .values(rows)
         .onConflictDoNothing({
@@ -108,11 +108,12 @@ export const schedulerServiceBuilder = (
             scheduledNotification.entityId,
             scheduledNotification.sendAt,
           ],
-        });
+        })
+        .returning({ id: scheduledNotification.id });
       log.info(
-        `Scheduled ${rows.length} reminder rows for ${params.eventType} (${describeScope(params)})`
+        `Scheduled ${inserted.length}/${rows.length} reminder rows for ${params.eventType} (${describeScope(params)})`
       );
-      return rows.length;
+      return inserted.length;
     },
 
     async deletePendingByEserviceScope({
