@@ -116,3 +116,7 @@ message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
 message PurposeRiskAnalysisWorkflowCreatedV2 {
   PurposeV2 purpose = 1;
 }
+
+message PurposeRiskAnalysisAssignedV2 {
+  PurposeV2 purpose = 1;
+}
