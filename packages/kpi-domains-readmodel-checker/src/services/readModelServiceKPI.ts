@@ -182,6 +182,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_certified_attribute
       );
+      const certifiedDiscreteAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_discrete_attribute
+      );
       const declaredAttributesSQL = await getManyFromDb(
         dbContext,
         TenantDbTable.tenant_declared_attribute
@@ -202,15 +206,21 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_feature
       );
+      const remoteIdsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_remote_id
+      );
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 

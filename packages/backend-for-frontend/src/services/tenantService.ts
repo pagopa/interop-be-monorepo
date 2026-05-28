@@ -25,6 +25,7 @@ import {
   toBffApiCompactTenant,
   toBffApiRequesterCertifiedAttributes,
   toBffApiCertifiedTenantAttributes,
+  toBffApiCertifiedDiscreteTenantAttribute,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
@@ -102,8 +103,13 @@ export function tenantServiceBuilder(
         .map((v) => v.verified)
         .filter(isDefined);
 
+      const certifiedDiscreteAttributes = tenant.attributes
+        .map((v) => v.certifiedDiscrete)
+        .filter(isDefined);
+
       const allAttributeIds = [
         ...certifiedAttributes,
+        ...certifiedDiscreteAttributes,
         ...declaredAttributes,
         ...verifiedAttributes,
       ].map((v) => v.id);
@@ -499,10 +505,17 @@ export function enhanceTenantAttributes(
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
+  const certifiedDiscrete = tenantAttributes
+    .map((attr) =>
+      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
+    )
+    .filter(isDefined);
+
   return {
     certified,
     declared,
     verified,
+    certifiedDiscrete,
   };
 }
 
@@ -547,6 +560,18 @@ function getCertifiedTenantAttribute(
     assignmentTimestamp: attribute.certified.assignmentTimestamp,
     revocationTimestamp: attribute.certified.revocationTimestamp,
   };
+}
+
+function getCertifiedDiscreteTenantAttribute(
+  attribute: tenantApi.TenantAttribute,
+  registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
+): bffApi.CertifiedDiscreteTenantAttribute | undefined {
+  return attribute.certifiedDiscrete
+    ? toBffApiCertifiedDiscreteTenantAttribute(
+        attribute.certifiedDiscrete,
+        registryAttributeMap
+      )
+    : undefined;
 }
 
 function toApiVerifiedTenantAttribute(

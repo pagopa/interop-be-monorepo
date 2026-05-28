@@ -1,5 +1,7 @@
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
   AttributeKind,
   attributeKind,
   EServiceMode,
@@ -14,6 +16,7 @@ import {
   unsafeBrandId,
   WithMetadata,
   type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -65,7 +68,7 @@ export const aggregateEServiceTemplateVersion = ({
   } = attributesSQL.reduce(
     (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, () => ({
+        .with(attributeKind.certified, attributeKind.certifiedDiscrete, () => ({
           ...acc,
           certified: [...acc.certified, attributeSQL],
         }))
@@ -436,12 +439,29 @@ export const toEServiceTemplateAggregatorArray = (
 
 export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[]
-): EServiceTemplateAttribute[][] => {
-  const attributesMap = new Map<number, EServiceTemplateAttribute[]>();
+): Array<
+  Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+    >
+  >();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceTemplateAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
+      ...(current.threshold != null && current.comparator != null
+        ? {
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

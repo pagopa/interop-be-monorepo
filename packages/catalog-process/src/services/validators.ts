@@ -25,8 +25,9 @@ import {
   eserviceMode,
   operationForbidden,
   EServiceTemplateId,
-  type EServiceAttribute,
+  type EServiceCertifiedAttribute,
   type EserviceAttributes,
+  getEServiceAttributeDiscreteConfig,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -430,7 +431,10 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if (attribute.dailyCallsPerConsumer !== undefined) {
+    if (
+      "dailyCallsPerConsumer" in attribute &&
+      attribute.dailyCallsPerConsumer !== undefined
+    ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
   }
@@ -469,7 +473,7 @@ export function assertTemplateInstanceAttributeStructureUnchanged(
 function assertAttributeGroupsUnchanged(
   eserviceId: EServiceId,
   templateId: EServiceTemplateId,
-  descriptorGroups: EServiceAttribute[][],
+  descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
@@ -494,10 +498,19 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
+
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
+          descriptorAttr.explicitAttributeVerification ||
+        seedAttr.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttr.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator ||
+        Boolean(seedAttr.discreteConfig) !==
+          (descriptorDiscreteConfig !== undefined)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }

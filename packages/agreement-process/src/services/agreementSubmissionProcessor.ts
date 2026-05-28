@@ -64,6 +64,9 @@ export const createSubmissionUpdateAgreementSeed = (
   return isActivation
     ? {
         state: newState,
+        // TODO(PIN-9889, Work Item 5): populate certifiedDiscreteAttributes
+        // when agreement submission starts validating certified discrete
+        // attributes against threshold/comparator.
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(

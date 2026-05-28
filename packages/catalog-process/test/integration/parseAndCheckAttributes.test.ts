@@ -1,7 +1,11 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
 import { beforeEach, describe, expect, it } from "vitest";
-import { AttributeId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  attributeCertifiedDiscreteComparator,
+  generateId,
+} from "pagopa-interop-models";
 import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 import {
@@ -13,6 +17,7 @@ describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");
   const certified2 = getMockAttribute("Certified");
   const certified3 = getMockAttribute("Certified");
+  const certifiedDiscrete1 = getMockAttribute("CertifiedDiscrete");
 
   const declared1 = getMockAttribute("Declared");
   const declared2 = getMockAttribute("Declared");
@@ -28,6 +33,7 @@ describe("parseAndCheckAttributes", () => {
     await addOneAttribute(certified1);
     await addOneAttribute(certified2);
     await addOneAttribute(certified3);
+    await addOneAttribute(certifiedDiscrete1);
     await addOneAttribute(declared1);
     await addOneAttribute(declared2);
     await addOneAttribute(declared3);
@@ -64,6 +70,71 @@ describe("parseAndCheckAttributes", () => {
     const result = await parseAndCheckAttributes(seed, readModelService);
 
     expect(result).toEqual(seed);
+  });
+
+  it("should parse and check certified discrete attributes when discrete config is set", async () => {
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: certifiedDiscrete1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 42,
+              comparator: attributeCertifiedDiscreteComparator.GTE,
+            },
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    const result = await parseAndCheckAttributes(seed, readModelService);
+
+    expect(result).toEqual(seed);
+  });
+
+  it("should throw attributeNotFound when a certified discrete attribute has no discrete config", async () => {
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: certifiedDiscrete1.id,
+            explicitAttributeVerification: false,
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    await expect(
+      parseAndCheckAttributes(seed, readModelService)
+    ).rejects.toThrowError(attributeNotFound(certifiedDiscrete1.id));
+  });
+
+  it("should throw attributeNotFound when a certified attribute has discrete config", async () => {
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: certified1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 42,
+              comparator: attributeCertifiedDiscreteComparator.GTE,
+            },
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    await expect(
+      parseAndCheckAttributes(seed, readModelService)
+    ).rejects.toThrowError(attributeNotFound(certified1.id));
   });
 
   it.each([

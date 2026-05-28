@@ -41,6 +41,8 @@ import {
   EService,
   EServiceAttribute,
   EserviceAttributes,
+  EServiceCertifiedAttribute,
+  getEServiceAttributeDiscreteConfig,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -453,10 +455,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -464,6 +475,25 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const attributesById = new Map(
+      attributes.map((attribute) => [attribute.id, attribute])
+    );
+
+    parsedAttributesSeed.flat().forEach((seedAttribute) => {
+      const attribute = attributesById.get(seedAttribute.id);
+
+      if (
+        (attribute?.kind === attributeKind.certifiedDiscrete &&
+          seedAttribute.discreteConfig === undefined) ||
+        (attribute?.kind === attributeKind.certified &&
+          seedAttribute.discreteConfig !== undefined)
+      ) {
+        throw attributeNotFound(seedAttribute.id);
+      }
+    });
+  }
 
   return parsedAttributesSeed;
 }
@@ -2909,7 +2939,7 @@ export function catalogServiceBuilder(
         seed
       );
 
-      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
         eserviceId,
         descriptor,
         seed
@@ -2926,7 +2956,7 @@ export function catalogServiceBuilder(
         descriptor.dailyCallsTotal
       );
 
-      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
@@ -3096,10 +3126,11 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-
-      if (newAttributes.length === 0) {
-        return;
-      }
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed,
@@ -3110,6 +3141,10 @@ export function catalogServiceBuilder(
         parsedAttributes,
         descriptor.attributes
       );
+
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
+        return;
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -4019,18 +4054,18 @@ const processDescriptorPublication = async (
 };
 
 /**
- * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
  * Used with template instances. This ensures that when a template updates and
- * propagates its attributes to its instances, any custom threshold configured
- * on the instance is preserved instead of being cleared.
+ * propagates its attributes to its instances, any custom differentiated
+ * threshold configured on the instance is preserved instead of being cleared.
  */
 function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
   function isMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[]
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[]
   ): boolean {
     return currentGroup.every((currentAttribute) =>
       incomingGroup.some(
@@ -4040,10 +4075,10 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroups: EServiceAttribute[][],
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroups: EServiceCertifiedAttribute[][],
     usedCurrentGroupIndexes: Set<number>
-  ): EServiceAttribute[] | undefined {
+  ): EServiceCertifiedAttribute[] | undefined {
     for (const [groupIndex, currentGroup] of currentGroups.entries()) {
       if (usedCurrentGroupIndexes.has(groupIndex)) {
         continue;
@@ -4061,19 +4096,23 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findCurrentCertifiedAttribute(
-    incomingAttribute: EServiceAttribute,
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute | undefined {
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute | undefined {
     return currentGroup?.find(
       (currentAttribute) => currentAttribute.id === incomingAttribute.id
     );
   }
 
   function retainCurrentDailyCallsPerConsumer(
-    incomingAttribute: EServiceAttribute,
-    currentAttribute: EServiceAttribute | undefined
-  ): EServiceAttribute {
-    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentAttribute: EServiceCertifiedAttribute | undefined
+  ): EServiceCertifiedAttribute {
+    const currentDailyCalls =
+      currentAttribute && "dailyCallsPerConsumer" in currentAttribute
+        ? currentAttribute.dailyCallsPerConsumer
+        : undefined;
+
     if (currentDailyCalls === undefined) {
       return incomingAttribute;
     }
@@ -4085,9 +4124,9 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function retainCurrentDailyCallsInCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute[] {
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute[] {
     return incomingGroup.map((incomingAttribute) => {
       const currentAttribute = findCurrentCertifiedAttribute(
         incomingAttribute,
@@ -4194,7 +4233,7 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
-function hasCertifiedAttributeDailyCallsChanged(
+function hasCertifiedAttributeConfigurationChanged(
   eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
@@ -4217,9 +4256,15 @@ function hasCertifiedAttributeDailyCallsChanged(
         (attribute) => attribute.id === descriptorAttribute.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttribute);
       return (
         seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer
+          descriptorAttribute.dailyCallsPerConsumer ||
+        seedAttribute?.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttribute?.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator
       );
     });
   });

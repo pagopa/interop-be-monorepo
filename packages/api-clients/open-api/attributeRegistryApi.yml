@@ -504,7 +504,7 @@ components:
           type: string
           description: identifies the unique code of this attribute on the origin registry
         kind:
-          # Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          # Kind of the attribute. It's one of CERTIFIED, CERTIFIED_DISCRETE, VERIFIED, DECLARED.
           $ref: "#/components/schemas/AttributeKind"
         description:
           type: string
@@ -526,6 +526,7 @@ components:
       type: string
       enum:
         - CERTIFIED
+        - CERTIFIED_DISCRETE
         - DECLARED
         - VERIFIED
     CertifiedAttributeSeed:

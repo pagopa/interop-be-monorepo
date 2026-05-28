@@ -79,6 +79,7 @@ export const Agreement = z.object({
   state: AgreementState,
   verifiedAttributes: z.array(AgreementAttribute),
   certifiedAttributes: z.array(AgreementAttribute),
+  certifiedDiscreteAttributes: z.array(AgreementAttribute),
   declaredAttributes: z.array(AgreementAttribute),
   suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),

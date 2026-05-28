@@ -939,6 +939,7 @@ describe("upgrade Agreement", () => {
         createdAt: agreement.createdAt,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
           (doc, i) => ({

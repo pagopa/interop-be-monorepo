@@ -4,6 +4,7 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
@@ -33,6 +34,8 @@ import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 describe("E-service splitter", () => {
   it("should convert a complete e-service into e-service SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedDiscreteAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
@@ -62,7 +65,7 @@ describe("E-service splitter", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },
@@ -175,8 +178,25 @@ describe("E-service splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
-      dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
+      dailyCallsPerConsumer: null,
+      threshold: null,
+      comparator: null,
     };
+
+    const expectedCertifiedDiscreteAttributeSQL: EServiceDescriptorAttributeSQL =
+      {
+        metadataVersion: 1,
+        eserviceId: eservice.id,
+        kind: attributeKind.certifiedDiscrete,
+        attributeId: certifiedDiscreteAttribute.id,
+        descriptorId: descriptor.id,
+        groupId: 0,
+        explicitAttributeVerification:
+          certifiedDiscreteAttribute.explicitAttributeVerification,
+        dailyCallsPerConsumer: null,
+        threshold: certifiedDiscreteAttribute.discreteConfig.threshold,
+        comparator: certifiedDiscreteAttribute.discreteConfig.comparator,
+      };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {
       ...doc,
@@ -227,7 +247,13 @@ describe("E-service splitter", () => {
       expectedRiskAnalysisAnswersSQL
     );
     expect(descriptorsSQL).toStrictEqual([expectedDescriptorSQL]);
-    expect(attributesSQL).toStrictEqual([expectedAttributeSQL]);
+    expect(attributesSQL).toStrictEqual(
+      expect.arrayContaining([
+        expectedAttributeSQL,
+        expectedCertifiedDiscreteAttributeSQL,
+      ])
+    );
+    expect(attributesSQL).toHaveLength(2);
     expect(interfacesSQL).toStrictEqual([expectedInterfaceDocSQL]);
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])

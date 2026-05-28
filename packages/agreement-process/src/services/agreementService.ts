@@ -325,6 +325,7 @@ export function agreementServiceBuilder(
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         consumerDocuments: [],
         createdAt: new Date(),

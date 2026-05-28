@@ -26749,6 +26749,11 @@ components:
           description: "set of the certified attributes belonging to this agreement, if any."
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        certifiedDiscreteAttributes:
+          type: array
+          description: "set of the certified discrete attributes belonging to this agreement, if any."
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteAttribute"
         declaredAttributes:
           type: array
           description: "set of the declared attributes belonging to this agreement, if any."
@@ -26791,6 +26796,7 @@ components:
         - state
         - verifiedAttributes
         - certifiedAttributes
+        - certifiedDiscreteAttributes
         - declaredAttributes
         - consumerDocuments
         - createdAt
@@ -28559,16 +28565,21 @@ components:
           type: string
         explicitAttributeVerification:
           type: boolean
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
         dailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - name
         - description
         - explicitAttributeVerification
+        - kind
     DescriptorAttributesSeed:
       type: object
       additionalProperties: false
@@ -28609,9 +28620,34 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
@@ -28768,6 +28804,28 @@ components:
         - description
         - name
         - creationTime
+    CertifiedDiscreteAttribute:
+      title: CertifiedDiscreteAttribute
+      type: object
+      additionalProperties: false
+      description: Models a certified discrete attribute registry entry as payload response
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: uniquely identifies the attribute on the registry
+        description:
+          type: string
+        name:
+          type: string
+        creationTime:
+          type: string
+          format: date-time
+      required:
+        - id
+        - description
+        - name
+        - creationTime
     CertifiedAttributesResponse:
       title: CertifiedAttributesResponse
       type: object
@@ -28807,6 +28865,7 @@ components:
         - CERTIFIED
         - DECLARED
         - VERIFIED
+        - CERTIFIED_DISCRETE
     Attributes:
       title: Attributes
       type: object
@@ -28976,6 +29035,10 @@ components:
           $ref: "#/components/schemas/TenantUnitType"
         selfcareInstitutionType:
           type: string
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - id
         - externalId
@@ -29004,10 +29067,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VerifiedTenantAttribute"
+        certifiedDiscrete:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
       required:
         - declared
         - certified
         - verified
+        - certifiedDiscrete
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false
@@ -29100,6 +29168,49 @@ components:
         - id
         - name
         - description
+        - assignmentTimestamp
+    CertifiedDiscreteTenantAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+        revocationTimestamp:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - name
+        - description
+        - assignmentTimestamp
+        - discreteValue
+    TenantRemoteId:
+      type: object
+      additionalProperties: false
+      properties:
+        origin:
+          type: string
+        value:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+      required:
+        - origin
+        - value
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
@@ -29958,6 +30069,8 @@ components:
         attributes:
           $ref: "#/components/schemas/EServiceTemplateAttributesSeed"
     EServiceTemplateAttributesSeed:
+      type: object
+      additionalProperties: false
       properties:
         certified:
           type: array
@@ -29990,6 +30103,8 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification

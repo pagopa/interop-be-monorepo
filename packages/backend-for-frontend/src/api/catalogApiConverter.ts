@@ -144,10 +144,13 @@ export async function toBffCatalogDescriptorEService(
 }
 
 export function toBffCatalogApiDescriptorAttribute(
-  attributes: attributeRegistryApi.Attribute[],
+  attributesById: Map<
+    attributeRegistryApi.Attribute["id"],
+    attributeRegistryApi.Attribute
+  >,
   attribute: catalogApi.Attribute
 ): bffApi.DescriptorAttribute {
-  const foundAttribute = attributes.find((att) => att.id === attribute.id);
+  const foundAttribute = attributesById.get(attribute.id);
   if (!foundAttribute) {
     throw attributeNotExists(unsafeBrandId(attribute.id));
   }
@@ -157,9 +160,25 @@ export function toBffCatalogApiDescriptorAttribute(
     name: foundAttribute.name,
     description: foundAttribute.description,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
-    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    kind: toBffAttributeKind(foundAttribute.kind),
+    ...(attribute.dailyCallsPerConsumer !== undefined
+      ? { dailyCallsPerConsumer: attribute.dailyCallsPerConsumer }
+      : {}),
+    ...(attribute.discreteConfig !== undefined
+      ? { discreteConfig: attribute.discreteConfig }
+      : {}),
   };
 }
+
+const toBffAttributeKind = (
+  kind: attributeRegistryApi.AttributeKind
+): bffApi.AttributeKind =>
+  match<attributeRegistryApi.AttributeKind, bffApi.AttributeKind>(kind)
+    .with("CERTIFIED", () => "CERTIFIED")
+    .with("CERTIFIED_DISCRETE", () => "CERTIFIED_DISCRETE")
+    .with("DECLARED", () => "DECLARED")
+    .with("VERIFIED", () => "VERIFIED")
+    .exhaustive();
 
 export function toBffCatalogApiDescriptorDoc(
   document: catalogApi.EServiceDoc
@@ -336,12 +355,15 @@ export function descriptorAttributesFromApi(
 }
 
 function toBffCatalogApiDescriptorAttributeGroups(
-  attributes: attributeRegistryApi.Attribute[],
+  attributesById: Map<
+    attributeRegistryApi.Attribute["id"],
+    attributeRegistryApi.Attribute
+  >,
   descriptorAttributesGroups: catalogApi.Attribute[][]
 ): bffApi.DescriptorAttribute[][] {
   return descriptorAttributesGroups.map((attributeGroup) =>
     attributeGroup.map((attribute) =>
-      toBffCatalogApiDescriptorAttribute(attributes, attribute)
+      toBffCatalogApiDescriptorAttribute(attributesById, attribute)
     )
   );
 }
@@ -350,17 +372,21 @@ export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
   descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
+  const attributesById = new Map(
+    attributes.map((attribute) => [attribute.id, attribute])
+  );
+
   return {
     certified: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.certified
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.declared
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.verified
     ),
   };
