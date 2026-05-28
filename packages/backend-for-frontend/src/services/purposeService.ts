@@ -618,6 +618,7 @@ export function purposeServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       const { authData, logger } = ctx;
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       const signingState =
         filters.signingState && filters.signingState.length > 0
           ? filters.signingState

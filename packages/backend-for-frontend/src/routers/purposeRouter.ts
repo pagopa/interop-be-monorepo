@@ -14,6 +14,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { PurposeService } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
+  getRiskAnalysisAssignmentsErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
@@ -160,7 +161,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getPurposesErrorMapper,
+          getRiskAnalysisAssignmentsErrorMapper,
           ctx,
           `Error retrieving risk analysis assignments for signingState ${req.query.signingState}, offset ${req.query.offset}, limit ${req.query.limit}`
         );

@@ -620,7 +620,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [REVIEWER_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.rejectRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
@@ -634,7 +634,7 @@ const purposeRouter = (
           .status(200)
           .send(
             purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+              purposeToApiPurpose(purpose)
             )
           );
       } catch (error) {

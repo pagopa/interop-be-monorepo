@@ -27,12 +27,9 @@ import {
   purposeTemplateState,
   ClientId,
   Client,
-<<<<<<< PIN-10125_endpoint-get-assignments
   UserId,
   RiskAnalysisSigningState,
-=======
   TenantKind,
->>>>>>> PIN-10124_reject_risk-analysis
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
