@@ -2308,7 +2308,7 @@ export function catalogServiceBuilder(
             : descriptorState.deprecated;
 
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        { ...descriptor, archivingSchedule: undefined },
         restoredState
       );
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
