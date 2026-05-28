@@ -99,8 +99,9 @@ export function setupTestContainersVitestGlobal() {
   );
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
-  const scheduledNotificationDbConfig =
-    ScheduledNotificationDBConfig.safeParse(process.env);
+  const scheduledNotificationDbConfig = ScheduledNotificationDBConfig.safeParse(
+    process.env
+  );
   const tenantKindHistoryDBConfig = TenantKindHistoryDBConfig.safeParse(
     process.env
   );
