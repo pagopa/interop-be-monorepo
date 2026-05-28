@@ -144,6 +144,8 @@ export const fromRiskAnalysisSigningStateV2 = (
   input: RiskAnalysisSigningStateV2
 ): RiskAnalysisSigningState => {
   switch (input) {
+    case RiskAnalysisSigningStateV2.RISK_ANALYSIS_DRAFT:
+      return riskAnalysisSigningState.draft;
     case RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED:
       return riskAnalysisSigningState.assigned;
     case RiskAnalysisSigningStateV2.RISK_ANALYSIS_SUBMITTED:
