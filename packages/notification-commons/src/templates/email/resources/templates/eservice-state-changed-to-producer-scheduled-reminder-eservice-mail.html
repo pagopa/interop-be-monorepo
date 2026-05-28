@@ -74,7 +74,7 @@
         color: #17324d;
       "
     >
-      <p>Ti ricordiamo che il tuo e-service "{{ eserviceName }}" verrà archiviato {{#if isLastDay}}domani{{else}}fra {{ daysRemaining }} giorni{{/if}}{{#if archivableOn}} ({{ archivableOn }}){{/if}}, salvo annullamento.</p>
+      <p>Ti ricordiamo che il tuo e-service "{{ eserviceName }}" verrà archiviato {{ daysRemainingText }}{{#if archivableOn}} ({{ archivableOn }}){{/if}}, salvo annullamento.</p>
       <p>Dopo questa data, l'e-service sarà archiviato definitivamente e non risulterà più attivo. Puoi annullare l'archiviazione solo entro questo periodo di preavviso.</p>
     </div>
   </td>

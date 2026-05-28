@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   eventMailTemplateType,
+  formatDaysRemaining,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
@@ -80,7 +81,7 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
     0
   );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
-  const isLastDay = daysRemaining === 1;
+  const daysRemainingText = formatDaysRemaining(daysRemaining);
   const entityId = `${eservice.id}/${descriptor.id}`;
 
   const [producerTemplate, consumerTemplate, producerTenant] =
@@ -114,8 +115,8 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         daysRemaining,
+        daysRemainingText,
         archivableOn: archivableOnFormatted,
-        isLastDay,
         ctaLabel: "Visualizza e-service",
         selfcareId: t.selfcareId,
         bffUrl,

@@ -74,7 +74,7 @@
         color: #17324d;
       "
     >
-      <p>Ti ricordiamo che la versione {{ eserviceVersion }} dell'e-service "{{ eserviceName }}" verrà archiviata {{#if isLastDay}}domani{{else}}fra {{ daysRemaining }} giorni{{/if}}{{#if archivableOn}} ({{ archivableOn }}){{/if}}, salvo annullamento.</p>
+      <p>Ti ricordiamo che la versione {{ eserviceVersion }} dell'e-service "{{ eserviceName }}" verrà archiviata {{ daysRemainingText }}{{#if archivableOn}} ({{ archivableOn }}){{/if}}, salvo annullamento.</p>
       <p>Da questa data l'e-service non sarà più richiamabile.</p>
     </div>
   </td>

@@ -12,6 +12,12 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
+export const formatDaysRemaining = (daysRemaining: number): string =>
+  match(daysRemaining)
+    .with(0, () => "oggi")
+    .with(1, () => "domani")
+    .otherwise((n) => `fra ${n} giorni`);
+
 export const inAppTemplates = {
   // agreements - erogazione
   agreementSubmittedToProducer: (
@@ -437,9 +443,9 @@ export const inAppTemplates = {
     daysRemaining: number,
     archivableOn: Date | undefined
   ): string =>
-    `Promemoria: il tuo e-service "${eserviceName}" verrà archiviato ${
-      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
-    }${
+    `Promemoria: il tuo e-service "${eserviceName}" verrà archiviato ${formatDaysRemaining(
+      daysRemaining
+    )}${
       archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
     }. Dopo questa data l'e-service sarà archiviato definitivamente e non risulterà più attivo.`,
   eserviceArchivingScheduledReminderToConsumer: (
@@ -448,9 +454,9 @@ export const inAppTemplates = {
     archivableOn: Date | undefined,
     producerName: string
   ): string =>
-    `Promemoria: l'ente erogatore ${producerName} archivierà l'e-service "${eserviceName}" a cui sei iscritto ${
-      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
-    }${
+    `Promemoria: l'ente erogatore ${producerName} archivierà l'e-service "${eserviceName}" a cui sei iscritto ${formatDaysRemaining(
+      daysRemaining
+    )}${
       archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
     }. Dopo questa data l'e-service sarà rimosso dal catalogo e non potrai più scambiare dati con questo e-service.`,
   eserviceDescriptorArchivingScheduledReminderToProducer: (
@@ -459,9 +465,9 @@ export const inAppTemplates = {
     daysRemaining: number,
     archivableOn: Date | undefined
   ): string =>
-    `Promemoria: la versione ${descriptorVersion} del tuo e-service "${eserviceName}" verrà archiviata ${
-      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
-    }${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
+    `Promemoria: la versione ${descriptorVersion} del tuo e-service "${eserviceName}" verrà archiviata ${formatDaysRemaining(
+      daysRemaining
+    )}${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
   eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
@@ -469,9 +475,9 @@ export const inAppTemplates = {
     archivableOn: Date | undefined,
     producerName: string
   ): string =>
-    `Promemoria: l'ente erogatore ${producerName} archivierà la versione ${descriptorVersion} dell'e-service "${eserviceName}" a cui sei iscritto ${
-      daysRemaining === 1 ? "domani" : `fra ${daysRemaining} giorni`
-    }${
+    `Promemoria: l'ente erogatore ${producerName} archivierà la versione ${descriptorVersion} dell'e-service "${eserviceName}" a cui sei iscritto ${formatDaysRemaining(
+      daysRemaining
+    )}${
       archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""
     }. La versione non sarà più disponibile da quel momento.`,
 };
