@@ -99,6 +99,7 @@ try {
     tenants,
     attributes,
     tenantUpsertData,
+    config,
     loggerInstance
   );
 
