@@ -10,6 +10,7 @@ import {
   Logger,
   waitForReadModelMetadataVersion,
   delay,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   attributeKind,
@@ -27,6 +28,7 @@ import {
   shouldKindBeIncluded,
 } from "./openDataService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
 
@@ -277,6 +279,7 @@ export async function getAttributesToAssign(
   platformTenants: Tenant[],
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
+  config: IPACertifiedAttributesImporterConfig,
   loggerInstance: Logger
 ): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantsIndex = new Map(
@@ -301,7 +304,11 @@ export async function getAttributesToAssign(
       }
 
       const remoteIds: tenantApi.TenantRemoteId[] = [];
-      if (seed.istatCode) {
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete") &&
+        seed.istatCode
+      ) {
         const hasIstat = tenant.remoteIds?.some(
           (r) => r.origin === "ISTAT" && r.value === seed.istatCode
         );
