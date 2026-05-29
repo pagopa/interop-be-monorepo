@@ -124,7 +124,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: genericLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveDescriptors();
+        const res = await archiverService.archiveDescriptors();
+
+        expect(res).toBe(true);
 
         refs.forEach((ref) => {
           expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
@@ -187,7 +189,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: genericLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveDescriptors();
+        const res = await archiverService.archiveDescriptors();
+
+        expect(res).toBe(true);
 
         nonArchivableRefs.forEach((ref) => {
           expect(
@@ -252,7 +256,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: genericLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveDescriptors();
+        const res = await archiverService.archiveDescriptors();
+
+        expect(res).toBe(true);
 
         nonArchivableRefs.forEach((ref) => {
           expect(
@@ -341,7 +347,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
           loggerInstance: genericLogger,
           refreshableToken: mockRefreshableToken,
         });
-      await archiverService.archiveDescriptors();
+      const res = await archiverService.archiveDescriptors();
+
+      expect(res).toBe(true);
 
       archivableRefs.forEach((ref) => {
         expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
@@ -451,7 +459,13 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
           loggerInstance: mockLogger,
           refreshableToken: mockRefreshableToken,
         });
-      await archiverService.archiveDescriptors();
+      const res = await archiverService.archiveDescriptors();
+
+      expect(res).toBe(false);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `${rejectIds.length}/${refs.length} descriptors were not successfully archived`
+      );
 
       refs.forEach((ref) => {
         expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
@@ -471,8 +485,6 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
       expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(
         numberOfArchivableDescriptors
       );
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(rejectIds.length);
 
       rejectIds.forEach((ref) => {
         expect(mockLogger.error).toHaveBeenCalledWith(
@@ -527,7 +539,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: genericLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveEServices();
+        const res = await archiverService.archiveEServices();
+
+        expect(res).toBe(true);
 
         expect(catalogProcessClient.archiveEService).toHaveBeenCalledWith(
           undefined,
@@ -590,7 +604,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: genericLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveEServices();
+        const res = await archiverService.archiveEServices();
+
+        expect(res).toBe(true);
 
         expect(catalogProcessClient.archiveEService).not.toHaveBeenCalledWith(
           undefined,
@@ -669,7 +685,13 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
           loggerInstance: mockLogger,
           refreshableToken: mockRefreshableToken,
         });
-      await archiverService.archiveEServices();
+      const res = await archiverService.archiveEServices();
+
+      expect(res).toBe(false);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `${rejectIds.length}/${refs.length} E-Services were not successfully archived`
+      );
 
       refs.forEach((eServiceId) => {
         expect(catalogProcessClient.archiveEService).toHaveBeenCalledWith(
@@ -689,8 +711,6 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
       expect(catalogProcessClient.archiveEService).toHaveBeenCalledTimes(
         numberOfArchivableEServices
       );
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(rejectIds.length);
 
       rejectIds.forEach((eserviceId) => {
         expect(mockLogger.error).toHaveBeenCalledWith(
@@ -776,7 +796,9 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             loggerInstance: mockLogger,
             refreshableToken: mockRefreshableToken,
           });
-        await archiverService.archiveEServices();
+        const res = await archiverService.archiveEServices();
+
+        expect(res).toBe(true);
 
         expect(catalogProcessClient.archiveEService).not.toHaveBeenCalledWith(
           undefined,

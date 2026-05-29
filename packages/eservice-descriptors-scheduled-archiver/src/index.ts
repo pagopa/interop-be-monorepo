@@ -32,12 +32,13 @@ try {
     loggerInstance,
     refreshableToken,
   });
-  await archiverService.archiveDescriptors();
-  await archiverService.archiveEServices();
-  await processExit(0);
+  const descriptorSuccess = await archiverService.archiveDescriptors();
+  const eserviceSuccess = await archiverService.archiveEServices();
+  const exitCode = descriptorSuccess && eserviceSuccess ? 0 : 1;
+  await processExit(exitCode);
 } catch (error) {
   loggerInstance.error(
     `Error handling eservice-descriptors-scheduled-archiver: ${error}`
   );
-  await processExit(1);
+  await processExit(255);
 }

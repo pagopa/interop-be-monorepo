@@ -31,7 +31,9 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
   catalogProcessClient: CatalogProcessZodiosClient;
   refreshableToken: RefreshableInteropToken;
 }) {
-  const archiveDescriptor = async (ref: ArchivableDescriptorRef) => {
+  const archiveDescriptor = async (
+    ref: ArchivableDescriptorRef
+  ): Promise<boolean> => {
     loggerInstance.info(
       `Archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}...`
     );
@@ -49,6 +51,7 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
           headers,
         }
       );
+      return true;
     } catch (error) {
       if (isAlreadyArchivedErrorResponse(error)) {
         loggerInstance.warn(
@@ -59,10 +62,11 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
           `Error while archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}: ${error}`
         );
       }
+      return false;
     }
   };
 
-  const archiveEService = async (eServiceId: EServiceId) => {
+  const archiveEService = async (eServiceId: EServiceId): Promise<boolean> => {
     loggerInstance.info(`Archiving e-service with id ${eServiceId}...`);
     try {
       const token = (await refreshableToken.get()).serialized;
@@ -74,6 +78,7 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
         },
         headers,
       });
+      return true;
     } catch (error) {
       if (isAlreadyArchivedErrorResponse(error)) {
         loggerInstance.warn(`e-service ${eServiceId} is already archived`);
@@ -82,20 +87,32 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
           `Error while archiving e-service with id ${eServiceId}: ${error}`
         );
       }
+      return false;
     }
   };
   return {
-    async archiveDescriptors(): Promise<void> {
+    async archiveDescriptors(): Promise<boolean> {
       loggerInstance.info("Archiving descriptors...");
       loggerInstance.info("Getting archivable descriptors references...");
       const descriptorRefs =
         await readModelService.getArchivableDescriptorsRefs();
 
-      await Promise.all(
+      const results = await Promise.all(
         descriptorRefs.map(await limit(() => archiveDescriptor))
       );
+
+      const success = results.every((success) => success);
+
+      if (!success) {
+        const errorLength = results.filter((success) => !success).length;
+        loggerInstance.error(
+          `${errorLength}/${results.length} descriptors were not successfully archived`
+        );
+      }
+
+      return success;
     },
-    async archiveEServices(): Promise<void> {
+    async archiveEServices(): Promise<boolean> {
       loggerInstance.info("Archiving e-services...");
       loggerInstance.info("Getting archivable e-services references...");
       const eserviceIds = await readModelService.getArchivableEservicesRefs();
@@ -130,9 +147,20 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
           !eservicesWithUnarchivableDescriptorsIds.includes(eserviceId)
       );
 
-      await Promise.all(
+      const results = await Promise.all(
         correctEservicesIds.map(await limit(() => archiveEService))
       );
+
+      const success = results.every((success) => success);
+
+      if (!success) {
+        const errorLength = results.filter((success) => !success).length;
+        loggerInstance.error(
+          `${errorLength}/${results.length} E-Services were not successfully archived`
+        );
+      }
+
+      return success;
     },
   };
 }
