@@ -66,15 +66,29 @@ export const matchesCertifiedDescriptorAttribute = (
     | EServiceAttributeCertifiedDiscrete,
   tenantAttributes: TenantAttribute[],
   options: CertifiedDiscreteValidationOptions = {}
-): boolean =>
-  tenantAttributes.some((tenantAttribute) => {
-    if (
-      "discreteConfig" in descriptorAttribute &&
-      (options.certifiedDiscreteEnabled ?? true)
-    ) {
+): boolean => {
+  const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
+
+  // When the feature flag is disabled, discrete descriptor attributes are
+  // ignored entirely: they never count as satisfied.
+  if ("discreteConfig" in descriptorAttribute && !discreteEnabled) {
+    return false;
+  }
+
+  return tenantAttributes.some((tenantAttribute) => {
+    if ("discreteConfig" in descriptorAttribute) {
       return matchesCertifiedDiscreteAttribute(
         descriptorAttribute,
         tenantAttribute
+      );
+    }
+    // With discrete support disabled, a plain certified requirement is only
+    // satisfied by a plain CERTIFIED tenant attribute, never by a discrete one.
+    if (!discreteEnabled) {
+      return (
+        tenantAttribute.id === descriptorAttribute.id &&
+        tenantAttribute.type === tenantAttributeType.CERTIFIED &&
+        !tenantAttribute.revocationTimestamp
       );
     }
     return (
@@ -84,18 +98,27 @@ export const matchesCertifiedDescriptorAttribute = (
       !tenantAttribute.revocationTimestamp
     );
   });
+};
 
 type CertifiedAttributeGroup = Descriptor["attributes"]["certified"][number];
 
-// Descriptor attribute contracts allow empty groups: full descriptor updates are
-// modeled as arrays of arrays, and M2M group seeds allow an empty attributeIds
-// list. Catalog parsing preserves those groups, so descriptors may reach this
-// validator with [] groups. They are ignored here because they carry no actual
-// requirement to satisfy.
-const nonEmptyCertifiedAttributeGroups = (
-  descriptorAttributes: Descriptor["attributes"]
+// Returns the certified groups actually evaluated. Descriptor attribute
+// contracts allow empty groups (full descriptor updates are arrays of arrays and
+// M2M group seeds allow an empty attributeIds list), so empty groups are dropped
+// as they carry no requirement. In addition, when the feature flag is disabled,
+// discrete attributes are dropped from each group entirely, so a group made only
+// of discrete attributes is ignored rather than treated as unsatisfiable.
+const effectiveCertifiedGroups = (
+  descriptorAttributes: Descriptor["attributes"],
+  discreteEnabled: boolean
 ): CertifiedAttributeGroup[] =>
-  descriptorAttributes.certified.filter((group) => group.length > 0);
+  descriptorAttributes.certified
+    .map((group) =>
+      discreteEnabled
+        ? group
+        : group.filter((attr) => !("discreteConfig" in attr))
+    )
+    .filter((group) => group.length > 0);
 
 // A certified attribute group is an OR condition: one matching attribute is
 // enough to satisfy the whole group.
@@ -160,10 +183,14 @@ export const evaluateCertifiedAttributesSuspension = (
     return noCertifiedAttributesSuspension;
   }
 
-  // 2. Something is missing, so find the first unsatisfied group: a group is an
-  //    OR, so it is unsatisfied only when none of its attributes match.
-  const failingGroup = nonEmptyCertifiedAttributeGroups(
-    descriptorAttributes
+  const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
+
+  // 2. Something is missing, so find the first unsatisfied group among the
+  //    groups actually evaluated: a group is an OR, so it is unsatisfied only
+  //    when none of its attributes match.
+  const failingGroup = effectiveCertifiedGroups(
+    descriptorAttributes,
+    discreteEnabled
   ).find(
     (group) =>
       !tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options)
@@ -171,8 +198,6 @@ export const evaluateCertifiedAttributesSuspension = (
 
   // When the feature flag is disabled, discrete attributes are not evaluated:
   // skip the discrete-specific reasons and fall back to the generic one.
-  const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
-
   if (discreteEnabled) {
     // 3. The tenant owns the discrete attribute, but its value is out of
     //    threshold => specific reason with details.
@@ -213,10 +238,13 @@ export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[],
   options: CertifiedDiscreteValidationOptions = {}
-): boolean =>
-  nonEmptyCertifiedAttributeGroups(descriptorAttributes).every((group) =>
-    tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options)
+): boolean => {
+  const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
+  return effectiveCertifiedGroups(descriptorAttributes, discreteEnabled).every(
+    (group) =>
+      tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options)
   );
+};
 
 export const declaredAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],

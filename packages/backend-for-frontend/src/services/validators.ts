@@ -5,6 +5,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
 import {
   delegationKind,
   delegationState,
@@ -189,7 +190,10 @@ export function hasCertifiedAttributes(
     descriptor !== undefined &&
     certifiedAttributesSatisfied(
       descriptorAttributesFromApi(descriptor.attributes),
-      tenantAttributesFromApi(requesterTenant.attributes)
+      tenantAttributesFromApi(requesterTenant.attributes),
+      {
+        certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      }
     )
   );
 }

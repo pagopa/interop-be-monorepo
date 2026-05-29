@@ -38,6 +38,7 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -297,7 +298,11 @@ function maybeCreateSuspensionByPlatformEvents(
       const { suspensionReason, discreteAttributeFailure } =
         evaluateCertifiedAttributesSuspension(
           descriptor.attributes,
-          consumer.attributes
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled:
+              config.featureFlagAttributeCertifiedDiscrete,
+          }
         );
       return [
         toCreateEventAgreementSuspendedByPlatform(

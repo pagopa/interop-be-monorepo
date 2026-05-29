@@ -1151,6 +1151,164 @@ describe("create agreement", () => {
         consumer.id
       );
     });
+
+    it("should ignore certified discrete requirements when the feature flag is disabled and the consumer has no discrete attribute", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const producer = getMockTenant();
+      const descriptorAttribute = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [
+              {
+                ...descriptorAttribute,
+                discreteConfig: {
+                  threshold: 100,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = { ...getMockTenant(), attributes: [] };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
+      );
+    });
+
+    it("should ignore certified discrete requirements when the feature flag is disabled and the consumer has a revoked discrete attribute", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const { producer, descriptor, consumer, eservice } =
+        buildDiscreteScenario({
+          threshold: 100,
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+          value: 42,
+          revoked: true,
+        });
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
+      );
+    });
+
+    it("should fail when the feature flag is disabled and the consumer only has a certified discrete attribute matching a plain certified requirement", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const producer = getMockTenant();
+      const certifiedDescriptorAttribute: EServiceAttribute =
+        getMockEServiceAttribute();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [[certifiedDescriptorAttribute]],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            ...getMockCertifiedDiscreteTenantAttribute(
+              certifiedDescriptorAttribute.id
+            ),
+            discreteValue: 42,
+            revocationTimestamp: undefined,
+          },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      await expect(
+        createAgreementForScenario(eservice, consumer)
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
+
+    it("should satisfy a mixed certified group on the plain certified attribute when the feature flag is disabled", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const producer = getMockTenant();
+      const plainCertifiedAttribute: EServiceAttribute =
+        getMockEServiceAttribute();
+      const discreteDescriptorAttribute =
+        getMockEServiceAttributeCertifiedDiscrete();
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [
+              plainCertifiedAttribute,
+              {
+                ...discreteDescriptorAttribute,
+                discreteConfig: {
+                  threshold: 100,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            ...getMockCertifiedTenantAttribute(plainCertifiedAttribute.id),
+            revocationTimestamp: undefined,
+          },
+        ],
+      };
+      const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+        descriptor,
+      ]);
+
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+
+      const response = await createAgreementForScenario(eservice, consumer);
+      await expectedAgreementCreation(
+        response,
+        eservice.id,
+        descriptor.id,
+        producer.id,
+        consumer.id
+      );
+    });
   });
 
   it("should throw tenantIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
