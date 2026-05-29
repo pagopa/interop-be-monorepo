@@ -1676,6 +1676,22 @@ components:
         - value
         - assignmentTimestamp
     InternalTenantSeed:
+      description: Tenant Seed model
+      type: object
+      additionalProperties: false
+      properties:
+        origin:
+          type: string
+        value:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+      required:
+        - origin
+        - value
+        - assignmentTimestamp
+    InternalTenantSeed:
           description: Tenant Seed model
           type: object
           additionalProperties: false

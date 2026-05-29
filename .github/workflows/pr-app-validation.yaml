@@ -301,21 +301,60 @@ jobs:
       - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
           run_install: true
-      - name: Cache Puppeteer browsers
-        if: contains(toJson(matrix.shard.packages), 'pagopa-interop-documents-generator')
-        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
-        with:
-          path: ~/.cache/puppeteer
-          key: ${{ runner.os }}-puppeteer-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Download build artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build-output
           path: .
-      - name: Install Puppeteer Chrome
+      - name: Cache Puppeteer browsers
         if: contains(toJson(matrix.shard.packages), 'pagopa-interop-documents-generator')
-        run: pnpm --filter pagopa-interop-documents-generator exec puppeteer browsers install chrome
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-puppeteer-chrome-${{ hashFiles('pnpm-workspace.yaml') }}
+      # `puppeteer browsers install chrome` is bypassed because on this runner
+      # its zip extraction completes only partially (a handful of entries out of
+      # thousands), leaving the cache directory without the chrome executable.
+      # We fetch the official Chrome-for-Testing zip and unpack it with system
+      # `unzip`, which is reliable. The Chrome version is derived from the
+      # installed Puppeteer package so a puppeteer bump is followed automatically.
+      - name: Install Puppeteer browser
+        if: contains(toJson(matrix.shard.packages), 'pagopa-interop-documents-generator')
+        env:
+          PUPPETEER_CACHE_DIR: /home/runner/.cache/puppeteer
+        run: |
+          CHROME_VERSION="$(pnpm --filter pagopa-interop-documents-generator exec node --input-type=module -e 'import puppeteer from "puppeteer"; console.log(puppeteer.browserRevision ?? "")')"
+          if [ -z "$CHROME_VERSION" ]; then
+            echo "::error::Unable to derive Chrome version from Puppeteer"
+            exit 1
+          fi
+          echo "Chrome version derived from puppeteer-core: $CHROME_VERSION"
+          CHROME_DIR="$PUPPETEER_CACHE_DIR/chrome/linux-$CHROME_VERSION/chrome-linux64"
+          CHROME_BIN="$CHROME_DIR/chrome"
+          if [ -x "$CHROME_BIN" ]; then
+            echo "Chrome already installed at $CHROME_BIN"
+            if "$CHROME_BIN" --version; then
+              exit 0
+            fi
+            echo "Cached Chrome cannot run, reinstalling..."
+            rm -rf "$PUPPETEER_CACHE_DIR/chrome/linux-$CHROME_VERSION"
+          fi
+          echo "Chrome not installed. Downloading $CHROME_VERSION from Chrome-for-Testing..."
+          rm -rf "$PUPPETEER_CACHE_DIR/chrome/linux-$CHROME_VERSION"
+          mkdir -p "$PUPPETEER_CACHE_DIR/chrome/linux-$CHROME_VERSION"
+          curl -fSL -o /tmp/chrome.zip \
+            "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chrome-linux64.zip"
+          unzip -q /tmp/chrome.zip -d "$PUPPETEER_CACHE_DIR/chrome/linux-$CHROME_VERSION"
+          rm /tmp/chrome.zip
+          chmod +x "$CHROME_BIN"
+          if ! "$CHROME_BIN" --version; then
+            echo "::error::Chrome install failed: $CHROME_BIN cannot run"
+            exit 1
+          fi
+          echo "Chrome ready at: $CHROME_BIN"
       - name: Run tests for shard
+        env:
+          PUPPETEER_CACHE_DIR: /home/runner/.cache/puppeteer
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           COMMAND='${{ matrix.shard.command }}'
