@@ -165,6 +165,7 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingCanceled" },
       { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
