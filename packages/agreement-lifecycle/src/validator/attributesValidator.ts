@@ -83,16 +83,6 @@ export const certifiedAttributesSatisfied = (
       )
     );
 
-/*
- * Returns the suspension reason and (when applicable) the discrete attribute
- * failure detail when the tenant does not satisfy the descriptor certified
- * attributes.
- *
- * Policy: the reason reflects the first descriptor group that fails
- * (top-down). Within that group, a discrete entry is preferred for the
- * reason and the detail is populated from the tenant's current discrete
- * attribute value when available.
- */
 export const certifiedAttributesFailure = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[]

@@ -286,9 +286,6 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableActiveAgreement);
 
-      // The recompute is triggered by the still-satisfied discrete attribute.
-      // The actual failure lies in the second certified group (revoked regular
-      // attribute), so the event must reflect that, not the triggering one.
       await agreementService.internalComputeAgreementsStateByAttribute(
         satisfiedDiscreteAttribute.id,
         mixedConsumer,
