@@ -277,7 +277,9 @@ export function toCreateEventAgreementSuspendedByPlatform(
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
-        suspensionReason: toAgreementSuspensionReasonV2(suspensionReason),
+        suspensionReason: suspensionReason
+          ? toAgreementSuspensionReasonV2(suspensionReason)
+          : undefined,
         discreteAttributeFailure: discreteAttributeFailure
           ? toCertifiedDiscreteAttributeFailureV2(discreteAttributeFailure)
           : undefined,

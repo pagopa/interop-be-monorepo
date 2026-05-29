@@ -41,10 +41,9 @@ export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
     .exhaustive();
 
 export const toAgreementSuspensionReasonV2 = (
-  suspensionReason: AgreementSuspensionReason | undefined
-): AgreementSuspensionReasonV2 | undefined =>
+  suspensionReason: AgreementSuspensionReason
+): AgreementSuspensionReasonV2 =>
   match(suspensionReason)
-    .with(undefined, () => undefined)
     .with(
       agreementSuspensionReason.certifiedAttribute,
       () =>
