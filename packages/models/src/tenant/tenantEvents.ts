@@ -131,7 +131,7 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
       TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
     )
     .with({ type: "TenantRemoteIdAssigned" }, ({ data }) =>
-      TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
+      TenantRemoteIdAssignedV2.toBinary(data)
     )
     .exhaustive();
 }

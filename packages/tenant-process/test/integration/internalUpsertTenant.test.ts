@@ -359,10 +359,7 @@ describe("internalUpsertTenant", async () => {
 
     const mockTenant: Tenant = {
       ...getMockTenant(),
-      externalId: {
-        origin: "IPA",
-        value: "123456",
-      },
+      externalId: { origin: "IPA", value: "123456" },
       kind: tenantKind.PA,
       remoteIds: [
         {
@@ -386,7 +383,16 @@ describe("internalUpsertTenant", async () => {
       getMockContextInternal({})
     );
 
-    expect(returnedTenant.metadata.version).toBe(1);
+    expect(returnedTenant.metadata.version).toBe(0);
     expect(returnedTenant.data.remoteIds).toHaveLength(1);
+
+    await expect(
+      readEventByStreamIdAndVersion(
+        mockTenant.id,
+        returnedTenant.metadata.version + 1,
+        "tenant",
+        postgresDB
+      )
+    ).rejects.toThrowError();
   });
 });
