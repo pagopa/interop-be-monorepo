@@ -129,7 +129,7 @@ async function readInteractionById(
   const queryResult = await dynamoDBClient.send(
     new QueryCommand({
       TableName: interactionsTable,
-      IndexName: "GSIPK_interactionId-index",
+      IndexName: "interactionId",
       KeyConditionExpression: "GSIPK_interactionId = :interactionId",
       ExpressionAttributeValues: {
         ":interactionId": { S: makeGSIPKInteractionId(interactionId) },
