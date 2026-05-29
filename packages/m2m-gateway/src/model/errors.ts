@@ -7,6 +7,7 @@ import {
   catalogApi,
 } from "pagopa-interop-api-clients";
 import {
+  AgreementId,
   ApiError,
   DescriptorId,
   EServiceId,
@@ -31,8 +32,7 @@ const errorCodes = {
   eserviceDescriptorNotFound: "0010",
   taxCodeAndIPACodeConflict: "0011",
   purposeVersionNotFound: "0012",
-  agreementNotInSuspendedState: "0013",
-  agreementNotInPendingState: "0014",
+  agreementNotInExpectedState: "0013",
   missingPurposeVersionWithState: "0015",
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
@@ -74,6 +74,17 @@ export function missingMetadata(): ApiError<ErrorCodes> {
     detail: "Resource metadata is missing",
     code: "missingMetadata",
     title: "Missing metadata",
+  });
+}
+
+export function agreementNotInExpectedState(
+  agreementId: AgreementId,
+  state: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} not in expected state (current state: ${state})`,
+    code: "agreementNotInExpectedState",
+    title: "Agreement not in expected state",
   });
 }
 
@@ -167,26 +178,6 @@ export function missingPurposeCurrentVersion(
     detail: `There is no current valid version for purpose ${purposeId}`,
     code: "missingPurposeCurrentVersion",
     title: "Missing current purpose version",
-  });
-}
-
-export function agreementNotInPendingState(
-  agreementId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement ${agreementId} is not in pending state`,
-    code: "agreementNotInPendingState",
-    title: "Agreement not in pending state",
-  });
-}
-
-export function agreementNotInSuspendedState(
-  agreementId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement ${agreementId} is not in suspended state`,
-    code: "agreementNotInSuspendedState",
-    title: "Agreement not in suspended state",
   });
 }
 

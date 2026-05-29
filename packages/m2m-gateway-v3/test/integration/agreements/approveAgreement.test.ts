@@ -18,10 +18,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  agreementNotInPendingState,
-  missingMetadata,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
@@ -37,7 +34,7 @@ describe("approveAgreement", () => {
   const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
-  const mockActivateAgreement = vi
+  const mockApproveAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
   const mockGetAgreement = vi.fn(
@@ -46,17 +43,15 @@ describe("approveAgreement", () => {
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreementById: mockGetAgreement,
-    activateAgreement: mockActivateAgreement,
+    approveAgreement: mockApproveAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockActivateAgreement.mockClear();
+    mockApproveAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-
     const m2mAgreementResponse: m2mGatewayApiV3.Agreement =
       testToM2mGatewayApiAgreement(mockAgreementProcessResponse.data);
 
@@ -68,7 +63,7 @@ describe("approveAgreement", () => {
 
     expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.approveAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
@@ -80,29 +75,11 @@ describe("approveAgreement", () => {
     });
     expect(
       mockInteropBeClients.agreementProcessClient.getAgreementById
-    ).toHaveBeenCalledTimes(pollingTentatives + 1);
-  });
-
-  it("Should throw agreementNotInPendingState in case of non-pending agreement", async () => {
-    const mockAgreementNotPending = getMockWithMetadata(
-      getMockedApiAgreement({ state: "ACTIVE" })
-    );
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementNotPending);
-
-    await expect(
-      agreementService.approveAgreement(
-        unsafeBrandId(mockAgreementNotPending.data.id),
-        mockDelegationRef,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      agreementNotInPendingState(mockAgreementNotPending.data.id)
-    );
+    ).toHaveBeenCalledTimes(pollingTentatives);
   });
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
+    mockApproveAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
     });
@@ -117,12 +94,10 @@ describe("approveAgreement", () => {
   });
 
   it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
-    mockGetAgreement
-      .mockResolvedValueOnce(mockAgreementProcessResponse)
-      .mockResolvedValueOnce({
-        ...mockAgreementProcessResponse,
-        metadata: undefined,
-      });
+    mockGetAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
 
     await expect(
       agreementService.approveAgreement(
@@ -135,14 +110,12 @@ describe("approveAgreement", () => {
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     // The activate will first get the agreement, then perform the polling
-    mockGetAgreement
-      .mockResolvedValueOnce(mockAgreementProcessResponse)
-      .mockImplementation(
-        mockPollingResponse(
-          mockAgreementProcessResponse,
-          config.defaultPollingMaxRetries + 1
-        )
-      );
+    mockGetAgreement.mockImplementation(
+      mockPollingResponse(
+        mockAgreementProcessResponse,
+        config.defaultPollingMaxRetries + 1
+      )
+    );
 
     await expect(
       agreementService.approveAgreement(
@@ -157,7 +130,7 @@ describe("approveAgreement", () => {
       )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries + 1
+      config.defaultPollingMaxRetries
     );
   });
 });

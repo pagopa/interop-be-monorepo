@@ -277,11 +277,31 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/activate", async (req, res) => {
+    .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await agreementService.activateAgreement(
+        const result = await agreementService.approveAgreement(
+          req.params.agreementId,
+          req.body.delegationId,
+          ctx
+        );
+        return res.status(200).send(bffApi.Agreement.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          activateAgreementErrorMapper,
+          ctx,
+          `Error activating agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/unsuspend", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.unsuspendAgreement(
           req.params.agreementId,
           req.body.delegationId,
           ctx
