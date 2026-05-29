@@ -1,5 +1,7 @@
 import {
+  agreementSuspensionReason,
   AgreementSuspensionReason,
+  attributeCertifiedDiscreteComparator,
   AttributeCertifiedDiscreteComparator,
   CertifiedDiscreteAttributeFailure,
   Descriptor,
@@ -7,8 +9,6 @@ import {
   EServiceAttributeCertified,
   EServiceAttributeCertifiedDiscrete,
   TenantAttribute,
-  agreementSuspensionReason,
-  attributeCertifiedDiscreteComparator,
   tenantAttributeType,
   TenantId,
 } from "pagopa-interop-models";
