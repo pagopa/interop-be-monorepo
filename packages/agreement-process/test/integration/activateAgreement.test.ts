@@ -8,12 +8,14 @@ import {
   getMockAgreement,
   getMockAgreementAttribute,
   getMockAttribute,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
@@ -31,6 +33,7 @@ import {
   AgreementUnsuspendedByConsumerV2,
   AgreementUnsuspendedByPlatformV2,
   AgreementUnsuspendedByProducerV2,
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -41,6 +44,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeCertifiedDiscreteComparator,
   attributeKind,
   delegationKind,
   delegationState,
@@ -358,6 +362,108 @@ describe("activate agreement", () => {
         });
       }
     );
+
+    it("should populate certifiedDiscreteAttributes on activated agreement when pending agreement has a valid certified discrete attribute", async () => {
+      const producer: Tenant = getMockTenant();
+      const certifiedDiscreteAttribute = getMockAttribute(
+        attributeKind.certified
+      );
+
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        attributes: {
+          certified: [
+            [
+              {
+                ...getMockEServiceAttributeCertifiedDiscrete(
+                  certifiedDiscreteAttribute.id
+                ),
+                discreteConfig: {
+                  threshold: 40,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        descriptors: [descriptor],
+      };
+
+      const validTenantDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
+        ...getMockCertifiedDiscreteTenantAttribute(
+          certifiedDiscreteAttribute.id
+        ),
+        discreteValue: 42,
+        revocationTimestamp: undefined,
+      };
+
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [validTenantDiscreteAttribute],
+      };
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: producer.id,
+        consumerId: consumer.id,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        stamps: {
+          submission: { who: generateId(), when: new Date() },
+          activation: undefined,
+        },
+        certifiedAttributes: [],
+        certifiedDiscreteAttributes: [getMockAgreementAttribute()],
+        declaredAttributes: [],
+        verifiedAttributes: [],
+      };
+
+      const authData = getMockAuthData(producer.id);
+
+      await addOneAgreement(agreement);
+      await addOneTenant(producer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+      await addOneAttribute(certifiedDiscreteAttribute);
+
+      await agreementService.activateAgreement(
+        { agreementId: agreement.id, delegationId: undefined },
+        getMockContext({ authData })
+      );
+
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementActivated",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
+
+      const actualAgreementActivated = fromAgreementV2(
+        decodeProtobufPayload({
+          messageType: AgreementActivatedV2,
+          payload: agreementEvent.data,
+        }).agreement!
+      );
+
+      expect(actualAgreementActivated.state).toEqual(agreementState.active);
+      expect(actualAgreementActivated.certifiedDiscreteAttributes).toEqual([
+        { id: certifiedDiscreteAttribute.id },
+      ]);
+      expect(actualAgreementActivated.certifiedAttributes).toEqual([]);
+    });
 
     it("Agreement Pending, Requester === Producer, invalid certified attributes -- error case: throws agreementActivationFailed and sets the agreement to MissingCertifiedAttributes", async () => {
       const producer: Tenant = getMockTenant();
