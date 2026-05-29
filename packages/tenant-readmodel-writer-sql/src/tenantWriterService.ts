@@ -12,6 +12,7 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -67,6 +68,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
@@ -123,6 +125,10 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
 
         for (const featureSQL of featuresSQL) {
           await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+        }
+
+        for (const remoteIdSQL of remoteIdsSQL) {
+          await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
         }
       });
     },
