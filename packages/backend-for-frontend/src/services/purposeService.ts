@@ -305,6 +305,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      reviewerWorkflow: purpose.reviewerWorkflow,
     };
   };
 
@@ -626,6 +627,7 @@ export function purposeServiceBuilder(
     },
     async getRiskAnalysisAssignments(
       filters: {
+        eservicesIds?: string[] | undefined;
         signingState?: bffApi.RiskAnalysisSigningState[] | undefined;
       },
       offset: number,
@@ -642,12 +644,13 @@ export function purposeServiceBuilder(
               bffApi.RiskAnalysisSigningState.Values.SUBMITTED,
             ];
       logger.info(
-        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingState.join(",")}, offset ${offset}, limit ${limit}`
+        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingState.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData,
         {
           reviewerId: authData.userId,
+          eservicesIds: filters.eservicesIds,
           signingState,
           excludeDraft: true,
           offset,
