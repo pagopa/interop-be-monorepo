@@ -817,95 +817,83 @@ describe("create agreement", () => {
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
 
-    const comparatorCases: Array<{
+    const satisfyingComparatorCases: Array<{
       comparator: AttributeCertifiedDiscreteComparator;
       threshold: number;
       value: number;
-      shouldSatisfy: boolean;
     }> = [
-      // GT
       {
         comparator: attributeCertifiedDiscreteComparator.GT,
         threshold: 40,
         value: 42,
-        shouldSatisfy: true,
       },
-      {
-        comparator: attributeCertifiedDiscreteComparator.GT,
-        threshold: 40,
-        value: 40,
-        shouldSatisfy: false,
-      },
-      // LT
       {
         comparator: attributeCertifiedDiscreteComparator.LT,
         threshold: 100,
         value: 99,
-        shouldSatisfy: true,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.EQ,
+        threshold: 42,
+        value: 42,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.GTE,
+        threshold: 42,
+        value: 42,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.LTE,
+        threshold: 42,
+        value: 42,
+      },
+      {
+        comparator: attributeCertifiedDiscreteComparator.NE,
+        threshold: 42,
+        value: 41,
+      },
+    ];
+
+    const nonSatisfyingComparatorCases: Array<{
+      comparator: AttributeCertifiedDiscreteComparator;
+      threshold: number;
+      value: number;
+    }> = [
+      {
+        comparator: attributeCertifiedDiscreteComparator.GT,
+        threshold: 40,
+        value: 40,
       },
       {
         comparator: attributeCertifiedDiscreteComparator.LT,
         threshold: 100,
         value: 100,
-        shouldSatisfy: false,
-      },
-      // EQ
-      {
-        comparator: attributeCertifiedDiscreteComparator.EQ,
-        threshold: 42,
-        value: 42,
-        shouldSatisfy: true,
       },
       {
         comparator: attributeCertifiedDiscreteComparator.EQ,
         threshold: 42,
         value: 43,
-        shouldSatisfy: false,
-      },
-      // GTE
-      {
-        comparator: attributeCertifiedDiscreteComparator.GTE,
-        threshold: 42,
-        value: 42,
-        shouldSatisfy: true,
       },
       {
         comparator: attributeCertifiedDiscreteComparator.GTE,
         threshold: 42,
         value: 41,
-        shouldSatisfy: false,
-      },
-      // LTE
-      {
-        comparator: attributeCertifiedDiscreteComparator.LTE,
-        threshold: 42,
-        value: 42,
-        shouldSatisfy: true,
       },
       {
         comparator: attributeCertifiedDiscreteComparator.LTE,
         threshold: 42,
         value: 43,
-        shouldSatisfy: false,
-      },
-      // NE
-      {
-        comparator: attributeCertifiedDiscreteComparator.NE,
-        threshold: 42,
-        value: 41,
-        shouldSatisfy: true,
       },
       {
         comparator: attributeCertifiedDiscreteComparator.NE,
         threshold: 42,
         value: 42,
-        shouldSatisfy: false,
       },
     ];
 
-    it.each(comparatorCases)(
-      "comparator $comparator with threshold $threshold and value $value -> shouldSatisfy=$shouldSatisfy",
-      async ({ comparator, threshold, value, shouldSatisfy }) => {
+    it.each(satisfyingComparatorCases)(
+      "should create the agreement when comparator $comparator with threshold $threshold matches the consumer's value $value",
+      async ({ comparator, threshold, value }) => {
         const { producer, descriptor, consumer, eservice } =
           buildDiscreteScenario({ threshold, comparator, value });
 
@@ -913,22 +901,32 @@ describe("create agreement", () => {
         await addOneTenant(consumer);
         await addOneEService(eservice);
 
-        if (shouldSatisfy) {
-          const response = await createAgreementForScenario(eservice, consumer);
-          await expectedAgreementCreation(
-            response,
-            eservice.id,
-            descriptor.id,
-            producer.id,
-            consumer.id
-          );
-        } else {
-          await expect(
-            createAgreementForScenario(eservice, consumer)
-          ).rejects.toThrowError(
-            missingCertifiedAttributesError(descriptor.id, consumer.id)
-          );
-        }
+        const response = await createAgreementForScenario(eservice, consumer);
+        await expectedAgreementCreation(
+          response,
+          eservice.id,
+          descriptor.id,
+          producer.id,
+          consumer.id
+        );
+      }
+    );
+
+    it.each(nonSatisfyingComparatorCases)(
+      "should fail when comparator $comparator with threshold $threshold does not match the consumer's value $value",
+      async ({ comparator, threshold, value }) => {
+        const { producer, descriptor, consumer, eservice } =
+          buildDiscreteScenario({ threshold, comparator, value });
+
+        await addOneTenant(producer);
+        await addOneTenant(consumer);
+        await addOneEService(eservice);
+
+        await expect(
+          createAgreementForScenario(eservice, consumer)
+        ).rejects.toThrowError(
+          missingCertifiedAttributesError(descriptor.id, consumer.id)
+        );
       }
     );
 
