@@ -1331,6 +1331,8 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         agreementOwnership,
+        descriptor,
+        consumer,
         correlationId
       );
 
