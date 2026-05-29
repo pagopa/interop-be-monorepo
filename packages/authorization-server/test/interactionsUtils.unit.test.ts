@@ -12,6 +12,7 @@ import {
   generateId,
   Interaction,
   InteractionId,
+  isInteractionStateAllowedForScope,
   makeInteractionPK,
   PurposeId,
   TenantId,
@@ -19,7 +20,6 @@ import {
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
   createInteraction,
-  isInteractionStateAllowedForScope,
   readInteraction,
   updateInteractionState,
 } from "../src/utilities/interactionsUtils.js";

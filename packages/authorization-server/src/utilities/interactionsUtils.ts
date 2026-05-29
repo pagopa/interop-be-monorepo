@@ -27,10 +27,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-// Re-exported from pagopa-interop-models so existing call sites keep importing
-// it from here; the single source of truth lives in models.
-export { isInteractionStateAllowedForScope };
-
 export const createInteraction = async ({
   dynamoDBClient,
   interactionsTable,
