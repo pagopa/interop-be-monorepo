@@ -1690,6 +1690,10 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - externalId
         - certifiedAttributes

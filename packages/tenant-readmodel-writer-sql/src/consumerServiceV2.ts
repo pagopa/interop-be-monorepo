@@ -39,7 +39,8 @@ export async function handleMessageV2(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned"
         ),
       },
       async (message) => {

@@ -30,6 +30,7 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
   CertifiedTenantAttribute,
+  TenantRemoteIdAssignedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
@@ -663,6 +664,46 @@ describe("Tenant Events V2", async () => {
     const message: TenantEventEnvelopeV2 = {
       ...mockMessage,
       type: "MaintenanceTenantUpdated",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("TenantRemoteIdAssigned", async () => {
+    const tenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [],
+    };
+    await tenantWriterService.upsertTenant(tenant, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [
+        {
+          origin: "ISTAT",
+          value: "12345",
+          assignmentTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const payload: TenantRemoteIdAssignedV2 = {
+      tenant: toTenantV2(updatedTenant),
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantRemoteIdAssigned",
       data: payload,
       version: 2,
     };

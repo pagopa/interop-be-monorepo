@@ -30,6 +30,7 @@ import {
   MaintenanceTenantUpdatedV2,
   TenantDelegatedConsumerFeatureAddedV2,
   TenantDelegatedConsumerFeatureRemovedV2,
+  TenantRemoteIdAssignedV2,
 } from "../gen/v2/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -128,6 +129,9 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     )
     .with({ type: "TenantDelegatedConsumerFeatureRemoved" }, ({ data }) =>
       TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
+    )
+    .with({ type: "TenantRemoteIdAssigned" }, ({ data }) =>
+      TenantRemoteIdAssignedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -272,6 +276,11 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantDelegatedConsumerFeatureRemoved"),
     data: protobufDecoder(TenantDelegatedConsumerFeatureRemovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantRemoteIdAssigned"),
+    data: protobufDecoder(TenantRemoteIdAssignedV2),
   }),
 ]);
 

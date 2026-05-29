@@ -68,6 +68,7 @@ import {
   toCreateEventTenantDelegatedProducerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureAdded,
+  toCreateEventTenantRemoteIdAssigned,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -1482,7 +1483,6 @@ export function tenantServiceBuilder(
       const existingTenant = await retrieveTenantByExternalId({
         tenantOrigin: internalTenantSeed.externalId.origin,
         tenantExternalId: internalTenantSeed.externalId.value,
-
         readModelService,
       });
 
@@ -1495,9 +1495,11 @@ export function tenantServiceBuilder(
       );
 
       const existingAttributes =
-        await readModelService.getAttributesByExternalIds(
-          attributesExternalIds
-        );
+        attributesExternalIds.length > 0
+          ? await readModelService.getAttributesByExternalIds(
+              attributesExternalIds
+            )
+          : [];
 
       attributesExternalIds.forEach((attributeToAssign) => {
         if (
@@ -1513,66 +1515,115 @@ export function tenantServiceBuilder(
         }
       });
 
-      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
-        (
-          acc: {
-            events: Array<CreateEvent<TenantEvent>>;
-            tenantWithNewAttributes: Tenant;
-          },
-          attribute: Attribute,
-          index
-        ) => {
-          const tenantWithNewAttribute = assignCertifiedAttribute({
-            targetTenant: acc.tenantWithNewAttributes,
-            attribute,
-          });
+      const { events: attributeEvents, tenantWithNewAttributes } =
+        existingAttributes.reduce(
+          (
+            acc: {
+              events: Array<CreateEvent<TenantEvent>>;
+              tenantWithNewAttributes: Tenant;
+            },
+            attribute: Attribute,
+            index
+          ) => {
+            const tenantWithNewAttribute = assignCertifiedAttribute({
+              targetTenant: acc.tenantWithNewAttributes,
+              attribute,
+            });
 
-          const version = existingTenant.metadata.version + index;
-          const attributeAssignmentEvent =
-            toCreateEventTenantCertifiedAttributeAssigned(
+            const version = existingTenant.metadata.version + index;
+            const attributeAssignmentEvent =
+              toCreateEventTenantCertifiedAttributeAssigned(
+                version,
+                tenantWithNewAttribute,
+                attribute.id,
+                correlationId
+              );
+            return {
+              events: [...acc.events, attributeAssignmentEvent],
+              tenantWithNewAttributes: tenantWithNewAttribute,
+            };
+          },
+          {
+            events: [],
+            tenantWithNewAttributes: existingTenant.data,
+          }
+        );
+
+      const newRemoteIds = (internalTenantSeed.remoteIds ?? []).filter(
+        (seedRemoteId) =>
+          !(tenantWithNewAttributes.remoteIds ?? []).some(
+            (existing) =>
+              existing.origin === seedRemoteId.origin &&
+              existing.value === seedRemoteId.value
+          )
+      );
+
+      const { events: remoteIdEvents, tenantWithRemoteIds } =
+        newRemoteIds.reduce(
+          (acc, remoteId, index) => {
+            const domainRemoteId = {
+              ...remoteId,
+              assignmentTimestamp: new Date(remoteId.assignmentTimestamp),
+            };
+
+            const updatedTenant: Tenant = {
+              ...acc.tenantWithRemoteIds,
+              remoteIds: [
+                ...(acc.tenantWithRemoteIds.remoteIds ?? []),
+                domainRemoteId,
+              ],
+            };
+
+            const version =
+              existingTenant.metadata.version + attributeEvents.length + index;
+            const remoteIdAssignedEvent = toCreateEventTenantRemoteIdAssigned(
               version,
-              tenantWithNewAttribute,
-              attribute.id,
+              updatedTenant,
               correlationId
             );
-          return {
-            events: [...acc.events, attributeAssignmentEvent],
-            tenantWithNewAttributes: tenantWithNewAttribute,
-          };
-        },
-        {
-          events: [],
-          tenantWithNewAttributes: existingTenant.data,
-        }
-      );
+
+            return {
+              events: [...acc.events, remoteIdAssignedEvent],
+              tenantWithRemoteIds: updatedTenant,
+            };
+          },
+          {
+            events: [] as Array<CreateEvent<TenantEvent>>,
+            tenantWithRemoteIds: tenantWithNewAttributes,
+          }
+        );
+
+      const allEvents = [...attributeEvents, ...remoteIdEvents];
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
-        tenantWithNewAttributes.attributes,
+        tenantWithRemoteIds.attributes,
         internalTenantSeed.externalId,
-        tenantWithNewAttributes.selfcareInstitutionType
+        tenantWithRemoteIds.selfcareInstitutionType
       );
 
       const tenantWithUpdatedKind: Tenant = {
-        ...tenantWithNewAttributes,
+        ...tenantWithRemoteIds,
         kind: tenantKind,
       };
 
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + events.length,
+          existingTenant.metadata.version + allEvents.length,
           existingTenant.data.kind,
           tenantWithUpdatedKind,
           correlationId
         );
-        // eslint-disable-next-line functional/immutable-data
-        events.push(tenantKindUpdatedEvent);
+        allEvents.push(tenantKindUpdatedEvent);
       }
-      await repository.createEvents(events);
+
+      await repository.createEvents(allEvents);
 
       return {
         data: tenantWithUpdatedKind,
-        metadata: { version: existingTenant.metadata.version + events.length },
+        metadata: {
+          version: existingTenant.metadata.version + allEvents.length,
+        },
       };
     },
     async m2mUpsertTenant(

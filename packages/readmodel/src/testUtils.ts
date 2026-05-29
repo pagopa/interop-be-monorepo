@@ -85,6 +85,7 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -721,6 +722,7 @@ export const upsertTenant = async (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
   await readModelDB.transaction(async (tx) => {
@@ -783,6 +785,9 @@ export const upsertTenant = async (
 
     for (const featureSQL of featuresSQL) {
       await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+    }
+    for (const remoteIdSQL of remoteIdsSQL) {
+      await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
     }
   });
 };
