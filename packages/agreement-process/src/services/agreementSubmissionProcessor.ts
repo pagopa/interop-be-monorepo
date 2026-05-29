@@ -86,6 +86,7 @@ export const createSubmissionUpdateAgreementSeed = (
     : {
         state: newState,
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         verifiedAttributes: [],
         suspendedByConsumer: agreement.suspendedByConsumer,
