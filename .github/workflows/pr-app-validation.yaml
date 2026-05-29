@@ -287,6 +287,8 @@ jobs:
     permissions:
       contents: read
     needs: [packages_sharding, build]
+    env:
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.cache/puppeteer
     strategy:
       fail-fast: false
       matrix:
@@ -310,7 +312,7 @@ jobs:
         if: contains(toJson(matrix.shard.packages), 'pagopa-interop-documents-generator')
         uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
-          path: ~/.cache/puppeteer
+          path: ${{ env.PUPPETEER_CACHE_DIR }}
           key: ${{ runner.os }}-puppeteer-chrome-${{ hashFiles('pnpm-workspace.yaml') }}
       # `puppeteer browsers install chrome` is bypassed because on this runner
       # its zip extraction completes only partially (a handful of entries out of
@@ -320,8 +322,6 @@ jobs:
       # installed Puppeteer package so a puppeteer bump is followed automatically.
       - name: Install Puppeteer browser
         if: contains(toJson(matrix.shard.packages), 'pagopa-interop-documents-generator')
-        env:
-          PUPPETEER_CACHE_DIR: /home/runner/.cache/puppeteer
         run: |
           CHROME_VERSION="$(pnpm --filter pagopa-interop-documents-generator exec node --input-type=module -e 'import puppeteer from "puppeteer"; console.log(puppeteer.browserRevision ?? "")')"
           if [ -z "$CHROME_VERSION" ]; then
@@ -353,8 +353,6 @@ jobs:
           fi
           echo "Chrome ready at: $CHROME_BIN"
       - name: Run tests for shard
-        env:
-          PUPPETEER_CACHE_DIR: /home/runner/.cache/puppeteer
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           COMMAND='${{ matrix.shard.command }}'
