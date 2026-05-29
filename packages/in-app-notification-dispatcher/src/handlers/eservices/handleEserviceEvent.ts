@@ -104,7 +104,8 @@ export async function handleEServiceEvent(
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
           "EServiceArchivingCompleted",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {
