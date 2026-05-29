@@ -526,6 +526,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
       "TenantDelegatedProducerFeatureRemoved",
       "TenantDelegatedConsumerFeatureAdded",
       "TenantDelegatedConsumerFeatureRemoved",
+      "TenantRemoteIdAssigned",
     ] as const)("Should ignore the event %s", async (eventType) => {
       const message = toTenantEventEnvelopeV2({
         type: eventType,

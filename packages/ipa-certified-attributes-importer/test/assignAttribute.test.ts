@@ -8,10 +8,15 @@ import {
   getAttributesToAssign,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
+import { parseIPACertifiedAttributesImporterConfig } from "../src/config/config.js";
 
 describe("GetAttributesToAssign", async () => {
   const mockedDate = new Date("2024-01-01T00:00:00.000Z");
-
+  const config = parseIPACertifiedAttributesImporterConfig(process.env);
+  const enabledConfig = {
+    ...config,
+    featureFlagAttributeCertifiedDiscrete: true,
+  };
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(mockedDate);
@@ -79,6 +84,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
+      config,
       genericLogger
     );
 
@@ -181,6 +187,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
+      config,
       genericLogger
     );
 
@@ -233,6 +240,7 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       [],
       tenantSeed,
+      enabledConfig,
       genericLogger
     );
 
@@ -299,6 +307,66 @@ describe("GetAttributesToAssign", async () => {
       ipaTenants,
       platformAttributes,
       tenantSeed,
+      enabledConfig,
+      genericLogger
+    );
+
+    expect(attributesToAssign).toEqual([
+      {
+        name: "tenant 1",
+        certifiedAttributes: [{ origin: "IPA", code: "NEW-ATTR" }],
+        externalId: { origin: "IPA", value: "1" },
+        remoteIds: undefined,
+      },
+    ]);
+  });
+  it("should ignore istatCode and NOT assign remoteId if featureFlagAttributeCertifiedDiscrete is OFF", async () => {
+    const disabledConfig = {
+      ...config,
+      featureFlagAttributeCertifiedDiscrete: false,
+    };
+
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "1",
+        description: "tenant1",
+        attributes: [{ origin: "IPA", code: "NEW-ATTR" }],
+        istatCode: "001234",
+      },
+    ];
+
+    const platformAttributes: Attribute[] = [
+      {
+        id: unsafeBrandId(randomUUID()),
+        name: "NEW-ATTR",
+        code: "NEW-ATTR",
+        origin: "IPA",
+        kind: "Certified",
+        description: "",
+        creationTime: new Date(),
+      },
+    ];
+
+    const ipaTenants: Tenant[] = [
+      {
+        id: unsafeBrandId("1"),
+        selfcareId: "fake-selfcare-id",
+        externalId: { origin: "IPA", value: "1" },
+        features: [],
+        attributes: [],
+        remoteIds: [],
+        createdAt: new Date(),
+        mails: [],
+        name: "tenant 1",
+      },
+    ];
+
+    const attributesToAssign = await getAttributesToAssign(
+      ipaTenants,
+      platformAttributes,
+      tenantSeed,
+      disabledConfig,
       genericLogger
     );
 
