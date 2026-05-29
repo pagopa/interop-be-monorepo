@@ -329,6 +329,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
