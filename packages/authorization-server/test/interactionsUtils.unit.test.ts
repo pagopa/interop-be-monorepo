@@ -251,7 +251,7 @@ describe("interactions utils", () => {
         currentState: "callback_invocation",
         scope: "confirmation",
       })
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       isInteractionStateAllowedForScope({

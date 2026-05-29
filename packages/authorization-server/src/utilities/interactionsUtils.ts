@@ -40,6 +40,7 @@ const interactionStateAllowedByScope: Record<
     interactionState.getResource,
   ],
   [interactionState.confirmation]: [
+    interactionState.callbackInvocation,
     interactionState.getResource,
     interactionState.confirmation,
   ],
