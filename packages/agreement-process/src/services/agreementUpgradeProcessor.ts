@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
@@ -96,7 +97,10 @@ export async function createUpgradeOrNewDraft({
         consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
-      certifiedDiscreteAttributes: agreement.data.certifiedDiscreteAttributes,
+      certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+        newDescriptor,
+        consumer
+      ),
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByProducer: agreement.data.suspendedByProducer,

@@ -63,6 +63,7 @@ import {
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
@@ -715,6 +716,7 @@ export const upsertTenant = async (
     tenantSQL,
     mailsSQL,
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,
@@ -749,6 +751,12 @@ export const upsertTenant = async (
       await tx
         .insert(tenantCertifiedAttributeInReadmodelTenant)
         .values(certifiedAttributeSQL);
+    }
+
+    for (const certifiedDiscreteAttributeSQL of certifiedDiscreteAttributesSQL) {
+      await tx
+        .insert(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+        .values(certifiedDiscreteAttributeSQL);
     }
 
     for (const declaredAttributeSQL of declaredAttributesSQL) {
