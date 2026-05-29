@@ -140,6 +140,7 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
   };
 }
 

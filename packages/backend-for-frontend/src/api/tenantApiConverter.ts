@@ -194,6 +194,7 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
