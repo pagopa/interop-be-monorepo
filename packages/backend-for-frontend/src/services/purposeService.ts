@@ -4,6 +4,7 @@ import {
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,

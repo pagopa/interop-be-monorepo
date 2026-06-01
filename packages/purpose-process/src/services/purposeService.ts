@@ -516,9 +516,7 @@ export function purposeServiceBuilder(
         reviewerIds: string[];
       },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -569,7 +567,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: false },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
