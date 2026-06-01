@@ -16,9 +16,9 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
-  certifiedAttributesFailure,
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
+  evaluateCertifiedAttributesSuspension,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
 import {
@@ -259,7 +259,7 @@ function updateAgreementState(
     allowedStateTransitions(agreement.data.state).includes(finalState) &&
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
-    const attributesFailure = certifiedAttributesFailure(
+    const attributesFailure = evaluateCertifiedAttributesSuspension(
       descriptor.attributes,
       consumer.attributes
     );

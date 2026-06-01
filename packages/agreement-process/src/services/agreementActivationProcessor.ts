@@ -18,7 +18,7 @@ import {
   agreementState,
   genericError,
 } from "pagopa-interop-models";
-import { certifiedAttributesFailure } from "pagopa-interop-agreement-lifecycle";
+import { evaluateCertifiedAttributesSuspension } from "pagopa-interop-agreement-lifecycle";
 import { match, P } from "ts-pattern";
 import {
   agreementArchivableStates,
@@ -295,7 +295,10 @@ function maybeCreateSuspensionByPlatformEvents(
   ) {
     if (updatedAgreement.suspendedByPlatform) {
       const { suspensionReason, discreteAttributeFailure } =
-        certifiedAttributesFailure(descriptor.attributes, consumer.attributes);
+        evaluateCertifiedAttributesSuspension(
+          descriptor.attributes,
+          consumer.attributes
+        );
       return [
         toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,

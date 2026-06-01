@@ -83,21 +83,23 @@ export const certifiedAttributesSatisfied = (
       )
     );
 
-export const certifiedAttributesFailure = (
-  descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[]
-): {
+type CertifiedAttributeGroup = Descriptor["attributes"]["certified"][number];
+
+export type CertifiedAttributesSuspension = {
   suspensionReason: AgreementSuspensionReason | undefined;
   discreteAttributeFailure: CertifiedDiscreteAttributeFailure | undefined;
-} => {
-  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
-    return {
-      suspensionReason: undefined,
-      discreteAttributeFailure: undefined,
-    };
-  }
+};
 
-  const failingGroup = descriptorAttributes.certified
+const noCertifiedAttributesSuspension: CertifiedAttributesSuspension = {
+  suspensionReason: undefined,
+  discreteAttributeFailure: undefined,
+};
+
+const findUnsatisfiedCertifiedGroup = (
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
+): CertifiedAttributeGroup | undefined =>
+  descriptorAttributes.certified
     .filter((group) => group.length > 0)
     .find(
       (group) =>
@@ -106,13 +108,14 @@ export const certifiedAttributesFailure = (
         )
     );
 
-  if (!failingGroup) {
-    return {
-      suspensionReason: agreementSuspensionReason.certifiedAttribute,
-      discreteAttributeFailure: undefined,
-    };
-  }
+const groupRequiresDiscreteAttribute = (
+  group: CertifiedAttributeGroup
+): boolean => group.some((attribute) => "discreteConfig" in attribute);
 
+const findDiscreteThresholdFailure = (
+  failingGroup: CertifiedAttributeGroup,
+  tenantAttributes: TenantAttribute[]
+): CertifiedDiscreteAttributeFailure | undefined => {
   for (const descriptorAttribute of failingGroup) {
     if (!("discreteConfig" in descriptorAttribute)) {
       continue;
@@ -122,24 +125,55 @@ export const certifiedAttributesFailure = (
     );
     if (tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE) {
       return {
-        suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
-        discreteAttributeFailure: {
-          attributeId: descriptorAttribute.id,
-          tenantValue: tenantAttribute.discreteValue,
-          threshold: descriptorAttribute.discreteConfig.threshold,
-          comparator: descriptorAttribute.discreteConfig.comparator,
-        },
+        attributeId: descriptorAttribute.id,
+        tenantValue: tenantAttribute.discreteValue,
+        threshold: descriptorAttribute.discreteConfig.threshold,
+        comparator: descriptorAttribute.discreteConfig.comparator,
       };
     }
   }
+  return undefined;
+};
 
-  if (failingGroup.some((attr) => "discreteConfig" in attr)) {
+// Evaluates the descriptor's certified attributes against the tenant's and, when
+// they are not satisfied, returns the MOST SPECIFIC suspension reason possible
+export const evaluateCertifiedAttributesSuspension = (
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
+): CertifiedAttributesSuspension => {
+  // 1. All certified attributes are satisfied => no suspension.
+  if (certifiedAttributesSatisfied(descriptorAttributes, tenantAttributes)) {
+    return noCertifiedAttributesSuspension;
+  }
+
+  // 2. Something is missing so find the first unsatisfied group.
+  const failingGroup = findUnsatisfiedCertifiedGroup(
+    descriptorAttributes,
+    tenantAttributes
+  );
+
+  // 3. The tenant owns the discrete attribute, but its value is out of threshold
+  //    => specific reason with details.
+  const discreteFailure = failingGroup
+    ? findDiscreteThresholdFailure(failingGroup, tenantAttributes)
+    : undefined;
+  if (discreteFailure) {
+    return {
+      suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
+      discreteAttributeFailure: discreteFailure,
+    };
+  }
+
+  // 4. A discrete attribute was required, but the tenant does not own it at all
+  //    => same but without details.
+  if (failingGroup && groupRequiresDiscreteAttribute(failingGroup)) {
     return {
       suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
       discreteAttributeFailure: undefined,
     };
   }
 
+  // 5. A plain certified attribute was missing => generic reason.
   return {
     suspensionReason: agreementSuspensionReason.certifiedAttribute,
     discreteAttributeFailure: undefined,
