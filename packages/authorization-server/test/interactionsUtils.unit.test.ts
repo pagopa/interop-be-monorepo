@@ -159,8 +159,8 @@ describe("interactions utils", () => {
       consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
-      state: "callback_invocation",
-      callbackInvocationTokenIssuedAt: new Date().toISOString(),
+      state: "start_interaction",
+      startInteractionTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
