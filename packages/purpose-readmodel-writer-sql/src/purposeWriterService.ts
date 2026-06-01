@@ -20,7 +20,7 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
-  purposeReviewerInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -38,7 +38,7 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
       purposeVersionDocumentInReadmodelPurpose,
       purposeVersionStampInReadmodelPurpose,
       purposeVersionSignedDocumentInReadmodelPurpose,
-      purposeReviewerInReadmodelPurpose,
+      riskAnalysisReviewerInReadmodelPurpose,
     ];
 
     for (const table of purposeTables) {
@@ -126,7 +126,7 @@ export function purposeWriterServiceBuilder(db: DrizzleReturnType) {
 
         for (const reviewerSQL of reviewersSQL) {
           await tx
-            .insert(purposeReviewerInReadmodelPurpose)
+            .insert(riskAnalysisReviewerInReadmodelPurpose)
             .values(reviewerSQL);
         }
       });

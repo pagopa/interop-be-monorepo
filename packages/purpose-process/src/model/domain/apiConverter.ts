@@ -9,9 +9,11 @@ import {
   ReviewerWorkflow,
   RiskAnalysisMultiAnswer,
   RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
   riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
