@@ -216,7 +216,7 @@ export function assertUpdatedDescriptionDiffersFromCurrent(
 }
 
 export function assertDiscreteConfigForCertifiedAttributesOnly(
-  attributes: EserviceAttributes,
+  attributes: EserviceAttributes
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
