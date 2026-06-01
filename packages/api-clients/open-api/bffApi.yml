@@ -26092,38 +26092,6 @@ components:
           type: string
       required:
         - rejectionReason
-    RiskAnalysisReviewMode:
-      type: string
-      description: Risk analysis review mode
-      enum:
-        - REVIEWER_WRITES_REVIEWER_SIGNS
-        - ADMIN_WRITES_REVIEWER_SIGNS
-    ReviewerWorkflow:
-      type: object
-      additionalProperties: false
-      description: Reviewer workflow state for a purpose risk analysis
-      properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        signingState:
-          $ref: "#/components/schemas/RiskAnalysisSigningState"
-        signedBy:
-          type: string
-          format: uuid
-        rejectionReason:
-          type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
-      required:
-        - reviewMode
-        - reviewerIds
-        - signingState
     GoogleSAMLPayload:
       type: object
       additionalProperties: false
@@ -28902,15 +28870,6 @@ components:
         - REJECTED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
-    RiskAnalysisSigningState:
-      type: string
-      description: Risk analysis signing state
-      enum:
-        - DRAFT
-        - ASSIGNED
-        - SUBMITTED
-        - SIGNED
-        - REJECTED
     PurposeVersionSignedDocument:
       type: object
       additionalProperties: false
@@ -31054,6 +31013,47 @@ components:
         - "TRUE"
         - "FALSE"
         - DEFINED
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - ADMIN_WRITES_REVIEWER_SIGNS
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        rejectionReason:
+          type: string
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - reviewMode
+        - reviewerIds
+        - signingState
     ProblemError:
       properties:
         code:
