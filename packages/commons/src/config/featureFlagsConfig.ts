@@ -228,7 +228,7 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
   FeatureFlagUseSignedDocumentConfig &
   FeatureFlagDelegationConstraintSkipConfig &
-  FeatureFlagTenantKindInRiskAnalysisConfig;
+  FeatureFlagTenantKindInRiskAnalysisConfig &
   FeatureFlagNewOperatorsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
