@@ -85,6 +85,7 @@ describe("Purpose queries", () => {
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
+      const {
         purposeSQL,
         riskAnalysisFormSQL,
         riskAnalysisAnswersSQL,
