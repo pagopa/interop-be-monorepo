@@ -38,6 +38,7 @@ const asyncInteractionStateAllowedByScope: Record<
     interactionState.getResource,
   ],
   [interactionState.confirmation]: [
+    interactionState.callbackInvocation,
     interactionState.getResource,
     interactionState.confirmation,
   ],
@@ -128,7 +129,7 @@ async function readInteractionById(
   const queryResult = await dynamoDBClient.send(
     new QueryCommand({
       TableName: interactionsTable,
-      IndexName: "GSIPK_interactionId-index",
+      IndexName: "interactionId",
       KeyConditionExpression: "GSIPK_interactionId = :interactionId",
       ExpressionAttributeValues: {
         ":interactionId": { S: makeGSIPKInteractionId(interactionId) },
