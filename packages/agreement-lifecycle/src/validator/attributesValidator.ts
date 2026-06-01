@@ -43,6 +43,19 @@ export const discreteComparatorMatches = (
     .with(attributeCertifiedDiscreteComparator.NE, () => value !== threshold)
     .exhaustive();
 
+export const matchesCertifiedDiscreteAttribute = (
+  descriptorAttribute: EServiceAttributeCertifiedDiscrete,
+  tenantAttribute: TenantAttribute
+): boolean =>
+  tenantAttribute.id === descriptorAttribute.id &&
+  tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+  !tenantAttribute.revocationTimestamp &&
+  discreteComparatorMatches(
+    tenantAttribute.discreteValue,
+    descriptorAttribute.discreteConfig.threshold,
+    descriptorAttribute.discreteConfig.comparator
+  );
+
 export const matchesCertifiedDescriptorAttribute = (
   descriptorAttribute:
     | EServiceAttributeCertified
@@ -50,21 +63,14 @@ export const matchesCertifiedDescriptorAttribute = (
   tenantAttributes: TenantAttribute[]
 ): boolean =>
   tenantAttributes.some((tenantAttribute) => {
-    if (tenantAttribute.id !== descriptorAttribute.id) {
-      return false;
-    }
     if ("discreteConfig" in descriptorAttribute) {
-      return (
-        tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
-        !tenantAttribute.revocationTimestamp &&
-        discreteComparatorMatches(
-          tenantAttribute.discreteValue,
-          descriptorAttribute.discreteConfig.threshold,
-          descriptorAttribute.discreteConfig.comparator
-        )
+      return matchesCertifiedDiscreteAttribute(
+        descriptorAttribute,
+        tenantAttribute
       );
     }
     return (
+      tenantAttribute.id === descriptorAttribute.id &&
       (tenantAttribute.type === tenantAttributeType.CERTIFIED ||
         tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE) &&
       !tenantAttribute.revocationTimestamp
