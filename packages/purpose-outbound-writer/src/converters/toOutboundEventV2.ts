@@ -70,7 +70,6 @@ export function toOutboundEventV2(
       { type: "PurposeActivated" },
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -112,6 +111,8 @@ export function toOutboundEventV2(
     )
     .with(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisAssigned" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
