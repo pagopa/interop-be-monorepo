@@ -8,6 +8,7 @@ import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiAttribute } from "../../mockUtils.js";
+import { toCompactAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("API GET /attributes", () => {
   const defaultQuery = {
@@ -24,11 +25,7 @@ describe("API GET /attributes", () => {
     totalCount: 3,
   };
   const mockResponse: bffApi.Attributes = {
-    results: mockAttributes.results.map(({ id, name, kind }) => ({
-      id,
-      name,
-      kind,
-    })),
+    results: mockAttributes.results.map(toCompactAttribute),
     pagination: {
       offset: defaultQuery.offset,
       limit: defaultQuery.limit,
